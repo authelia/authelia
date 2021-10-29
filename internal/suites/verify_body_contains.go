@@ -6,18 +6,18 @@ import (
 	"testing"
 
 	"github.com/go-rod/rod"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/matryer/is"
 )
 
 func (rs *RodSession) verifyBodyContains(t *testing.T, page *rod.Page, pattern string) {
+	is := is.New(t)
 	body, err := page.Element("body")
-	assert.NoError(t, err)
-	assert.NotNil(t, body)
+	is.NoErr(err)
+	is.True(body != nil)
 
 	text, err := body.Text()
-	assert.NoError(t, err)
-	assert.NotNil(t, text)
+	is.NoErr(err)
+	is.True(text != "")
 
 	if strings.Contains(text, pattern) {
 		err = nil
@@ -25,5 +25,5 @@ func (rs *RodSession) verifyBodyContains(t *testing.T, page *rod.Page, pattern s
 		err = fmt.Errorf("body does not contain pattern: %s", pattern)
 	}
 
-	require.NoError(t, err)
+	is.NoErr(err)
 }

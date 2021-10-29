@@ -3,76 +3,47 @@ package suites
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
 
-type DefaultRedirectionURLScenario struct {
-	*RodSuite
-
-	secret string
-}
-
-func NewDefaultRedirectionURLScenario() *DefaultRedirectionURLScenario {
-	return &DefaultRedirectionURLScenario{
-		RodSuite: new(RodSuite),
-	}
-}
-
-func (s *DefaultRedirectionURLScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.RodSession = browser
-}
-
-func (s *DefaultRedirectionURLScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (s *DefaultRedirectionURLScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func (s *DefaultRedirectionURLScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
-
-func (s *DefaultRedirectionURLScenario) TestUserIsRedirectedToDefaultURL() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, targetURL)
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
-	s.doLogout(s.T(), s.Context(ctx))
-
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func TestShouldRunDefaultRedirectionURLScenario(t *testing.T) {
+func TestRunDefaultRedirectionURLScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewDefaultRedirectionURLScenario())
+	o := onpar.New()
+	defer o.Run(t)
+
+	o.Group("TestDefaultRedirectionURLScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
+
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
+
+		o.Spec("TestUserIsRedirectedToDefaultURL", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+			s.doVisit(s.Context(ctx), HomeBaseURL)
+			s.verifyIsHome(t, s.Page)
+			s.doLoginTwoFactor(t, s.Context(ctx), testUsername, testPassword, false, secret, targetURL)
+			s.verifySecretAuthorized(t, s.Context(ctx))
+			s.doLogout(t, s.Context(ctx))
+
+			s.doLoginTwoFactor(t, s.Context(ctx), testUsername, testPassword, false, secret, "")
+			s.verifyIsHome(t, s.Page)
+		})
+	})
 }

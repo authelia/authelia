@@ -56,7 +56,6 @@ func init() {
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
-		TestTimeout:     1 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 		Description: `This suite has been created to test Authelia with basic feature in a non highly-available setup.

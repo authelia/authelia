@@ -5,27 +5,22 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/stretchr/testify/require"
 )
 
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
-	err := usernameElement.Input(username)
-	require.NoError(t, err)
+	usernameElement.MustInput(username)
 
 	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	err = passwordElement.Input(password)
-	require.NoError(t, err)
+	passwordElement.MustInput(password)
 
 	if keepMeLoggedIn {
 		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		err = keepMeLoggedInElement.Click("left")
-		require.NoError(t, err)
+		keepMeLoggedInElement.MustClick()
 	}
 
 	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
-	err = buttonElement.Click("left")
-	require.NoError(t, err)
+	buttonElement.MustClick()
 }
 
 // Login 1FA.
@@ -49,7 +44,7 @@ func (rs *RodSession) doLoginTwoFactor(t *testing.T, page *rod.Page, username, p
 func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) string {
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, "")
 	secret := rs.doRegisterTOTP(t, page)
-	rs.doVisit(t, page, GetLoginBaseURL())
+	rs.doVisit(page, GetLoginBaseURL())
 	rs.verifyIsSecondFactorPage(t, page)
 
 	return secret

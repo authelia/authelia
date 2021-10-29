@@ -56,11 +56,6 @@ func StartRodWithProxy(proxy string) (*RodSession, error) {
 	}, nil
 }
 
-// StartRod create a rod/chromedp session.
-func StartRod() (*RodSession, error) {
-	return StartRodWithProxy("")
-}
-
 // Stop stop the rod/chromedp session.
 func (rs *RodSession) Stop() error {
 	err := rs.WebDriver.Close()
@@ -75,8 +70,7 @@ func (rs *RodSession) Stop() error {
 
 // WaitElementLocatedByClassName wait an element is located by class name.
 func (rs *RodSession) WaitElementLocatedByClassName(t *testing.T, page *rod.Page, className string) *rod.Element {
-	e, err := page.Element("." + className)
-	require.NoError(t, err)
+	e := page.MustElement("." + className)
 	require.NotNil(t, e)
 
 	return e
@@ -84,8 +78,7 @@ func (rs *RodSession) WaitElementLocatedByClassName(t *testing.T, page *rod.Page
 
 // WaitElementLocatedByID waits for an element located by an id.
 func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) *rod.Element {
-	e, err := page.Element("#" + cssSelector)
-	require.NoError(t, err)
+	e := page.MustElement("#" + cssSelector)
 	require.NotNil(t, e)
 
 	return e
@@ -93,8 +86,7 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 
 // WaitElementsLocatedByID waits for an elements located by an id.
 func (rs *RodSession) WaitElementsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) rod.Elements {
-	e, err := page.Elements("#" + cssSelector)
-	require.NoError(t, err)
+	e := page.MustElements("#" + cssSelector)
 	require.NotNil(t, e)
 
 	return e

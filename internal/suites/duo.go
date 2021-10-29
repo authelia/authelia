@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/matryer/is"
 
 	"github.com/authelia/authelia/v4/internal/duo"
 )
@@ -24,33 +24,36 @@ const (
 
 // ConfigureDuo configure duo api to allow or block auth requests.
 func ConfigureDuo(t *testing.T, allowDeny DuoPolicy) {
+	is := is.New(t)
+
 	url := fmt.Sprintf("%s/allow", DuoBaseURL)
 	if allowDeny == Deny {
 		url = fmt.Sprintf("%s/deny", DuoBaseURL)
 	}
 
 	req, err := http.NewRequest("POST", url, nil)
-	require.NoError(t, err)
+	is.NoErr(err)
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, 200, res.StatusCode)
+	is.NoErr(err)
+	is.Equal(200, res.StatusCode)
 }
 
 // ConfigureDuoPreAuth configure duo api to respond with available devices or enrollment Url.
 func ConfigureDuoPreAuth(t *testing.T, response duo.PreAuthResponse) {
+	is := is.New(t)
 	url := fmt.Sprintf("%s/preauth", DuoBaseURL)
 
 	body, err := json.Marshal(response)
-	require.NoError(t, err)
+	is.NoErr(err)
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	require.NoError(t, err)
+	is.NoErr(err)
 
 	client := NewHTTPClient()
 	res, err := client.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, 200, res.StatusCode)
+	is.NoErr(err)
+	is.Equal(200, res.StatusCode)
 }

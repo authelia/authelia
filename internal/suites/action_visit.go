@@ -5,24 +5,19 @@ import (
 	"testing"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/proto"
-	"github.com/stretchr/testify/assert"
 )
 
-func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
-	p, err := rs.WebDriver.MustIncognito().Page(proto.TargetCreateTarget{URL: url})
-	assert.NoError(t, err)
-
+func (rs *RodSession) doCreateTab(url string) *rod.Page {
+	p := rs.WebDriver.MustIncognito().MustPage(url)
 	return p
 }
 
-func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
-	err := page.Navigate(url)
-	assert.NoError(t, err)
+func (rs *RodSession) doVisit(page *rod.Page, url string) {
+	page.MustNavigate(url)
 }
 
 func (rs *RodSession) doVisitAndVerifyOneFactorStep(t *testing.T, page *rod.Page, url string) {
-	rs.doVisit(t, page, url)
+	rs.doVisit(page, url)
 	rs.verifyIsFirstFactorPage(t, page)
 }
 

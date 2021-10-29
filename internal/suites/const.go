@@ -56,6 +56,12 @@ const (
 	t            = "true"
 	testUsername = "john"
 	testPassword = "password"
+	badPassword  = "bad-password"
+)
+
+var (
+	methods []string
+	secret  = ""
 )
 
 var (

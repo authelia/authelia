@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/go-rod/rod"
-	"github.com/stretchr/testify/assert"
+	"github.com/matryer/is"
 )
 
 func (rs *RodSession) verifyNotificationDisplayed(t *testing.T, page *rod.Page, message string) {
-	el, err := page.ElementR(".notification", message)
-	assert.NoError(t, err)
-	assert.NotNil(t, el)
+	is := is.New(t)
+	el := page.MustElementR(".notification", message)
+	is.True(el != nil)
 }

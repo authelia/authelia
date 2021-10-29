@@ -3,135 +3,93 @@ package suites
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
 
-type InactivityScenario struct {
-	*RodSuite
-	secret string
-}
-
-func NewInactivityScenario() *InactivityScenario {
-	return &InactivityScenario{
-		RodSuite: new(RodSuite),
-	}
-}
-
-func (s *InactivityScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.RodSession = browser
-
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-
-		s.collectCoverage(s.Page)
-		s.MustClose()
-	}()
-
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, targetURL)
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
-}
-
-func (s *InactivityScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (s *InactivityScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func (s *InactivityScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
-
-func (s *InactivityScenario) TestShouldRequireReauthenticationAfterInactivityPeriod() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Context(ctx))
-
-	time.Sleep(6 * time.Second)
-
-	s.doVisit(s.T(), s.Context(ctx), targetURL)
-	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-}
-
-func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpiration() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
-
-	for i := 0; i < 3; i++ {
-		s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-		s.verifyIsHome(s.T(), s.Context(ctx))
-
-		time.Sleep(2 * time.Second)
-
-		s.doVisit(s.T(), s.Context(ctx), targetURL)
-		s.verifySecretAuthorized(s.T(), s.Context(ctx))
-	}
-
-	time.Sleep(2 * time.Second)
-
-	s.doVisit(s.T(), s.Context(ctx), targetURL)
-	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-}
-
-func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-
-	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", true, s.secret, "")
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Context(ctx))
-
-	time.Sleep(10 * time.Second)
-
-	s.doVisit(s.T(), s.Context(ctx), targetURL)
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
-}
-
-func TestInactivityScenario(t *testing.T) {
+func TestRunInactivityScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewInactivityScenario())
+	o := onpar.New()
+	defer o.Run(t)
+
+	o.Group("TestInactivityScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
+
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
+
+		o.Spec("TestShouldRequireReauthenticationAfterInactivityPeriod", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+			s.doLoginTwoFactor(t, s.Context(ctx), testUsername, testPassword, false, secret, "")
+			s.doVisit(s.Context(ctx), HomeBaseURL)
+			s.verifyIsHome(t, s.Context(ctx))
+
+			time.Sleep(6 * time.Second)
+
+			s.doVisit(s.Context(ctx), targetURL)
+			s.verifyIsFirstFactorPage(t, s.Context(ctx))
+		})
+
+		o.Spec("TestShouldRequireReauthenticationAfterCookieExpiration", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+			s.doLoginTwoFactor(t, s.Context(ctx), testUsername, testPassword, false, secret, "")
+
+			for i := 0; i < 3; i++ {
+				s.doVisit(s.Context(ctx), HomeBaseURL)
+				s.verifyIsHome(t, s.Context(ctx))
+
+				time.Sleep(2 * time.Second)
+
+				s.doVisit(s.Context(ctx), targetURL)
+				s.verifySecretAuthorized(t, s.Context(ctx))
+			}
+
+			time.Sleep(2 * time.Second)
+
+			s.doVisit(s.Context(ctx), targetURL)
+			s.verifyIsFirstFactorPage(t, s.Context(ctx))
+		})
+
+		o.Spec("TestShouldDisableCookieExpirationAndInactivity", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+			s.doLoginTwoFactor(t, s.Context(ctx), testUsername, testPassword, true, secret, "")
+			s.doVisit(s.Context(ctx), HomeBaseURL)
+			s.verifyIsHome(t, s.Context(ctx))
+
+			time.Sleep(10 * time.Second)
+
+			s.doVisit(s.Context(ctx), targetURL)
+			s.verifySecretAuthorized(t, s.Context(ctx))
+		})
+	})
 }

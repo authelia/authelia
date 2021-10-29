@@ -3,29 +3,20 @@ package suites
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type PostgresSuite struct {
-	*RodSuite
-}
-
-func NewPostgresSuite() *PostgresSuite {
-	return &PostgresSuite{RodSuite: new(RodSuite)}
-}
-
-func (s *PostgresSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
-}
-
-func (s *PostgresSuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
-}
 
 func TestPostgresSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewPostgresSuite())
+	o := onpar.New()
+	defer o.Run(t)
+
+	s := setupTest(t, "", true)
+	teardownTest(s)
+
+	TestRun1FAScenario(t)
+	TestRun2FAScenario(t)
 }

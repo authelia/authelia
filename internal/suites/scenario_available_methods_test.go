@@ -2,83 +2,66 @@ package suites
 
 import (
 	"context"
-	"log"
+	"testing"
 	"time"
+
+	"github.com/matryer/is"
+	"github.com/poy/onpar"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-type AvailableMethodsScenario struct {
-	*RodSuite
-
-	methods []string
-}
-
-func NewAvailableMethodsScenario(methods []string) *AvailableMethodsScenario {
-	return &AvailableMethodsScenario{
-		RodSuite: new(RodSuite),
-		methods:  methods,
-	}
-}
-
-func (s *AvailableMethodsScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
+func TestRunAvailableMethodsScenario(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
 	}
 
-	s.RodSession = browser
-}
+	o := onpar.New()
+	defer o.Run(t)
 
-func (s *AvailableMethodsScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
+	o.Group("TestAvailableMethodsScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
 
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
 
-func (s *AvailableMethodsScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
+		o.Spec("TestShouldCheckAvailableMethods", func(t *testing.T, s RodSuite) {
+			is := is.New(t)
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
 
-func (s *AvailableMethodsScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
+			s.doLoginOneFactor(t, s.Context(ctx), testUsername, testPassword, false, "")
 
-func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
+			methodsButton := s.WaitElementLocatedByID(t, s.Context(ctx), "methods-button")
+			err := methodsButton.Click("left")
+			is.NoErr(err)
 
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
+			methodsDialog := s.WaitElementLocatedByID(t, s.Context(ctx), "methods-dialog")
+			options, err := methodsDialog.Elements(".method-option")
+			is.NoErr(err)
+			is.True(len(options) == len(methods))
 
-	methodsButton := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "methods-button")
-	err := methodsButton.Click("left")
-	s.Assert().NoError(err)
+			optionsList := make([]string, 0)
 
-	methodsDialog := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "methods-dialog")
-	options, err := methodsDialog.Elements(".method-option")
-	s.Assert().NoError(err)
-	s.Assert().Len(options, len(s.methods))
+			for _, o := range options {
+				txt, err := o.Text()
+				is.NoErr(err)
 
-	optionsList := make([]string, 0)
+				optionsList = append(optionsList, txt)
+			}
 
-	for _, o := range options {
-		txt, err := o.Text()
-		s.Assert().NoError(err)
+			is.True(len(optionsList) == len(methods))
 
-		optionsList = append(optionsList, txt)
-	}
-
-	s.Assert().Len(optionsList, len(s.methods))
-
-	for _, m := range s.methods {
-		s.Assert().True(utils.IsStringInSlice(m, optionsList))
-	}
+			for _, m := range methods {
+				is.True(utils.IsStringInSlice(m, optionsList))
+			}
+		})
+	})
 }

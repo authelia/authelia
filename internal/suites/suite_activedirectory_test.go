@@ -3,41 +3,23 @@ package suites
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type ActiveDirectorySuite struct {
-	*RodSuite
-}
-
-func NewActiveDirectorySuite() *ActiveDirectorySuite {
-	return &ActiveDirectorySuite{RodSuite: new(RodSuite)}
-}
-
-func (s *ActiveDirectorySuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
-}
-
-func (s *ActiveDirectorySuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
-}
-
-func (s *ActiveDirectorySuite) TestResetPassword() {
-	suite.Run(s.T(), NewResetPasswordScenario())
-}
-
-func (s *ActiveDirectorySuite) TestPasswordComplexity() {
-	suite.Run(s.T(), NewPasswordComplexityScenario())
-}
-
-func (s *ActiveDirectorySuite) TestSigninEmailScenario() {
-	suite.Run(s.T(), NewSigninEmailScenario())
-}
 
 func TestActiveDirectorySuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewActiveDirectorySuite())
+	o := onpar.New()
+	defer o.Run(t)
+
+	s := setupTest(t, "", true)
+	teardownTest(s)
+
+	TestRun1FAScenario(t)
+	TestRun2FAScenario(t)
+	TestRunResetPasswordScenario(t)
+	TestRunPasswordComplexityScenario(t)
+	TestRunSigninEmailScenario(t)
 }

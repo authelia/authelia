@@ -3,33 +3,21 @@ package suites
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type ShortTimeoutsSuite struct {
-	*RodSuite
-}
-
-func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
-	return &ShortTimeoutsSuite{RodSuite: new(RodSuite)}
-}
-
-func (s *ShortTimeoutsSuite) TestDefaultRedirectionURLScenario() {
-	suite.Run(s.T(), NewDefaultRedirectionURLScenario())
-}
-
-func (s *ShortTimeoutsSuite) TestInactivityScenario() {
-	suite.Run(s.T(), NewInactivityScenario())
-}
-
-func (s *ShortTimeoutsSuite) TestRegulationScenario() {
-	suite.Run(s.T(), NewRegulationScenario())
-}
 
 func TestShortTimeoutsSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewShortTimeoutsSuite())
+	o := onpar.New()
+	defer o.Run(t)
+
+	s := setupTest(t, "", true)
+	teardownTest(s)
+
+	TestRunDefaultRedirectionURLScenario(t)
+	TestRunInactivityScenario(t)
+	TestRunRegulationScenario(t)
 }

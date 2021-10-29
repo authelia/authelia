@@ -53,7 +53,7 @@ func init() {
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
-		TestTimeout:     3 * time.Minute,
+		TestTimeout:     2 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 		Description: `This suite has been created to configure Authelia with short timeouts for sessions expiration

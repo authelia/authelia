@@ -10,66 +10,9 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"github.com/stretchr/testify/suite"
+	"github.com/matryer/is"
+	"github.com/poy/onpar"
 )
-
-type CustomHeadersScenario struct {
-	*RodSuite
-}
-
-func NewCustomHeadersScenario() *CustomHeadersScenario {
-	return &CustomHeadersScenario{
-		RodSuite: new(RodSuite),
-	}
-}
-
-func (s *CustomHeadersScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.RodSession = browser
-}
-
-func (s *CustomHeadersScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (s *CustomHeadersScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func (s *CustomHeadersScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
-
-func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticatedUser() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/headers", PublicBaseURL))
-
-	body, err := s.Context(ctx).Element("body")
-	s.Assert().NoError(err)
-
-	b, err := body.Text()
-	s.Assert().NoError(err)
-	s.Assert().NotContains(b, "john")
-	s.Assert().NotContains(b, "admins")
-	s.Assert().NotContains(b, "John Doe")
-	s.Assert().NotContains(b, "john.doe@authelia.com")
-}
 
 type Headers struct {
 	ForwardedEmail  string `json:"Remote-Email"`
@@ -82,53 +25,84 @@ type HeadersPayload struct {
 	Headers Headers `json:"headers"`
 }
 
-func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUser() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	expectedGroups := mapset.NewSetWith("dev", "admins")
-
-	targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
-	s.verifyIsPublic(s.T(), s.Context(ctx))
-
-	body, err := s.Context(ctx).Element("body")
-	s.Assert().NoError(err)
-	s.Assert().NotNil(body)
-
-	content, err := body.Text()
-	s.Assert().NoError(err)
-	s.Assert().NotNil(content)
-
-	payload := HeadersPayload{}
-	if err := json.Unmarshal([]byte(content), &payload); err != nil {
-		log.Panic(err)
-	}
-
-	groups := strings.Split(payload.Headers.ForwardedGroups, ",")
-	actualGroups := mapset.NewSet()
-
-	for _, group := range groups {
-		actualGroups.Add(group)
-	}
-
-	if strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups) &&
-		strings.Contains(payload.Headers.ForwardedName, "John Doe") && strings.Contains(payload.Headers.ForwardedEmail, "john.doe@authelia.com") {
-		err = nil
-	} else {
-		err = fmt.Errorf("headers do not include user information")
-	}
-
-	s.Require().NoError(err)
-}
-
-func TestCustomHeadersScenario(t *testing.T) {
+func TestRunCustomHeadersScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewCustomHeadersScenario())
+	o := onpar.New()
+	defer o.Run(t)
+
+	o.Group("TestCustomHeadersScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
+
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
+
+		o.Spec("TestShouldNotForwardCustomHeaderForUnauthenticatedUser", func(t *testing.T, s RodSuite) {
+			is := is.New(t)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			s.doVisit(s.Context(ctx), fmt.Sprintf("%s/headers", PublicBaseURL))
+
+			body, err := s.Context(ctx).Element("body")
+			is.NoErr(err)
+
+			b, err := body.Text()
+			is.NoErr(err)
+			is.True(!strings.Contains(b, testUsername))
+			is.True(!strings.Contains(b, "admins"))
+			is.True(!strings.Contains(b, "John Doe"))
+			is.True(!strings.Contains(b, "john.doe@authelia.com"))
+		})
+
+		o.Spec("TestShouldForwardCustomHeaderForAuthenticatedUser", func(t *testing.T, s RodSuite) {
+			is := is.New(t)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			expectedGroups := mapset.NewSetWith("dev", "admins")
+
+			targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
+			s.doLoginOneFactor(t, s.Context(ctx), testUsername, testPassword, false, targetURL)
+			s.verifyIsPublic(t, s.Context(ctx))
+
+			body, err := s.Context(ctx).Element("body")
+			is.NoErr(err)
+
+			content, err := body.Text()
+			is.NoErr(err)
+
+			payload := HeadersPayload{}
+			if err := json.Unmarshal([]byte(content), &payload); err != nil {
+				log.Panic(err)
+			}
+
+			groups := strings.Split(payload.Headers.ForwardedGroups, ",")
+			actualGroups := mapset.NewSet()
+
+			for _, group := range groups {
+				actualGroups.Add(group)
+			}
+
+			if strings.Contains(payload.Headers.ForwardedUser, testUsername) && expectedGroups.Equal(actualGroups) &&
+				strings.Contains(payload.Headers.ForwardedName, "John Doe") && strings.Contains(payload.Headers.ForwardedEmail, "john.doe@authelia.com") {
+				err = nil
+			} else {
+				err = fmt.Errorf("headers do not include user information")
+			}
+			is.NoErr(err)
+		})
+	})
 }

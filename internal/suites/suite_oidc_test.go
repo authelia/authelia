@@ -3,25 +3,19 @@ package suites
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type OIDCSuite struct {
-	*RodSuite
-}
-
-func NewOIDCSuite() *OIDCSuite {
-	return &OIDCSuite{RodSuite: new(RodSuite)}
-}
-
-func (s *OIDCSuite) TestOIDCScenario() {
-	suite.Run(s.T(), NewOIDCScenario())
-}
 
 func TestOIDCSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewOIDCSuite())
+	o := onpar.New()
+	defer o.Run(t)
+
+	s := setupTest(t, "", true)
+	teardownTest(s)
+
+	TestRunOIDCScenario(t)
 }

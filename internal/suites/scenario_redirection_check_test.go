@@ -2,50 +2,11 @@ package suites
 
 import (
 	"context"
-	"log"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type RedirectionCheckScenario struct {
-	*RodSuite
-}
-
-func NewRedirectionCheckScenario() *RedirectionCheckScenario {
-	return &RedirectionCheckScenario{
-		RodSuite: new(RodSuite),
-	}
-}
-
-func (s *RedirectionCheckScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.RodSession = browser
-}
-
-func (s *RedirectionCheckScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (s *RedirectionCheckScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func (s *RedirectionCheckScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
 
 var redirectionAuthorizations = map[string]bool{
 	// external website.
@@ -56,30 +17,6 @@ var redirectionAuthorizations = map[string]bool{
 	"http://secure.example.com:8080/secret.html": false,
 	// Domain handled by Authelia.
 	"https://secure.example.com:8080/secret.html": true,
-}
-
-func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe() {
-	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	secret := s.doRegisterThenLogout(s.T(), s.Context(ctx), "john", "password")
-
-	for url, redirected := range redirectionAuthorizations {
-		s.T().Run(url, func(t *testing.T) {
-			s.doLoginTwoFactor(t, s.Context(ctx), "john", "password", false, secret, url)
-
-			if redirected {
-				s.verifySecretAuthorized(t, s.Context(ctx))
-			} else {
-				s.verifyIsAuthenticatedPage(t, s.Context(ctx))
-			}
-
-			s.doLogout(t, s.Context(ctx))
-		})
-	}
 }
 
 var logoutRedirectionURLs = map[string]bool{
@@ -93,24 +30,58 @@ var logoutRedirectionURLs = map[string]bool{
 	"https://public.example.com:8080/index.html": true,
 }
 
-func (s *RedirectionCheckScenario) TestShouldRedirectOnLogoutOnlyWhenDomainIsSafe() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	for url, success := range logoutRedirectionURLs {
-		s.T().Run(url, func(t *testing.T) {
-			s.doLogoutWithRedirect(t, s.Context(ctx), url, !success)
-		})
-	}
-}
-
-func TestRedirectionCheckScenario(t *testing.T) {
+func TestRunRedirectionCheckScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewRedirectionCheckScenario())
+	o := onpar.New()
+	defer o.Run(t)
+
+	o.Group("TestRedirectionCheckScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
+
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
+
+		o.Spec("TestShouldRedirectOnLoginOnlyWhenDomainIsSafe", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			for url, redirected := range redirectionAuthorizations {
+				t.Run(url, func(t *testing.T) {
+					s.doLoginTwoFactor(t, s.Context(ctx), testUsername, testPassword, false, secret, url)
+
+					if redirected {
+						s.verifySecretAuthorized(t, s.Context(ctx))
+					} else {
+						s.verifyIsAuthenticatedPage(t, s.Context(ctx))
+					}
+
+					s.doLogout(t, s.Context(ctx))
+				})
+			}
+		})
+
+		o.Spec("TestShouldRedirectOnLogoutOnlyWhenDomainIsSafe", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			for url, success := range logoutRedirectionURLs {
+				t.Run(url, func(t *testing.T) {
+					s.doLogoutWithRedirect(t, s.Context(ctx), url, !success)
+				})
+			}
+		})
+	})
 }

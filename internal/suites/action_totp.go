@@ -6,23 +6,22 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/matryer/is"
 	"github.com/pquerna/otp/totp"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page) string {
-	err := rs.WaitElementLocatedByID(t, page, "register-link").Click("left")
-	require.NoError(t, err)
-	rs.verifyMailNotificationDisplayed(t, page)
-	link := doGetLinkFromLastMail(t)
-	rs.doVisit(t, page, link)
-	secretURL, err := page.MustElement("#secret-url").Attribute("value")
-	assert.NoError(t, err)
+	is := is.New(t)
 
+	rs.WaitElementLocatedByID(t, page, "register-link").MustClick()
+	rs.verifyMailNotificationDisplayed(t, page)
+
+	link := doGetLinkFromLastMail(t)
+	rs.doVisit(page, link)
+
+	secretURL := page.MustElement("#secret-url").MustAttribute("value")
 	secret := (*secretURL)[strings.LastIndex(*secretURL, "=")+1:]
-	assert.NotEqual(t, "", secret)
-	assert.NotNil(t, secret)
+	is.True(secret != "")
 
 	return secret
 }
@@ -36,7 +35,8 @@ func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, code string) {
 }
 
 func (rs *RodSession) doValidateTOTP(t *testing.T, page *rod.Page, secret string) {
+	is := is.New(t)
 	code, err := totp.GenerateCode(secret, time.Now())
-	assert.NoError(t, err)
+	is.NoErr(err)
 	rs.doEnterOTP(t, page, code)
 }

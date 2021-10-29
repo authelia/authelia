@@ -3,29 +3,20 @@ package suites
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type MySQLSuite struct {
-	*RodSuite
-}
-
-func NewMySQLSuite() *MySQLSuite {
-	return &MySQLSuite{RodSuite: new(RodSuite)}
-}
-
-func (s *MySQLSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
-}
-
-func (s *MySQLSuite) Test2FAScenario() {
-	suite.Run(s.T(), New2FAScenario())
-}
 
 func TestMySQLSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewMySQLSuite())
+	o := onpar.New()
+	defer o.Run(t)
+
+	s := setupTest(t, "", true)
+	teardownTest(s)
+
+	TestRun1FAScenario(t)
+	TestRun2FAScenario(t)
 }

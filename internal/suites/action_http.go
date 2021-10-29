@@ -5,17 +5,18 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/matryer/is"
 )
 
 func doHTTPGetQuery(t *testing.T, url string) []byte {
+	is := is.New(t)
 	client := NewHTTPClient()
 	req, err := http.NewRequest("GET", url, nil)
-	assert.NoError(t, err)
+	is.NoErr(err)
 
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
-	assert.NoError(t, err)
+	is.NoErr(err)
 
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)

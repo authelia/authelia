@@ -28,11 +28,13 @@ var runningSuiteFile = ".suite"
 
 var failfast bool
 var headless bool
+var parallel int
 var testPattern string
 
 func init() {
 	SuitesTestCmd.Flags().BoolVar(&failfast, "failfast", false, "Stops tests on first failure")
 	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
+	SuitesTestCmd.Flags().IntVar(&parallel, "parallel", 1, "Run tests in parallel with n jobs")
 	SuitesTestCmd.Flags().StringVar(&testPattern, "test", "", "The single test to run")
 }
 
@@ -286,7 +288,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 		fail = "-failfast"
 	}
 
-	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s %s ", timeout, fail)
+	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s %s -parallel=%v ", timeout, fail, parallel)
 
 	if testPattern != "" {
 		testCmdLine += fmt.Sprintf("-run '%s'", testPattern)

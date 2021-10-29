@@ -2,68 +2,43 @@ package suites
 
 import (
 	"context"
-	"log"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
-
-type PasswordComplexityScenario struct {
-	*RodSuite
-}
-
-func NewPasswordComplexityScenario() *PasswordComplexityScenario {
-	return &PasswordComplexityScenario{RodSuite: new(RodSuite)}
-}
-
-func (s *PasswordComplexityScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.RodSession = browser
-}
-
-func (s *PasswordComplexityScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (s *PasswordComplexityScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func (s *PasswordComplexityScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
-
-func (s *PasswordComplexityScenario) TestShouldRejectPasswordReset() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
-	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
-
-	// Attempt to reset the password to a.
-	s.doResetPassword(s.T(), s.Context(ctx), "john", "a", "a", true)
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Your supplied password does not meet the password policy requirements.")
-}
 
 func TestRunPasswordComplexityScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewPasswordComplexityScenario())
+	o := onpar.New()
+	defer o.Run(t)
+
+	o.Group("TestPasswordComplexityScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
+
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
+
+		o.Spec("TestShouldRejectPasswordReset", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			s.doVisit(s.Context(ctx), GetLoginBaseURL())
+			s.verifyIsFirstFactorPage(t, s.Context(ctx))
+
+			// Attempt to reset the password to a.
+			s.doResetPassword(t, s.Context(ctx), "harry", "a", "a", true)
+			s.verifyNotificationDisplayed(t, s.Context(ctx), "Your supplied password does not meet the password policy requirements.")
+		})
+	})
 }

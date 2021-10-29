@@ -3,68 +3,41 @@ package suites
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/poy/onpar"
 )
 
-type RedirectionURLScenario struct {
-	*RodSuite
-}
-
-func NewRedirectionURLScenario() *RedirectionURLScenario {
-	return &RedirectionURLScenario{
-		RodSuite: new(RodSuite),
-	}
-}
-
-func (s *RedirectionURLScenario) SetupSuite() {
-	browser, err := StartRod()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.RodSession = browser
-}
-
-func (s *RedirectionURLScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (s *RedirectionURLScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
-}
-
-func (s *RedirectionURLScenario) TearDownTest() {
-	s.collectCoverage(s.Page)
-	s.MustClose()
-}
-
-func (s *RedirectionURLScenario) TestShouldVerifyCustomURLParametersArePropagatedAfterRedirection() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer func() {
-		cancel()
-		s.collectScreenshot(ctx.Err(), s.Page)
-	}()
-
-	targetURL := fmt.Sprintf("%s/secret.html?myparam=test", SingleFactorBaseURL)
-	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
-	s.verifyURLIs(s.T(), s.Context(ctx), targetURL)
-}
-
-func TestRedirectionURLScenario(t *testing.T) {
+func TestRunRedirectionURLScenario(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewRedirectionURLScenario())
+	o := onpar.New()
+	defer o.Run(t)
+
+	o.Group("TestRedirectionURLScenario", func() {
+		o.BeforeEach(func(t *testing.T) (*testing.T, RodSuite) {
+			s := setupTest(t, "", false)
+			return t, s
+		})
+
+		o.AfterEach(func(t *testing.T, s RodSuite) {
+			teardownTest(s)
+		})
+
+		o.Spec("TestShouldVerifyCustomURLParametersArePropagatedAfterRedirection", func(t *testing.T, s RodSuite) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), s.Page)
+			}()
+
+			targetURL := fmt.Sprintf("%s/secret.html?myparam=test", SingleFactorBaseURL)
+			s.doLoginOneFactor(t, s.Context(ctx), testUsername, testPassword, false, targetURL)
+			s.verifySecretAuthorized(t, s.Context(ctx))
+			s.verifyURLIs(t, s.Context(ctx), targetURL)
+		})
+	})
 }

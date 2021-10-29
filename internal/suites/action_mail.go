@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/matryer/is"
 )
 
 type message struct {
@@ -14,20 +14,20 @@ type message struct {
 }
 
 func doGetLinkFromLastMail(t *testing.T) string {
+	is := is.New(t)
 	res := doHTTPGetQuery(t, fmt.Sprintf("%s/messages", MailBaseURL))
 	messages := make([]message, 0)
 	err := json.Unmarshal(res, &messages)
-	assert.NoError(t, err)
-	assert.Greater(t, len(messages), 0)
+	is.NoErr(err)
+	is.True(len(messages) > 0)
 
 	messageID := messages[len(messages)-1].ID
 
 	res = doHTTPGetQuery(t, fmt.Sprintf("%s/messages/%d.html", MailBaseURL, messageID))
 
-	re := regexp.MustCompile(`<a href="(.+)" class="button">.*<\/a>`)
+	re := regexp.MustCompile(`<a href="(.+)" class="button">.*</a>`)
 	matches := re.FindStringSubmatch(string(res))
-
-	assert.Len(t, matches, 2, "Number of match for link in email is not equal to one")
+	is.True(len(matches) == 2)
 
 	return matches[1]
 }

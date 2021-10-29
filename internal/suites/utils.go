@@ -8,9 +8,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/matryer/is"
+
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
@@ -101,4 +105,73 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	}
 
 	return nil
+}
+
+func setupTest(t *testing.T, proxy string, register bool) RodSuite {
+	s := RodSuite{}
+
+	browser, err := StartRodWithProxy(proxy)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s.RodSession = browser
+
+	if proxy == "" {
+		s.Page = s.doCreateTab(HomeBaseURL)
+		s.verifyIsHome(t, s.Page)
+	}
+
+	if register {
+		secret = s.doLoginAndRegisterTOTP(t, s.Page, testUsername, testPassword, false)
+	}
+
+	return s
+}
+
+func setupCLITest() (s *CommandSuite) {
+	s = &CommandSuite{}
+
+	dockerEnvironment := NewDockerEnvironment([]string{
+		"internal/suites/docker-compose.yml",
+		"internal/suites/CLI/docker-compose.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+	})
+	s.DockerEnvironment = dockerEnvironment
+
+	testArg := ""
+	coverageArg := ""
+
+	if os.Getenv("CI") == t {
+		testArg = "-test.coverprofile=/authelia/coverage-$(date +%s).txt"
+		coverageArg = "COVERAGE"
+	}
+
+	s.testArg = testArg
+	s.coverageArg = coverageArg
+
+	return s
+}
+
+func teardownTest(s RodSuite) {
+	s.collectCoverage(s.Page)
+	s.MustClose()
+	err := s.RodSession.Stop()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func teardownDuoTest(t *testing.T, s RodSuite) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	is := is.New(t)
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	is.NoErr(provider.SavePreferred2FAMethod(ctx, "john", "totp"))
+	is.NoErr(provider.DeletePreferredDuoDevice(ctx, "john"))
 }
