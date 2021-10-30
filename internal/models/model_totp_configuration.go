@@ -1,6 +1,6 @@
 package models
 
-// TOTPConfiguration represents a users TOTP configuration.
+// TOTPConfiguration represents a users TOTP configuration row in the database.
 type TOTPConfiguration struct {
 	ID        int    `db:"id"`
 	Username  string `db:"username"`

@@ -1,6 +1,6 @@
 package models
 
-// U2FDevice represents a users U2F device.
+// U2FDevice represents a users U2F device row in the database.
 type U2FDevice struct {
 	ID          int    `db:"id"`
 	Username    string `db:"username"`

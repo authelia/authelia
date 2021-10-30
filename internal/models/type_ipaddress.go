@@ -6,6 +6,7 @@ import (
 	"net"
 )
 
+// IPAddress is a type specific for storage of a net.IP in the database.
 type IPAddress struct {
 	*net.IP
 }
