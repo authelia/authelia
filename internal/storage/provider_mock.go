@@ -4,13 +4,13 @@
 package storage
 
 import (
-	"context"
-	"reflect"
-	"time"
+	context "context"
+	reflect "reflect"
+	time "time"
 
-	"github.com/authelia/authelia/v4/internal/models"
-	"github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
+	models "github.com/authelia/authelia/v4/internal/models"
+	gomock "github.com/golang/mock/gomock"
+	logrus "github.com/sirupsen/logrus"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -207,6 +207,64 @@ func (m *MockProvider) SaveU2FDevice(arg0 context.Context, arg1 models.U2FDevice
 func (mr *MockProviderMockRecorder) SaveU2FDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDevice", reflect.TypeOf((*MockProvider)(nil).SaveU2FDevice), arg0, arg1)
+}
+
+// SchemaMigrate mocks base method.
+func (m *MockProvider) SchemaMigrate(arg0 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaMigrate", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SchemaMigrate indicates an expected call of SchemaMigrate.
+func (mr *MockProviderMockRecorder) SchemaMigrate(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrate", reflect.TypeOf((*MockProvider)(nil).SchemaMigrate), arg0)
+}
+
+// SchemaMigrateLatest mocks base method.
+func (m *MockProvider) SchemaMigrateLatest() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaMigrateLatest")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SchemaMigrateLatest indicates an expected call of SchemaMigrateLatest.
+func (mr *MockProviderMockRecorder) SchemaMigrateLatest() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrateLatest", reflect.TypeOf((*MockProvider)(nil).SchemaMigrateLatest))
+}
+
+// SchemaTables mocks base method.
+func (m *MockProvider) SchemaTables() ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaTables")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SchemaTables indicates an expected call of SchemaTables.
+func (mr *MockProviderMockRecorder) SchemaTables() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaTables", reflect.TypeOf((*MockProvider)(nil).SchemaTables))
+}
+
+// SchemaVersion mocks base method.
+func (m *MockProvider) SchemaVersion() (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaVersion")
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SchemaVersion indicates an expected call of SchemaVersion.
+func (mr *MockProviderMockRecorder) SchemaVersion() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaVersion", reflect.TypeOf((*MockProvider)(nil).SchemaVersion))
 }
 
 // StartupCheck mocks base method.

@@ -9,6 +9,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// SchemaTables returns a list of tables.
 func (p *SQLProvider) SchemaTables() (tables []string, err error) {
 	rows, err := p.db.Query(p.sqlSelectExistingTables)
 	if err != nil {
@@ -36,6 +37,7 @@ func (p *SQLProvider) SchemaTables() (tables []string, err error) {
 	return tables, nil
 }
 
+// SchemaVersion returns the version of the schema.
 func (p *SQLProvider) SchemaVersion() (version int, err error) {
 	tables, err := p.SchemaTables()
 	if err != nil {
@@ -69,6 +71,31 @@ func (p *SQLProvider) SchemaVersion() (version int, err error) {
 	return -2, errors.New("unknown schema state")
 }
 
+// SchemaMigrate migrates from the current version to the provided version.
+func (p *SQLProvider) SchemaMigrate(version int) (err error) {
+	currentVersion, err := p.SchemaVersion()
+	if err != nil {
+		return err
+	}
+
+	return p.schemaMigrate(currentVersion, version)
+}
+
+// SchemaMigrateLatest migrates from the current version to the latest version.
+func (p *SQLProvider) SchemaMigrateLatest() (err error) {
+	currentVersion, err := p.SchemaVersion()
+	if err != nil {
+		return err
+	}
+
+	err = p.schemaMigrate(currentVersion, 2147483647)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *SQLProvider) schemaLatestMigration() (migration *models.Migration, err error) {
 	migration = &models.Migration{}
 
@@ -78,20 +105,6 @@ func (p *SQLProvider) schemaLatestMigration() (migration *models.Migration, err 
 	}
 
 	return migration, nil
-}
-
-func (p *SQLProvider) SchemaMigrateLatest() (err error) {
-	currentVersion, err := p.SchemaVersion()
-	if err != nil {
-		p.log.Fatal(err)
-	}
-
-	err = p.schemaMigrate(currentVersion, 2147483647)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {

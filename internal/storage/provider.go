@@ -26,6 +26,11 @@ type Provider interface {
 
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
+
+	SchemaTables() (tables []string, err error)
+	SchemaVersion() (version int, err error)
+	SchemaMigrate(version int) (err error)
+	SchemaMigrateLatest() (err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
