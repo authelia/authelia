@@ -89,7 +89,7 @@ func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
 
 	p.log = logger
 
-	if p.name == "postgres" {
+	if p.name == providerPostgres {
 		p.rebind()
 	}
 

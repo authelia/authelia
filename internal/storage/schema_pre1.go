@@ -32,7 +32,7 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 			return err
 		}
 
-		if p.name == "postgres" && (table == tableU2FDevices || table == tableUserPreferences) {
+		if p.name == providerPostgres && (table == tableU2FDevices || table == tableUserPreferences) {
 			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 				tableNew, table, tableNew)); err != nil {
 				continue
@@ -108,7 +108,7 @@ func (p *SQLProvider) schemaMigratePre1To1Rollback() (err error) {
 				return err
 			}
 
-			if p.name == "postgres" && (tableNew == tableU2FDevices || tableNew == tableUserPreferences) {
+			if p.name == providerPostgres && (tableNew == tableU2FDevices || tableNew == tableUserPreferences) {
 				if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 					tableNew, table, tableNew)); err != nil {
 					continue
@@ -271,7 +271,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1() (err error) {
 			return err
 		}
 
-		if p.name == "postgres" && (table == tableU2FDevices || table == tableUserPreferences) {
+		if p.name == providerPostgres && (table == tableU2FDevices || table == tableUserPreferences) {
 			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 				tableNew, table, tableNew)); err != nil {
 				continue
