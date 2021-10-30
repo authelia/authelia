@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang-jwt/jwt/v4"
 
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 

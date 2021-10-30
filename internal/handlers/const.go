@@ -74,6 +74,12 @@ const (
 )
 
 const (
+	totpAlgoSHA1   = "SHA1"
+	totpAlgoSHA256 = "SHA256"
+	totpAlgoSHA512 = "SHA512"
+)
+
+const (
 	accept = "accept"
 	reject = "reject"
 )

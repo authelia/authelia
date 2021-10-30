@@ -53,7 +53,6 @@ type SQLProvider struct {
 	db         *sqlx.DB
 	log        *logrus.Logger
 	name       string
-	prefix     string
 	driverName string
 	errOpen    error
 

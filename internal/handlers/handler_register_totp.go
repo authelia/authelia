@@ -3,11 +3,11 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 

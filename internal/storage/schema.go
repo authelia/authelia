@@ -51,7 +51,6 @@ func (p *SQLProvider) SchemaVersion() (version int, err error) {
 	if utils.IsStringInSlice(tableUserPreferences, tables) && utils.IsStringInSlice(tablePre1TOTPSecrets, tables) &&
 		utils.IsStringInSlice(tableU2FDevices, tables) && utils.IsStringInSlice(tableAuthenticationLogs, tables) &&
 		utils.IsStringInSlice(tablePre1IdentityVerificationTokens, tables) && !utils.IsStringInSlice(tableMigrations, tables) {
-
 		if len(tables) == 5 || len(tables) == 6 && utils.IsStringInSlice(tablePre1Config, tables) {
 			return -1, nil
 		}
@@ -120,8 +119,10 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 	}
 
 	var trackPrior = prior
+
 	if prior == -1 {
 		p.log.Infof("Storage schema migration from pre1 to %d is being attempted", migrations[len(migrations)-1].Version)
+
 		err = p.schemaMigratePre1To1()
 		if err != nil {
 			if errRollback := p.schemaMigratePre1To1Rollback(); errRollback != nil {
@@ -172,7 +173,7 @@ func (p *SQLProvider) schemaMigrateRollback(prior, trackPrior int, migrateErr er
 	}
 
 	if prior == -1 {
-
+		// TODO: implement rollback here.
 	}
 
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)

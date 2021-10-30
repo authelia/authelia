@@ -5,13 +5,13 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
