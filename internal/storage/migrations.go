@@ -66,7 +66,7 @@ func loadMigration(providerName string, version int, up bool) (migration *schema
 			continue
 		}
 
-		if migration.Provider != "all" && migration.Provider != providerName {
+		if migration.Provider != providerAll && migration.Provider != providerName {
 			continue
 		}
 
@@ -105,7 +105,7 @@ func loadMigrations(providerName string, prior, target int) (migrations []schema
 			return nil, err
 		}
 
-		if migration.Provider != "all" && migration.Provider != providerName {
+		if migration.Provider != providerAll && migration.Provider != providerName {
 			continue
 		}
 
@@ -179,7 +179,7 @@ func scanMigration(m string) (migration schemaMigration, err error) {
 	migration.Version, _ = strconv.Atoi(result[1])
 
 	switch migration.Provider {
-	case "all", "sqlite", "mysql", "postgres":
+	case providerAll, provideerSQLite, providerMySQL, providerPostgres:
 		break
 	default:
 		return schemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
