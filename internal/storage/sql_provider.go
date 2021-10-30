@@ -24,19 +24,19 @@ func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvid
 
 		sqlFmtRenameTable: queryFmtRenameTable,
 
-		sqlUpsertPreferred2FAMethod:           fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
-		sqlSelectPreferred2FAMethodByUsername: fmt.Sprintf(queryFmtSelectPreferred2FAMethodByUsername, tableUserPreferences),
+		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
+		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
 
 		sqlInsertIdentityVerification:       fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlDeleteIdentityVerification:       fmt.Sprintf(queryFmtDeleteIdentityVerification, tableIdentityVerification),
 		sqlSelectExistsIdentityVerification: fmt.Sprintf(queryFmtSelectExistsIdentityVerification, tableIdentityVerification),
 
-		sqlUpsertTOTPConfig:           fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
-		sqlDeleteTOTPConfig:           fmt.Sprintf(queryFmtDeleteTOTPSecret, tableTOTPConfigurations),
-		sqlSelectTOTPConfigByUsername: fmt.Sprintf(queryFmtSelectTOTPConfigurationByUsername, tableTOTPConfigurations),
+		sqlUpsertTOTPConfig: fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
+		sqlDeleteTOTPConfig: fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
+		sqlSelectTOTPConfig: fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
 
-		sqlUpsertU2FDevice:           fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
-		sqlSelectU2FDeviceByUsername: fmt.Sprintf(queryFmtSelectU2FDeviceByUsername, tableU2FDevices),
+		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
+		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
 
 		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
 		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
@@ -58,19 +58,19 @@ type SQLProvider struct {
 
 	sqlFmtRenameTable string
 
-	sqlUpsertPreferred2FAMethod           string
-	sqlSelectPreferred2FAMethodByUsername string
+	sqlUpsertPreferred2FAMethod string
+	sqlSelectPreferred2FAMethod string
 
 	sqlInsertIdentityVerification       string
 	sqlDeleteIdentityVerification       string
 	sqlSelectExistsIdentityVerification string
 
-	sqlUpsertTOTPConfig           string
-	sqlDeleteTOTPConfig           string
-	sqlSelectTOTPConfigByUsername string
+	sqlUpsertTOTPConfig string
+	sqlDeleteTOTPConfig string
+	sqlSelectTOTPConfig string
 
-	sqlUpsertU2FDevice           string
-	sqlSelectU2FDeviceByUsername string
+	sqlUpsertU2FDevice string
+	sqlSelectU2FDevice string
 
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
@@ -124,7 +124,7 @@ func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username strin
 
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.
 func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error) {
-	err = p.db.GetContext(ctx, &method, p.sqlSelectPreferred2FAMethodByUsername, username)
+	err = p.db.GetContext(ctx, &method, p.sqlSelectPreferred2FAMethod, username)
 
 	switch err {
 	case sql.ErrNoRows:
@@ -179,7 +179,7 @@ func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username stri
 func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error) {
 	config = &models.TOTPConfiguration{}
 
-	err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfigByUsername, username).StructScan(config)
+	err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoTOTPSecret
@@ -205,7 +205,7 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 		Username: username,
 	}
 
-	err = p.db.GetContext(ctx, device, p.sqlSelectU2FDeviceByUsername, username)
+	err = p.db.GetContext(ctx, device, p.sqlSelectU2FDevice, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoU2FDeviceHandle

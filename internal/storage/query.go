@@ -30,7 +30,7 @@ const (
 )
 
 const (
-	queryFmtSelectPreferred2FAMethodByUsername = `
+	queryFmtSelectPreferred2FAMethod = `
 		SELECT second_factor_method
 		FROM %s
 		WHERE username = ?;`
@@ -64,7 +64,7 @@ const (
 )
 
 const (
-	queryFmtSelectTOTPConfigurationByUsername = `
+	queryFmtSelectTOTPConfiguration = `
 		SELECT id, username, algorithm, digits, totp_period, secret
 		FROM %s
 		WHERE username = ?;`
@@ -79,13 +79,13 @@ const (
 			ON CONFLICT (username)
 			DO UPDATE SET algorithm = $2, digits = $3, totp_period = $4, secret = $5;`
 
-	queryFmtDeleteTOTPSecret = `
+	queryFmtDeleteTOTPConfiguration = `
 		DELETE FROM %s
 		WHERE username = ?;`
 )
 
 const (
-	queryFmtSelectU2FDeviceByUsername = `
+	queryFmtSelectU2FDevice = `
 		SELECT key_handle, public_key
 		FROM %s
 		WHERE username = ?;`
