@@ -61,8 +61,7 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 		return err
 	}
 
-	//queryFmtDropTableRebound := p.db.Rebind(`DROP TABLE IF EXITS %s;`)
-	queryFmtDropTableRebound := p.db.Rebind(`DROP TABLE IF EXISTS %s;`)
+	queryFmtDropTableRebound := p.db.Rebind(queryFmtDropTableIfExists)
 
 	for _, table := range tables {
 		if _, err = p.db.Exec(fmt.Sprintf(queryFmtDropTableRebound, tablePrefixBackup+table)); err != nil {
