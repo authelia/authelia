@@ -88,6 +88,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 				Logger:           &redisLogger{logger: logging.Logger()},
 				MasterName:       configuration.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
+				SentinelUsername: configuration.Redis.HighAvailability.SentinelUsername,
 				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
 				RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
 				RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,
