@@ -9,6 +9,7 @@ type RedisNode struct {
 // RedisHighAvailabilityConfiguration holds configuration variables for Redis Cluster/Sentinel.
 type RedisHighAvailabilityConfiguration struct {
 	SentinelName     string      `koanf:"sentinel_name"`
+	SentinelUsername string      `koanf:"sentinel_username"`
 	SentinelPassword string      `koanf:"sentinel_password"`
 	Nodes            []RedisNode `koanf:"nodes"`
 	RouteByLatency   bool        `koanf:"route_by_latency"`
