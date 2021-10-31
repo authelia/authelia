@@ -459,6 +459,9 @@ session:
       ## Sentinel Name / Master Name.
       # sentinel_name: mysentinel
 
+      ## Specific username for Redis Sentinel. The node username and password is configured above.
+      # sentinel_username: sentinel_specific_user
+
       ## Specific password for Redis Sentinel. The node username and password is configured above.
       # sentinel_password: sentinel_specific_pass
 
