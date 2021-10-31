@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewStorageCmd returns a new storage *cobra.Command.
 func NewStorageCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "storage",
@@ -57,7 +58,6 @@ func newReEncryptStorageCmd() (cmd *cobra.Command) {
 }
 
 func reEncryptStorageRunE(cmd *cobra.Command, args []string) (err error) {
-
 	if cmd.PersistentFlags().Changed("config") {
 
 	}

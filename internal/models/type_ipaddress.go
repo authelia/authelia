@@ -2,7 +2,7 @@ package models
 
 import (
 	"database/sql/driver"
-	"errors"
+	"fmt"
 	"net"
 )
 
@@ -29,11 +29,11 @@ func (ip *IPAddress) Scan(src interface{}) (err error) {
 
 	var value string
 
-	switch src.(type) {
+	switch v := src.(type) {
 	case string:
-		value = src.(string)
+		value = v
 	default:
-		return errors.New("invalid type for IPAddress")
+		return fmt.Errorf("invalid type %T for IPAddress %v", src, src)
 	}
 
 	*ip.IP = net.ParseIP(value)

@@ -7,8 +7,9 @@ package handlers
 import (
 	"reflect"
 
-	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/golang/mock/gomock"
+
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockTOTPVerifier is a mock of TOTPVerifier interface.

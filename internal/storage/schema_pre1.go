@@ -172,7 +172,7 @@ func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(page int) (a
 }
 
 func (p *SQLProvider) schemaMigratePre1To1TOTP() (err error) {
-	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1SelectTOTPSecrets), tablePrefixBackup+tablePre1TOTPSecrets))
+	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1SelectTOTPConfigurations), tablePrefixBackup+tablePre1TOTPSecrets))
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP() (err error) {
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.Exec(fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPSecret), tableTOTPConfigurations), config.Username, config.Secret)
+		_, err = p.db.Exec(fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, config.Secret)
 		if err != nil {
 			return err
 		}
@@ -358,7 +358,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogsGetRows(page int) (a
 }
 
 func (p *SQLProvider) schemaMigrate1ToPre1TOTP() (err error) {
-	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1SelectTOTPSecrets), tablePrefixBackup+tableTOTPConfigurations))
+	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1SelectTOTPConfigurations), tablePrefixBackup+tableTOTPConfigurations))
 	if err != nil {
 		return err
 	}
@@ -388,7 +388,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP() (err error) {
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.Exec(fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPSecret), tablePre1TOTPSecrets), config.Username, config.Secret)
+		_, err = p.db.Exec(fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
 		if err != nil {
 			return err
 		}

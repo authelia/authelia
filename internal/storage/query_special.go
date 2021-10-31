@@ -30,12 +30,12 @@ const (
 		FROM %s
 		ORDER BY username ASC;`
 
-	queryFmtPre1SelectTOTPSecrets = `
+	queryFmtPre1SelectTOTPConfigurations = `
 		SELECT username, secret
 		FROM %s
 		ORDER BY username ASC;`
 
-	queryFmtPre1InsertTOTPSecret = `
+	queryFmtPre1InsertTOTPConfiguration = `
 		INSERT INTO %s (username, secret)
 		VALUES (?, ?);`
 
