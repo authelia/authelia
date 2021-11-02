@@ -39,4 +39,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.8
+replace (
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.8
+	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
+)
