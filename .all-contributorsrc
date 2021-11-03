@@ -566,6 +566,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jsievenpiper",
+      "name": "Justin Sievenpiper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1131882?v=4",
+      "profile": "https://sievenpiper.co",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7

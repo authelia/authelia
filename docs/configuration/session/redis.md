@@ -30,6 +30,9 @@ session:
       minimum_version: TLS1.2
     high_availability:
       sentinel_name: mysentinel
+      # If `sentinel_username` is supplied, Authelia will connect using ACL-based
+      # authentication. Otherwise, it will use traditional `requirepass` auth.
+      sentinel_username: sentinel_user
       sentinel_password: sentinel_specific_pass
       nodes:
         - host: sentinel-node1
@@ -148,7 +151,7 @@ required: yes
 The [redis sentinel] master name. This is defined in your [redis sentinel] configuration, it is not a hostname. This
 must be defined currently for a high availability configuration.
 
-#### sentinel_password
+#### sentinel_username
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -156,8 +159,21 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The password for the [redis sentinel] connection. A [redis sentinel] username is not supported at this time due to the
-upstream library not supporting it.
+The username for the [redis sentinel] connection. If this is provided, it will be used along with the sentinel_password
+for ACL-based authentication to the Redis Sentinel. If only a password is provided, the [redis sentinel] connection will
+be authenticated with traditional requirepass authentication.
+
+#### sentinel_password
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no (yes if sentinel_username is supplied)
+{: .label .label-config .label-green }
+</div>
+
+The password for the [redis sentinel] connection. If specified with sentinel_username, configures Authelia to
+authenticate to the Redis Sentinel with ACL-based authentication. Otherwise, this is used for requirepass
+authentication.
 
 #### nodes
 

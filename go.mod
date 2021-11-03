@@ -1,6 +1,6 @@
 module github.com/authelia/authelia/v4
 
-go 1.16
+go 1.17
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jmoiron/sqlx v1.3.1
-	github.com/knadh/koanf v1.3.0
+	github.com/knadh/koanf v1.3.2
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/ory/fosite v0.40.2
@@ -39,4 +39,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.8
+replace (
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.8
+	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
+)
