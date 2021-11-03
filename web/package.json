@@ -121,7 +121,7 @@
   "devDependencies": {
     "@commitlint/cli": "14.1.0",
     "@commitlint/config-conventional": "14.1.0",
-    "@testing-library/jest-dom": "5.14.1",
+    "@testing-library/jest-dom": "5.15.0",
     "@testing-library/react": "12.1.2",
     "@types/node": "16.11.6",
     "@types/qrcode.react": "1.0.2",
