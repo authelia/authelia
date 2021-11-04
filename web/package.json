@@ -20,7 +20,7 @@
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
     "react-router": "6.0.0",
-    "react-router-dom": "5.3.0",
+    "react-router-dom": "6.0.0",
     "u2f-api": "1.2.1"
   },
   "scripts": {
