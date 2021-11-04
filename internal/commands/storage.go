@@ -146,7 +146,7 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 			case 0:
 				versionStr = "N/A"
 			default:
-				versionStr = string(version)
+				versionStr = string(rune(version))
 			}
 
 			tablesStr := strings.Join(tables, ", ")
@@ -213,8 +213,4 @@ func reEncryptStorageRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
-}
-
-func storageConfigurationPreRunE() {
-
 }
