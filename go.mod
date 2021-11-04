@@ -4,11 +4,9 @@ go 1.17
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
-	github.com/Workiva/go-datastructures v1.0.53
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/deckarep/golang-set v1.7.1
 	github.com/duosecurity/duo_api_golang v0.0.0-20211012165811-2e1863933615
-	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fasthttp/router v1.4.4
 	github.com/fasthttp/session/v2 v2.4.4
 	github.com/go-ldap/ldap/v3 v3.4.1
@@ -34,7 +32,6 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.31.0
-	golang.org/x/sys v0.0.0-20210902050250-f475640dd07b // indirect
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -50,6 +47,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.1 // indirect
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
@@ -99,6 +97,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	golang.org/x/tools v0.1.2 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect

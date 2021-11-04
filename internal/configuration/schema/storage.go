@@ -49,6 +49,7 @@ var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	SQLStorageConfiguration: SQLStorageConfiguration{
 		Timeout: 5 * time.Second,
 	},
+	Schema: "public",
 }
 
 // DefaultMySQLStorageConfiguration represents the default MySQL configuration.
