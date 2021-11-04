@@ -122,11 +122,11 @@ func NewCommandLineSource(flags *pflag.FlagSet) (source *CommandLineSource) {
 	}
 }
 
-func NewCommandLineSourceWithPrefixes(flags *pflag.FlagSet, delimiter string, prefixes []string) (source *CommandLineSource) {
+func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]string, includeValidKeys bool) (source *CommandLineSource) {
 	return &CommandLineSource{
 		koanf:    koanf.New(constDelimiter),
 		flags:    flags,
-		callback: koanfCommandLineWithPrefixesCallback(delimiter, prefixes),
+		callback: koanfCommandLineWithMappingCallback(mapping, includeValidKeys),
 	}
 }
 

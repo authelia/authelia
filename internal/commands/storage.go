@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -25,14 +24,22 @@ func NewStorageCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.PersistentFlags().StringSliceP("config", "c", []string{"config.yml"}, "configuration file to load for the storage migration")
-	cmd.PersistentFlags().StringP("provider", "t", "", "the SQL provider to use (sqlite, postgres, mysql)")
-	cmd.PersistentFlags().StringP("host", "H", "", "the SQL hostname")
-	cmd.PersistentFlags().IntP("port", "P", 0, "The SQL port")
-	cmd.PersistentFlags().StringP("database", "d", "", "the SQL database name")
-	cmd.PersistentFlags().StringP("username", "u", "", "the SQL username")
-	cmd.PersistentFlags().StringP("password", "p", "", "the SQL password")
+
 	cmd.PersistentFlags().StringP("encryption-key", "k", "", "the SQL encryption key")
-	cmd.PersistentFlags().StringP("path", "f", "", "the SQLite path")
+
+	cmd.PersistentFlags().String("sqlite.path", "", "the SQLite database path")
+
+	cmd.PersistentFlags().String("mysql.host", "", "the MySQL hostname")
+	cmd.PersistentFlags().Int("mysql.port", 3306, "the MySQL port")
+	cmd.PersistentFlags().String("mysql.database", "authelia", "the MySQL database name")
+	cmd.PersistentFlags().String("mysql.username", "authelia", "the MySQL username")
+	cmd.PersistentFlags().String("mysql.password", "", "the MySQL password")
+
+	cmd.PersistentFlags().String("postgres.host", "", "the PostgreSQL hostname")
+	cmd.PersistentFlags().Int("postgres.port", 5432, "the PostgreSQL port")
+	cmd.PersistentFlags().String("postgres.database", "authelia", "the PostgreSQL database name")
+	cmd.PersistentFlags().String("postgres.username", "authelia", "the PostgreSQL username")
+	cmd.PersistentFlags().String("postgres.password", "", "the PostgreSQL password")
 
 	cmd.AddCommand(
 		newMigrateStorageCmd(),
@@ -50,30 +57,6 @@ func storageRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
-	provider, err := cmd.Flags().GetString("provider")
-	if err != nil {
-		return err
-	}
-
-	if provider == "" {
-		return errors.New("you must specify a provider")
-	}
-
-	switch provider {
-	case "":
-		return errors.New("you must specify a provider")
-	case "sqlite", "sqlite3":
-		provider = "local"
-	case "mariadb":
-		provider = "mysql"
-	case "postgresql":
-		provider = "postgres"
-	case "mysql", "postgres", "local":
-		break
-	default:
-		return fmt.Errorf("unknown storage provider which should be one of sqlite, mysql, or postgres: %s", provider)
-	}
-
 	configs, err := cmd.Flags().GetStringSlice("config")
 	if err != nil {
 		return err
@@ -94,9 +77,25 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
+	mapping := map[string]string{
+		"encryption-key":    "storage.encryption_key",
+		"sqlite.path":       "storage.local.path",
+		"mysql.host":        "storage.mysql.host",
+		"mysql.port":        "storage.mysql.port",
+		"mysql.database":    "storage.mysql.database",
+		"mysql.username":    "storage.mysql.username",
+		"mysql.password":    "storage.mysql.password",
+		"postgres.host":     "storage.postgres.host",
+		"postgres.port":     "storage.postgres.port",
+		"postgres.database": "storage.postgres.database",
+		"postgres.username": "storage.postgres.username",
+		"postgres.password": "storage.postgres.password",
+		"postgres.schema":   "storage.postgres.schema",
+	}
+
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
 	sources = append(sources, configuration.NewSecretsSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
-	sources = append(sources, configuration.NewCommandLineSourceWithPrefixes(cmd.Flags(), ".", []string{fmt.Sprintf("storage.%s", provider), "storage"}))
+	sources = append(sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapping, true))
 
 	val := schema.NewStructValidator()
 

@@ -73,3 +73,21 @@ func koanfCommandLineWithPrefixesCallback(delimiter string, prefixes []string) f
 		return "", nil
 	}
 }
+
+func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValidKeys bool) func(key, value string) (string, interface{}) {
+	return func(key, value string) (string, interface{}) {
+		if actualKey, ok := mapping[key]; ok && utils.IsStringInSlice(actualKey, validator.ValidKeys) {
+			return actualKey, value
+		}
+
+		if includeValidKeys {
+			formattedKey := strings.ReplaceAll(key, "-", "_")
+
+			if utils.IsStringInSlice(formattedKey, validator.ValidKeys) {
+				return formattedKey, value
+			}
+		}
+
+		return "", nil
+	}
+}
