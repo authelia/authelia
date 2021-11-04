@@ -107,6 +107,8 @@ func (p *SQLProvider) schemaLatestMigration() (migration *models.Migration, err 
 }
 
 func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
+	up := prior < target
+
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
 		return err
@@ -138,7 +140,25 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 	}
 
 	for _, migration := range migrations {
-		if migration.Version <= trackPrior {
+		if target == -1 && migration.Version == 1 {
+			err = p.schemaMigrate1ToPre1()
+			if err != nil {
+				if errRollback := p.schemaMigratePre1To1Rollback(); errRollback != nil {
+					return fmt.Errorf(errFmtFailedMigrationPre1, err)
+				}
+
+				return fmt.Errorf(errFmtFailedMigrationPre1, err)
+			}
+			continue
+		}
+
+		// Skip same version number migrations.
+		if up && migration.Version <= trackPrior {
+			continue
+		}
+
+		// Skip same version number migrations.
+		if !up && migration.Version >= trackPrior {
 			continue
 		}
 

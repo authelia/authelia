@@ -8,6 +8,8 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/posflag"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -110,6 +112,36 @@ func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
 	keyMap := getSecretConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
+}
+
+func NewCommandLineSource(flags *pflag.FlagSet) (source *CommandLineSource) {
+	return &CommandLineSource{
+		koanf:    koanf.New(constDelimiter),
+		flags:    flags,
+		callback: koanfCommandLineCallback,
+	}
+}
+
+func NewCommandLineSourceWithPrefixes(flags *pflag.FlagSet, delimiter string, prefixes []string) (source *CommandLineSource) {
+	return &CommandLineSource{
+		koanf:    koanf.New(constDelimiter),
+		flags:    flags,
+		callback: koanfCommandLineWithPrefixesCallback(delimiter, prefixes),
+	}
+}
+
+func (s CommandLineSource) Name() (name string) {
+	return "command-line"
+}
+
+// Merge the CommandLineSource koanf.Koanf into the provided one.
+func (s *CommandLineSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err error) {
+	return ko.Merge(s.koanf)
+}
+
+// Load the Source into the YAMLFileSource koanf.Koanf.
+func (s *CommandLineSource) Load(_ *schema.StructValidator) (err error) {
+	return s.koanf.Load(posflag.ProviderWithValue(s.flags, ".", s.koanf, s.callback), nil)
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.

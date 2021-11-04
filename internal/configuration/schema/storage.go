@@ -37,6 +37,8 @@ type PostgreSQLStorageConfiguration struct {
 
 // StorageConfiguration represents the configuration of the storage backend.
 type StorageConfiguration struct {
+	EncryptionKey string `koanf:"encryption_key"`
+
 	Local      *LocalStorageConfiguration      `koanf:"local"`
 	MySQL      *MySQLStorageConfiguration      `koanf:"mysql"`
 	PostgreSQL *PostgreSQLStorageConfiguration `koanf:"postgres"`
