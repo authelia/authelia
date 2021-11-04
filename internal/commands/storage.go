@@ -129,7 +129,7 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 			}
 
 			version, err := storageProvider.SchemaVersion()
-			if err != nil {
+			if err != nil && err.Error() != "unknown schema state" {
 				return err
 			}
 
@@ -140,6 +140,8 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 
 			var versionStr string
 			switch version {
+			case -2:
+				versionStr = "unknown"
 			case -1:
 				versionStr = "pre1"
 			case 0:
