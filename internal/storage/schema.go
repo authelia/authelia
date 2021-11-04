@@ -9,6 +9,24 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func (p *SQLProvider) SchemaMigrationsUp() (migrations []SchemaMigration, err error) {
+	current, err := p.SchemaVersion()
+	if err != nil {
+		return migrations, err
+	}
+
+	return loadMigrations(p.name, current, 2147483647)
+}
+
+func (p *SQLProvider) SchemaMigrationsDown() (migrations []SchemaMigration, err error) {
+	current, err := p.SchemaVersion()
+	if err != nil {
+		return migrations, err
+	}
+
+	return loadMigrations(p.name, current, 0)
+}
+
 // SchemaTables returns a list of tables.
 func (p *SQLProvider) SchemaTables() (tables []string, err error) {
 	rows, err := p.db.Query(p.sqlSelectExistingTables)
@@ -199,7 +217,7 @@ func (p *SQLProvider) schemaMigrateRollback(prior, trackPrior int, migrateErr er
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
 }
 
-func (p *SQLProvider) schemaMigrateApply(prior int, migration schemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateApply(prior int, migration SchemaMigration) (err error) {
 	_, err = p.db.Exec(migration.Query)
 	if err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
@@ -213,7 +231,7 @@ func (p *SQLProvider) schemaMigrateApply(prior int, migration schemaMigration) (
 	return p.schemaMigrateFinalize(prior, migration)
 }
 
-func (p *SQLProvider) schemaMigrateFinalize(prior int, migration schemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateFinalize(prior int, migration SchemaMigration) (err error) {
 	target := migration.Version
 	if !migration.Up {
 		target = migration.Version - 1

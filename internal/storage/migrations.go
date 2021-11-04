@@ -44,7 +44,7 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 	return version, nil
 }
 
-func loadMigration(providerName string, version int, up bool) (migration *schemaMigration, err error) {
+func loadMigration(providerName string, version int, up bool) (migration *SchemaMigration, err error) {
 	entries, err := migrationsFS.ReadDir("migrations")
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func loadMigration(providerName string, version int, up bool) (migration *schema
 // loadMigrations scans the migrations fs and loads the appropriate migrations for a given providerName, prior and
 // target versions. If the target version is -1 this indicates the latest version. If the target version is 0
 // this indicates the database zero state.
-func loadMigrations(providerName string, prior, target int) (migrations []schemaMigration, err error) {
+func loadMigrations(providerName string, prior, target int) (migrations []SchemaMigration, err error) {
 	if prior == target && (prior != -1 || target != -1) {
 		return nil, errors.New("cannot migrate to the same version as prior")
 	}
@@ -148,21 +148,21 @@ func loadMigrations(providerName string, prior, target int) (migrations []schema
 	return migrations, nil
 }
 
-func scanMigration(m string) (migration schemaMigration, err error) {
+func scanMigration(m string) (migration SchemaMigration, err error) {
 	result := reMigration.FindStringSubmatch(m)
 
 	if result == nil || len(result) != 5 {
-		return schemaMigration{}, errors.New("invalid migration: could not parse the format")
+		return SchemaMigration{}, errors.New("invalid migration: could not parse the format")
 	}
 
-	migration = schemaMigration{
+	migration = SchemaMigration{
 		Name:     strings.ReplaceAll(result[2], "_", " "),
 		Provider: result[3],
 	}
 
 	data, err := migrationsFS.ReadFile(fmt.Sprintf("migrations/%s", m))
 	if err != nil {
-		return schemaMigration{}, err
+		return SchemaMigration{}, err
 	}
 
 	migration.Query = string(data)
@@ -173,7 +173,7 @@ func scanMigration(m string) (migration schemaMigration, err error) {
 	case "down":
 		migration.Up = false
 	default:
-		return schemaMigration{}, fmt.Errorf("invalid migration: value in position 4 '%s' must be up or down", result[4])
+		return SchemaMigration{}, fmt.Errorf("invalid migration: value in position 4 '%s' must be up or down", result[4])
 	}
 
 	migration.Version, _ = strconv.Atoi(result[1])
@@ -182,7 +182,7 @@ func scanMigration(m string) (migration schemaMigration, err error) {
 	case providerAll, provideerSQLite, providerMySQL, providerPostgres:
 		break
 	default:
-		return schemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
+		return SchemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
 	}
 
 	return migration, nil

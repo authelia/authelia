@@ -43,7 +43,6 @@ func NewStorageCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newMigrateStorageCmd(),
-		newReEncryptStorageCmd(),
 		newSchemaInfoStorageCmd(),
 	)
 
@@ -69,6 +68,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 			if _, err := os.Stat(configFile); os.IsNotExist(err) {
 				return fmt.Errorf("could not load the provided configuration file %s: %w", configFile, err)
 			}
+
 			sources = append(sources, configuration.NewYAMLFileSource(configFile))
 		}
 	} else {
@@ -95,7 +95,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
 	sources = append(sources, configuration.NewSecretsSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
-	sources = append(sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapping, true))
+	sources = append(sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapping, true, false))
 
 	val := schema.NewStructValidator()
 
@@ -114,7 +114,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 
 func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "info",
+		Use:   "schema-info",
 		Short: "Show the storage information",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var storageProvider storage.Provider
@@ -153,8 +153,7 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 				tablesStr = "N/A"
 			}
 
-			fmt.Printf("Schema Version: %s\n", versionStr)
-			fmt.Printf("Schema Tables: %s\n", tablesStr)
+			fmt.Printf("Schema Version: %s\nSchema Tables: %s\n", versionStr, tablesStr)
 
 			return nil
 		},
@@ -167,49 +166,114 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 func newMigrateStorageCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "migrate",
-		Short: "Perform migrations",
+		Short: "Perform or list migrations",
 		Args:  cobra.NoArgs,
 	}
 
-	cmd.AddCommand(newMigrateStorageUpCmd(), newMigrateStorageDownCmd())
+	cmd.AddCommand(
+		newMigrateStorageUpCmd(), newMigrateStorageDownCmd(),
+		newMigrateStorageListUpCmd(), newMigrateStorageListDownCmd(),
+	)
 
 	return cmd
+}
+
+func newMigrateStorageListUpCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "list-up",
+		Short: "List the up migrations available",
+		Args:  cobra.NoArgs,
+		RunE:  newlistMigrationsRunE(true),
+	}
+
+	return cmd
+}
+
+func newMigrateStorageListDownCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "list-down",
+		Short: "List the down migrations available",
+		Args:  cobra.NoArgs,
+		RunE:  newlistMigrationsRunE(false),
+	}
+
+	return cmd
+}
+
+func newlistMigrationsRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		var storageProvider storage.Provider
+
+		switch {
+		case config.Storage.PostgreSQL != nil:
+			storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
+		case config.Storage.MySQL != nil:
+			storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
+		case config.Storage.Local != nil:
+			storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
+		}
+
+		var (
+			migrations   []storage.SchemaMigration
+			directionStr string
+		)
+
+		if up {
+			migrations, err = storageProvider.SchemaMigrationsUp()
+			directionStr = "Up"
+		} else {
+			migrations, err = storageProvider.SchemaMigrationsDown()
+			directionStr = "Down"
+		}
+
+		if err != nil {
+			if err.Error() == "cannot migrate to the same version as prior" {
+				fmt.Printf("No %s migrations found\n", directionStr)
+
+				return nil
+			}
+
+			return err
+		}
+
+		fmt.Printf("Storage Schema Migration List (%s)\n\nVersion\tDescription\n", directionStr)
+
+		for _, migration := range migrations {
+			fmt.Printf("%d\t%s\n", migration.Version, migration.Name)
+		}
+
+		return nil
+	}
 }
 
 func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "up",
-		Short: "Perform an up migration",
+		Short: "Perform a migration up",
 		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			return nil
+		},
 	}
+
+	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
 
 	return cmd
 }
 
 func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "up",
-		Short: "Perform a down migration",
+		Use:   "down",
+		Short: "Perform a migration down",
 		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			return nil
+		},
 	}
+
+	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
 
 	return cmd
-}
-func newReEncryptStorageCmd() (cmd *cobra.Command) {
-	cmd = &cobra.Command{
-		Use:   "re-encrypt",
-		Short: "Encrypts secure data in the database with a new key",
-		Args:  cobra.NoArgs,
-		RunE:  reEncryptStorageRunE,
-	}
-
-	return cmd
-}
-
-func reEncryptStorageRunE(cmd *cobra.Command, args []string) (err error) {
-	if cmd.PersistentFlags().Changed("config") {
-
-	}
-
-	return nil
 }

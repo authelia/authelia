@@ -118,15 +118,15 @@ func NewCommandLineSource(flags *pflag.FlagSet) (source *CommandLineSource) {
 	return &CommandLineSource{
 		koanf:    koanf.New(constDelimiter),
 		flags:    flags,
-		callback: koanfCommandLineCallback,
+		callback: nil,
 	}
 }
 
-func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]string, includeValidKeys bool) (source *CommandLineSource) {
+func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) (source *CommandLineSource) {
 	return &CommandLineSource{
 		koanf:    koanf.New(constDelimiter),
 		flags:    flags,
-		callback: koanfCommandLineWithMappingCallback(mapping, includeValidKeys),
+		callback: koanfCommandLineWithMappingCallback(mapping, includeValidKeys, includeUnchangedKeys),
 	}
 }
 
@@ -141,7 +141,11 @@ func (s *CommandLineSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) 
 
 // Load the Source into the YAMLFileSource koanf.Koanf.
 func (s *CommandLineSource) Load(_ *schema.StructValidator) (err error) {
-	return s.koanf.Load(posflag.ProviderWithValue(s.flags, ".", s.koanf, s.callback), nil)
+	if s.callback != nil {
+		return s.koanf.Load(posflag.ProviderWithFlag(s.flags, ".", s.koanf, s.callback), nil)
+	}
+
+	return s.koanf.Load(posflag.Provider(s.flags, ".", s.koanf), nil)
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.

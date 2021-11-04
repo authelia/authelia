@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/pflag"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -74,17 +76,21 @@ func koanfCommandLineWithPrefixesCallback(delimiter string, prefixes []string) f
 	}
 }
 
-func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValidKeys bool) func(key, value string) (string, interface{}) {
-	return func(key, value string) (string, interface{}) {
-		if actualKey, ok := mapping[key]; ok {
-			return actualKey, value
+func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) func(flag *pflag.Flag) (string, interface{}) {
+	return func(flag *pflag.Flag) (string, interface{}) {
+		if !includeUnchangedKeys && !flag.Changed {
+			return "", nil
+		}
+
+		if actualKey, ok := mapping[flag.Name]; ok {
+			return actualKey, flag.Value.String()
 		}
 
 		if includeValidKeys {
-			formattedKey := strings.ReplaceAll(key, "-", "_")
+			formattedKey := strings.ReplaceAll(flag.Name, "-", "_")
 
 			if utils.IsStringInSlice(formattedKey, validator.ValidKeys) {
-				return formattedKey, value
+				return formattedKey, flag.Value.String()
 			}
 		}
 

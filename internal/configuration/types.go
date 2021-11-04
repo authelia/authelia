@@ -38,5 +38,5 @@ type SecretsSource struct {
 type CommandLineSource struct {
 	koanf    *koanf.Koanf
 	flags    *pflag.FlagSet
-	callback func(key string, value string) (string, interface{})
+	callback func(flag *pflag.Flag) (string, interface{})
 }

@@ -31,6 +31,8 @@ type Provider interface {
 	SchemaVersion() (version int, err error)
 	SchemaMigrate(version int) (err error)
 	SchemaMigrateLatest() (err error)
+	SchemaMigrationsUp() (migrations []SchemaMigration, err error)
+	SchemaMigrationsDown() (migrations []SchemaMigration, err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

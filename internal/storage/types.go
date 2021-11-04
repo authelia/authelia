@@ -1,6 +1,7 @@
 package storage
 
-type schemaMigration struct {
+// SchemaMigration represents an intended migration.
+type SchemaMigration struct {
 	Version  int
 	Name     string
 	Provider string
