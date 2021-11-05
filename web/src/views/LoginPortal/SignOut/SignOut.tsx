@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 
 import { Typography, makeStyles } from "@material-ui/core";
-import { Navigate } from "react-router";
+import { Navigate } from "react-router-dom";
 
 import { FirstFactorRoute } from "@constants/Routes";
 import { useIsMountedRef } from "@hooks/Mounted";

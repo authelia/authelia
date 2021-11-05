@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import { Grid, makeStyles, Button } from "@material-ui/core";
-import { Route, Routes, useNavigate } from "react-router";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import u2fApi from "u2f-api";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { Grid, Button, makeStyles } from "@material-ui/core";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { FirstFactorRoute } from "@constants/Routes";

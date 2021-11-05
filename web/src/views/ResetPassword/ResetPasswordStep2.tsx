@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 
 import { Grid, Button, makeStyles } from "@material-ui/core";
 import classnames from "classnames";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { FirstFactorRoute } from "@constants/Routes";

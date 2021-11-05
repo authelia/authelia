@@ -6,7 +6,7 @@ import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, Tex
 import { red } from "@material-ui/core/colors";
 import classnames from "classnames";
 import QRCode from "qrcode.react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import { GoogleAuthenticator } from "@constants/constants";
