@@ -6,9 +6,9 @@ import u2fApi from "u2f-api";
 
 import {
     LogoutRoute as SignOutRoute,
-    SecondFactorPushRoute,
-    SecondFactorTOTPRoute,
-    SecondFactorU2FRoute,
+    SecondFactorPushSubRoute,
+    SecondFactorTOTPSubRoute,
+    SecondFactorU2FSubRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
@@ -109,7 +109,7 @@ const SecondFactorForm = function (props: Props) {
                 <Grid item xs={12} className={style.methodContainer}>
                     <Routes>
                         <Route
-                            path={SecondFactorTOTPRoute}
+                            path={SecondFactorTOTPSubRoute}
                             element={
                                 <OneTimePasswordMethod
                                     id="one-time-password-method"
@@ -124,7 +124,7 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path={SecondFactorU2FRoute}
+                            path={SecondFactorU2FSubRoute}
                             element={
                                 <SecurityKeyMethod
                                     id="security-key-method"
@@ -138,7 +138,7 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path={SecondFactorPushRoute}
+                            path={SecondFactorPushSubRoute}
                             element={
                                 <PushNotificationMethod
                                     id="push-notification-method"

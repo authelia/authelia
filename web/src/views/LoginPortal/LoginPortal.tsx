@@ -5,10 +5,10 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
     AuthenticatedRoute,
     FirstFactorRoute,
-    SecondFactorPushRoute,
+    SecondFactorPushSubRoute,
     SecondFactorRoute,
-    SecondFactorTOTPRoute,
-    SecondFactorU2FRoute,
+    SecondFactorTOTPSubRoute,
+    SecondFactorU2FSubRoute,
 } from "@constants/Routes";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -128,11 +128,11 @@ const LoginPortal = function (props: Props) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.U2F) {
-                        redirect(`${SecondFactorRoute}/${SecondFactorU2FRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorU2FSubRoute}${redirectionSuffix}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}/${SecondFactorPushRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}${redirectionSuffix}`);
                     } else {
-                        redirect(`${SecondFactorRoute}/${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}${redirectionSuffix}`);
                     }
                 }
             }
@@ -182,7 +182,7 @@ const LoginPortal = function (props: Props) {
                 }
             />
             <Route
-                path={`${SecondFactorRoute}/*`}
+                path={`${SecondFactorRoute}*`}
                 element={
                     state && userInfo && configuration ? (
                         <SecondFactorForm
