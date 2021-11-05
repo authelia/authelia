@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Grid, makeStyles, Button } from "@material-ui/core";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
 import LoginLayout from "@layouts/LoginLayout";
@@ -13,10 +13,10 @@ export interface Props {
 
 const AuthenticatedView = function (props: Props) {
     const style = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const handleLogoutClick = () => {
-        history.push(SignOutRoute);
+        navigate(SignOutRoute);
     };
 
     return (
