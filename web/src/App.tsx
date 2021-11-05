@@ -72,7 +72,7 @@ const App: React.FC = () => {
                         <Route path={LogoutRoute} element={<SignOut />} />
                         <Route path={ConsentRoute} element={<ConsentView />} />
                         <Route
-                            path={FirstFactorRoute + "*"}
+                            path={`${FirstFactorRoute}*`}
                             element={<LoginPortal rememberMe={getRememberMe()} resetPassword={getResetPassword()} />}
                         />
                     </Routes>

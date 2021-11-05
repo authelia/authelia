@@ -4,7 +4,12 @@ import { Grid, makeStyles, Button } from "@material-ui/core";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import u2fApi from "u2f-api";
 
-import { LogoutRoute as SignOutRoute } from "@constants/Routes";
+import {
+    LogoutRoute as SignOutRoute,
+    SecondFactorPushRoute,
+    SecondFactorTOTPRoute,
+    SecondFactorU2FRoute,
+} from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
@@ -104,7 +109,7 @@ const SecondFactorForm = function (props: Props) {
                 <Grid item xs={12} className={style.methodContainer}>
                     <Routes>
                         <Route
-                            path="one-time-password"
+                            path={SecondFactorTOTPRoute}
                             element={
                                 <OneTimePasswordMethod
                                     id="one-time-password-method"
@@ -119,7 +124,7 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path="security-key"
+                            path={SecondFactorU2FRoute}
                             element={
                                 <SecurityKeyMethod
                                     id="security-key-method"
@@ -133,7 +138,7 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path="push-notification"
+                            path={SecondFactorPushRoute}
                             element={
                                 <PushNotificationMethod
                                     id="push-notification-method"

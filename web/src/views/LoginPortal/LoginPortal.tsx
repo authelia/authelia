@@ -128,11 +128,11 @@ const LoginPortal = function (props: Props) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.U2F) {
-                        redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}/${SecondFactorU2FRoute}${redirectionSuffix}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}/${SecondFactorPushRoute}${redirectionSuffix}`);
                     } else {
-                        redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}/${SecondFactorTOTPRoute}${redirectionSuffix}`);
                     }
                 }
             }
@@ -182,7 +182,7 @@ const LoginPortal = function (props: Props) {
                 }
             />
             <Route
-                path={SecondFactorRoute + "/*"}
+                path={`${SecondFactorRoute}/*`}
                 element={
                     state && userInfo && configuration ? (
                         <SecondFactorForm
