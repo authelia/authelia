@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from "react";
 
 import { Grid, makeStyles, Button } from "@material-ui/core";
-import { useHistory, Switch, Route, Redirect } from "react-router";
+import { Route, Routes, useNavigate } from "react-router";
 import u2fApi from "u2f-api";
 
-import {
-    LogoutRoute as SignOutRoute,
-    SecondFactorTOTPRoute,
-    SecondFactorPushRoute,
-    SecondFactorU2FRoute,
-    SecondFactorRoute,
-} from "@constants/Routes";
+import { LogoutRoute as SignOutRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
@@ -38,7 +32,7 @@ export interface Props {
 
 const SecondFactorForm = function (props: Props) {
     const style = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
@@ -85,7 +79,7 @@ const SecondFactorForm = function (props: Props) {
     };
 
     const handleLogoutClick = () => {
-        history.push(SignOutRoute);
+        navigate(SignOutRoute);
     };
 
     return (
@@ -108,42 +102,48 @@ const SecondFactorForm = function (props: Props) {
                     </Button>
                 </Grid>
                 <Grid item xs={12} className={style.methodContainer}>
-                    <Switch>
-                        <Route path={SecondFactorTOTPRoute} exact>
-                            <OneTimePasswordMethod
-                                id="one-time-password-method"
-                                authenticationLevel={props.authenticationLevel}
-                                // Whether the user has a TOTP secret registered already
-                                registered={props.userInfo.has_totp}
-                                totp_period={props.configuration.totp_period}
-                                onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
-                                onSignInError={(err) => createErrorNotification(err.message)}
-                                onSignInSuccess={props.onAuthenticationSuccess}
-                            />
-                        </Route>
-                        <Route path={SecondFactorU2FRoute} exact>
-                            <SecurityKeyMethod
-                                id="security-key-method"
-                                authenticationLevel={props.authenticationLevel}
-                                // Whether the user has a U2F device registered already
-                                registered={props.userInfo.has_u2f}
-                                onRegisterClick={initiateRegistration(initiateU2FRegistrationProcess)}
-                                onSignInError={(err) => createErrorNotification(err.message)}
-                                onSignInSuccess={props.onAuthenticationSuccess}
-                            />
-                        </Route>
-                        <Route path={SecondFactorPushRoute} exact>
-                            <PushNotificationMethod
-                                id="push-notification-method"
-                                authenticationLevel={props.authenticationLevel}
-                                onSignInError={(err) => createErrorNotification(err.message)}
-                                onSignInSuccess={props.onAuthenticationSuccess}
-                            />
-                        </Route>
-                        <Route path={SecondFactorRoute}>
-                            <Redirect to={SecondFactorTOTPRoute} />
-                        </Route>
-                    </Switch>
+                    <Routes>
+                        <Route
+                            path="one-time-password"
+                            element={
+                                <OneTimePasswordMethod
+                                    id="one-time-password-method"
+                                    authenticationLevel={props.authenticationLevel}
+                                    // Whether the user has a TOTP secret registered already
+                                    registered={props.userInfo.has_totp}
+                                    totp_period={props.configuration.totp_period}
+                                    onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
+                                    onSignInError={(err) => createErrorNotification(err.message)}
+                                    onSignInSuccess={props.onAuthenticationSuccess}
+                                />
+                            }
+                        />
+                        <Route
+                            path="security-key"
+                            element={
+                                <SecurityKeyMethod
+                                    id="security-key-method"
+                                    authenticationLevel={props.authenticationLevel}
+                                    // Whether the user has a U2F device registered already
+                                    registered={props.userInfo.has_u2f}
+                                    onRegisterClick={initiateRegistration(initiateU2FRegistrationProcess)}
+                                    onSignInError={(err) => createErrorNotification(err.message)}
+                                    onSignInSuccess={props.onAuthenticationSuccess}
+                                />
+                            }
+                        />
+                        <Route
+                            path="push-notification"
+                            element={
+                                <PushNotificationMethod
+                                    id="push-notification-method"
+                                    authenticationLevel={props.authenticationLevel}
+                                    onSignInError={(err) => createErrorNotification(err.message)}
+                                    onSignInSuccess={props.onAuthenticationSuccess}
+                                />
+                            }
+                        />
+                    </Routes>
                 </Grid>
             </Grid>
         </LoginLayout>
