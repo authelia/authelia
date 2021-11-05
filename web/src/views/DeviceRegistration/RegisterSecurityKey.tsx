@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { makeStyles, Typography, Button } from "@material-ui/core";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 import u2fApi from "u2f-api";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";

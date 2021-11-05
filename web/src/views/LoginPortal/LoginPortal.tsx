@@ -1,6 +1,6 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Route, Routes, useLocation, useNavigate } from "react-router";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import {
     AuthenticatedRoute,

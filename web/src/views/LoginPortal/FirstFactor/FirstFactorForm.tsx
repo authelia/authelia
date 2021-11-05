@@ -2,7 +2,7 @@ import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
 import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
 import classnames from "classnames";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
