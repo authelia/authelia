@@ -1,14 +1,14 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Redirect, Route, Switch, useHistory, useLocation } from "react-router";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import {
     AuthenticatedRoute,
     FirstFactorRoute,
-    SecondFactorPushRoute,
+    SecondFactorPushSubRoute,
     SecondFactorRoute,
-    SecondFactorTOTPRoute,
-    SecondFactorU2FRoute,
+    SecondFactorTOTPSubRoute,
+    SecondFactorU2FSubRoute,
 } from "@constants/Routes";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -34,7 +34,7 @@ const RedirectionErrorMessage =
     "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.";
 
 const LoginPortal = function (props: Props) {
-    const history = useHistory();
+    const navigate = useNavigate();
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
@@ -46,7 +46,7 @@ const LoginPortal = function (props: Props) {
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = userUserInfo();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
-    const redirect = useCallback((url: string) => history.push(url), [history]);
+    const redirect = useCallback((url: string) => navigate(url), [navigate]);
 
     // Fetch the state when portal is mounted.
     useEffect(() => {
@@ -128,11 +128,11 @@ const LoginPortal = function (props: Props) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.U2F) {
-                        redirect(`${SecondFactorU2FRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorU2FSubRoute}${redirectionSuffix}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorPushRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}${redirectionSuffix}`);
                     } else {
-                        redirect(`${SecondFactorTOTPRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}${redirectionSuffix}`);
                     }
                 }
             }
@@ -165,38 +165,41 @@ const LoginPortal = function (props: Props) {
         location.pathname === FirstFactorRoute;
 
     return (
-        <Switch>
-            <Route path={FirstFactorRoute} exact>
-                <ComponentOrLoading ready={firstFactorReady}>
-                    <FirstFactorForm
-                        disabled={firstFactorDisabled}
-                        rememberMe={props.rememberMe}
-                        resetPassword={props.resetPassword}
-                        onAuthenticationStart={() => setFirstFactorDisabled(true)}
-                        onAuthenticationFailure={() => setFirstFactorDisabled(false)}
-                        onAuthenticationSuccess={handleAuthSuccess}
-                    />
-                </ComponentOrLoading>
-            </Route>
-            <Route path={SecondFactorRoute}>
-                {state && userInfo && configuration ? (
-                    <SecondFactorForm
-                        authenticationLevel={state.authentication_level}
-                        userInfo={userInfo}
-                        configuration={configuration}
-                        onMethodChanged={() => fetchUserInfo()}
-                        onAuthenticationSuccess={handleAuthSuccess}
-                    />
-                ) : null}
-            </Route>
-            <Route path={AuthenticatedRoute} exact>
-                {userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
-            </Route>
-            {/* By default we route to first factor page */}
-            <Route path="/">
-                <Redirect to={FirstFactorRoute} />
-            </Route>
-        </Switch>
+        <Routes>
+            <Route
+                path={FirstFactorRoute}
+                element={
+                    <ComponentOrLoading ready={firstFactorReady}>
+                        <FirstFactorForm
+                            disabled={firstFactorDisabled}
+                            rememberMe={props.rememberMe}
+                            resetPassword={props.resetPassword}
+                            onAuthenticationStart={() => setFirstFactorDisabled(true)}
+                            onAuthenticationFailure={() => setFirstFactorDisabled(false)}
+                            onAuthenticationSuccess={handleAuthSuccess}
+                        />
+                    </ComponentOrLoading>
+                }
+            />
+            <Route
+                path={`${SecondFactorRoute}*`}
+                element={
+                    state && userInfo && configuration ? (
+                        <SecondFactorForm
+                            authenticationLevel={state.authentication_level}
+                            userInfo={userInfo}
+                            configuration={configuration}
+                            onMethodChanged={() => fetchUserInfo()}
+                            onAuthenticationSuccess={handleAuthSuccess}
+                        />
+                    ) : null
+                }
+            />
+            <Route
+                path={AuthenticatedRoute}
+                element={userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
+            />
+        </Routes>
     );
 };
 

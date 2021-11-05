@@ -56,11 +56,6 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		return nil, fmt.Errorf("Hash key contains no characters or the field length is invalid (%s)", hash)
 	}
 
-	_, err = crypt.Base64Encoding.DecodeString(h.Salt)
-	if err != nil {
-		return nil, errors.New("Salt contains invalid base64 characters")
-	}
-
 	switch code {
 	case HashingAlgorithmSHA512:
 		h.Iterations = parameters.GetInt("rounds", HashingDefaultSHA512Iterations)
@@ -70,6 +65,11 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 			return nil, fmt.Errorf("SHA512 iterations is not numeric (%s)", parameters["rounds"])
 		}
 	case HashingAlgorithmArgon2id:
+		_, err = crypt.Base64Encoding.DecodeString(h.Salt)
+		if err != nil {
+			return nil, errors.New("Salt contains invalid base64 characters")
+		}
+
 		version := parameters.GetInt("v", 0)
 		if version < 19 {
 			if version == 0 {
@@ -118,9 +118,11 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 		}
 	}
 
-	err = validateSalt(salt, saltLength)
-	if err != nil {
-		return "", err
+	if algorithm != HashingAlgorithmSHA512 {
+		err = validateSalt(salt, saltLength)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if salt == "" {

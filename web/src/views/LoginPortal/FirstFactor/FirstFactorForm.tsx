@@ -2,7 +2,7 @@ import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
 import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
 import classnames from "classnames";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
@@ -24,7 +24,7 @@ export interface Props {
 
 const FirstFactorForm = function (props: Props) {
     const style = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
 
@@ -74,7 +74,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleResetPasswordClick = () => {
-        history.push(ResetPasswordStep1Route);
+        navigate(ResetPasswordStep1Route);
     };
 
     return (
