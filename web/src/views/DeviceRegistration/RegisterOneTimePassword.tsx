@@ -6,7 +6,7 @@ import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, Tex
 import { red } from "@material-ui/core/colors";
 import classnames from "classnames";
 import QRCode from "qrcode.react";
-import { useHistory, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import { GoogleAuthenticator } from "@constants/constants";
@@ -18,7 +18,7 @@ import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
     const style = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
     const location = useLocation();
     // The secret retrieved from the API is all is ok.
     const [secretURL, setSecretURL] = useState("empty");
@@ -32,7 +32,7 @@ const RegisterOneTimePassword = function () {
     const processToken = extractIdentityToken(location.search);
 
     const handleDoneClick = () => {
-        history.push(FirstFactorRoute);
+        navigate(FirstFactorRoute);
     };
 
     const completeRegistrationProcess = useCallback(async () => {
