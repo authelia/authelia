@@ -7,11 +7,11 @@ import (
 )
 
 type PathPrefixSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewPathPrefixSuite() *PathPrefixSuite {
-	return &PathPrefixSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &PathPrefixSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *PathPrefixSuite) TestOneFactorScenario() {

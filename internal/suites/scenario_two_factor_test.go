@@ -11,27 +11,27 @@ import (
 )
 
 type TwoFactorSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewTwoFactorScenario() *TwoFactorSuite {
 	return &TwoFactorSuite{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *TwoFactorSuite) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *TwoFactorSuite) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,62 +39,57 @@ func (s *TwoFactorSuite) TearDownSuite() {
 }
 
 func (s *TwoFactorSuite) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *TwoFactorSuite) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	username := testUsername
 	password := testPassword
 
-	// Login one factor
-	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
-
-	// Check he reaches the 2FA stage
-	s.verifyIsSecondFactorPage(ctx, s.T())
-
-	// Then register the TOTP factor
-	secret := s.doRegisterTOTP(ctx, s.T())
-
-	// And logout
-	s.doLogout(ctx, s.T())
-
-	// Login again with 1FA & 2FA
+	// Login and register TOTP, logout and login again with 1FA & 2FA
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginTwoFactor(ctx, s.T(), testUsername, testPassword, false, secret, targetURL)
+	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), username, password, false, targetURL)
 
 	// And check if the user is redirected to the secret.
-	s.verifySecretAuthorized(ctx, s.T())
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
 	// Leave the secret
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// And try to reload it again to check the session is kept
-	s.doVisit(s.T(), targetURL)
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	// Register TOTP secret and logout.
-	s.doRegisterThenLogout(ctx, s.T(), testUsername, testPassword)
+	s.doRegisterThenLogout(s.T(), s.Context(ctx), testUsername, testPassword)
 
 	wrongPasscode := "123456"
 
-	s.doLoginOneFactor(ctx, s.T(), testUsername, testPassword, false, "")
-	s.verifyIsSecondFactorPage(ctx, s.T())
-	s.doEnterOTP(ctx, s.T(), wrongPasscode)
-	s.verifyNotificationDisplayed(ctx, s.T(), "The one-time password might be wrong")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, "")
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doEnterOTP(s.T(), s.Context(ctx), wrongPasscode)
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "The one-time password might be wrong")
 }
 
 func TestRunTwoFactor(t *testing.T) {

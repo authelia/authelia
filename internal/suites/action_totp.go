@@ -1,43 +1,42 @@
 package suites
 
 import (
-	"context"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-rod/rod"
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func (wds *WebDriverSession) doRegisterTOTP(ctx context.Context, t *testing.T) string {
-	err := wds.WaitElementLocatedByID(ctx, t, "register-link").Click()
+func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page) string {
+	err := rs.WaitElementLocatedByCSSSelector(t, page, "register-link").Click("left")
 	require.NoError(t, err)
-	wds.verifyMailNotificationDisplayed(ctx, t)
+	rs.verifyMailNotificationDisplayed(t, page)
 	link := doGetLinkFromLastMail(t)
-	wds.doVisit(t, link)
-	secretURL, err := wds.WaitElementLocatedByID(ctx, t, "secret-url").GetAttribute("value")
+	rs.doVisit(t, page, link)
+	secretURL, err := page.MustElement("#secret-url").Attribute("value")
 	assert.NoError(t, err)
 
-	secret := secretURL[strings.LastIndex(secretURL, "=")+1:]
+	secret := (*secretURL)[strings.LastIndex(*secretURL, "=")+1:]
 	assert.NotEqual(t, "", secret)
 	assert.NotNil(t, secret)
 
 	return secret
 }
 
-func (wds *WebDriverSession) doEnterOTP(ctx context.Context, t *testing.T, code string) {
-	inputs := wds.WaitElementsLocatedByCSSSelector(ctx, t, "#otp-input input")
+func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, code string) {
+	inputs := rs.WaitElementsLocatedByCSSSelector(t, page, "otp-input input")
 
 	for i := 0; i < 6; i++ {
-		err := inputs[i].SendKeys(string(code[i]))
-		require.NoError(t, err)
+		_ = inputs[i].Input(string(code[i]))
 	}
 }
 
-func (wds *WebDriverSession) doValidateTOTP(ctx context.Context, t *testing.T, secret string) {
+func (rs *RodSession) doValidateTOTP(t *testing.T, page *rod.Page, secret string) {
 	code, err := totp.GenerateCode(secret, time.Now())
 	assert.NoError(t, err)
-	wds.doEnterOTP(ctx, t, code)
+	rs.doEnterOTP(t, page, code)
 }

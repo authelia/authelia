@@ -1,11 +1,13 @@
 package suites
 
 import (
-	"context"
 	"fmt"
 	"testing"
+
+	"github.com/go-rod/rod"
 )
 
-func (wds *WebDriverSession) verifyIsHome(ctx context.Context, t *testing.T) {
-	wds.verifyURLIs(ctx, t, fmt.Sprintf("%s/", HomeBaseURL))
+func (rs *RodSession) verifyIsHome(t *testing.T, page *rod.Page) {
+	page.MustElementR("h1", "Access the secret")
+	rs.verifyURLIs(t, page, fmt.Sprintf("%s/", HomeBaseURL))
 }

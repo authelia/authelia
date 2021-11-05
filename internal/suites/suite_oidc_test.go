@@ -7,11 +7,11 @@ import (
 )
 
 type OIDCSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewOIDCSuite() *OIDCSuite {
-	return &OIDCSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &OIDCSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *OIDCSuite) TestOIDCScenario() {

@@ -10,33 +10,31 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/tebeka/selenium"
 )
 
 type CustomHeadersScenario struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewCustomHeadersScenario() *CustomHeadersScenario {
 	return &CustomHeadersScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *CustomHeadersScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *CustomHeadersScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -44,23 +42,26 @@ func (s *CustomHeadersScenario) TearDownSuite() {
 }
 
 func (s *CustomHeadersScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *CustomHeadersScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), fmt.Sprintf("%s/headers", PublicBaseURL))
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/headers", PublicBaseURL))
 
-	body, err := s.WebDriver().FindElement(selenium.ByTagName, "body")
+	body, err := s.Context(ctx).Element("body")
 	s.Assert().NoError(err)
-	s.WaitElementTextContains(ctx, s.T(), body, "\"Host\"")
 
 	b, err := body.Text()
 	s.Assert().NoError(err)
@@ -82,46 +83,46 @@ type HeadersPayload struct {
 }
 
 func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUser() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	expectedGroups := mapset.NewSetWith("dev", "admins")
 
 	targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, targetURL)
-	s.verifyURLIs(ctx, s.T(), targetURL)
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifyIsPublic(s.T(), s.Context(ctx))
 
-	err := s.Wait(ctx, func(d selenium.WebDriver) (bool, error) {
-		body, err := s.WebDriver().FindElement(selenium.ByTagName, "body")
-		if err != nil {
-			return false, err
-		}
+	body, err := s.Context(ctx).Element("body")
+	s.Assert().NoError(err)
+	s.Assert().NotNil(body)
 
-		if body == nil {
-			return false, nil
-		}
+	content, err := body.Text()
+	s.Assert().NoError(err)
+	s.Assert().NotNil(content)
 
-		content, err := body.Text()
-		if err != nil {
-			return false, err
-		}
+	payload := HeadersPayload{}
+	if err := json.Unmarshal([]byte(content), &payload); err != nil {
+		log.Panic(err)
+	}
 
-		payload := HeadersPayload{}
-		if err := json.Unmarshal([]byte(content), &payload); err != nil {
-			return false, err
-		}
+	groups := strings.Split(payload.Headers.ForwardedGroups, ",")
+	actualGroups := mapset.NewSet()
 
-		groups := strings.Split(payload.Headers.ForwardedGroups, ",")
-		actualGroups := mapset.NewSet()
-		for _, group := range groups {
-			actualGroups.Add(group)
-		}
+	for _, group := range groups {
+		actualGroups.Add(group)
+	}
 
-		return strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups) &&
-			strings.Contains(payload.Headers.ForwardedName, "John Doe") && strings.Contains(payload.Headers.ForwardedEmail, "john.doe@authelia.com"), nil
-	})
+	if strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups) &&
+		strings.Contains(payload.Headers.ForwardedName, "John Doe") && strings.Contains(payload.Headers.ForwardedEmail, "john.doe@authelia.com") {
+		err = nil
+	} else {
+		err = fmt.Errorf("headers do not include user information")
+	}
 
-	require.NoError(s.T(), err)
+	s.Require().NoError(err)
 }
 
 func TestCustomHeadersScenario(t *testing.T) {

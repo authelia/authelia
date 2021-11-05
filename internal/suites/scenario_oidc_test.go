@@ -12,33 +12,40 @@ import (
 )
 
 type OIDCScenario struct {
-	*SeleniumSuite
+	*RodSuite
 	secret string
 }
 
 func NewOIDCScenario() *OIDCScenario {
 	return &OIDCScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *OIDCScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
 
-	s.secret = s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, AdminBaseURL)
+		s.collectCoverage(s.Page)
+		s.MustClose()
+	}()
+
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, AdminBaseURL)
 }
 
 func (s *OIDCScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -47,65 +54,73 @@ func (s *OIDCScenario) TearDownSuite() {
 
 func (s *OIDCScenario) SetupTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), fmt.Sprintf("%s/logout", OIDCBaseURL))
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.Page = s.doCreateTab(s.T(), fmt.Sprintf("%s/logout", OIDCBaseURL))
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
+}
+
+func (s *OIDCScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), OIDCBaseURL)
-	s.verifyIsFirstFactorPage(ctx, s.T())
-	s.doFillLoginPageAndClick(ctx, s.T(), "john", "password", false)
-	s.verifyIsSecondFactorPage(ctx, s.T())
-	s.doValidateTOTP(ctx, s.T(), s.secret)
-	time.Sleep(2 * time.Second)
+	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doValidateTOTP(s.T(), s.Context(ctx), s.secret)
 
-	s.waitBodyContains(ctx, s.T(), "Not logged yet...")
+	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// this href represents the 'login' link
-	err := s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
+	// Search for the 'login' link
+	err := s.Page.MustSearch("Log in").Click("left")
 	assert.NoError(s.T(), err)
 
-	s.verifyIsConsentPage(ctx, s.T())
-
-	err = s.WaitElementLocatedByID(ctx, s.T(), "accept-button").Click()
+	s.verifyIsConsentPage(s.T(), s.Context(ctx))
+	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "accept-button").Click("left")
 	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token
-	time.Sleep(2 * time.Second)
-	s.waitBodyContains(ctx, s.T(), "Logged in as john!")
+	s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!")
 }
 
 func (s *OIDCScenario) TestShouldDenyConsent() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), OIDCBaseURL)
-	s.verifyIsFirstFactorPage(ctx, s.T())
-	s.doFillLoginPageAndClick(ctx, s.T(), "john", "password", false)
-	s.verifyIsSecondFactorPage(ctx, s.T())
-	s.doValidateTOTP(ctx, s.T(), s.secret)
-	time.Sleep(1 * time.Second)
+	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "password", false)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doValidateTOTP(s.T(), s.Context(ctx), s.secret)
 
-	s.waitBodyContains(ctx, s.T(), "Not logged yet...")
+	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// this href represents the 'login' link
-	err := s.WaitElementLocatedByTagName(ctx, s.T(), "a").Click()
+	// Search for the 'login' link
+	err := s.Page.MustSearch("Log in").Click("left")
 	assert.NoError(s.T(), err)
 
-	s.verifyIsConsentPage(ctx, s.T())
+	s.verifyIsConsentPage(s.T(), s.Context(ctx))
 
-	err = s.WaitElementLocatedByID(ctx, s.T(), "deny-button").Click()
+	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "deny-button").Click("left")
 	assert.NoError(s.T(), err)
 
-	time.Sleep(1 * time.Second)
-	s.verifyURLIs(ctx, s.T(), "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=User%20has%20rejected%20the%20scopes")
+	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=User%20has%20rejected%20the%20scopes")
 }
 
 func TestRunOIDCScenario(t *testing.T) {

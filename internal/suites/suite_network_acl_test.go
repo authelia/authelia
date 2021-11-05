@@ -21,20 +21,21 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 	s.Require().NoError(err)
 
 	defer func() {
-		err = wds.Stop()
+		err = browser.WebDriver.Close()
 		s.Require().NoError(err)
+		browser.Launcher.Cleanup()
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
-	wds.doVisit(s.T(), targetURL)
-	wds.verifyIsFirstFactorPage(ctx, s.T())
+	page := browser.doCreateTab(s.T(), targetURL).Context(ctx)
 
-	wds.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, targetURL)
-	wds.verifySecretAuthorized(ctx, s.T())
+	browser.verifyIsFirstFactorPage(s.T(), page)
+	browser.doRegisterAndLogin2FA(s.T(), page, "john", "password", false, targetURL)
+	browser.verifySecretAuthorized(s.T(), page)
 }
 
 // from network 192.168.240.201/32.
@@ -42,21 +43,22 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	wds, err := StartWebDriverWithProxy("http://proxy-client1.example.com:3128", GetWebDriverPort())
+	browser, err := StartRodWithProxy("http://proxy-client1.example.com:3128")
 	s.Require().NoError(err)
 
 	defer func() {
-		err = wds.Stop()
+		err = browser.WebDriver.Close()
 		s.Require().NoError(err)
+		browser.Launcher.Cleanup()
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
-	wds.doVisit(s.T(), targetURL)
-	wds.verifyIsFirstFactorPage(ctx, s.T())
+	page := browser.doCreateTab(s.T(), targetURL).Context(ctx)
 
-	wds.doLoginOneFactor(ctx, s.T(), "john", "password",
+	browser.verifyIsFirstFactorPage(s.T(), page)
+	browser.doLoginOneFactor(s.T(), page, "john", "password",
 		false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	wds.verifySecretAuthorized(ctx, s.T())
+	browser.verifySecretAuthorized(s.T(), page)
 }
 
 // from network 192.168.240.202/32.
@@ -64,16 +66,18 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	wds, err := StartWebDriverWithProxy("http://proxy-client2.example.com:3128", GetWebDriverPort())
+	browser, err := StartRodWithProxy("http://proxy-client2.example.com:3128")
 	s.Require().NoError(err)
 
 	defer func() {
-		err = wds.Stop()
+		err = browser.WebDriver.Close()
 		s.Require().NoError(err)
+		browser.Launcher.Cleanup()
 	}()
 
-	wds.doVisit(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	wds.verifySecretAuthorized(ctx, s.T())
+	page := browser.doCreateTab(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL)).Context(ctx)
+
+	browser.verifySecretAuthorized(s.T(), page)
 }
 
 func TestNetworkACLSuite(t *testing.T) {

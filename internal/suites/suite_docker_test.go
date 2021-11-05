@@ -7,11 +7,11 @@ import (
 )
 
 type DockerSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewDockerSuite() *DockerSuite {
-	return &DockerSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &DockerSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *DockerSuite) TestOneFactorScenario() {

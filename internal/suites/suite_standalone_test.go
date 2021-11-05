@@ -18,25 +18,25 @@ import (
 )
 
 type StandaloneWebDriverSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewStandaloneWebDriverSuite() *StandaloneWebDriverSuite {
-	return &StandaloneWebDriverSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &StandaloneWebDriverSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *StandaloneWebDriverSuite) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *StandaloneWebDriverSuite) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -44,62 +44,78 @@ func (s *StandaloneWebDriverSuite) TearDownSuite() {
 }
 
 func (s *StandaloneWebDriverSuite) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.WebDriverSession.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *StandaloneWebDriverSuite) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	_ = s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
+	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	// Visit home page to change context.
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), GetLoginBaseURL())
-	s.verifyIsAuthenticatedPage(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	_ = s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
+	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	// Visit home page to change context.
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL()))
-	s.verifyURLIs(ctx, s.T(), "https://secure.example.com:8080/")
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL()))
+
+	_, err := s.Page.ElementR("h1", "Public resource")
+	require.NoError(s.T(), err)
+	s.verifyURLIs(s.T(), s.Context(ctx), "https://secure.example.com:8080/")
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUserToUnsafeURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	_ = s.doRegisterAndLogin2FA(ctx, s.T(), "john", "password", false, "")
+	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 
 	// Visit home page to change context.
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
-	s.doVisit(s.T(), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
-	s.verifyNotificationDisplayed(ctx, s.T(), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL()))
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	username := "john"
 	password := "password"
@@ -109,21 +125,21 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	require.NoError(s.T(), provider.DeleteTOTPSecret(username))
 
 	// Login one factor.
-	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, "")
 
 	// Check the user is asked to register a new device.
-	s.WaitElementLocatedByClassName(ctx, s.T(), "state-not-registered")
+	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
 	// Then register the TOTP factor.
-	s.doRegisterTOTP(ctx, s.T())
+	s.doRegisterTOTP(s.T(), s.Context(ctx))
 	// And logout.
-	s.doLogout(ctx, s.T())
+	s.doLogout(s.T(), s.Context(ctx))
 
 	// Login one factor again.
-	s.doLoginOneFactor(ctx, s.T(), username, password, false, "")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, "")
 
 	// now the user should be asked to perform 2FA
-	s.WaitElementLocatedByClassName(ctx, s.T(), "state-method")
+	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 
 type StandaloneSuite struct {

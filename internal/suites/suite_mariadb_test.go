@@ -7,11 +7,11 @@ import (
 )
 
 type MariadbSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewMariadbSuite() *MariadbSuite {
-	return &MariadbSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &MariadbSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *MariadbSuite) TestOneFactorScenario() {

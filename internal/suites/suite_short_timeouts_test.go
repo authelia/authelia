@@ -7,11 +7,11 @@ import (
 )
 
 type ShortTimeoutsSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewShortTimeoutsSuite() *ShortTimeoutsSuite {
-	return &ShortTimeoutsSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &ShortTimeoutsSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *ShortTimeoutsSuite) TestDefaultRedirectionURLScenario() {

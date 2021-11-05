@@ -11,27 +11,27 @@ import (
 )
 
 type BypassPolicyScenario struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewBypassPolicyScenario() *BypassPolicyScenario {
 	return &BypassPolicyScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *BypassPolicyScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *BypassPolicyScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,23 +39,27 @@ func (s *BypassPolicyScenario) TearDownSuite() {
 }
 
 func (s *BypassPolicyScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *BypassPolicyScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *BypassPolicyScenario) TestShouldAccessPublicResource() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), AdminBaseURL)
-	s.verifyIsFirstFactorPage(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), AdminBaseURL)
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doVisit(s.T(), fmt.Sprintf("%s/secret.html", PublicBaseURL))
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", PublicBaseURL))
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
 func TestBypassPolicyScenario(t *testing.T) {
