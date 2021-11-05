@@ -1,5 +1,5 @@
 import queryString from "query-string";
-import { useLocation } from "react-router";
+import { useLocation } from "react-router-dom";
 
 export function useRedirectionURL() {
     const location = useLocation();

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 
 import { Grid, Button, makeStyles } from "@material-ui/core";
 import classnames from "classnames";
-import { useHistory, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { FirstFactorRoute } from "@constants/Routes";
@@ -20,7 +20,7 @@ const ResetPasswordStep2 = function () {
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createSuccessNotification, createErrorNotification } = useNotifications();
-    const history = useHistory();
+    const navigate = useNavigate();
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
     const processToken = extractIdentityToken(location.search);
@@ -69,7 +69,7 @@ const ResetPasswordStep2 = function () {
         try {
             await resetPassword(password1);
             createSuccessNotification("Password has been reset.");
-            setTimeout(() => history.push(FirstFactorRoute), 1500);
+            setTimeout(() => navigate(FirstFactorRoute), 1500);
             setFormDisabled(true);
         } catch (err) {
             console.error(err);
@@ -83,7 +83,7 @@ const ResetPasswordStep2 = function () {
 
     const handleResetClick = () => doResetPassword();
 
-    const handleCancelClick = () => history.push(FirstFactorRoute);
+    const handleCancelClick = () => navigate(FirstFactorRoute);
 
     return (
         <LoginLayout title="Enter new password" id="reset-password-step2-stage">
