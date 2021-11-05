@@ -47,7 +47,15 @@ const RegisterOneTimePassword = function () {
             setSecretBase32(secret.base32_secret);
         } catch (err) {
             console.error(err);
-            createErrorNotification("Failed to generate the code to register your device", 10000);
+            if ((err as Error).message.includes("Request failed with status code 403")) {
+                createErrorNotification(
+                    "You must open the link from the same device and browser that initiated the registration process",
+                );
+            } else {
+                createErrorNotification(
+                    "Failed to register device, the provided link is expired or has already been used",
+                );
+            }
             setHasErrored(true);
         }
         setIsLoading(false);
