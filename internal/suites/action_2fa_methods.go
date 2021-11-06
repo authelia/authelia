@@ -16,19 +16,19 @@ func (rs *RodSession) doChangeMethod(t *testing.T, page *rod.Page, method string
 	require.NoError(t, err)
 }
 
-func (wds *WebDriverSession) doChangeDevice(ctx context.Context, t *testing.T, deviceID string) {
-	err := wds.WaitElementLocatedByID(ctx, t, "selection-link").Click()
+func (rs *RodSession) doChangeDevice(t *testing.T, page *rod.Page, deviceID string) {
+	err := rs.WaitElementLocatedByCSSSelector(t, page, "selection-link").Click("left")
 	require.NoError(t, err)
-	wds.doSelectDevice(ctx, t, deviceID)
+	rs.doSelectDevice(t, page, deviceID)
 }
 
-func (wds *WebDriverSession) doSelectDevice(ctx context.Context, t *testing.T, deviceID string) {
-	wds.WaitElementLocatedByID(ctx, t, "device-selection")
-	err := wds.WaitElementLocatedByID(ctx, t, fmt.Sprintf("device-%s", deviceID)).Click()
+func (rs *RodSession) doSelectDevice(t *testing.T, page *rod.Page, deviceID string) {
+	rs.WaitElementLocatedByCSSSelector(t, page, "device-selection")
+	err := rs.WaitElementLocatedByCSSSelector(t, page, fmt.Sprintf("device-%s", deviceID)).Click("left")
 	require.NoError(t, err)
 }
 
-func (wds *WebDriverSession) doClickButton(ctx context.Context, t *testing.T, backID string) {
-	err := wds.WaitElementLocatedByID(ctx, t, backID).Click()
+func (rs *RodSession) doClickButton(t *testing.T, page *rod.Page, backID string) {
+	err := rs.WaitElementLocatedByCSSSelector(t, page, backID).Click("left")
 	require.NoError(t, err)
 }
