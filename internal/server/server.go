@@ -27,9 +27,13 @@ var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	duoSelfEnrollment := strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
+
+	duoSelfEnrollment := "false"
+	if configuration.DuoAPI != nil {
+		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
+	}
 
 	embeddedPath, _ := fs.Sub(assets, "public_html")
 	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
