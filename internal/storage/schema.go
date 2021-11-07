@@ -9,22 +9,30 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func (p *SQLProvider) SchemaMigrationsUp() (migrations []SchemaMigration, err error) {
+func (p *SQLProvider) SchemaMigrationsUp(version int) (migrations []SchemaMigration, err error) {
 	current, err := p.SchemaVersion()
 	if err != nil {
 		return migrations, err
 	}
 
-	return loadMigrations(p.name, current, 2147483647)
+	if version == 0 {
+		version = SchemaLatest
+	}
+
+	if current <= version {
+		return migrations, fmt.Errorf("no available migrations")
+	}
+
+	return loadMigrations(p.name, current, version)
 }
 
-func (p *SQLProvider) SchemaMigrationsDown() (migrations []SchemaMigration, err error) {
+func (p *SQLProvider) SchemaMigrationsDown(version int) (migrations []SchemaMigration, err error) {
 	current, err := p.SchemaVersion()
 	if err != nil {
 		return migrations, err
 	}
 
-	return loadMigrations(p.name, current, 0)
+	return loadMigrations(p.name, current, version)
 }
 
 // SchemaTables returns a list of tables.
@@ -55,6 +63,16 @@ func (p *SQLProvider) SchemaTables() (tables []string, err error) {
 	return tables, nil
 }
 
+// SchemaLatestVersion returns the latest version available for migration..
+func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
+	migrations, err := loadMigrations(p.name, 0, SchemaLatest)
+	if err != nil {
+		return 0, err
+	}
+
+	return migrations[len(migrations)].Version, nil
+}
+
 // SchemaVersion returns the version of the schema.
 func (p *SQLProvider) SchemaVersion() (version int, err error) {
 	tables, err := p.SchemaTables()
@@ -66,16 +84,6 @@ func (p *SQLProvider) SchemaVersion() (version int, err error) {
 		return 0, nil
 	}
 
-	if utils.IsStringInSlice(tableUserPreferences, tables) && utils.IsStringInSlice(tablePre1TOTPSecrets, tables) &&
-		utils.IsStringInSlice(tableU2FDevices, tables) && utils.IsStringInSlice(tableAuthenticationLogs, tables) &&
-		utils.IsStringInSlice(tablePre1IdentityVerificationTokens, tables) && !utils.IsStringInSlice(tableMigrations, tables) {
-		if len(tables) == 5 || len(tables) == 6 && utils.IsStringInSlice(tablePre1Config, tables) {
-			return -1, nil
-		}
-
-		return -2, errors.New("unknown schema state")
-	}
-
 	if utils.IsStringInSlice(tableMigrations, tables) {
 		migration, err := p.schemaLatestMigration()
 		if err != nil {
@@ -83,6 +91,12 @@ func (p *SQLProvider) SchemaVersion() (version int, err error) {
 		}
 
 		return migration.Current, nil
+	}
+
+	if utils.IsStringInSlice(tableUserPreferences, tables) && utils.IsStringInSlice(tablePre1TOTPSecrets, tables) &&
+		utils.IsStringInSlice(tableU2FDevices, tables) && utils.IsStringInSlice(tableAuthenticationLogs, tables) &&
+		utils.IsStringInSlice(tablePre1IdentityVerificationTokens, tables) && !utils.IsStringInSlice(tableMigrations, tables) {
+		return -1, nil
 	}
 
 	return -2, errors.New("unknown schema state")
@@ -105,7 +119,7 @@ func (p *SQLProvider) SchemaMigrateLatest() (err error) {
 		return err
 	}
 
-	err = p.schemaMigrate(currentVersion, 2147483647)
+	err = p.schemaMigrate(currentVersion, SchemaLatest)
 	if err != nil {
 		return err
 	}

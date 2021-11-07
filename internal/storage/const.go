@@ -30,3 +30,7 @@ const (
 	providerPostgres = "postgres"
 	provideerSQLite  = "sqlite"
 )
+
+const (
+	SchemaLatest = 2147483647
+)

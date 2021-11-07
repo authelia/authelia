@@ -29,10 +29,11 @@ type Provider interface {
 
 	SchemaTables() (tables []string, err error)
 	SchemaVersion() (version int, err error)
+	SchemaLatestVersion() (version int, err error)
 	SchemaMigrate(version int) (err error)
 	SchemaMigrateLatest() (err error)
-	SchemaMigrationsUp() (migrations []SchemaMigration, err error)
-	SchemaMigrationsDown() (migrations []SchemaMigration, err error)
+	SchemaMigrationsUp(version int) (migrations []SchemaMigration, err error)
+	SchemaMigrationsDown(version int) (migrations []SchemaMigration, err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

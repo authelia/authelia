@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -116,7 +117,7 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "schema-info",
 		Short: "Show the storage information",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			var storageProvider storage.Provider
 
 			switch {
@@ -185,7 +186,7 @@ func newMigrateStorageListUpCmd() (cmd *cobra.Command) {
 		Use:   "list-up",
 		Short: "List the up migrations available",
 		Args:  cobra.NoArgs,
-		RunE:  newlistMigrationsRunE(true),
+		RunE:  newListMigrationsRunE(true),
 	}
 
 	return cmd
@@ -196,13 +197,13 @@ func newMigrateStorageListDownCmd() (cmd *cobra.Command) {
 		Use:   "list-down",
 		Short: "List the down migrations available",
 		Args:  cobra.NoArgs,
-		RunE:  newlistMigrationsRunE(false),
+		RunE:  newListMigrationsRunE(false),
 	}
 
 	return cmd
 }
 
-func newlistMigrationsRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
+func newListMigrationsRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var storageProvider storage.Provider
 
@@ -221,10 +222,10 @@ func newlistMigrationsRunE(up bool) func(cmd *cobra.Command, args []string) (err
 		)
 
 		if up {
-			migrations, err = storageProvider.SchemaMigrationsUp()
+			migrations, err = storageProvider.SchemaMigrationsUp(0)
 			directionStr = "Up"
 		} else {
-			migrations, err = storageProvider.SchemaMigrationsDown()
+			migrations, err = storageProvider.SchemaMigrationsDown(0)
 			directionStr = "Down"
 		}
 
@@ -253,7 +254,45 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 		Use:   "up",
 		Short: "Perform a migration up",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			var (
+				provider   storage.Provider
+				migrations []storage.SchemaMigration
+			)
+
+			switch {
+			case config.Storage.PostgreSQL != nil:
+				provider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
+			case config.Storage.MySQL != nil:
+				provider = storage.NewMySQLProvider(*config.Storage.MySQL)
+			case config.Storage.Local != nil:
+				provider = storage.NewSQLiteProvider(config.Storage.Local.Path)
+			}
+
+			target, err := cmd.Flags().GetInt("target")
+			if err != nil {
+				return err
+			}
+
+			if target == 0 {
+				migrations, err = provider.SchemaMigrationsUp(target)
+				if err != nil {
+					return
+				}
+
+				if len(migrations) == 0 {
+					return errors.New("already on latest version")
+				}
+			} else {
+				migrations, err = provider.SchemaMigrationsUp(target)
+				if err != nil {
+					return
+				}
+
+				if migrations[len(migrations)-1].Version < target {
+					return fmt.Errorf("migration to version %d is not available, the latest available version is %d", target, migrations[len(migrations)-1].Version)
+				}
+			}
 
 			return nil
 		},
@@ -269,7 +308,7 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 		Use:   "down",
 		Short: "Perform a migration down",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			return nil
 		},

@@ -292,6 +292,21 @@ func (m *MockProvider) SchemaVersion() (int, error) {
 	return ret0, ret1
 }
 
+// SchemaLatestVersion indicates an expected call of SchemaLatestVersion.
+func (mr *MockProviderMockRecorder) SchemaLatestVersion() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaLatestVersion", reflect.TypeOf((*MockProvider)(nil).SchemaLatestVersion))
+}
+
+// SchemaLatestVersion mocks base method.
+func (m *MockProvider) SchemaLatestVersion() (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaLatestVersion")
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // SchemaVersion indicates an expected call of SchemaVersion.
 func (mr *MockProviderMockRecorder) SchemaVersion() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
