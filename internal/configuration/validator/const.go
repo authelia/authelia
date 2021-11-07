@@ -237,6 +237,7 @@ var ValidKeys = []string{
 	"notifier.smtp.password",
 	"notifier.smtp.identifier",
 	"notifier.smtp.sender",
+	"notifier.smtp.sender_name",
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
