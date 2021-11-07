@@ -27,7 +27,11 @@ export interface Props {
 
 const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
-    const registerMessage = props.registered ? "Lost your device?" : "Register device";
+    const registerMessage = props.registered
+        ? props.title === "Push Notification"
+            ? null
+            : "Lost your device?"
+        : "Register device";
     const selectMessage = "Select a Device";
 
     let container: ReactNode;
@@ -61,9 +65,6 @@ const DefaultMethodContainer = function (props: Props) {
                 <Link component="button" id="selection-link" onClick={props.onSelectClick}>
                     {selectMessage}
                 </Link>
-            ) : null}
-            {props.onRegisterClick && props.onSelectClick && props.state !== State.NOT_REGISTERED ? (
-                <Typography variant="inherit"> | </Typography>
             ) : null}
             {props.onRegisterClick ? (
                 <Link component="button" id="register-link" onClick={props.onRegisterClick}>
