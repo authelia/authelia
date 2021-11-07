@@ -7,11 +7,11 @@ import (
 )
 
 type MySQLSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewMySQLSuite() *MySQLSuite {
-	return &MySQLSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &MySQLSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *MySQLSuite) TestOneFactorScenario() {

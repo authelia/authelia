@@ -7,11 +7,11 @@ import (
 )
 
 type KubernetesSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewKubernetesSuite() *KubernetesSuite {
-	return &KubernetesSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &KubernetesSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *KubernetesSuite) TestOneFactorScenario() {

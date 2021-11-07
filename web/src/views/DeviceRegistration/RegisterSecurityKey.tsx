@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { makeStyles, Typography, Button } from "@material-ui/core";
-import { useHistory, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router-dom";
 import u2fApi from "u2f-api";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -13,7 +13,7 @@ import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterSecurityKey = function () {
     const style = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
     const location = useLocation();
     const { createErrorNotification } = useNotifications();
     const [, setRegistrationInProgress] = useState(false);
@@ -21,7 +21,7 @@ const RegisterSecurityKey = function () {
     const processToken = extractIdentityToken(location.search);
 
     const handleBackClick = () => {
-        history.push(FirstFactorPath);
+        navigate(FirstFactorPath);
     };
 
     const registerStep1 = useCallback(async () => {
@@ -43,14 +43,20 @@ const RegisterSecurityKey = function () {
             const registerResponse = await u2fApi.register(registerRequests, [], 60);
             await completeU2FRegistrationProcessStep2(registerResponse);
             setRegistrationInProgress(false);
-            history.push(FirstFactorPath);
+            navigate(FirstFactorPath);
         } catch (err) {
             console.error(err);
-            createErrorNotification(
-                "Failed to register your security key. The identity verification process might have timed out.",
-            );
+            if ((err as Error).message.includes("Request failed with status code 403")) {
+                createErrorNotification(
+                    "You must open the link from the same device and browser that initiated the registration process",
+                );
+            } else {
+                createErrorNotification(
+                    "Failed to register your security key. The identity verification process might have timed out.",
+                );
+            }
         }
-    }, [processToken, createErrorNotification, history]);
+    }, [processToken, createErrorNotification, navigate]);
 
     useEffect(() => {
         registerStep1();

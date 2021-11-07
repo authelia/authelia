@@ -2,8 +2,9 @@ import React, { useEffect, Fragment, ReactNode } from "react";
 
 import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, makeStyles } from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
+import { FirstFactorRoute } from "@constants/Routes";
 import { useRequestedScopes } from "@hooks/Consent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
@@ -30,17 +31,17 @@ function showListItemAvatar(id: string) {
 
 const ConsentView = function (props: Props) {
     const classes = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
 
     useEffect(() => {
         if (err) {
-            history.replace("/");
+            navigate(FirstFactorRoute);
             console.error(`Unable to display consent screen: ${err.message}`);
         }
-    }, [history, resetNotification, createErrorNotification, err]);
+    }, [navigate, resetNotification, createErrorNotification, err]);
 
     useEffect(() => {
         fetch();

@@ -7,11 +7,11 @@ import (
 )
 
 type PostgresSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewPostgresSuite() *PostgresSuite {
-	return &PostgresSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &PostgresSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *PostgresSuite) TestOneFactorScenario() {

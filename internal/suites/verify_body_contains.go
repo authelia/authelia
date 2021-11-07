@@ -1,33 +1,29 @@
 package suites
 
 import (
-	"context"
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/go-rod/rod"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tebeka/selenium"
 )
 
-func (wds *WebDriverSession) verifyBodyContains(ctx context.Context, t *testing.T, pattern string) {
-	err := wds.Wait(ctx, func(wd selenium.WebDriver) (bool, error) {
-		bodyElement, err := wds.WebDriver.FindElement(selenium.ByTagName, "body")
+func (rs *RodSession) verifyBodyContains(t *testing.T, page *rod.Page, pattern string) {
+	body, err := page.Element("body")
+	assert.NoError(t, err)
+	assert.NotNil(t, body)
 
-		if err != nil {
-			return false, err
-		}
+	text, err := body.Text()
+	assert.NoError(t, err)
+	assert.NotNil(t, text)
 
-		if bodyElement == nil {
-			return false, nil
-		}
+	if strings.Contains(text, pattern) {
+		err = nil
+	} else {
+		err = fmt.Errorf("body does not contain pattern: %s", pattern)
+	}
 
-		content, err := bodyElement.Text()
-
-		if err != nil {
-			return false, err
-		}
-
-		return strings.Contains(content, pattern), nil
-	})
 	require.NoError(t, err)
 }

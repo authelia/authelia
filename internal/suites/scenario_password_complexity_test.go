@@ -10,25 +10,25 @@ import (
 )
 
 type PasswordComplexityScenario struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewPasswordComplexityScenario() *PasswordComplexityScenario {
-	return &PasswordComplexityScenario{SeleniumSuite: new(SeleniumSuite)}
+	return &PasswordComplexityScenario{RodSuite: new(RodSuite)}
 }
 
 func (s *PasswordComplexityScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *PasswordComplexityScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -36,24 +36,28 @@ func (s *PasswordComplexityScenario) TearDownSuite() {
 }
 
 func (s *PasswordComplexityScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *PasswordComplexityScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *PasswordComplexityScenario) TestShouldRejectPasswordReset() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisit(s.T(), GetLoginBaseURL())
-	s.verifyIsFirstFactorPage(ctx, s.T())
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
 	// Attempt to reset the password to a
-	s.doResetPassword(ctx, s.T(), "john", "a", "a", true)
-	s.verifyNotificationDisplayed(ctx, s.T(), "Your supplied password does not meet the password policy requirements.")
+	s.doResetPassword(s.T(), s.Context(ctx), "john", "a", "a", true)
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Your supplied password does not meet the password policy requirements.")
 }
 
 func TestRunPasswordComplexityScenario(t *testing.T) {

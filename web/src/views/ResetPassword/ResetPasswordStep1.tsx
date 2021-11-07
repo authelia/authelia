@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { Grid, Button, makeStyles } from "@material-ui/core";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
 import { FirstFactorRoute } from "@constants/Routes";
@@ -14,7 +14,7 @@ const ResetPasswordStep1 = function () {
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const doInitiateResetPasswordProcess = async () => {
         if (username === "") {
@@ -35,7 +35,7 @@ const ResetPasswordStep1 = function () {
     };
 
     const handleCancelClick = () => {
-        history.push(FirstFactorRoute);
+        navigate(FirstFactorRoute);
     };
 
     return (

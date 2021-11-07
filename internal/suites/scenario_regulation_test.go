@@ -11,27 +11,27 @@ import (
 )
 
 type RegulationScenario struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewRegulationScenario() *RegulationScenario {
 	return &RegulationScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *RegulationScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *RegulationScenario) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,47 +39,49 @@ func (s *RegulationScenario) TearDownSuite() {
 }
 
 func (s *RegulationScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *RegulationScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-	s.doVisitLoginPage(ctx, s.T(), "")
-	s.doFillLoginPageAndClick(ctx, s.T(), "john", "bad-password", false)
-	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
+	s.doVisitLoginPage(s.T(), s.Context(ctx), "")
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "bad-password", false)
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 
 	for i := 0; i < 3; i++ {
-		err := s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").SendKeys("bad-password")
+		err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("bad-password")
 		require.NoError(s.T(), err)
-		err = s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
+		err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
 		require.NoError(s.T(), err)
-		time.Sleep(1 * time.Second)
 	}
 
 	// Enter the correct password and test the regulation lock out
-	err := s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").SendKeys("password")
+	err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
+	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
 	require.NoError(s.T(), err)
-	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 
-	time.Sleep(1 * time.Second)
-	s.verifyIsFirstFactorPage(ctx, s.T())
-	time.Sleep(9 * time.Second)
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	time.Sleep(10 * time.Second)
 
 	// Enter the correct password and test a successful login
-	err = s.WaitElementLocatedByID(ctx, s.T(), "password-textfield").SendKeys("password")
+	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByID(ctx, s.T(), "sign-in-button").Click()
+	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
 	require.NoError(s.T(), err)
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
 func TestBlacklistingScenario(t *testing.T) {

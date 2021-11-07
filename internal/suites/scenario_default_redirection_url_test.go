@@ -11,57 +11,62 @@ import (
 )
 
 type DefaultRedirectionURLScenario struct {
-	*SeleniumSuite
+	*RodSuite
 
 	secret string
 }
 
 func NewDefaultRedirectionURLScenario() *DefaultRedirectionURLScenario {
 	return &DefaultRedirectionURLScenario{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
-func (drus *DefaultRedirectionURLScenario) SetupSuite() {
-	wds, err := StartWebDriver()
+func (s *DefaultRedirectionURLScenario) SetupSuite() {
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	drus.WebDriverSession = wds
+	s.RodSession = browser
+}
 
+func (s *DefaultRedirectionURLScenario) TearDownSuite() {
+	err := s.RodSession.Stop()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (s *DefaultRedirectionURLScenario) SetupTest() {
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
+
+func (s *DefaultRedirectionURLScenario) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
+}
+
+func (s *DefaultRedirectionURLScenario) TestUserIsRedirectedToDefaultURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	drus.secret = drus.doRegisterAndLogin2FA(ctx, drus.T(), "john", "password", false, targetURL)
-	drus.verifySecretAuthorized(ctx, drus.T())
-}
 
-func (drus *DefaultRedirectionURLScenario) TearDownSuite() {
-	err := drus.WebDriverSession.Stop()
+	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+	s.secret = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	s.doLogout(s.T(), s.Context(ctx))
 
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (drus *DefaultRedirectionURLScenario) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	drus.doLogout(ctx, drus.T())
-	drus.doVisit(drus.T(), HomeBaseURL)
-	drus.verifyIsHome(ctx, drus.T())
-}
-
-func (drus *DefaultRedirectionURLScenario) TestUserIsRedirectedToDefaultURL() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	drus.doLoginTwoFactor(ctx, drus.T(), "john", "password", false, drus.secret, "")
-	drus.verifyURLIs(ctx, drus.T(), HomeBaseURL+"/")
+	s.doLoginTwoFactor(s.T(), s.Context(ctx), "john", "password", false, s.secret, "")
+	s.verifyIsHome(s.T(), s.Page)
 }
 
 func TestShouldRunDefaultRedirectionURLScenario(t *testing.T) {

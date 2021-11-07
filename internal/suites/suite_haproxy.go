@@ -42,6 +42,13 @@ func init() {
 
 		fmt.Println(frontendLogs)
 
+		haproxyLogs, err := dockerEnvironment.Logs("haproxy", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(haproxyLogs)
+
 		return nil
 	}
 

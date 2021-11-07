@@ -1,10 +1,11 @@
 package suites
 
 import (
-	"context"
 	"testing"
+
+	"github.com/go-rod/rod"
 )
 
-func (wds *WebDriverSession) verifyIsConsentPage(ctx context.Context, t *testing.T) {
-	wds.WaitElementLocatedByID(ctx, t, "consent-stage")
+func (rs *RodSession) verifyIsConsentPage(t *testing.T, page *rod.Page) {
+	rs.WaitElementLocatedByCSSSelector(t, page, "consent-stage")
 }

@@ -1,14 +1,14 @@
 package suites
 
 import (
-	"context"
 	"testing"
 
+	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/assert"
 )
 
-func (wds *WebDriverSession) verifyNotificationDisplayed(ctx context.Context, t *testing.T, message string) {
-	el := wds.WaitElementLocatedByClassName(ctx, t, "notification")
+func (rs *RodSession) verifyNotificationDisplayed(t *testing.T, page *rod.Page, message string) {
+	el, err := page.ElementR(".notification", message)
+	assert.NoError(t, err)
 	assert.NotNil(t, el)
-	wds.WaitElementTextContains(ctx, t, el, message)
 }

@@ -7,11 +7,11 @@ import (
 )
 
 type LDAPSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewLDAPSuite() *LDAPSuite {
-	return &LDAPSuite{SeleniumSuite: new(SeleniumSuite)}
+	return &LDAPSuite{RodSuite: new(RodSuite)}
 }
 
 func (s *LDAPSuite) TestOneFactorScenario() {

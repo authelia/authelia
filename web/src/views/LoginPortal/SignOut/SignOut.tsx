@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 
 import { Typography, makeStyles } from "@material-ui/core";
-import { Redirect } from "react-router";
+import { Navigate } from "react-router-dom";
 
 import { FirstFactorRoute } from "@constants/Routes";
 import { useIsMountedRef } from "@hooks/Mounted";
@@ -48,7 +48,7 @@ const SignOut = function (props: Props) {
         if (redirectionURL && safeRedirect) {
             redirector(redirectionURL);
         } else {
-            return <Redirect to={FirstFactorRoute} />;
+            return <Navigate to={FirstFactorRoute} />;
         }
     }
 

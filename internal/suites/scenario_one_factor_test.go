@@ -11,27 +11,27 @@ import (
 )
 
 type OneFactorSuite struct {
-	*SeleniumSuite
+	*RodSuite
 }
 
 func NewOneFactorScenario() *OneFactorSuite {
 	return &OneFactorSuite{
-		SeleniumSuite: new(SeleniumSuite),
+		RodSuite: new(RodSuite),
 	}
 }
 
 func (s *OneFactorSuite) SetupSuite() {
-	wds, err := StartWebDriver()
+	browser, err := StartRod()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.WebDriverSession = wds
+	s.RodSession = browser
 }
 
 func (s *OneFactorSuite) TearDownSuite() {
-	err := s.WebDriverSession.Stop()
+	err := s.RodSession.Stop()
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,40 +39,50 @@ func (s *OneFactorSuite) TearDownSuite() {
 }
 
 func (s *OneFactorSuite) SetupTest() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Page)
+}
 
-	s.doLogout(ctx, s.T())
-	s.doVisit(s.T(), HomeBaseURL)
-	s.verifyIsHome(ctx, s.T())
+func (s *OneFactorSuite) TearDownTest() {
+	s.collectCoverage(s.Page)
+	s.MustClose()
 }
 
 func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, targetURL)
-	s.verifySecretAuthorized(ctx, s.T())
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Page)
 }
 
 func (s *OneFactorSuite) TestShouldRedirectToSecondFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginOneFactor(ctx, s.T(), "john", "password", false, targetURL)
-	s.verifyIsSecondFactorPage(ctx, s.T())
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }
 
 func (s *OneFactorSuite) TestShouldDenyAccessOnBadPassword() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
-	s.doLoginOneFactor(ctx, s.T(), "john", "bad-password", false, targetURL)
-	s.verifyIsFirstFactorPage(ctx, s.T())
-	s.verifyNotificationDisplayed(ctx, s.T(), "Incorrect username or password.")
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "bad-password", false, targetURL)
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 }
 
 func TestRunOneFactor(t *testing.T) {
