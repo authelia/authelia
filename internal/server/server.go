@@ -27,6 +27,7 @@ var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
+	duoSelfEnrollment := strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
@@ -35,9 +36,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)

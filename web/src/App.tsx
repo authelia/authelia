@@ -18,7 +18,7 @@ import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
-import { getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
+import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
 import RegisterSecurityKey from "@views/DeviceRegistration/RegisterSecurityKey";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
@@ -73,7 +73,13 @@ const App: React.FC = () => {
                         <Route path={ConsentRoute} element={<ConsentView />} />
                         <Route
                             path={`${FirstFactorRoute}*`}
-                            element={<LoginPortal rememberMe={getRememberMe()} resetPassword={getResetPassword()} />}
+                            element={
+                                <LoginPortal
+                                    duoSelfEnrollment={getDuoSelfEnrollment()}
+                                    rememberMe={getRememberMe()}
+                                    resetPassword={getResetPassword()}
+                                />
+                            }
                         />
                     </Routes>
                 </Router>

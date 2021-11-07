@@ -27,9 +27,9 @@ const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to compl
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
-
     userInfo: UserInfo;
     configuration: Configuration;
+    duoSelfEnrollment: boolean;
 
     onMethodChanged: () => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
@@ -143,6 +143,7 @@ const SecondFactorForm = function (props: Props) {
                                 <PushNotificationMethod
                                     id="push-notification-method"
                                     authenticationLevel={props.authenticationLevel}
+                                    duoSelfEnrollment={props.duoSelfEnrollment}
                                     registered={props.userInfo.has_duo}
                                     onSelectionClick={props.onMethodChanged}
                                     onSignInError={(err) => createErrorNotification(err.message)}

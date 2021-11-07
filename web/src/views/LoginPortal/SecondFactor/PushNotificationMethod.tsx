@@ -31,6 +31,7 @@ export enum State {
 export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
+    duoSelfEnrollment: boolean;
     registered: boolean;
 
     onSignInError: (err: Error) => void;
@@ -203,6 +204,7 @@ const PushNotificationMethod = function (props: Props) {
             id={props.id}
             title="Push Notification"
             explanation="A notification has been sent to your smartphone"
+            duoSelfEnrollment={props.duoSelfEnrollment}
             registered={props.registered}
             state={methodState}
             onSelectClick={fetchDuoDevicesFunc}

@@ -16,6 +16,7 @@ export enum State {
 export interface Props {
     id: string;
     title: string;
+    duoSelfEnrollment: boolean;
     registered: boolean;
     explanation: string;
     state: State;
@@ -66,7 +67,12 @@ const DefaultMethodContainer = function (props: Props) {
                     {selectMessage}
                 </Link>
             ) : null}
-            {props.onRegisterClick ? (
+            {props.onRegisterClick && props.title !== "Push Notification" ? (
+                <Link component="button" id="register-link" onClick={props.onRegisterClick}>
+                    {registerMessage}
+                </Link>
+            ) : null}
+            {props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment ? (
                 <Link component="button" id="register-link" onClick={props.onRegisterClick}>
                     {registerMessage}
                 </Link>
