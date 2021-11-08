@@ -67,4 +67,16 @@ required: yes
 
 The secret [Duo] key used to verify your application is valid.
 
+### enable_self_enrollment
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Enables [Duo] device self-enrollment from within the Authelia portal.
+
 [Duo]: https://duo.com/
