@@ -145,6 +145,10 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// Set default 2FA preference and clean up any Duo device already in DB.
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
+	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "ABCDEFGHIJ1234567890", "push"))
+
 	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
@@ -170,7 +174,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	// Test Back button.
 	s.doClickButton(s.T(), s.Context(ctx), "device-selection-back")
 	// then select Device 2 for further use and be redirected.
-	s.doSelectDevice(s.T(), s.Context(ctx), "1234567890ABCDEFGHIJ")
+	s.doChangeDevice(s.T(), s.Context(ctx), "1234567890ABCDEFGHIJ")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Re-Login the user
