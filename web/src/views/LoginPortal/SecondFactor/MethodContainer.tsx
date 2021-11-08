@@ -29,7 +29,7 @@ const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
     const registerMessage = props.registered
         ? props.title === "Push Notification"
-            ? null
+            ? ""
             : "Lost your device?"
         : "Register device";
     const selectMessage = "Select a Device";
@@ -57,7 +57,7 @@ const DefaultMethodContainer = function (props: Props) {
             <div className={classnames(style.container, stateClass)} id="2fa-container">
                 <div className={style.containerFlex}>{container}</div>
             </div>
-            {props.onSelectClick && props.state !== State.NOT_REGISTERED ? (
+            {props.onSelectClick && props.registered ? (
                 <Link component="button" id="selection-link" onClick={props.onSelectClick}>
                     {selectMessage}
                 </Link>
