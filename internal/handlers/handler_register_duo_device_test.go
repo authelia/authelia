@@ -42,7 +42,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "Duo PreAuth API errored: Connnection error", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "duo PreAuth API errored: Connnection error", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
