@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
-	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.7.1
 	github.com/duosecurity/duo_api_golang v0.0.0-20211012165811-2e1863933615
 	github.com/fasthttp/router v1.4.4
@@ -110,6 +110,6 @@ require (
 )
 
 replace (
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.8
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.9
 	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
 )
