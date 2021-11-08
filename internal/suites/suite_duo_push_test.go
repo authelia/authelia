@@ -275,7 +275,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.doClickButton(s.T(), s.Context(ctx), "selection-link")
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection is being bypassed by Duo Policy")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied() {
