@@ -34,13 +34,8 @@ func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx, method s
 	}
 
 	if response.Stat == "FAIL" {
-		var hint string
-		if response.Code == 40002 {
-			hint = " This error often occurs if you've not setup the username in the Admin Dashboard."
-		}
-
 		ctx.Logger.Warnf(
-			"Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d."+hint,
+			"Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d.",
 			ctx.GetSession().Username, ctx.RemoteIP().String(),
 			response.Message, response.MessageDetail, response.Code)
 	}
