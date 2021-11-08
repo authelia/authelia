@@ -22,7 +22,7 @@ func (rs *RodSession) doSelectDevice(t *testing.T, page *rod.Page, deviceID stri
 	require.NoError(t, err)
 }
 
-func (rs *RodSession) doClickButton(t *testing.T, page *rod.Page, backID string) {
-	err := rs.WaitElementLocatedByCSSSelector(t, page, backID).Click("left")
+func (rs *RodSession) doClickButton(t *testing.T, page *rod.Page, buttonID string) {
+	err := rs.WaitElementLocatedByCSSSelector(t, page, buttonID).Click("left")
 	require.NoError(t, err)
 }

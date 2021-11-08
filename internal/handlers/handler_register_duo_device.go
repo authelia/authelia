@@ -21,7 +21,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 
 		result, message, devices, enrollURL, err := DuoPreAuth(duoAPI, ctx)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Duo PreAuth API errored: %s", err), messageMFAValidationFailed)
+			ctx.Error(fmt.Errorf("duo PreAuth API errored: %s", err), messageMFAValidationFailed)
 			return
 		}
 
@@ -30,14 +30,14 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 				ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
 
 				if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll}); err != nil {
-					ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
+					ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
 				}
 
 				return
 			}
 
 			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, Devices: devices}); err != nil {
-				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
+				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
 			return
@@ -47,7 +47,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
 
 			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: allow}); err != nil {
-				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
+				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
 			return
@@ -57,7 +57,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 			ctx.Logger.Debugf("Duo User not enrolled: %s", userSession.Username)
 
 			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
-				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
+				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
 			return
@@ -67,13 +67,13 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 			ctx.Logger.Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
 
 			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: deny}); err != nil {
-				ctx.Error(fmt.Errorf("Unable to set JSON body in response"), messageMFAValidationFailed)
+				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 
 			return
 		}
 
-		ctx.Error(fmt.Errorf("Duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
+		ctx.Error(fmt.Errorf("duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
 	}
 }
 
@@ -88,7 +88,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !utils.IsStringInSlice(device.Method, duo.PossibleMethods) {
-		ctx.Error(fmt.Errorf("Unknown method '%s', it should be one of %s", device.Method, strings.Join(duo.PossibleMethods, ", ")), messageMFAValidationFailed)
+		ctx.Error(fmt.Errorf("unknown method '%s', it should be one of %s", device.Method, strings.Join(duo.PossibleMethods, ", ")), messageMFAValidationFailed)
 		return
 	}
 
@@ -97,7 +97,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(userSession.Username, device.Device, device.Method)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to save new preferred Duo device and method: %s", err), messageMFAValidationFailed)
+		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %s", err), messageMFAValidationFailed)
 		return
 	}
 
@@ -111,7 +111,7 @@ func SecondFactorDuoDeviceDelete(ctx *middlewares.AutheliaCtx) {
 	err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(userSession.Username)
 
 	if err != nil {
-		ctx.Error(fmt.Errorf("Unable to delete preferred Duo device and method: %s", err), messageMFAValidationFailed)
+		ctx.Error(fmt.Errorf("unable to delete preferred Duo device and method: %s", err), messageMFAValidationFailed)
 		return
 	}
 
