@@ -39,7 +39,7 @@ func ConfigureDuo(t *testing.T, allowDeny DuoPolicy) {
 }
 
 // ConfigureDuoPreAuth configure duo api to respond with available devices or enrollment Url.
-func ConfigureDuoPreAuth(t *testing.T, response duo.PreauthResponse) {
+func ConfigureDuoPreAuth(t *testing.T, response duo.PreAuthResponse) {
 	url := fmt.Sprintf("%s/preauth", DuoBaseURL)
 
 	body, err := json.Marshal(response)

@@ -108,10 +108,10 @@ totp:
 ## "Partner Auth API" in the management panel.
 duo_api:
   hostname: api-123456789.example.com
-  enable_self_enrollment: false
   integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret_key: 1234567890abcdefghifjkl
+  enable_self_enrollment: false
 
 ##
 ## NTP Configuration

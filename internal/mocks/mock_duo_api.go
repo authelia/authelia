@@ -68,10 +68,10 @@ func (mr *MockAPIMockRecorder) Call(arg0, arg1, arg2, arg3 interface{}) *gomock.
 }
 
 // PreauthCall mocks base method.
-func (m *MockAPI) PreauthCall(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.PreauthResponse, error) {
+func (m *MockAPI) PreAuthCall(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.PreAuthResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PreauthCall", arg0, arg1)
-	ret0, _ := ret[0].(*duo.PreauthResponse)
+	ret := m.ctrl.Call(m, "PreAuthCall", arg0, arg1)
+	ret0, _ := ret[0].(*duo.PreAuthResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,5 +79,5 @@ func (m *MockAPI) PreauthCall(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*
 // PreauthCall indicates an expected call of PreauthCall.
 func (mr *MockAPIMockRecorder) PreauthCall(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PreauthCall", reflect.TypeOf((*MockAPI)(nil).PreauthCall), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PreAuthCall", reflect.TypeOf((*MockAPI)(nil).PreAuthCall), arg0, arg1)
 }

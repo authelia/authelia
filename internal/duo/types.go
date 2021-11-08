@@ -12,7 +12,7 @@ import (
 // API interface wrapping duo api library for testing purpose.
 type API interface {
 	Call(values url.Values, ctx *middlewares.AutheliaCtx, method string, path string) (*Response, error)
-	PreauthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*PreauthResponse, error)
+	PreAuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*PreAuthResponse, error)
 	AuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*AuthResponse, error)
 }
 
@@ -49,8 +49,8 @@ type AuthResponse struct {
 	TrustedDeviceToken string `json:"trusted_device_token"`
 }
 
-// PreauthResponse is a response for a preauthorization request.
-type PreauthResponse struct {
+// PreAuthResponse is a response for a preauthorization request.
+type PreAuthResponse struct {
 	Result          string   `json:"result"`
 	StatusMessage   string   `json:"status_msg"`
 	Devices         []Device `json:"devices"`

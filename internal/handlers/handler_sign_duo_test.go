@@ -44,7 +44,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = enroll
 	preAuthResponse.EnrollPortalURL = enrollURL
 
@@ -75,7 +75,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -111,7 +111,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = deny
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
@@ -159,7 +159,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = enroll
 	preAuthResponse.EnrollPortalURL = enrollURL
 
@@ -191,7 +191,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -229,7 +229,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -255,7 +255,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -291,7 +291,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = allow
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
@@ -313,7 +313,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = deny
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
@@ -361,7 +361,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -399,7 +399,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -428,7 +428,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -463,7 +463,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -494,7 +494,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -529,7 +529,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 
@@ -562,7 +562,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	values := url.Values{}
 	values.Set("username", "john")
 
-	preAuthResponse := duo.PreauthResponse{}
+	preAuthResponse := duo.PreAuthResponse{}
 	preAuthResponse.Result = auth
 	preAuthResponse.Devices = duoDevices
 

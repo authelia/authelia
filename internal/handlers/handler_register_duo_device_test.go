@@ -63,7 +63,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	response := duo.PreauthResponse{}
+	response := duo.PreAuthResponse{}
 	response.Result = auth
 	response.Devices = duoDevices
 
@@ -80,7 +80,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	response := duo.PreauthResponse{}
+	response := duo.PreAuthResponse{}
 	response.Result = allow
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
@@ -98,7 +98,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	response := duo.PreauthResponse{}
+	response := duo.PreAuthResponse{}
 	response.Result = enroll
 	response.EnrollPortalURL = enrollURL
 
@@ -115,7 +115,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	response := duo.PreauthResponse{}
+	response := duo.PreAuthResponse{}
 	response.Result = deny
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)

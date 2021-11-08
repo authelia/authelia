@@ -26,7 +26,7 @@ func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx, method s
 		return nil, err
 	}
 
-	ctx.Logger.Tracef("Duo Endpoint (%s) Response Raw Data for %s from IP %s: %s", path, ctx.GetSession().Username, ctx.RemoteIP().String(), string(responseBytes))
+	ctx.Logger.Tracef("Duo endpoint: %s response raw data for %s from IP %s: %s", path, ctx.GetSession().Username, ctx.RemoteIP().String(), string(responseBytes))
 
 	err = json.Unmarshal(responseBytes, &response)
 	if err != nil {
@@ -48,21 +48,21 @@ func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx, method s
 	return &response, nil
 }
 
-// PreauthCall call to the DuoAPI.
-func (d *APIImpl) PreauthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*PreauthResponse, error) {
-	var preauthResponse PreauthResponse
+// PreAuthCall call to the DuoAPI.
+func (d *APIImpl) PreAuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*PreAuthResponse, error) {
+	var preAuthResponse PreAuthResponse
 
 	response, err := d.Call(values, ctx, "POST", "/auth/v2/preauth")
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(response.Response, &preauthResponse)
+	err = json.Unmarshal(response.Response, &preAuthResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &preauthResponse, nil
+	return &preAuthResponse, nil
 }
 
 // AuthCall call to the DuoAPI.

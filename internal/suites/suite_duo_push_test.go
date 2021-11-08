@@ -64,7 +64,7 @@ func (s *DuoPushWebDriverSuite) TestShouldBypassDeviceSelection() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "allow",
 		StatusMessage: "Allowing unknown user",
 	}
@@ -80,7 +80,7 @@ func (s *DuoPushWebDriverSuite) TestShouldDenyDeviceSelection() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "deny",
 		StatusMessage: "We're sorry, access is not allowed.",
 	}
@@ -96,7 +96,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:          "enroll",
 		EnrollPortalURL: "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890",
 	}
@@ -114,7 +114,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -145,7 +145,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -186,7 +186,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailInitialSelectionBecauseOfUnsupport
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -208,7 +208,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodI
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -238,7 +238,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectNewDeviceAfterSavedDeviceIsN
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -262,7 +262,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "allow",
 		StatusMessage: "Allowing unknown user",
 	}
@@ -282,7 +282,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "deny",
 		StatusMessage: "We're sorry, access is not allowed.",
 	}
@@ -303,7 +303,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthenticationBecausePreauthDenied
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "deny",
 		StatusMessage: "We're sorry, access is not allowed.",
 	}
@@ -325,7 +325,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -352,7 +352,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
 		Devices: []duo.Device{{
 			Device:       "12345ABCDEFGHIJ67890",
@@ -415,7 +415,7 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "allow",
 		StatusMessage: "Allowing unknown user",
 	}
@@ -458,7 +458,7 @@ func (s *DuoPushSuite) TestAvailableMethodsScenario() {
 }
 
 func (s *DuoPushSuite) TestUserPreferencesScenario() {
-	var PreAuthAPIResponse = duo.PreauthResponse{
+	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result:        "allow",
 		StatusMessage: "Allowing unknown user",
 	}
