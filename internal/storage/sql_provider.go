@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
 )
 
@@ -20,6 +21,7 @@ func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvid
 		name:       name,
 		driverName: driverName,
 		db:         db,
+		log:        logging.Logger(),
 		errOpen:    err,
 
 		sqlFmtRenameTable: queryFmtRenameTable,
@@ -82,12 +84,10 @@ type SQLProvider struct {
 }
 
 // StartupCheck implements the provider startup check interface.
-func (p *SQLProvider) StartupCheck(logger *logrus.Logger) (err error) {
+func (p *SQLProvider) StartupCheck() (err error) {
 	if p.errOpen != nil {
 		return p.errOpen
 	}
-
-	p.log = logger
 
 	if p.name == providerPostgres {
 		p.rebind()

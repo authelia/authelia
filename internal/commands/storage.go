@@ -118,45 +118,45 @@ func newSchemaInfoStorageCmd() (cmd *cobra.Command) {
 		Use:   "schema-info",
 		Short: "Show the storage information",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			var storageProvider storage.Provider
+			var (
+				provider   storage.Provider
+				upgradeStr string
+				tablesStr  string
+			)
 
-			switch {
-			case config.Storage.PostgreSQL != nil:
-				storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
-			case config.Storage.MySQL != nil:
-				storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
-			case config.Storage.Local != nil:
-				storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-			}
-
-			version, err := storageProvider.SchemaVersion()
-			if err != nil && err.Error() != "unknown schema state" {
-				return err
-			}
-
-			tables, err := storageProvider.SchemaTables()
+			provider, err = getStorageProvider()
 			if err != nil {
 				return err
 			}
 
-			var versionStr string
-			switch version {
-			case -2:
-				versionStr = "unknown"
-			case -1:
-				versionStr = "pre1"
-			case 0:
-				versionStr = "N/A"
-			default:
-				versionStr = string(rune(version))
+			version, err := provider.SchemaVersion()
+			if err != nil && err.Error() != "unknown schema state" {
+				return err
 			}
 
-			tablesStr := strings.Join(tables, ", ")
-			if tablesStr == "" {
+			tables, err := provider.SchemaTables()
+			if err != nil {
+				return err
+			}
+
+			if len(tables) == 0 {
 				tablesStr = "N/A"
+			} else {
+				tablesStr = strings.Join(tables, ", ")
 			}
 
-			fmt.Printf("Schema Version: %s\nSchema Tables: %s\n", versionStr, tablesStr)
+			latest, err := provider.SchemaLatestVersion()
+			if err != nil {
+				return err
+			}
+
+			if latest > version {
+				upgradeStr = fmt.Sprintf("yes - version %d", latest)
+			} else {
+				upgradeStr = "no"
+			}
+
+			fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr)
 
 			return nil
 		},
@@ -205,27 +205,22 @@ func newMigrateStorageListDownCmd() (cmd *cobra.Command) {
 
 func newListMigrationsRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		var storageProvider storage.Provider
-
-		switch {
-		case config.Storage.PostgreSQL != nil:
-			storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
-		case config.Storage.MySQL != nil:
-			storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
-		case config.Storage.Local != nil:
-			storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-		}
-
 		var (
+			provider     storage.Provider
 			migrations   []storage.SchemaMigration
 			directionStr string
 		)
 
+		provider, err = getStorageProvider()
+		if err != nil {
+			return err
+		}
+
 		if up {
-			migrations, err = storageProvider.SchemaMigrationsUp(0)
+			migrations, err = provider.SchemaMigrationsUp(0)
 			directionStr = "Up"
 		} else {
-			migrations, err = storageProvider.SchemaMigrationsDown(0)
+			migrations, err = provider.SchemaMigrationsDown(0)
 			directionStr = "Down"
 		}
 
@@ -256,41 +251,60 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			var (
-				provider   storage.Provider
-				migrations []storage.SchemaMigration
+				provider storage.Provider
 			)
 
-			switch {
-			case config.Storage.PostgreSQL != nil:
-				provider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
-			case config.Storage.MySQL != nil:
-				provider = storage.NewMySQLProvider(*config.Storage.MySQL)
-			case config.Storage.Local != nil:
-				provider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-			}
-
-			target, err := cmd.Flags().GetInt("target")
+			provider, err = getStorageProvider()
 			if err != nil {
 				return err
 			}
 
-			if target == 0 {
-				migrations, err = provider.SchemaMigrationsUp(target)
+			if !cmd.Flags().Changed("target") {
+				latest, err := provider.SchemaLatestVersion()
 				if err != nil {
-					return
+					return err
 				}
 
-				if len(migrations) == 0 {
+				version, err := provider.SchemaVersion()
+				if err != nil {
+					return err
+				}
+
+				if latest == version {
 					return errors.New("already on latest version")
 				}
-			} else {
-				migrations, err = provider.SchemaMigrationsUp(target)
+
+				err = provider.SchemaMigrateLatest()
 				if err != nil {
-					return
+					return err
+				}
+			} else {
+				target, err := cmd.Flags().GetInt("target")
+				if err != nil {
+					return err
 				}
 
-				if migrations[len(migrations)-1].Version < target {
-					return fmt.Errorf("migration to version %d is not available, the latest available version is %d", target, migrations[len(migrations)-1].Version)
+				latest, err := provider.SchemaLatestVersion()
+				if err != nil {
+					return err
+				}
+
+				if target < latest {
+					return fmt.Errorf("can't migrate up to version %d as it's a higher version than the latest version available %d", target, latest)
+				}
+
+				version, err := provider.SchemaVersion()
+				if err != nil {
+					return err
+				}
+
+				if version == target {
+					return fmt.Errorf("can't migrate up to version %d as it's the same as the current version", target)
+				}
+
+				err = provider.SchemaMigrate(target)
+				if err != nil {
+					return err
 				}
 			}
 
@@ -309,12 +323,72 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 		Short: "Perform a migration down",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			var (
+				provider storage.Provider
+			)
+
+			provider, err = getStorageProvider()
+			if err != nil {
+				return err
+			}
+
+			pre1, err := cmd.Flags().GetBool("pre1")
+			if err != nil {
+				return err
+			}
+
+			if !cmd.Flags().Changed("target") && !pre1 {
+				return fmt.Errorf("you must set the --target flag in order to migrate down")
+			}
+
+			version, err := provider.SchemaVersion()
+			if err != nil {
+				return err
+			}
+
+			if version == 0 {
+				return fmt.Errorf("can't migrate down when the current version is 0")
+			}
+
+			target, err := cmd.Flags().GetInt("target")
+			if err != nil {
+				return err
+			}
+
+			if target < 0 {
+				return fmt.Errorf("can't migrate to the non-existant version %d", target)
+			}
+
+			if version == target || pre1 && version == -1 {
+				return fmt.Errorf("can't down migrate to version %d as it's the same as the current version", target)
+			}
+
+			fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
+			var text string
+
+			_, _ = fmt.Scanln(&text)
+
+			if text != "DESTROY" {
+				return errors.New("cancelling down migration due to user not accepting data destruction")
+			}
+
+			if pre1 {
+				err = provider.SchemaMigrate(-1)
+				if err != nil {
+					return err
+				}
+			} else {
+				err = provider.SchemaMigrate(target)
+				if err != nil {
+					return err
+				}
+			}
 
 			return nil
 		},
 	}
 
-	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
-
+	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")
+	cmd.Flags().Bool("pre1", false, "sets pre1 as the version to migrate to")
 	return cmd
 }

@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -223,7 +221,7 @@ func (n *SMTPNotifier) cleanup() {
 }
 
 // StartupCheck implements the startup check provider interface.
-func (n *SMTPNotifier) StartupCheck(_ *logrus.Logger) (err error) {
+func (n *SMTPNotifier) StartupCheck() (err error) {
 	if err := n.dial(); err != nil {
 		return err
 	}

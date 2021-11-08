@@ -210,6 +210,21 @@ func (mr *MockProviderMockRecorder) SaveU2FDevice(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDevice", reflect.TypeOf((*MockProvider)(nil).SaveU2FDevice), arg0, arg1)
 }
 
+// SchemaLatestVersion mocks base method.
+func (m *MockProvider) SchemaLatestVersion() (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaLatestVersion")
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SchemaLatestVersion indicates an expected call of SchemaLatestVersion.
+func (mr *MockProviderMockRecorder) SchemaLatestVersion() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaLatestVersion", reflect.TypeOf((*MockProvider)(nil).SchemaLatestVersion))
+}
+
 // SchemaMigrate mocks base method.
 func (m *MockProvider) SchemaMigrate(arg0 int) error {
 	m.ctrl.T.Helper()
@@ -239,33 +254,33 @@ func (mr *MockProviderMockRecorder) SchemaMigrateLatest() *gomock.Call {
 }
 
 // SchemaMigrationsDown mocks base method.
-func (m *MockProvider) SchemaMigrationsDown() ([]SchemaMigration, error) {
+func (m *MockProvider) SchemaMigrationsDown(arg0 int) ([]SchemaMigration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SchemaMigrationsDown")
+	ret := m.ctrl.Call(m, "SchemaMigrationsDown", arg0)
 	ret0, _ := ret[0].([]SchemaMigration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SchemaMigrationsDown indicates an expected call of SchemaMigrationsDown.
-func (mr *MockProviderMockRecorder) SchemaMigrationsDown() *gomock.Call {
+func (mr *MockProviderMockRecorder) SchemaMigrationsDown(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrationsDown", reflect.TypeOf((*MockProvider)(nil).SchemaMigrationsDown))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrationsDown", reflect.TypeOf((*MockProvider)(nil).SchemaMigrationsDown), arg0)
 }
 
 // SchemaMigrationsUp mocks base method.
-func (m *MockProvider) SchemaMigrationsUp() ([]SchemaMigration, error) {
+func (m *MockProvider) SchemaMigrationsUp(arg0 int) ([]SchemaMigration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SchemaMigrationsUp")
+	ret := m.ctrl.Call(m, "SchemaMigrationsUp", arg0)
 	ret0, _ := ret[0].([]SchemaMigration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SchemaMigrationsUp indicates an expected call of SchemaMigrationsUp.
-func (mr *MockProviderMockRecorder) SchemaMigrationsUp() *gomock.Call {
+func (mr *MockProviderMockRecorder) SchemaMigrationsUp(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrationsUp", reflect.TypeOf((*MockProvider)(nil).SchemaMigrationsUp))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrationsUp", reflect.TypeOf((*MockProvider)(nil).SchemaMigrationsUp), arg0)
 }
 
 // SchemaTables mocks base method.
@@ -287,21 +302,6 @@ func (mr *MockProviderMockRecorder) SchemaTables() *gomock.Call {
 func (m *MockProvider) SchemaVersion() (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SchemaVersion")
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SchemaLatestVersion indicates an expected call of SchemaLatestVersion.
-func (mr *MockProviderMockRecorder) SchemaLatestVersion() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaLatestVersion", reflect.TypeOf((*MockProvider)(nil).SchemaLatestVersion))
-}
-
-// SchemaLatestVersion mocks base method.
-func (m *MockProvider) SchemaLatestVersion() (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SchemaLatestVersion")
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1

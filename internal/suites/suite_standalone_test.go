@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -124,7 +123,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	// Clean up any TOTP secret already in DB.
 	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 
-	require.NoError(s.T(), provider.StartupCheck(logging.Logger()))
+	require.NoError(s.T(), provider.StartupCheck())
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
 	// Login one factor.

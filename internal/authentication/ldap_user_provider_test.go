@@ -12,7 +12,6 @@ import (
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -216,7 +215,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	assert.NoError(t, err)
 
 	assert.True(t, ldapClient.supportExtensionPasswdModify)
@@ -273,7 +272,7 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	assert.NoError(t, err)
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
@@ -306,7 +305,7 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
 		Return(mockConn, errors.New("could not connect"))
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	assert.EqualError(t, err, "could not connect")
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
@@ -351,7 +350,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	assert.EqualError(t, err, "could not perform the search")
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
@@ -755,7 +754,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")
@@ -862,7 +861,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")
@@ -966,7 +965,7 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
-	err := ldapClient.StartupCheck(logging.Logger())
+	err := ldapClient.StartupCheck()
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")

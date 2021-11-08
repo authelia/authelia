@@ -3,6 +3,7 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/models"
@@ -19,7 +20,7 @@ func (p *SQLProvider) SchemaMigrationsUp(version int) (migrations []SchemaMigrat
 		version = SchemaLatest
 	}
 
-	if current <= version {
+	if current >= version {
 		return migrations, fmt.Errorf("no available migrations")
 	}
 
@@ -70,7 +71,7 @@ func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
 		return 0, err
 	}
 
-	return migrations[len(migrations)].Version, nil
+	return migrations[len(migrations)-1].Version, nil
 }
 
 // SchemaVersion returns the version of the schema.
@@ -146,7 +147,7 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 		return err
 	}
 
-	if len(migrations) == 0 {
+	if len(migrations) == 0 && (target != -1 || prior <= 0) {
 		p.log.Infof("Storage schema is up to date")
 
 		return nil
@@ -167,20 +168,14 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 		}
 
 		trackPrior = 1
+	} else if target == -1 {
+		p.log.Infof("Storage schema migration from %d to pre1 is being atttempted", prior)
 	} else {
 		p.log.Infof("Storage schema migration from %d to %d is being atttempted", prior, migrations[len(migrations)-1].Version)
 	}
 
 	for _, migration := range migrations {
 		if target == -1 && migration.Version == 1 {
-			err = p.schemaMigrate1ToPre1()
-			if err != nil {
-				if errRollback := p.schemaMigratePre1To1Rollback(); errRollback != nil {
-					return fmt.Errorf(errFmtFailedMigrationPre1, err)
-				}
-
-				return fmt.Errorf(errFmtFailedMigrationPre1, err)
-			}
 			continue
 		}
 
@@ -204,6 +199,16 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 
 	if prior == -1 {
 		p.log.Infof("Storage schema migration from pre1 to %d is complete", migrations[len(migrations)-1].Version)
+	} else if target == -1 {
+		err = p.schemaMigrate1ToPre1()
+		if err != nil {
+			if errRollback := p.schemaMigratePre1To1Rollback(); errRollback != nil {
+				return fmt.Errorf(errFmtFailedMigrationPre1, err)
+			}
+
+			return fmt.Errorf(errFmtFailedMigrationPre1, err)
+		}
+		p.log.Infof("Storage schema migration from %d to pre1 is complete", prior)
 	} else {
 		p.log.Infof("Storage schema migration from %d to %d is complete", prior, migrations[len(migrations)-1].Version)
 	}
@@ -260,4 +265,18 @@ func (p *SQLProvider) schemaMigrateFinalize(prior int, migration SchemaMigration
 	p.log.Debugf("Storage schema migrated from version %d to %d", prior, target)
 
 	return nil
+}
+
+// SchemaVersionToString returns a version string given a version number.
+func SchemaVersionToString(version int) (versionStr string) {
+	switch version {
+	case -2:
+		return "unknown"
+	case -1:
+		return "pre1"
+	case 0:
+		return "N/A"
+	default:
+		return strconv.Itoa(version)
+	}
 }

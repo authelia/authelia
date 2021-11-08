@@ -40,7 +40,6 @@ require (
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20200615164410-66371956d46c // indirect
 	github.com/andybalholm/brotli v1.0.2 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -89,6 +88,9 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/ysmood/goob v0.3.0 // indirect
+	github.com/ysmood/gson v0.6.4 // indirect
+	github.com/ysmood/leakless v0.7.0 // indirect
 	go.opentelemetry.io/contrib v0.20.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.20.0 // indirect
 	go.opentelemetry.io/otel v0.20.0 // indirect

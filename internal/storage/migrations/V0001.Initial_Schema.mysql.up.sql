@@ -41,6 +41,15 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     UNIQUE KEY (username)
 );
 
+CREATE TABLE IF NOT EXISTS duo_devices (
+    id INTEGER AUTO_INCREMENT,
+    username VARCHAR(100) NOT NULL,
+    device VARCHAR(32) NOT NULL,
+    method VARCHAR(16) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY (username, description)
+);
+
 CREATE TABLE IF NOT EXISTS u2f_devices (
     id INTEGER AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
