@@ -65,7 +65,7 @@ const PushNotificationMethod = function (props: Props) {
                     setState(State.Selection);
                     break;
                 case "allow":
-                    onSignInErrorCallback(new Error("Device selection is being bypassed by Duo Policy"));
+                    onSignInErrorCallback(new Error("Device selection was bypassed by Duo policy"));
                     setState(State.Success);
                     break;
                 case "deny":
@@ -74,7 +74,7 @@ const PushNotificationMethod = function (props: Props) {
                     break;
                 case "enroll":
                     onSignInErrorCallback(new Error("No compatible device found"));
-                    if (res.enroll_url) setEnrollUrl(res.enroll_url);
+                    if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
                     setState(State.Enroll);
                     break;
             }
@@ -83,7 +83,7 @@ const PushNotificationMethod = function (props: Props) {
             console.error(err);
             onSignInErrorCallback(new Error("There was an issue fetching Duo device(s)"));
         }
-    }, [mounted, onSignInErrorCallback]);
+    }, [props.duoSelfEnrollment, mounted, onSignInErrorCallback]);
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -107,7 +107,7 @@ const PushNotificationMethod = function (props: Props) {
             }
             if (res && res.result === "enroll") {
                 onSignInErrorCallback(new Error("No compatible device found"));
-                if (res.enroll_url) setEnrollUrl(res.enroll_url);
+                if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
                 setState(State.Enroll);
                 return;
             }
@@ -131,7 +131,15 @@ const PushNotificationMethod = function (props: Props) {
             onSignInErrorCallback(new Error("There was an issue completing sign in process"));
             setState(State.Failure);
         }
-    }, [props.authenticationLevel, redirectionURL, mounted, onSignInErrorCallback, onSignInSuccessCallback, state]);
+    }, [
+        props.authenticationLevel,
+        props.duoSelfEnrollment,
+        redirectionURL,
+        mounted,
+        onSignInErrorCallback,
+        onSignInSuccessCallback,
+        state,
+    ]);
 
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {
@@ -195,7 +203,7 @@ const PushNotificationMethod = function (props: Props) {
         methodState = MethodContainerState.ALREADY_AUTHENTICATED;
     } else if (state === State.Enroll) {
         methodState = MethodContainerState.NOT_REGISTERED;
-    } else if (!props.registered) {
+    } else if (props.registered) {
         methodState = MethodContainerState.NOT_SELECTED;
     }
 

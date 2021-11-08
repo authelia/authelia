@@ -58,6 +58,6 @@ export default defineConfig(({ mode }) => {
                 clientPort: env.VITE_HMR_PORT || 3000,
             },
         },
-        plugins: [eslintPlugin(), htmlPlugin(), istanbulPlugin, react(), svgr(), tsconfigPaths()],
+        plugins: [eslintPlugin({ cache: false }), htmlPlugin(), istanbulPlugin, react(), svgr(), tsconfigPaths()],
     };
 });
