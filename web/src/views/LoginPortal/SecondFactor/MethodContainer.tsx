@@ -94,12 +94,12 @@ const useStyles = makeStyles(() => ({
     },
 }));
 
-interface NotRegisterContainerProps {
+interface NotRegisteredContainerProps {
     title: string;
     duoSelfEnrollment: boolean;
 }
 
-function NotRegisteredContainer(props: NotRegisterContainerProps) {
+function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const theme = useTheme();
     return (
         <Fragment>
