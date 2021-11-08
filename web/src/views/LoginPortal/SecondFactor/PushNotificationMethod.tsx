@@ -203,8 +203,6 @@ const PushNotificationMethod = function (props: Props) {
         methodState = MethodContainerState.ALREADY_AUTHENTICATED;
     } else if (state === State.Enroll) {
         methodState = MethodContainerState.NOT_REGISTERED;
-    } else if (props.registered) {
-        methodState = MethodContainerState.NOT_SELECTED;
     }
 
     return (
