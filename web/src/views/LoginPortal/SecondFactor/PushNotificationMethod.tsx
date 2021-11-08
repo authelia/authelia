@@ -57,11 +57,11 @@ const PushNotificationMethod = function (props: Props) {
             if (!mounted.current) return;
             switch (res.result) {
                 case "auth":
-                    var devices_temp = [] as SelectableDevice[];
+                    let selectableDevices = [] as SelectableDevice[];
                     res.devices.forEach((d: { device: any; display_name: any; capabilities: any }) =>
-                        devices_temp.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
+                        selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
                     );
-                    setDevices(devices_temp);
+                    setDevices(selectableDevices);
                     setState(State.Selection);
                     break;
                 case "allow":
@@ -97,11 +97,11 @@ const PushNotificationMethod = function (props: Props) {
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             if (res && res.result === "auth") {
-                var devices_temp = [] as SelectableDevice[];
+                let selectableDevices = [] as SelectableDevice[];
                 res.devices.forEach((d) =>
-                    devices_temp.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
+                    selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
                 );
-                setDevices(devices_temp);
+                setDevices(selectableDevices);
                 setState(State.Selection);
                 return;
             }
