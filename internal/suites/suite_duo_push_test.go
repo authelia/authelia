@@ -145,7 +145,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Set default 2FA preference and clean up any Duo device already in DB.
+	// Set default 2FA preference to enable Select Device link in frontend.
 	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3")
 	require.NoError(s.T(), provider.SavePreferredDuoDevice("john", "ABCDEFGHIJ1234567890", "push"))
 
