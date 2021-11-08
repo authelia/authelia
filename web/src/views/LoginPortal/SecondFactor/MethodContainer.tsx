@@ -9,8 +9,7 @@ import Authenticated from "@views/LoginPortal/Authenticated";
 export enum State {
     ALREADY_AUTHENTICATED = 1,
     NOT_REGISTERED = 2,
-    NOT_SELECTED = 3,
-    METHOD = 4,
+    METHOD = 3,
 }
 
 export interface Props {
@@ -45,10 +44,6 @@ const DefaultMethodContainer = function (props: Props) {
         case State.NOT_REGISTERED:
             container = <NotRegisteredContainer title={props.title} duoSelfEnrollment={props.duoSelfEnrollment} />;
             stateClass = "state-not-registered";
-            break;
-        case State.NOT_SELECTED:
-            container = <NotSelectedContainer />;
-            stateClass = "state-not-selected";
             break;
         case State.METHOD:
             container = <MethodContainer explanation={props.explanation}>{props.children}</MethodContainer>;
@@ -116,18 +111,6 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
                         : "Contact your administrator to register a device."
                     : "Register your first device by clicking on the link below."}
             </Typography>
-        </Fragment>
-    );
-}
-
-function NotSelectedContainer() {
-    const theme = useTheme();
-    return (
-        <Fragment>
-            <div style={{ marginBottom: theme.spacing(2), flex: "0 0 100%" }}>
-                <InformationIcon />
-            </div>
-            <Typography style={{ color: "#5858ff" }}>Select your device by clicking on the link below</Typography>
         </Fragment>
     );
 }
