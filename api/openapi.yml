@@ -668,32 +668,21 @@ components:
               type: string
               example: auth
             devices:
-              type: object
-              properties:
-                0:
-                  type: object
-                  properties:
-                    device:
+              type: array
+              items:
+                type: object
+                properties:
+                  device:
+                    type: string
+                    example: ABCDE123456789FGHIJK
+                  display_name:
+                    type: string
+                    example: iOS (+XX XXX XXX 123)
+                  capabilities:
+                    type: array
+                    items:
                       type: string
-                      example: ABCDE123456789FGHIJK
-                    display_name:
-                      type: string
-                      example: iOS (+XX XXX XXX 123)
-                    capabilities:
-                      type: object
-                      properties:
-                        0:
-                          type: string
-                          example: push
-                        1:
-                          type: string
-                          example: mobile_otp
-                        2:
-                          type: string
-                          example: phone
-                        3:
-                          type: string
-                          example: sms
+                      example: push
     handlers.firstFactorRequestBody:
       required:
         - username
