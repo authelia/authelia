@@ -107,12 +107,21 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	err = p.SchemaMigrateLatest()
+	current, err := p.SchemaVersion()
 	if err != nil {
 		return err
 	}
 
-	return nil
+	latest, err := p.SchemaLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	if current > latest {
+		return fmt.Errorf("current schema version is greater than the latest known schema version, you must downgrade to schema version %d before you can use this version of Authelia", latest)
+	}
+
+	return p.schemaMigrate(current, latest)
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.

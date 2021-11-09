@@ -8,3 +8,11 @@ type SchemaMigration struct {
 	Up       bool
 	Query    string
 }
+
+func (m SchemaMigration) After() (after int) {
+	if m.Up {
+		return m.Version
+	}
+
+	return m.Version - 1
+}

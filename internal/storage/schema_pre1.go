@@ -24,8 +24,28 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 		return err
 	}
 
+	tablesRename := []string{
+		tablePre1Config,
+		tablePre1TOTPSecrets,
+		tablePre1IdentityVerificationTokens,
+		tableU2FDevices,
+		tableUserPreferences,
+		tableAuthenticationLogs,
+		tableAlphaPreferences,
+		tableAlphaIdentityVerificationTokens,
+		tableAlphaAuthenticationLogs,
+		tableAlphaPreferencesTableName,
+		tableAlphaSecondFactorPreferences,
+		tableAlphaTOTPSecrets,
+		tableAlphaU2FDeviceHandles,
+	}
+
 	// Rename Tables and Indexes.
 	for _, table := range tables {
+		if !utils.IsStringInSlice(table, tablesRename) {
+			continue
+		}
+
 		tableNew := tablePrefixBackup + table
 
 		if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
@@ -63,7 +83,7 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 
 	queryFmtDropTableRebound := p.db.Rebind(queryFmtDropTableIfExists)
 
-	for _, table := range tables {
+	for _, table := range tablesRename {
 		if _, err = p.db.Exec(fmt.Sprintf(queryFmtDropTableRebound, tablePrefixBackup+table)); err != nil {
 			return err
 		}
@@ -76,14 +96,16 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 	return nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1Rollback() (err error) {
-	migration, err := loadMigration(p.name, 1, false)
-	if err != nil {
-		return err
-	}
+func (p *SQLProvider) schemaMigratePre1To1Rollback(up bool) (err error) {
+	if up {
+		migration, err := loadMigration(p.name, 1, false)
+		if err != nil {
+			return err
+		}
 
-	if _, err = p.db.Exec(migration.Query); err != nil {
-		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
+		if _, err = p.db.Exec(migration.Query); err != nil {
+			return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
+		}
 	}
 
 	tables, err := p.SchemaTables()
@@ -91,27 +113,20 @@ func (p *SQLProvider) schemaMigratePre1To1Rollback() (err error) {
 		return err
 	}
 
-	schemaBackupTables := []string{
-		tablePrefixBackup + tableAuthenticationLogs,
-		tablePrefixBackup + tableUserPreferences,
-		tablePrefixBackup + tableU2FDevices,
-		tablePrefixBackup + tablePre1TOTPSecrets,
-		tablePrefixBackup + tablePre1IdentityVerificationTokens,
-		tablePrefixBackup + tablePre1Config,
-	}
+	for _, table := range tables {
+		if !strings.HasPrefix(table, tablePrefixBackup) {
+			continue
+		}
 
-	for _, table := range schemaBackupTables {
-		if utils.IsStringInSlice(table, tables) {
-			tableNew := strings.Replace(table, tablePrefixBackup, "", 1)
-			if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
-				return err
-			}
+		tableNew := strings.Replace(table, tablePrefixBackup, "", 1)
+		if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
+			return err
+		}
 
-			if p.name == providerPostgres && (tableNew == tableU2FDevices || tableNew == tableUserPreferences) {
-				if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
-					tableNew, table, tableNew)); err != nil {
-					continue
-				}
+		if p.name == providerPostgres && (tableNew == tableU2FDevices || tableNew == tableUserPreferences) {
+			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
+				tableNew, table, tableNew)); err != nil {
+				continue
 			}
 		}
 	}
@@ -262,8 +277,22 @@ func (p *SQLProvider) schemaMigrate1ToPre1() (err error) {
 		return err
 	}
 
+	tablesRename := []string{
+		tableMigrations,
+		tableTOTPConfigurations,
+		tableIdentityVerification,
+		tableU2FDevices,
+		tableDUODevices,
+		tableUserPreferences,
+		tableAuthenticationLogs,
+	}
+
 	// Rename Tables and Indexes.
 	for _, table := range tables {
+		if !utils.IsStringInSlice(table, tablesRename) {
+			continue
+		}
+
 		tableNew := tablePrefixBackup + table
 
 		if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
@@ -301,7 +330,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1() (err error) {
 
 	queryFmtDropTableRebound := p.db.Rebind(queryFmtDropTableIfExists)
 
-	for _, table := range tables {
+	for _, table := range tablesRename {
 		if _, err = p.db.Exec(fmt.Sprintf(queryFmtDropTableRebound, tablePrefixBackup+table)); err != nil {
 			return err
 		}

@@ -246,7 +246,7 @@ func newListMigrationsRunE(up bool) func(cmd *cobra.Command, args []string) (err
 
 func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "up",
+		Use:   storageMigrateDirectionUp,
 		Short: "Perform a migration up",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -271,10 +271,10 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 				}
 
 				if latest == version {
-					return errors.New("already on latest version")
+					return errStorageMigrateAlreadyOnLatestVersion
 				}
 
-				err = provider.SchemaMigrateLatest()
+				err = provider.SchemaMigrate(latest)
 				if err != nil {
 					return err
 				}
@@ -284,13 +284,19 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 					return err
 				}
 
+				if target == 0 {
+					return errStorageMigrateUpToVersion0
+				} else if target < 0 {
+					return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionUp, target)
+				}
+
 				latest, err := provider.SchemaLatestVersion()
 				if err != nil {
 					return err
 				}
 
-				if target < latest {
-					return fmt.Errorf("can't migrate up to version %d as it's a higher version than the latest version available %d", target, latest)
+				if target > latest {
+					return fmt.Errorf(errFmtStorageMigrateUpHigherThanLatest, target, latest)
 				}
 
 				version, err := provider.SchemaVersion()
@@ -299,7 +305,9 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 				}
 
 				if version == target {
-					return fmt.Errorf("can't migrate up to version %d as it's the same as the current version", target)
+					return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionUp, target)
+				} else if version > target {
+					return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionUp, target, "lower", version)
 				}
 
 				err = provider.SchemaMigrate(target)
@@ -319,7 +327,7 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 
 func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "down",
+		Use:   storageMigrateDirectionDown,
 		Short: "Perform a migration down",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -338,7 +346,7 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 			}
 
 			if !cmd.Flags().Changed("target") && !pre1 {
-				return fmt.Errorf("you must set the --target flag in order to migrate down")
+				return errStorageMigrateDownMissingTargetFlag
 			}
 
 			version, err := provider.SchemaVersion()
@@ -347,7 +355,7 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 			}
 
 			if version == 0 {
-				return fmt.Errorf("can't migrate down when the current version is 0")
+				return errStorageMigrateDownWhenZero
 			}
 
 			target, err := cmd.Flags().GetInt("target")
@@ -356,20 +364,29 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 			}
 
 			if target < 0 {
-				return fmt.Errorf("can't migrate to the non-existant version %d", target)
+				return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionDown, target)
 			}
 
 			if version == target || pre1 && version == -1 {
-				return fmt.Errorf("can't down migrate to version %d as it's the same as the current version", target)
+				return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionDown, target)
+			} else if version < target {
+				return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionDown, target, "higher", version)
 			}
 
-			fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
-			var text string
+			destroy, err := cmd.Flags().GetBool("destroy-data")
+			if err != nil {
+				return err
+			}
 
-			_, _ = fmt.Scanln(&text)
+			if !destroy {
+				fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
+				var text string
 
-			if text != "DESTROY" {
-				return errors.New("cancelling down migration due to user not accepting data destruction")
+				_, _ = fmt.Scanln(&text)
+
+				if text != "DESTROY" {
+					return errors.New("cancelling down migration due to user not accepting data destruction")
+				}
 			}
 
 			if pre1 {
@@ -390,5 +407,7 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")
 	cmd.Flags().Bool("pre1", false, "sets pre1 as the version to migrate to")
+	cmd.Flags().Bool("destroy-data", false, "confirms you want to destroy data with this migration")
+
 	return cmd
 }

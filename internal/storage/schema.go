@@ -120,6 +120,15 @@ func (p *SQLProvider) SchemaMigrateLatest() (err error) {
 		return err
 	}
 
+	latestVersion, err := p.SchemaLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	if latestVersion < currentVersion {
+		return errors.New("latest version is less than the ")
+	}
+
 	err = p.schemaMigrate(currentVersion, SchemaLatest)
 	if err != nil {
 		return err
@@ -156,11 +165,11 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 	var trackPrior = prior
 
 	if prior == -1 {
-		p.log.Infof("Storage schema migration from pre1 to %d is being attempted", migrations[len(migrations)-1].Version)
+		p.log.Infof("Storage schema migration from pre1 to %d is being attempted", migrations[len(migrations)-1].After())
 
 		err = p.schemaMigratePre1To1()
 		if err != nil {
-			if errRollback := p.schemaMigratePre1To1Rollback(); errRollback != nil {
+			if errRollback := p.schemaMigratePre1To1Rollback(true); errRollback != nil {
 				return fmt.Errorf(errFmtFailedMigrationPre1, err)
 			}
 
@@ -169,9 +178,9 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 
 		trackPrior = 1
 	} else if target == -1 {
-		p.log.Infof("Storage schema migration from %d to pre1 is being atttempted", prior)
+		p.log.Infof("Storage schema migration from %d to pre1 is being attempted", prior)
 	} else {
-		p.log.Infof("Storage schema migration from %d to %d is being atttempted", prior, migrations[len(migrations)-1].Version)
+		p.log.Infof("Storage schema migration from %d to %d is being attempted", prior, migrations[len(migrations)-1].After())
 	}
 
 	for _, migration := range migrations {
@@ -185,7 +194,7 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 		}
 
 		// Skip same version number migrations.
-		if !up && migration.Version >= trackPrior {
+		if !up && migration.Version > trackPrior {
 			continue
 		}
 
@@ -198,11 +207,11 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 	}
 
 	if prior == -1 {
-		p.log.Infof("Storage schema migration from pre1 to %d is complete", migrations[len(migrations)-1].Version)
+		p.log.Infof("Storage schema migration from pre1 to %d is complete", migrations[len(migrations)-1].After())
 	} else if target == -1 {
 		err = p.schemaMigrate1ToPre1()
 		if err != nil {
-			if errRollback := p.schemaMigratePre1To1Rollback(); errRollback != nil {
+			if errRollback := p.schemaMigratePre1To1Rollback(false); errRollback != nil {
 				return fmt.Errorf(errFmtFailedMigrationPre1, err)
 			}
 
@@ -210,7 +219,7 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 		}
 		p.log.Infof("Storage schema migration from %d to pre1 is complete", prior)
 	} else {
-		p.log.Infof("Storage schema migration from %d to %d is complete", prior, migrations[len(migrations)-1].Version)
+		p.log.Infof("Storage schema migration from %d to %d is complete", prior, migrations[len(migrations)-1].After())
 	}
 
 	return nil
