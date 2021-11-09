@@ -140,7 +140,6 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 
 	msg.Write(headerDate)
 	msg.WriteString(now.Format(rfc5322DateTimeLayout))
-	msg.Write(newline)
 
 	msg.Write(headerFrom)
 	if n.configuration.SenderName != "" {
@@ -156,9 +155,8 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 	msg.WriteString(subject)
 
 	msg.Write(headerMIMEVersion)
-
 	msg.Write(boundary)
-	msg.Write(newline)
+	msg.Write(newlineDouble)
 
 	msg.Write(boundarySeparator)
 	msg.Write(boundary)
