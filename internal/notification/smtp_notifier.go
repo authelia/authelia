@@ -170,7 +170,6 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 	if htmlBody != "" {
 		msg.Write(boundarySeparator)
 		msg.Write(boundary)
-		msg.Write(newline)
 
 		msg.Write(headerContentTypeHTML)
 		msg.Write(newlineDouble)
