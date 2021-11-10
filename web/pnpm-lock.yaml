@@ -30,7 +30,7 @@ specifiers:
   eslint-plugin-import: 2.25.2
   eslint-plugin-jsx-a11y: 6.4.1
   eslint-plugin-prettier: 4.0.0
-  eslint-plugin-react: 7.26.1
+  eslint-plugin-react: 7.27.0
   eslint-plugin-react-hooks: 4.3.0
   husky: 7.0.2
   jest: 27.3.1
@@ -88,14 +88,14 @@ devDependencies:
   '@vitejs/plugin-react': 1.0.8
   esbuild-jest: 0.5.0
   eslint-config-prettier: 8.3.0
-  eslint-config-react-app: 6.0.0_f9221a76b011a987a9fc1edeb0d297e5
+  eslint-config-react-app: 6.0.0_563d847e4cc90a93f53d2756b9867641
   eslint-formatter-rdjson: 1.0.5
   eslint-import-resolver-typescript: 2.5.0_eslint-plugin-import@2.25.2
   eslint-plugin-flowtype: 8.0.3
   eslint-plugin-import: 2.25.2
   eslint-plugin-jsx-a11y: 6.4.1
   eslint-plugin-prettier: 4.0.0_17f48bd368adef070d55b664dd7cfbbe
-  eslint-plugin-react: 7.26.1
+  eslint-plugin-react: 7.27.0
   eslint-plugin-react-hooks: 4.3.0
   husky: 7.0.2
   jest: 27.3.1
@@ -2859,7 +2859,7 @@ packages:
       eslint: '>=7.0.0'
     dev: true
 
-  /eslint-config-react-app/6.0.0_f9221a76b011a987a9fc1edeb0d297e5:
+  /eslint-config-react-app/6.0.0_563d847e4cc90a93f53d2756b9867641:
     resolution: {integrity: sha512-bpoAAC+YRfzq0dsTk+6v9aHm/uqnDwayNAXleMypGl6CpxI9oXXscVHo4fk3eJPIn+rsbtNetB4r/ZIidFIE8A==}
     engines: {node: ^10.12.0 || >=12.0.0}
     peerDependencies:
@@ -2886,7 +2886,7 @@ packages:
       eslint-plugin-flowtype: 8.0.3
       eslint-plugin-import: 2.25.2
       eslint-plugin-jsx-a11y: 6.4.1
-      eslint-plugin-react: 7.26.1
+      eslint-plugin-react: 7.27.0
       eslint-plugin-react-hooks: 4.3.0
     dev: true
 
@@ -3002,11 +3002,11 @@ packages:
       eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
     dev: true
 
-  /eslint-plugin-react/7.26.1:
-    resolution: {integrity: sha512-Lug0+NOFXeOE+ORZ5pbsh6mSKjBKXDXItUD2sQoT+5Yl0eoT82DqnXeTMfUare4QVCn9QwXbfzO/dBLjLXwVjQ==}
+  /eslint-plugin-react/7.27.0:
+    resolution: {integrity: sha512-0Ut+CkzpppgFtoIhdzi2LpdpxxBvgFf99eFqWxJnUrO7mMe0eOiNpou6rvNYeVVV6lWZvTah0BFne7k5xHjARg==}
     engines: {node: '>=4'}
     peerDependencies:
-      eslint: ^3 || ^4 || ^5 || ^6 || ^7
+      eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
     dependencies:
       array-includes: 3.1.4
       array.prototype.flatmap: 1.2.5
