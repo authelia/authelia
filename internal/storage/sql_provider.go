@@ -236,7 +236,15 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt, attempt.Time, attempt.Successful, attempt.Username)
+	_, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
+		attempt.Time,
+		attempt.Successful,
+		attempt.Username,
+		attempt.RemoteIP,
+		attempt.RequestURI,
+		attempt.RequestMethod,
+	)
+
 	return err
 }
 

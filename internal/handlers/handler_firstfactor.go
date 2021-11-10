@@ -95,7 +95,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		if err != nil {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 
-			if err := ctx.Providers.Regulator.Mark(ctx, bodyJSON.Username, false); err != nil {
+			if err := ctx.Providers.Regulator.Mark(ctx, false, bodyJSON.Username, "", string(ctx.XForwardedMethod()), ctx.RemoteIP()); err != nil {
 				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
@@ -107,7 +107,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		if !userPasswordOk {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 
-			if err := ctx.Providers.Regulator.Mark(ctx, bodyJSON.Username, false); err != nil {
+			if err := ctx.Providers.Regulator.Mark(ctx, false, bodyJSON.Username, "", string(ctx.XForwardedMethod()), ctx.RemoteIP()); err != nil {
 				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
@@ -117,7 +117,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		}
 
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-		err = ctx.Providers.Regulator.Mark(ctx, bodyJSON.Username, true)
+		err = ctx.Providers.Regulator.Mark(ctx, true, bodyJSON.Username, "", string(ctx.XForwardedMethod()), ctx.RemoteIP())
 
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %s", err.Error()), messageAuthenticationFailed)

@@ -3,6 +3,7 @@ package regulation
 import (
 	"context"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -43,11 +44,14 @@ func NewRegulator(configuration *schema.RegulationConfiguration, provider storag
 
 // Mark an authentication attempt.
 // We split Mark and Regulate in order to avoid timing attacks.
-func (r *Regulator) Mark(ctx context.Context, username string, successful bool) error {
+func (r *Regulator) Mark(ctx context.Context, successful bool, username, requestURI, requestMethod string, remoteIP net.IP) error {
 	return r.storageProvider.AppendAuthenticationLog(ctx, models.AuthenticationAttempt{
-		Username:   username,
-		Successful: successful,
-		Time:       r.clock.Now(),
+		Time:          r.clock.Now(),
+		Successful:    successful,
+		Username:      username,
+		RemoteIP:      models.IPAddress{IP: &remoteIP},
+		RequestURI:    requestURI,
+		RequestMethod: requestMethod,
 	})
 }
 
