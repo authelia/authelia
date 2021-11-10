@@ -107,8 +107,35 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if val.HasErrors() {
+		var finalErr error
+		for i, err := range val.Errors() {
+			if i == 0 {
+				finalErr = err
+				continue
+			}
+
+			finalErr = fmt.Errorf("%w, %v", finalErr, err)
+		}
+
+		return finalErr
+	}
+
 	validator.ValidateStorage(config.Storage, val)
-	// TODO CHECK this.
+
+	if val.HasErrors() {
+		var finalErr error
+		for i, err := range val.Errors() {
+			if i == 0 {
+				finalErr = err
+				continue
+			}
+
+			finalErr = fmt.Errorf("%w, %v", finalErr, err)
+		}
+
+		return finalErr
+	}
 
 	return nil
 }
