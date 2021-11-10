@@ -107,6 +107,8 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return err
 	}
 
+	p.log.Infof("Storage schema is being checked for updates")
+
 	current, err := p.SchemaVersion()
 	if err != nil {
 		return err
@@ -121,7 +123,7 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
 	}
 
-	return p.schemaMigrate(current, latest)
+	return p.schemaMigrate(current, SchemaLatest)
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
