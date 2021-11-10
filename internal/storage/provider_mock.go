@@ -9,7 +9,6 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	logrus "github.com/sirupsen/logrus"
 
 	models "github.com/authelia/authelia/v4/internal/models"
 )
@@ -300,15 +299,15 @@ func (mr *MockProviderMockRecorder) SchemaVersion() *gomock.Call {
 }
 
 // StartupCheck mocks base method.
-func (m *MockProvider) StartupCheck(arg0 *logrus.Logger) error {
+func (m *MockProvider) StartupCheck() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartupCheck", arg0)
+	ret := m.ctrl.Call(m, "StartupCheck")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // StartupCheck indicates an expected call of StartupCheck.
-func (mr *MockProviderMockRecorder) StartupCheck(arg0 interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockProvider)(nil).StartupCheck), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockProvider)(nil).StartupCheck))
 }
