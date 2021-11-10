@@ -55,26 +55,6 @@ func dataSourceNamePostgreSQL(config schema.PostgreSQLStorageConfiguration) (dat
 		args = append(args, fmt.Sprintf("dbname=%s", config.Database))
 	}
 
-	if config.Schema != "" {
-		args = append(args, fmt.Sprintf("search_path=%s", config.Schema))
-	}
-
-	if config.SSL.Mode != "" {
-		args = append(args, fmt.Sprintf("sslmode=%s", config.SSL.Mode))
-	}
-
-	if config.SSL.Certificate != "" {
-		args = append(args, fmt.Sprintf("sslcert=%s", config.SSL.Certificate))
-	}
-
-	if config.SSL.Key != "" {
-		args = append(args, fmt.Sprintf("sslkey=%s", config.SSL.Key))
-	}
-
-	if config.SSL.RootCertificate != "" {
-		args = append(args, fmt.Sprintf("sslrootcert =%s", config.SSL.RootCertificate))
-	}
-
 	args = append(args, fmt.Sprintf("connect_timeout=%d", int32(config.Timeout/time.Second)))
 
 	return strings.Join(args, " ")

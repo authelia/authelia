@@ -25,20 +25,11 @@ type MySQLStorageConfiguration struct {
 // PostgreSQLStorageConfiguration represents the configuration of a Postgres database.
 type PostgreSQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
-	Schema                  string `koanf:"schema"`
 	SSLMode                 string `koanf:"sslmode"`
-	SSL                     struct {
-		Mode            string `koanf:"mode"`
-		RootCertificate string `koanf:"root_certificate"`
-		Certificate     string `koanf:"certificate"`
-		Key             string `koanf:"key"`
-	} `koanf:"SSL"`
 }
 
 // StorageConfiguration represents the configuration of the storage backend.
 type StorageConfiguration struct {
-	EncryptionKey string `koanf:"encryption_key"`
-
 	Local      *LocalStorageConfiguration      `koanf:"local"`
 	MySQL      *MySQLStorageConfiguration      `koanf:"mysql"`
 	PostgreSQL *PostgreSQLStorageConfiguration `koanf:"postgres"`
@@ -49,7 +40,6 @@ var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	SQLStorageConfiguration: SQLStorageConfiguration{
 		Timeout: 5 * time.Second,
 	},
-	Schema: "public",
 }
 
 // DefaultMySQLStorageConfiguration represents the default MySQL configuration.
