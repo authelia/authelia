@@ -205,8 +205,6 @@ var ValidKeys = []string{
 	"session.redis.timeouts.read",
 	"session.redis.timeouts.write",
 
-	"storage.encryption_key",
-
 	// Local Storage Keys.
 	"storage.local.path",
 

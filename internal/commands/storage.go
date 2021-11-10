@@ -26,8 +26,6 @@ func NewStorageCmd() (cmd *cobra.Command) {
 
 	cmd.PersistentFlags().StringSliceP("config", "c", []string{"config.yml"}, "configuration file to load for the storage migration")
 
-	cmd.PersistentFlags().StringP("encryption-key", "k", "", "the SQL encryption key")
-
 	cmd.PersistentFlags().String("sqlite.path", "", "the SQLite database path")
 
 	cmd.PersistentFlags().String("mysql.host", "", "the MySQL hostname")
@@ -79,7 +77,6 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	mapping := map[string]string{
-		"encryption-key":    "storage.encryption_key",
 		"sqlite.path":       "storage.local.path",
 		"mysql.host":        "storage.mysql.host",
 		"mysql.port":        "storage.mysql.port",
