@@ -256,22 +256,18 @@ func (p *SQLProvider) schemaMigrateApply(prior int, migration SchemaMigration) (
 		return nil
 	}
 
-	return p.schemaMigrateFinalize(prior, migration)
+	return p.schemaMigrateFinalize(migration)
 }
 
-func (p *SQLProvider) schemaMigrateFinalize(prior int, migration SchemaMigration) (err error) {
-	target := migration.Version
-	if !migration.Up {
-		target = migration.Version - 1
-	}
+func (p *SQLProvider) schemaMigrateFinalize(migration SchemaMigration) (err error) {
 
 	// TODO: Add Version.
-	_, err = p.db.Exec(p.sqlInsertMigration, time.Now(), prior, target, utils.Version())
+	_, err = p.db.Exec(p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version())
 	if err != nil {
 		return err
 	}
 
-	p.log.Debugf("Storage schema migrated from version %d to %d", prior, target)
+	p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
 
 	return nil
 }

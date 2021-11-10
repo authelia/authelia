@@ -239,20 +239,6 @@ func (mr *MockProviderMockRecorder) SchemaMigrate(arg0 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrate", reflect.TypeOf((*MockProvider)(nil).SchemaMigrate), arg0)
 }
 
-// SchemaMigrateLatest mocks base method.
-func (m *MockProvider) SchemaMigrateLatest() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SchemaMigrateLatest")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SchemaMigrateLatest indicates an expected call of SchemaMigrateLatest.
-func (mr *MockProviderMockRecorder) SchemaMigrateLatest() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrateLatest", reflect.TypeOf((*MockProvider)(nil).SchemaMigrateLatest))
-}
-
 // SchemaMigrationsDown mocks base method.
 func (m *MockProvider) SchemaMigrationsDown(arg0 int) ([]SchemaMigration, error) {
 	m.ctrl.T.Helper()

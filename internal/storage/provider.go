@@ -31,7 +31,6 @@ type Provider interface {
 	SchemaVersion() (version int, err error)
 	SchemaLatestVersion() (version int, err error)
 	SchemaMigrate(version int) (err error)
-	SchemaMigrateLatest() (err error)
 	SchemaMigrationsUp(version int) (migrations []SchemaMigration, err error)
 	SchemaMigrationsDown(version int) (migrations []SchemaMigration, err error)
 }
