@@ -27,6 +27,7 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 		TokenEndpoint:         fmt.Sprintf("%s%s", issuer, pathOpenIDConnectToken),
 		RevocationEndpoint:    fmt.Sprintf("%s%s", issuer, pathOpenIDConnectRevocation),
 		UserinfoEndpoint:      fmt.Sprintf("%s%s", issuer, pathOpenIDConnectUserinfo),
+		IntrospectionEndpoint: fmt.Sprintf("%s%s", issuer, pathOpenIDConnectIntrospection),
 
 		Algorithms:         []string{"RS256"},
 		UserinfoAlgorithms: []string{"none", "RS256"},
