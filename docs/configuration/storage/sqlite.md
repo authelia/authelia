@@ -20,6 +20,7 @@ requires you setup an external database.
 
 ```yaml
 storage:
+  encryption_key: a_very_important_secret
   local:
     path: /config/db.sqlite3
 ```

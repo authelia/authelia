@@ -55,7 +55,7 @@ func setPreferencesExpectations(mock *mocks.MockAutheliaCtx, preferences UserInf
 	}
 
 	if preferences.HasTOTP {
-		totpConfig := models.TOTPConfiguration{Username: "john", Secret: "secret", Digits: 6, Period: 30}
+		totpConfig := models.TOTPConfiguration{Username: "john", Secret: []byte("secret"), Digits: 6, Period: 30}
 		mock.StorageProviderMock.
 			EXPECT().
 			LoadTOTPConfiguration(mock.Ctx, gomock.Eq("john")).

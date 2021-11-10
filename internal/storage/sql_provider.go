@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
 	"time"
@@ -11,16 +12,17 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvider) {
+func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (provider SQLProvider) {
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
+		db:         db,
 		name:       name,
 		driverName: driverName,
-		db:         db,
 		log:        logging.Logger(),
 		errOpen:    err,
 
@@ -48,15 +50,20 @@ func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvid
 		sqlFmtRenameTable: queryFmtRenameTable,
 	}
 
+	key := sha256.Sum256([]byte(encryptionKey))
+
+	provider.key = &key
+
 	return provider
 }
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
 	db         *sqlx.DB
-	log        *logrus.Logger
+	key        *[32]byte
 	name       string
 	driverName string
+	log        *logrus.Logger
 	errOpen    error
 
 	// Table: authentication_logs.
@@ -132,6 +139,14 @@ func (p *SQLProvider) StartupCheck() (err error) {
 	return p.schemaMigrate(ctx, current, SchemaLatest)
 }
 
+func (p SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {
+	return utils.Encrypt(clearText, p.key)
+}
+
+func (p SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
+	return utils.Decrypt(cipherText, p.key)
+}
+
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method)
@@ -179,7 +194,11 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 
 // SaveTOTPConfiguration save a TOTP config of a given user in the database.
 func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
-	// TODO: Encrypt config.Secret here.
+	config.Secret, err = p.encrypt(config.Secret)
+	if err != nil {
+		return fmt.Errorf("could not encrypt the totp secret: %v", err)
+	}
+
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
 		config.Username,
 		config.Algorithm,
@@ -211,7 +230,11 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 		return nil, err
 	}
 
-	// TODO: Decrypt config.Secret here.
+	config.Secret, err = p.decrypt(config.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("could not decrypt the totp secret: %v", err)
+	}
+
 	return config, nil
 }
 

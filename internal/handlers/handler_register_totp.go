@@ -59,7 +59,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		Username:  username,
 		Algorithm: otpAlgoToString(algorithm),
 		Digits:    6,
-		Secret:    key.Secret(),
+		Secret:    []byte(key.Secret()),
 		Period:    key.Period(),
 	}
 

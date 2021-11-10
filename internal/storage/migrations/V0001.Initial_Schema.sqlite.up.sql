@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     algorithm VARCHAR(6) NOT NULL DEFAULT 'SHA1',
     digits INTEGER(1) NOT NULL DEFAULT 6,
     totp_period INTEGER NOT NULL DEFAULT 30,
-    secret VARCHAR(64) NOT NULL,
+    secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username)
 );

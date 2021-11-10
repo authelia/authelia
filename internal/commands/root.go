@@ -98,11 +98,11 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 
 	switch {
 	case config.Storage.PostgreSQL != nil:
-		storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
+		storageProvider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL, config.Storage.EncryptionKey)
 	case config.Storage.MySQL != nil:
-		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
+		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL, config.Storage.EncryptionKey)
 	case config.Storage.Local != nil:
-		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
+		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path, config.Storage.EncryptionKey)
 	}
 
 	var (

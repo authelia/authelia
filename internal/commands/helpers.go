@@ -9,11 +9,11 @@ import (
 func getStorageProvider() (provider storage.Provider, err error) {
 	switch {
 	case config.Storage.PostgreSQL != nil:
-		provider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL)
+		provider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL, config.Storage.EncryptionKey)
 	case config.Storage.MySQL != nil:
-		provider = storage.NewMySQLProvider(*config.Storage.MySQL)
+		provider = storage.NewMySQLProvider(*config.Storage.MySQL, config.Storage.EncryptionKey)
 	case config.Storage.Local != nil:
-		provider = storage.NewSQLiteProvider(config.Storage.Local.Path)
+		provider = storage.NewSQLiteProvider(config.Storage.Local.Path, config.Storage.EncryptionKey)
 	default:
 		return nil, errors.New("no storage provider configured")
 	}

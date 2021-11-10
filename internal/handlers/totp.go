@@ -34,7 +34,7 @@ func (tv *TOTPVerifierImpl) Verify(config *models.TOTPConfiguration, token strin
 		Algorithm: otpStringToAlgo(config.Algorithm),
 	}
 
-	return totp.ValidateCustom(token, config.Secret, time.Now().UTC(), opts)
+	return totp.ValidateCustom(token, string(config.Secret), time.Now().UTC(), opts)
 }
 
 func otpAlgoToString(algorithm otp.Algorithm) (out string) {
