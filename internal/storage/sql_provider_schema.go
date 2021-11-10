@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -21,7 +20,7 @@ func (p *SQLProvider) SchemaMigrationsUp(version int) (migrations []SchemaMigrat
 	}
 
 	if current >= version {
-		return migrations, fmt.Errorf("no available migrations")
+		return migrations, ErrNoAvailableMigrations
 	}
 
 	return loadMigrations(p.name, current, version)
@@ -46,7 +45,7 @@ func (p *SQLProvider) SchemaTables() (tables []string, err error) {
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+			p.log.Warnf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -91,7 +90,7 @@ func (p *SQLProvider) SchemaVersion() (version int, err error) {
 			return -2, err
 		}
 
-		return migration.Current, nil
+		return migration.After, nil
 	}
 
 	if utils.IsStringInSlice(tableUserPreferences, tables) && utils.IsStringInSlice(tablePre1TOTPSecrets, tables) &&
@@ -100,7 +99,9 @@ func (p *SQLProvider) SchemaVersion() (version int, err error) {
 		return -1, nil
 	}
 
-	return -2, errors.New("unknown schema state")
+	// TODO: Decide if we want to support external tables.
+	// return -2, ErrUnknownSchemaState
+	return 0, nil
 }
 
 // SchemaMigrate migrates from the current version to the provided version.
@@ -111,30 +112,6 @@ func (p *SQLProvider) SchemaMigrate(version int) (err error) {
 	}
 
 	return p.schemaMigrate(currentVersion, version)
-}
-
-// SchemaMigrateLatest migrates from the current version to the latest version.
-func (p *SQLProvider) SchemaMigrateLatest() (err error) {
-	currentVersion, err := p.SchemaVersion()
-	if err != nil {
-		return err
-	}
-
-	latestVersion, err := p.SchemaLatestVersion()
-	if err != nil {
-		return err
-	}
-
-	if latestVersion < currentVersion {
-		return errors.New("latest version is less than the ")
-	}
-
-	err = p.schemaMigrate(currentVersion, SchemaLatest)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *SQLProvider) schemaLatestMigration() (migration *models.Migration, err error) {
@@ -165,7 +142,7 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 	var trackPrior = prior
 
 	if prior == -1 {
-		p.log.Infof("Storage schema migration from pre1 to %d is being attempted", migrations[len(migrations)-1].After())
+		p.log.Infof(logFmtMigrationFromTo, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
 
 		err = p.schemaMigratePre1To1()
 		if err != nil {
@@ -178,9 +155,9 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 
 		trackPrior = 1
 	} else if target == -1 {
-		p.log.Infof("Storage schema migration from %d to pre1 is being attempted", prior)
+		p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), "pre1")
 	} else {
-		p.log.Infof("Storage schema migration from %d to %d is being attempted", prior, migrations[len(migrations)-1].After())
+		p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 	}
 
 	for _, migration := range migrations {
@@ -207,7 +184,7 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 	}
 
 	if prior == -1 {
-		p.log.Infof("Storage schema migration from pre1 to %d is complete", migrations[len(migrations)-1].After())
+		p.log.Infof(logFmtMigrationComplete, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
 	} else if target == -1 {
 		err = p.schemaMigrate1ToPre1()
 		if err != nil {
@@ -217,9 +194,9 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 
 			return fmt.Errorf(errFmtFailedMigrationPre1, err)
 		}
-		p.log.Infof("Storage schema migration from %d to pre1 is complete", prior)
+		p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), "pre1")
 	} else {
-		p.log.Infof("Storage schema migration from %d to %d is complete", prior, migrations[len(migrations)-1].After())
+		p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 	}
 
 	return nil
@@ -228,13 +205,13 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 func (p *SQLProvider) schemaMigrateRollback(prior, trackPrior int, migrateErr error) (err error) {
 	migrations, err := loadMigrations(p.name, trackPrior+1, prior)
 	if err != nil {
-		return fmt.Errorf("error loading down migrations for rollback: %+v. rollback caused by: %+v", err, migrateErr)
+		return fmt.Errorf("error loading migrations for rollback: %+v. rollback caused by: %+v", err, migrateErr)
 	}
 
 	for _, migration := range migrations {
 		err = p.schemaMigrateApply(trackPrior, migration)
 		if err != nil {
-			return fmt.Errorf("error applyinng down migration v%d: %+v. rollback caused by: %+v", migration.Version, err, migrateErr)
+			return fmt.Errorf("error applying migration v%d for rollback: %+v. rollback caused by: %+v", migration.Version, err, migrateErr)
 		}
 	}
 
@@ -259,15 +236,17 @@ func (p *SQLProvider) schemaMigrateApply(prior int, migration SchemaMigration) (
 	return p.schemaMigrateFinalize(migration)
 }
 
-func (p *SQLProvider) schemaMigrateFinalize(migration SchemaMigration) (err error) {
+func (p SQLProvider) schemaMigrateFinalize(migration SchemaMigration) (err error) {
+	return p.schemaMigrateFinalizeAdvanced(migration.Before(), migration.After())
+}
 
-	// TODO: Add Version.
-	_, err = p.db.Exec(p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version())
+func (p *SQLProvider) schemaMigrateFinalizeAdvanced(before, after int) (err error) {
+	_, err = p.db.Exec(p.sqlInsertMigration, time.Now(), before, after, utils.Version())
 	if err != nil {
 		return err
 	}
 
-	p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
+	p.log.Debugf("Storage schema migrated from version %d to %d", before, after)
 
 	return nil
 }

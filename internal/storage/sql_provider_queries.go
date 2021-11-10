@@ -2,13 +2,13 @@ package storage
 
 const (
 	queryFmtSelectLatestMigration = `
-		SELECT id, time, prior, current, version
+		SELECT id, applied, version_before, version_after, application_version
 		FROM %s
 		ORDER BY id DESC
 		LIMIT 1;`
 
 	queryFmtInsertMigration = `
-		INSERT INTO %s (time, prior, current, version)
+		INSERT INTO %s (applied, version_before, version_after, application_version)
 		VALUES (?, ?, ?, ?);`
 )
 

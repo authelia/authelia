@@ -89,11 +89,7 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 		}
 	}
 
-	if err = p.schemaMigrateFinalize(-1, *migration); err != nil {
-		return err
-	}
-
-	return nil
+	return p.schemaMigrateFinalizeAdvanced(-1, 1)
 }
 
 func (p *SQLProvider) schemaMigratePre1To1Rollback(up bool) (err error) {
@@ -197,7 +193,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP() (err error) {
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+			p.log.Warnf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -234,7 +230,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F() (err error) {
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+			p.log.Warnf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -397,7 +393,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP() (err error) {
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+			p.log.Warnf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -435,7 +431,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1U2F() (err error) {
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+			p.log.Warnf(logFmtErrClosingConn, err)
 		}
 	}()
 

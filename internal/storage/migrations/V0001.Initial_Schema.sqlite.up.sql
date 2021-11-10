@@ -23,10 +23,10 @@ CREATE TABLE IF NOT EXISTS identity_verification_tokens (
 
 CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER,
-    time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    prior INTEGER NULL DEFAULT NULL,
-    current INTEGER NOT NULL,
-    version VARCHAR(64) NOT NULL,
+    applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version_before INTEGER NULL DEFAULT NULL,
+    version_after INTEGER NOT NULL,
+    application_version VARCHAR(128) NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -37,15 +37,6 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     digits INTEGER(1) NOT NULL DEFAULT 6,
     totp_period INTEGER NOT NULL DEFAULT 30,
     secret VARCHAR(64) NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE (username)
-);
-
-CREATE TABLE IF NOT EXISTS duo_devices (
-    id INTEGER AUTO_INCREMENT,
-    username VARCHAR(100) NOT NULL,
-    device VARCHAR(32) NOT NULL,
-    method VARCHAR(16) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username)
 );

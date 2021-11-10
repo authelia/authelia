@@ -23,10 +23,10 @@ CREATE TABLE IF NOT EXISTS identity_verification_tokens (
 
 CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER AUTO_INCREMENT,
-    time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    prior INTEGER NULL DEFAULT NULL,
-    current INTEGER NOT NULL,
-    version VARCHAR(128) NOT NULL,
+    applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version_before INTEGER NULL DEFAULT NULL,
+    version_after INTEGER NOT NULL,
+    application_version VARCHAR(128) NOT NULL,
     PRIMARY KEY (id)
 );
 

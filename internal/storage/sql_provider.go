@@ -118,7 +118,7 @@ func (p *SQLProvider) StartupCheck() (err error) {
 	}
 
 	if current > latest {
-		return fmt.Errorf("current schema version is greater than the latest known schema version, you must downgrade to schema version %d before you can use this version of Authelia", latest)
+		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
 	}
 
 	return p.schemaMigrate(current, latest)
@@ -172,7 +172,13 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 // SaveTOTPConfiguration save a TOTP config of a given user in the database.
 func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
 	// TODO: Encrypt config.Secret here.
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig, config.Username, config.Algorithm, config.Digits, config.Period, config.Secret)
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
+		config.Username,
+		config.Algorithm,
+		config.Digits,
+		config.Period,
+		config.Secret,
+	)
 
 	return err
 }
@@ -242,7 +248,7 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			p.log.Warnf("Error occurred closing SQL connection: %v", err)
+			p.log.Warnf(logFmtErrClosingConn, err)
 		}
 	}()
 

@@ -30,8 +30,6 @@ const (
 	tableAlphaU2FDeviceHandles           = "U2FDeviceHandles"
 )
 
-var reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
-
 const (
 	providerAll      = "all"
 	providerMySQL    = "mysql"
@@ -40,5 +38,10 @@ const (
 )
 
 const (
+	// SchemaLatest represents the value expected for a "migrate to latest" migration. It's the maximum 32bit signed integer.
 	SchemaLatest = 2147483647
+)
+
+var (
+	reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
 )

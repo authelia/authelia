@@ -7,8 +7,8 @@ import (
 // Migration represents a migration row in the database.
 type Migration struct {
 	ID      int       `db:"id"`
-	Time    time.Time `db:"time"`
-	Prior   int       `db:"prior"`
-	Current int       `db:"current"`
-	Version string    `db:"version"`
+	Applied time.Time `db:"applied"`
+	Before  int       `db:"version_before"`
+	After   int       `db:"version_after"`
+	Version string    `db:"application_version"`
 }
