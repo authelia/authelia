@@ -114,14 +114,10 @@ func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
 }
 
-func NewCommandLineSource(flags *pflag.FlagSet) (source *CommandLineSource) {
-	return &CommandLineSource{
-		koanf:    koanf.New(constDelimiter),
-		flags:    flags,
-		callback: nil,
-	}
-}
-
+// NewCommandLineSourceWithMapping creates a new command line configuration source with a map[string]string which converts
+// flag names into other config key names. If includeValidKeys is true we also allow any flag with a name which matches
+// the list of valid keys into the koanf.Koanf, otherwise everything not in the map is skipped. Unchanged flags are also
+// skipped unless includeUnchangedKeys is set to true.
 func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) (source *CommandLineSource) {
 	return &CommandLineSource{
 		koanf:    koanf.New(constDelimiter),
@@ -130,6 +126,7 @@ func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]st
 	}
 }
 
+// Name of the Source.
 func (s CommandLineSource) Name() (name string) {
 	return "command-line"
 }

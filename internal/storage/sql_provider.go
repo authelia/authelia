@@ -89,10 +89,6 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return p.errOpen
 	}
 
-	if p.name == providerPostgres {
-		p.rebind()
-	}
-
 	// TODO: Decide if this is needed, or if it should be configurable.
 	for i := 0; i < 19; i++ {
 		err = p.db.Ping()

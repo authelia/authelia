@@ -106,6 +106,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 
 	if val.HasErrors() {
 		var finalErr error
+
 		for i, err := range val.Errors() {
 			if i == 0 {
 				finalErr = err
@@ -122,6 +123,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 
 	if val.HasErrors() {
 		var finalErr error
+
 		for i, err := range val.Errors() {
 			if i == 0 {
 				finalErr = err
@@ -273,75 +275,7 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 		Use:   storageMigrateDirectionUp,
 		Short: "Perform a migration up",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			var (
-				provider storage.Provider
-			)
-
-			provider, err = getStorageProvider()
-			if err != nil {
-				return err
-			}
-
-			if !cmd.Flags().Changed("target") {
-				latest, err := provider.SchemaLatestVersion()
-				if err != nil {
-					return err
-				}
-
-				version, err := provider.SchemaVersion()
-				if err != nil {
-					return err
-				}
-
-				if latest == version {
-					return errStorageMigrateAlreadyOnLatestVersion
-				}
-
-				err = provider.SchemaMigrate(latest)
-				if err != nil {
-					return err
-				}
-			} else {
-				target, err := cmd.Flags().GetInt("target")
-				if err != nil {
-					return err
-				}
-
-				if target == 0 {
-					return errStorageMigrateUpToVersion0
-				} else if target < 0 {
-					return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionUp, target)
-				}
-
-				latest, err := provider.SchemaLatestVersion()
-				if err != nil {
-					return err
-				}
-
-				if target > latest {
-					return fmt.Errorf(errFmtStorageMigrateUpHigherThanLatest, target, latest)
-				}
-
-				version, err := provider.SchemaVersion()
-				if err != nil {
-					return err
-				}
-
-				if version == target {
-					return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionUp, target)
-				} else if version > target {
-					return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionUp, target, "lower", version)
-				}
-
-				err = provider.SchemaMigrate(target)
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
-		},
+		RunE:  migrateStorageUpCmdE,
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
@@ -349,84 +283,88 @@ func newMigrateStorageUpCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
+func migrateStorageUpCmdE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+	)
+
+	provider, err = getStorageProvider()
+	if err != nil {
+		return err
+	}
+
+	if !cmd.Flags().Changed("target") {
+		return migrateStorageUpLatest(provider)
+	}
+
+	target, err := cmd.Flags().GetInt("target")
+	if err != nil {
+		return err
+	}
+
+	if target == 0 {
+		return errStorageMigrateUpToVersion0
+	} else if target < 0 {
+		return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionUp, target)
+	}
+
+	latest, err := provider.SchemaLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	if target > latest {
+		return fmt.Errorf(errFmtStorageMigrateUpHigherThanLatest, target, latest)
+	}
+
+	version, err := provider.SchemaVersion()
+	if err != nil {
+		return err
+	}
+
+	if version == target {
+		return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionUp, target)
+	} else if version > target {
+		return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionUp, target, "lower", version)
+	}
+
+	err = provider.SchemaMigrate(target)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func migrateStorageUpLatest(provider storage.Provider) (err error) {
+	latest, err := provider.SchemaLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	version, err := provider.SchemaVersion()
+	if err != nil {
+		return err
+	}
+
+	if latest == version {
+		return errStorageMigrateAlreadyOnLatestVersion
+	}
+
+	err = provider.SchemaMigrate(latest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   storageMigrateDirectionDown,
 		Short: "Perform a migration down",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			var (
-				provider storage.Provider
-			)
-
-			provider, err = getStorageProvider()
-			if err != nil {
-				return err
-			}
-
-			pre1, err := cmd.Flags().GetBool("pre1")
-			if err != nil {
-				return err
-			}
-
-			if !cmd.Flags().Changed("target") && !pre1 {
-				return errStorageMigrateDownMissingTargetFlag
-			}
-
-			version, err := provider.SchemaVersion()
-			if err != nil {
-				return err
-			}
-
-			if version == 0 {
-				return errStorageMigrateDownWhenZero
-			}
-
-			target, err := cmd.Flags().GetInt("target")
-			if err != nil {
-				return err
-			}
-
-			if target < 0 {
-				return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionDown, target)
-			}
-
-			if version == target || pre1 && version == -1 {
-				return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionDown, target)
-			} else if version < target {
-				return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionDown, target, "higher", version)
-			}
-
-			destroy, err := cmd.Flags().GetBool("destroy-data")
-			if err != nil {
-				return err
-			}
-
-			if !destroy {
-				fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
-				var text string
-
-				_, _ = fmt.Scanln(&text)
-
-				if text != "DESTROY" {
-					return errors.New("cancelling down migration due to user not accepting data destruction")
-				}
-			}
-
-			if pre1 {
-				err = provider.SchemaMigrate(-1)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = provider.SchemaMigrate(target)
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
-		},
+		RunE:  migrateStorageDownCmdE,
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")
@@ -434,4 +372,80 @@ func newMigrateStorageDownCmd() (cmd *cobra.Command) {
 	cmd.Flags().Bool("destroy-data", false, "confirms you want to destroy data with this migration")
 
 	return cmd
+}
+
+func migrateStorageDownCmdE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+	)
+
+	provider, err = getStorageProvider()
+	if err != nil {
+		return err
+	}
+
+	pre1, err := cmd.Flags().GetBool("pre1")
+	if err != nil {
+		return err
+	}
+
+	if !cmd.Flags().Changed("target") && !pre1 {
+		return errStorageMigrateDownMissingTargetFlag
+	}
+
+	version, err := provider.SchemaVersion()
+	if err != nil {
+		return err
+	}
+
+	if version == 0 {
+		return errStorageMigrateDownWhenZero
+	}
+
+	target, err := cmd.Flags().GetInt("target")
+	if err != nil {
+		return err
+	}
+
+	if target < 0 {
+		return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionDown, target)
+	}
+
+	if version == target || pre1 && version == -1 {
+		return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionDown, target)
+	} else if version < target {
+		return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionDown, target, "higher", version)
+	}
+
+	if pre1 {
+		target = -1
+	}
+
+	return migrateStorageDownDestroy(cmd, target, provider)
+}
+
+func migrateStorageDownDestroy(cmd *cobra.Command, target int, provider storage.Provider) (err error) {
+	destroy, err := cmd.Flags().GetBool("destroy-data")
+	if err != nil {
+		return err
+	}
+
+	if !destroy {
+		fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
+
+		var text string
+
+		_, _ = fmt.Scanln(&text)
+
+		if text != "DESTROY" {
+			return errors.New("cancelling down migration due to user not accepting data destruction")
+		}
+	}
+
+	err = provider.SchemaMigrate(target)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

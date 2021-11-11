@@ -30,6 +30,8 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provid
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtPostgresUpsertTOTPConfiguration, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtPostgresUpsertPreferred2FAMethod, tableUserPreferences)
 
+	provider.rebind()
+
 	return provider
 }
 
