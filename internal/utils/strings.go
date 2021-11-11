@@ -150,8 +150,8 @@ func RandomString(n int, characters string, crypto bool) (randomString string) {
 // RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
 // to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
 // excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomBytes(n int, characters string, crypto bool) (randomBytes []byte) {
-	bytes := make([]byte, n)
+func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
+	bytes = make([]byte, n)
 
 	if crypto {
 		_, _ = crand.Read(bytes)
