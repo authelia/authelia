@@ -21,8 +21,8 @@ const (
 		LIMIT 100 OFFSET ?;`
 
 	queryFmtPre1To1InsertAuthenticationLogs = `
-		INSERT INTO %s (username, successful, time)
-		VALUES (?, ?, ?);`
+		INSERT INTO %s (username, successful, time, request_uri)
+		VALUES (?, ?, ?, '');`
 
 	queryFmtPre1InsertUserPreferencesFromSelect = `
 		INSERT INTO %s (username, second_factor_method)
