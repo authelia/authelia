@@ -126,7 +126,7 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 	}
 
 	if salt == "" {
-		salt = crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(saltLength, HashingPossibleSaltCharacters)))
+		salt = crypt.Base64Encoding.EncodeToString([]byte(utils.RandomString(saltLength, HashingPossibleSaltCharacters, true)))
 	}
 
 	settings = getCryptSettings(salt, algorithm, iterations, memory, parallelism, keyLength)

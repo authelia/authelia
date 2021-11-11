@@ -7,6 +7,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestShouldNotGenerateSameRandomString(t *testing.T) {
+	randomStringOne := RandomString(10, AlphaNumericCharacters, false)
+	randomStringTwo := RandomString(10, AlphaNumericCharacters, false)
+
+	randomCryptoStringOne := RandomString(10, AlphaNumericCharacters, true)
+	randomCryptoStringTwo := RandomString(10, AlphaNumericCharacters, true)
+
+	assert.NotEqual(t, randomStringOne, randomStringTwo)
+	assert.NotEqual(t, randomCryptoStringOne, randomCryptoStringTwo)
+}
+
 func TestShouldDetectAlphaNumericString(t *testing.T) {
 	assert.True(t, IsStringAlphaNumeric("abc"))
 	assert.True(t, IsStringAlphaNumeric("abc123"))

@@ -58,7 +58,7 @@ var (
 
 var (
 	// AlphaNumericCharacters are literally just valid alphanumeric chars.
-	AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 var htmlEscaper = strings.NewReplacer(

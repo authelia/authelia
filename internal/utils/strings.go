@@ -1,6 +1,7 @@
 package utils
 
 import (
+	crand "crypto/rand"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -139,14 +140,20 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 	return added, removed
 }
 
-// RandomString generate a random string of n characters.
-func RandomString(n int, characters []rune) (randomString string) {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = characters[rand.Intn(len(characters))] //nolint:gosec // Likely isn't necessary to use the more expensive crypto/rand for this utility func.
+func RandomString(n int, characters string, crypto bool) (randomString string) {
+	bytes := make([]byte, n)
+
+	if crypto {
+		_, _ = crand.Read(bytes)
+	} else {
+		_, _ = rand.Read(bytes)
 	}
 
-	return string(b)
+	for i, b := range bytes {
+		bytes[i] = characters[b%byte(len(characters))]
+	}
+
+	return string(bytes)
 }
 
 // StringHTMLEscape escapes chars for a HTML body.

@@ -13,8 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
@@ -55,7 +53,7 @@ func ServeTemplatedFile(publicDir, file, rememberMe, resetPassword, session, the
 		}
 
 		baseURL := scheme + "://" + string(ctx.Request.Host()) + base + "/"
-		nonce := utils.RandomString(32, alphaNumericRunes)
+		nonce := utils.RandomString(32, utils.AlphaNumericCharacters, true)
 
 		switch extension := filepath.Ext(file); extension {
 		case ".html":
