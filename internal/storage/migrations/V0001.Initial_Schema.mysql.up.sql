@@ -3,15 +3,10 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful BOOL NOT NULL,
     username VARCHAR(100) NOT NULL,
-    auth_type VARCHAR(3) NOT NULL DEFAULT '1FA',
-    remote_ip VARCHAR(47) NULL DEFAULT NULL,
-    request_uri TEXT NOT NULL,
-    request_method VARCHAR(4) NOT NULL DEFAULT '',
     PRIMARY KEY (id)
 );
 
-CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
-CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
+CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username);
 
 CREATE TABLE IF NOT EXISTS identity_verification_tokens (
     id INTEGER AUTO_INCREMENT,
