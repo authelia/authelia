@@ -56,7 +56,7 @@
           "sourcemap": true
         }
       ],
-      "^.+\\.(css|svg)$": "jest-transform-stub"
+      "^.+\\.(css|png|svg)$": "jest-transform-stub"
     },
     "transformIgnorePatterns": [
       "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$"

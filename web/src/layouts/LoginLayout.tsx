@@ -4,6 +4,7 @@ import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core
 import { grey } from "@material-ui/core/colors";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
+import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {
     id?: string;
@@ -14,12 +15,17 @@ export interface Props {
 
 const LoginLayout = function (props: Props) {
     const style = useStyles();
+    const logo = getLogoOverride() ? (
+        <img src="./static/media/logo.png" alt="Logo" className={style.icon} />
+    ) : (
+        <UserSvg className={style.icon} />
+    );
     return (
         <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
             <Container maxWidth="xs" className={style.rootContainer}>
                 <Grid container>
                     <Grid item xs={12}>
-                        <UserSvg className={style.icon}></UserSvg>
+                        {logo}
                     </Grid>
                     {props.title ? (
                         <Grid item xs={12}>

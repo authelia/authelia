@@ -5,6 +5,7 @@ type ServerConfiguration struct {
 	Host               string `koanf:"host"`
 	Port               int    `koanf:"port"`
 	Path               string `koanf:"path"`
+	AssetPath          string `koanf:"asset_path"`
 	ReadBufferSize     int    `koanf:"read_buffer_size"`
 	WriteBufferSize    int    `koanf:"write_buffer_size"`
 	EnablePprof        bool   `koanf:"enable_endpoint_pprof"`
