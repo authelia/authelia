@@ -21,7 +21,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 	config := session.NewDefaultConfig()
 
 	config.SessionIDGeneratorFunc = func() []byte {
-		bytes := make([]byte, 30)
+		bytes := make([]byte, 32)
 
 		_, _ = rand.Read(bytes)
 
