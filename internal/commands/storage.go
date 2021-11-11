@@ -15,6 +15,8 @@ func NewStorageCmd() (cmd *cobra.Command) {
 
 	cmd.PersistentFlags().StringSliceP("config", "c", []string{"config.yml"}, "configuration file to load for the storage migration")
 
+	cmd.PersistentFlags().String("encryption-key", "", "the storage encryption key to use")
+
 	cmd.PersistentFlags().String("sqlite.path", "", "the SQLite database path")
 
 	cmd.PersistentFlags().String("mysql.host", "", "the MySQL hostname")
