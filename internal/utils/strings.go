@@ -1,6 +1,7 @@
 package utils
 
 import (
+	crand "crypto/rand"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -139,19 +140,37 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 	return added, removed
 }
 
-// RandomString generate a random string of n characters.
-func RandomString(n int, characters []rune) (randomString string) {
-	rand.Seed(time.Now().UnixNano())
+// RandomString returns a random string with a given length with values from the provided characters. When crypto is set
+// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
+// excluding when the task is time sensitive and would not benefit from extra randomness.
+func RandomString(n int, characters string, crypto bool) (randomString string) {
+	return string(RandomBytes(n, characters, crypto))
+}
 
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = characters[rand.Intn(len(characters))] //nolint:gosec // Likely isn't necessary to use the more expensive crypto/rand for this utility func.
+// RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
+// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
+// excluding when the task is time sensitive and would not benefit from extra randomness.
+func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
+	bytes = make([]byte, n)
+
+	if crypto {
+		_, _ = crand.Read(bytes)
+	} else {
+		_, _ = rand.Read(bytes) //nolint:gosec // As this is an option when using this function it's not necessary to be concerned about this.
 	}
 
-	return string(b)
+	for i, b := range bytes {
+		bytes[i] = characters[b%byte(len(characters))]
+	}
+
+	return bytes
 }
 
 // StringHTMLEscape escapes chars for a HTML body.
 func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

@@ -1,8 +1,13 @@
 package session
 
-const userSessionStorerKey = "UserSession"
+const (
+	testDomain     = "example.com"
+	testExpiration = "40"
+	testName       = "my_session"
+	testUsername   = "john"
+)
 
-const testDomain = "example.com"
-const testExpiration = "40"
-const testName = "my_session"
-const testUsername = "john"
+const (
+	userSessionStorerKey = "UserSession"
+	randomSessionChars   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!#$%^*"
+)

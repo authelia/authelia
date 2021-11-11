@@ -133,7 +133,7 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 		return err
 	}
 
-	boundary := utils.RandomString(30, utils.AlphaNumericCharacters)
+	boundary := utils.RandomString(30, utils.AlphaNumericCharacters, true)
 
 	now := time.Now()
 
