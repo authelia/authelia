@@ -141,8 +141,6 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 
 // RandomString generate a random string of n characters.
 func RandomString(n int, characters []rune) (randomString string) {
-	rand.Seed(time.Now().UnixNano())
-
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = characters[rand.Intn(len(characters))] //nolint:gosec // Likely isn't necessary to use the more expensive crypto/rand for this utility func.
@@ -154,4 +152,8 @@ func RandomString(n int, characters []rune) (randomString string) {
 // StringHTMLEscape escapes chars for a HTML body.
 func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

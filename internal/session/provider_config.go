@@ -1,6 +1,7 @@
 package session
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -20,7 +21,15 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 	config := session.NewDefaultConfig()
 
 	config.SessionIDGeneratorFunc = func() []byte {
-		return []byte(utils.RandomString(30, utils.AlphaNumericCharacters))
+		bytes := make([]byte, 30)
+
+		_, _ = rand.Read(bytes)
+
+		for i, b := range bytes {
+			bytes[i] = randomSessionChars[b%byte(len(randomSessionChars))]
+		}
+
+		return bytes
 	}
 
 	// Override the cookie name.
@@ -47,7 +56,6 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 	// Ignore the error as it will be handled by validator.
 	config.Expiration, _ = utils.ParseDurationString(configuration.Expiration)
 
-	// TODO(c.michaud): Make this configurable by giving the list of IPs that are trustable.
 	config.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
 		return true
 	}

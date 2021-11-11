@@ -56,8 +56,10 @@ var (
 	reDuration = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
 )
 
-// AlphaNumericCharacters are literally just valid alphanumeric chars.
-var AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var (
+	// AlphaNumericCharacters are literally just valid alphanumeric chars.
+	AlphaNumericCharacters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+)
 
 var htmlEscaper = strings.NewReplacer(
 	"&", "&amp;",
