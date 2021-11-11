@@ -43,7 +43,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, rememberMe, resetPassword, s
 		logoOverride := "false"
 
 		if assetPath != "" {
-			if _, err := os.Stat(assetPath + "logo.png"); err == nil {
+			if _, err := os.Stat(assetPath + logoFile); err == nil {
 				logoOverride = "true"
 			}
 		}

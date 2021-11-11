@@ -1,9 +1,14 @@
 package server
 
-const embeddedAssets = "public_html/"
-const swaggerAssets = embeddedAssets + "api/"
-const apiFile = "openapi.yml"
-const indexFile = "index.html"
+const (
+	embeddedAssets = "public_html/"
+	swaggerAssets  = embeddedAssets + "api/"
+	apiFile        = "openapi.yml"
+	indexFile      = "index.html"
+	logoFile       = "logo.png"
+)
+
+var rootFiles = []string{"favicon.ico", "manifest.json", "robots.txt"}
 
 const dev = "dev"
 
@@ -14,5 +19,3 @@ X_AUTHELIA_HEALTHCHECK_HOST=%s
 X_AUTHELIA_HEALTHCHECK_PORT=%d
 X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
-
-var rootFiles = []string{"favicon.ico", "manifest.json", "robots.txt"}
