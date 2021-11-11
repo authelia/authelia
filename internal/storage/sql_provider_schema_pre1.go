@@ -40,24 +40,8 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 		tableAlphaU2FDeviceHandles,
 	}
 
-	// Rename Tables and Indexes.
-	for _, table := range tables {
-		if !utils.IsStringInSlice(table, tablesRename) {
-			continue
-		}
-
-		tableNew := tablePrefixBackup + table
-
-		if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
-			return err
-		}
-
-		if p.name == providerPostgres && (table == tableU2FDevices || table == tableUserPreferences) {
-			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
-				tableNew, table, tableNew)); err != nil {
-				continue
-			}
-		}
+	if err = p.schemaMigratePre1Rename(tables, tablesRename); err != nil {
+		return err
 	}
 
 	if _, err = p.db.Exec(migration.Query); err != nil {
@@ -81,15 +65,37 @@ func (p *SQLProvider) schemaMigratePre1To1() (err error) {
 		return err
 	}
 
-	queryFmtDropTableRebound := p.db.Rebind(queryFmtDropTableIfExists)
-
 	for _, table := range tablesRename {
-		if _, err = p.db.Exec(fmt.Sprintf(queryFmtDropTableRebound, tablePrefixBackup+table)); err != nil {
+		if _, err = p.db.Exec(fmt.Sprintf(p.db.Rebind(queryFmtDropTableIfExists), tablePrefixBackup+table)); err != nil {
 			return err
 		}
 	}
 
 	return p.schemaMigrateFinalizeAdvanced(-1, 1)
+}
+
+func (p *SQLProvider) schemaMigratePre1Rename(tables, tablesRename []string) (err error) {
+	// Rename Tables and Indexes.
+	for _, table := range tables {
+		if !utils.IsStringInSlice(table, tablesRename) {
+			continue
+		}
+
+		tableNew := tablePrefixBackup + table
+
+		if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
+			return err
+		}
+
+		if p.name == providerPostgres && (table == tableU2FDevices || table == tableUserPreferences) {
+			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
+				tableNew, table, tableNew)); err != nil {
+				continue
+			}
+		}
+	}
+
+	return nil
 }
 
 func (p *SQLProvider) schemaMigratePre1To1Rollback(up bool) (err error) {
@@ -283,24 +289,8 @@ func (p *SQLProvider) schemaMigrate1ToPre1() (err error) {
 		tableAuthenticationLogs,
 	}
 
-	// Rename Tables and Indexes.
-	for _, table := range tables {
-		if !utils.IsStringInSlice(table, tablesRename) {
-			continue
-		}
-
-		tableNew := tablePrefixBackup + table
-
-		if _, err = p.db.Exec(fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
-			return err
-		}
-
-		if p.name == providerPostgres && (table == tableU2FDevices || table == tableUserPreferences) {
-			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
-				tableNew, table, tableNew)); err != nil {
-				continue
-			}
-		}
+	if err = p.schemaMigratePre1Rename(tables, tablesRename); err != nil {
+		return err
 	}
 
 	if _, err := p.db.Exec(queryCreatePre1); err != nil {

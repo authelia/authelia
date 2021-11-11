@@ -9,6 +9,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// SchemaMigrationsUp returns a list of migrations up available between the current version and the provided version.
 func (p *SQLProvider) SchemaMigrationsUp(version int) (migrations []SchemaMigration, err error) {
 	current, err := p.SchemaVersion()
 	if err != nil {
@@ -26,10 +27,15 @@ func (p *SQLProvider) SchemaMigrationsUp(version int) (migrations []SchemaMigrat
 	return loadMigrations(p.name, current, version)
 }
 
+// SchemaMigrationsDown returns a list of migrations down available between the current version and the provided version.
 func (p *SQLProvider) SchemaMigrationsDown(version int) (migrations []SchemaMigration, err error) {
 	current, err := p.SchemaVersion()
 	if err != nil {
 		return migrations, err
+	}
+
+	if current <= version {
+		return migrations, ErrNoAvailableMigrations
 	}
 
 	return loadMigrations(p.name, current, version)
@@ -126,8 +132,6 @@ func (p *SQLProvider) schemaLatestMigration() (migration *models.Migration, err 
 }
 
 func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
-	up := prior < target
-
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
 		return err
@@ -139,9 +143,8 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 		return nil
 	}
 
-	var trackPrior = prior
-
-	if prior == -1 {
+	switch {
+	case prior == -1:
 		p.log.Infof(logFmtMigrationFromTo, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
 
 		err = p.schemaMigratePre1To1()
@@ -152,40 +155,23 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 
 			return fmt.Errorf(errFmtFailedMigrationPre1, err)
 		}
-
-		trackPrior = 1
-	} else if target == -1 {
+	case target == -1:
 		p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), "pre1")
-	} else {
+	default:
 		p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 	}
 
 	for _, migration := range migrations {
-		if target == -1 && migration.Version == 1 {
-			continue
-		}
-
-		// Skip same version number migrations.
-		if up && migration.Version <= trackPrior {
-			continue
-		}
-
-		// Skip same version number migrations.
-		if !up && migration.Version > trackPrior {
-			continue
-		}
-
-		err = p.schemaMigrateApply(trackPrior, migration)
+		err = p.schemaMigrateApply(migration)
 		if err != nil {
-			return p.schemaMigrateRollback(prior, trackPrior, err)
+			return p.schemaMigrateRollback(prior, migration.Before(), err)
 		}
-
-		trackPrior = migration.Version
 	}
 
-	if prior == -1 {
+	switch {
+	case prior == -1:
 		p.log.Infof(logFmtMigrationComplete, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
-	} else if target == -1 {
+	case target == -1:
 		err = p.schemaMigrate1ToPre1()
 		if err != nil {
 			if errRollback := p.schemaMigratePre1To1Rollback(false); errRollback != nil {
@@ -194,8 +180,9 @@ func (p *SQLProvider) schemaMigrate(prior, target int) (err error) {
 
 			return fmt.Errorf(errFmtFailedMigrationPre1, err)
 		}
+
 		p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), "pre1")
-	} else {
+	default:
 		p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 	}
 
@@ -209,7 +196,7 @@ func (p *SQLProvider) schemaMigrateRollback(prior, trackPrior int, migrateErr er
 	}
 
 	for _, migration := range migrations {
-		err = p.schemaMigrateApply(trackPrior, migration)
+		err = p.schemaMigrateApply(migration)
 		if err != nil {
 			return fmt.Errorf("error applying migration v%d for rollback: %+v. rollback caused by: %+v", migration.Version, err, migrateErr)
 		}
@@ -222,7 +209,7 @@ func (p *SQLProvider) schemaMigrateRollback(prior, trackPrior int, migrateErr er
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
 }
 
-func (p *SQLProvider) schemaMigrateApply(prior int, migration SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateApply(migration SchemaMigration) (err error) {
 	_, err = p.db.Exec(migration.Query)
 	if err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)

@@ -51,31 +51,6 @@ func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema
 	}
 }
 
-func koanfCommandLineCallback(key, value string) (string, interface{}) {
-	formattedKey := strings.ReplaceAll(key, "-", "_")
-
-	if !utils.IsStringInSlice(formattedKey, validator.ValidKeys) {
-		return "", nil
-	}
-
-	return formattedKey, value
-}
-
-func koanfCommandLineWithPrefixesCallback(delimiter string, prefixes []string) func(key, value string) (string, interface{}) {
-	return func(key, value string) (string, interface{}) {
-		formattedKey := strings.ReplaceAll(key, "-", "_")
-		for _, prefix := range prefixes {
-			actualKey := fmt.Sprintf("%s%s%s", prefix, delimiter, formattedKey)
-
-			if utils.IsStringInSlice(actualKey, validator.ValidKeys) {
-				return actualKey, value
-			}
-		}
-
-		return "", nil
-	}
-}
-
 func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) func(flag *pflag.Flag) (string, interface{}) {
 	return func(flag *pflag.Flag) (string, interface{}) {
 		if !includeUnchangedKeys && !flag.Changed {

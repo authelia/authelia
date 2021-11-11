@@ -38,3 +38,117 @@ func TestShouldObtainCorrectDownMigrations(t *testing.T) {
 		assert.Equal(t, ver-i, migrations[i].Version)
 	}
 }
+
+func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
+	migrations, err := loadMigrations("postgres", 0, SchemaLatest)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(migrations))
+
+	previousUp := make([]int, len(migrations))
+
+	for i, migration := range migrations {
+		assert.True(t, migration.Up)
+
+		if i != 0 {
+			for _, v := range previousUp {
+				assert.NotEqual(t, v, migration.Version)
+			}
+		}
+
+		previousUp = append(previousUp, migration.Version)
+	}
+
+	migrations, err = loadMigrations("postgres", SchemaLatest, 0)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(migrations))
+
+	previousDown := make([]int, len(migrations))
+
+	for i, migration := range migrations {
+		assert.False(t, migration.Up)
+
+		if i != 0 {
+			for _, v := range previousDown {
+				assert.NotEqual(t, v, migration.Version)
+			}
+		}
+
+		previousDown = append(previousDown, migration.Version)
+	}
+}
+
+func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
+	migrations, err := loadMigrations("mysql", 0, SchemaLatest)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(migrations))
+
+	previousUp := make([]int, len(migrations))
+
+	for i, migration := range migrations {
+		assert.True(t, migration.Up)
+
+		if i != 0 {
+			for _, v := range previousUp {
+				assert.NotEqual(t, v, migration.Version)
+			}
+		}
+
+		previousUp = append(previousUp, migration.Version)
+	}
+
+	migrations, err = loadMigrations("mysql", SchemaLatest, 0)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(migrations))
+
+	previousDown := make([]int, len(migrations))
+
+	for i, migration := range migrations {
+		assert.False(t, migration.Up)
+
+		if i != 0 {
+			for _, v := range previousDown {
+				assert.NotEqual(t, v, migration.Version)
+			}
+		}
+
+		previousDown = append(previousDown, migration.Version)
+	}
+}
+
+func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
+	migrations, err := loadMigrations("sqlite", 0, SchemaLatest)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(migrations))
+
+	previousUp := make([]int, len(migrations))
+
+	for i, migration := range migrations {
+		assert.True(t, migration.Up)
+
+		if i != 0 {
+			for _, v := range previousUp {
+				assert.NotEqual(t, v, migration.Version)
+			}
+		}
+
+		previousUp = append(previousUp, migration.Version)
+	}
+
+	migrations, err = loadMigrations("sqlite", SchemaLatest, 0)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(migrations))
+
+	previousDown := make([]int, len(migrations))
+
+	for i, migration := range migrations {
+		assert.False(t, migration.Up)
+
+		if i != 0 {
+			for _, v := range previousDown {
+				assert.NotEqual(t, v, migration.Version)
+			}
+		}
+
+		previousDown = append(previousDown, migration.Version)
+	}
+}

@@ -105,31 +105,8 @@ func loadMigrations(providerName string, prior, target int) (migrations []Schema
 			return nil, err
 		}
 
-		if migration.Provider != providerAll && migration.Provider != providerName {
+		if skipMigration(providerName, up, target, prior, &migration) {
 			continue
-		}
-
-		if up {
-			if !migration.Up {
-				continue
-			}
-
-			if target != -1 && (migration.Version > target || migration.Version <= prior) {
-				continue
-			}
-		} else {
-			if migration.Up {
-				continue
-			}
-
-			// If we're targeting pre1 we want to skip the down migration 1.
-			if migration.Version == 1 && target == -1 {
-				continue
-			}
-
-			if migration.Version <= target || migration.Version > prior {
-				continue
-			}
 		}
 
 		migrations = append(migrations, migration)
@@ -146,6 +123,44 @@ func loadMigrations(providerName string, prior, target int) (migrations []Schema
 	}
 
 	return migrations, nil
+}
+
+func skipMigration(providerName string, up bool, target, prior int, migration *SchemaMigration) (skip bool) {
+	if migration.Provider != providerAll && migration.Provider != providerName {
+		// Skip if migration.Provider is not a match.
+		return true
+	}
+
+	if up {
+		if !migration.Up {
+			// Skip if we wanted an Up migration but it isn't an Up migration.
+			return true
+		}
+
+		if target != -1 && (migration.Version > target || migration.Version <= prior) {
+			// Skip if the migration version is greater than the target or less than or equal to the previous version.
+			return true
+		}
+	} else {
+		if migration.Up {
+			// Skip if we didn't want an Up migration but it is an Up migration.
+			return true
+		}
+
+		if migration.Version == 1 && target == -1 {
+			// Skip if we're targeting pre1 and the migration version is 1 as this migration will destroy all data
+			// preventing a successful migration.
+			return true
+		}
+
+		if migration.Version <= target || migration.Version > prior {
+			// Skip the migration if we want to go down and the migration version is less than or equal to the target
+			// or greater than the previous version.
+			return true
+		}
+	}
+
+	return false
 }
 
 func scanMigration(m string) (migration SchemaMigration, err error) {
