@@ -87,10 +87,16 @@ func (p *SQLProvider) schemaMigratePre1Rename(tables, tablesRename []string) (er
 			return err
 		}
 
-		if p.name == providerPostgres && (table == tableU2FDevices || table == tableUserPreferences) {
-			if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
-				tableNew, table, tableNew)); err != nil {
-				continue
+		if p.name == providerPostgres {
+			if table == tableU2FDevices || table == tableUserPreferences {
+				if _, err = p.db.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
+					tableNew, table, tableNew)); err != nil {
+					continue
+				}
+			}
+
+			if _, err = p.db.Exec(`ALTER INDEX IF EXISTS authentication_logs_username_idx RENAME TO _bkp_authentication_logs_username_idx;`); err != nil {
+				return err
 			}
 		}
 	}
