@@ -93,6 +93,7 @@ type WellKnownConfiguration struct {
 	TokenEndpoint         string `json:"token_endpoint"`
 	RevocationEndpoint    string `json:"revocation_endpoint"`
 	UserinfoEndpoint      string `json:"userinfo_endpoint"`
+	IntrospectionEndpoint string `json:"introspection_endpoint"`
 
 	Algorithms         []string `json:"id_token_signing_alg_values_supported"`
 	UserinfoAlgorithms []string `json:"userinfo_signing_alg_values_supported"`
