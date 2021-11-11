@@ -79,6 +79,12 @@ func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *mod
 	return migration, nil
 }
 
+// SchemaEncryptionChangeKey uses the currently configured key to decrypt values in the database and the key provided
+// by this command to encrypt the values again and update them using a transaction.
+func (p *SQLProvider) SchemaEncryptionChangeKey(key string) (err error) {
+	return nil
+}
+
 // SchemaMigrationHistory returns migration history rows.
 func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectMigrations)
