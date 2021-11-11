@@ -58,8 +58,7 @@ func TestArgon2idHashSaltValidValues(t *testing.T) {
 
 	var hash string
 
-	data := string(HashingPossibleSaltCharacters)
-	datas := utils.SliceString(data, 16)
+	datas := utils.SliceString(HashingPossibleSaltCharacters, 16)
 
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmArgon2id, 1, 8, 1, 32, 16)
@@ -74,8 +73,7 @@ func TestSHA512HashSaltValidValues(t *testing.T) {
 
 	var hash string
 
-	data := string(HashingPossibleSaltCharacters)
-	datas := utils.SliceString(data, 16)
+	datas := utils.SliceString(HashingPossibleSaltCharacters, 16)
 
 	for _, salt := range datas {
 		hash, err = HashPassword("password", salt, HashingAlgorithmSHA512, 1000, 0, 0, 0, 16)
