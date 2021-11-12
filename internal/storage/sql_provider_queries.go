@@ -73,6 +73,17 @@ const (
 		FROM %s
 		WHERE username = ?;`
 
+	queryFmtSelectTOTPConfigurations = `
+		SELECT id, username, algorithm, digits, totp_period, secret
+		FROM %s
+		LIMIT ?
+		OFFSET ?;`
+
+	queryFmtUpdateTOTPConfigurationSecret = `
+		UPDATE %s
+		SET secret = ?
+		WHERE id = ?;`
+
 	queryFmtUpsertTOTPConfiguration = `
 		REPLACE INTO %s (username, algorithm, digits, totp_period, secret)
 		VALUES (?, ?, ?, ?, ?);`

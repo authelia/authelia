@@ -38,19 +38,19 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	mapping := map[string]string{
-		"encryption-key":    "encryption_key",
-		"sqlite.path":       "local.path",
-		"mysql.host":        "mysql.host",
-		"mysql.port":        "mysql.port",
-		"mysql.database":    "mysql.database",
-		"mysql.username":    "mysql.username",
-		"mysql.password":    "mysql.password",
-		"postgres.host":     "postgres.host",
-		"postgres.port":     "postgres.port",
-		"postgres.database": "postgres.database",
-		"postgres.username": "postgres.username",
-		"postgres.password": "postgres.password",
-		"postgres.schema":   "postgres.schema",
+		"encryption-key":    "storage.encryption_key",
+		"sqlite.path":       "storage.local.path",
+		"mysql.host":        "storage.mysql.host",
+		"mysql.port":        "storage.mysql.port",
+		"mysql.database":    "storage.mysql.database",
+		"mysql.username":    "storage.mysql.username",
+		"mysql.password":    "storage.mysql.password",
+		"postgres.host":     "storage.postgres.host",
+		"postgres.port":     "storage.postgres.port",
+		"postgres.database": "storage.postgres.database",
+		"postgres.username": "storage.postgres.username",
+		"postgres.password": "storage.postgres.password",
+		"postgres.schema":   "storage.postgres.schema",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -99,6 +99,42 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
+}
+
+func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	provider, err = getStorageProvider()
+	if err != nil {
+		return err
+	}
+
+	version, err := provider.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+
+	if version <= 0 {
+		return errors.New("schema version must be at least version 1 to change the encryption key")
+	}
+
+	key, err := cmd.Flags().GetString("new-encryption-key")
+	if err != nil {
+		return err
+	}
+
+	if key == "" {
+		return errors.New("you must set the --new-encryption-key flag")
+	}
+
+	if len(key) < 20 {
+		return errors.New("the encryption key must be at least 20 characters")
+	}
+
+	return provider.SchemaEncryptionChangeKey(ctx, key)
 }
 
 func storageMigrateHistoryRunE(cmd *cobra.Command, args []string) (err error) {

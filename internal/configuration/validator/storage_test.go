@@ -16,6 +16,7 @@ type StorageSuite struct {
 
 func (suite *StorageSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
+	suite.configuration.EncryptionKey = testEncryptionKey
 	suite.configuration.Local = &schema.LocalStorageConfiguration{
 		Path: "/this/is/a/path",
 	}
@@ -104,6 +105,26 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 	suite.Assert().EqualError(suite.validator.Errors()[0], "SSL mode must be 'disable', 'require', 'verify-ca', or 'verify-full'")
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
+	suite.configuration.EncryptionKey = ""
+
+	ValidateStorage(suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.Assert().EqualError(suite.validator.Errors()[0], "the configuration option storage.encryption_key must be provided")
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {
+	suite.configuration.EncryptionKey = "abc"
+
+	ValidateStorage(suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.Assert().EqualError(suite.validator.Errors()[0], "the configuration option storage.encryption_key must be 20 characters or longer")
 }
 
 func TestShouldRunStorageSuite(t *testing.T) {

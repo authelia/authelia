@@ -34,7 +34,31 @@ func NewStorageCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
+		newStorageEncryptionCmd(),
 	)
+
+	return cmd
+}
+
+func newStorageEncryptionCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "encryption",
+		Short: "Manages encryption",
+	}
+
+	cmd.AddCommand(newStorageEncryptionChangeKeyCmd())
+
+	return cmd
+}
+
+func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "change-key",
+		Short: "Changes the encryption key",
+		RunE:  storageSchemaEncryptionChangeKeyRunE,
+	}
+
+	cmd.Flags().String("new-encryption-key", "", "the new key to encrypt the data with")
 
 	return cmd
 }

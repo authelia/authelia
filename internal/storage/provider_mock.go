@@ -124,6 +124,21 @@ func (mr *MockProviderMockRecorder) LoadTOTPConfiguration(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfiguration", reflect.TypeOf((*MockProvider)(nil).LoadTOTPConfiguration), arg0, arg1)
 }
 
+// LoadTOTPConfigurations mocks base method.
+func (m *MockProvider) LoadTOTPConfigurations(arg0 context.Context, arg1, arg2 int) ([]models.TOTPConfiguration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadTOTPConfigurations", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.TOTPConfiguration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadTOTPConfigurations indicates an expected call of LoadTOTPConfigurations.
+func (mr *MockProviderMockRecorder) LoadTOTPConfigurations(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfigurations", reflect.TypeOf((*MockProvider)(nil).LoadTOTPConfigurations), arg0, arg1, arg2)
+}
+
 // LoadU2FDevice mocks base method.
 func (m *MockProvider) LoadU2FDevice(arg0 context.Context, arg1 string) (*models.U2FDevice, error) {
 	m.ctrl.T.Helper()
@@ -207,6 +222,20 @@ func (m *MockProvider) SaveU2FDevice(arg0 context.Context, arg1 models.U2FDevice
 func (mr *MockProviderMockRecorder) SaveU2FDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDevice", reflect.TypeOf((*MockProvider)(nil).SaveU2FDevice), arg0, arg1)
+}
+
+// SchemaEncryptionChangeKey mocks base method.
+func (m *MockProvider) SchemaEncryptionChangeKey(arg0 context.Context, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaEncryptionChangeKey", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SchemaEncryptionChangeKey indicates an expected call of SchemaEncryptionChangeKey.
+func (mr *MockProviderMockRecorder) SchemaEncryptionChangeKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaEncryptionChangeKey", reflect.TypeOf((*MockProvider)(nil).SchemaEncryptionChangeKey), arg0, arg1)
 }
 
 // SchemaLatestVersion mocks base method.
@@ -325,4 +354,18 @@ func (m *MockProvider) StartupCheck() error {
 func (mr *MockProviderMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockProvider)(nil).StartupCheck))
+}
+
+// UpdateTOTPConfigurationSecret mocks base method.
+func (m *MockProvider) UpdateTOTPConfigurationSecret(arg0 context.Context, arg1 models.TOTPConfiguration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTOTPConfigurationSecret", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTOTPConfigurationSecret indicates an expected call of UpdateTOTPConfigurationSecret.
+func (mr *MockProviderMockRecorder) UpdateTOTPConfigurationSecret(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSecret", reflect.TypeOf((*MockProvider)(nil).UpdateTOTPConfigurationSecret), arg0, arg1)
 }

@@ -33,9 +33,11 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 		sqlDeleteIdentityVerification:       fmt.Sprintf(queryFmtDeleteIdentityVerification, tableIdentityVerification),
 		sqlSelectExistsIdentityVerification: fmt.Sprintf(queryFmtSelectExistsIdentityVerification, tableIdentityVerification),
 
-		sqlUpsertTOTPConfig: fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
-		sqlDeleteTOTPConfig: fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
-		sqlSelectTOTPConfig: fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
+		sqlUpsertTOTPConfig:       fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
+		sqlDeleteTOTPConfig:       fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
+		sqlSelectTOTPConfig:       fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
+		sqlSelectTOTPConfigs:      fmt.Sprintf(queryFmtSelectTOTPConfigurations, tableTOTPConfigurations),
+		sqlUpdateTOTPConfigSecret: fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
 
 		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
 		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
@@ -76,9 +78,11 @@ type SQLProvider struct {
 	sqlSelectExistsIdentityVerification string
 
 	// Table: totp_configurations.
-	sqlUpsertTOTPConfig string
-	sqlDeleteTOTPConfig string
-	sqlSelectTOTPConfig string
+	sqlUpsertTOTPConfig       string
+	sqlDeleteTOTPConfig       string
+	sqlSelectTOTPConfig       string
+	sqlSelectTOTPConfigs      string
+	sqlUpdateTOTPConfigSecret string
 
 	// Table: u2f_devices.
 	sqlUpsertU2FDevice string
@@ -192,7 +196,7 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 	return found, nil
 }
 
-// SaveTOTPConfiguration save a TOTP config of a given user in the database.
+// SaveTOTPConfiguration save a TOTP configuration of a given user in the database.
 func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
 	config.Secret, err = p.encrypt(config.Secret)
 	if err != nil {
@@ -210,14 +214,14 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 	return err
 }
 
-// DeleteTOTPConfiguration delete a TOTP secret from the database given a username.
+// DeleteTOTPConfiguration delete a TOTP configuration from the database given a username.
 func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlDeleteTOTPConfig, username)
 
 	return err
 }
 
-// LoadTOTPConfiguration load a TOTP secret given a username from the database.
+// LoadTOTPConfiguration load a TOTP configuration given a username from the database.
 func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error) {
 	config = &models.TOTPConfiguration{}
 
@@ -236,6 +240,45 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 	}
 
 	return config, nil
+}
+
+// LoadTOTPConfigurations load a set of TOTP configurations.
+func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, page, limit int) (configs []models.TOTPConfiguration, err error) {
+	rows, err := p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, limit, limit*page)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			p.log.Warnf(logFmtErrClosingConn, err)
+		}
+	}()
+
+	configs = make([]models.TOTPConfiguration, 0, limit)
+
+	var config models.TOTPConfiguration
+
+	for rows.Next() {
+		err = rows.StructScan(&config)
+		if err != nil {
+			return nil, err
+		}
+
+		config.Secret, err = p.decrypt(config.Secret)
+
+		configs = append(configs, config)
+	}
+
+	return configs, nil
+}
+
+// UpdateTOTPConfigurationSecret updates a TOTP configuration secret.
+func (p *SQLProvider) UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecret, config.Secret, config.ID)
+
+	return err
 }
 
 // SaveU2FDevice saves a registered U2F device.
@@ -282,11 +325,11 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 		}
 	}()
 
+	var attempt models.AuthenticationAttempt
+
 	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
 	for rows.Next() {
-		var attempt models.AuthenticationAttempt
-
 		err = rows.StructScan(&attempt)
 		if err != nil {
 			return nil, err
