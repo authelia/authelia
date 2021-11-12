@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -100,10 +101,40 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
+func storageMigrateHistoryRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	provider, err = getStorageProvider()
+	if err != nil {
+		return err
+	}
+
+	migrations, err := provider.SchemaMigrationHistory(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(migrations) == 0 {
+		return errors.New("no migration history found which may indicate a broken schema")
+	}
+
+	fmt.Printf("Migration History:\n\nID\tDate\t\t\t\tBefore\tAfter\tAuthelia Version\n")
+
+	for _, m := range migrations {
+		fmt.Printf("%d\t%s\t%d\t%d\t%s\n", m.ID, m.Applied.Format("2006-01-02 15:04:05 -0700"), m.Before, m.After, m.Version)
+	}
+
+	return nil
+}
+
+func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			provider     storage.Provider
+			ctx          = context.Background()
 			migrations   []storage.SchemaMigration
 			directionStr string
 		)
@@ -114,10 +145,10 @@ func storageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (er
 		}
 
 		if up {
-			migrations, err = provider.SchemaMigrationsUp(0)
+			migrations, err = provider.SchemaMigrationsUp(ctx, 0)
 			directionStr = "Up"
 		} else {
-			migrations, err = provider.SchemaMigrationsDown(0)
+			migrations, err = provider.SchemaMigrationsDown(ctx, 0)
 			directionStr = "Down"
 		}
 
@@ -148,6 +179,7 @@ func storageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (er
 func storageMigrateUpRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
+		ctx      = context.Background()
 	)
 
 	provider, err = getStorageProvider()
@@ -156,7 +188,7 @@ func storageMigrateUpRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if !cmd.Flags().Changed("target") {
-		return storageMigrateUpLatest(provider)
+		return storageMigrateUpLatest(ctx, provider)
 	}
 
 	target, err := cmd.Flags().GetInt("target")
@@ -179,7 +211,7 @@ func storageMigrateUpRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf(errFmtStorageMigrateUpHigherThanLatest, target, latest)
 	}
 
-	version, err := provider.SchemaVersion()
+	version, err := provider.SchemaVersion(ctx)
 	if err != nil {
 		return err
 	}
@@ -190,7 +222,7 @@ func storageMigrateUpRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionUp, target, "lower", version)
 	}
 
-	err = provider.SchemaMigrate(target)
+	err = provider.SchemaMigrate(ctx, target)
 	if err != nil {
 		return err
 	}
@@ -198,13 +230,13 @@ func storageMigrateUpRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageMigrateUpLatest(provider storage.Provider) (err error) {
+func storageMigrateUpLatest(ctx context.Context, provider storage.Provider) (err error) {
 	latest, err := provider.SchemaLatestVersion()
 	if err != nil {
 		return err
 	}
 
-	version, err := provider.SchemaVersion()
+	version, err := provider.SchemaVersion(ctx)
 	if err != nil {
 		return err
 	}
@@ -213,7 +245,7 @@ func storageMigrateUpLatest(provider storage.Provider) (err error) {
 		return errStorageMigrateAlreadyOnLatestVersion
 	}
 
-	err = provider.SchemaMigrate(latest)
+	err = provider.SchemaMigrate(ctx, latest)
 	if err != nil {
 		return err
 	}
@@ -224,6 +256,7 @@ func storageMigrateUpLatest(provider storage.Provider) (err error) {
 func storageMigrateDownCmdE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
+		ctx      = context.Background()
 	)
 
 	provider, err = getStorageProvider()
@@ -240,7 +273,7 @@ func storageMigrateDownCmdE(cmd *cobra.Command, args []string) (err error) {
 		return errStorageMigrateDownMissingTargetFlag
 	}
 
-	version, err := provider.SchemaVersion()
+	version, err := provider.SchemaVersion(ctx)
 	if err != nil {
 		return err
 	}
@@ -268,10 +301,10 @@ func storageMigrateDownCmdE(cmd *cobra.Command, args []string) (err error) {
 		target = -1
 	}
 
-	return storageMigrateDownDestroy(cmd, target, provider)
+	return storageMigrateDownDestroy(cmd, target, ctx, provider)
 }
 
-func storageMigrateDownDestroy(cmd *cobra.Command, target int, provider storage.Provider) (err error) {
+func storageMigrateDownDestroy(cmd *cobra.Command, target int, ctx context.Context, provider storage.Provider) (err error) {
 	destroy, err := cmd.Flags().GetBool("destroy-data")
 	if err != nil {
 		return err
@@ -289,7 +322,7 @@ func storageMigrateDownDestroy(cmd *cobra.Command, target int, provider storage.
 		}
 	}
 
-	err = provider.SchemaMigrate(target)
+	err = provider.SchemaMigrate(ctx, target)
 	if err != nil {
 		return err
 	}
@@ -300,6 +333,7 @@ func storageMigrateDownDestroy(cmd *cobra.Command, target int, provider storage.
 func storageSchemaInfoRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider   storage.Provider
+		ctx        = context.Background()
 		upgradeStr string
 		tablesStr  string
 	)
@@ -309,12 +343,12 @@ func storageSchemaInfoRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	version, err := provider.SchemaVersion()
+	version, err := provider.SchemaVersion(ctx)
 	if err != nil && err.Error() != "unknown schema state" {
 		return err
 	}
 
-	tables, err := provider.SchemaTables()
+	tables, err := provider.SchemaTables(ctx)
 	if err != nil {
 		return err
 	}

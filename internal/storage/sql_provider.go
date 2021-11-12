@@ -24,10 +24,8 @@ func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvid
 		log:        logging.Logger(),
 		errOpen:    err,
 
-		sqlFmtRenameTable: queryFmtRenameTable,
-
-		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
-		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
+		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
+		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
 
 		sqlInsertIdentityVerification:       fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlDeleteIdentityVerification:       fmt.Sprintf(queryFmtDeleteIdentityVerification, tableIdentityVerification),
@@ -40,11 +38,14 @@ func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvid
 		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
 		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
 
-		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
-		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
+		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
+		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
 
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
+		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
 		sqlSelectLatestMigration: fmt.Sprintf(queryFmtSelectLatestMigration, tableMigrations),
+
+		sqlFmtRenameTable: queryFmtRenameTable,
 	}
 
 	return provider
@@ -58,29 +59,36 @@ type SQLProvider struct {
 	driverName string
 	errOpen    error
 
-	sqlFmtRenameTable string
+	// Table: authentication_logs.
+	sqlInsertAuthenticationAttempt            string
+	sqlSelectAuthenticationAttemptsByUsername string
 
-	sqlUpsertPreferred2FAMethod string
-	sqlSelectPreferred2FAMethod string
-
+	// Table: identity_verification_tokens.
 	sqlInsertIdentityVerification       string
 	sqlDeleteIdentityVerification       string
 	sqlSelectExistsIdentityVerification string
 
+	// Table: totp_configurations.
 	sqlUpsertTOTPConfig string
 	sqlDeleteTOTPConfig string
 	sqlSelectTOTPConfig string
 
+	// Table: u2f_devices.
 	sqlUpsertU2FDevice string
 	sqlSelectU2FDevice string
 
-	sqlInsertAuthenticationAttempt            string
-	sqlSelectAuthenticationAttemptsByUsername string
+	// Table: user_preferences.
+	sqlUpsertPreferred2FAMethod string
+	sqlSelectPreferred2FAMethod string
 
-	sqlSelectExistingTables string
-
-	sqlSelectLatestMigration string
+	// Table: migrations.
 	sqlInsertMigration       string
+	sqlSelectMigrations      string
+	sqlSelectLatestMigration string
+
+	// Utility.
+	sqlSelectExistingTables string
+	sqlFmtRenameTable       string
 }
 
 // StartupCheck implements the provider startup check interface.
@@ -105,7 +113,9 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	p.log.Infof("Storage schema is being checked for updates")
 
-	current, err := p.SchemaVersion()
+	ctx := context.Background()
+
+	current, err := p.SchemaVersion(ctx)
 	if err != nil {
 		return err
 	}
@@ -119,7 +129,7 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
 	}
 
-	return p.schemaMigrate(current, SchemaLatest)
+	return p.schemaMigrate(ctx, current, SchemaLatest)
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.

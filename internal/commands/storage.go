@@ -92,7 +92,19 @@ func newStorageMigrateCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageMigrateUpCmd(), newStorageMigrateDownCmd(),
 		newStorageMigrateListUpCmd(), newStorageMigrateListDownCmd(),
+		newStorageMigrateHistoryCmd(),
 	)
+
+	return cmd
+}
+
+func newStorageMigrateHistoryCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "history",
+		Short: "Show migration history",
+		Args:  cobra.NoArgs,
+		RunE:  storageMigrateHistoryRunE,
+	}
 
 	return cmd
 }
@@ -102,7 +114,7 @@ func newStorageMigrateListUpCmd() (cmd *cobra.Command) {
 		Use:   "list-up",
 		Short: "List the up migrations available",
 		Args:  cobra.NoArgs,
-		RunE:  storageMigrateListRunE(true),
+		RunE:  newStorageMigrateListRunE(true),
 	}
 
 	return cmd
@@ -113,7 +125,7 @@ func newStorageMigrateListDownCmd() (cmd *cobra.Command) {
 		Use:   "list-down",
 		Short: "List the down migrations available",
 		Args:  cobra.NoArgs,
-		RunE:  storageMigrateListRunE(false),
+		RunE:  newStorageMigrateListRunE(false),
 	}
 
 	return cmd

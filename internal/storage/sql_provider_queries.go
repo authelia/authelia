@@ -1,6 +1,10 @@
 package storage
 
 const (
+	queryFmtSelectMigrations = `
+		SELECT id, applied, version_before, version_after, application_version
+		FROM %s;`
+
 	queryFmtSelectLatestMigration = `
 		SELECT id, applied, version_before, version_after, application_version
 		FROM %s

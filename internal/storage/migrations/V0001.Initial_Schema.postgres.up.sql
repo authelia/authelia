@@ -16,15 +16,6 @@ CREATE TABLE IF NOT EXISTS identity_verification_tokens (
     UNIQUE (token)
 );
 
-CREATE TABLE IF NOT EXISTS migrations (
-    id SERIAL,
-    applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    version_before INTEGER NULL DEFAULT NULL,
-    version_after INTEGER NOT NULL,
-    application_version VARCHAR(128) NOT NULL,
-    PRIMARY KEY (id)
-);
-
 CREATE TABLE IF NOT EXISTS totp_configurations (
     id SERIAL,
     username VARCHAR(100) NOT NULL,
@@ -52,4 +43,13 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     second_factor_method VARCHAR(11) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username)
+);
+
+CREATE TABLE IF NOT EXISTS migrations (
+    id SERIAL,
+    applied TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version_before INTEGER NULL DEFAULT NULL,
+    version_after INTEGER NOT NULL,
+    application_version VARCHAR(128) NOT NULL,
+    PRIMARY KEY (id)
 );
