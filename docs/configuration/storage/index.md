@@ -31,7 +31,12 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The encryption key used to encrypt data in the database. It has a minimum length of 20 and must be provided.
+The encryption key used to encrypt data in the database. It has a minimum length of 20 and must be provided. We encrypt 
+data by creating a sha256 checksum of the provided value, and use that to encrypt the data with the AES-GCM 256bit 
+algorithm.
+
+The encrypted data in the database is as follows:
+- TOTP Secret
 
 ### local
 See [SQLite](./sqlite.md).

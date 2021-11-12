@@ -137,6 +137,55 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	return provider.SchemaEncryptionChangeKey(ctx, key)
 }
 
+func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+	)
+
+	provider, err = getStorageProvider()
+	if err != nil {
+		return err
+	}
+
+	format, err := cmd.Flags().GetString("format")
+	if err != nil {
+		return err
+	}
+
+	switch format {
+	case storageExportFormatCSV:
+		fmt.Printf("issuer,username,algorithm,digits,period,secret\n")
+	case storageExportFormatURI:
+		break
+	default:
+		return errors.New("format must be csv or uri")
+	}
+
+	limit := 10
+
+	for page := 0; true; page++ {
+		configurations, err := provider.LoadTOTPConfigurations(context.Background(), page, limit)
+		if err != nil {
+			return err
+		}
+
+		for _, c := range configurations {
+			switch format {
+			case storageExportFormatCSV:
+				fmt.Printf("%s,%s,%s,%d,%d,%s\n", "Authelia", c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
+			case storageExportFormatURI:
+				fmt.Printf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d\n", "Authelia", c.Username, string(c.Secret), "Authelia", c.Algorithm, c.Digits, c.Period)
+			}
+		}
+
+		if len(configurations) < limit {
+			break
+		}
+	}
+
+	return nil
+}
+
 func storageMigrateHistoryRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider

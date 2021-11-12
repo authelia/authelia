@@ -35,6 +35,7 @@ func NewStorageCmd() (cmd *cobra.Command) {
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
 		newStorageEncryptionCmd(),
+		newStorageExportCmd(),
 	)
 
 	return cmd
@@ -59,6 +60,29 @@ func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().String("new-encryption-key", "", "the new key to encrypt the data with")
+
+	return cmd
+}
+
+func newStorageExportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "export",
+		Short: "Performs exports",
+	}
+
+	cmd.AddCommand(newStorageExportTOTPConfigurationsCmd())
+
+	return cmd
+}
+
+func newStorageExportTOTPConfigurationsCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "totp-configurations",
+		Short: "Performs exports of the totp configurations",
+		RunE:  storageExportTOTPConfigurationsRunE,
+	}
+
+	cmd.Flags().String("format", storageExportFormatCSV, "changes the format of the export, options are csv and uri")
 
 	return cmd
 }

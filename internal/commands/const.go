@@ -80,3 +80,8 @@ const (
 	storageMigrateDirectionUp   = "up"
 	storageMigrateDirectionDown = "down"
 )
+
+const (
+	storageExportFormatCSV = "csv"
+	storageExportFormatURI = "uri"
+)
