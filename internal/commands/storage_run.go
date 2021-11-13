@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -162,9 +163,7 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 	}
 
 	switch format {
-	case storageExportFormatCSV:
-		fmt.Printf("issuer,username,algorithm,digits,period,secret\n")
-	case storageExportFormatURI:
+	case storageExportFormatCSV, storageExportFormatURI:
 		break
 	default:
 		return errors.New("format must be csv or uri")
@@ -172,10 +171,16 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 
 	limit := 10
 
+	var configurations []models.TOTPConfiguration
+
 	for page := 0; true; page++ {
-		configurations, err := provider.LoadTOTPConfigurations(ctx, page, limit)
+		configurations, err = provider.LoadTOTPConfigurations(ctx, page, limit)
 		if err != nil {
 			return err
+		}
+
+		if page == 0 && format == storageExportFormatCSV {
+			fmt.Printf("issuer,username,algorithm,digits,period,secret\n")
 		}
 
 		for _, c := range configurations {

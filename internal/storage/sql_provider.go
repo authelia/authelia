@@ -250,9 +250,8 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, page, limit in
 	}
 
 	defer func() {
-		err = rows.Close()
-		if err != nil {
-			p.log.Warnf(logFmtErrClosingConn, err)
+		if err := rows.Close(); err != nil {
+			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -266,7 +265,9 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, page, limit in
 			return nil, err
 		}
 
-		config.Secret, err = p.decrypt(config.Secret)
+		if config.Secret, err = p.decrypt(config.Secret); err != nil {
+			return nil, err
+		}
 
 		configs = append(configs, config)
 	}
@@ -320,7 +321,7 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
