@@ -29,7 +29,7 @@ type Provider interface {
 
 	SchemaTables(ctx context.Context) (tables []string, err error)
 	SchemaVersion(ctx context.Context) (version int, err error)
-	SchemaMigrate(ctx context.Context, version int) (err error)
+	SchemaMigrate(ctx context.Context, up bool, version int) (err error)
 	SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error)
 
 	SchemaLatestVersion() (version int, err error)

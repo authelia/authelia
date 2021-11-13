@@ -4,13 +4,13 @@
 package storage
 
 import (
-	context "context"
-	reflect "reflect"
-	time "time"
+	"context"
+	"reflect"
+	"time"
 
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
 
-	models "github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -225,17 +225,17 @@ func (mr *MockProviderMockRecorder) SchemaLatestVersion() *gomock.Call {
 }
 
 // SchemaMigrate mocks base method.
-func (m *MockProvider) SchemaMigrate(arg0 context.Context, arg1 int) error {
+func (m *MockProvider) SchemaMigrate(arg0 context.Context, arg1 bool, arg2 int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SchemaMigrate", arg0, arg1)
+	ret := m.ctrl.Call(m, "SchemaMigrate", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SchemaMigrate indicates an expected call of SchemaMigrate.
-func (mr *MockProviderMockRecorder) SchemaMigrate(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) SchemaMigrate(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrate", reflect.TypeOf((*MockProvider)(nil).SchemaMigrate), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaMigrate", reflect.TypeOf((*MockProvider)(nil).SchemaMigrate), arg0, arg1, arg2)
 }
 
 // SchemaMigrationHistory mocks base method.

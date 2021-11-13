@@ -14,8 +14,17 @@ var (
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")
 
-	// ErrUnknownSchemaState is returned when the schema state is unknown.
-	ErrUnknownSchemaState = errors.New("unknown schema state")
+	// ErrSchemaAlreadyUpToDate is returned when the schema is already up to date.
+	ErrSchemaAlreadyUpToDate = errors.New("schema already up to date")
+)
+
+// Error formats for the storage provider.
+const (
+	ErrFmtMigrateUpTargetLessThanCurrent      = "schema up migration target version %d is less then the current version %d"
+	ErrFmtMigrateUpTargetGreaterThanLatest    = "schema up migration target version %d is less then the latest version %d"
+	ErrFmtMigrateDownTargetGreaterThanCurrent = "schema down migration target version %d is greater than the current version %d"
+	ErrFmtMigrateDownTargetLessThanMinimum    = "schema down migration target version %d is less than the minimum version"
+	ErrFmtMigrateAlreadyOnTargetVersion       = "schema migration target version %d is the same current version %d"
 )
 
 const (

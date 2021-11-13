@@ -38,19 +38,19 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	mapping := map[string]string{
-		"encryption-key":    "storage.encryption_key",
-		"sqlite.path":       "storage.local.path",
-		"mysql.host":        "storage.mysql.host",
-		"mysql.port":        "storage.mysql.port",
-		"mysql.database":    "storage.mysql.database",
-		"mysql.username":    "storage.mysql.username",
-		"mysql.password":    "storage.mysql.password",
-		"postgres.host":     "storage.postgres.host",
-		"postgres.port":     "storage.postgres.port",
-		"postgres.database": "storage.postgres.database",
-		"postgres.username": "storage.postgres.username",
-		"postgres.password": "storage.postgres.password",
-		"postgres.schema":   "storage.postgres.schema",
+		"encryption-key":    "encryption_key",
+		"sqlite.path":       "local.path",
+		"mysql.host":        "mysql.host",
+		"mysql.port":        "mysql.port",
+		"mysql.database":    "mysql.database",
+		"mysql.username":    "mysql.username",
+		"mysql.password":    "mysql.password",
+		"postgres.host":     "postgres.host",
+		"postgres.port":     "postgres.port",
+		"postgres.database": "postgres.database",
+		"postgres.username": "postgres.username",
+		"postgres.password": "postgres.password",
+		"postgres.schema":   "postgres.schema",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -176,135 +176,56 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 	}
 }
 
-func storageMigrateUpRunE(cmd *cobra.Command, args []string) (err error) {
-	var (
-		provider storage.Provider
-		ctx      = context.Background()
-	)
+func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		var (
+			provider storage.Provider
+			ctx      = context.Background()
+		)
 
-	provider, err = getStorageProvider()
-	if err != nil {
-		return err
+		provider, err = getStorageProvider()
+		if err != nil {
+			return err
+		}
+
+		target, err := cmd.Flags().GetInt("target")
+		if err != nil {
+			return err
+		}
+
+		switch {
+		case up:
+			switch cmd.Flags().Changed("target") {
+			case true:
+				return provider.SchemaMigrate(ctx, true, target)
+			default:
+				return provider.SchemaMigrate(ctx, true, storage.SchemaLatest)
+			}
+		default:
+			if !cmd.Flags().Changed("target") {
+				return errors.New("must set target")
+			}
+
+			if err = storageMigrateDownConfirmDestroy(cmd); err != nil {
+				return err
+			}
+
+			pre1, err := cmd.Flags().GetBool("pre1")
+			if err != nil {
+				return err
+			}
+
+			switch {
+			case pre1:
+				return provider.SchemaMigrate(ctx, false, -1)
+			default:
+				return provider.SchemaMigrate(ctx, false, target)
+			}
+		}
 	}
-
-	if !cmd.Flags().Changed("target") {
-		return storageMigrateUpLatest(ctx, provider)
-	}
-
-	target, err := cmd.Flags().GetInt("target")
-	if err != nil {
-		return err
-	}
-
-	if target == 0 {
-		return errStorageMigrateUpToVersion0
-	} else if target < 0 {
-		return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionUp, target)
-	}
-
-	latest, err := provider.SchemaLatestVersion()
-	if err != nil {
-		return err
-	}
-
-	if target > latest {
-		return fmt.Errorf(errFmtStorageMigrateUpHigherThanLatest, target, latest)
-	}
-
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
-		return err
-	}
-
-	if version == target {
-		return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionUp, target)
-	} else if version > target {
-		return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionUp, target, "lower", version)
-	}
-
-	err = provider.SchemaMigrate(ctx, target)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func storageMigrateUpLatest(ctx context.Context, provider storage.Provider) (err error) {
-	latest, err := provider.SchemaLatestVersion()
-	if err != nil {
-		return err
-	}
-
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
-		return err
-	}
-
-	if latest == version {
-		return errStorageMigrateAlreadyOnLatestVersion
-	}
-
-	err = provider.SchemaMigrate(ctx, latest)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func storageMigrateDownCmdE(cmd *cobra.Command, args []string) (err error) {
-	var (
-		provider storage.Provider
-		ctx      = context.Background()
-	)
-
-	provider, err = getStorageProvider()
-	if err != nil {
-		return err
-	}
-
-	pre1, err := cmd.Flags().GetBool("pre1")
-	if err != nil {
-		return err
-	}
-
-	if !cmd.Flags().Changed("target") && !pre1 {
-		return errStorageMigrateDownMissingTargetFlag
-	}
-
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
-		return err
-	}
-
-	if version == 0 {
-		return errStorageMigrateDownWhenZero
-	}
-
-	target, err := cmd.Flags().GetInt("target")
-	if err != nil {
-		return err
-	}
-
-	if target < 0 {
-		return fmt.Errorf(errFmtStorageMigrateNegativeVersion, storageMigrateDirectionDown, target)
-	}
-
-	if version == target || pre1 && version == -1 {
-		return fmt.Errorf(errFmtStorageMigrateSame, storageMigrateDirectionDown, target)
-	} else if version < target {
-		return fmt.Errorf(errFmtStorageMigrateWrongDirection, storageMigrateDirectionDown, target, "higher", version)
-	}
-
-	if pre1 {
-		target = -1
-	}
-
-	return storageMigrateDownDestroy(cmd, target, ctx, provider)
-}
-
-func storageMigrateDownDestroy(cmd *cobra.Command, target int, ctx context.Context, provider storage.Provider) (err error) {
+func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
 	destroy, err := cmd.Flags().GetBool("destroy-data")
 	if err != nil {
 		return err
@@ -320,11 +241,6 @@ func storageMigrateDownDestroy(cmd *cobra.Command, target int, ctx context.Conte
 		if text != "DESTROY" {
 			return errors.New("cancelling down migration due to user not accepting data destruction")
 		}
-	}
-
-	err = provider.SchemaMigrate(ctx, target)
-	if err != nil {
-		return err
 	}
 
 	return nil

@@ -1,12 +1,7 @@
 package commands
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/spf13/cobra"
-
-	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // NewStorageCmd returns a new storage *cobra.Command.
@@ -37,36 +32,7 @@ func NewStorageCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
-		storageTestE(),
 	)
-
-	return cmd
-}
-
-func storageTestE() (cmd *cobra.Command) {
-	cmd = &cobra.Command{
-		Use:   "test",
-		Short: "test",
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			var (
-				provider storage.Provider
-			)
-
-			provider, err = getStorageProvider()
-			if err != nil {
-				return err
-			}
-
-			totp, err := provider.LoadTOTPConfiguration(context.Background(), args[0])
-			if err != nil {
-				return err
-			}
-
-			fmt.Printf("id: %d, period: %d, digits: %d, username: %s, algo: %s, secret: %s", totp.ID, totp.Period, totp.Digits, totp.Username, totp.Algorithm, totp.Secret)
-
-			return nil
-		},
-	}
 
 	return cmd
 }
@@ -136,7 +102,7 @@ func newStorageMigrateUpCmd() (cmd *cobra.Command) {
 		Use:   storageMigrateDirectionUp,
 		Short: "Perform a migration up",
 		Args:  cobra.NoArgs,
-		RunE:  storageMigrateUpRunE,
+		RunE:  newStorageMigrationRunE(true),
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
@@ -149,7 +115,7 @@ func newStorageMigrateDownCmd() (cmd *cobra.Command) {
 		Use:   storageMigrateDirectionDown,
 		Short: "Perform a migration down",
 		Args:  cobra.NoArgs,
-		RunE:  storageMigrateDownCmdE,
+		RunE:  newStorageMigrationRunE(false),
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")

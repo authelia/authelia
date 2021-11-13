@@ -1,9 +1,5 @@
 package commands
 
-import (
-	"errors"
-)
-
 const cmdAutheliaExample = `authelia --config /etc/authelia/config.yml --config /etc/authelia/access-control.yml
 authelia --config /etc/authelia/config.yml,/etc/authelia/access-control.yml
 authelia --config /etc/authelia/config/
@@ -83,18 +79,4 @@ PowerShell:
 const (
 	storageMigrateDirectionUp   = "up"
 	storageMigrateDirectionDown = "down"
-)
-
-const (
-	errFmtStorageMigrateNegativeVersion    = "can't migrate %s to version %d as versions below 0 are not valid"
-	errFmtStorageMigrateWrongDirection     = "can't migrate %s to version %d as it's %s than the current version %d"
-	errFmtStorageMigrateSame               = "can't migrate %s to version %d as it's the same as the current version"
-	errFmtStorageMigrateUpHigherThanLatest = "can't migrate up to version %d as it's a higher version than the latest version available %d"
-)
-
-var (
-	errStorageMigrateUpToVersion0           = errors.New("can't migrate up to version 0 as it's not an actual version and just represents an empty schema")
-	errStorageMigrateAlreadyOnLatestVersion = errors.New("already on latest version")
-	errStorageMigrateDownMissingTargetFlag  = errors.New("you must set the --target flag in order to migrate down")
-	errStorageMigrateDownWhenZero           = errors.New("can't migrate down when the current version is 0")
 )

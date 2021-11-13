@@ -18,9 +18,8 @@ func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err er
 	}
 
 	defer func() {
-		err = rows.Close()
-		if err != nil {
-			p.log.Warnf(logFmtErrClosingConn, err)
+		if err = rows.Close(); err != nil {
+			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -69,6 +68,17 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 	return 0, nil
 }
 
+func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *models.Migration, err error) {
+	migration = &models.Migration{}
+
+	err = p.db.QueryRowxContext(ctx, p.sqlSelectLatestMigration).StructScan(migration)
+	if err != nil {
+		return nil, err
+	}
+
+	return migration, nil
+}
+
 // SchemaMigrationHistory returns migration history rows.
 func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectMigrations)
@@ -77,9 +87,8 @@ func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []
 	}
 
 	defer func() {
-		err = rows.Close()
-		if err != nil {
-			p.log.Warnf(logFmtErrClosingConn, err)
+		if err = rows.Close(); err != nil {
+			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
 
@@ -98,37 +107,23 @@ func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []
 }
 
 // SchemaMigrate migrates from the current version to the provided version.
-func (p *SQLProvider) SchemaMigrate(ctx context.Context, version int) (err error) {
+func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (err error) {
 	currentVersion, err := p.SchemaVersion(ctx)
 	if err != nil {
+		return err
+	}
+
+	if err = schemeMigrateChecks(p.name, up, version, currentVersion); err != nil {
 		return err
 	}
 
 	return p.schemaMigrate(ctx, currentVersion, version)
 }
 
-func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *models.Migration, err error) {
-	migration = &models.Migration{}
-
-	err = p.db.QueryRowxContext(ctx, p.sqlSelectLatestMigration).StructScan(migration)
-	if err != nil {
-		return nil, err
-	}
-
-	return migration, nil
-}
-
-//nolint:gocyclo // This function is
 func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err error) {
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
 		return err
-	}
-
-	if len(migrations) == 0 && (target != -1 || prior <= 0) {
-		p.log.Infof("Storage schema is up to date")
-
-		return nil
 	}
 
 	switch {
@@ -271,12 +266,42 @@ func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (mi
 
 // SchemaLatestVersion returns the latest version available for migration..
 func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
-	migrations, err := loadMigrations(p.name, 0, SchemaLatest)
-	if err != nil {
-		return 0, err
+	return latestMigrationVersion(p.name)
+}
+
+func schemeMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
+	if targetVersion == currentVersion {
+		return fmt.Errorf(ErrFmtMigrateAlreadyOnTargetVersion, targetVersion, currentVersion)
 	}
 
-	return migrations[len(migrations)-1].Version, nil
+	if up {
+		if targetVersion < currentVersion {
+			return fmt.Errorf(ErrFmtMigrateUpTargetLessThanCurrent, targetVersion, currentVersion)
+		}
+
+		latest, err := latestMigrationVersion(providerName)
+		if err != nil {
+			return err
+		}
+
+		if targetVersion == SchemaLatest && latest == currentVersion {
+			return ErrSchemaAlreadyUpToDate
+		}
+
+		if targetVersion != SchemaLatest && latest < targetVersion {
+			return fmt.Errorf(ErrFmtMigrateUpTargetGreaterThanLatest, targetVersion, latest)
+		}
+	} else {
+		if targetVersion < -1 {
+			return fmt.Errorf(ErrFmtMigrateDownTargetLessThanMinimum, targetVersion)
+		}
+
+		if targetVersion > currentVersion {
+			return fmt.Errorf(ErrFmtMigrateDownTargetGreaterThanCurrent, targetVersion, currentVersion)
+		}
+	}
+
+	return nil
 }
 
 // SchemaVersionToString returns a version string given a version number.
