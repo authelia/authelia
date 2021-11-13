@@ -112,6 +112,10 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
+	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
+		return err
+	}
+
 	version, err := provider.SchemaVersion(ctx)
 	if err != nil {
 		return err
@@ -140,10 +144,15 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
+		ctx      = context.Background()
 	)
 
 	provider, err = getStorageProvider()
 	if err != nil {
+		return err
+	}
+
+	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
 		return err
 	}
 
@@ -164,7 +173,7 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 	limit := 10
 
 	for page := 0; true; page++ {
-		configurations, err := provider.LoadTOTPConfigurations(context.Background(), page, limit)
+		configurations, err := provider.LoadTOTPConfigurations(ctx, page, limit)
 		if err != nil {
 			return err
 		}
@@ -372,6 +381,24 @@ func storageSchemaInfoRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr)
+
+	return nil
+}
+
+func checkStorageSchemaUpToDate(ctx context.Context, provider storage.Provider) (err error) {
+	version, err := provider.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+
+	latest, err := provider.SchemaLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	if version != latest {
+		return fmt.Errorf("schema is version %d which is outdated please migrate to version %d in order to use this command or use an older binary", version, latest)
+	}
 
 	return nil
 }
