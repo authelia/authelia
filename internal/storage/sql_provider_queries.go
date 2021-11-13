@@ -79,6 +79,7 @@ const (
 		LIMIT ?
 		OFFSET ?;`
 
+	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
 	queryFmtUpdateTOTPConfigurationSecret = `
 		UPDATE %s
 		SET secret = ?
