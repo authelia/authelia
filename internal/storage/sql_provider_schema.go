@@ -113,7 +113,7 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 		return err
 	}
 
-	if err = schemeMigrateChecks(p.name, up, version, currentVersion); err != nil {
+	if err = schemaMigrateChecks(p.name, up, version, currentVersion); err != nil {
 		return err
 	}
 
@@ -269,7 +269,7 @@ func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
 	return latestMigrationVersion(p.name)
 }
 
-func schemeMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
+func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
 	if targetVersion == currentVersion {
 		return fmt.Errorf(ErrFmtMigrateAlreadyOnTargetVersion, targetVersion, currentVersion)
 	}

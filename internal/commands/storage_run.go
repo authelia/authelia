@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
+func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	configs, err := cmd.Flags().GetStringSlice("config")
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageMigrateHistoryRunE(cmd *cobra.Command, args []string) (err error) {
+func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		provider storage.Provider
 		ctx      = context.Background()
@@ -245,7 +245,7 @@ func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
 	return nil
 }
 
-func storageSchemaInfoRunE(cmd *cobra.Command, args []string) (err error) {
+func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		provider   storage.Provider
 		ctx        = context.Background()

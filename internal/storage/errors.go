@@ -21,7 +21,7 @@ var (
 // Error formats for the storage provider.
 const (
 	ErrFmtMigrateUpTargetLessThanCurrent      = "schema up migration target version %d is less then the current version %d"
-	ErrFmtMigrateUpTargetGreaterThanLatest    = "schema up migration target version %d is less then the latest version %d"
+	ErrFmtMigrateUpTargetGreaterThanLatest    = "schema up migration target version %d is greater then the latest version %d which indicates it doesn't exist"
 	ErrFmtMigrateDownTargetGreaterThanCurrent = "schema down migration target version %d is greater than the current version %d"
 	ErrFmtMigrateDownTargetLessThanMinimum    = "schema down migration target version %d is less than the minimum version"
 	ErrFmtMigrateAlreadyOnTargetVersion       = "schema migration target version %d is the same current version %d"
