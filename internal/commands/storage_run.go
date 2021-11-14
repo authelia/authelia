@@ -139,7 +139,13 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return errors.New("the encryption key must be at least 20 characters")
 	}
 
-	return provider.SchemaEncryptionChangeKey(ctx, key)
+	if err = provider.SchemaEncryptionChangeKey(ctx, key); err != nil {
+		return err
+	}
+
+	fmt.Println("Completed the encryption key change. Please adjust your configuration to use the new key.")
+
+	return nil
 }
 
 func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err error) {
