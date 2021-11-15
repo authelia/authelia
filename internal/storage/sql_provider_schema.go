@@ -18,7 +18,7 @@ func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err er
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
@@ -87,7 +87,7 @@ func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()

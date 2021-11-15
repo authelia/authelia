@@ -250,7 +250,7 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()

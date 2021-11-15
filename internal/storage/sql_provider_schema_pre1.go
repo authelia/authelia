@@ -200,7 +200,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 	var totpConfigs []models.TOTPConfiguration
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
@@ -236,7 +236,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
@@ -382,7 +382,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 	var totpConfigs []models.TOTPConfiguration
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
@@ -419,7 +419,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
+		if err := rows.Close(); err != nil {
 			p.log.Errorf(logFmtErrClosingConn, err)
 		}
 	}()
