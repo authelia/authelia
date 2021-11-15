@@ -8,13 +8,12 @@ import (
 )
 
 func TestShouldObtainCorrectUpMigrations(t *testing.T) {
-	ver, err := latestMigrationVersion(provideerSQLite)
+	ver, err := latestMigrationVersion(providerSQLite)
 	require.NoError(t, err)
 
-	// TODO: Make expected 1.
-	assert.Equal(t, 2, ver)
+	assert.Equal(t, testLatestVersion, ver)
 
-	migrations, err := loadMigrations(provideerSQLite, 0, ver)
+	migrations, err := loadMigrations(providerSQLite, 0, ver)
 	require.NoError(t, err)
 
 	assert.Len(t, migrations, ver)
@@ -25,13 +24,12 @@ func TestShouldObtainCorrectUpMigrations(t *testing.T) {
 }
 
 func TestShouldObtainCorrectDownMigrations(t *testing.T) {
-	ver, err := latestMigrationVersion(provideerSQLite)
+	ver, err := latestMigrationVersion(providerSQLite)
 	require.NoError(t, err)
 
-	// TODO: Make expected 1.
-	assert.Equal(t, 2, ver)
+	assert.Equal(t, testLatestVersion, ver)
 
-	migrations, err := loadMigrations(provideerSQLite, ver, 0)
+	migrations, err := loadMigrations(providerSQLite, ver, 0)
 	require.NoError(t, err)
 
 	assert.Len(t, migrations, ver)

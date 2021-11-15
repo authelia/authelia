@@ -55,29 +55,29 @@ func TestShouldReturnErrOnUpMigrationTargetVersionLessTHanCurrent(t *testing.T) 
 func TestMigrationUpShouldReturnErrOnAlreadyLatest(t *testing.T) {
 	assert.Equal(t,
 		ErrSchemaAlreadyUpToDate,
-		schemaMigrateChecks("postgres", true, SchemaLatest, 2))
+		schemaMigrateChecks("postgres", true, SchemaLatest, testLatestVersion))
 
 	assert.Equal(t,
 		ErrSchemaAlreadyUpToDate,
-		schemaMigrateChecks("mysql", true, SchemaLatest, 2))
+		schemaMigrateChecks("mysql", true, SchemaLatest, testLatestVersion))
 
 	assert.Equal(t,
 		ErrSchemaAlreadyUpToDate,
-		schemaMigrateChecks("sqlite", true, SchemaLatest, 2))
+		schemaMigrateChecks("sqlite", true, SchemaLatest, testLatestVersion))
 }
 
 func TestShouldReturnErrOnVersionDoesntExits(t *testing.T) {
 	assert.EqualError(t,
 		schemaMigrateChecks("postgres", true, SchemaLatest-1, 2),
-		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, 2))
+		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, testLatestVersion))
 
 	assert.EqualError(t,
 		schemaMigrateChecks("mysql", true, SchemaLatest-1, 2),
-		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, 2))
+		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, testLatestVersion))
 
 	assert.EqualError(t,
 		schemaMigrateChecks("sqlite", true, SchemaLatest-1, 2),
-		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, 2))
+		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, testLatestVersion))
 }
 
 func TestMigrationDownShouldReturnErrOnTargetLessThanPre1(t *testing.T) {
@@ -114,15 +114,15 @@ func TestMigrationDownShouldReturnErrOnTargetVersionGreaterThanCurrent(t *testin
 func TestShouldReturnErrWhenCurrentIsGreaterThanLatest(t *testing.T) {
 	assert.EqualError(t,
 		schemaMigrateChecks("postgres", true, SchemaLatest-4, SchemaLatest-5),
-		fmt.Sprintf(errFmtSchemaCurrentGreaterThanLatestKnown, 2))
+		fmt.Sprintf(errFmtSchemaCurrentGreaterThanLatestKnown, testLatestVersion))
 
 	assert.EqualError(t,
 		schemaMigrateChecks("mysql", true, SchemaLatest-4, SchemaLatest-5),
-		fmt.Sprintf(errFmtSchemaCurrentGreaterThanLatestKnown, 2))
+		fmt.Sprintf(errFmtSchemaCurrentGreaterThanLatestKnown, testLatestVersion))
 
 	assert.EqualError(t,
 		schemaMigrateChecks("sqlite", true, SchemaLatest-4, SchemaLatest-5),
-		fmt.Sprintf(errFmtSchemaCurrentGreaterThanLatestKnown, 2))
+		fmt.Sprintf(errFmtSchemaCurrentGreaterThanLatestKnown, testLatestVersion))
 }
 
 func TestSchemaVersionToString(t *testing.T) {
