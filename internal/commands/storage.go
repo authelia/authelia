@@ -8,7 +8,7 @@ import (
 func NewStorageCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:               "storage",
-		Short:             "Perform storage actions like migrations, re-encryption, etc",
+		Short:             "Manage the Authelia storage",
 		Args:              cobra.NoArgs,
 		PersistentPreRunE: storagePersistentPreRunE,
 	}

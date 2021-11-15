@@ -194,7 +194,7 @@ func scanMigration(m string) (migration SchemaMigration, err error) {
 	migration.Version, _ = strconv.Atoi(result[1])
 
 	switch migration.Provider {
-	case providerAll, provideerSQLite, providerMySQL, providerPostgres:
+	case providerAll, providerSQLite, providerMySQL, providerPostgres:
 		break
 	default:
 		return SchemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])

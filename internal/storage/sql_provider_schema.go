@@ -160,7 +160,7 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 		return err
 	}
 
-	if err = schemeMigrateChecks(p.name, up, version, currentVersion); err != nil {
+	if err = schemaMigrateChecks(p.name, up, version, currentVersion); err != nil {
 		return err
 	}
 
@@ -171,6 +171,10 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
 		return err
+	}
+
+	if len(migrations) == 0 {
+		return ErrNoMigrationsFound
 	}
 
 	switch {
@@ -316,19 +320,23 @@ func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
 	return latestMigrationVersion(p.name)
 }
 
-func schemeMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
+func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
 	if targetVersion == currentVersion {
 		return fmt.Errorf(ErrFmtMigrateAlreadyOnTargetVersion, targetVersion, currentVersion)
+	}
+
+	latest, err := latestMigrationVersion(providerName)
+	if err != nil {
+		return err
+	}
+
+	if currentVersion > latest {
+		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
 	}
 
 	if up {
 		if targetVersion < currentVersion {
 			return fmt.Errorf(ErrFmtMigrateUpTargetLessThanCurrent, targetVersion, currentVersion)
-		}
-
-		latest, err := latestMigrationVersion(providerName)
-		if err != nil {
-			return err
 		}
 
 		if targetVersion == SchemaLatest && latest == currentVersion {

@@ -126,21 +126,17 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
-	current, err := p.SchemaVersion(ctx)
-	if err != nil {
+	err = p.SchemaMigrate(ctx, true, SchemaLatest)
+
+	switch err {
+	case ErrSchemaAlreadyUpToDate:
+		p.log.Infof("Storage schema is already up to date")
+		return nil
+	case nil:
+		return nil
+	default:
 		return err
 	}
-
-	latest, err := p.SchemaLatestVersion()
-	if err != nil {
-		return err
-	}
-
-	if current > latest {
-		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
-	}
-
-	return p.schemaMigrate(ctx, current, SchemaLatest)
 }
 
 func (p SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {

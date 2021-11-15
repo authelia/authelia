@@ -16,12 +16,15 @@ var (
 
 	// ErrSchemaAlreadyUpToDate is returned when the schema is already up to date.
 	ErrSchemaAlreadyUpToDate = errors.New("schema already up to date")
+
+	// ErrNoMigrationsFound is returned when no migrations were found.
+	ErrNoMigrationsFound = errors.New("no schema migrations found")
 )
 
 // Error formats for the storage provider.
 const (
 	ErrFmtMigrateUpTargetLessThanCurrent      = "schema up migration target version %d is less then the current version %d"
-	ErrFmtMigrateUpTargetGreaterThanLatest    = "schema up migration target version %d is less then the latest version %d"
+	ErrFmtMigrateUpTargetGreaterThanLatest    = "schema up migration target version %d is greater then the latest version %d which indicates it doesn't exist"
 	ErrFmtMigrateDownTargetGreaterThanCurrent = "schema down migration target version %d is greater than the current version %d"
 	ErrFmtMigrateDownTargetLessThanMinimum    = "schema down migration target version %d is less than the minimum version"
 	ErrFmtMigrateAlreadyOnTargetVersion       = "schema migration target version %d is the same current version %d"

@@ -12,7 +12,7 @@ type SQLiteProvider struct {
 // NewSQLiteProvider constructs a SQLite provider.
 func NewSQLiteProvider(path, encryptionKey string) (provider *SQLiteProvider) {
 	provider = &SQLiteProvider{
-		SQLProvider: NewSQLProvider(provideerSQLite, "sqlite3", path, encryptionKey),
+		SQLProvider: NewSQLProvider(providerSQLite, "sqlite3", path, encryptionKey),
 	}
 
 	// All providers have differing SELECT existing table statements.
