@@ -115,26 +115,17 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
-	current, err := p.SchemaVersion(ctx)
-	if err != nil {
-		return err
-	}
-
-	latest, err := p.SchemaLatestVersion()
-	if err != nil {
-		return err
-	}
-
-	if current > latest {
-		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
-	}
-
 	err = p.SchemaMigrate(ctx, true, SchemaLatest)
-	if err != nil && err != ErrSchemaAlreadyUpToDate {
+
+	switch err {
+	case ErrSchemaAlreadyUpToDate:
+		p.log.Infof("Storage schema is already up to date")
+		return nil
+	case nil:
+		return nil
+	default:
 		return err
 	}
-
-	return nil
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.

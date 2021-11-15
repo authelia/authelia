@@ -278,14 +278,18 @@ func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVer
 		return fmt.Errorf(ErrFmtMigrateAlreadyOnTargetVersion, targetVersion, currentVersion)
 	}
 
+	latest, err := latestMigrationVersion(providerName)
+	if err != nil {
+		return err
+	}
+
+	if currentVersion > latest {
+		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
+	}
+
 	if up {
 		if targetVersion < currentVersion {
 			return fmt.Errorf(ErrFmtMigrateUpTargetLessThanCurrent, targetVersion, currentVersion)
-		}
-
-		latest, err := latestMigrationVersion(providerName)
-		if err != nil {
-			return err
 		}
 
 		if targetVersion == SchemaLatest && latest == currentVersion {
