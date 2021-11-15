@@ -126,6 +126,10 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 		return err
 	}
 
+	if len(migrations) == 0 {
+		return ErrNoMigrationsFound
+	}
+
 	switch {
 	case prior == -1:
 		p.log.Infof(logFmtMigrationFromTo, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))

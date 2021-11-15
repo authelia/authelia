@@ -16,6 +16,9 @@ var (
 
 	// ErrSchemaAlreadyUpToDate is returned when the schema is already up to date.
 	ErrSchemaAlreadyUpToDate = errors.New("schema already up to date")
+
+	// ErrNoMigrationsFound is returned when no migrations were found.
+	ErrNoMigrationsFound = errors.New("no schema migrations found")
 )
 
 // Error formats for the storage provider.
