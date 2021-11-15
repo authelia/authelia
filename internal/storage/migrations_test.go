@@ -40,7 +40,7 @@ func TestShouldObtainCorrectDownMigrations(t *testing.T) {
 }
 
 func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
-	migrations, err := loadMigrations("postgres", 0, SchemaLatest)
+	migrations, err := loadMigrations(providerPostgres, 0, SchemaLatest)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -58,7 +58,7 @@ func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
 		previousUp = append(previousUp, migration.Version)
 	}
 
-	migrations, err = loadMigrations("postgres", SchemaLatest, 0)
+	migrations, err = loadMigrations(providerPostgres, SchemaLatest, 0)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -78,7 +78,7 @@ func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
 }
 
 func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
-	migrations, err := loadMigrations("mysql", 0, SchemaLatest)
+	migrations, err := loadMigrations(providerMySQL, 0, SchemaLatest)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -96,7 +96,7 @@ func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
 		previousUp = append(previousUp, migration.Version)
 	}
 
-	migrations, err = loadMigrations("mysql", SchemaLatest, 0)
+	migrations, err = loadMigrations(providerMySQL, SchemaLatest, 0)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -116,7 +116,7 @@ func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
 }
 
 func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
-	migrations, err := loadMigrations("sqlite", 0, SchemaLatest)
+	migrations, err := loadMigrations(providerSQLite, 0, SchemaLatest)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -134,7 +134,7 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 		previousUp = append(previousUp, migration.Version)
 	}
 
-	migrations, err = loadMigrations("sqlite", SchemaLatest, 0)
+	migrations, err = loadMigrations(providerSQLite, SchemaLatest, 0)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
