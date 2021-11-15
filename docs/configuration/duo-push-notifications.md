@@ -24,6 +24,7 @@ duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
   secret_key: 1234567890abcdefghifjkl
+  enable_self_enrollment: true
 ```
 
 The secret key is shown as an example, you also have the option to set it using an environment
