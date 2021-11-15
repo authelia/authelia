@@ -32,13 +32,12 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	embeddedPath, _ := fs.Sub(assets, "public_html")
 	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
-	rootFiles := []string{"favicon.ico", "manifest.json", "robots.txt"}
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
@@ -48,10 +47,10 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
 
 	for _, f := range rootFiles {
-		r.GET("/"+f, embeddedFS)
+		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
 	}
 
-	r.GET("/static/{filepath:*}", embeddedFS)
+	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
 	r.ANY("/api/{filepath:*}", embeddedFS)
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
