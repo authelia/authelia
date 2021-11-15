@@ -129,7 +129,12 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return fmt.Errorf(errFmtSchemaCurrentGreaterThanLatestKnown, latest)
 	}
 
-	return p.schemaMigrate(ctx, current, SchemaLatest)
+	err = p.SchemaMigrate(ctx, true, SchemaLatest)
+	if err != nil && err != ErrSchemaAlreadyUpToDate {
+		return err
+	}
+
+	return nil
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
