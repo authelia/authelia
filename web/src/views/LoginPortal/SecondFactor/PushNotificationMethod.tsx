@@ -44,7 +44,7 @@ const PushNotificationMethod = function (props: Props) {
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
-    const [enroll_url, setEnrollUrl] = useState("https://duo.com/");
+    const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
 
     const { onSignInSuccess, onSignInError } = props;
@@ -210,7 +210,7 @@ const PushNotificationMethod = function (props: Props) {
             id={props.id}
             title="Push Notification"
             explanation="A notification has been sent to your smartphone"
-            duoSelfEnrollment={props.duoSelfEnrollment}
+            duoSelfEnrollment={enroll_url ? props.duoSelfEnrollment : false}
             registered={props.registered}
             state={methodState}
             onSelectClick={fetchDuoDevicesFunc}

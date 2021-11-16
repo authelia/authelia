@@ -204,7 +204,6 @@ func (s *DuoPushWebDriverSuite) TestShouldFailInitialSelectionBecauseOfUnsupport
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "register-link")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
 }
 
