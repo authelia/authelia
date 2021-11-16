@@ -124,7 +124,7 @@ func HandlePreferredDeviceCheck(duoAPI duo.API, ctx *middlewares.AutheliaCtx, de
 
 	switch result {
 	case enroll:
-		ctx.Logger.Debugf("Duo user not enrolled: %s", userSession.Username)
+		ctx.Logger.Debugf("Duo user %s not enrolled anymore - Deleting preferred device", userSession.Username)
 
 		if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(userSession.Username); err != nil {
 			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
@@ -147,7 +147,7 @@ func HandlePreferredDeviceCheck(duoAPI duo.API, ctx *middlewares.AutheliaCtx, de
 		return "", "", nil
 	case auth:
 		if devices == nil {
-			ctx.Logger.Debugf("No compatible device/method available for Duo user: %s", userSession.Username)
+			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available - Deleting preferred device", userSession.Username)
 
 			if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(userSession.Username); err != nil {
 				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
