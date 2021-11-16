@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -106,8 +107,12 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "register-link")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
+	enrollPage := s.Page.MustWaitOpen()
+	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "register-link").MustClick()
+	s.Page = enrollPage()
+
+	assert.Contains(s.T(), s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "description").MustText(), "This enrollment code has expired. Contact your administrator to get a new enrollment code.")
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
