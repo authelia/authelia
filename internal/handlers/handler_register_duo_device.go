@@ -54,7 +54,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		if result == enroll {
-			ctx.Logger.Debugf("Duo User not enrolled: %s", userSession.Username)
+			ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
 
 			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
 				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)

@@ -80,7 +80,7 @@ func HandleInitialDeviceSelection(duoAPI duo.API, ctx *middlewares.AutheliaCtx, 
 
 	switch result {
 	case enroll:
-		ctx.Logger.Debugf("Duo user not enrolled: %s", userSession.Username)
+		ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
 
 		if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
 			return "", "", fmt.Errorf("unable to set JSON body in response")
@@ -88,7 +88,7 @@ func HandleInitialDeviceSelection(duoAPI duo.API, ctx *middlewares.AutheliaCtx, 
 
 		return "", "", nil
 	case deny:
-		ctx.Logger.Infof("Duo user %s not allowed to authenticate: %s", userSession.Username, message)
+		ctx.Logger.Infof("Duo user: %s not allowed to authenticate: %s", userSession.Username, message)
 
 		if err := ctx.SetJSONBody(DuoSignResponse{Result: deny}); err != nil {
 			return "", "", fmt.Errorf("unable to set JSON body in response")
@@ -124,7 +124,7 @@ func HandlePreferredDeviceCheck(duoAPI duo.API, ctx *middlewares.AutheliaCtx, de
 
 	switch result {
 	case enroll:
-		ctx.Logger.Debugf("Duo user %s not enrolled anymore - Deleting preferred device", userSession.Username)
+		ctx.Logger.Debugf("Duo user: %s no longer enrolled removing preferred device", userSession.Username)
 
 		if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(userSession.Username); err != nil {
 			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
@@ -136,7 +136,7 @@ func HandlePreferredDeviceCheck(duoAPI duo.API, ctx *middlewares.AutheliaCtx, de
 
 		return "", "", nil
 	case deny:
-		ctx.Logger.Infof("Duo user %s not allowed to authenticate: %s", userSession.Username, message)
+		ctx.Logger.Infof("Duo user: %s not allowed to authenticate: %s", userSession.Username, message)
 		ctx.ReplyUnauthorized()
 
 		return "", "", nil
@@ -147,7 +147,7 @@ func HandlePreferredDeviceCheck(duoAPI duo.API, ctx *middlewares.AutheliaCtx, de
 		return "", "", nil
 	case auth:
 		if devices == nil {
-			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available - Deleting preferred device", userSession.Username)
+			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available removing preferred device", userSession.Username)
 
 			if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(userSession.Username); err != nil {
 				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
@@ -191,7 +191,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	}
 
 	if len(devices) > 1 {
-		ctx.Logger.Debugf("Multiple devices available for Duo user: %s - require selection", username)
+		ctx.Logger.Debugf("Multiple devices available for Duo user: %s require manual selection", username)
 
 		if err := ctx.SetJSONBody(DuoSignResponse{Result: auth, Devices: devices}); err != nil {
 			return "", "", fmt.Errorf("unable to set JSON body in response")
@@ -201,7 +201,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	}
 
 	if len(devices[0].Capabilities) > 1 {
-		ctx.Logger.Debugf("Multiple methods available for Duo user: %s - require selection", username)
+		ctx.Logger.Debugf("Multiple methods available for Duo user: %s require manual selection", username)
 
 		if err := ctx.SetJSONBody(DuoSignResponse{Result: auth, Devices: devices}); err != nil {
 			return "", "", fmt.Errorf("unable to set JSON body in response")
@@ -212,7 +212,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 
 	device := devices[0].Device
 	method := devices[0].Capabilities[0]
-	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found - Saving as new preferred Duo device and method for user: %s", device, method, username)
+	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
 
 	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(username, device, method); err != nil {
 		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
