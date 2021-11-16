@@ -29,7 +29,7 @@ func (s *CLISuite) SetupTest() {
 	testArg := ""
 	coverageArg := ""
 
-	if os.Getenv("CI") == stringTrue {
+	if os.Getenv("CI") == t {
 		testArg = "-test.coverprofile=/authelia/coverage-$(date +%s).txt"
 		coverageArg = "COVERAGE"
 	}

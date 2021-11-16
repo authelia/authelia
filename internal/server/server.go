@@ -30,7 +30,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
-	duoSelfEnrollment := "false"
+	duoSelfEnrollment := f
 	if configuration.DuoAPI != nil {
 		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	}

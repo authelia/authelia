@@ -19,12 +19,12 @@ import (
 func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, session, theme string, https bool) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
-	f, err := assets.Open(publicDir + file)
+	a, err := assets.Open(publicDir + file)
 	if err != nil {
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
 
-	b, err := ioutil.ReadAll(f)
+	b, err := ioutil.ReadAll(a)
 	if err != nil {
 		logger.Fatalf("Unable to read %s: %s", file, err)
 	}
@@ -40,11 +40,11 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 			base = baseURL.(string)
 		}
 
-		logoOverride := "false"
+		logoOverride := f
 
 		if assetPath != "" {
 			if _, err := os.Stat(assetPath + logoFile); err == nil {
-				logoOverride = "true"
+				logoOverride = t
 			}
 		}
 
