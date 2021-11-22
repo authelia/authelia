@@ -587,8 +587,14 @@ notifier:
     ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: password
 
-    ## The address to send the email FROM.
+    ## The sender is used to configure who the email is from. This is used for the MAIL FROM command and the FROM header.
+    ## If this is not defined and the username is an email, we use the username as this value.
     sender: admin@example.com
+
+    ## The name of the sender. This is combined with the sender in the FROM header to form the from address end users
+    ## see in their mail clients in the format {sender_name} <{sender}>. Otherwise the sender is used on its own to form
+    ## this mail header.
+    sender_name: Authelia
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost

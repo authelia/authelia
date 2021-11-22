@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/notification"
 )
 
 // ValidateNotifier validates and update notifier configuration.
@@ -47,7 +48,13 @@ func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, valid
 	}
 
 	if configuration.Sender == "" {
-		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "sender"))
+		if notification.RegexpValidEmail.MatchString(configuration.Username) {
+			configuration.Sender = configuration.Username
+		} else {
+			validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "sender"))
+		}
+	} else if !notification.RegexpValidEmail.MatchString(configuration.Sender) {
+		validator.Push(fmt.Errorf(errFmtNotifierSMTPSenderMustBeValidEmail, configuration.Sender))
 	}
 
 	if configuration.Subject == "" {

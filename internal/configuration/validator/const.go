@@ -51,6 +51,7 @@ const (
 		"is configured"
 	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
 	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
+	errFmtNotifierSMTPSenderMustBeValidEmail      = "smtp notifier: the sender must be only an email address but is configured to '%s', if you want to configure the name of the sender please use the new sender_name option"
 )
 
 // OpenID Error constants.
@@ -238,6 +239,7 @@ var ValidKeys = []string{
 	"notifier.smtp.password",
 	"notifier.smtp.identifier",
 	"notifier.smtp.sender",
+	"notifier.smtp.sender_name",
 	"notifier.smtp.subject",
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
