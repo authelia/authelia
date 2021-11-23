@@ -183,3 +183,11 @@ func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
 	err := json.Unmarshal(m.Ctx.Response.Body(), &okResponse)
 	require.NoError(t, err)
 }
+
+// GetResponseError retrieves an error response from the service.
+func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middlewares.ErrorResponse) {
+	err := json.Unmarshal(m.Ctx.Response.Body(), &errResponse)
+	require.NoError(t, err)
+
+	return errResponse
+}

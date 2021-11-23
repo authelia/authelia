@@ -30,8 +30,10 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration, encrypt
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtPostgresUpsertTOTPConfiguration, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtPostgresUpsertPreferred2FAMethod, tableUserPreferences)
 
+	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
 	provider.sqlSelectPreferred2FAMethod = provider.db.Rebind(provider.sqlSelectPreferred2FAMethod)
+	provider.sqlSelectUserInfo = provider.db.Rebind(provider.sqlSelectUserInfo)
 	provider.sqlSelectExistsIdentityVerification = provider.db.Rebind(provider.sqlSelectExistsIdentityVerification)
 	provider.sqlInsertIdentityVerification = provider.db.Rebind(provider.sqlInsertIdentityVerification)
 	provider.sqlDeleteIdentityVerification = provider.db.Rebind(provider.sqlDeleteIdentityVerification)
