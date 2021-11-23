@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net/mail"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -20,7 +21,7 @@ func (suite *NotifierSuite) SetupTest() {
 	suite.configuration.SMTP = &schema.SMTPNotifierConfiguration{
 		Username: "john",
 		Password: "password",
-		Sender:   "admin@example.com",
+		Sender:   mail.Address{Name: "Authelia", Address: "authelia@example.com"},
 		Host:     "example.com",
 		Port:     25,
 	}
@@ -97,37 +98,6 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 	suite.Assert().False(suite.configuration.SMTP.TLS.SkipVerify)
 }
 
-func (suite *NotifierSuite) TestSMTPShouldRaiseErrOnInvalidSender() {
-	suite.configuration.SMTP.Sender = "test"
-
-	ValidateNotifier(&suite.configuration, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], "smtp notifier: the sender must be a valid RFC5322 address string but 'test' is not valid: mail: missing '@' or angle-addr")
-}
-
-func (suite *NotifierSuite) TestSMTPShouldNotRaiseErrOnValidSender() {
-	suite.configuration.SMTP.Sender = "Mail <admin@example.com>"
-
-	ValidateNotifier(&suite.configuration, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
-}
-
-func (suite *NotifierSuite) TestSMTPShouldRaiseErrOnBlankSender() {
-	suite.configuration.SMTP.Sender = ""
-
-	ValidateNotifier(&suite.configuration, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], "smtp notifier: the 'sender' must be configured")
-}
-
 func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 	suite.configuration.FileSystem = nil
 	ValidateNotifier(&suite.configuration, suite.validator)
@@ -152,14 +122,7 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
-	suite.configuration.FileSystem = nil
-
-	ValidateNotifier(&suite.configuration, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
-
-	suite.configuration.SMTP.Sender = ""
+	suite.configuration.SMTP.Sender = mail.Address{}
 
 	ValidateNotifier(&suite.configuration, suite.validator)
 

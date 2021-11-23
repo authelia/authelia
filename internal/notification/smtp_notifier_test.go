@@ -47,39 +47,3 @@ func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *tes
 	assert.Equal(t, uint16(tls.VersionTLS12), notifier.tlsConfig.MinVersion)
 	assert.False(t, notifier.tlsConfig.InsecureSkipVerify)
 }
-
-func TestShouldConfigureSenderWithoutNamePortion(t *testing.T) {
-	config := &schema.NotifierConfiguration{
-		DisableStartupCheck: true,
-		SMTP: &schema.SMTPNotifierConfiguration{
-			Host:   "smtp.example.com",
-			Port:   25,
-			Sender: "john@example.com",
-			TLS: &schema.TLSConfig{
-				ServerName: "smtp.golang.org",
-			},
-		},
-	}
-
-	notifier := NewSMTPNotifier(config.SMTP, nil)
-
-	assert.Equal(t, "john@example.com", notifier.sender.Address)
-}
-
-func TestShouldConfigureSenderWithNamePortion(t *testing.T) {
-	config := &schema.NotifierConfiguration{
-		DisableStartupCheck: true,
-		SMTP: &schema.SMTPNotifierConfiguration{
-			Host:   "smtp.example.com",
-			Port:   25,
-			Sender: "John Smith <john@example.com>",
-			TLS: &schema.TLSConfig{
-				ServerName: "smtp.golang.org",
-			},
-		},
-	}
-
-	notifier := NewSMTPNotifier(config.SMTP, nil)
-
-	assert.Equal(t, "john@example.com", notifier.sender.Address)
-}

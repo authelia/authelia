@@ -51,7 +51,6 @@ const (
 		"is configured"
 	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
 	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
-	errFmtNotifierSMTPSenderMustBeValidEmail      = "smtp notifier: the sender must be a valid RFC5322 address string but '%s' is not valid: %w"
 )
 
 // OpenID Error constants.

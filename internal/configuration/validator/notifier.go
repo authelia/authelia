@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"net/mail"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -47,10 +46,8 @@ func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, valid
 		configuration.Timeout = schema.DefaultSMTPNotifierConfiguration.Timeout
 	}
 
-	if configuration.Sender == "" {
+	if configuration.Sender.Address == "" {
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "sender"))
-	} else if _, err := mail.ParseAddress(configuration.Sender); err != nil {
-		validator.Push(fmt.Errorf(errFmtNotifierSMTPSenderMustBeValidEmail, configuration.Sender, err))
 	}
 
 	if configuration.Subject == "" {
