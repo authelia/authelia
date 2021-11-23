@@ -27,6 +27,7 @@ session:
     port: 6379
 
 storage:
+  encryption_key: a_not_so_secure_encryption_key
   local:
     path: /config/db.sqlite
 
