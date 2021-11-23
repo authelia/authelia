@@ -49,13 +49,9 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration, encrypt
 }
 
 func dataSourceNamePostgreSQL(config schema.PostgreSQLStorageConfiguration) (dataSourceName string) {
-	args := make([]string, 0)
-	if config.Username != "" {
-		args = append(args, fmt.Sprintf("user='%s'", config.Username))
-	}
-
-	if config.Password != "" {
-		args = append(args, fmt.Sprintf("password='%s'", config.Password))
+	args := []string{
+		fmt.Sprintf("user='%s'", config.Username),
+		fmt.Sprintf("password='%s'", config.Password),
 	}
 
 	if config.Host != "" {

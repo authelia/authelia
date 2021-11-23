@@ -87,6 +87,33 @@ server:
   path: authelia
 ```
 
+### asset_path
+<div markdown="1">
+type: string 
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Authelia by default serves all static assets from an embedded filesystem in the Go binary.
+
+Modifying this setting will allow you to override and serve specific assets for Authelia from a specified path.
+All files that can be overridden are documented below and must be placed in the `asset_path` with a flat file structure.
+
+Example:
+```console
+/config/assets/
+├── favicon.ico
+└── logo.png
+```
+
+|Asset  |File name|
+|:-----:|:---------------:|
+|Favicon|favicon.ico      |
+|Logo   |logo.png         |
+
 ### read_buffer_size
 <div markdown="1">
 type: integer 
@@ -189,3 +216,8 @@ The path to the public certificate for TLS connections. Must be in DER base64/PE
 The read and write buffer sizes generally should be the same. This is because when Authelia verifies
 if the user is authorized to visit a URL, it also sends back nearly the same size response as the request. However
 you're able to tune these individually depending on your needs.
+
+### Asset Overrides
+
+If replacing the Logo for your Authelia portal it is recommended to upload a transparent PNG of your desired logo.
+Authelia will automatically resize the logo to an appropriate size to present in the frontend.
