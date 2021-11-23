@@ -838,6 +838,9 @@ components:
             has_totp:
               type: boolean
               example: true
+            has_duo:
+              type: boolean
+              example: true
     handlers.UserInfo.MethodBody:
       required:
         - method
