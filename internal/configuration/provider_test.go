@@ -279,6 +279,7 @@ func testReset() {
 	testUnsetEnvName("PORT")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
+	testUnsetEnvName("STORAGE_ENCRYPTION_KEY")
 }
 
 func testUnsetEnvName(name string) {
