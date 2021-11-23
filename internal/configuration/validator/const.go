@@ -147,6 +147,7 @@ var ValidKeys = []string{
 	"server.read_buffer_size",
 	"server.write_buffer_size",
 	"server.path",
+	"server.asset_path",
 	"server.enable_pprof",
 	"server.enable_expvars",
 	"server.disable_healthcheck",

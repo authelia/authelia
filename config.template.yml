@@ -7,7 +7,7 @@
 ## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
 ## the system certificates store.
 ## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
-# certificates_directory: /config/certificates
+# certificates_directory: /config/certificates/
 
 ## The theme to display: light, dark, grey, auto.
 theme: light
@@ -39,6 +39,10 @@ server:
   ## Set the single level path Authelia listens on.
   ## Must be alphanumeric chars and should not contain any slashes.
   path: ""
+
+  ## Set the path on disk to Authelia assets.
+  ## Useful to allow overriding of specific static assets.
+  # asset_path: /config/assets/
 
   ## Buffers usually should be configured to be the same value.
   ## Explanation at https://www.authelia.com/docs/configuration/server.html
