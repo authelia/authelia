@@ -30,11 +30,7 @@ func NewMySQLProvider(config schema.MySQLStorageConfiguration) (provider *MySQLP
 }
 
 func dataSourceNameMySQL(config schema.MySQLStorageConfiguration) (dataSourceName string) {
-	dataSourceName = config.Username
-
-	if config.Password != "" {
-		dataSourceName += fmt.Sprintf(":%s", config.Password)
-	}
+	dataSourceName = fmt.Sprintf("%s:%s", config.Username, config.Password)
 
 	if dataSourceName != "" {
 		dataSourceName += "@"
