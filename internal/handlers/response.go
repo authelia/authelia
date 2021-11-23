@@ -3,11 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -148,4 +150,35 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 func handleAuthenticationUnauthorized(ctx *middlewares.AutheliaCtx, err error, message string) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	ctx.Error(err, message)
+}
+
+func handleAuthenticationAttempt(ctx *middlewares.AutheliaCtx, authErr error, successful bool, bannedUntil *time.Time, username, authType string) (err error) {
+	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
+
+	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, string(ctx.RequestCtx.QueryArgs().Peek("rd")), string(ctx.RequestCtx.QueryArgs().Peek("rm")), authType, ctx.RemoteIP()); err != nil {
+		ctx.Logger.Errorf("Unable to mark %s authentication attempt by user '%s': %+v", authType, username, err)
+	}
+
+	if successful {
+		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, username)
+	} else {
+		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+
+		if authType == regulation.AuthType1FA {
+			ctx.SetJSONError(messageAuthenticationFailed)
+		} else {
+			ctx.SetJSONError(messageMFAValidationFailed)
+		}
+
+		switch {
+		case bannedUntil != nil:
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, username, bannedUntil)
+		case authErr != nil:
+			ctx.Logger.Errorf("Error during %s authentication attempt by user '%s': %+v", authType, username, authErr)
+		default:
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
+		}
+	}
+
+	return err
 }
