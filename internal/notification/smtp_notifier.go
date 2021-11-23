@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/mail"
 	"net/smtp"
 	"strings"
 	"time"
@@ -23,8 +24,7 @@ type SMTPNotifier struct {
 	client        *smtp.Client
 	tlsConfig     *tls.Config
 	log           *logrus.Logger
-
-	from string
+	sender        mail.Address
 }
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
@@ -35,10 +35,9 @@ func NewSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, certPool *
 		log:           logging.Logger(),
 	}
 
-	if configuration.SenderName != "" {
-		notifier.from = fmt.Sprintf("%s <%s>", configuration.SenderName, configuration.Sender)
-	} else {
-		notifier.from = configuration.Sender
+	sender, err := mail.ParseAddress(configuration.Sender)
+	if err == nil {
+		notifier.sender = *sender
 	}
 
 	return notifier
@@ -145,7 +144,7 @@ func (n *SMTPNotifier) compose(recipient, subject, body, htmlBody string) error 
 	now := time.Now()
 
 	msg := "Date:" + now.Format(rfc5322DateTimeLayout) + "\n" +
-		"From: " + n.from + "\n" +
+		"From: " + n.configuration.Sender + "\n" +
 		"To: " + recipient + "\n" +
 		"Subject: " + subject + "\n" +
 		"MIME-version: 1.0\n" +
@@ -243,7 +242,7 @@ func (n *SMTPNotifier) StartupCheck(_ *logrus.Logger) (err error) {
 		return err
 	}
 
-	if err := n.client.Mail(n.configuration.Sender); err != nil {
+	if err := n.client.Mail(n.sender.Address); err != nil {
 		return err
 	}
 
@@ -283,7 +282,7 @@ func (n *SMTPNotifier) Send(recipient, title, body, htmlBody string) error {
 	}
 
 	// Set the sender and recipient first.
-	if err := n.client.Mail(n.configuration.Sender); err != nil {
+	if err := n.client.Mail(n.sender.Address); err != nil {
 		n.log.Debugf("Notifier SMTP failed while sending MAIL FROM (using sender) with error: %s", err)
 		return err
 	}

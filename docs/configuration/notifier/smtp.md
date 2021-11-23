@@ -21,8 +21,7 @@ notifier:
     timeout: 5s
     username: test
     password: password
-    sender: admin@example.com
-    sender_from: Authelia
+    sender: "Authelia <admin@example.com>"
     identifier: localhost
     subject: "[Authelia] {title}"
     startup_check_address: test@authelia.com
@@ -104,25 +103,13 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The address sent in the FROM header for the email and used in the MAIL FROM command. Basically who the email appears to 
-come from. It should be noted that some SMTP servers require the username provided to have access to send from the 
-specific address sent in the MAIL FROM command.
+The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
+in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
+- jsmith@domain.com
+- John Smith <jsmith@domain.com>
 
-If not specified this will default to the username provided the username is an email address. If you wish to specify the
-name of the sender it is not permitted to do so and it will cause an error; you should use [sender_name](#sender_name) 
-instead.
-
-### sender_name
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple } 
-required: no
-{: .label .label-config .label-green }
-</div>
-
-The name of the sender combined with the [sender](#sender) to form the final FROM header. The format is 
-`{sender_name} <{sender}>`. This is not always necessary as some MTA's add this value if not present automatically. It's 
-also completely valid to send emails without this value.
+The `MAIL FROM` command sent to SMTP servers will not include the name portion, this is only set in the `FROM` as per
+specifications.
 
 ### identifier
 <div markdown="1">

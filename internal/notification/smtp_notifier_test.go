@@ -48,7 +48,7 @@ func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *tes
 	assert.False(t, notifier.tlsConfig.InsecureSkipVerify)
 }
 
-func TestShouldConfigureFROMHeaderWithNoFromName(t *testing.T) {
+func TestShouldConfigureSenderWithoutNamePortion(t *testing.T) {
 	config := &schema.NotifierConfiguration{
 		DisableStartupCheck: true,
 		SMTP: &schema.SMTPNotifierConfiguration{
@@ -63,17 +63,16 @@ func TestShouldConfigureFROMHeaderWithNoFromName(t *testing.T) {
 
 	notifier := NewSMTPNotifier(config.SMTP, nil)
 
-	assert.Equal(t, "john@example.com", notifier.from)
+	assert.Equal(t, "john@example.com", notifier.sender.Address)
 }
 
-func TestShouldConfigureFROMHeaderWithFromName(t *testing.T) {
+func TestShouldConfigureSenderWithNamePortion(t *testing.T) {
 	config := &schema.NotifierConfiguration{
 		DisableStartupCheck: true,
 		SMTP: &schema.SMTPNotifierConfiguration{
-			Host:       "smtp.example.com",
-			Port:       25,
-			Sender:     "john@example.com",
-			SenderName: "John Smith",
+			Host:   "smtp.example.com",
+			Port:   25,
+			Sender: "John Smith <john@example.com>",
 			TLS: &schema.TLSConfig{
 				ServerName: "smtp.golang.org",
 			},
@@ -82,5 +81,5 @@ func TestShouldConfigureFROMHeaderWithFromName(t *testing.T) {
 
 	notifier := NewSMTPNotifier(config.SMTP, nil)
 
-	assert.Equal(t, "John Smith <john@example.com>", notifier.from)
+	assert.Equal(t, "john@example.com", notifier.sender.Address)
 }

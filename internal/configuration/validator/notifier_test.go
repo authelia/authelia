@@ -98,26 +98,23 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldRaiseErrOnInvalidSender() {
-	suite.configuration.SMTP.Sender = "Google <test@example.com>"
+	suite.configuration.SMTP.Sender = "test"
 
 	ValidateNotifier(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "smtp notifier: the sender must be only an email address but is configured to 'Google <test@example.com>', if you want to configure the name of the sender please use the new sender_name option")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "smtp notifier: the sender must be a valid RFC5322 address string but 'test' is not valid: mail: missing '@' or angle-addr")
 }
 
-func (suite *NotifierSuite) TestSMTPShouldSetSenderToUserWhenEmailAndSenderBlank() {
-	suite.configuration.SMTP.Username = "john@example.com"
-	suite.configuration.SMTP.Sender = ""
+func (suite *NotifierSuite) TestSMTPShouldNotRaiseErrOnValidSender() {
+	suite.configuration.SMTP.Sender = "Mail <admin@example.com>"
 
 	ValidateNotifier(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
-
-	suite.Assert().Equal(suite.configuration.SMTP.Username, suite.configuration.SMTP.Sender)
 }
 
 func (suite *NotifierSuite) TestSMTPShouldRaiseErrOnBlankSender() {

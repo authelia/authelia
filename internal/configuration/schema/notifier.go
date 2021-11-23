@@ -16,7 +16,6 @@ type SMTPNotifierConfiguration struct {
 	Password            string        `koanf:"password"`
 	Identifier          string        `koanf:"identifier"`
 	Sender              string        `koanf:"sender"`
-	SenderName          string        `koanf:"sender_name"`
 	Subject             string        `koanf:"subject"`
 	StartupCheckAddress string        `koanf:"startup_check_address"`
 	DisableRequireTLS   bool          `koanf:"disable_require_tls"`
