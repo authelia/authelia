@@ -6,9 +6,9 @@ grand_parent: Configuration
 nav_order: 5
 ---
 
-Storage migrations are important in keeping your database compatible with Authelia. Authelia will automatically upgrade
+Storage migrations are important for keeping your database compatible with Authelia. Authelia will automatically upgrade
 your schema on startup. However, if you wish to use an older version of Authelia you may be required to manually
-downgrade Authelia with a version that supports your current schema.
+downgrade your schema with a version of Authelia that supports your current schema.
 
 ## Schema Version to Authelia Version map
 
