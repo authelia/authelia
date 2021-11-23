@@ -108,9 +108,9 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		ctx      = context.Background()
 	)
 
-	provider, err = getStorageProvider()
-	if err != nil {
-		return err
+	provider = getStorageProvider()
+	if provider != nil {
+		return errNoStorageProvider
 	}
 
 	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
@@ -154,9 +154,9 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 		ctx      = context.Background()
 	)
 
-	provider, err = getStorageProvider()
-	if err != nil {
-		return err
+	provider = getStorageProvider()
+	if provider != nil {
+		return errNoStorageProvider
 	}
 
 	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
@@ -212,9 +212,9 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx      = context.Background()
 	)
 
-	provider, err = getStorageProvider()
-	if err != nil {
-		return err
+	provider = getStorageProvider()
+	if provider != nil {
+		return errNoStorageProvider
 	}
 
 	migrations, err := provider.SchemaMigrationHistory(ctx)
@@ -244,9 +244,9 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 			directionStr string
 		)
 
-		provider, err = getStorageProvider()
-		if err != nil {
-			return err
+		provider = getStorageProvider()
+		if provider != nil {
+			return errNoStorageProvider
 		}
 
 		if up {
@@ -288,9 +288,9 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 			ctx      = context.Background()
 		)
 
-		provider, err = getStorageProvider()
-		if err != nil {
-			return err
+		provider = getStorageProvider()
+		if provider != nil {
+			return errNoStorageProvider
 		}
 
 		target, err := cmd.Flags().GetInt("target")
@@ -359,9 +359,9 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		tablesStr  string
 	)
 
-	provider, err = getStorageProvider()
-	if err != nil {
-		return err
+	provider = getStorageProvider()
+	if provider != nil {
+		return errNoStorageProvider
 	}
 
 	version, err := provider.SchemaVersion(ctx)

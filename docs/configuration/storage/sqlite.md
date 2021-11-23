@@ -27,6 +27,9 @@ storage:
 
 ## Options
 
+### encryption_key
+See the [encryption_key docs](./index.md#encryption_key).
+
 ### path
 <div markdown="1">
 type: string

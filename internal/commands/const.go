@@ -1,5 +1,9 @@
 package commands
 
+import (
+	"errors"
+)
+
 const cmdAutheliaExample = `authelia --config /etc/authelia/config.yml --config /etc/authelia/access-control.yml
 authelia --config /etc/authelia/config.yml,/etc/authelia/access-control.yml
 authelia --config /etc/authelia/config/
@@ -84,4 +88,8 @@ const (
 const (
 	storageExportFormatCSV = "csv"
 	storageExportFormatURI = "uri"
+)
+
+var (
+	errNoStorageProvider = errors.New("no storage provider configured")
 )
