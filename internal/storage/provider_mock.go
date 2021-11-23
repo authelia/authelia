@@ -4,13 +4,13 @@
 package storage
 
 import (
-	"context"
-	"reflect"
-	"time"
+	context "context"
+	reflect "reflect"
+	time "time"
 
-	"github.com/golang/mock/gomock"
+	gomock "github.com/golang/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	models "github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -137,6 +137,21 @@ func (m *MockProvider) LoadU2FDevice(arg0 context.Context, arg1 string) (*models
 func (mr *MockProviderMockRecorder) LoadU2FDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevice", reflect.TypeOf((*MockProvider)(nil).LoadU2FDevice), arg0, arg1)
+}
+
+// LoadUserInfo mocks base method.
+func (m *MockProvider) LoadUserInfo(arg0 context.Context, arg1 string) (models.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserInfo", arg0, arg1)
+	ret0, _ := ret[0].(models.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserInfo indicates an expected call of LoadUserInfo.
+func (mr *MockProviderMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockProvider)(nil).LoadUserInfo), arg0, arg1)
 }
 
 // RemoveIdentityVerification mocks base method.

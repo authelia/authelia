@@ -3,12 +3,14 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
 )
@@ -40,6 +42,7 @@ func NewSQLProvider(name, driverName, dataSourceName string) (provider SQLProvid
 
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableUserPreferences),
 
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
@@ -80,6 +83,7 @@ type SQLProvider struct {
 	// Table: user_preferences.
 	sqlUpsertPreferred2FAMethod string
 	sqlSelectPreferred2FAMethod string
+	sqlSelectUserInfo           string
 
 	// Table: migrations.
 	sqlInsertMigration       string
@@ -146,6 +150,30 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 		return method, err
 	default:
 		return "", err
+	}
+}
+
+// LoadUserInfo loads the models.UserInfo from the database.
+func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error) {
+	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username)
+
+	switch {
+	case err == nil:
+		return info, nil
+	case errors.Is(err, sql.ErrNoRows):
+		_, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, authentication.PossibleMethods[0])
+		if err != nil {
+			return models.UserInfo{}, err
+		}
+
+		err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username)
+		if err != nil {
+			return models.UserInfo{}, err
+		}
+
+		return info, nil
+	default:
+		return models.UserInfo{}, err
 	}
 }
 

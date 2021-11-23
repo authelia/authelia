@@ -15,6 +15,7 @@ type Provider interface {
 
 	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
+	LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error)
 
 	SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error)
 	RemoveIdentityVerification(ctx context.Context, jti string) (err error)
