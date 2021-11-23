@@ -58,7 +58,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Time:       s.mock.Clock.Now(),
@@ -83,7 +83,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Time:       s.mock.Clock.Now(),
@@ -106,7 +106,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Any()).
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
 	s.mock.UserProviderMock.
@@ -133,7 +133,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Any()).
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(fmt.Errorf("failed"))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -164,7 +164,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Any()).
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -204,7 +204,7 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Any()).
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -248,7 +248,7 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Any()).
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -306,7 +306,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 
 	s.mock.StorageProviderMock.
 		EXPECT().
-		AppendAuthenticationLog(gomock.Any()).
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 }
 

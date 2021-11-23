@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -46,6 +47,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newCompletionCmd(),
 		NewHashPasswordCmd(),
 		NewRSACmd(),
+		NewStorageCmd(),
 		newValidateConfigCmd(),
 	)
 
@@ -101,9 +103,6 @@ func getProviders(config *schema.Configuration) (providers middlewares.Providers
 		storageProvider = storage.NewMySQLProvider(*config.Storage.MySQL)
 	case config.Storage.Local != nil:
 		storageProvider = storage.NewSQLiteProvider(config.Storage.Local.Path)
-	default:
-		// TODO: Add storage provider startup check and remove this.
-		errors = append(errors, fmt.Errorf("unrecognized storage provider"))
 	}
 
 	var (
@@ -162,6 +161,12 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 		err      error
 	)
 
+	if err = doStartupCheck(logger, "storage", providers.StorageProvider, false); err != nil {
+		logger.Errorf("Failure running the storage provider startup check: %+v", err)
+
+		failures = append(failures, "storage")
+	}
+
 	if err = doStartupCheck(logger, "user", providers.UserProvider, false); err != nil {
 		logger.Errorf("Failure running the user provider startup check: %+v", err)
 
@@ -187,7 +192,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 }
 
-func doStartupCheck(logger *logrus.Logger, name string, provider middlewares.ProviderWithStartupCheck, disabled bool) (err error) {
+func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) (err error) {
 	if disabled {
 		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
 		return nil
@@ -197,7 +202,7 @@ func doStartupCheck(logger *logrus.Logger, name string, provider middlewares.Pro
 		return fmt.Errorf("unrecognized provider or it is not configured properly")
 	}
 
-	if err = provider.StartupCheck(logger); err != nil {
+	if err = provider.StartupCheck(); err != nil {
 		return err
 	}
 

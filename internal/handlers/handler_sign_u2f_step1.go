@@ -34,7 +34,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession := ctx.GetSession()
-	keyHandleBytes, publicKeyBytes, err := ctx.Providers.StorageProvider.LoadU2FDeviceHandle(userSession.Username)
+	device, err := ctx.Providers.StorageProvider.LoadU2FDevice(ctx, userSession.Username)
 
 	if err != nil {
 		if err == storage.ErrNoU2FDeviceHandle {
@@ -48,16 +48,16 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var registration u2f.Registration
-	registration.KeyHandle = keyHandleBytes
-	x, y := elliptic.Unmarshal(elliptic.P256(), publicKeyBytes)
+	registration.KeyHandle = device.KeyHandle
+	x, y := elliptic.Unmarshal(elliptic.P256(), device.PublicKey)
 	registration.PubKey.Curve = elliptic.P256()
 	registration.PubKey.X = x
 	registration.PubKey.Y = y
 
 	// Save the challenge and registration for use in next request
 	userSession.U2FRegistration = &session.U2FRegistration{
-		KeyHandle: keyHandleBytes,
-		PublicKey: publicKeyBytes,
+		KeyHandle: device.KeyHandle,
+		PublicKey: device.PublicKey,
 	}
 	userSession.U2FChallenge = challenge
 	err = ctx.SaveSession(userSession)

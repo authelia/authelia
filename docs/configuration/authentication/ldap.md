@@ -264,4 +264,5 @@ In versions <= `4.24.0` not including the `username_attribute` placeholder will 
 and will result in session resets when the refresh interval has expired, default of 5 minutes.
 
 [LDAP GeneralizedTime]: https://ldapwiki.com/wiki/GeneralizedTime
+[username attribute]: #username_attribute
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx

@@ -49,43 +49,6 @@ func (ts *TestStruct) Validate(validator *schema.StructValidator) {
 	}
 }
 
-func TestValidator(t *testing.T) {
-	validator := schema.NewValidator()
-
-	s := TestStruct{
-		MustBe10:  5,
-		NotEmpty:  "",
-		NestedPtr: &TestNestedStruct{},
-	}
-
-	err := validator.Validate(&s)
-	if err != nil {
-		panic(err)
-	}
-
-	errs := validator.Errors()
-	assert.Equal(t, 4, len(errs))
-
-	assert.Equal(t, 2, len(errs["root"]))
-	assert.ElementsMatch(t, []error{
-		fmt.Errorf("MustBe10 must be 10"),
-		fmt.Errorf("NotEmpty must not be empty")}, errs["root"])
-
-	assert.Equal(t, 1, len(errs["root.Nested"]))
-	assert.ElementsMatch(t, []error{
-		fmt.Errorf("MustBe5 must be 5")}, errs["root.Nested"])
-
-	assert.Equal(t, 1, len(errs["root.Nested2"]))
-	assert.ElementsMatch(t, []error{
-		fmt.Errorf("MustBe5 must be 5")}, errs["root.Nested2"])
-
-	assert.Equal(t, 1, len(errs["root.NestedPtr"]))
-	assert.ElementsMatch(t, []error{
-		fmt.Errorf("MustBe5 must be 5")}, errs["root.NestedPtr"])
-
-	assert.Equal(t, "xyz", s.SetDefault)
-}
-
 func TestStructValidator(t *testing.T) {
 	validator := schema.NewStructValidator()
 	s := TestStruct{

@@ -77,7 +77,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 			return
 		}
 
-		bannedUntil, err := ctx.Providers.Regulator.Regulate(bodyJSON.Username)
+		bannedUntil, err := ctx.Providers.Regulator.Regulate(ctx, bodyJSON.Username)
 
 		if err != nil {
 			if err == regulation.ErrUserIsBanned {
@@ -95,7 +95,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		if err != nil {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 
-			if err := ctx.Providers.Regulator.Mark(bodyJSON.Username, false); err != nil {
+			if err := ctx.Providers.Regulator.Mark(ctx, bodyJSON.Username, false); err != nil {
 				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
@@ -107,7 +107,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		if !userPasswordOk {
 			ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
 
-			if err := ctx.Providers.Regulator.Mark(bodyJSON.Username, false); err != nil {
+			if err := ctx.Providers.Regulator.Mark(ctx, bodyJSON.Username, false); err != nil {
 				ctx.Logger.Errorf("Unable to mark authentication: %s", err.Error())
 			}
 
@@ -117,7 +117,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		}
 
 		ctx.Logger.Debugf("Mark authentication attempt made by user %s", bodyJSON.Username)
-		err = ctx.Providers.Regulator.Mark(bodyJSON.Username, true)
+		err = ctx.Providers.Regulator.Mark(ctx, bodyJSON.Username, true)
 
 		if err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %s", err.Error()), messageAuthenticationFailed)

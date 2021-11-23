@@ -75,3 +75,8 @@ PowerShell:
   PS> authelia completion powershell > authelia.ps1
   # and source this file from your PowerShell profile.
 `
+
+const (
+	storageMigrateDirectionUp   = "up"
+	storageMigrateDirectionDown = "down"
+)

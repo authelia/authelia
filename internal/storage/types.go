@@ -1,18 +1,28 @@
 package storage
 
-import (
-	"database/sql"
-	"strconv"
-)
-
-// SchemaVersion is a simple int representation of the schema version.
-type SchemaVersion int
-
-// ToString converts the schema version into a string and returns that converted value.
-func (s SchemaVersion) ToString() string {
-	return strconv.Itoa(int(s))
+// SchemaMigration represents an intended migration.
+type SchemaMigration struct {
+	Version  int
+	Name     string
+	Provider string
+	Up       bool
+	Query    string
 }
 
-type transaction interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
+// Before returns the version the schema should be at Before the migration is applied.
+func (m SchemaMigration) Before() (before int) {
+	if m.Up {
+		return m.Version - 1
+	}
+
+	return m.Version
+}
+
+// After returns the version the schema will be at After the migration is applied.
+func (m SchemaMigration) After() (after int) {
+	if m.Up {
+		return m.Version
+	}
+
+	return m.Version - 1
 }

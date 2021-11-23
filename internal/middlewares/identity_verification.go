@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -47,7 +48,9 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.SaveIdentityVerificationToken(ss)
+		err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, models.IdentityVerification{
+			Token: ss,
+		})
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
@@ -128,7 +131,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		found, err := ctx.Providers.StorageProvider.FindIdentityVerificationToken(finishBody.Token)
+		found, err := ctx.Providers.StorageProvider.FindIdentityVerification(ctx, finishBody.Token)
 
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
@@ -185,7 +188,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		}
 
 		// TODO(c.michaud): find a way to garbage collect unused tokens.
-		err = ctx.Providers.StorageProvider.RemoveIdentityVerificationToken(finishBody.Token)
+		err = ctx.Providers.StorageProvider.RemoveIdentityVerification(ctx, finishBody.Token)
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return

@@ -8,6 +8,8 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/posflag"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -110,6 +112,37 @@ func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
 	keyMap := getSecretConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
+}
+
+// NewCommandLineSourceWithMapping creates a new command line configuration source with a map[string]string which converts
+// flag names into other config key names. If includeValidKeys is true we also allow any flag with a name which matches
+// the list of valid keys into the koanf.Koanf, otherwise everything not in the map is skipped. Unchanged flags are also
+// skipped unless includeUnchangedKeys is set to true.
+func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) (source *CommandLineSource) {
+	return &CommandLineSource{
+		koanf:    koanf.New(constDelimiter),
+		flags:    flags,
+		callback: koanfCommandLineWithMappingCallback(mapping, includeValidKeys, includeUnchangedKeys),
+	}
+}
+
+// Name of the Source.
+func (s CommandLineSource) Name() (name string) {
+	return "command-line"
+}
+
+// Merge the CommandLineSource koanf.Koanf into the provided one.
+func (s *CommandLineSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err error) {
+	return ko.Merge(s.koanf)
+}
+
+// Load the Source into the YAMLFileSource koanf.Koanf.
+func (s *CommandLineSource) Load(_ *schema.StructValidator) (err error) {
+	if s.callback != nil {
+		return s.koanf.Load(posflag.ProviderWithFlag(s.flags, ".", s.koanf, s.callback), nil)
+	}
+
+	return s.koanf.Load(posflag.Provider(s.flags, ".", s.koanf), nil)
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
