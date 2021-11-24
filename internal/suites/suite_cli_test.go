@@ -222,6 +222,11 @@ func (s *CLISuite) TestStorage01ShouldMigrateUp() {
 	s.Regexp(pattern0, output)
 	s.Regexp(pattern1, output)
 
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "up"})
+	s.Assert().EqualError(err, "exit status 1")
+
+	s.Assert().Contains(output, "Error: schema already up to date\n")
+
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "history"})
 	s.Assert().NoError(err)
 
@@ -310,7 +315,40 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 }
 
-func (s *CLISuite) TestStorage04ShouldMigrateDown() {
+func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--new-encryption-key", "apple-apple-apple-apple", "--config", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Completed the encryption key change. Please adjust your configuration to use the new key.\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification_tokens, totp_configurations, u2f_devices, user_preferences, migrations, encryption\nSchema Encryption Key: invalid`)
+	s.Assert().Regexp(pattern, output)
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value.\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value.\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Encryption key validation: success.\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--encryption-key", "apple-apple-apple-apple", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Encryption key validation: success.\n")
+}
+
+func (s *CLISuite) TestStorage05ShouldMigrateDown() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/cli.yml"})
 	s.Assert().NoError(err)
 
