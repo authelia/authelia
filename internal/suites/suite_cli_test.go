@@ -218,7 +218,7 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	provider := storage.NewSQLiteProvider("/tmp/db.cli.sqlite3", "a_cli_encryption_key_which_isnt_secure")
+	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_cli_encryption_key_which_isnt_secure")
 
 	err := provider.StartupCheck()
 	s.Require().NoError(err)

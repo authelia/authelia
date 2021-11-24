@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -35,6 +36,8 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
+		_ = os.Remove("/tmp/db.sqlite3")
+
 		return err
 	}
 

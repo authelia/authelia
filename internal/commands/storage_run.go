@@ -113,6 +113,10 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 		return errNoStorageProvider
 	}
 
+	defer func() {
+		_ = provider.Close()
+	}()
+
 	verbose, err := cmd.Flags().GetBool("verbose")
 	if err != nil {
 		return err
@@ -144,6 +148,10 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	if provider == nil {
 		return errNoStorageProvider
 	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
 
 	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
 		return err
@@ -190,6 +198,10 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 	if provider == nil {
 		return errNoStorageProvider
 	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
 
 	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
 		return err
@@ -249,6 +261,10 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		return errNoStorageProvider
 	}
 
+	defer func() {
+		_ = provider.Close()
+	}()
+
 	migrations, err := provider.SchemaMigrationHistory(ctx)
 	if err != nil {
 		return err
@@ -280,6 +296,10 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 		if provider == nil {
 			return errNoStorageProvider
 		}
+
+		defer func() {
+			_ = provider.Close()
+		}()
 
 		if up {
 			migrations, err = provider.SchemaMigrationsUp(ctx, 0)
@@ -324,6 +344,10 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 		if provider == nil {
 			return errNoStorageProvider
 		}
+
+		defer func() {
+			_ = provider.Close()
+		}()
 
 		target, err := cmd.Flags().GetInt("target")
 		if err != nil {
@@ -395,6 +419,10 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	if provider == nil {
 		return errNoStorageProvider
 	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
 
 	version, err := provider.SchemaVersion(ctx)
 	if err != nil && err.Error() != "unknown schema state" {

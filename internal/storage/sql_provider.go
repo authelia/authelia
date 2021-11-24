@@ -113,6 +113,11 @@ type SQLProvider struct {
 	sqlFmtRenameTable       string
 }
 
+// Close the underlying database connection.
+func (p *SQLProvider) Close() (err error) {
+	return p.db.Close()
+}
+
 // StartupCheck implements the provider startup check interface.
 func (p *SQLProvider) StartupCheck() (err error) {
 	if p.errOpen != nil {

@@ -50,6 +50,20 @@ func (mr *MockProviderMockRecorder) AppendAuthenticationLog(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockProvider)(nil).AppendAuthenticationLog), arg0, arg1)
 }
 
+// Close mocks base method.
+func (m *MockProvider) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockProviderMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockProvider)(nil).Close))
+}
+
 // DeleteTOTPConfiguration mocks base method.
 func (m *MockProvider) DeleteTOTPConfiguration(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
