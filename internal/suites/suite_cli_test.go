@@ -207,7 +207,7 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 		s.Require().NoError(err)
 
 		config = models.TOTPConfiguration{
-			Username:  "john",
+			Username:  name,
 			Algorithm: "SHA1",
 			Digits:    6,
 			Secret:    []byte(key.Secret()),
