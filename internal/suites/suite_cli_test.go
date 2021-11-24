@@ -169,30 +169,30 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/cli.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`^Schema Version: N/A+\nSchema Upgrade Available: yes - version \d+\nSchema Tables: N/A\nSchema Encryption Key: unsupported (schema version)`)
+	pattern := regexp.MustCompile(`^Schema Version: N/A\nSchema Upgrade Available: yes - version \d+\nSchema Tables: N/A\nSchema Encryption Key: unsupported (schema version)`)
 
 	s.Assert().Regexp(pattern, output)
 
-	patternOutdated := regexp.MustCompile(`Error: schema version is \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
+	patternOutdated := regexp.MustCompile(`Error: schema is version \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--config", "/config/cli.yml"})
-	s.Assert().NoError(err)
+	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--config", "/config/cli.yml"})
-	s.Assert().NoError(err)
+	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/cli.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Could not check encryption key for validity. The schema version doesn't support encryption.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--taget", "0", "--destroy-data", "--config", "/config/cli.yml"})
-	s.Assert().NoError(err)
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/cli.yml"})
+	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema migration target version 0 is the same current version 0")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--taget", "2147483640", "--config", "/config/cli.yml"})
-	s.Assert().NoError(err)
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--target", "2147483640", "--config", "/config/cli.yml"})
+	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema up migration target version 2147483640 is greater then the latest version ")
 	s.Assert().Contains(output, " which indicates it doesn't exist")
 }
