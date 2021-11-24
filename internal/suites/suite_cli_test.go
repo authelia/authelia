@@ -175,7 +175,7 @@ func (s *CLISuite) TestStorageShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorageShouldExportTOTP() {
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider("/tmp/db.cli.sqlite3", "a_cli_encryption_key_which_isnt_secure")
 
 	err := provider.StartupCheck()
 	s.Require().NoError(err)
@@ -188,10 +188,12 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 	)
 
 	var (
-		expectedLines    []string
-		expectedLinesCSV = []string{"issuer,username,algorithm,digits,period,secret"}
+		expectedLines    = make([]string, 0, 3)
+		expectedLinesCSV = make([]string, 0, 4)
 		output           string
 	)
+
+	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
 	for _, name := range []string{"john", "mary", "fred"} {
 		key, err = totp.Generate(totp.GenerateOpts{
@@ -212,21 +214,21 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 			Period:    key.Period(),
 		}
 
-		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s\n", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
-		expectedLines = append(expectedLines, fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d\n", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period))
+		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
+		expectedLines = append(expectedLines, fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period))
 
 		err = provider.SaveTOTPConfiguration(ctx, config)
 		s.Require().NoError(err)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/configuration.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/cli.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLines {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/configuration.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/cli.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
