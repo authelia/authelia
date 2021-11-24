@@ -86,8 +86,16 @@ const (
 
 // Error constants.
 const (
-	errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
-		"removed in %s, please use %s instead"
+	/*
+		errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
+			"removed in %s, please use %s instead"
+
+		Uncomment for use when deprecating keys.
+
+		TODO: Create a method from within Koanf to automatically remap deprecated keys and produce warnings.
+		TODO (cont): The main consideration is making sure we do not overwrite the destination key name if it already exists.
+	*/
+
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
 	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
