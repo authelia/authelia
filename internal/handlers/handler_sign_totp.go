@@ -4,15 +4,15 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 // SecondFactorTOTPPost validate the TOTP passcode provided by the user.
 func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		requestBody := signTOTPRequestBody{}
-		err := ctx.ParseBody(&requestBody)
 
-		if err != nil {
+		if err := ctx.ParseBody(&requestBody); err != nil {
 			handleAuthenticationUnauthorized(ctx, err, messageMFAValidationFailed)
 			return
 		}
@@ -27,26 +27,28 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 
 		isValid, err := totpVerifier.Verify(config, requestBody.Token)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("error occurred during OTP validation for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+			_ = handleAuthenticationAttempt(ctx, err, false, nil, userSession.Username, regulation.AuthTypeTOTP)
 			return
 		}
 
 		if !isValid {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("wrong passcode during TOTP validation for user %s", userSession.Username), messageMFAValidationFailed)
+			_ = handleAuthenticationAttempt(ctx, nil, false, nil, userSession.Username, regulation.AuthTypeTOTP)
 			return
 		}
 
-		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+		if err = handleAuthenticationAttempt(ctx, nil, true, nil, userSession.Username, regulation.AuthTypeTOTP); err != nil {
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %w", err), messageMFAValidationFailed)
+			return
+		}
 
-		if err != nil {
+		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
 			return
 		}
 
 		userSession.SetTwoFactor(ctx.Clock.Now())
 
-		err = ctx.SaveSession(userSession)
-		if err != nil {
+		if err = ctx.SaveSession(userSession); err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update the authentication level with TOTP: %s", err), messageMFAValidationFailed)
 			return
 		}

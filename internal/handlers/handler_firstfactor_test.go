@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 type FirstFactorSuite struct {
@@ -54,14 +55,17 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
-		Return(false, fmt.Errorf("Failed"))
+		Return(false, fmt.Errorf("failed"))
 
 	s.mock.StorageProviderMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
+			Banned:     false,
 			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthType1FA,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -71,7 +75,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "error while checking password for user test: Failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Error during 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -86,7 +90,10 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
+			Banned:     false,
 			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthType1FA,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{

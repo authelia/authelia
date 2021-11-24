@@ -12,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -44,6 +45,17 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
 
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeTOTP,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	verifier.EXPECT().
 		Verify(gomock.Eq(&config), gomock.Eq("abc")).
 		Return(true, nil)
@@ -71,6 +83,17 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
 
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeTOTP,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	verifier.EXPECT().
 		Verify(gomock.Eq(&config), gomock.Eq("abc")).
 		Return(true, nil)
@@ -93,6 +116,17 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeTOTP,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	verifier.EXPECT().
 		Verify(gomock.Eq(&config), gomock.Eq("abc")).
@@ -118,6 +152,17 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&models.TOTPConfiguration{Secret: []byte("secret")}, nil)
 
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeTOTP,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	verifier.EXPECT().
 		Verify(gomock.Eq(&models.TOTPConfiguration{Secret: []byte("secret")}), gomock.Eq("abc")).
 		Return(true, nil)
@@ -141,6 +186,17 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeTOTP,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	verifier.EXPECT().
 		Verify(gomock.Eq(&config), gomock.Eq("abc")).

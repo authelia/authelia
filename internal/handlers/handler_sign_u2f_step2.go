@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 // SecondFactorU2FSignPost handler for completing a signing request.
@@ -19,12 +20,14 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		userSession := ctx.GetSession()
 		if userSession.U2FChallenge == nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no challenge)"), messageMFAValidationFailed)
+			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("U2F signing has not been initiated yet (no challenge)"),
+				false, nil, userSession.Username, regulation.AuthTypeFIDO)
 			return
 		}
 
 		if userSession.U2FRegistration == nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("U2F signing has not been initiated yet (no registration)"), messageMFAValidationFailed)
+			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("U2F signing has not been initiated yet (no registration)"),
+				false, nil, userSession.Username, regulation.AuthTypeFIDO)
 			return
 		}
 
@@ -35,14 +38,17 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 			*userSession.U2FChallenge)
 
 		if err != nil {
-			ctx.Error(err, messageMFAValidationFailed)
+			_ = handleAuthenticationAttempt(ctx, err, false, nil, userSession.Username, regulation.AuthTypeFIDO)
 			return
 		}
 
-		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
-
-		if err != nil {
+		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+			return
+		}
+
+		if err = handleAuthenticationAttempt(ctx, err, true, nil, userSession.Username, regulation.AuthTypeFIDO); err != nil {
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %w", err), messageMFAValidationFailed)
 			return
 		}
 

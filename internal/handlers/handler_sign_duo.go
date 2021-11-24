@@ -6,15 +6,15 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 // SecondFactorDuoPost handler for sending a push notification via duo api.
 func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var requestBody signDuoRequestBody
-		err := ctx.ParseBody(&requestBody)
 
-		if err != nil {
+		if err := ctx.ParseBody(&requestBody); err != nil {
 			handleAuthenticationUnauthorized(ctx, err, messageMFAValidationFailed)
 			return
 		}
@@ -37,7 +37,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		duoResponse, err := duoAPI.Call(values, ctx)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("Duo API errored: %s", err), messageMFAValidationFailed)
+			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("duo error: %w", err), false, nil, userSession.Username, regulation.AuthTypeDUO)
 			return
 		}
 
@@ -53,13 +53,16 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		if duoResponse.Response.Result != testResultAllow {
-			ctx.ReplyUnauthorized()
+			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("duo error: %w", err), false, nil, userSession.Username, regulation.AuthTypeDUO)
 			return
 		}
 
-		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+		if err = handleAuthenticationAttempt(ctx, nil, true, nil, userSession.Username, regulation.AuthTypeDUO); err != nil {
+			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %w", err), messageMFAValidationFailed)
+			return
+		}
 
-		if err != nil {
+		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
 			return
 		}

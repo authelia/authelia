@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"fmt"
 
@@ -26,16 +27,16 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
 
 	var trustedFacets = []string{appID}
-	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 
+	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 	if err != nil {
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to create U2F challenge: %s", err), messageMFAValidationFailed)
 		return
 	}
 
 	userSession := ctx.GetSession()
-	device, err := ctx.Providers.StorageProvider.LoadU2FDevice(ctx, userSession.Username)
 
+	device, err := ctx.Providers.StorageProvider.LoadU2FDevice(ctx, userSession.Username)
 	if err != nil {
 		if err == storage.ErrNoU2FDeviceHandle {
 			handleAuthenticationUnauthorized(ctx, fmt.Errorf("no device handle found for user %s", userSession.Username), messageMFAValidationFailed)
@@ -47,30 +48,33 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	var registration u2f.Registration
-	registration.KeyHandle = device.KeyHandle
 	x, y := elliptic.Unmarshal(elliptic.P256(), device.PublicKey)
-	registration.PubKey.Curve = elliptic.P256()
-	registration.PubKey.X = x
-	registration.PubKey.Y = y
+
+	registration := u2f.Registration{
+		KeyHandle: device.KeyHandle,
+		PubKey: ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X:     x,
+			Y:     y,
+		},
+	}
 
 	// Save the challenge and registration for use in next request
 	userSession.U2FRegistration = &session.U2FRegistration{
 		KeyHandle: device.KeyHandle,
 		PublicKey: device.PublicKey,
 	}
-	userSession.U2FChallenge = challenge
-	err = ctx.SaveSession(userSession)
 
-	if err != nil {
+	userSession.U2FChallenge = challenge
+
+	if err = ctx.SaveSession(userSession); err != nil {
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to save U2F challenge and registration in session: %s", err), messageMFAValidationFailed)
 		return
 	}
 
 	signRequest := challenge.SignRequest([]u2f.Registration{registration})
-	err = ctx.SetJSONBody(signRequest)
 
-	if err != nil {
+	if err = ctx.SetJSONBody(signRequest); err != nil {
 		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to set sign request in body: %s", err), messageMFAValidationFailed)
 		return
 	}
