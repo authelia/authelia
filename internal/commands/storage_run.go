@@ -265,6 +265,16 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		_ = provider.Close()
 	}()
 
+	version, err := provider.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+
+	if version <= 0 {
+		fmt.Println("No migration history is available for schemas that not version 1 or above.")
+		return
+	}
+
 	migrations, err := provider.SchemaMigrationHistory(ctx)
 	if err != nil {
 		return err
@@ -309,13 +319,7 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 			directionStr = "Down"
 		}
 
-		if err != nil {
-			if err.Error() == "cannot migrate to the same version as prior" {
-				fmt.Printf("No %s migrations found\n", directionStr)
-
-				return nil
-			}
-
+		if err != nil && !errors.Is(err, storage.ErrNoAvailableMigrations) && !errors.Is(err, storage.ErrMigrateCurrentVersionSameAsTarget) {
 			return err
 		}
 
@@ -463,7 +467,7 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		encryption = "valid"
 	}
 
-	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\nSchema Encryption Key: %s", storage.SchemaVersionToString(version), upgradeStr, tablesStr, encryption)
+	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\nSchema Encryption Key: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr, encryption)
 
 	return nil
 }

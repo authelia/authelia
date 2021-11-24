@@ -198,6 +198,22 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema up migration target version 2147483640 is greater then the latest version ")
 	s.Assert().Contains(output, " which indicates it doesn't exist")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "history"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "No migration history is available for schemas that not version 1 or above.\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-up"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nName\t\tDescription\n1\t\tInitial Schema")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-down"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nNo Migrations Available")
+	s.Assert().Contains(output, "1\t\tInitial Schema")
 }
 
 func (s *CLISuite) TestStorage01ShouldMigrateUp() {
@@ -209,6 +225,23 @@ func (s *CLISuite) TestStorage01ShouldMigrateUp() {
 
 	s.Regexp(pattern0, output)
 	s.Regexp(pattern1, output)
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "history"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Migration History:\n\nID\tDate\t\t\t\tBefore\tAfter\tAuthelia Version\n")
+	s.Assert().Contains(output, "0\t1")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-up"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nNo Migrations Available")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-down"})
+	s.Assert().NoError(err)
+
+	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nVersion\t\tDescription\n")
+	s.Assert().Contains(output, "1\t\tInitial Schema")
 }
 
 func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
