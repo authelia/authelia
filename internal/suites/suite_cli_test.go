@@ -166,7 +166,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/cli.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern := regexp.MustCompile(`^Schema Version: N/A\nSchema Upgrade Available: yes - version \d+\nSchema Tables: N/A\nSchema Encryption Key: unsupported \(schema version\)`)
@@ -175,45 +175,45 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	patternOutdated := regexp.MustCompile(`Error: schema is version \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--config", "/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--config", "/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Could not check encryption key for validity. The schema version doesn't support encryption.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema migration target version 0 is the same current version 0")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--target", "2147483640", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--target", "2147483640", "--config", "/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema up migration target version 2147483640 is greater then the latest version ")
 	s.Assert().Contains(output, " which indicates it doesn't exist")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "history"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "history"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "No migration history is available for schemas that not version 1 or above.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-up"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-up"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nVersion\t\tDescription\n1\t\tInitial Schema\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-down"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-down"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nNo Migrations Available\n")
 }
 
 func (s *CLISuite) TestStorage01ShouldMigrateUp() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "up"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "up"})
 	s.Require().NoError(err)
 
 	pattern0 := regexp.MustCompile(`"Storage schema migration from \d+ to \d+ is being attempted"`)
@@ -222,23 +222,23 @@ func (s *CLISuite) TestStorage01ShouldMigrateUp() {
 	s.Regexp(pattern0, output)
 	s.Regexp(pattern1, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "up"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "up"})
 	s.Assert().EqualError(err, "exit status 1")
 
 	s.Assert().Contains(output, "Error: schema already up to date\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "history"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "history"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Migration History:\n\nID\tDate\t\t\t\tBefore\tAfter\tAuthelia Version\n")
 	s.Assert().Contains(output, "0\t1")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-up"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-up"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nNo Migrations Available")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-down"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-down"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nVersion\t\tDescription\n")
@@ -246,7 +246,7 @@ func (s *CLISuite) TestStorage01ShouldMigrateUp() {
 }
 
 func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/cli.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification_tokens, totp_configurations, u2f_devices, user_preferences, migrations, encryption\nSchema Encryption Key: valid`)
@@ -300,14 +300,14 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		s.Require().NoError(provider.SaveTOTPConfiguration(ctx, config))
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLines {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
@@ -316,40 +316,40 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 }
 
 func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--new-encryption-key", "apple-apple-apple-apple", "--config", "/config/cli.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--new-encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Completed the encryption key change. Please adjust your configuration to use the new key.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification_tokens, totp_configurations, u2f_devices, user_preferences, migrations, encryption\nSchema Encryption Key: invalid`)
 	s.Assert().Regexp(pattern, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: success.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--encryption-key", "apple-apple-apple-apple", "/config/cli.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: success.\n")
 }
 
 func (s *CLISuite) TestStorage05ShouldMigrateDown() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/cli.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern0 := regexp.MustCompile(`"Storage schema migration from \d+ to \d+ is being attempted"`)
