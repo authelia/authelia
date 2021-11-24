@@ -29,6 +29,7 @@ type IdentityVerification struct {
 	Username  string     `db:"username"`
 }
 
+// ToIdentityVerificationClaim converts the IdentityVerification into a IdentityVerificationClaim,
 func (v IdentityVerification) ToIdentityVerificationClaim() (claim *IdentityVerificationClaim) {
 	return &IdentityVerificationClaim{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -53,6 +54,7 @@ type IdentityVerificationClaim struct {
 	Username string `json:"username"`
 }
 
+// ToIdentityVerification converts the IdentityVerificationClaim into a IdentityVerification,
 func (v IdentityVerificationClaim) ToIdentityVerification() (verification *IdentityVerification, err error) {
 	jti, err := uuid.Parse(v.ID)
 	if err != nil {

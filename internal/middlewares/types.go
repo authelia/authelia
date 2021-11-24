@@ -79,20 +79,6 @@ type IdentityVerificationFinishArgs struct {
 	IsTokenUserValidFunc func(ctx *AutheliaCtx, username string) bool
 }
 
-/*
-// IdentityVerificationClaim custom claim for specifying the action claim.
-// The action can be to register a TOTP device, a U2F device or reset one's password.
-type IdentityVerificationClaim struct {
-	jwt.RegisteredClaims
-
-	// The action this token has been crafted for.
-	Action string `json:"action"`
-	// The user this token has been crafted for.
-	Username string `json:"username"`
-}
-
-*/
-
 // IdentityVerificationFinishBody type of the body received by the finish endpoint.
 type IdentityVerificationFinishBody struct {
 	Token string `json:"token"`
