@@ -1,13 +1,13 @@
 package configuration
 
 import (
-	_ "embed" // Embed config.template.yml.
+	_ "embed" // Embed configuration.template.yml.
 	"fmt"
 	"io/ioutil"
 	"os"
 )
 
-//go:embed config.template.yml
+//go:embed configuration.template.yml
 var template []byte
 
 // EnsureConfigurationExists is an auxiliary function to the main Configuration tools that ensures the Configuration

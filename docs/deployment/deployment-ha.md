@@ -29,7 +29,7 @@ multiple instances to evenly handle the traffic.
 
 Here are the available steps to deploy **Authelia** given 
 the configuration file is **/path/to/your/configuration.yml**. Note that you can
-create your own configuration file from [config.template.yml] located at
+create your own configuration file from [configuration.template.yml] located at
 the root of the repo.
 
 **NOTE**: Prefer using environment variables to set secrets in production otherwise
@@ -55,6 +55,6 @@ an infrastructure on bare metal. We would be more than happy to review any PR on
 
 
 
-[config.template.yml]: https://github.com/authelia/authelia/blob/master/config.template.yml
+[configuration.template.yml]: https://github.com/authelia/authelia/blob/master/configuration.template.yml
 [Getting Started]: ../getting-started.md
 [Kubernetes]: https://kubernetes.io/

@@ -54,6 +54,6 @@ Users must be enrolled via the Duo Admin panel, they cannot enroll a device from
 ### Why don't I have access to the *Push Notification* option?
 
 It's likely that you have not configured **Authelia** correctly. Please read this
-documentation again and be sure you had a look at [config.template.yml](https://github.com/authelia/authelia/blob/master/config.template.yml).
+documentation again and be sure you had a look at [configuration.template.yml](https://github.com/authelia/authelia/blob/master/configuration.template.yml).
 
 [Duo]: https://duo.com/
