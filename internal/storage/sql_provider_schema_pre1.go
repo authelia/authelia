@@ -49,7 +49,7 @@ func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context) (err error) {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
 
-	if err = p.setNewEncryptionCheckValue(ctx, p.key, nil); err != nil {
+	if err = p.setNewEncryptionCheckValue(ctx, &p.key, nil); err != nil {
 		return err
 	}
 
