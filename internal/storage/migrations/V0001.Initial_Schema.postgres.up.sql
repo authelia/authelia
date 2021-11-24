@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
 CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
 CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
 
-CREATE TABLE IF NOT EXISTS identity_verification_tokens (
+CREATE TABLE IF NOT EXISTS identity_verification (
     id SERIAL,
     jti CHAR(36),
     iat TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

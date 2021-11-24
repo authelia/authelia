@@ -78,7 +78,7 @@ type SQLProvider struct {
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
 
-	// Table: identity_verification_tokens.
+	// Table: identity_verification.
 	sqlInsertIdentityVerification       string
 	sqlDeleteIdentityVerification       string
 	sqlSelectExistsIdentityVerification string
