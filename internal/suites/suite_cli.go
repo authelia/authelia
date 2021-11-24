@@ -9,8 +9,6 @@ import (
 var cliSuiteName = "CLI"
 
 func init() {
-	_ = os.MkdirAll("/tmp/authelia/CLISuite/", 0700)
-
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
 		"internal/suites/CLI/docker-compose.yml",
@@ -38,7 +36,7 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.suites.sqlite3")
+		_ = os.Remove("/tmp/db.sqlite3")
 
 		return err
 	}

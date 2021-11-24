@@ -8,4 +8,5 @@ services:
       - './CLI/users.yml:/config/users.yml'
       - './common/ssl:/config/ssl:ro'
       - '/tmp:/tmp'
+    user: ${USER_ID}:${GROUP_ID}
 ...
