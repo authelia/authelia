@@ -4,7 +4,7 @@ services:
   authelia-backend:
     volumes:
       - './CLI/configuration.yml:/config/configuration.yml:ro'
-      - './CLI/cli.yml:/config/cli.yml:ro'
+      - './CLI/storage.yml:/config/configuration.storage.yml:ro'
       - './CLI/users.yml:/config/users.yml'
       - './common/ssl:/config/ssl:ro'
       - '/tmp:/tmp'
