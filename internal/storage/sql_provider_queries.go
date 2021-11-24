@@ -90,6 +90,12 @@ const (
 		SET secret = ?
 		WHERE id = ?;`
 
+	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
+	queryFmtUpdateTOTPConfigurationSecretByUsername = `
+		UPDATE %s
+		SET secret = ?
+		WHERE username = ?;`
+
 	queryFmtUpsertTOTPConfiguration = `
 		REPLACE INTO %s (username, algorithm, digits, totp_period, secret)
 		VALUES (?, ?, ?, ?, ?);`

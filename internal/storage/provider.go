@@ -24,7 +24,7 @@ type Provider interface {
 	SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error)
 	DeleteTOTPConfiguration(ctx context.Context, username string) (err error)
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error)
-	LoadTOTPConfigurations(ctx context.Context, page, limit int) (configs []models.TOTPConfiguration, err error)
+	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
 	UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error)
 
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)

@@ -335,7 +335,7 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 3 of 3 total totp secrets were invalid.\n")
+	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 3 of 3 total TOTP secrets were invalid.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
