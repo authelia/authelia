@@ -310,6 +310,17 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 }
 
+func (s *CLISuite) TestStorage04ShouldMigrateDown() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/cli.yml"})
+	s.Assert().NoError(err)
+
+	pattern0 := regexp.MustCompile(`"Storage schema migration from \d+ to \d+ is being attempted"`)
+	pattern1 := regexp.MustCompile(`"Storage schema migration from \d+ to \d+ is complete"`)
+
+	s.Regexp(pattern0, output)
+	s.Regexp(pattern1, output)
+}
+
 func TestCLISuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
