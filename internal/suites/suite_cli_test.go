@@ -168,14 +168,14 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 func (s *CLISuite) TestStorageShouldShowSchemaInfo() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Schema Version: 1\n")
-	s.Assert().Contains(output, "\nSchema Upgrade Available: no")
-	s.Assert().Contains(output, "\nSchema Tables: authentication_logs, sqlite_sequence, identity_verification_tokens, totp_configurations, u2f_devices, user_preferences, migrations, encryption")
-	s.Assert().Contains(output, "\nSchema Encryption Key: valid")
+
+	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, sqlite_sequence, identity_verification_tokens, totp_configurations, u2f_devices, user_preferences, migrations, encryption\nSchema Encryption Key: valid`)
+
+	s.Assert().Regexp(pattern, output)
 }
 
 func (s *CLISuite) TestStorageShouldExportTOTP() {
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider("/config/db.sqlite", "a_not_so_secure_encryption_key")
 
 	err := provider.StartupCheck()
 	s.Require().NoError(err)
@@ -215,7 +215,7 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 		expectedOutputCSV += fmt.Sprintf("%s,%s,%s,%d,%d,%s\n", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret))
 		expectedOutput += fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d\n", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period)
 
-		err = provider.UpdateTOTPConfigurationSecret(ctx, config)
+		err = provider.SaveTOTPConfiguration(ctx, config)
 		s.Require().NoError(err)
 	}
 

@@ -28,7 +28,7 @@ session:
 storage:
   encryption_key: a_not_so_secure_encryption_key
   local:
-    path: /tmp/db.sqlite
+    path: /config/db.sqlite
 
 access_control:
   default_policy: bypass
