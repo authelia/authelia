@@ -209,13 +209,12 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-up"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nName\t\tDescription\n1\t\tInitial Schema")
+	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nVersion\t\tDescription\n1\t\tInitial Schema\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/cli.yml", "migrate", "list-down"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nNo Migrations Available")
-	s.Assert().Contains(output, "1\t\tInitial Schema")
+	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nNo Migrations Available\n")
 }
 
 func (s *CLISuite) TestStorage01ShouldMigrateUp() {
