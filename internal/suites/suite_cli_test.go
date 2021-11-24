@@ -188,9 +188,9 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 	)
 
 	var (
-		expectedOutput    string
-		expectedOutputCSV = "issuer,username,algorithm,digits,period,secret\n"
-		output            string
+		expectedLines    []string
+		expectedLinesCSV = []string{"issuer,username,algorithm,digits,period,secret"}
+		output           string
 	)
 
 	for _, name := range []string{"john", "mary", "fred"} {
@@ -212,8 +212,8 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 			Period:    key.Period(),
 		}
 
-		expectedOutputCSV += fmt.Sprintf("%s,%s,%s,%d,%d,%s\n", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret))
-		expectedOutput += fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d\n", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period)
+		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s\n", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
+		expectedLines = append(expectedLines, fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d\n", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period))
 
 		err = provider.SaveTOTPConfiguration(ctx, config)
 		s.Require().NoError(err)
@@ -221,11 +221,17 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, expectedOutput)
+
+	for _, expectedLine := range expectedLines {
+		s.Assert().Contains(output, expectedLine)
+	}
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, expectedOutputCSV)
+
+	for _, expectedLine := range expectedLinesCSV {
+		s.Assert().Contains(output, expectedLine)
+	}
 }
 
 func TestCLISuite(t *testing.T) {
