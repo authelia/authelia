@@ -17,36 +17,37 @@ import (
 func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionKey string) (err error) {
 	tx, err := p.db.Beginx()
 	if err != nil {
-		return err
+		return fmt.Errorf("error beginning transaction to change encryption key: %w", err)
 	}
 
 	key := sha256.Sum256([]byte(encryptionKey))
 
+	var configs []models.TOTPConfiguration
+
 	for page := 0; true; page++ {
-		configs, err := p.LoadTOTPConfigurations(ctx, page, 10)
-		if err != nil {
+		if configs, err = p.LoadTOTPConfigurations(ctx, 10, page); err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("%v: %w", rollbackErr, err)
+				return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 			}
 
-			return err
+			return fmt.Errorf("rollback due to error: %w", err)
 		}
 
 		for _, config := range configs {
 			if config.Secret, err = utils.Encrypt(config.Secret, &key); err != nil {
 				if rollbackErr := tx.Rollback(); rollbackErr != nil {
-					return fmt.Errorf("%v: %w", rollbackErr, err)
+					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 				}
 
-				return err
+				return fmt.Errorf("rollback due to error: %w", err)
 			}
 
 			if err = p.UpdateTOTPConfigurationSecret(ctx, config); err != nil {
 				if rollbackErr := tx.Rollback(); rollbackErr != nil {
-					return fmt.Errorf("%v: %w", rollbackErr, err)
+					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 				}
 
-				return err
+				return fmt.Errorf("rollback due to error: %w", err)
 			}
 		}
 
@@ -57,10 +58,10 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 
 	if err = p.setNewEncryptionCheckValue(ctx, &key, tx); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return fmt.Errorf("%v: %w", rollbackErr, err)
+			return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 		}
 
-		return err
+		return fmt.Errorf("rollback due to error: %w", err)
 	}
 
 	return tx.Commit()
@@ -79,8 +80,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 
 	var errs []error
 
-	_, err = p.getEncryptionValue(ctx, encryptionNameCheck)
-	if err != nil {
+	if _, err = p.getEncryptionValue(ctx, encryptionNameCheck); err != nil {
 		errs = append(errs, ErrSchemaEncryptionInvalidKey)
 	}
 
@@ -94,12 +94,13 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 
 		pageSize := 10
 
+		var rows *sqlx.Rows
+
 		for page := 0; true; page++ {
-			rows, err := p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, pageSize, pageSize*page)
-			if err != nil {
+			if rows, err = p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, pageSize, pageSize*page); err != nil {
 				_ = rows.Close()
 
-				return err
+				return fmt.Errorf("error selecting TOTP configurations: %w", err)
 			}
 
 			row = 0
@@ -108,14 +109,12 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 				total++
 				row++
 
-				err = rows.StructScan(&config)
-				if err != nil {
+				if err = rows.StructScan(&config); err != nil {
 					_ = rows.Close()
-					return err
+					return fmt.Errorf("error scanning TOTP configuration to struct: %w", err)
 				}
 
-				_, err := p.decrypt(config.Secret)
-				if err != nil {
+				if _, err = p.decrypt(config.Secret); err != nil {
 					invalid++
 				}
 			}
@@ -128,7 +127,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 		}
 
 		if invalid != 0 {
-			errs = append(errs, fmt.Errorf("%d of %d total totp secrets were invalid", invalid, total))
+			errs = append(errs, fmt.Errorf("%d of %d total TOTP secrets were invalid", invalid, total))
 		}
 	}
 
@@ -150,11 +149,11 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 }
 
 func (p SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {
-	return utils.Encrypt(clearText, p.key)
+	return utils.Encrypt(clearText, &p.key)
 }
 
 func (p SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
-	return utils.Decrypt(cipherText, p.key)
+	return utils.Decrypt(cipherText, &p.key)
 }
 
 func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (value []byte, err error) {

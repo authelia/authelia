@@ -224,7 +224,7 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 	var configurations []models.TOTPConfiguration
 
 	for page := 0; true; page++ {
-		configurations, err = provider.LoadTOTPConfigurations(ctx, page, limit)
+		configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page)
 		if err != nil {
 			return err
 		}

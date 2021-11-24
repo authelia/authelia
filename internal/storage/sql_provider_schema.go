@@ -218,7 +218,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration SchemaMi
 		}
 
 		// Add the schema encryption value if upgrading to v1.
-		if err = p.setNewEncryptionCheckValue(ctx, p.key, nil); err != nil {
+		if err = p.setNewEncryptionCheckValue(ctx, &p.key, nil); err != nil {
 			return err
 		}
 	}
