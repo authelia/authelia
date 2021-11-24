@@ -1,4 +1,6 @@
+---
 storage:
   encryption_key: a_cli_encryption_key_which_isnt_secure
   local:
     path: /tmp/db.cli.sqlite3
+...
