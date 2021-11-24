@@ -131,16 +131,6 @@ var ValidKeys = []string{
 	"log.file_path",
 	"log.keep_stdout",
 
-	// TODO: DEPRECATED START. Remove in 4.33.0.
-	"host",
-	"port",
-	"tls_key",
-	"tls_cert",
-	"log_level",
-	"log_format",
-	"log_file_path",
-	// TODO: DEPRECATED END. Remove in 4.33.0.
-
 	// Server Keys.
 	"server.host",
 	"server.port",
@@ -315,8 +305,15 @@ var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
 	"notifier.smtp.disable_verify_cert":               "notifier.smtp.tls.skip_verify",
-	"logs_file_path":                                  "log.file_path",
 	"logs_level":                                      "log.level",
+	"logs_file_path":                                  "log.file_path",
+	"log_level":                                       "log.level",
+	"log_file_path":                                   "log.file_path",
+	"log_format":                                      "log.format",
+	"host":                                            "server.host",
+	"port":                                            "server.port",
+	"tls_key":                                         "server.tls.key",
+	"tls_cert":                                        "server.tls.certificate",
 }
 
 var specificErrorKeys = map[string]string{
