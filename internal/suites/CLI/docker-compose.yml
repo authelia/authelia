@@ -6,4 +6,5 @@ services:
       - './CLI/configuration.yml:/config/configuration.yml:ro'
       - './CLI/users.yml:/config/users.yml'
       - './common/ssl:/config/ssl:ro'
+      - '/tmp:/tmp'
 ...
