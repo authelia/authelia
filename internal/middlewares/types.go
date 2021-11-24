@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -80,6 +79,7 @@ type IdentityVerificationFinishArgs struct {
 	IsTokenUserValidFunc func(ctx *AutheliaCtx, username string) bool
 }
 
+/*
 // IdentityVerificationClaim custom claim for specifying the action claim.
 // The action can be to register a TOTP device, a U2F device or reset one's password.
 type IdentityVerificationClaim struct {
@@ -90,6 +90,8 @@ type IdentityVerificationClaim struct {
 	// The user this token has been crafted for.
 	Username string `json:"username"`
 }
+
+*/
 
 // IdentityVerificationFinishBody type of the body received by the finish endpoint.
 type IdentityVerificationFinishBody struct {

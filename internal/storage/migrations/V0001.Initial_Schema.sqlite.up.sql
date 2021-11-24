@@ -10,10 +10,14 @@ CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, user
 
 CREATE TABLE IF NOT EXISTS identity_verification_tokens (
     id INTEGER,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    token VARCHAR(512),
+    jti VARCHAR(36),
+    iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    exp TIMESTAMP NOT NULL,
+    used TIMESTAMP NULL DEFAULT NULL,
+    username VARCHAR(100) NOT NULL,
+    action VARCHAR(50) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE (token)
+    UNIQUE (jti)
 );
 
 CREATE TABLE IF NOT EXISTS totp_configurations (

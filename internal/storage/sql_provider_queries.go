@@ -60,16 +60,17 @@ const (
 		SELECT EXISTS (
 			SELECT id
 			FROM %s
-			WHERE token = ?
+			WHERE jti = ? AND exp <= NOW() AND used IS NULL
 		);`
 
 	queryFmtInsertIdentityVerification = `
-		INSERT INTO %s (token)
-		VALUES (?);`
+		INSERT INTO %s (jti, iat, exp, username, action)
+		VALUES (?, ?, ?, ?, ?);`
 
 	queryFmtDeleteIdentityVerification = `
-		DELETE FROM %s
-		WHERE token = ?;`
+		UPDATE %s
+		SET used = NOW()
+		WHERE jti = ?;`
 )
 
 const (

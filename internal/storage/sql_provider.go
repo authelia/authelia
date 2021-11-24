@@ -206,21 +206,21 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 
 // SaveIdentityVerification save an identity verification record to the database.
 func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification, verification.Token)
+	_, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification, verification.JTI, verification.IssuedAt, verification.ExpiresAt, verification.Username, verification.Action)
 
 	return err
 }
 
 // RemoveIdentityVerification remove an identity verification record from the database.
-func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, token string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, token)
+func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, jti string) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, jti)
 
 	return err
 }
 
 // FindIdentityVerification checks if an identity verification record is in the database and active.
-func (p *SQLProvider) FindIdentityVerification(ctx context.Context, token string) (found bool, err error) {
-	err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, token)
+func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
+	err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, jti)
 	if err != nil {
 		return false, err
 	}
