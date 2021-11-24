@@ -60,7 +60,7 @@ const (
 		SELECT EXISTS (
 			SELECT id
 			FROM %s
-			WHERE jti = ? AND exp <= NOW() AND used IS NULL
+			WHERE jti = ? AND exp <= CURRENT_TIMESTAMP AND used IS NULL
 		);`
 
 	queryFmtInsertIdentityVerification = `
@@ -69,7 +69,7 @@ const (
 
 	queryFmtDeleteIdentityVerification = `
 		UPDATE %s
-		SET used = NOW()
+		SET used = CURRENT_TIMESTAMP
 		WHERE jti = ?;`
 )
 
