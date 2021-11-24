@@ -221,11 +221,11 @@ func (s *CLISuite) TestStorageShouldExportTOTP() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Equal(expectedOutput, output)
+	s.Assert().Contains(output, expectedOutput)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Equal(expectedOutputCSV, output)
+	s.Assert().Contains(output, expectedOutputCSV)
 }
 
 func TestCLISuite(t *testing.T) {
