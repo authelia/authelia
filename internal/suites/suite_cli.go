@@ -9,6 +9,8 @@ import (
 var cliSuiteName = "CLI"
 
 func init() {
+	_ = os.MkdirAll("/tmp/authelia/CLISuite/", 0700)
+
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
 		"internal/suites/CLI/docker-compose.yml",
