@@ -135,3 +135,20 @@ const (
 		LIMIT ?
 		OFFSET ?;`
 )
+
+const (
+	queryFmtSelectEncryptionValue = `
+		SELECT (value)
+        FROM %s
+        WHERE name = ?`
+
+	queryFmtUpsertEncryptionValue = `
+		REPLACE INTO %s (name, value)
+		VALUES (?, ?);`
+
+	queryFmtPostgresUpsertEncryptionValue = `
+		INSERT INTO %s (name, value)
+		VALUES ($1, $2)
+			ON CONFLICT (name)
+			DO UPDATE SET value=$2;`
+)

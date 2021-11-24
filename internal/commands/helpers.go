@@ -16,16 +16,14 @@ import (
 func getStorageProvider() (provider storage.Provider) {
 	switch {
 	case config.Storage.PostgreSQL != nil:
-		provider = storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL, config.Storage.EncryptionKey)
+		return storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL, config.Storage.EncryptionKey)
 	case config.Storage.MySQL != nil:
-		provider = storage.NewMySQLProvider(*config.Storage.MySQL, config.Storage.EncryptionKey)
+		return storage.NewMySQLProvider(*config.Storage.MySQL, config.Storage.EncryptionKey)
 	case config.Storage.Local != nil:
-		provider = storage.NewSQLiteProvider(config.Storage.Local.Path, config.Storage.EncryptionKey)
+		return storage.NewSQLiteProvider(config.Storage.Local.Path, config.Storage.EncryptionKey)
 	default:
 		return nil
 	}
-
-	return provider
 }
 
 func getProviders() (providers middlewares.Providers, warnings []error, errors []error) {

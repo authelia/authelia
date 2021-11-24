@@ -253,6 +253,20 @@ func (mr *MockProviderMockRecorder) SchemaEncryptionChangeKey(arg0, arg1 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaEncryptionChangeKey", reflect.TypeOf((*MockProvider)(nil).SchemaEncryptionChangeKey), arg0, arg1)
 }
 
+// SchemaEncryptionCheckKey mocks base method.
+func (m *MockProvider) SchemaEncryptionCheckKey(arg0 context.Context, arg1 bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaEncryptionCheckKey", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SchemaEncryptionCheckKey indicates an expected call of SchemaEncryptionCheckKey.
+func (mr *MockProviderMockRecorder) SchemaEncryptionCheckKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaEncryptionCheckKey", reflect.TypeOf((*MockProvider)(nil).SchemaEncryptionCheckKey), arg0, arg1)
+}
+
 // SchemaLatestVersion mocks base method.
 func (m *MockProvider) SchemaLatestVersion() (int, error) {
 	m.ctrl.T.Helper()

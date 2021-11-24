@@ -12,8 +12,13 @@ const (
 	tableDUODevices           = "duo_devices"
 	tableAuthenticationLogs   = "authentication_logs"
 	tableMigrations           = "migrations"
+	tableEncryption           = "encryption"
 
 	tablePrefixBackup = "_bkp_"
+)
+
+const (
+	encryptionNameCheck = "check"
 )
 
 // WARNING: Do not change/remove these consts. They are used for Pre1 migrations.

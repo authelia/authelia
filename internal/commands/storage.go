@@ -47,7 +47,22 @@ func newStorageEncryptionCmd() (cmd *cobra.Command) {
 		Short: "Manages encryption",
 	}
 
-	cmd.AddCommand(newStorageEncryptionChangeKeyCmd())
+	cmd.AddCommand(
+		newStorageEncryptionChangeKeyCmd(),
+		newStorageEncryptionCheckCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "check",
+		Short: "Checks the encryption key against the database data",
+		RunE:  storageSchemaEncryptionCheckRunE,
+	}
+
+	cmd.Flags().Bool("verbose", false, "enables verbose checking of every row of encrypted data")
 
 	return cmd
 }

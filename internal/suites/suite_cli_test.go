@@ -40,7 +40,7 @@ func (s *CLISuite) SetupTest() {
 
 func (s *CLISuite) TestShouldPrintBuildInformation() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "build-info"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Last Tag: ")
 	s.Assert().Contains(output, "State: ")
 	s.Assert().Contains(output, "Branch: ")
@@ -55,13 +55,13 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 
 func (s *CLISuite) TestShouldPrintVersion() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "--version"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "authelia version")
 }
 
 func (s *CLISuite) TestShouldValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "/config/configuration.yml"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Configuration parsed successfully without errors")
 }
 
@@ -73,33 +73,33 @@ func (s *CLISuite) TestShouldFailValidateConfig() {
 
 func (s *CLISuite) TestShouldHashPasswordArgon2id() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "hash-password", "test", "-m", "32", "-s", "test1234"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Password hash: $argon2id$v=19$m=32768,t=1,p=8")
 }
 
 func (s *CLISuite) TestShouldHashPasswordSHA512() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "hash-password", "test", "-z"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Password hash: $6$rounds=50000")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "127.0.0.1", "--dir", "/tmp/"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithStartDate() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--start-date", "'Jan 1 15:04:05 2011'"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
@@ -112,14 +112,14 @@ func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithStartDate() {
 
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ca"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ed25519"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
@@ -132,30 +132,39 @@ func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P224"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P256"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P384"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P521"})
-	s.Assert().Nil(err)
+	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+}
+
+func (s *CLISuite) TestStorageShouldShowSchemaInfo() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Schema Version: N/A\n")
+	s.Assert().Contains(output, "\nSchema Upgrade Available: yes")
+	s.Assert().Contains(output, "\nSchema Tables: N/A")
+	s.Assert().Contains(output, "\nSchema Encryption Key: unsupported (schema version)")
 }
 
 func TestCLISuite(t *testing.T) {
