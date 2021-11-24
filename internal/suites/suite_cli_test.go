@@ -166,8 +166,8 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
-	err := os.Remove("/tmp/db.sqlite3")
-	s.Assert().NoError(err)
+	provider := storage.NewSQLiteProvider("/tmp/db.suites.sqlite3", "a_cli_encryption_key_which_isnt_secure")
+	s.Assert().NoError(provider.Close())
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/cli.yml"})
 	s.Assert().NoError(err)
@@ -221,14 +221,14 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_cli_encryption_key_which_isnt_secure")
+	provider := storage.NewSQLiteProvider("/tmp/db.suites.sqlite3", "a_cli_encryption_key_which_isnt_secure")
 
-	err := provider.StartupCheck()
-	s.Require().NoError(err)
+	s.Require().NoError(provider.StartupCheck())
 
 	ctx := context.Background()
 
 	var (
+		err    error
 		key    *otp.Key
 		config models.TOTPConfiguration
 	)
@@ -263,8 +263,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
 		expectedLines = append(expectedLines, fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period))
 
-		err = provider.SaveTOTPConfiguration(ctx, config)
-		s.Require().NoError(err)
+		s.Require().NoError(provider.SaveTOTPConfiguration(ctx, config))
 	}
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/cli.yml"})

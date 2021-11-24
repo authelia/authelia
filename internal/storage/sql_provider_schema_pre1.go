@@ -294,6 +294,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 		tableDUODevices,
 		tableUserPreferences,
 		tableAuthenticationLogs,
+		tableEncryption,
 	}
 
 	if err = p.schemaMigratePre1Rename(ctx, tables, tablesRename); err != nil {
