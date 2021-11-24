@@ -44,5 +44,5 @@ access_control:
 
 notifier:
   filesystem:
-    filename: /config/notification.txt
+    filename: /tmp/notification.txt
 ...
