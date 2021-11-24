@@ -58,3 +58,11 @@ CREATE TABLE IF NOT EXISTS migrations (
     application_version VARCHAR(128) NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS encryption (
+  id INTEGER,
+  name VARCHAR(100),
+  value BLOB NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (name)
+);

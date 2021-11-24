@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"strconv"
 	"time"
@@ -64,8 +63,6 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 		return -1, nil
 	}
 
-	// TODO: Decide if we want to support external tables.
-	// return -2, ErrUnknownSchemaState
 	return 0, nil
 }
 
@@ -78,52 +75,6 @@ func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *mod
 	}
 
 	return migration, nil
-}
-
-// SchemaEncryptionChangeKey uses the currently configured key to decrypt values in the database and the key provided
-// by this command to encrypt the values again and update them using a transaction.
-func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionKey string) (err error) {
-	tx, err := p.db.Beginx()
-	if err != nil {
-		return err
-	}
-
-	key := sha256.Sum256([]byte(encryptionKey))
-
-	for page := 0; true; page++ {
-		configs, err := p.LoadTOTPConfigurations(ctx, page, 10)
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("%v: %w", rollbackErr, err)
-			}
-
-			return err
-		}
-
-		for _, config := range configs {
-			if config.Secret, err = utils.Encrypt(config.Secret, &key); err != nil {
-				if rollbackErr := tx.Rollback(); rollbackErr != nil {
-					return fmt.Errorf("%v: %w", rollbackErr, err)
-				}
-
-				return err
-			}
-
-			if err = p.UpdateTOTPConfigurationSecret(ctx, config); err != nil {
-				if rollbackErr := tx.Rollback(); rollbackErr != nil {
-					return fmt.Errorf("%v: %w", rollbackErr, err)
-				}
-
-				return err
-			}
-		}
-
-		if len(configs) != 10 {
-			break
-		}
-	}
-
-	return tx.Commit()
 }
 
 // SchemaMigrationHistory returns migration history rows.
@@ -260,7 +211,18 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration SchemaMi
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
 
-	// Skip the migration history insertion in a migration to v0.
+	if migration.Version == 1 {
+		// Skip the migration history insertion in a migration to v0.
+		if !migration.Up {
+			return nil
+		}
+
+		// Add the schema encryption value if upgrading to v1.
+		if err = p.setNewEncryptionCheckValue(ctx, p.key, nil); err != nil {
+			return err
+		}
+	}
+
 	if migration.Version == 1 && !migration.Up {
 		return nil
 	}

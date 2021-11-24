@@ -34,11 +34,15 @@ type Provider interface {
 	SchemaVersion(ctx context.Context) (version int, err error)
 	SchemaMigrate(ctx context.Context, up bool, version int) (err error)
 	SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error)
+
 	SchemaEncryptionChangeKey(ctx context.Context, encryptionKey string) (err error)
+	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)
 
 	SchemaLatestVersion() (version int, err error)
 	SchemaMigrationsUp(ctx context.Context, version int) (migrations []SchemaMigration, err error)
 	SchemaMigrationsDown(ctx context.Context, version int) (migrations []SchemaMigration, err error)
+
+	Close() (err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

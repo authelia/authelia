@@ -4,3 +4,4 @@ DROP TABLE IF EXISTS totp_configurations;
 DROP TABLE IF EXISTS u2f_devices;
 DROP TABLE IF EXISTS user_preferences;
 DROP TABLE IF EXISTS migrations;
+DROP TABLE IF EXISTS encryption;

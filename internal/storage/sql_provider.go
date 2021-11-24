@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
@@ -51,6 +50,9 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
 		sqlSelectLatestMigration: fmt.Sprintf(queryFmtSelectLatestMigration, tableMigrations),
+
+		sqlUpsertEncryptionValue: fmt.Sprintf(queryFmtUpsertEncryptionValue, tableEncryption),
+		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
 
 		sqlFmtRenameTable: queryFmtRenameTable,
 	}
@@ -102,9 +104,18 @@ type SQLProvider struct {
 	sqlSelectMigrations      string
 	sqlSelectLatestMigration string
 
+	// Table: encryption.
+	sqlUpsertEncryptionValue string
+	sqlSelectEncryptionValue string
+
 	// Utility.
 	sqlSelectExistingTables string
 	sqlFmtRenameTable       string
+}
+
+// Close the underlying database connection.
+func (p *SQLProvider) Close() (err error) {
+	return p.db.Close()
 }
 
 // StartupCheck implements the provider startup check interface.
@@ -131,6 +142,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
+	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
+		return err
+	}
+
 	err = p.SchemaMigrate(ctx, true, SchemaLatest)
 
 	switch err {
@@ -142,14 +157,6 @@ func (p *SQLProvider) StartupCheck() (err error) {
 	default:
 		return err
 	}
-}
-
-func (p SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {
-	return utils.Encrypt(clearText, p.key)
-}
-
-func (p SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
-	return utils.Decrypt(cipherText, p.key)
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.

@@ -102,6 +102,42 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
+func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	provider = getStorageProvider()
+	if provider == nil {
+		return errNoStorageProvider
+	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	verbose, err := cmd.Flags().GetBool("verbose")
+	if err != nil {
+		return err
+	}
+
+	if err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
+		switch {
+		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
+			fmt.Printf("Could not check encryption key for validity. The schema version doesn't support encryption.\n")
+		case errors.Is(err, storage.ErrSchemaEncryptionInvalidKey):
+			fmt.Printf("Encryption key validation: failed.\n\nError: %v.\n", err)
+		default:
+			fmt.Printf("Could not check encryption key for validity.\n\nError: %v.\n", err)
+		}
+	} else {
+		fmt.Println("Encryption key validation: success.")
+	}
+
+	return nil
+}
+
 func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
@@ -109,9 +145,13 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	)
 
 	provider = getStorageProvider()
-	if provider != nil {
+	if provider == nil {
 		return errNoStorageProvider
 	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
 
 	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
 		return err
@@ -155,9 +195,13 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 	)
 
 	provider = getStorageProvider()
-	if provider != nil {
+	if provider == nil {
 		return errNoStorageProvider
 	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
 
 	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
 		return err
@@ -213,8 +257,22 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	)
 
 	provider = getStorageProvider()
-	if provider != nil {
+	if provider == nil {
 		return errNoStorageProvider
+	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	version, err := provider.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+
+	if version <= 0 {
+		fmt.Println("No migration history is available for schemas that not version 1 or above.")
+		return
 	}
 
 	migrations, err := provider.SchemaMigrationHistory(ctx)
@@ -245,9 +303,13 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 		)
 
 		provider = getStorageProvider()
-		if provider != nil {
+		if provider == nil {
 			return errNoStorageProvider
 		}
+
+		defer func() {
+			_ = provider.Close()
+		}()
 
 		if up {
 			migrations, err = provider.SchemaMigrationsUp(ctx, 0)
@@ -257,13 +319,7 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 			directionStr = "Down"
 		}
 
-		if err != nil {
-			if err.Error() == "cannot migrate to the same version as prior" {
-				fmt.Printf("No %s migrations found\n", directionStr)
-
-				return nil
-			}
-
+		if err != nil && !errors.Is(err, storage.ErrNoAvailableMigrations) && !errors.Is(err, storage.ErrMigrateCurrentVersionSameAsTarget) {
 			return err
 		}
 
@@ -289,9 +345,13 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 		)
 
 		provider = getStorageProvider()
-		if provider != nil {
+		if provider == nil {
 			return errNoStorageProvider
 		}
+
+		defer func() {
+			_ = provider.Close()
+		}()
 
 		target, err := cmd.Flags().GetInt("target")
 		if err != nil {
@@ -360,9 +420,13 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	)
 
 	provider = getStorageProvider()
-	if provider != nil {
+	if provider == nil {
 		return errNoStorageProvider
 	}
+
+	defer func() {
+		_ = provider.Close()
+	}()
 
 	version, err := provider.SchemaVersion(ctx)
 	if err != nil && err.Error() != "unknown schema state" {
@@ -391,7 +455,19 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		upgradeStr = "no"
 	}
 
-	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr)
+	var encryption string
+
+	if err = provider.SchemaEncryptionCheckKey(ctx, false); err != nil {
+		if errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported) {
+			encryption = "unsupported (schema version)"
+		} else {
+			encryption = "invalid"
+		}
+	} else {
+		encryption = "valid"
+	}
+
+	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\nSchema Encryption Key: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr, encryption)
 
 	return nil
 }
