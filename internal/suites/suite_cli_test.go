@@ -166,6 +166,8 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
+	_ = os.Remove("/tmp.db.suites.sqlite3")
+
 	provider := storage.NewSQLiteProvider("/tmp/db.suites.sqlite3", "a_cli_encryption_key_which_isnt_secure")
 	s.Assert().NoError(provider.Close())
 
