@@ -57,6 +57,17 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("failed"))
 
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "test",
+			Successful: false,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthType1FA,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -64,7 +75,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Failed to perform 1FA check user password for user 'test': failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Unsuccessful 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -73,6 +84,17 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("invalid credentials"))
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "test",
+			Successful: false,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthType1FA,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
