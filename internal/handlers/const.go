@@ -46,6 +46,18 @@ const (
 )
 
 const (
+	logFmtErrParseRequestBody     = "Failed to parse %s request body: %+v"
+	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s': %+v"
+	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s': %+v"
+	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s': %+v"
+	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s': %+v"
+	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s': %+v"
+	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s': %+v"
+	logFmtErr1FACheckUserPassword = "Failed to perform 1FA check user password for user '%s': %+v"
+	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+)
+
+const (
 	testInactivity     = "10"
 	testRedirectionURL = "http://redirection.local"
 	testResultAllow    = "allow"

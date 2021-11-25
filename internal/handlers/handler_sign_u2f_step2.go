@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -10,45 +10,55 @@ import (
 // SecondFactorU2FSignPost handler for completing a signing request.
 func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
-		var requestBody signU2FRequestBody
-		err := ctx.ParseBody(&requestBody)
+		var (
+			requestBody signU2FRequestBody
+			err         error
+		)
 
-		if err != nil {
-			ctx.Error(err, messageMFAValidationFailed)
+		if err := ctx.ParseBody(&requestBody); err != nil {
+			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeU2F, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
 		userSession := ctx.GetSession()
 		if userSession.U2FChallenge == nil {
-			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("U2F signing has not been initiated yet (no challenge)"),
-				false, nil, userSession.Username, regulation.AuthTypeFIDO)
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, errors.New("session did not contain a challenge"))
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
 		if userSession.U2FRegistration == nil {
-			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("U2F signing has not been initiated yet (no registration)"),
-				false, nil, userSession.Username, regulation.AuthTypeFIDO)
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, errors.New("session did not contain a registration"))
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
-		err = u2fVerifier.Verify(
-			userSession.U2FRegistration.KeyHandle,
-			userSession.U2FRegistration.PublicKey,
-			requestBody.SignResponse,
-			*userSession.U2FChallenge)
+		if err = u2fVerifier.Verify(userSession.U2FRegistration.KeyHandle, userSession.U2FRegistration.PublicKey,
+			requestBody.SignResponse, *userSession.U2FChallenge); err != nil {
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, err)
 
-		if err != nil {
-			_ = handleAuthenticationAttempt(ctx, err, false, nil, userSession.Username, regulation.AuthTypeFIDO)
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
 		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeU2F, userSession.Username, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
-		if err = handleAuthenticationAttempt(ctx, err, true, nil, userSession.Username, regulation.AuthTypeFIDO); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %w", err), messageMFAValidationFailed)
+		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeU2F, nil); err != nil {
+			respondUnauthorized(ctx, messageMFAValidationFailed)
 			return
 		}
 
@@ -56,7 +66,10 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update authentication level with U2F: %s", err), messageMFAValidationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeU2F, userSession.Username, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 

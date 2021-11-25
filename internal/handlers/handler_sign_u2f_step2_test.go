@@ -50,7 +50,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthTypeFIDO,
+			Type:       regulation.AuthTypeU2F,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
@@ -82,7 +82,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotReturnRedirectURL() {
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthTypeFIDO,
+			Type:       regulation.AuthTypeU2F,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
@@ -110,7 +110,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToSafeTargetURL() {
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthTypeFIDO,
+			Type:       regulation.AuthTypeU2F,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
@@ -141,7 +141,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotRedirectToUnsafeURL() {
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthTypeFIDO,
+			Type:       regulation.AuthTypeU2F,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
@@ -170,7 +170,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRegenerateSessionForPreventingSessi
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthTypeFIDO,
+			Type:       regulation.AuthTypeU2F,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 

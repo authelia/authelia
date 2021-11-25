@@ -189,13 +189,13 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 	err := json.Unmarshal(c.PostBody(), &value)
 
 	if err != nil {
-		return fmt.Errorf("Unable to parse body: %s", err)
+		return fmt.Errorf("unable to parse body: %w", err)
 	}
 
 	valid, err := govalidator.ValidateStruct(value)
 
 	if err != nil {
-		return fmt.Errorf("Unable to validate body: %s", err)
+		return fmt.Errorf("unable to validate body: %w", err)
 	}
 
 	if !valid {
@@ -209,7 +209,7 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 	b, err := json.Marshal(OKResponse{Status: "OK", Data: value})
 	if err != nil {
-		return fmt.Errorf("Unable to marshal JSON body")
+		return fmt.Errorf("unable to marshal JSON body: %w", err)
 	}
 
 	c.SetContentType(contentTypeApplicationJSON)

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"math"
 	"math/rand"
 	"sync"
@@ -72,35 +72,49 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		bodyJSON := firstFactorRequestBody{}
 
 		if err := ctx.ParseBody(&bodyJSON); err != nil {
-			handleAuthenticationUnauthorized(ctx, err, messageAuthenticationFailed)
+			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
-		bannedUntil, err := ctx.Providers.Regulator.Regulate(ctx, bodyJSON.Username)
-		if err != nil {
-			if err == regulation.ErrUserIsBanned {
-				_ = handleAuthenticationAttempt(ctx, nil, false, &bannedUntil, bodyJSON.Username, regulation.AuthType1FA)
+		if bannedUntil, err := ctx.Providers.Regulator.Regulate(ctx, bodyJSON.Username); err != nil {
+			if errors.Is(err, regulation.ErrUserIsBanned) {
+				_ = markAuthenticationAttempt(ctx, false, &bannedUntil, bodyJSON.Username, regulation.AuthType1FA, nil)
+
+				respondUnauthorized(ctx, messageAuthenticationFailed)
+
 				return
 			}
 
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regulate authentication: %w", err), messageAuthenticationFailed)
+			ctx.Logger.Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, bodyJSON.Username, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
 
 			return
 		}
 
 		userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(bodyJSON.Username, bodyJSON.Password)
 		if err != nil {
-			_ = handleAuthenticationAttempt(ctx, err, false, nil, bodyJSON.Username, regulation.AuthType1FA)
+			ctx.Logger.Errorf(logFmtErr1FACheckUserPassword, bodyJSON.Username, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
 		if !userPasswordOk {
-			_ = handleAuthenticationAttempt(ctx, nil, false, nil, bodyJSON.Username, regulation.AuthType1FA)
+			_ = markAuthenticationAttempt(ctx, false, nil, bodyJSON.Username, regulation.AuthType1FA, nil)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
-		if err = handleAuthenticationAttempt(ctx, nil, true, nil, bodyJSON.Username, regulation.AuthType1FA); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %w", err), messageAuthenticationFailed)
+		if err = markAuthenticationAttempt(ctx, true, nil, bodyJSON.Username, regulation.AuthType1FA, nil); err != nil {
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
@@ -110,12 +124,18 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to reset the session for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionReset, regulation.AuthType1FA, bodyJSON.Username, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
 		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
@@ -126,7 +146,10 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		if keepMeLoggedIn {
 			err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
 			if err != nil {
-				handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update expiration timer for user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
+				ctx.Logger.Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username, err)
+
+				respondUnauthorized(ctx, messageAuthenticationFailed)
+
 				return
 			}
 		}
@@ -134,11 +157,14 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		// Get the details of the given user from the user provider.
 		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("error while retrieving details from user %s: %s", bodyJSON.Username, err.Error()), messageAuthenticationFailed)
+			ctx.Logger.Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 
-		ctx.Logger.Tracef("Details for user %s => groups: %s, emails %s", bodyJSON.Username, userDetails.Groups, userDetails.Emails)
+		ctx.Logger.Tracef(logFmtTraceProfileDetails, bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
 		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
 
@@ -147,7 +173,10 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to save session of user %s", bodyJSON.Username), messageAuthenticationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, bodyJSON.Username, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
 			return
 		}
 

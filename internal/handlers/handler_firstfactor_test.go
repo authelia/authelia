@@ -36,7 +36,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
 	// No body
-	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -47,7 +47,7 @@ func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to validate body: password: non zero value required", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -57,17 +57,6 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("failed"))
 
-	s.mock.StorageProviderMock.
-		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
-			Username:   "test",
-			Successful: false,
-			Banned:     false,
-			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
-
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -75,15 +64,30 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "Error during 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Failed to perform 1FA check user password for user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+}
+
+func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderCheckPasswordError() {
+	s.mock.UserProviderMock.
+		EXPECT().
+		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+		Return(false, fmt.Errorf("invalid credentials"))
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPost(0, false)(s.mock.Ctx)
 }
 
 func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCredentials() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
-		Return(false, fmt.Errorf("Invalid credentials"))
+		Return(false, nil)
 
 	s.mock.StorageProviderMock.
 		EXPECT().
@@ -119,7 +123,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq("test")).
-		Return(nil, fmt.Errorf("Failed"))
+		Return(nil, fmt.Errorf("failed"))
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -128,7 +132,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "error while retrieving details from user test: Failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Could not obtain profile details during 1FA authentication for user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -150,7 +154,7 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	}`)
 	FirstFactorPost(0, false)(s.mock.Ctx)
 
-	assert.Equal(s.T(), "unable to mark authentication: failed", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "Unable to mark 1FA authentication attempt by user 'test': failed", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
