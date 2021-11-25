@@ -53,7 +53,6 @@ const (
 	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s': %+v"
 	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s': %+v"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s': %+v"
-	logFmtErr1FACheckUserPassword = "Failed to perform 1FA check user password for user '%s': %+v"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
 )
 

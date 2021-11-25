@@ -97,7 +97,7 @@ func FirstFactorPost(msInitialDelay time.Duration, delayEnabled bool) middleware
 
 		userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(bodyJSON.Username, bodyJSON.Password)
 		if err != nil {
-			ctx.Logger.Errorf(logFmtErr1FACheckUserPassword, bodyJSON.Username, err)
+			_ = markAuthenticationAttempt(ctx, false, nil, bodyJSON.Username, regulation.AuthType1FA, err)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
