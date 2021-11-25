@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     algorithm VARCHAR(6) NOT NULL DEFAULT 'SHA1',
     digits INTEGER(1) NOT NULL DEFAULT 6,
     totp_period INTEGER NOT NULL DEFAULT 30,
-    secret VARCHAR(64) NOT NULL,
+    secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username)
 );
@@ -51,4 +51,12 @@ CREATE TABLE IF NOT EXISTS migrations (
     version_after INTEGER NOT NULL,
     application_version VARCHAR(128) NOT NULL,
     PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS encryption (
+  id INTEGER,
+  name VARCHAR(100),
+  value BLOB NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (name)
 );

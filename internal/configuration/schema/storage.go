@@ -33,6 +33,8 @@ type StorageConfiguration struct {
 	Local      *LocalStorageConfiguration      `koanf:"local"`
 	MySQL      *MySQLStorageConfiguration      `koanf:"mysql"`
 	PostgreSQL *PostgreSQLStorageConfiguration `koanf:"postgres"`
+
+	EncryptionKey string `koanf:"encryption_key"`
 }
 
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.

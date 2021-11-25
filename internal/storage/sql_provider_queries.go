@@ -78,6 +78,24 @@ const (
 		FROM %s
 		WHERE username = ?;`
 
+	queryFmtSelectTOTPConfigurations = `
+		SELECT id, username, algorithm, digits, totp_period, secret
+		FROM %s
+		LIMIT ?
+		OFFSET ?;`
+
+	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
+	queryFmtUpdateTOTPConfigurationSecret = `
+		UPDATE %s
+		SET secret = ?
+		WHERE id = ?;`
+
+	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
+	queryFmtUpdateTOTPConfigurationSecretByUsername = `
+		UPDATE %s
+		SET secret = ?
+		WHERE username = ?;`
+
 	queryFmtUpsertTOTPConfiguration = `
 		REPLACE INTO %s (username, algorithm, digits, totp_period, secret)
 		VALUES (?, ?, ?, ?, ?);`
@@ -122,4 +140,21 @@ const (
 		ORDER BY time DESC
 		LIMIT ?
 		OFFSET ?;`
+)
+
+const (
+	queryFmtSelectEncryptionValue = `
+		SELECT (value)
+        FROM %s
+        WHERE name = ?`
+
+	queryFmtUpsertEncryptionValue = `
+		REPLACE INTO %s (name, value)
+		VALUES (?, ?);`
+
+	queryFmtPostgresUpsertEncryptionValue = `
+		INSERT INTO %s (name, value)
+		VALUES ($1, $2)
+			ON CONFLICT (name)
+			DO UPDATE SET value=$2;`
 )

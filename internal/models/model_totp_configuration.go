@@ -7,5 +7,5 @@ type TOTPConfiguration struct {
 	Algorithm string `db:"algorithm"`
 	Digits    int    `db:"digits"`
 	Period    uint64 `db:"totp_period"`
-	Secret    string `db:"secret"`
+	Secret    []byte `db:"secret"`
 }

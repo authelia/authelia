@@ -38,7 +38,7 @@ func (s *HandlerSignTOTPSuite) TearDownTest() {
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: "secret", Period: 30, Algorithm: "SHA1"}
+	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -65,7 +65,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: "secret", Period: 30, Algorithm: "SHA1"}
+	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -88,7 +88,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: "secret", Period: 30, Algorithm: "SHA1"}
+	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -116,10 +116,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
-		Return(&models.TOTPConfiguration{Secret: "secret"}, nil)
+		Return(&models.TOTPConfiguration{Secret: []byte("secret")}, nil)
 
 	verifier.EXPECT().
-		Verify(gomock.Eq(&models.TOTPConfiguration{Secret: "secret"}), gomock.Eq("abc")).
+		Verify(gomock.Eq(&models.TOTPConfiguration{Secret: []byte("secret")}), gomock.Eq("abc")).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -136,7 +136,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
 	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
 
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: "secret", Period: 30, Algorithm: "SHA1"}
+	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageProviderMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
