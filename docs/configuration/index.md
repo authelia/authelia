@@ -32,10 +32,10 @@ $ authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
 
 Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the 
-repository [here](https://github.com/authelia/authelia/blob/master/configuration.template.yml).
+repository [here](https://github.com/authelia/authelia/blob/master/config.template.yml).
 
 ### Docker
-By default, the docker container looks for a configuration file at `/config/configuration.yml`. This can be changed using docker's `command` setting.
+By default, the container looks for a configuration file at `/config/configuration.yml`. This can be changed using the `command` setting.
 
 ## Environment
 You may also provide the configuration by using environment variables. Environment variables are applied after the 

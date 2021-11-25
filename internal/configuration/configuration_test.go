@@ -9,11 +9,11 @@ import (
 )
 
 func TestShouldHaveSameChecksumForBothTemplates(t *testing.T) {
-	sumRoot, err := utils.HashSHA256FromPath("../../configuration.template.yml")
+	sumRoot, err := utils.HashSHA256FromPath("../../config.template.yml")
 	assert.NoError(t, err)
 
-	sumInternal, err := utils.HashSHA256FromPath("./configuration.template.yml")
+	sumInternal, err := utils.HashSHA256FromPath("./config.template.yml")
 	assert.NoError(t, err)
 
-	assert.Equal(t, sumRoot, sumInternal, "Ensure both ./configuration.template.yml and ./internal/configuration/configuration.template.yml are exactly the same.")
+	assert.Equal(t, sumRoot, sumInternal, "Ensure both ./config.template.yml and ./internal/configuration/config.template.yml are exactly the same.")
 }

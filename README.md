@@ -346,7 +346,7 @@ for providing us with free licenses to their great tools.
 [Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
 [auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
-[configuration.template.yml]: ./configuration.template.yml
+[config.template.yml]: ./config.template.yml
 [nginx]: https://www.nginx.com/
 [Traefik]: https://traefik.io/
 [HAProxy]: https://www.haproxy.org/
