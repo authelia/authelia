@@ -9,11 +9,11 @@ nav_order: 2
 # OpenID Connect
 
 **Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#roadmap) feature. The OP role is the 
-[OpenID Connect] Provider role, not the Relaying Party or RP role. This means other applications that implement the 
+[OpenID Connect] Provider role, not the Relying Party or RP role. This means other applications that implement the 
 [OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use 
 social media or development platforms for login.
 
-The Relaying Party role is the role which allows an application to use GitHub, Google, or other [OpenID Connect]
+The Relying Party role is the role which allows an application to use GitHub, Google, or other [OpenID Connect]
 providers for authentication and authorization. We do not intend to support this functionality at this moment in time.
 
 ## Roadmap
@@ -21,6 +21,11 @@ providers for authentication and authorization. We do not intend to support this
 We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and
 providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related endpoints
 are not enabled by default unless you specifically configure the [OpenID Connect] section.
+
+As [OpenID Connect] is fairly complex (the [OpenID Connect] Provider role especially so) it's intentional that it is 
+both a beta and that the implemented features are part of a thoughtful roadmap. Items that are not immediately obvious
+as required (i.e. bug fixes or spec features), will likely be discussed in team meetings or on GitHub issues before being
+added to the list. We want to implement this feature in a very thoughtful way in order to avoid security issues.
 
 The beta will be broken up into stages. Each stage will bring additional features. The following table is a *rough* plan
 for which stage will have each feature, and may evolve over time:
