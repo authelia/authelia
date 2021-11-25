@@ -18,7 +18,7 @@ var (
 	ErrNoAvailableMigrations = errors.New("no available migrations")
 
 	// ErrMigrateCurrentVersionSameAsTarget is returned when the target version is the same as the current.
-	ErrMigrateCurrentVersionSameAsTarget = errors.New("cannot migrate to the same version as prior")
+	ErrMigrateCurrentVersionSameAsTarget = errors.New("current version is same as migration target, no action being taken")
 
 	// ErrSchemaAlreadyUpToDate is returned when the schema is already up to date.
 	ErrSchemaAlreadyUpToDate = errors.New("schema already up to date")
