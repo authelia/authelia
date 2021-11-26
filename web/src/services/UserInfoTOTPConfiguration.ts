@@ -5,8 +5,8 @@ import { Get } from "@services/Client";
 export type TOTPDigits = 6 | 8;
 
 export interface UserInfoTOTPConfigurationPayload {
-    period: number
-    digits: TOTPDigits
+    period: number;
+    digits: TOTPDigits;
 }
 
 export async function getUserInfoTOTPConfiguration(): Promise<UserInfoTOTPConfiguration> {

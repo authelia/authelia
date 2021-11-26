@@ -1,4 +1,4 @@
 export interface UserInfoTOTPConfiguration {
-    period: number
-    digits: number
+    period: number;
+    digits: number;
 }

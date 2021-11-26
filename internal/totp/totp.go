@@ -60,6 +60,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 	return config, nil
 }
 
+// Generate generates a TOTP with default options.
 func (p TimeBased) Generate(username string) (config *models.TOTPConfiguration, err error) {
 	return p.GenerateCustom(username, totpAlgoSHA1, 6, uint(p.config.Period), 32)
 }
@@ -67,7 +68,7 @@ func (p TimeBased) Generate(username string) (config *models.TOTPConfiguration, 
 // Validate the token against the given configuration.
 func (p TimeBased) Validate(token string, config *models.TOTPConfiguration) (valid bool, err error) {
 	opts := totp.ValidateOpts{
-		Period:    uint(config.Period),
+		Period:    config.Period,
 		Skew:      p.skew,
 		Digits:    otp.Digits(config.Digits),
 		Algorithm: otpStringToAlgo(config.Algorithm),

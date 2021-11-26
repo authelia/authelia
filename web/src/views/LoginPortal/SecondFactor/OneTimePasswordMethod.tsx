@@ -1,12 +1,12 @@
-import React, {Fragment, ReactNode, useCallback, useEffect, useRef, useState} from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import { AuthenticationLevel } from "@services/State";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
-import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export enum State {
     Idle = 1,
@@ -100,17 +100,18 @@ const OneTimePasswordMethod = function (props: Props) {
 
     return (
         <ComponentOrLoading ready={resp !== undefined}>
-            {resp === undefined ? null :
-            <MethodContainer
-                id={props.id}
-                title="One-Time Password"
-                explanation="Enter one-time password"
-                registered={props.registered}
-                state={methodState}
-                onRegisterClick={props.onRegisterClick}
-            >
-                <OTPDial passcode={passcode} onChange={setPasscode} state={state} period={resp.period} digits={resp.digits} />
-            </MethodContainer>
+            {err !== undefined ? null : (
+                <MethodContainer
+                    id={props.id}
+                    title="One-Time Password"
+                    explanation="Enter one-time password"
+                    registered={props.registered}
+                    state={methodState}
+                    onRegisterClick={props.onRegisterClick}
+                >
+                    <OTPDial passcode={passcode} onChange={setPasscode} state={state} period={resp.period} digits={resp.digits} />
+                </MethodContainer>
+                )
             }
 
         </ComponentOrLoading>
