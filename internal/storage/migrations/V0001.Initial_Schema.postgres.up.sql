@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS identity_verification_tokens (
 CREATE TABLE IF NOT EXISTS totp_configurations (
     id SERIAL,
     username VARCHAR(100) NOT NULL,
+    issuer VARCHAR(100),
     algorithm VARCHAR(6) NOT NULL DEFAULT 'SHA1',
     digits INTEGER NOT NULL DEFAULT 6,
     totp_period INTEGER NOT NULL DEFAULT 30,
