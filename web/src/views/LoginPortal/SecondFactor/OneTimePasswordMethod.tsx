@@ -1,10 +1,8 @@
-import React, { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRedirectionURL } from "@hooks/RedirectionURL";
-import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import { AuthenticationLevel } from "@services/State";
-import LoadingPage from "@views/LoadingPage/LoadingPage";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
 
@@ -35,19 +33,6 @@ const OneTimePasswordMethod = function (props: Props) {
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
-
-    const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
-
-    useEffect(() => {
-        if (err) {
-            console.error(`Failed to fetch TOTP configuration: ${err.message}`);
-            onSignInErrorCallback(new Error("Failed to fetch user One-Time Password configuration"));
-        }
-    }, [onSignInErrorCallback, err]);
-
-    useEffect(() => {
-        fetch();
-    }, [fetch]);
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -99,44 +84,17 @@ const OneTimePasswordMethod = function (props: Props) {
     }
 
     return (
-        <ComponentOrLoading ready={resp !== undefined}>
-            {err !== undefined || resp === undefined ? null : (
-                <MethodContainer
-                    id={props.id}
-                    title="One-Time Password"
-                    explanation="Enter one-time password"
-                    registered={props.registered}
-                    state={methodState}
-                    onRegisterClick={props.onRegisterClick}
-                >
-                    <OTPDial
-                        passcode={passcode}
-                        onChange={setPasscode}
-                        state={state}
-                        period={resp.period}
-                        digits={resp.digits}
-                    />
-                </MethodContainer>
-            )}
-        </ComponentOrLoading>
+        <MethodContainer
+            id={props.id}
+            title="One-Time Password"
+            explanation="Enter one-time password"
+            registered={props.registered}
+            state={methodState}
+            onRegisterClick={props.onRegisterClick}
+        >
+            <OTPDial passcode={passcode} onChange={setPasscode} state={state} />
+        </MethodContainer>
     );
 };
 
 export default OneTimePasswordMethod;
-
-interface ComponentOrLoadingProps {
-    ready: boolean;
-
-    children: ReactNode;
-}
-
-function ComponentOrLoading(props: ComponentOrLoadingProps) {
-    return (
-        <Fragment>
-            <div className={props.ready ? "hidden" : ""}>
-                <LoadingPage />
-            </div>
-            {props.ready ? props.children : null}
-        </Fragment>
-    );
-}

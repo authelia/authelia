@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 
 import { makeStyles } from "@material-ui/core";
 import classnames from "classnames";
@@ -6,36 +6,63 @@ import OtpInput from "react-otp-input";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 
 export interface Props {
     passcode: string;
     state: State;
-    period: number;
-    digits: number;
 
     onChange: (passcode: string) => void;
 }
 
 const OTPDial = function (props: Props) {
     const style = useStyles();
-    const dial = (
-        <span className={style.otpInput} id="otp-input">
-            <OtpInput
-                shouldAutoFocus
-                onChange={props.onChange}
-                value={props.passcode}
-                numInputs={props.digits}
-                isDisabled={props.state === State.InProgress || props.state === State.Success}
-                isInputNum
-                hasErrored={props.state === State.Failure}
-                inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
-            />
-        </span>
-    );
 
-    return <IconWithContext icon={<Icon state={props.state} period={props.period} />} context={dial} />;
+    const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
+
+    const { createErrorNotification, resetNotification } = useNotifications();
+
+    useEffect(() => {
+        if (err) {
+            console.error(`Failed to fetch TOTP configuration: ${err.message}`);
+            createErrorNotification("Failed to obtain user One-Time Password Configuration.");
+        }
+    }, [resetNotification, createErrorNotification, err]);
+
+    useEffect(() => {
+        fetch();
+    }, [fetch]);
+
+    return (
+        <div>
+            {resp !== undefined && err === undefined ? (
+                <IconWithContext icon={<Icon state={props.state} period={resp.period} />}>
+                    <span className={style.otpInput} id="otp-input">
+                        <OtpInput
+                            shouldAutoFocus
+                            onChange={props.onChange}
+                            value={props.passcode}
+                            numInputs={resp.digits}
+                            isDisabled={props.state === State.InProgress || props.state === State.Success}
+                            isInputNum
+                            hasErrored={props.state === State.Failure}
+                            inputStyle={classnames(
+                                style.otpDigitInput,
+                                props.state === State.Failure ? style.inputError : "",
+                            )}
+                        />
+                    </span>
+                </IconWithContext>
+            ) : (
+                <LoadingPage />
+            )}
+            );
+        </div>
+    );
 };
 
 export default OTPDial;
@@ -75,6 +102,23 @@ function Icon(props: IconProps) {
                 <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} />
             ) : null}
             {props.state === State.Success ? <SuccessIcon /> : null}
+        </Fragment>
+    );
+}
+
+interface ComponentOrLoadingProps {
+    ready: boolean;
+
+    children: ReactNode;
+}
+
+function ComponentOrLoading(props: ComponentOrLoadingProps) {
+    return (
+        <Fragment>
+            <div className={props.ready ? "hidden" : ""}>
+                <LoadingPage />
+            </div>
+            {props.ready ? props.children : null}
         </Fragment>
     );
 }
