@@ -35,9 +35,10 @@ type NotifierConfiguration struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
-	Timeout:    time.Second * 5,
-	Subject:    "[Authelia] {title}",
-	Identifier: "localhost",
+	Timeout:             time.Second * 5,
+	Subject:             "[Authelia] {title}",
+	Identifier:          "localhost",
+	StartupCheckAddress: "test@authelia.com",
 	TLS: &TLSConfig{
 		MinimumVersion: "TLS1.2",
 	},
