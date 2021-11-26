@@ -50,7 +50,7 @@ specifiers:
   u2f-api: 1.2.1
   vite: 2.6.14
   vite-plugin-eslint: 1.3.0
-  vite-plugin-istanbul: 2.2.2
+  vite-plugin-istanbul: 2.3.0
   vite-plugin-svgr: 0.6.0
   vite-tsconfig-paths: 3.3.17
 
@@ -106,7 +106,7 @@ devDependencies:
   typescript: 4.5.2
   vite: 2.6.14
   vite-plugin-eslint: 1.3.0_vite@2.6.14
-  vite-plugin-istanbul: 2.2.2
+  vite-plugin-istanbul: 2.3.0
   vite-plugin-svgr: 0.6.0_vite@2.6.14
   vite-tsconfig-paths: 3.3.17_vite@2.6.14
 
@@ -6565,8 +6565,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-istanbul/2.2.2:
-    resolution: {integrity: sha512-yFY/c2qqA9mIbj9JcUPoDhkvFNTU71+e5dxGAhNnjpjoa4zC90/Zo4xu9V+/xHY6IuGGHcO5uqpGUkrjs58rog==}
+  /vite-plugin-istanbul/2.3.0:
+    resolution: {integrity: sha512-KHfnqEHHsC27TpRwsM+0InL1bAUmT6/drT10+q8ittcWVrzNUKKvyKn6Dmrqg6gKakoh3Hd+z3NvpbprBLqVRQ==}
     dependencies:
       istanbul-lib-instrument: 4.0.3
       test-exclude: 6.0.0
