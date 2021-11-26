@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,7 +19,7 @@ import (
 func TestShouldErrorSecretNotExist(t *testing.T) {
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-test-secret-not-exist")
+	dir, err := os.MkdirTemp("", "authelia-test-secret-not-exist")
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
@@ -163,7 +162,7 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-conf")
+	dir, err := os.MkdirTemp("", "authelia-conf")
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "myconf.yml"), []byte("server:\n  port: 9091\n"), 0000))
@@ -231,7 +230,7 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	cfg := filepath.Join(dir, "config.yml")
@@ -249,7 +248,7 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	val := schema.NewStructValidator()

@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
@@ -15,7 +14,7 @@ import (
 )
 
 func WithDatabase(content []byte, f func(path string)) {
-	tmpfile, err := ioutil.TempFile("", "users_database.*.yaml")
+	tmpfile, err := os.CreateTemp("", "users_database.*.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -24,7 +24,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, rememberMe, resetPassword, s
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		logger.Fatalf("Unable to read %s: %s", file, err)
 	}

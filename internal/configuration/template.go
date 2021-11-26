@@ -3,7 +3,6 @@ package configuration
 import (
 	_ "embed" // Embed config.template.yml.
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -16,7 +15,7 @@ func EnsureConfigurationExists(path string) (created bool, err error) {
 	_, err = os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := ioutil.WriteFile(path, template, 0600)
+			err := os.WriteFile(path, template, 0600)
 			if err != nil {
 				return false, fmt.Errorf(errFmtGenerateConfiguration, err)
 			}
