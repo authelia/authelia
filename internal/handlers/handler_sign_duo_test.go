@@ -112,18 +112,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	values.Set("device", "auto")
 	values.Set("pushinfo", "target%20url=https://target.example.com")
 
-	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("Connnection error"))
-
-	s.mock.StorageProviderMock.
-		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
-			Username:   "john",
-			Successful: false,
-			Banned:     false,
-			Time:       s.mock.Clock.Now(),
-			Type:       regulation.AuthTypeDUO,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("connnection error"))
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
 

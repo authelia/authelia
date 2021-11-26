@@ -15,17 +15,20 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		var requestBody signDuoRequestBody
 
 		if err := ctx.ParseBody(&requestBody); err != nil {
-			handleAuthenticationUnauthorized(ctx, err, messageMFAValidationFailed)
+			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDUO, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
 		userSession := ctx.GetSession()
 		remoteIP := ctx.RemoteIP().String()
 
-		ctx.Logger.Debugf("Starting Duo Push Auth Attempt for %s from IP %s", userSession.Username, remoteIP)
+		ctx.Logger.Debugf("Starting Duo Push Auth Attempt for user '%s' with IP '%s'", userSession.Username, remoteIP)
 
 		values := url.Values{}
-		// { username, ipaddr: clientIP, factor: "push", device: "auto", pushinfo: `target%20url=${targetURL}`}
+
 		values.Set("username", userSession.Username)
 		values.Set("ipaddr", remoteIP)
 		values.Set("factor", "push")
@@ -37,7 +40,10 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		duoResponse, err := duoAPI.Call(values, ctx)
 		if err != nil {
-			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("duo error: %w", err), false, nil, userSession.Username, regulation.AuthTypeDUO)
+			ctx.Logger.Errorf("Failed to perform DUO call for user '%s': %+v", userSession.Username, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
@@ -53,17 +59,25 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		if duoResponse.Response.Result != testResultAllow {
-			_ = handleAuthenticationAttempt(ctx, fmt.Errorf("duo error: %w", err), false, nil, userSession.Username, regulation.AuthTypeDUO)
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeDUO,
+				fmt.Errorf("result: %s, code: %d, message: %s (%s)", duoResponse.Response.Result, duoResponse.Code,
+					duoResponse.Message, duoResponse.MessageDetail))
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
-		if err = handleAuthenticationAttempt(ctx, nil, true, nil, userSession.Username, regulation.AuthTypeDUO); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to mark authentication: %w", err), messageMFAValidationFailed)
+		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeDUO, nil); err != nil {
+			respondUnauthorized(ctx, messageMFAValidationFailed)
 			return
 		}
 
 		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDUO, userSession.Username, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 
@@ -71,7 +85,10 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update authentication level with Duo: %s", err), messageMFAValidationFailed)
+			ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 

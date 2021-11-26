@@ -8,6 +8,7 @@ import (
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
@@ -24,26 +25,31 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	userSession := ctx.GetSession()
+
 	appID := fmt.Sprintf("%s://%s", ctx.XForwardedProto(), ctx.XForwardedHost())
 
 	var trustedFacets = []string{appID}
 
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 	if err != nil {
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to create U2F challenge: %s", err), messageMFAValidationFailed)
+		ctx.Logger.Errorf("Unable to create %s challenge for user '%s': %+v", regulation.AuthTypeFIDO, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
 		return
 	}
 
-	userSession := ctx.GetSession()
-
 	device, err := ctx.Providers.StorageProvider.LoadU2FDevice(ctx, userSession.Username)
 	if err != nil {
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
 		if err == storage.ErrNoU2FDeviceHandle {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("no device handle found for user %s", userSession.Username), messageMFAValidationFailed)
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeFIDO, fmt.Errorf("no registered U2F device"))
 			return
 		}
 
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to retrieve U2F device handle: %s", err), messageMFAValidationFailed)
+		ctx.Logger.Errorf("Could not load %s devices for user '%s': %+v", regulation.AuthTypeFIDO, userSession.Username, err)
 
 		return
 	}
@@ -68,14 +74,20 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	userSession.U2FChallenge = challenge
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to save U2F challenge and registration in session: %s", err), messageMFAValidationFailed)
+		ctx.Logger.Errorf(logFmtErrSessionSave, "challenge and registration", regulation.AuthTypeFIDO, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
 		return
 	}
 
 	signRequest := challenge.SignRequest([]u2f.Registration{registration})
 
 	if err = ctx.SetJSONBody(signRequest); err != nil {
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to set sign request in body: %s", err), messageMFAValidationFailed)
+		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeFIDO, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
 		return
 	}
 }
