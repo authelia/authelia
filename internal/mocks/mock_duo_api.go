@@ -11,7 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 
 	duo "github.com/authelia/authelia/v4/internal/duo"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	middlewares "github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // MockAPI is a mock of API interface.

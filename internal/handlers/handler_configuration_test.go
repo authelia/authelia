@@ -29,15 +29,9 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
-	s.mock.Ctx.Configuration = schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
-			Period: schema.DefaultTOTPConfiguration.Period,
-		},
-	}
-	expectedBody := ConfigurationBody{
+	expectedBody := configurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -47,14 +41,10 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMobilePush() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
-		TOTP: &schema.TOTPConfiguration{
-			Period: schema.DefaultTOTPConfiguration.Period,
-		},
 	}
-	expectedBody := ConfigurationBody{
+	expectedBody := configurationBody{
 		AvailableMethods:    []string{"totp", "u2f", "mobile_push"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	}
 
 	ConfigurationGet(s.mock.Ctx)
@@ -62,11 +52,6 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMo
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisabledWhenNoRuleIsSetToTwoFactor() {
-	s.mock.Ctx.Configuration = schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
-			Period: schema.DefaultTOTPConfiguration.Period,
-		},
-	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
 		&schema.Configuration{
 			AccessControl: schema.AccessControlConfiguration{
@@ -87,19 +72,13 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 				},
 			}})
 	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), ConfigurationBody{
+	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: false,
-		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenDefaultPolicySetToTwoFactor() {
-	s.mock.Ctx.Configuration = schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
-			Period: schema.DefaultTOTPConfiguration.Period,
-		},
-	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControlConfiguration{
 			DefaultPolicy: "two_factor",
@@ -119,19 +98,13 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 			},
 		}})
 	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), ConfigurationBody{
+	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
-		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	})
 }
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenSomePolicySetToTwoFactor() {
-	s.mock.Ctx.Configuration = schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
-			Period: schema.DefaultTOTPConfiguration.Period,
-		},
-	}
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
 		&schema.Configuration{
 			AccessControl: schema.AccessControlConfiguration{
@@ -152,10 +125,9 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 				},
 			}})
 	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), ConfigurationBody{
+	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods:    []string{"totp", "u2f"},
 		SecondFactorEnabled: true,
-		TOTPPeriod:          schema.DefaultTOTPConfiguration.Period,
 	})
 }
 

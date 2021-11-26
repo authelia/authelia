@@ -7,54 +7,52 @@ import (
 )
 
 // SecondFactorTOTPPost validate the TOTP passcode provided by the user.
-func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler {
-	return func(ctx *middlewares.AutheliaCtx) {
-		requestBody := signTOTPRequestBody{}
-		err := ctx.ParseBody(&requestBody)
+func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
+	requestBody := signTOTPRequestBody{}
+	err := ctx.ParseBody(&requestBody)
 
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, err, messageMFAValidationFailed)
-			return
-		}
+	if err != nil {
+		handleAuthenticationUnauthorized(ctx, err, messageMFAValidationFailed)
+		return
+	}
 
-		userSession := ctx.GetSession()
+	userSession := ctx.GetSession()
 
-		config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to load TOTP secret: %s", err), messageMFAValidationFailed)
-			return
-		}
+	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)
+	if err != nil {
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to load TOTP secret: %s", err), messageMFAValidationFailed)
+		return
+	}
 
-		isValid, err := totpVerifier.Verify(config, requestBody.Token)
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("error occurred during OTP validation for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
-			return
-		}
+	isValid, err := ctx.Providers.TOTP.Validate(requestBody.Token, config)
+	if err != nil {
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("error occurred during OTP validation for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+		return
+	}
 
-		if !isValid {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("wrong passcode during TOTP validation for user %s", userSession.Username), messageMFAValidationFailed)
-			return
-		}
+	if !isValid {
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("wrong passcode during TOTP validation for user %s", userSession.Username), messageMFAValidationFailed)
+		return
+	}
 
-		err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+	err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
-			return
-		}
+	if err != nil {
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to regenerate session for user %s: %s", userSession.Username, err), messageMFAValidationFailed)
+		return
+	}
 
-		userSession.SetTwoFactor(ctx.Clock.Now())
+	userSession.SetTwoFactor(ctx.Clock.Now())
 
-		err = ctx.SaveSession(userSession)
-		if err != nil {
-			handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update the authentication level with TOTP: %s", err), messageMFAValidationFailed)
-			return
-		}
+	err = ctx.SaveSession(userSession)
+	if err != nil {
+		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to update the authentication level with TOTP: %s", err), messageMFAValidationFailed)
+		return
+	}
 
-		if userSession.OIDCWorkflowSession != nil {
-			handleOIDCWorkflowResponse(ctx)
-		} else {
-			Handle2FAResponse(ctx, requestBody.TargetURL)
-		}
+	if userSession.OIDCWorkflowSession != nil {
+		handleOIDCWorkflowResponse(ctx)
+	} else {
+		Handle2FAResponse(ctx, requestBody.TargetURL)
 	}
 }

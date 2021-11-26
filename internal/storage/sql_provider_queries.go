@@ -74,12 +74,12 @@ const (
 
 const (
 	queryFmtSelectTOTPConfiguration = `
-		SELECT id, username, algorithm, digits, totp_period, secret
+		SELECT id, username, issuer, algorithm, digits, totp_period, secret
 		FROM %s
 		WHERE username = ?;`
 
 	queryFmtSelectTOTPConfigurations = `
-		SELECT id, username, algorithm, digits, totp_period, secret
+		SELECT id, username, issuer, algorithm, digits, totp_period, secret
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
@@ -97,14 +97,14 @@ const (
 		WHERE username = ?;`
 
 	queryFmtUpsertTOTPConfiguration = `
-		REPLACE INTO %s (username, algorithm, digits, totp_period, secret)
-		VALUES (?, ?, ?, ?, ?);`
+		REPLACE INTO %s (username, issuer, algorithm, digits, totp_period, secret)
+		VALUES (?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertTOTPConfiguration = `
-		INSERT INTO %s (username, algorithm, digits, totp_period, secret)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO %s (username, issuer, algorithm, digits, totp_period, secret)
+		VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (username)
-			DO UPDATE SET algorithm = $2, digits = $3, totp_period = $4, secret = $5;`
+			DO UPDATE SET issuer = $2, algorithm = $3, digits = $4, totp_period = $5, secret = $6;`
 
 	queryFmtDeleteTOTPConfiguration = `
 		DELETE FROM %s

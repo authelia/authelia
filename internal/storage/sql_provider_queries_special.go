@@ -35,7 +35,11 @@ const (
 		FROM %s
 		ORDER BY username ASC;`
 
-	queryFmtPre1InsertTOTPConfiguration = `
+	queryFmtPre1To1InsertTOTPConfiguration = `
+		INSERT INTO %s (username, issuer, totp_period, secret)
+		VALUES (?, ?, ?, ?);`
+
+	queryFmt1ToPre1InsertTOTPConfiguration = `
 		INSERT INTO %s (username, secret)
 		VALUES (?, ?);`
 

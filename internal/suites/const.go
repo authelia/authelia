@@ -3,6 +3,8 @@ package suites
 import (
 	"fmt"
 	"os"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // BaseDomain the base domain.
@@ -52,5 +54,22 @@ var AutheliaBaseURL = "https://authelia.example.com:9091"
 
 const stringTrue = "true"
 
-const testUsername = "john"
-const testPassword = "password"
+const (
+	testUsername = "john"
+	testPassword = "password"
+)
+
+var (
+	storageLocalTmpConfig = schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Issuer: "Authelia",
+			Period: 6,
+		},
+		Storage: schema.StorageConfiguration{
+			EncryptionKey: "a_not_so_secure_encryption_key",
+			Local: &schema.LocalStorageConfiguration{
+				Path: "/tmp/db.sqlite3",
+			},
+		},
+	}
+)

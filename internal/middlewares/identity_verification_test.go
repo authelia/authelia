@@ -54,7 +54,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 
-	mock.StorageProviderMock.EXPECT().
+	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(fmt.Errorf("cannot save"))
 
@@ -73,7 +73,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
-	mock.StorageProviderMock.EXPECT().
+	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(nil)
 
@@ -95,7 +95,7 @@ func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
-	mock.StorageProviderMock.EXPECT().
+	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(nil)
 
@@ -113,7 +113,7 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 	mock.Ctx.Configuration.JWTSecret = testJWTSecret
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 
-	mock.StorageProviderMock.EXPECT().
+	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(nil)
 
@@ -131,7 +131,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 	mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
 
-	mock.StorageProviderMock.EXPECT().
+	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(nil)
 
@@ -208,7 +208,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotProvided()
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB() {
 	s.mock.Ctx.Request.SetBodyString("{\"token\":\"abc\"}")
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq("abc")).
 		Return(false, nil)
 
@@ -221,7 +221,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB(
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
 	s.mock.Ctx.Request.SetBodyString("{\"token\":\"abc\"}")
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq("abc")).
 		Return(true, nil)
 
@@ -237,7 +237,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 		time.Now().Add(-1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
@@ -252,7 +252,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
@@ -267,7 +267,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
@@ -284,11 +284,11 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(fmt.Errorf("cannot remove"))
 
@@ -303,11 +303,11 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(nil)
 

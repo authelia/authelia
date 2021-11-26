@@ -11,25 +11,30 @@ import (
 
 func TestShouldSetDefaultTOTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := schema.TOTPConfiguration{}
+	config := &schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{},
+	}
 
-	ValidateTOTP(&config, validator)
+	ValidateTOTP(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "Authelia", config.Issuer)
-	assert.Equal(t, *schema.DefaultTOTPConfiguration.Skew, *config.Skew)
-	assert.Equal(t, schema.DefaultTOTPConfiguration.Period, config.Period)
+	assert.Equal(t, "Authelia", config.TOTP.Issuer)
+	assert.Equal(t, schema.DefaultTOTPConfiguration.Skew, config.TOTP.Skew)
+	assert.Equal(t, schema.DefaultTOTPConfiguration.Period, config.TOTP.Period)
 }
 
 func TestShouldRaiseErrorWhenInvalidTOTPMinimumValues(t *testing.T) {
 	var badSkew = -1
 
 	validator := schema.NewStructValidator()
-	config := schema.TOTPConfiguration{
-		Period: -5,
-		Skew:   &badSkew,
+	config := &schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: -5,
+			Skew:   &badSkew,
+		},
 	}
-	ValidateTOTP(&config, validator)
+
+	ValidateTOTP(config, validator)
 	assert.Len(t, validator.Errors(), 2)
 	assert.EqualError(t, validator.Errors()[0], "TOTP Period must be 1 or more")
 	assert.EqualError(t, validator.Errors()[1], "TOTP Skew must be 0 or more")

@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/totp"
 )
 
 type CLISuite struct {
@@ -267,15 +266,15 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_cli_encryption_key_which_isnt_secure")
+	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	totpProvider := totp.NewTimeBasedProvider(storageLocalTmpConfig.TOTP)
 
-	s.Require().NoError(provider.StartupCheck())
+	s.Require().NoError(storageProvider.StartupCheck())
 
 	ctx := context.Background()
 
 	var (
 		err    error
-		key    *otp.Key
 		config models.TOTPConfiguration
 	)
 
@@ -288,28 +287,13 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
 	for _, name := range []string{"john", "mary", "fred"} {
-		key, err = totp.Generate(totp.GenerateOpts{
-			Issuer:      "Authelia",
-			AccountName: name,
-			Period:      uint(30),
-			SecretSize:  32,
-			Digits:      otp.Digits(6),
-			Algorithm:   otp.AlgorithmSHA1,
-		})
+		c, err := totpProvider.Generate(name)
 		s.Require().NoError(err)
 
-		config = models.TOTPConfiguration{
-			Username:  name,
-			Algorithm: "SHA1",
-			Digits:    6,
-			Secret:    []byte(key.Secret()),
-			Period:    key.Period(),
-		}
-
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
-		expectedLines = append(expectedLines, fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period))
+		expectedLines = append(expectedLines, c.URI())
 
-		s.Require().NoError(provider.SaveTOTPConfiguration(ctx, config))
+		s.Require().NoError(storageProvider.SaveTOTPConfiguration(ctx, config))
 	}
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/configuration.storage.yml"})

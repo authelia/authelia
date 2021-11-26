@@ -39,8 +39,8 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)
 
 	SchemaLatestVersion() (version int, err error)
-	SchemaMigrationsUp(ctx context.Context, version int) (migrations []SchemaMigration, err error)
-	SchemaMigrationsDown(ctx context.Context, version int) (migrations []SchemaMigration, err error)
+	SchemaMigrationsUp(ctx context.Context, version int) (migrations []models.SchemaMigration, err error)
+	SchemaMigrationsDown(ctx context.Context, version int) (migrations []models.SchemaMigration, err error)
 
 	Close() (err error)
 }

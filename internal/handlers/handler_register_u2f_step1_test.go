@@ -56,11 +56,11 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(nil)
 
@@ -76,11 +76,11 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissin
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		FindIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(true, nil)
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(token)).
 		Return(nil)
 

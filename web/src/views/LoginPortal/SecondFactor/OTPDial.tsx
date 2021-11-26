@@ -13,6 +13,7 @@ export interface Props {
     passcode: string;
     state: State;
     period: number;
+    digits: number;
 
     onChange: (passcode: string) => void;
 }
@@ -25,7 +26,7 @@ const OTPDial = function (props: Props) {
                 shouldAutoFocus
                 onChange={props.onChange}
                 value={props.passcode}
-                numInputs={6}
+                numInputs={props.digits}
                 isDisabled={props.state === State.InProgress || props.state === State.Success}
                 isInputNum
                 hasErrored={props.state === State.Failure}

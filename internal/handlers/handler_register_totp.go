@@ -3,9 +3,6 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
-
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -39,39 +36,24 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 })
 
 func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
-	algorithm := otp.AlgorithmSHA1
+	var (
+		config *models.TOTPConfiguration
+		err    error
+	)
 
-	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      ctx.Configuration.TOTP.Issuer,
-		AccountName: username,
-		Period:      uint(ctx.Configuration.TOTP.Period),
-		SecretSize:  32,
-		Digits:      otp.Digits(6),
-		Algorithm:   algorithm,
-	})
-
-	if err != nil {
+	if config, err = ctx.Providers.TOTP.Generate(username); err != nil {
 		ctx.Error(fmt.Errorf("unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
-		return
 	}
 
-	config := models.TOTPConfiguration{
-		Username:  username,
-		Algorithm: otpAlgoToString(algorithm),
-		Digits:    6,
-		Secret:    []byte(key.Secret()),
-		Period:    key.Period(),
-	}
-
-	err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, config)
+	err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, *config)
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
 		return
 	}
 
 	response := TOTPKeyResponse{
-		OTPAuthURL:   key.URL(),
-		Base32Secret: key.Secret(),
+		OTPAuthURL:   config.URI(),
+		Base32Secret: string(config.Secret),
 	}
 
 	err = ctx.SetJSONBody(response)

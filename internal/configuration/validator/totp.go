@@ -7,20 +7,26 @@ import (
 )
 
 // ValidateTOTP validates and update TOTP configuration.
-func ValidateTOTP(configuration *schema.TOTPConfiguration, validator *schema.StructValidator) {
-	if configuration.Issuer == "" {
-		configuration.Issuer = schema.DefaultTOTPConfiguration.Issuer
+func ValidateTOTP(configuration *schema.Configuration, validator *schema.StructValidator) {
+	if configuration.TOTP == nil {
+		configuration.TOTP = &schema.DefaultTOTPConfiguration
+
+		return
 	}
 
-	if configuration.Period == 0 {
-		configuration.Period = schema.DefaultTOTPConfiguration.Period
-	} else if configuration.Period < 0 {
+	if configuration.TOTP.Issuer == "" {
+		configuration.TOTP.Issuer = schema.DefaultTOTPConfiguration.Issuer
+	}
+
+	if configuration.TOTP.Period == 0 {
+		configuration.TOTP.Period = schema.DefaultTOTPConfiguration.Period
+	} else if configuration.TOTP.Period < 0 {
 		validator.Push(fmt.Errorf("TOTP Period must be 1 or more"))
 	}
 
-	if configuration.Skew == nil {
-		configuration.Skew = schema.DefaultTOTPConfiguration.Skew
-	} else if *configuration.Skew < 0 {
+	if configuration.TOTP.Skew == nil {
+		configuration.TOTP.Skew = schema.DefaultTOTPConfiguration.Skew
+	} else if *configuration.TOTP.Skew < 0 {
 		validator.Push(fmt.Errorf("TOTP Skew must be 0 or more"))
 	}
 }

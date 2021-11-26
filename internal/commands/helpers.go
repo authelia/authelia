@@ -10,17 +10,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func getStorageProvider() (provider storage.Provider) {
 	switch {
 	case config.Storage.PostgreSQL != nil:
-		return storage.NewPostgreSQLProvider(*config.Storage.PostgreSQL, config.Storage.EncryptionKey)
+		return storage.NewPostgreSQLProvider(config)
 	case config.Storage.MySQL != nil:
-		return storage.NewMySQLProvider(*config.Storage.MySQL, config.Storage.EncryptionKey)
+		return storage.NewMySQLProvider(config)
 	case config.Storage.Local != nil:
-		return storage.NewSQLiteProvider(config.Storage.Local.Path, config.Storage.EncryptionKey)
+		return storage.NewSQLiteProvider(config)
 	default:
 		return nil
 	}
@@ -71,6 +72,8 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		errors = append(errors, err)
 	}
 
+	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+
 	return middlewares.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
@@ -80,5 +83,6 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		NTP:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
+		TOTP:            totpProvider,
 	}, warnings, errors
 }
