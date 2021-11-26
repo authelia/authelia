@@ -117,8 +117,7 @@ const OneTimePasswordMethod = function (props: Props) {
                         digits={resp.digits}
                     />
                 </MethodContainer>
-                )}
-
+            )}
         </ComponentOrLoading>
     );
 };
