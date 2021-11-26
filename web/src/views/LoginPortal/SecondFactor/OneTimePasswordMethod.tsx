@@ -100,7 +100,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
     return (
         <ComponentOrLoading ready={resp !== undefined}>
-            {err !== undefined ? null : (
+            {err !== undefined || resp === undefined ? null : (
                 <MethodContainer
                     id={props.id}
                     title="One-Time Password"
@@ -109,10 +109,15 @@ const OneTimePasswordMethod = function (props: Props) {
                     state={methodState}
                     onRegisterClick={props.onRegisterClick}
                 >
-                    <OTPDial passcode={passcode} onChange={setPasscode} state={state} period={resp.period} digits={resp.digits} />
+                    <OTPDial
+                        passcode={passcode}
+                        onChange={setPasscode}
+                        state={state}
+                        period={resp.period}
+                        digits={resp.digits}
+                    />
                 </MethodContainer>
-                )
-            }
+                )}
 
         </ComponentOrLoading>
     );
