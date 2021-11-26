@@ -105,20 +105,3 @@ function Icon(props: IconProps) {
         </Fragment>
     );
 }
-
-interface ComponentOrLoadingProps {
-    ready: boolean;
-
-    children: ReactNode;
-}
-
-function ComponentOrLoading(props: ComponentOrLoadingProps) {
-    return (
-        <Fragment>
-            <div className={props.ready ? "hidden" : ""}>
-                <LoadingPage />
-            </div>
-            {props.ready ? props.children : null}
-        </Fragment>
-    );
-}
