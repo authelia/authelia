@@ -13,10 +13,10 @@ import (
 )
 
 func TestShouldGenerateConfiguration(t *testing.T) {
-	dir, err := os.CreateTemp("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
-	cfg := filepath.Join(dir.Name(), "config.yml")
+	cfg := filepath.Join(dir, "config.yml")
 
 	created, err := EnsureConfigurationExists(cfg)
 	assert.NoError(t, err)
