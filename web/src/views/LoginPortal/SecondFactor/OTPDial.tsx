@@ -60,7 +60,6 @@ const OTPDial = function (props: Props) {
             ) : (
                 <LoadingPage />
             )}
-            );
         </div>
     );
 };
