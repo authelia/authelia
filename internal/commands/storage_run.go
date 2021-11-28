@@ -226,6 +226,35 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
+func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	user := args[0]
+
+	provider = getStorageProvider()
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	_, err = provider.LoadTOTPConfiguration(ctx, user)
+	if err != nil {
+		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
+	}
+
+	err = provider.DeleteTOTPConfiguration(ctx, user)
+	if err != nil {
+		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
+	}
+
+	fmt.Printf("Deleted TOTP configuration for user '%s'.", user)
+
+	return nil
+}
+
 func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider

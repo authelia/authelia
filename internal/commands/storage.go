@@ -87,6 +87,7 @@ func newStorageTOTPCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newStorageTOTPGenerateCmd(),
+		newStorageTOTPDeleteCmd(),
 		newStorageTOTPExportCmd(),
 	)
 
@@ -95,13 +96,24 @@ func newStorageTOTPCmd() (cmd *cobra.Command) {
 
 func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "generate",
+		Use:   "generate username",
 		Short: "Generate a TOTP configuration for a user",
 		RunE:  storageTOTPGenerateRunE,
 		Args:  cobra.ExactArgs(1),
 	}
 
 	cmd.Flags().BoolP("force", "f", false, "forces the TOTP configuration to be generated regardless if it exists or not")
+
+	return cmd
+}
+
+func newStorageTOTPDeleteCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "delete username",
+		Short: "Delete a TOTP configuration for a user",
+		RunE:  storageTOTPDeleteRunE,
+		Args:  cobra.ExactArgs(1),
+	}
 
 	return cmd
 }
