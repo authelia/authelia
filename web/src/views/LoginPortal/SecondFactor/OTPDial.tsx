@@ -39,17 +39,17 @@ const OTPDial = function (props: Props) {
 
     return (
         <div>
-            {resp !== undefined && err === undefined ? (
-                <IconWithContext icon={<Icon state={props.state} period={resp.period} />}>
+            {resp !== undefined || err !== undefined ? (
+                <IconWithContext icon={<Icon state={props.state} period={resp?.period || 30} />}>
                     <span className={style.otpInput} id="otp-input">
                         <OtpInput
                             shouldAutoFocus
                             onChange={props.onChange}
                             value={props.passcode}
-                            numInputs={resp.digits}
+                            numInputs={resp?.digits || 6}
                             isDisabled={props.state === State.InProgress || props.state === State.Success}
                             isInputNum
-                            hasErrored={props.state === State.Failure}
+                            hasErrored={props.state === State.Failure || err !== undefined}
                             inputStyle={classnames(
                                 style.otpDigitInput,
                                 props.state === State.Failure ? style.inputError : "",
