@@ -271,7 +271,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		for _, c := range configurations {
 			switch format {
 			case storageExportFormatCSV:
-				fmt.Printf("%s,%s,%s,%d,%d,%s\n", "Authelia", c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
+				fmt.Printf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
 			case storageExportFormatURI:
 				fmt.Println(c.URI())
 			}

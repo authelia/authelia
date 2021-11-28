@@ -177,6 +177,8 @@ func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
+	_ = os.Remove("/tmp/db.sqlite3")
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
@@ -275,7 +277,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	var (
 		err    error
-		config models.TOTPConfiguration
+		config *models.TOTPConfiguration
 	)
 
 	var (
@@ -287,13 +289,13 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
 	for _, name := range []string{"john", "mary", "fred"} {
-		c, err := totpProvider.Generate(name)
+		config, err = totpProvider.Generate(name)
 		s.Require().NoError(err)
 
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
-		expectedLines = append(expectedLines, c.URI())
+		expectedLines = append(expectedLines, config.URI())
 
-		s.Require().NoError(storageProvider.SaveTOTPConfiguration(ctx, config))
+		s.Require().NoError(storageProvider.SaveTOTPConfiguration(ctx, *config))
 	}
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "uri", "--config", "/config/configuration.storage.yml"})
