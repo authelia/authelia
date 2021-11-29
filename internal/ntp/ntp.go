@@ -6,22 +6,24 @@ import (
 	"net"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewProvider instantiate a ntp provider given a configuration.
 func NewProvider(config *schema.NTPConfiguration) *Provider {
-	return &Provider{config}
+	return &Provider{
+		config: config,
+		log:    logging.Logger(),
+	}
 }
 
 // StartupCheck implements the startup check provider interface.
-func (p *Provider) StartupCheck(logger *logrus.Logger) (err error) {
+func (p *Provider) StartupCheck() (err error) {
 	conn, err := net.Dial("udp", p.config.Address)
 	if err != nil {
-		logger.Warnf("Could not connect to NTP server to validate the system time is properly synchronized: %+v", err)
+		p.log.Warnf("Could not connect to NTP server to validate the system time is properly synchronized: %+v", err)
 
 		return nil
 	}
@@ -29,7 +31,7 @@ func (p *Provider) StartupCheck(logger *logrus.Logger) (err error) {
 	defer conn.Close()
 
 	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
-		logger.Warnf("Could not connect to NTP server to validate the system time is properly synchronized: %+v", err)
+		p.log.Warnf("Could not connect to NTP server to validate the system time is properly synchronized: %+v", err)
 
 		return nil
 	}
@@ -42,7 +44,7 @@ func (p *Provider) StartupCheck(logger *logrus.Logger) (err error) {
 	req := &ntpPacket{LeapVersionMode: ntpLeapVersionClientMode(false, version)}
 
 	if err := binary.Write(conn, binary.BigEndian, req); err != nil {
-		logger.Warnf("Could not write to the NTP server socket to validate the system time is properly synchronized: %+v", err)
+		p.log.Warnf("Could not write to the NTP server socket to validate the system time is properly synchronized: %+v", err)
 
 		return nil
 	}
@@ -52,7 +54,7 @@ func (p *Provider) StartupCheck(logger *logrus.Logger) (err error) {
 	resp := &ntpPacket{}
 
 	if err := binary.Read(conn, binary.BigEndian, resp); err != nil {
-		logger.Warnf("Could not read from the NTP server socket to validate the system time is properly synchronized: %+v", err)
+		p.log.Warnf("Could not read from the NTP server socket to validate the system time is properly synchronized: %+v", err)
 
 		return nil
 	}

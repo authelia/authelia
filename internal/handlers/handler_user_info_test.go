@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -11,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 type FetchSuite struct {
@@ -33,62 +35,59 @@ func (s *FetchSuite) TearDownTest() {
 	s.mock.Close()
 }
 
-func setPreferencesExpectations(preferences UserInfo, provider *storage.MockProvider) {
-	provider.
-		EXPECT().
-		LoadPreferred2FAMethod(gomock.Eq("john")).
-		Return(preferences.Method, nil)
-
-	if preferences.HasU2F {
-		u2fData := []byte("abc")
-		provider.
-			EXPECT().
-			LoadU2FDeviceHandle(gomock.Eq("john")).
-			Return(u2fData, u2fData, nil)
-	} else {
-		provider.
-			EXPECT().
-			LoadU2FDeviceHandle(gomock.Eq("john")).
-			Return(nil, nil, storage.ErrNoU2FDeviceHandle)
-	}
-
-	if preferences.HasTOTP {
-		totpSecret := "secret"
-		provider.
-			EXPECT().
-			LoadTOTPSecret(gomock.Eq("john")).
-			Return(totpSecret, nil)
-	} else {
-		provider.
-			EXPECT().
-			LoadTOTPSecret(gomock.Eq("john")).
-			Return("", storage.ErrNoTOTPSecret)
-	}
+type expectedResponse struct {
+	db  models.UserInfo
+	api *models.UserInfo
+	err error
 }
 
 func TestMethodSetToU2F(t *testing.T) {
-	table := []UserInfo{
+	expectedResponses := []expectedResponse{
 		{
-			Method: "totp",
+			db: models.UserInfo{
+				Method: "totp",
+			},
+			err: nil,
 		},
 		{
-			Method:  "u2f",
-			HasU2F:  true,
-			HasTOTP: true,
+			db: models.UserInfo{
+				Method:  "u2f",
+				HasU2F:  true,
+				HasTOTP: true,
+			},
+			err: nil,
 		},
 		{
-			Method:  "u2f",
-			HasU2F:  true,
-			HasTOTP: false,
+			db: models.UserInfo{
+				Method:  "u2f",
+				HasU2F:  true,
+				HasTOTP: false,
+			},
+			err: nil,
 		},
 		{
-			Method:  "mobile_push",
-			HasU2F:  false,
-			HasTOTP: false,
+			db: models.UserInfo{
+				Method:  "mobile_push",
+				HasU2F:  false,
+				HasTOTP: false,
+			},
+			err: nil,
+		},
+		{
+			db:  models.UserInfo{},
+			err: sql.ErrNoRows,
+		},
+		{
+			db:  models.UserInfo{},
+			err: errors.New("invalid thing"),
 		},
 	}
 
-	for _, expectedPreferences := range table {
+	for _, resp := range expectedResponses {
+		if resp.api == nil {
+			resp.api = &resp.db
+		}
+
 		mock := mocks.NewMockAutheliaCtx(t)
 		// Set the initial user session.
 		userSession := mock.Ctx.GetSession()
@@ -97,64 +96,57 @@ func TestMethodSetToU2F(t *testing.T) {
 		err := mock.Ctx.SaveSession(userSession)
 		require.NoError(t, err)
 
-		setPreferencesExpectations(expectedPreferences, mock.StorageProviderMock)
+		mock.StorageProviderMock.
+			EXPECT().
+			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
+			Return(resp.db, resp.err)
+
 		UserInfoGet(mock.Ctx)
 
-		actualPreferences := UserInfo{}
-		mock.GetResponseData(t, &actualPreferences)
+		if resp.err == nil {
+			t.Run("expected status code", func(t *testing.T) {
+				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+			})
 
-		t.Run("expected method", func(t *testing.T) {
-			assert.Equal(t, expectedPreferences.Method, actualPreferences.Method)
-		})
+			actualPreferences := models.UserInfo{}
 
-		t.Run("registered u2f", func(t *testing.T) {
-			assert.Equal(t, expectedPreferences.HasU2F, actualPreferences.HasU2F)
-		})
+			mock.GetResponseData(t, &actualPreferences)
 
-		t.Run("registered totp", func(t *testing.T) {
-			assert.Equal(t, expectedPreferences.HasTOTP, actualPreferences.HasTOTP)
-		})
+			t.Run("expected method", func(t *testing.T) {
+				assert.Equal(t, resp.api.Method, actualPreferences.Method)
+			})
+
+			t.Run("registered u2f", func(t *testing.T) {
+				assert.Equal(t, resp.api.HasU2F, actualPreferences.HasU2F)
+			})
+
+			t.Run("registered totp", func(t *testing.T) {
+				assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
+			})
+		} else {
+			t.Run("expected status code", func(t *testing.T) {
+				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+			})
+
+			errResponse := mock.GetResponseError(t)
+
+			assert.Equal(t, "KO", errResponse.Status)
+			assert.Equal(t, "Operation failed.", errResponse.Message)
+		}
+
 		mock.Close()
 	}
 }
 
-func (s *FetchSuite) TestShouldGetDefaultPreferenceIfNotInDB() {
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadPreferred2FAMethod(gomock.Eq("john")).
-		Return("", nil)
-
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadU2FDeviceHandle(gomock.Eq("john")).
-		Return(nil, nil, storage.ErrNoU2FDeviceHandle)
-
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadTOTPSecret(gomock.Eq("john")).
-		Return("", storage.ErrNoTOTPSecret)
-
-	UserInfoGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), UserInfo{Method: "totp"})
-}
-
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageProviderMock.EXPECT().
-		LoadPreferred2FAMethod(gomock.Eq("john")).
-		Return("", fmt.Errorf("Failure"))
-
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadU2FDeviceHandle(gomock.Eq("john"))
-
-	s.mock.StorageProviderMock.
-		EXPECT().
-		LoadTOTPSecret(gomock.Eq("john"))
+		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+		Return(models.UserInfo{}, fmt.Errorf("failure"))
 
 	UserInfoGet(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to load user information", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to load user information: failure", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -186,7 +178,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -195,7 +187,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -204,7 +196,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -220,7 +212,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
 	s.mock.StorageProviderMock.EXPECT().
-		SavePreferred2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(fmt.Errorf("Failure"))
 
 	MethodPreferencePost(s.mock.Ctx)
@@ -233,7 +225,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
 	s.mock.StorageProviderMock.EXPECT().
-		SavePreferred2FAMethod(gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(nil)
 
 	MethodPreferencePost(s.mock.Ctx)

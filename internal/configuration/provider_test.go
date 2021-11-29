@@ -138,6 +138,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_ENCRYPTION_KEY", "a_very_bad_encryption_key"))
 
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -152,6 +153,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	assert.Equal(t, "example_secret value", config.Session.Secret)
 	assert.Equal(t, "an env storage mysql password", config.Storage.MySQL.Password)
 	assert.Equal(t, "an env authentication backend ldap password", config.AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "a_very_bad_encryption_key", config.Storage.EncryptionKey)
 }
 
 func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
@@ -184,6 +186,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_ENCRYPTION_KEY_FILE", "./test_resources/example_secret"))
 
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -196,6 +199,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.Equal(t, "example_secret value", config.Session.Secret)
 	assert.Equal(t, "example_secret value", config.AuthenticationBackend.LDAP.Password)
 	assert.Equal(t, "example_secret value", config.Storage.MySQL.Password)
+	assert.Equal(t, "example_secret value", config.Storage.EncryptionKey)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
@@ -308,6 +312,7 @@ func testReset() {
 	testUnsetEnvName("PORT")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
+	testUnsetEnvName("STORAGE_ENCRYPTION_KEY")
 }
 
 func testUnsetEnvName(name string) {

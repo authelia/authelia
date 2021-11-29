@@ -8,7 +8,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
 )
 
 // MockNotifier is a mock of Notifier interface.
@@ -49,15 +48,15 @@ func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2, arg3 interface{}) *go
 }
 
 // StartupCheck mocks base method.
-func (m *MockNotifier) StartupCheck(arg0 *logrus.Logger) error {
+func (m *MockNotifier) StartupCheck() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartupCheck", arg0)
+	ret := m.ctrl.Call(m, "StartupCheck")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // StartupCheck indicates an expected call of StartupCheck.
-func (mr *MockNotifierMockRecorder) StartupCheck(arg0 *logrus.Logger) *gomock.Call {
+func (mr *MockNotifierMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockNotifier)(nil).StartupCheck), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockNotifier)(nil).StartupCheck))
 }

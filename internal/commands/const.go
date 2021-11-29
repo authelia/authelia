@@ -1,5 +1,9 @@
 package commands
 
+import (
+	"errors"
+)
+
 const cmdAutheliaExample = `authelia --config /etc/authelia/config.yml --config /etc/authelia/access-control.yml
 authelia --config /etc/authelia/config.yml,/etc/authelia/access-control.yml
 authelia --config /etc/authelia/config/
@@ -75,3 +79,17 @@ PowerShell:
   PS> authelia completion powershell > authelia.ps1
   # and source this file from your PowerShell profile.
 `
+
+const (
+	storageMigrateDirectionUp   = "up"
+	storageMigrateDirectionDown = "down"
+)
+
+const (
+	storageExportFormatCSV = "csv"
+	storageExportFormatURI = "uri"
+)
+
+var (
+	errNoStorageProvider = errors.New("no storage provider configured")
+)

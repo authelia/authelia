@@ -11,8 +11,17 @@ import (
 
 // Load the configuration given the provided options and sources.
 func Load(val *schema.StructValidator, sources ...Source) (keys []string, configuration *schema.Configuration, err error) {
+	configuration = &schema.Configuration{}
+
+	keys, err = LoadAdvanced(val, "", configuration, sources...)
+
+	return keys, configuration, err
+}
+
+// LoadAdvanced is intended to give more flexibility over loading a particular path to a specific interface.
+func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, sources ...Source) (keys []string, err error) {
 	if val == nil {
-		return keys, configuration, errNoValidator
+		return keys, errNoValidator
 	}
 
 	ko := koanf.NewWithConf(koanf.Conf{
@@ -22,14 +31,12 @@ func Load(val *schema.StructValidator, sources ...Source) (keys []string, config
 
 	err = loadSources(ko, val, sources...)
 	if err != nil {
-		return ko.Keys(), configuration, err
+		return ko.Keys(), err
 	}
 
-	configuration = &schema.Configuration{}
+	unmarshal(ko, val, path, result)
 
-	unmarshal(ko, val, "", configuration)
-
-	return ko.Keys(), configuration, nil
+	return ko.Keys(), nil
 }
 
 func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {

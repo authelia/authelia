@@ -55,6 +55,13 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 
 // Error reply with an error and display the stack trace in the logs.
 func (c *AutheliaCtx) Error(err error, message string) {
+	c.SetJSONError(message)
+
+	c.Logger.Error(err)
+}
+
+// SetJSONError sets the body of the response to an JSON error KO message.
+func (c *AutheliaCtx) SetJSONError(message string) {
 	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
 
 	if marshalErr != nil {
@@ -63,7 +70,6 @@ func (c *AutheliaCtx) Error(err error, message string) {
 
 	c.SetContentType(contentTypeApplicationJSON)
 	c.SetBody(b)
-	c.Logger.Error(err)
 }
 
 // ReplyError reply with an error but does not display any stack trace in the logs.
@@ -183,13 +189,13 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 	err := json.Unmarshal(c.PostBody(), &value)
 
 	if err != nil {
-		return fmt.Errorf("Unable to parse body: %s", err)
+		return fmt.Errorf("unable to parse body: %w", err)
 	}
 
 	valid, err := govalidator.ValidateStruct(value)
 
 	if err != nil {
-		return fmt.Errorf("Unable to validate body: %s", err)
+		return fmt.Errorf("unable to validate body: %w", err)
 	}
 
 	if !valid {
@@ -203,7 +209,7 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 	b, err := json.Marshal(OKResponse{Status: "OK", Data: value})
 	if err != nil {
-		return fmt.Errorf("Unable to marshal JSON body")
+		return fmt.Errorf("unable to marshal JSON body: %w", err)
 	}
 
 	c.SetContentType(contentTypeApplicationJSON)

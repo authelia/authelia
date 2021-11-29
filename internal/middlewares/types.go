@@ -28,11 +28,6 @@ type AutheliaCtx struct {
 	Clock utils.Clock
 }
 
-// ProviderWithStartupCheck represents a provider that has a startup check.
-type ProviderWithStartupCheck interface {
-	StartupCheck(logger *logrus.Logger) (err error)
-}
-
 // Providers contain all provider provided to Authelia.
 type Providers struct {
 	Authorizer      *authorization.Authorizer

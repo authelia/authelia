@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
@@ -25,7 +23,7 @@ func NewFileNotifier(configuration schema.FileSystemNotifierConfiguration) *File
 }
 
 // StartupCheck implements the startup check provider interface.
-func (n *FileNotifier) StartupCheck(_ *logrus.Logger) (err error) {
+func (n *FileNotifier) StartupCheck() (err error) {
 	dir := filepath.Dir(n.path)
 	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {

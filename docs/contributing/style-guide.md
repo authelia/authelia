@@ -99,3 +99,36 @@ This section has the required status of the value and must be one of `yes`, `no`
 depends on other configuration options. If it's situational the situational usage should be documented. This is 
 immediately followed by the styles `.label`, `.label-config`, and a traffic lights color label, i.e. if yes `.label-red`, 
 if no `.label-green`, or if situational `.label-yellow`.
+
+### Storage
+This section outlines some rules for storage contributions. Including but not limited to migrations, schema rules, etc.
+
+#### Migrations
+All migrations must have an up and down migration, preferably idempotent.
+
+All migrations must be named in the following format:
+```text
+V<version>.<name>.<engine>.<direction>.sql
+```
+
+##### version
+A 4 digit version number, should be in sequential order.
+
+##### name
+A name containing alphanumeric characters, underscores (treated as spaces), hyphens, and no spaces.
+
+##### engine
+The target engine for the migration, options are all, mysql, postgres, and sqlite.
+
+#### Primary Key
+All tables must have a primary key. This primary key must be an integer with auto increment enabled, or in the case of 
+PostgreSQL a serial type.
+
+#### Table/Column Names
+Table and Column names must be in snake case format. This means they must have only lowercase letters, and have words 
+seperated by underscores. The reasoning for this is that some database engines ignore case by default and this makes it
+easy to be consistent with the casing.
+
+#### Context
+All database methods should include the context attribute so that database requests that are no longer needed are
+terminated appropriately.

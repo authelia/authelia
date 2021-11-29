@@ -21,7 +21,7 @@ type LDAPUserProvider struct {
 	configuration     schema.LDAPAuthenticationBackendConfiguration
 	tlsConfig         *tls.Config
 	dialOpts          []ldap.DialOpt
-	logger            *logrus.Logger
+	log               *logrus.Logger
 	connectionFactory LDAPConnectionFactory
 
 	disableResetPassword bool
@@ -72,7 +72,7 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 		configuration:        configuration,
 		tlsConfig:            tlsConfig,
 		dialOpts:             dialOpts,
-		logger:               logging.Logger(),
+		log:                  logging.Logger(),
 		connectionFactory:    factory,
 		disableResetPassword: disableResetPassword,
 	}
@@ -148,7 +148,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter stri
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, p.ldapEscape(inputUsername))
 	}
 
-	p.logger.Tracef("Computed user filter is %s", filter)
+	p.log.Tracef("Computed user filter is %s", filter)
 
 	return filter
 }
@@ -223,7 +223,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 		}
 	}
 
-	p.logger.Tracef("Computed groups filter is %s", filter)
+	p.log.Tracef("Computed groups filter is %s", filter)
 
 	return filter, nil
 }
@@ -262,7 +262,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 	for _, res := range sr.Entries {
 		if len(res.Attributes) == 0 {
-			p.logger.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
+			p.log.Warningf("No groups retrieved from LDAP for user %s", inputUsername)
 			break
 		}
 

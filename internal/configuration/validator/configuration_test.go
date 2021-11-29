@@ -28,6 +28,7 @@ func newDefaultConfig() schema.Configuration {
 		Name:   "authelia_session",
 		Secret: "secret",
 	}
+	config.Storage.EncryptionKey = testEncryptionKey
 	config.Storage.Local = &schema.LocalStorageConfiguration{
 		Path: "abc",
 	}

@@ -1,280 +1,392 @@
 package storage
 
 import (
+	"context"
+	"crypto/sha256"
 	"database/sql"
-	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+// NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
+func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (provider SQLProvider) {
+	db, err := sqlx.Open(driverName, dataSourceName)
+
+	provider = SQLProvider{
+		db:         db,
+		key:        sha256.Sum256([]byte(encryptionKey)),
+		name:       name,
+		driverName: driverName,
+		errOpen:    err,
+		log:        logging.Logger(),
+
+		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
+		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
+
+		sqlInsertIdentityVerification:       fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
+		sqlDeleteIdentityVerification:       fmt.Sprintf(queryFmtDeleteIdentityVerification, tableIdentityVerification),
+		sqlSelectExistsIdentityVerification: fmt.Sprintf(queryFmtSelectExistsIdentityVerification, tableIdentityVerification),
+
+		sqlUpsertTOTPConfig:  fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
+		sqlDeleteTOTPConfig:  fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
+		sqlSelectTOTPConfig:  fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
+		sqlSelectTOTPConfigs: fmt.Sprintf(queryFmtSelectTOTPConfigurations, tableTOTPConfigurations),
+
+		sqlUpdateTOTPConfigSecret:           fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
+		sqlUpdateTOTPConfigSecretByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
+
+		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
+		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
+
+		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
+		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableUserPreferences),
+
+		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
+		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
+		sqlSelectLatestMigration: fmt.Sprintf(queryFmtSelectLatestMigration, tableMigrations),
+
+		sqlUpsertEncryptionValue: fmt.Sprintf(queryFmtUpsertEncryptionValue, tableEncryption),
+		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
+
+		sqlFmtRenameTable: queryFmtRenameTable,
+	}
+
+	key := sha256.Sum256([]byte(encryptionKey))
+
+	provider.key = key
+
+	return provider
+}
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db   *sql.DB
-	log  *logrus.Logger
-	name string
+	db         *sqlx.DB
+	key        [32]byte
+	name       string
+	driverName string
+	errOpen    error
 
-	sqlUpgradesCreateTableStatements        map[SchemaVersion]map[string]string
-	sqlUpgradesCreateTableIndexesStatements map[SchemaVersion][]string
+	log *logrus.Logger
 
-	sqlGetPreferencesByUsername     string
-	sqlUpsertSecondFactorPreference string
+	// Table: authentication_logs.
+	sqlInsertAuthenticationAttempt            string
+	sqlSelectAuthenticationAttemptsByUsername string
 
-	sqlTestIdentityVerificationTokenExistence string
-	sqlInsertIdentityVerificationToken        string
-	sqlDeleteIdentityVerificationToken        string
+	// Table: identity_verification_tokens.
+	sqlInsertIdentityVerification       string
+	sqlDeleteIdentityVerification       string
+	sqlSelectExistsIdentityVerification string
 
-	sqlGetTOTPSecretByUsername string
-	sqlUpsertTOTPSecret        string
-	sqlDeleteTOTPSecret        string
+	// Table: totp_configurations.
+	sqlUpsertTOTPConfig  string
+	sqlDeleteTOTPConfig  string
+	sqlSelectTOTPConfig  string
+	sqlSelectTOTPConfigs string
 
-	sqlGetU2FDeviceHandleByUsername string
-	sqlUpsertU2FDeviceHandle        string
+	sqlUpdateTOTPConfigSecret           string
+	sqlUpdateTOTPConfigSecretByUsername string
 
-	sqlInsertAuthenticationLog     string
-	sqlGetLatestAuthenticationLogs string
+	// Table: u2f_devices.
+	sqlUpsertU2FDevice string
+	sqlSelectU2FDevice string
 
-	sqlGetExistingTables string
+	// Table: user_preferences.
+	sqlUpsertPreferred2FAMethod string
+	sqlSelectPreferred2FAMethod string
+	sqlSelectUserInfo           string
 
-	sqlConfigSetValue string
-	sqlConfigGetValue string
+	// Table: migrations.
+	sqlInsertMigration       string
+	sqlSelectMigrations      string
+	sqlSelectLatestMigration string
+
+	// Table: encryption.
+	sqlUpsertEncryptionValue string
+	sqlSelectEncryptionValue string
+
+	// Utility.
+	sqlSelectExistingTables string
+	sqlFmtRenameTable       string
 }
 
-func (p *SQLProvider) initialize(db *sql.DB) error {
-	p.db = db
-	p.log = logging.Logger()
-
-	return p.upgrade()
+// Close the underlying database connection.
+func (p *SQLProvider) Close() (err error) {
+	return p.db.Close()
 }
 
-func (p *SQLProvider) getSchemaBasicDetails() (version SchemaVersion, tables []string, err error) {
-	rows, err := p.db.Query(p.sqlGetExistingTables)
+// StartupCheck implements the provider startup check interface.
+func (p *SQLProvider) StartupCheck() (err error) {
+	if p.errOpen != nil {
+		return fmt.Errorf("error opening database: %w", p.errOpen)
+	}
+
+	// TODO: Decide if this is needed, or if it should be configurable.
+	for i := 0; i < 19; i++ {
+		if err = p.db.Ping(); err == nil {
+			break
+		}
+
+		time.Sleep(time.Millisecond * 500)
+	}
+
 	if err != nil {
-		return version, tables, err
+		return fmt.Errorf("error pinging database: %w", err)
 	}
 
-	defer rows.Close()
+	p.log.Infof("Storage schema is being checked for updates")
 
-	var table string
+	ctx := context.Background()
 
-	for rows.Next() {
-		err := rows.Scan(&table)
-		if err != nil {
-			return version, tables, err
-		}
-
-		tables = append(tables, table)
-	}
-
-	if utils.IsStringInSlice(configTableName, tables) {
-		rows, err := p.db.Query(p.sqlConfigGetValue, "schema", "version")
-		if err != nil {
-			return version, tables, err
-		}
-
-		for rows.Next() {
-			err := rows.Scan(&version)
-			if err != nil {
-				return version, tables, err
-			}
-		}
-	}
-
-	return version, tables, nil
-}
-
-func (p *SQLProvider) upgrade() error {
-	p.log.Debug("Storage schema is being checked to verify it is up to date")
-
-	version, tables, err := p.getSchemaBasicDetails()
-	if err != nil {
+	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
 		return err
 	}
 
-	if version < storageSchemaCurrentVersion {
-		p.log.Debugf("Storage schema is v%d, latest is v%d", version, storageSchemaCurrentVersion)
+	err = p.SchemaMigrate(ctx, true, SchemaLatest)
 
-		tx, err := p.db.Begin()
-		if err != nil {
-			return err
+	switch err {
+	case ErrSchemaAlreadyUpToDate:
+		p.log.Infof("Storage schema is already up to date")
+		return nil
+	case nil:
+		return nil
+	default:
+		return fmt.Errorf("error during schema migrate: %w", err)
+	}
+}
+
+// SavePreferred2FAMethod save the preferred method for 2FA to the database.
+func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method)
+
+	return err
+}
+
+// LoadPreferred2FAMethod load the preferred method for 2FA from the database.
+func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error) {
+	err = p.db.GetContext(ctx, &method, p.sqlSelectPreferred2FAMethod, username)
+
+	switch {
+	case err == nil:
+		return method, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return "", nil
+	default:
+		return "", fmt.Errorf("error selecting preferred two factor method for user '%s': %w", username, err)
+	}
+}
+
+// LoadUserInfo loads the models.UserInfo from the database.
+func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error) {
+	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username)
+
+	switch {
+	case err == nil:
+		return info, nil
+	case errors.Is(err, sql.ErrNoRows):
+		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, authentication.PossibleMethods[0]); err != nil {
+			return models.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
 		}
 
-		switch version {
-		case 0:
-			err := p.upgradeSchemaToVersion001(tx, tables)
-			if err != nil {
-				return p.handleUpgradeFailure(tx, 1, err)
-			}
-
-			fallthrough
-		default:
-			err := tx.Commit()
-			if err != nil {
-				return err
-			}
-
-			p.log.Infof("Storage schema upgrade to v%d completed", storageSchemaCurrentVersion)
+		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username); err != nil {
+			return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 		}
-	} else {
-		p.log.Debug("Storage schema is up to date")
+
+		return info, nil
+	default:
+		return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
+	}
+}
+
+// SaveIdentityVerification save an identity verification record to the database.
+func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification, verification.Token); err != nil {
+		return fmt.Errorf("error inserting identity verification: %w", err)
 	}
 
 	return nil
 }
 
-func (p *SQLProvider) handleUpgradeFailure(tx *sql.Tx, version SchemaVersion, err error) error {
-	rollbackErr := tx.Rollback()
-	formattedErr := fmt.Errorf("%s%d: %v", storageSchemaUpgradeErrorText, version, err)
-
-	if rollbackErr != nil {
-		return fmt.Errorf("rollback error occurred: %v (inner error %v)", rollbackErr, formattedErr)
+// RemoveIdentityVerification remove an identity verification record from the database.
+func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, token string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, token); err != nil {
+		return fmt.Errorf("error updating identity verification: %w", err)
 	}
 
-	return formattedErr
+	return nil
 }
 
-// LoadPreferred2FAMethod load the preferred method for 2FA from the database.
-func (p *SQLProvider) LoadPreferred2FAMethod(username string) (string, error) {
-	var method string
-
-	rows, err := p.db.Query(p.sqlGetPreferencesByUsername, username)
-	if err != nil {
-		return "", err
-	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return "", nil
-	}
-
-	err = rows.Scan(&method)
-
-	return method, err
-}
-
-// SavePreferred2FAMethod save the preferred method for 2FA to the database.
-func (p *SQLProvider) SavePreferred2FAMethod(username string, method string) error {
-	_, err := p.db.Exec(p.sqlUpsertSecondFactorPreference, username, method)
-	return err
-}
-
-// FindIdentityVerificationToken look for an identity verification token in the database.
-func (p *SQLProvider) FindIdentityVerificationToken(token string) (bool, error) {
-	var found bool
-
-	err := p.db.QueryRow(p.sqlTestIdentityVerificationTokenExistence, token).Scan(&found)
-	if err != nil {
-		return false, err
+// FindIdentityVerification checks if an identity verification record is in the database and active.
+func (p *SQLProvider) FindIdentityVerification(ctx context.Context, token string) (found bool, err error) {
+	if err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, token); err != nil {
+		return false, fmt.Errorf("error selecting identity verification exists: %w", err)
 	}
 
 	return found, nil
 }
 
-// SaveIdentityVerificationToken save an identity verification token in the database.
-func (p *SQLProvider) SaveIdentityVerificationToken(token string) error {
-	_, err := p.db.Exec(p.sqlInsertIdentityVerificationToken, token)
-	return err
+// SaveTOTPConfiguration save a TOTP configuration of a given user in the database.
+func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
+	if config.Secret, err = p.encrypt(config.Secret); err != nil {
+		return fmt.Errorf("error encrypting the TOTP configuration secret: %v", err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
+		config.Username, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
+		return fmt.Errorf("error upserting TOTP configuration: %w", err)
+	}
+
+	return nil
 }
 
-// RemoveIdentityVerificationToken remove an identity verification token from the database.
-func (p *SQLProvider) RemoveIdentityVerificationToken(token string) error {
-	_, err := p.db.Exec(p.sqlDeleteIdentityVerificationToken, token)
-	return err
+// DeleteTOTPConfiguration delete a TOTP configuration from the database given a username.
+func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteTOTPConfig, username); err != nil {
+		return fmt.Errorf("error deleting TOTP configuration: %w", err)
+	}
+
+	return nil
 }
 
-// SaveTOTPSecret save a TOTP secret of a given user in the database.
-func (p *SQLProvider) SaveTOTPSecret(username string, secret string) error {
-	_, err := p.db.Exec(p.sqlUpsertTOTPSecret, username, secret)
-	return err
-}
+// LoadTOTPConfiguration load a TOTP configuration given a username from the database.
+func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error) {
+	config = &models.TOTPConfiguration{}
 
-// LoadTOTPSecret load a TOTP secret given a username from the database.
-func (p *SQLProvider) LoadTOTPSecret(username string) (string, error) {
-	var secret string
-	if err := p.db.QueryRow(p.sqlGetTOTPSecretByUsername, username).Scan(&secret); err != nil {
-		if err == sql.ErrNoRows {
-			return "", ErrNoTOTPSecret
+	if err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoTOTPSecret
 		}
 
-		return "", err
+		return nil, fmt.Errorf("error selecting TOTP configuration: %w", err)
 	}
 
-	return secret, nil
+	if config.Secret, err = p.decrypt(config.Secret); err != nil {
+		return nil, fmt.Errorf("error decrypting the TOTP secret: %v", err)
+	}
+
+	return config, nil
 }
 
-// DeleteTOTPSecret delete a TOTP secret from the database given a username.
-func (p *SQLProvider) DeleteTOTPSecret(username string) error {
-	_, err := p.db.Exec(p.sqlDeleteTOTPSecret, username)
-	return err
-}
-
-// SaveU2FDeviceHandle save a registered U2F device registration blob.
-func (p *SQLProvider) SaveU2FDeviceHandle(username string, keyHandle []byte, publicKey []byte) error {
-	_, err := p.db.Exec(p.sqlUpsertU2FDeviceHandle,
-		username,
-		base64.StdEncoding.EncodeToString(keyHandle),
-		base64.StdEncoding.EncodeToString(publicKey))
-
-	return err
-}
-
-// LoadU2FDeviceHandle load a U2F device registration blob for a given username.
-func (p *SQLProvider) LoadU2FDeviceHandle(username string) ([]byte, []byte, error) {
-	var keyHandleBase64, publicKeyBase64 string
-	if err := p.db.QueryRow(p.sqlGetU2FDeviceHandleByUsername, username).Scan(&keyHandleBase64, &publicKeyBase64); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil, ErrNoU2FDeviceHandle
+// LoadTOTPConfigurations load a set of TOTP configurations.
+func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error) {
+	rows, err := p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, limit, limit*page)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return configs, nil
 		}
 
-		return nil, nil, err
+		return nil, fmt.Errorf("error selecting TOTP configurations: %w", err)
 	}
 
-	keyHandle, err := base64.StdEncoding.DecodeString(keyHandleBase64)
+	defer func() {
+		if err := rows.Close(); err != nil {
+			p.log.Errorf(logFmtErrClosingConn, err)
+		}
+	}()
+
+	configs = make([]models.TOTPConfiguration, 0, limit)
+
+	var config models.TOTPConfiguration
+
+	for rows.Next() {
+		if err = rows.StructScan(&config); err != nil {
+			return nil, fmt.Errorf("error scanning TOTP configuration to struct: %w", err)
+		}
+
+		if config.Secret, err = p.decrypt(config.Secret); err != nil {
+			return nil, fmt.Errorf("error decrypting the TOTP secret: %v", err)
+		}
+
+		configs = append(configs, config)
+	}
+
+	return configs, nil
+}
+
+// UpdateTOTPConfigurationSecret updates a TOTP configuration secret.
+func (p *SQLProvider) UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error) {
+	switch config.ID {
+	case 0:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
+	default:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecret, config.Secret, config.ID)
+	}
 
 	if err != nil {
-		return nil, nil, err
+		return fmt.Errorf("error updating TOTP configuration secret: %w", err)
 	}
 
-	publicKey, err := base64.StdEncoding.DecodeString(publicKeyBase64)
+	return nil
+}
 
-	if err != nil {
-		return nil, nil, err
+// SaveU2FDevice saves a registered U2F device.
+func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.KeyHandle, device.PublicKey); err != nil {
+		return fmt.Errorf("error upserting U2F device secret: %v", err)
 	}
 
-	return keyHandle, publicKey, nil
+	return nil
+}
+
+// LoadU2FDevice loads a U2F device registration for a given username.
+func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error) {
+	device = &models.U2FDevice{
+		Username: username,
+	}
+
+	if err = p.db.GetContext(ctx, device, p.sqlSelectU2FDevice, username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoU2FDeviceHandle
+		}
+
+		return nil, fmt.Errorf("error selecting U2F device: %w", err)
+	}
+
+	return device, nil
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.
-func (p *SQLProvider) AppendAuthenticationLog(attempt models.AuthenticationAttempt) error {
-	_, err := p.db.Exec(p.sqlInsertAuthenticationLog, attempt.Username, attempt.Successful, attempt.Time.Unix())
-	return err
-}
-
-// LoadLatestAuthenticationLogs retrieve the latest marks from the authentication log.
-func (p *SQLProvider) LoadLatestAuthenticationLogs(username string, fromDate time.Time) ([]models.AuthenticationAttempt, error) {
-	var t int64
-
-	rows, err := p.db.Query(p.sqlGetLatestAuthenticationLogs, fromDate.Unix(), username)
-
-	if err != nil {
-		return nil, err
+func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
+		attempt.Time, attempt.Successful, attempt.Banned, attempt.Username,
+		attempt.Type, attempt.RemoteIP, attempt.RequestURI, attempt.RequestMethod); err != nil {
+		return fmt.Errorf("error inserting authentication attempt: %w", err)
 	}
 
-	attempts := make([]models.AuthenticationAttempt, 0, 10)
+	return nil
+}
+
+// LoadAuthenticationLogs retrieve the latest failed authentications from the authentication log.
+func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
+	rows, err := p.db.QueryxContext(ctx, p.sqlSelectAuthenticationAttemptsByUsername, fromDate, username, limit, limit*page)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoAuthenticationLogs
+		}
+
+		return nil, fmt.Errorf("error selecting authentication logs: %w", err)
+	}
+
+	defer func() {
+		if err := rows.Close(); err != nil {
+			p.log.Errorf(logFmtErrClosingConn, err)
+		}
+	}()
+
+	var attempt models.AuthenticationAttempt
+
+	attempts = make([]models.AuthenticationAttempt, 0, limit)
 
 	for rows.Next() {
-		attempt := models.AuthenticationAttempt{
-			Username: username,
-		}
-		err = rows.Scan(&attempt.Successful, &t)
-		attempt.Time = time.Unix(t, 0)
-
-		if err != nil {
+		if err = rows.StructScan(&attempt); err != nil {
 			return nil, err
 		}
 

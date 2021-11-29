@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -208,6 +207,6 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 }
 
 // StartupCheck implements the startup check provider interface.
-func (p *FileUserProvider) StartupCheck(_ *logrus.Logger) (err error) {
+func (p *FileUserProvider) StartupCheck() (err error) {
 	return nil
 }

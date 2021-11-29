@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"github.com/knadh/koanf"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -31,4 +32,11 @@ type SecretsSource struct {
 	koanf     *koanf.Koanf
 	prefix    string
 	delimiter string
+}
+
+// CommandLineSource loads configuration from the command line flags.
+type CommandLineSource struct {
+	koanf    *koanf.Koanf
+	flags    *pflag.FlagSet
+	callback func(flag *pflag.Flag) (string, interface{})
 }
