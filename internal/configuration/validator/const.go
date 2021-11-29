@@ -54,6 +54,13 @@ const (
 	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
 )
 
+// TOTP Error constants.
+const (
+	errFmtTOTPInvalidAlgorithm = "TOTP: algorithm '%s' is invalid: must be one of %s"
+	errFmtTOTPInvalidPeriod    = "TOTP: period '%d` is invalid: must be 1 or more"
+	errFmtTOTPInvalidSkew      = "TOTP: skew '%d` is invalid: must be 0 or more"
+)
+
 // OpenID Error constants.
 const (
 	errFmtOIDCClientsDuplicateID        = "openid connect provider: one or more clients have the same ID"
@@ -157,6 +164,7 @@ var ValidKeys = []string{
 
 	// TOTP Keys.
 	"totp.issuer",
+	"totp.algorithm",
 	"totp.period",
 	"totp.skew",
 

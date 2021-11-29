@@ -62,7 +62,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 
 // Generate generates a TOTP with default options.
 func (p TimeBased) Generate(username string) (config *models.TOTPConfiguration, err error) {
-	return p.GenerateCustom(username, totpAlgoSHA1, 6, uint(p.config.Period), 32)
+	return p.GenerateCustom(username, p.config.Algorithm, 6, uint(p.config.Period), 32)
 }
 
 // Validate the token against the given configuration.
