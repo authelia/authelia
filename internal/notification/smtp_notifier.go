@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
