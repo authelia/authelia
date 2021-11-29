@@ -360,7 +360,7 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
 		attempt.Time, attempt.Successful, attempt.Banned, attempt.Username,
 		attempt.Type, attempt.RemoteIP, attempt.RequestURI, attempt.RequestMethod); err != nil {
-		return fmt.Errorf("error inserting authentiation attempt: %w", err)
+		return fmt.Errorf("error inserting authentication attempt: %w", err)
 	}
 
 	return nil
