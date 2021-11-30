@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"net/mail"
+	"time"
+)
 
 // FileSystemNotifierConfiguration represents the configuration of the notifier writing emails in a file.
 type FileSystemNotifierConfiguration struct {
@@ -15,7 +18,7 @@ type SMTPNotifierConfiguration struct {
 	Username            string        `koanf:"username"`
 	Password            string        `koanf:"password"`
 	Identifier          string        `koanf:"identifier"`
-	Sender              string        `koanf:"sender"`
+	Sender              mail.Address  `koanf:"sender"`
 	Subject             string        `koanf:"subject"`
 	StartupCheckAddress string        `koanf:"startup_check_address"`
 	DisableRequireTLS   bool          `koanf:"disable_require_tls"`
@@ -32,9 +35,10 @@ type NotifierConfiguration struct {
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.
 var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
-	Timeout:    time.Second * 5,
-	Subject:    "[Authelia] {title}",
-	Identifier: "localhost",
+	Timeout:             time.Second * 5,
+	Subject:             "[Authelia] {title}",
+	Identifier:          "localhost",
+	StartupCheckAddress: "test@authelia.com",
 	TLS: &TLSConfig{
 		MinimumVersion: "TLS1.2",
 	},

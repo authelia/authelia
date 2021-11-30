@@ -224,6 +224,39 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	assert.EqualError(t, val.Errors()[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
 }
 
+func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not parse 'admin' as a RFC5322 address: mail: missing '@' or angle-addr")
+}
+
+func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
+	assert.Equal(t, "", config.Notifier.SMTP.Sender.Address)
+}
+
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	if runtime.GOOS == constWindows {
 		t.Skip("skipping test due to being on windows")
