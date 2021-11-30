@@ -53,6 +53,9 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		"postgres.username": "storage.postgres.username",
 		"postgres.password": "storage.postgres.password",
 		"postgres.schema":   "storage.postgres.schema",
+		"period":            "totp.period",
+		"algorithm":         "totp.algorithm",
+		"issuer":            "totp.issuer",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
