@@ -52,7 +52,7 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableDUODevices, tableUserPreferences),
 
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
@@ -195,7 +195,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 
 // LoadUserInfo loads the models.UserInfo from the database.
 func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error) {
-	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username)
+	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
 	switch {
 	case err == nil:
@@ -205,7 +205,7 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 			return models.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
 		}
 
-		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username); err != nil {
+		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username); err != nil {
 			return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 		}
 

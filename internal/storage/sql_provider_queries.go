@@ -35,7 +35,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
