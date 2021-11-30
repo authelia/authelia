@@ -6,7 +6,7 @@ import (
 
 const (
 	tableUserPreferences      = "user_preferences"
-	tableIdentityVerification = "identity_verification_tokens"
+	tableIdentityVerification = "identity_verification"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableU2FDevices           = "u2f_devices"
 	tableDUODevices           = "duo_devices"

@@ -2,18 +2,28 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
     id INTEGER,
     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful BOOLEAN NOT NULL,
+    banned BOOLEAN NOT NULL DEFAULT FALSE,
     username VARCHAR(100) NOT NULL,
+    auth_type VARCHAR(5) NOT NULL DEFAULT '1FA',
+    remote_ip VARCHAR(47) NULL DEFAULT NULL,
+    request_uri TEXT,
+    request_method VARCHAR(4) NOT NULL DEFAULT '',
     PRIMARY KEY (id)
 );
 
-CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username);
+CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
+CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
 
-CREATE TABLE IF NOT EXISTS identity_verification_tokens (
+CREATE TABLE IF NOT EXISTS identity_verification (
     id INTEGER,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    token VARCHAR(512),
+    jti VARCHAR(36),
+    iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    exp TIMESTAMP NOT NULL,
+    used TIMESTAMP NULL DEFAULT NULL,
+    username VARCHAR(100) NOT NULL,
+    action VARCHAR(50) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE (token)
+    UNIQUE (jti)
 );
 
 CREATE TABLE IF NOT EXISTS totp_configurations (

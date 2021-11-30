@@ -14,6 +14,8 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 type SecondFactorDuoPostSuite struct {
@@ -47,6 +49,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndAllowAccess() {
 	response := duo.Response{}
 	response.Response.Result = testResultAllow
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
@@ -69,6 +82,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	response := duo.Response{}
 	response.Response.Result = "deny"
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: false,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
@@ -88,7 +112,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	values.Set("device", "auto")
 	values.Set("pushinfo", "target%20url=https://target.example.com")
 
-	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("Connnection error"))
+	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("connnection error"))
 
 	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
 
@@ -104,6 +128,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
@@ -125,6 +160,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	bodyBytes, err := json.Marshal(signDuoRequestBody{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
@@ -140,6 +186,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "https://mydomain.local",
@@ -161,6 +218,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "http://mydomain.local",
 	})
@@ -178,6 +246,17 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	response.Response.Result = testResultAllow
 
 	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "http://mydomain.local",

@@ -11,6 +11,8 @@ import (
 	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -41,6 +43,17 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeFIDO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
@@ -62,6 +75,17 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotReturnRedirectURL() {
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeFIDO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
 		SignResponse: u2f.SignResponse{},
 	})
@@ -78,6 +102,17 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToSafeTargetURL() {
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeFIDO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
 		SignResponse: u2f.SignResponse{},
@@ -99,6 +134,17 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotRedirectToUnsafeURL() {
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeFIDO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
+
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
 		SignResponse: u2f.SignResponse{},
 		TargetURL:    "http://mydomain.local",
@@ -116,6 +162,17 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRegenerateSessionForPreventingSessi
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeFIDO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		}))
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
 		SignResponse: u2f.SignResponse{},
