@@ -165,7 +165,7 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 	s.mock.Close()
 }
 
-func createToken(secret string, username string, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
+func createToken(secret, username, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
 	verification = models.NewIdentityVerification(username, action)
 
 	verification.ExpiresAt = expiresAt
