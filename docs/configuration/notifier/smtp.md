@@ -21,7 +21,7 @@ notifier:
     timeout: 5s
     username: test
     password: password
-    sender: admin@example.com
+    sender: "Authelia <admin@example.com>"
     identifier: localhost
     subject: "[Authelia] {title}"
     startup_check_address: test@authelia.com
@@ -103,8 +103,13 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
-The address sent in the FROM header for the email. Basically who the email appears to come from. It should be noted
-that some SMTP servers require the username provided to have access to send from the specific address listed here.
+The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
+in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
+- jsmith@domain.com
+- John Smith <jsmith@domain.com>
+
+The `MAIL FROM` command sent to SMTP servers will not include the name portion, this is only set in the `FROM` as per
+specifications.
 
 ### identifier
 <div markdown="1">
