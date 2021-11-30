@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net/mail"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -20,12 +21,16 @@ func (suite *NotifierSuite) SetupTest() {
 	suite.configuration.SMTP = &schema.SMTPNotifierConfiguration{
 		Username: "john",
 		Password: "password",
-		Sender:   "admin@example.com",
+		Sender:   mail.Address{Name: "Authelia", Address: "authelia@example.com"},
 		Host:     "example.com",
 		Port:     25,
 	}
+	suite.configuration.FileSystem = nil
 }
 
+/*
+	Common Tests.
+*/
 func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() {
 	ValidateNotifier(&suite.configuration, suite.validator)
 
@@ -63,29 +68,37 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], errFmtNotifierMultipleConfigured)
 }
 
-func (suite *NotifierSuite) TestShouldEnsureFilenameOfFilesystemNotifierIsProvided() {
-	suite.configuration.SMTP = nil
-	suite.configuration.FileSystem = &schema.FileSystemNotifierConfiguration{
-		Filename: "test",
-	}
+/*
+	SMTP Tests.
+*/
+func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	ValidateNotifier(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.configuration.FileSystem.Filename = ""
+	suite.Assert().Equal("example.com", suite.configuration.SMTP.TLS.ServerName)
+	suite.Assert().Equal("TLS1.2", suite.configuration.SMTP.TLS.MinimumVersion)
+	suite.Assert().False(suite.configuration.SMTP.TLS.SkipVerify)
+}
+
+func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
+	suite.configuration.SMTP.Host = "google.com"
+	suite.configuration.SMTP.TLS = &schema.TLSConfig{
+		MinimumVersion: "TLS1.1",
+	}
 
 	ValidateNotifier(&suite.configuration, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Require().True(suite.validator.HasErrors())
+	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], errFmtNotifierFileSystemFileNameNotConfigured)
+	suite.Assert().Equal("google.com", suite.configuration.SMTP.TLS.ServerName)
+	suite.Assert().Equal("TLS1.1", suite.configuration.SMTP.TLS.MinimumVersion)
+	suite.Assert().False(suite.configuration.SMTP.TLS.SkipVerify)
 }
 
-func (suite *NotifierSuite) TestShouldEnsureHostAndPortOfSMTPNotifierAreProvided() {
+func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 	suite.configuration.FileSystem = nil
 	ValidateNotifier(&suite.configuration, suite.validator)
 
@@ -108,15 +121,8 @@ func (suite *NotifierSuite) TestShouldEnsureHostAndPortOfSMTPNotifierAreProvided
 	suite.Assert().EqualError(errors[1], fmt.Sprintf(errFmtNotifierSMTPNotConfigured, "port"))
 }
 
-func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
-	suite.configuration.FileSystem = nil
-
-	ValidateNotifier(&suite.configuration, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
-
-	suite.configuration.SMTP.Sender = ""
+func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
+	suite.configuration.SMTP.Sender = mail.Address{}
 
 	ValidateNotifier(&suite.configuration, suite.validator)
 
@@ -126,6 +132,31 @@ func (suite *NotifierSuite) TestShouldEnsureSenderOfSMTPNotifierAreProvided() {
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], fmt.Sprintf(errFmtNotifierSMTPNotConfigured, "sender"))
+}
+
+/*
+	File Tests.
+*/
+func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
+	suite.configuration.SMTP = nil
+	suite.configuration.FileSystem = &schema.FileSystemNotifierConfiguration{
+		Filename: "test",
+	}
+	ValidateNotifier(&suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().False(suite.validator.HasErrors())
+
+	suite.configuration.FileSystem.Filename = ""
+
+	ValidateNotifier(&suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().True(suite.validator.HasErrors())
+
+	suite.Assert().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], errFmtNotifierFileSystemFileNameNotConfigured)
 }
 
 func TestNotifierSuite(t *testing.T) {

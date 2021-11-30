@@ -45,6 +45,7 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
 				mapstructure.StringToTimeDurationHookFunc(),
 				mapstructure.StringToSliceHookFunc(","),
+				StringToMailAddressFunc(),
 			),
 			Metadata:         nil,
 			Result:           o,

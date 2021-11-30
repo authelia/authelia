@@ -7,23 +7,20 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
-func TestShouldConfigureSMTPNotifierWithTLS11AndDefaultHostname(t *testing.T) {
+func TestShouldConfigureSMTPNotifierWithTLS11(t *testing.T) {
 	config := &schema.NotifierConfiguration{
 		DisableStartupCheck: true,
 		SMTP: &schema.SMTPNotifierConfiguration{
 			Host: "smtp.example.com",
 			Port: 25,
 			TLS: &schema.TLSConfig{
+				ServerName:     "smtp.example.com",
 				MinimumVersion: "TLS1.1",
 			},
 		},
 	}
-
-	sv := schema.NewStructValidator()
-	validator.ValidateNotifier(config, sv)
 
 	notifier := NewSMTPNotifier(config.SMTP, nil)
 
@@ -43,9 +40,6 @@ func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *tes
 			},
 		},
 	}
-
-	sv := schema.NewStructValidator()
-	validator.ValidateNotifier(config, sv)
 
 	notifier := NewSMTPNotifier(config.SMTP, nil)
 
