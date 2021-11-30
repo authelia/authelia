@@ -81,7 +81,7 @@ type SQLProvider struct {
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
 
-	// Table: identity_verification_tokens.
+	// Table: identity_verification.
 	sqlInsertIdentityVerification       string
 	sqlDeleteIdentityVerification       string
 	sqlSelectExistsIdentityVerification string
@@ -208,7 +208,9 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 
 // SaveIdentityVerification save an identity verification record to the database.
 func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification, verification.Token); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification,
+		verification.JTI, verification.IssuedAt, verification.ExpiresAt,
+		verification.Username, verification.Action); err != nil {
 		return fmt.Errorf("error inserting identity verification: %w", err)
 	}
 
@@ -216,8 +218,8 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 }
 
 // RemoveIdentityVerification remove an identity verification record from the database.
-func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, token string) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, token); err != nil {
+func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, jti string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, jti); err != nil {
 		return fmt.Errorf("error updating identity verification: %w", err)
 	}
 
@@ -225,8 +227,8 @@ func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, token stri
 }
 
 // FindIdentityVerification checks if an identity verification record is in the database and active.
-func (p *SQLProvider) FindIdentityVerification(ctx context.Context, token string) (found bool, err error) {
-	if err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, token); err != nil {
+func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
+	if err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, jti); err != nil {
 		return false, fmt.Errorf("error selecting identity verification exists: %w", err)
 	}
 
