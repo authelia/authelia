@@ -40,6 +40,8 @@ spec:
               value: /app/secrets/session
             - name: AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE
               value: /app/secrets/sql_password
+            - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+              value: /app/secrets/encryption_key
             - name: ENVIRONMENT
               value: dev
       volumes:
@@ -69,4 +71,6 @@ spec:
                 path: sql_password
               - key: ldap_password
                 path: ldap_password
+              - key: encryption_key
+                path: encryption_key
 ...

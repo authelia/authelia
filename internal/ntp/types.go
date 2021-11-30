@@ -1,12 +1,15 @@
 package ntp
 
 import (
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Provider type is the NTP provider.
 type Provider struct {
 	config *schema.NTPConfiguration
+	log    *logrus.Logger
 }
 
 type ntpVersion int

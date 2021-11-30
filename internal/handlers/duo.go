@@ -9,7 +9,7 @@ import (
 )
 
 // DuoPreAuth helper function for retrieving supported devices and capabilities from duo api.
-func DuoPreAuth(duoAPI duo.API, ctx *middlewares.AutheliaCtx) (string, string, []DuoDevice, string, error) {
+func DuoPreAuth(ctx *middlewares.AutheliaCtx, duoAPI duo.API) (string, string, []DuoDevice, string, error) {
 	userSession := ctx.GetSession()
 	values := url.Values{}
 	values.Set("username", userSession.Username)

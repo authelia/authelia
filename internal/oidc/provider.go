@@ -20,10 +20,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		return provider, nil
 	}
 
-	provider.Store, err = NewOpenIDConnectStore(configuration)
-	if err != nil {
-		return provider, err
-	}
+	provider.Store = NewOpenIDConnectStore(configuration)
 
 	composeConfiguration := &compose.Config{
 		AccessTokenLifespan:        configuration.AccessTokenLifespan,

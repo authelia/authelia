@@ -7,6 +7,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -19,7 +20,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 
 		ctx.Logger.Debugf("Starting Duo PreAuth for %s", userSession.Username)
 
-		result, message, devices, enrollURL, err := DuoPreAuth(duoAPI, ctx)
+		result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
 		if err != nil {
 			ctx.Error(fmt.Errorf("duo PreAuth API errored: %s", err), messageMFAValidationFailed)
 			return
@@ -94,7 +95,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, device.Device, device.Method)
-	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(userSession.Username, device.Device, device.Method)
+	err = ctx.Providers.StorageProvider.SavePreferredDUODevice(ctx, models.DUODevice{Username: userSession.Username, Device: device.Device, Method: device.Method})
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %s", err), messageMFAValidationFailed)
@@ -108,7 +109,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 func SecondFactorDuoDeviceDelete(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 	ctx.Logger.Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
-	err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(userSession.Username)
+	err := ctx.Providers.StorageProvider.DeletePreferredDUODevice(ctx, userSession.Username)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to delete preferred Duo device and method: %s", err), messageMFAValidationFailed)

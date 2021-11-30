@@ -14,6 +14,7 @@ The PostgreSQL storage provider.
 
 ```yaml
 storage:
+  encryption_key: a_very_important_secret
   postgres:
     host: 127.0.0.1
     port: 5432
@@ -24,6 +25,9 @@ storage:
 ```
 
 ## Options
+
+### encryption_key
+See the [encryption_key docs](./index.md#encryption_key).
 
 ### host
 <div markdown="1">

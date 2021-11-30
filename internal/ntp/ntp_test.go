@@ -7,7 +7,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
-	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 func TestShouldCheckNTP(t *testing.T) {
@@ -22,5 +21,5 @@ func TestShouldCheckNTP(t *testing.T) {
 
 	ntp := NewProvider(&config)
 
-	assert.NoError(t, ntp.StartupCheck(logging.Logger()))
+	assert.NoError(t, ntp.StartupCheck())
 }

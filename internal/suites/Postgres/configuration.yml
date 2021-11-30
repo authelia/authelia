@@ -28,6 +28,7 @@ session:
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
+  encryption_key: a_not_so_secure_encryption_key
   postgres:
     host: postgres
     port: 5432

@@ -15,6 +15,8 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 type SecondFactorDuoPostSuite struct {
@@ -37,7 +39,9 @@ func (s *SecondFactorDuoPostSuite) TearDownTest() {
 func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("", "", errors.New("no Duo device and method saved"))
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(nil, errors.New("no Duo device and method saved"))
 
 	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
 
@@ -65,7 +69,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("", "", errors.New("no Duo device and method saved"))
+	s.mock.StorageProviderMock.EXPECT().LoadPreferredDUODevice(s.mock.Ctx, "john").Return(nil, errors.New("no Duo device and method saved"))
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -81,7 +85,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
 
-	s.mock.StorageProviderMock.EXPECT().SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push").Return(nil)
+	s.mock.StorageProviderMock.EXPECT().
+		SavePreferredDUODevice(s.mock.Ctx, models.DUODevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}).
+		Return(nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	values = url.Values{}
 	values.Set("username", "john")
@@ -106,7 +124,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("", "", errors.New("no Duo device and method saved"))
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(nil, errors.New("no Duo device and method saved"))
 
 	values := url.Values{}
 	values.Set("username", "john")
@@ -136,7 +156,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("", "", errors.New("no Duo device and method saved"))
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(nil, errors.New("no Duo device and method saved"))
 
 	duoMock.EXPECT().PreauthCall(gomock.Any(), s.mock.Ctx).Return(nil, fmt.Errorf("Connnection error"))
 
@@ -152,7 +174,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("NOTEXISTENT", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "NOTEXISTENT", Method: "push"}, nil)
 
 	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
 
@@ -165,7 +189,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
 
-	s.mock.StorageProviderMock.EXPECT().DeletePreferredDuoDevice("john").Return(nil)
+	s.mock.StorageProviderMock.EXPECT().DeletePreferredDUODevice(s.mock.Ctx, "john").Return(nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{})
 	s.Require().NoError(err)
@@ -182,7 +206,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWithInvalidDevicesAndEnroll() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("NOTEXISTENT", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "NOTEXISTENT", Method: "push"}, nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"sms"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -197,7 +223,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
 
-	s.mock.StorageProviderMock.EXPECT().DeletePreferredDuoDevice("john").Return(nil)
+	s.mock.StorageProviderMock.EXPECT().DeletePreferredDUODevice(s.mock.Ctx, "john").Return(nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{})
 	s.Require().NoError(err)
@@ -213,7 +239,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("NOTEXISTENT", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "NOTEXISTENT", Method: "push"}, nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -246,7 +274,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "invalidmethod", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "invalidmethod"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -261,7 +303,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 
 	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&preAuthResponse, nil)
 
-	s.mock.StorageProviderMock.EXPECT().SavePreferredDuoDevice("john", "12345ABCDEFGHIJ67890", "push").Return(nil)
+	s.mock.StorageProviderMock.EXPECT().
+		SavePreferredDUODevice(s.mock.Ctx, models.DUODevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}).
+		Return(nil)
 
 	values = url.Values{}
 	values.Set("username", "john")
@@ -286,7 +330,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	values := url.Values{}
 	values.Set("username", "john")
@@ -308,7 +354,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	values := url.Values{}
 	values.Set("username", "john")
@@ -336,7 +384,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	duoMock.EXPECT().PreauthCall(gomock.Any(), s.mock.Ctx).Return(nil, fmt.Errorf("Connnection error"))
 
@@ -352,7 +402,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: false,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -390,7 +454,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -419,7 +485,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -454,7 +534,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -485,7 +579,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -520,7 +628,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -553,7 +675,21 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	s.mock.StorageProviderMock.EXPECT().LoadPreferredDuoDevice("john").Return("12345ABCDEFGHIJ67890", "push", nil)
+	s.mock.StorageProviderMock.EXPECT().
+		LoadPreferredDUODevice(s.mock.Ctx, "john").
+		Return(&models.DUODevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	s.mock.StorageProviderMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},

@@ -5,45 +5,47 @@
 package handlers
 
 import (
-	reflect "reflect"
+	"reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
+
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
-// MockTOTPVerifier is a mock of TOTPVerifier interface
+// MockTOTPVerifier is a mock of TOTPVerifier interface.
 type MockTOTPVerifier struct {
 	ctrl     *gomock.Controller
 	recorder *MockTOTPVerifierMockRecorder
 }
 
-// MockTOTPVerifierMockRecorder is the mock recorder for MockTOTPVerifier
+// MockTOTPVerifierMockRecorder is the mock recorder for MockTOTPVerifier.
 type MockTOTPVerifierMockRecorder struct {
 	mock *MockTOTPVerifier
 }
 
-// NewMockTOTPVerifier creates a new mock instance
+// NewMockTOTPVerifier creates a new mock instance.
 func NewMockTOTPVerifier(ctrl *gomock.Controller) *MockTOTPVerifier {
 	mock := &MockTOTPVerifier{ctrl: ctrl}
 	mock.recorder = &MockTOTPVerifierMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTOTPVerifier) EXPECT() *MockTOTPVerifierMockRecorder {
 	return m.recorder
 }
 
-// Verify mocks base method
-func (m *MockTOTPVerifier) Verify(token, secret string) (bool, error) {
+// Verify mocks base method.
+func (m *MockTOTPVerifier) Verify(arg0 *models.TOTPConfiguration, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", token, secret)
+	ret := m.ctrl.Call(m, "Verify", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Verify indicates an expected call of Verify
-func (mr *MockTOTPVerifierMockRecorder) Verify(token, secret interface{}) *gomock.Call {
+// Verify indicates an expected call of Verify.
+func (mr *MockTOTPVerifierMockRecorder) Verify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockTOTPVerifier)(nil).Verify), token, secret)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockTOTPVerifier)(nil).Verify), arg0, arg1)
 }

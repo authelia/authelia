@@ -12,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/models"
 )
 
 type RegisterDuoDeviceSuite struct {
@@ -128,7 +129,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
 func (s *RegisterDuoDeviceSuite) TestShouldRespondOK() {
 	s.mock.Ctx.Request.SetBodyString("{\"device\":\"1234567890123456\", \"method\":\"push\"}")
 	s.mock.StorageProviderMock.EXPECT().
-		SavePreferredDuoDevice(gomock.Eq("john"), gomock.Eq("1234567890123456"), gomock.Eq("push")).
+		SavePreferredDUODevice(gomock.Eq(s.mock.Ctx), gomock.Eq(models.DUODevice{Username: "john", Device: "1234567890123456", Method: "push"})).
 		Return(nil)
 
 	SecondFactorDuoDevicePost(s.mock.Ctx)
@@ -151,7 +152,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyMethod() {
 	SecondFactorDuoDevicePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "Unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -161,7 +162,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyDevice() {
 	SecondFactorDuoDevicePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "Unable to validate body: device: non zero value required", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to validate body: device: non zero value required", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 

@@ -110,6 +110,7 @@ regulation:
   ban_time: 10
 
 storage:
+  encryption_key: a_not_so_secure_encryption_key
   mysql:
     host: mariadb
     port: 3306

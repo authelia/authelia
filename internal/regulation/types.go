@@ -18,7 +18,7 @@ type Regulator struct {
 	// If a user has been banned, this duration is the timelapse during which the user is banned.
 	banTime time.Duration
 
-	storageProvider storage.Provider
+	storageProvider storage.RegulatorProvider
 
 	clock utils.Clock
 }
