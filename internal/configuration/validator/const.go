@@ -41,6 +41,7 @@ const (
 	testModeDisabled  = "disable"
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
+	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
 // Notifier Error constants.
@@ -203,6 +204,8 @@ var ValidKeys = []string{
 	"session.redis.timeouts.pool",
 	"session.redis.timeouts.read",
 	"session.redis.timeouts.write",
+
+	"storage.encryption_key",
 
 	// Local Storage Keys.
 	"storage.local.path",

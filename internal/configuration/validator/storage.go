@@ -20,6 +20,12 @@ func ValidateStorage(configuration schema.StorageConfiguration, validator *schem
 	case configuration.Local != nil:
 		validateLocalStorageConfiguration(configuration.Local, validator)
 	}
+
+	if configuration.EncryptionKey == "" {
+		validator.Push(errors.New("the configuration option storage.encryption_key must be provided"))
+	} else if len(configuration.EncryptionKey) < 20 {
+		validator.Push(errors.New("the configuration option storage.encryption_key must be 20 characters or longer"))
+	}
 }
 
 func validateMySQLConfiguration(configuration *schema.SQLStorageConfiguration, validator *schema.StructValidator) {

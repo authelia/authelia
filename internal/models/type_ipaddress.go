@@ -6,6 +6,12 @@ import (
 	"net"
 )
 
+// NewIPAddressFromString converts a string into an IPAddress.
+func NewIPAddressFromString(ip string) (ipAddress IPAddress) {
+	actualIP := net.ParseIP(ip)
+	return IPAddress{IP: &actualIP}
+}
+
 // IPAddress is a type specific for storage of a net.IP in the database.
 type IPAddress struct {
 	*net.IP

@@ -8,17 +8,31 @@ var (
 	// ErrNoU2FDeviceHandle error thrown when no U2F device handle has been found in DB.
 	ErrNoU2FDeviceHandle = errors.New("no U2F device handle found")
 
+	// ErrNoAuthenticationLogs error thrown when no matching authentication logs hve been found in DB.
+	ErrNoAuthenticationLogs = errors.New("no matching authentication logs found")
+
 	// ErrNoTOTPSecret error thrown when no TOTP secret has been found in DB.
 	ErrNoTOTPSecret = errors.New("no TOTP secret registered")
 
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")
 
+	// ErrMigrateCurrentVersionSameAsTarget is returned when the target version is the same as the current.
+	ErrMigrateCurrentVersionSameAsTarget = errors.New("current version is same as migration target, no action being taken")
+
 	// ErrSchemaAlreadyUpToDate is returned when the schema is already up to date.
 	ErrSchemaAlreadyUpToDate = errors.New("schema already up to date")
 
 	// ErrNoMigrationsFound is returned when no migrations were found.
 	ErrNoMigrationsFound = errors.New("no schema migrations found")
+
+	// ErrSchemaEncryptionVersionUnsupported is returned when the schema is checked if the encryption key is valid for
+	// the database but the schema doesn't support encryption.
+	ErrSchemaEncryptionVersionUnsupported = errors.New("schema version doesn't support encryption")
+
+	// ErrSchemaEncryptionInvalidKey is returned when the schema is checked if the encryption key is valid for
+	// the database but the key doesn't appear to be valid.
+	ErrSchemaEncryptionInvalidKey = errors.New("the encryption key is not valid against the schema check value")
 )
 
 // Error formats for the storage provider.

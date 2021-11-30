@@ -85,7 +85,7 @@ func loadMigration(providerName string, version int, up bool) (migration *Schema
 // this indicates the database zero state.
 func loadMigrations(providerName string, prior, target int) (migrations []SchemaMigration, err error) {
 	if prior == target && (prior != -1 || target != -1) {
-		return nil, errors.New("cannot migrate to the same version as prior")
+		return nil, ErrMigrateCurrentVersionSameAsTarget
 	}
 
 	entries, err := migrationsFS.ReadDir("migrations")

@@ -24,6 +24,8 @@ type Provider interface {
 	SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error)
 	DeleteTOTPConfiguration(ctx context.Context, username string) (err error)
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error)
+	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
+	UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error)
 
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
@@ -33,9 +35,14 @@ type Provider interface {
 	SchemaMigrate(ctx context.Context, up bool, version int) (err error)
 	SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error)
 
+	SchemaEncryptionChangeKey(ctx context.Context, encryptionKey string) (err error)
+	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)
+
 	SchemaLatestVersion() (version int, err error)
 	SchemaMigrationsUp(ctx context.Context, version int) (migrations []SchemaMigration, err error)
 	SchemaMigrationsDown(ctx context.Context, version int) (migrations []SchemaMigration, err error)
+
+	Close() (err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

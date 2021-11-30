@@ -14,6 +14,7 @@ The MySQL storage provider.
 
 ```yaml
 storage:
+  encryption_key: a_very_important_secret
   mysql:
     host: 127.0.0.1
     port: 3306
@@ -24,6 +25,9 @@ storage:
 ```
 
 ## Options
+
+### encryption_key
+See the [encryption_key docs](./index.md#encryption_key).
 
 ### host
 <div markdown="1">

@@ -15,6 +15,8 @@ func NewStorageCmd() (cmd *cobra.Command) {
 
 	cmd.PersistentFlags().StringSliceP("config", "c", []string{"config.yml"}, "configuration file to load for the storage migration")
 
+	cmd.PersistentFlags().String("encryption-key", "", "the storage encryption key to use")
+
 	cmd.PersistentFlags().String("sqlite.path", "", "the SQLite database path")
 
 	cmd.PersistentFlags().String("mysql.host", "", "the MySQL hostname")
@@ -32,7 +34,70 @@ func NewStorageCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
+		newStorageEncryptionCmd(),
+		newStorageExportCmd(),
 	)
+
+	return cmd
+}
+
+func newStorageEncryptionCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "encryption",
+		Short: "Manages encryption",
+	}
+
+	cmd.AddCommand(
+		newStorageEncryptionChangeKeyCmd(),
+		newStorageEncryptionCheckCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "check",
+		Short: "Checks the encryption key against the database data",
+		RunE:  storageSchemaEncryptionCheckRunE,
+	}
+
+	cmd.Flags().Bool("verbose", false, "enables verbose checking of every row of encrypted data")
+
+	return cmd
+}
+
+func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "change-key",
+		Short: "Changes the encryption key",
+		RunE:  storageSchemaEncryptionChangeKeyRunE,
+	}
+
+	cmd.Flags().String("new-encryption-key", "", "the new key to encrypt the data with")
+
+	return cmd
+}
+
+func newStorageExportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "export",
+		Short: "Performs exports",
+	}
+
+	cmd.AddCommand(newStorageExportTOTPConfigurationsCmd())
+
+	return cmd
+}
+
+func newStorageExportTOTPConfigurationsCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "totp-configurations",
+		Short: "Performs exports of the totp configurations",
+		RunE:  storageExportTOTPConfigurationsRunE,
+	}
+
+	cmd.Flags().String("format", storageExportFormatCSV, "changes the format of the export, options are csv and uri")
 
 	return cmd
 }

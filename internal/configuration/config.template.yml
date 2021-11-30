@@ -507,6 +507,10 @@ regulation:
 ##
 ## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
 storage:
+  ## The encryption key that is used to encrypt sensitive information in the database. Must be a string with a minimum
+  ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it.
+  # encryption_key: you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this
+
   ##
   ## Local (Storage Provider)
   ##
@@ -587,8 +591,10 @@ notifier:
     ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: password
 
-    ## The address to send the email FROM.
-    sender: admin@example.com
+    ## The sender is used to is used for the MAIL FROM command and the FROM header.
+    ## If this is not defined and the username is an email, we use the username as this value. This can either be just
+    ## an email address or the RFC5322 'Name <email address>' format.
+    sender: "Authelia <admin@example.com>"
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost
