@@ -380,7 +380,7 @@ func (p *SQLProvider) DeletePreferredDUODevice(ctx context.Context, username str
 func (p *SQLProvider) LoadPreferredDUODevice(ctx context.Context, username string) (device *models.DUODevice, err error) {
 	device = &models.DUODevice{}
 
-	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDUODevice, username).StructScan(&device); err != nil {
+	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDUODevice, username).StructScan(device); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoDuoDevice
 		}

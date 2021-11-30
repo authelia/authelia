@@ -15,9 +15,10 @@ import (
 // SecondFactorDuoPost handler for sending a push notification via duo api.
 func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
-		var requestBody signDuoRequestBody
-
-		var device, method string
+		var (
+			requestBody    signDuoRequestBody
+			device, method string
+		)
 
 		if err := ctx.ParseBody(&requestBody); err != nil {
 			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDUO, err)
