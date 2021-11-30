@@ -1,7 +1,5 @@
 package middlewares
 
-const jwtIssuer = "Authelia"
-
 const (
 	headerXForwardedProto  = "X-Forwarded-Proto"
 	headerXForwardedMethod = "X-Forwarded-Method"
