@@ -93,16 +93,19 @@ totp:
   ## The issuer name displayed in the Authenticator application of your choice
   ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
   issuer: authelia.com
-  ## The TOTP algorithm to use. It is CRITICAL you read https://www.authelia.com/docs/configuration/one-time-password.html#issuer
-  ## before changing this option.
+
+  ## The TOTP algorithm to use. It is CRITICAL you read the documentation before changing this option:
+  ## https://www.authelia.com/docs/configuration/one-time-password.html#issuer
   algorithm: sha1
+
   ## The period in seconds a one-time password is current for. Changing this will require all users to register
   ## their TOTP applications again. Warning: before changing period read the docs link below.
   period: 30
+
   ## The skew controls number of one-time passwords either side of the current one that are valid.
   ## Warning: before changing skew read the docs link below.
   skew: 1
-  ## See: https://www.authelia.com/docs/configuration/one-time-password.html#period-and-skew to read the documentation.
+  ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
 
 ##
 ## Duo Push API Configuration
