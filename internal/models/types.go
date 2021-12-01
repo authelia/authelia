@@ -46,3 +46,8 @@ func (ip *IPAddress) Scan(src interface{}) (err error) {
 
 	return nil
 }
+
+// StartupCheck represents a provider that has a startup check.
+type StartupCheck interface {
+	StartupCheck() (err error)
+}

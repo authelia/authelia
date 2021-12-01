@@ -37,13 +37,13 @@ func (s *HandlerSignU2FStep2Suite) TearDownTest() {
 }
 
 func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
-	u2fVerifier := NewMockU2FVerifier(s.mock.Ctrl)
+	u2fVerifier := mocks.NewMockU2FVerifier(s.mock.Ctrl)
 
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -69,13 +69,13 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
 }
 
 func (s *HandlerSignU2FStep2Suite) TestShouldNotReturnRedirectURL() {
-	u2fVerifier := NewMockU2FVerifier(s.mock.Ctrl)
+	u2fVerifier := mocks.NewMockU2FVerifier(s.mock.Ctrl)
 
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -97,13 +97,13 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotReturnRedirectURL() {
 }
 
 func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToSafeTargetURL() {
-	u2fVerifier := NewMockU2FVerifier(s.mock.Ctrl)
+	u2fVerifier := mocks.NewMockU2FVerifier(s.mock.Ctrl)
 
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -128,13 +128,13 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToSafeTargetURL() {
 }
 
 func (s *HandlerSignU2FStep2Suite) TestShouldNotRedirectToUnsafeURL() {
-	u2fVerifier := NewMockU2FVerifier(s.mock.Ctrl)
+	u2fVerifier := mocks.NewMockU2FVerifier(s.mock.Ctrl)
 
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -157,13 +157,13 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotRedirectToUnsafeURL() {
 }
 
 func (s *HandlerSignU2FStep2Suite) TestShouldRegenerateSessionForPreventingSessionFixation() {
-	u2fVerifier := NewMockU2FVerifier(s.mock.Ctrl)
+	u2fVerifier := mocks.NewMockU2FVerifier(s.mock.Ctrl)
 
 	u2fVerifier.EXPECT().
 		Verify(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",

@@ -40,8 +40,8 @@ type Provider interface {
 
 	SchemaMigrate(ctx context.Context, up bool, version int) (err error)
 	SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error)
-	SchemaMigrationsUp(ctx context.Context, version int) (migrations []SchemaMigration, err error)
-	SchemaMigrationsDown(ctx context.Context, version int) (migrations []SchemaMigration, err error)
+	SchemaMigrationsUp(ctx context.Context, version int) (migrations []models.SchemaMigration, err error)
+	SchemaMigrationsDown(ctx context.Context, version int) (migrations []models.SchemaMigration, err error)
 
 	SchemaEncryptionChangeKey(ctx context.Context, encryptionKey string) (err error)
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)

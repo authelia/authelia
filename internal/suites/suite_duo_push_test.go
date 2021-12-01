@@ -57,7 +57,7 @@ func (s *DuoPushWebDriverSuite) TearDownTest() {
 	}()
 
 	// Set default 2FA preference and clean up any Duo device already in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferred2FAMethod(ctx, "john", "totp"))
 	require.NoError(s.T(), provider.DeletePreferredDuoDevice(ctx, "john"))
 }
@@ -152,7 +152,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	defer cancel()
 
 	// Set default 2FA preference to enable Select Device link in frontend.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "push"}))
 
 	var PreAuthAPIResponse = duo.PreAuthResponse{
@@ -231,7 +231,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodI
 	}
 
 	// Setup unsupported Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "sms"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
@@ -257,7 +257,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectNewDeviceAfterSavedDeviceIsN
 	}
 
 	// Setup unsupported Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
@@ -276,7 +276,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 		StatusMessage: "Allowing unknown user",
 	}
 
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
@@ -296,7 +296,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 		StatusMessage: "We're sorry, access is not allowed.",
 	}
 
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
@@ -317,7 +317,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthenticationBecausePreauthDenied
 		StatusMessage: "We're sorry, access is not allowed.",
 	}
 
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
@@ -344,7 +344,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 	}
 
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
@@ -371,7 +371,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 	}
 
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
@@ -430,7 +430,7 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 	}
 
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
@@ -475,7 +475,7 @@ func (s *DuoPushSuite) TestUserPreferencesScenario() {
 	ctx := context.Background()
 
 	// Setup Duo device in DB.
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_not_so_secure_encryption_key")
+	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)

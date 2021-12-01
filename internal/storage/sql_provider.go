@@ -12,19 +12,21 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (provider SQLProvider) {
+func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider) {
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
 		db:         db,
-		key:        sha256.Sum256([]byte(encryptionKey)),
+		key:        sha256.Sum256([]byte(config.Storage.EncryptionKey)),
 		name:       name,
 		driverName: driverName,
+		config:     config,
 		errOpen:    err,
 		log:        logging.Logger(),
 
@@ -64,10 +66,6 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 		sqlFmtRenameTable: queryFmtRenameTable,
 	}
 
-	key := sha256.Sum256([]byte(encryptionKey))
-
-	provider.key = key
-
 	return provider
 }
 
@@ -77,6 +75,7 @@ type SQLProvider struct {
 	key        [32]byte
 	name       string
 	driverName string
+	config     *schema.Configuration
 	errOpen    error
 
 	log *logrus.Logger
@@ -251,7 +250,7 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
-		config.Username, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
+		config.Username, config.Issuer, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
 		return fmt.Errorf("error upserting TOTP configuration: %w", err)
 	}
 
@@ -273,7 +272,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 
 	if err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoTOTPSecret
+			return nil, ErrNoTOTPConfiguration
 		}
 
 		return nil, fmt.Errorf("error selecting TOTP configuration: %w", err)

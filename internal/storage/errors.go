@@ -8,8 +8,8 @@ var (
 	// ErrNoAuthenticationLogs error thrown when no matching authentication logs hve been found in DB.
 	ErrNoAuthenticationLogs = errors.New("no matching authentication logs found")
 
-	// ErrNoTOTPSecret error thrown when no TOTP secret has been found in DB.
-	ErrNoTOTPSecret = errors.New("no TOTP secret registered")
+	// ErrNoTOTPConfiguration error thrown when no TOTP configuration has been found in DB.
+	ErrNoTOTPConfiguration = errors.New("no TOTP configuration for user")
 
 	// ErrNoU2FDeviceHandle error thrown when no U2F device handle has been found in DB.
 	ErrNoU2FDeviceHandle = errors.New("no U2F device handle found")

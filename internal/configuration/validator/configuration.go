@@ -32,13 +32,9 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 
 	ValidateTheme(configuration, validator)
 
-	if configuration.TOTP == nil {
-		configuration.TOTP = &schema.DefaultTOTPConfiguration
-	}
-
 	ValidateLogging(configuration, validator)
 
-	ValidateTOTP(configuration.TOTP, validator)
+	ValidateTOTP(configuration, validator)
 
 	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
 

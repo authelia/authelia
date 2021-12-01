@@ -317,6 +317,25 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  /api/user/info/totp:
+    get:
+      tags:
+        - User TOTP Information
+      summary: User TOTP Configuration
+      description: >
+        The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
+        TOTP input such as the period/frequency and number of digits.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfoTOTP'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
   /api/user/info/2fa_method:
     post:
       tags:
@@ -640,9 +659,6 @@ components:
             second_factor_enabled:
               type: boolean
               description: If second factor is enabled.
-            totp_period:
-              type: integer
-              example: 30
     handlers.DuoDeviceBody:
       required:
         - device
@@ -841,6 +857,25 @@ components:
             has_duo:
               type: boolean
               example: true
+    handlers.UserInfoTOTP:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            period:
+              default: 30
+              description: The period defined in the users TOTP configuration
+              type: integer
+              example: 30
+            digits:
+              default: 6
+              description: The number of digits defined in the users TOTP configuration
+              type: integer
+              example: 6
     handlers.UserInfo.MethodBody:
       required:
         - method

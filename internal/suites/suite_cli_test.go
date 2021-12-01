@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"testing"
 
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/models"
@@ -178,6 +177,8 @@ func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
+	_ = os.Remove("/tmp/db.sqlite3")
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
@@ -187,7 +188,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	patternOutdated := regexp.MustCompile(`Error: schema is version \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--config", "/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
@@ -267,16 +268,14 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	provider := storage.NewSQLiteProvider("/tmp/db.sqlite3", "a_cli_encryption_key_which_isnt_secure")
+	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 
-	s.Require().NoError(provider.StartupCheck())
+	s.Require().NoError(storageProvider.StartupCheck())
 
 	ctx := context.Background()
 
 	var (
-		err    error
-		key    *otp.Key
-		config models.TOTPConfiguration
+		err error
 	)
 
 	var (
@@ -287,39 +286,53 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
-	for _, name := range []string{"john", "mary", "fred"} {
-		key, err = totp.Generate(totp.GenerateOpts{
-			Issuer:      "Authelia",
-			AccountName: name,
-			Period:      uint(30),
-			SecretSize:  32,
-			Digits:      otp.Digits(6),
-			Algorithm:   otp.AlgorithmSHA1,
-		})
-		s.Require().NoError(err)
-
-		config = models.TOTPConfiguration{
-			Username:  name,
-			Algorithm: "SHA1",
+	configs := []*models.TOTPConfiguration{
+		{
+			Username:  "john",
+			Period:    30,
 			Digits:    6,
-			Secret:    []byte(key.Secret()),
-			Period:    key.Period(),
-		}
-
-		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
-		expectedLines = append(expectedLines, fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d", "Authelia", config.Username, string(config.Secret), "Authelia", config.Algorithm, config.Digits, config.Period))
-
-		s.Require().NoError(provider.SaveTOTPConfiguration(ctx, config))
+			Algorithm: "SHA1",
+		},
+		{
+			Username:  "mary",
+			Period:    45,
+			Digits:    6,
+			Algorithm: "SHA1",
+		},
+		{
+			Username:  "fred",
+			Period:    30,
+			Digits:    8,
+			Algorithm: "SHA1",
+		},
+		{
+			Username:  "jone",
+			Period:    30,
+			Digits:    6,
+			Algorithm: "SHA512",
+		},
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "uri", "--config", "/config/configuration.storage.yml"})
+	for _, config := range configs {
+		output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", config.Username, "--period", strconv.Itoa(int(config.Period)), "--algorithm", config.Algorithm, "--digits", strconv.Itoa(int(config.Digits)), "--config", "/config/configuration.storage.yml"})
+		s.Assert().NoError(err)
+
+		config, err = storageProvider.LoadTOTPConfiguration(ctx, config.Username)
+		s.Assert().NoError(err)
+		s.Assert().Contains(output, config.URI())
+
+		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
+		expectedLines = append(expectedLines, config.URI())
+	}
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "uri", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLines {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "export", "totp-configurations", "--format", "csv", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "csv", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
@@ -347,7 +360,7 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 3 of 3 total TOTP secrets were invalid.\n")
+	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 4 of 4 total TOTP secrets were invalid.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
