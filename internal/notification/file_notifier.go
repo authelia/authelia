@@ -2,7 +2,6 @@ package notification
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -39,7 +38,7 @@ func (n *FileNotifier) StartupCheck() (err error) {
 		}
 	}
 
-	if err := ioutil.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
+	if err := os.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
 		return err
 	}
 
@@ -50,7 +49,7 @@ func (n *FileNotifier) StartupCheck() (err error) {
 func (n *FileNotifier) Send(recipient, subject, body, _ string) error {
 	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, body)
 
-	err := ioutil.WriteFile(n.path, []byte(content), fileNotifierMode)
+	err := os.WriteFile(n.path, []byte(content), fileNotifierMode)
 
 	if err != nil {
 		return err

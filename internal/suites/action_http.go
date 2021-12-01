@@ -1,7 +1,7 @@
 package suites
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -18,7 +18,7 @@ func doHTTPGetQuery(t *testing.T, url string) []byte {
 	assert.NoError(t, err)
 
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	return body
 }

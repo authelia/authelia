@@ -2,7 +2,7 @@ package configuration
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -58,7 +58,7 @@ func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 		"AUTHELIA__STORAGE_MYSQL_FAKE_PASSWORD": "storage.mysql.fake_password",
 	}
 
-	dir, err := ioutil.TempDir("", "authelia-test-callbacks")
+	dir, err := os.MkdirTemp("", "authelia-test-callbacks")
 	assert.NoError(t, err)
 
 	secretOne := filepath.Join(dir, "secert_one")
@@ -108,7 +108,7 @@ func TestKoanfSecretCallbackShouldErrorOnFSError(t *testing.T) {
 		"AUTHELIA_THEME":  "theme",
 	}
 
-	dir, err := ioutil.TempDir("", "authelia-test-callbacks")
+	dir, err := os.MkdirTemp("", "authelia-test-callbacks")
 	assert.NoError(t, err)
 
 	secret := filepath.Join(dir, "inaccessible")

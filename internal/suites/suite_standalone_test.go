@@ -3,7 +3,7 @@ package suites
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -165,7 +165,7 @@ func (s *StandaloneSuite) TestShouldRespectMethodsACL() {
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(res.StatusCode, 302)
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
@@ -191,7 +191,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(res.StatusCode, 302)
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")
@@ -202,7 +202,7 @@ func (s *StandaloneSuite) TestShouldRespondWithCorrectStatusCode() {
 	res, err = client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(res.StatusCode, 303)
-	body, err = ioutil.ReadAll(res.Body)
+	body, err = io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL = url.QueryEscape(SecureBaseURL + "/")
@@ -221,7 +221,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(res.StatusCode, 401)
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 	s.Assert().Equal("Unauthorized", string(body))
 }
@@ -238,7 +238,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalURL() {
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(res.StatusCode, 302)
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(AdminBaseURL)
@@ -257,7 +257,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	res, err := client.Do(req)
 	s.Assert().NoError(err)
 	s.Assert().Equal(res.StatusCode, 302)
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
 
 	urlEncodedAdminURL := url.QueryEscape(SecureBaseURL + "/")

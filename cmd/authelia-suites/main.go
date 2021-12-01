@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,7 +63,7 @@ func main() {
 }
 
 func createRunningSuiteFile(suite string) error {
-	return ioutil.WriteFile(runningSuiteFile, []byte(suite), 0600)
+	return os.WriteFile(runningSuiteFile, []byte(suite), 0600)
 }
 
 func removeRunningSuiteFile() error {

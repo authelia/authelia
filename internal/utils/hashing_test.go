@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,7 +30,7 @@ func TestShouldHashString(t *testing.T) {
 }
 
 func TestShouldHashPath(t *testing.T) {
-	dir, err := ioutil.TempDir("", "authelia-hashing")
+	dir, err := os.MkdirTemp("", "authelia-hashing")
 	assert.NoError(t, err)
 
 	err = os.WriteFile(filepath.Join(dir, "myfile"), []byte("output\n"), 0600)

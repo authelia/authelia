@@ -3,7 +3,6 @@ package authentication
 import (
 	_ "embed" // Embed users_database.template.yml.
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -107,7 +106,7 @@ func checkDatabase(path string) []error {
 var cfg []byte
 
 func generateDatabaseFromTemplate(path string) error {
-	err := ioutil.WriteFile(path, cfg, 0600)
+	err := os.WriteFile(path, cfg, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to generate %v: %v", path, err)
 	}
@@ -116,7 +115,7 @@ func generateDatabaseFromTemplate(path string) error {
 }
 
 func readDatabase(path string) (*DatabaseModel, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read database from file %s: %s", path, err)
 	}
@@ -200,7 +199,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) e
 		return err
 	}
 
-	err = ioutil.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
+	err = os.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
 	p.lock.Unlock()
 
 	return err
