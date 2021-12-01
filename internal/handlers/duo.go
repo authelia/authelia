@@ -14,7 +14,7 @@ func DuoPreAuth(ctx *middlewares.AutheliaCtx, duoAPI duo.API) (string, string, [
 	values := url.Values{}
 	values.Set("username", userSession.Username)
 
-	preAuthResponse, err := duoAPI.PreAuthCall(values, ctx)
+	preAuthResponse, err := duoAPI.PreAuthCall(ctx, values)
 	if err != nil {
 		return "", "", nil, "", err
 	}

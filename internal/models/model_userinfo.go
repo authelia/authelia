@@ -15,5 +15,5 @@ type UserInfo struct {
 	HasU2F bool `db:"has_u2f" json:"has_u2f" valid:"required"`
 
 	// True if a duo device has been configured as the preferred.
-	HasDUO bool `db:"has_duo" json:"has_duo" valid:"required"`
+	HasDuo bool `db:"has_duo" json:"has_duo" valid:"required"`
 }

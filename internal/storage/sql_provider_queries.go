@@ -130,16 +130,16 @@ const (
 )
 
 const (
-	queryFmtUpsertDUODevice = `
+	queryFmtUpsertDuoDevice = `
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
 
-	queryFmtDeleteDUODevice = `
+	queryFmtDeleteDuoDevice = `
 		DELETE
 		FROM %s
 		WHERE username = ?;`
 
-	queryFmtSelectDUODevice = `
+	queryFmtSelectDuoDevice = `
 		SELECT id, username, device, method
 		FROM %s
 		WHERE username = ?

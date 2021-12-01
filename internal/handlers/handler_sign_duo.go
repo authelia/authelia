@@ -31,7 +31,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		userSession := ctx.GetSession()
 		remoteIP := ctx.RemoteIP().String()
 
-		duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDUODevice(ctx, userSession.Username)
+		duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
 		if err != nil {
 			ctx.Logger.Debugf("Error identifying preferred device for user %s: %s", userSession.Username, err)
 			ctx.Logger.Debugf("Starting Duo PreAuth for initial device selection of user: %s", userSession.Username)
@@ -54,16 +54,16 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		values, err := SetValues(userSession, device, method, remoteIP, requestBody.TargetURL, requestBody.Passcode)
 		if err != nil {
-			ctx.Logger.Errorf("Failed to set values for DUO Auth Call for user '%s': %+v", userSession.Username, err)
+			ctx.Logger.Errorf("Failed to set values for Duo Auth Call for user '%s': %+v", userSession.Username, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
 			return
 		}
 
-		authResponse, err := duoAPI.AuthCall(values, ctx)
+		authResponse, err := duoAPI.AuthCall(ctx, values)
 		if err != nil {
-			ctx.Logger.Errorf("Failed to perform DUO Auth Call for user '%s': %+v", userSession.Username, err)
+			ctx.Logger.Errorf("Failed to perform Duo Auth Call for user '%s': %+v", userSession.Username, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -93,7 +93,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, targetURL string) (device string, method string, err error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
 	if err != nil {
-		ctx.Logger.Errorf("Failed to perform DUO PreAuth for user '%s': %+v", userSession.Username, err)
+		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -138,7 +138,7 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, device string, method string, targetURL string) (string, string, error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
 	if err != nil {
-		ctx.Logger.Errorf("Failed to perform DUO PreAuth for user '%s': %+v", userSession.Username, err)
+		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -149,7 +149,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 	case enroll:
 		ctx.Logger.Debugf("Duo user: %s no longer enrolled removing preferred device", userSession.Username)
 
-		if err := ctx.Providers.StorageProvider.DeletePreferredDUODevice(ctx, userSession.Username); err != nil {
+		if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
 			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
 		}
 
@@ -172,7 +172,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 		if devices == nil {
 			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available removing preferred device", userSession.Username)
 
-			if err := ctx.Providers.StorageProvider.DeletePreferredDUODevice(ctx, userSession.Username); err != nil {
+			if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
 				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
 			}
 
@@ -235,7 +235,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	method := devices[0].Capabilities[0]
 	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
 
-	if err := ctx.Providers.StorageProvider.SavePreferredDUODevice(ctx, models.DUODevice{Username: username, Method: method, Device: device}); err != nil {
+	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
 		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
 	}
 

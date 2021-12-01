@@ -124,7 +124,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 		return err
 	}
 
-	if len(migrations) == 0 {
+	if len(migrations) == 0 && (prior != 1 || target != -1) {
 		return ErrNoMigrationsFound
 	}
 
@@ -277,7 +277,7 @@ func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (mi
 	return loadMigrations(p.name, current, version)
 }
 
-// SchemaLatestVersion returns the latest version available for migration..
+// SchemaLatestVersion returns the latest version available for migration.
 func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
 	return latestMigrationVersion(p.name)
 }

@@ -65,18 +65,18 @@ func (mr *MockProviderMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockProvider)(nil).Close))
 }
 
-// DeletePreferredDUODevice mocks base method.
-func (m *MockProvider) DeletePreferredDUODevice(arg0 context.Context, arg1 string) error {
+// DeletePreferredDuoDevice mocks base method.
+func (m *MockProvider) DeletePreferredDuoDevice(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeletePreferredDUODevice", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeletePreferredDuoDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeletePreferredDUODevice indicates an expected call of DeletePreferredDUODevice.
-func (mr *MockProviderMockRecorder) DeletePreferredDUODevice(arg0, arg1 interface{}) *gomock.Call {
+// DeletePreferredDuoDevice indicates an expected call of DeletePreferredDuoDevice.
+func (mr *MockProviderMockRecorder) DeletePreferredDuoDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferredDUODevice", reflect.TypeOf((*MockProvider)(nil).DeletePreferredDUODevice), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferredDuoDevice", reflect.TypeOf((*MockProvider)(nil).DeletePreferredDuoDevice), arg0, arg1)
 }
 
 // DeleteTOTPConfiguration mocks base method.
@@ -138,19 +138,19 @@ func (mr *MockProviderMockRecorder) LoadPreferred2FAMethod(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).LoadPreferred2FAMethod), arg0, arg1)
 }
 
-// LoadPreferredDUODevice mocks base method.
-func (m *MockProvider) LoadPreferredDUODevice(arg0 context.Context, arg1 string) (*models.DUODevice, error) {
+// LoadPreferredDuoDevice mocks base method.
+func (m *MockProvider) LoadPreferredDuoDevice(arg0 context.Context, arg1 string) (*models.DuoDevice, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadPreferredDUODevice", arg0, arg1)
-	ret0, _ := ret[0].(*models.DUODevice)
+	ret := m.ctrl.Call(m, "LoadPreferredDuoDevice", arg0, arg1)
+	ret0, _ := ret[0].(*models.DuoDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadPreferredDUODevice indicates an expected call of LoadPreferredDUODevice.
-func (mr *MockProviderMockRecorder) LoadPreferredDUODevice(arg0, arg1 interface{}) *gomock.Call {
+// LoadPreferredDuoDevice indicates an expected call of LoadPreferredDuoDevice.
+func (mr *MockProviderMockRecorder) LoadPreferredDuoDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferredDUODevice", reflect.TypeOf((*MockProvider)(nil).LoadPreferredDUODevice), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferredDuoDevice", reflect.TypeOf((*MockProvider)(nil).LoadPreferredDuoDevice), arg0, arg1)
 }
 
 // LoadTOTPConfiguration mocks base method.
@@ -255,18 +255,18 @@ func (mr *MockProviderMockRecorder) SavePreferred2FAMethod(arg0, arg1, arg2 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferred2FAMethod", reflect.TypeOf((*MockProvider)(nil).SavePreferred2FAMethod), arg0, arg1, arg2)
 }
 
-// SavePreferredDUODevice mocks base method.
-func (m *MockProvider) SavePreferredDUODevice(arg0 context.Context, arg1 models.DUODevice) error {
+// SavePreferredDuoDevice mocks base method.
+func (m *MockProvider) SavePreferredDuoDevice(arg0 context.Context, arg1 models.DuoDevice) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SavePreferredDUODevice", arg0, arg1)
+	ret := m.ctrl.Call(m, "SavePreferredDuoDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SavePreferredDUODevice indicates an expected call of SavePreferredDUODevice.
-func (mr *MockProviderMockRecorder) SavePreferredDUODevice(arg0, arg1 interface{}) *gomock.Call {
+// SavePreferredDuoDevice indicates an expected call of SavePreferredDuoDevice.
+func (mr *MockProviderMockRecorder) SavePreferredDuoDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferredDUODevice", reflect.TypeOf((*MockProvider)(nil).SavePreferredDUODevice), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferredDuoDevice", reflect.TypeOf((*MockProvider)(nil).SavePreferredDuoDevice), arg0, arg1)
 }
 
 // SaveTOTPConfiguration mocks base method.

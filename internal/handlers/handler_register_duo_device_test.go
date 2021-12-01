@@ -38,7 +38,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 	values := url.Values{}
 	values.Set("username", "john")
 
-	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("Connnection error"))
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(nil, fmt.Errorf("Connnection error"))
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
@@ -68,7 +68,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
 	response.Result = auth
 	response.Devices = duoDevices
 
-	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&response, nil)
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
@@ -84,7 +84,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
 	response := duo.PreAuthResponse{}
 	response.Result = allow
 
-	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&response, nil)
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
@@ -103,7 +103,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
 	response.Result = enroll
 	response.EnrollPortalURL = enrollURL
 
-	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&response, nil)
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
@@ -119,7 +119,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
 	response := duo.PreAuthResponse{}
 	response.Result = deny
 
-	duoMock.EXPECT().PreauthCall(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&response, nil)
 
 	SecondFactorDuoDevicesGet(duoMock)(s.mock.Ctx)
 
@@ -129,7 +129,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
 func (s *RegisterDuoDeviceSuite) TestShouldRespondOK() {
 	s.mock.Ctx.Request.SetBodyString("{\"device\":\"1234567890123456\", \"method\":\"push\"}")
 	s.mock.StorageProviderMock.EXPECT().
-		SavePreferredDUODevice(gomock.Eq(s.mock.Ctx), gomock.Eq(models.DUODevice{Username: "john", Device: "1234567890123456", Method: "push"})).
+		SavePreferredDuoDevice(gomock.Eq(s.mock.Ctx), gomock.Eq(models.DuoDevice{Username: "john", Device: "1234567890123456", Method: "push"})).
 		Return(nil)
 
 	SecondFactorDuoDevicePost(s.mock.Ctx)

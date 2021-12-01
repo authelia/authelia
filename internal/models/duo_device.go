@@ -1,7 +1,7 @@
 package models
 
-// DUODevice represents a DUO Device.
-type DUODevice struct {
+// DuoDevice represents a DUO Device.
+type DuoDevice struct {
 	ID       int    `db:"id"`
 	Username string `db:"username"`
 	Device   string `db:"device"`

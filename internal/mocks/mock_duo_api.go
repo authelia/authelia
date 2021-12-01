@@ -38,7 +38,7 @@ func (m *MockAPI) EXPECT() *MockAPIMockRecorder {
 }
 
 // AuthCall mocks base method.
-func (m *MockAPI) AuthCall(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.AuthResponse, error) {
+func (m *MockAPI) AuthCall(arg0 *middlewares.AutheliaCtx, arg1 url.Values) (*duo.AuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthCall", arg0, arg1)
 	ret0, _ := ret[0].(*duo.AuthResponse)
@@ -53,7 +53,7 @@ func (mr *MockAPIMockRecorder) AuthCall(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // Call mocks base method.
-func (m *MockAPI) Call(arg0 url.Values, arg1 *middlewares.AutheliaCtx, arg2, arg3 string) (*duo.Response, error) {
+func (m *MockAPI) Call(arg0 *middlewares.AutheliaCtx, arg1 url.Values, arg2, arg3 string) (*duo.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Call", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*duo.Response)
@@ -67,8 +67,8 @@ func (mr *MockAPIMockRecorder) Call(arg0, arg1, arg2, arg3 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockAPI)(nil).Call), arg0, arg1, arg2, arg3)
 }
 
-// PreauthCall mocks base method.
-func (m *MockAPI) PreAuthCall(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*duo.PreAuthResponse, error) {
+// PreAuthCall mocks base method.
+func (m *MockAPI) PreAuthCall(arg0 *middlewares.AutheliaCtx, arg1 url.Values) (*duo.PreAuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PreAuthCall", arg0, arg1)
 	ret0, _ := ret[0].(*duo.PreAuthResponse)
@@ -76,8 +76,8 @@ func (m *MockAPI) PreAuthCall(arg0 url.Values, arg1 *middlewares.AutheliaCtx) (*
 	return ret0, ret1
 }
 
-// PreauthCall indicates an expected call of PreauthCall.
-func (mr *MockAPIMockRecorder) PreauthCall(arg0, arg1 interface{}) *gomock.Call {
+// PreAuthCall indicates an expected call of PreAuthCall.
+func (mr *MockAPIMockRecorder) PreAuthCall(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PreAuthCall", reflect.TypeOf((*MockAPI)(nil).PreAuthCall), arg0, arg1)
 }

@@ -11,9 +11,9 @@ import (
 
 // API interface wrapping duo api library for testing purpose.
 type API interface {
-	Call(values url.Values, ctx *middlewares.AutheliaCtx, method string, path string) (*Response, error)
-	PreAuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*PreAuthResponse, error)
-	AuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*AuthResponse, error)
+	Call(ctx *middlewares.AutheliaCtx, values url.Values, method string, path string) (*Response, error)
+	PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*PreAuthResponse, error)
+	AuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*AuthResponse, error)
 }
 
 // APIImpl implementation of DuoAPI interface.

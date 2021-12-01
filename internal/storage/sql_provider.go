@@ -46,13 +46,13 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
 		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
 
-		sqlUpsertDUODevice: fmt.Sprintf(queryFmtUpsertDUODevice, tableDUODevices),
-		sqlDeleteDUODevice: fmt.Sprintf(queryFmtDeleteDUODevice, tableDUODevices),
-		sqlSelectDUODevice: fmt.Sprintf(queryFmtSelectDUODevice, tableDUODevices),
+		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
+		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
+		sqlSelectDuoDevice: fmt.Sprintf(queryFmtSelectDuoDevice, tableDuoDevices),
 
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableDUODevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableDuoDevices, tableUserPreferences),
 
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
@@ -104,9 +104,9 @@ type SQLProvider struct {
 	sqlSelectU2FDevice string
 
 	// Table: duo_devices
-	sqlUpsertDUODevice string
-	sqlDeleteDUODevice string
-	sqlSelectDUODevice string
+	sqlUpsertDuoDevice string
+	sqlDeleteDuoDevice string
+	sqlSelectDuoDevice string
 
 	// Table: user_preferences.
 	sqlUpsertPreferred2FAMethod string
@@ -364,23 +364,23 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 	return device, nil
 }
 
-// SavePreferredDUODevice saves a DUO device.
-func (p *SQLProvider) SavePreferredDUODevice(ctx context.Context, device models.DUODevice) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertDUODevice, device.Username, device.Device, device.Method)
+// SavePreferredDuoDevice saves a Duo device.
+func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertDuoDevice, device.Username, device.Device, device.Method)
 	return err
 }
 
-// DeletePreferredDUODevice deletes a DUO device of a given user.
-func (p *SQLProvider) DeletePreferredDUODevice(ctx context.Context, username string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlDeleteDUODevice, username)
+// DeletePreferredDuoDevice deletes a Duo device of a given user.
+func (p *SQLProvider) DeletePreferredDuoDevice(ctx context.Context, username string) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlDeleteDuoDevice, username)
 	return err
 }
 
-// LoadPreferredDUODevice loads a DUO device of a given user.
-func (p *SQLProvider) LoadPreferredDUODevice(ctx context.Context, username string) (device *models.DUODevice, err error) {
-	device = &models.DUODevice{}
+// LoadPreferredDuoDevice loads a Duo device of a given user.
+func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error) {
+	device = &models.DuoDevice{}
 
-	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDUODevice, username).StructScan(device); err != nil {
+	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDuoDevice, username).StructScan(device); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoDuoDevice
 		}

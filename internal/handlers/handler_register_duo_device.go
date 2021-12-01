@@ -95,7 +95,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, device.Device, device.Method)
-	err = ctx.Providers.StorageProvider.SavePreferredDUODevice(ctx, models.DUODevice{Username: userSession.Username, Device: device.Device, Method: device.Method})
+	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: userSession.Username, Device: device.Device, Method: device.Method})
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %s", err), messageMFAValidationFailed)
@@ -109,7 +109,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 func SecondFactorDuoDeviceDelete(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 	ctx.Logger.Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
-	err := ctx.Providers.StorageProvider.DeletePreferredDUODevice(ctx, userSession.Username)
+	err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to delete preferred Duo device and method: %s", err), messageMFAValidationFailed)

@@ -18,7 +18,7 @@ func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
 }
 
 // Call call to the DuoAPI.
-func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx, method string, path string) (*Response, error) {
+func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method string, path string) (*Response, error) {
 	var response Response
 
 	_, responseBytes, err := d.DuoApi.SignedCall(method, path, values)
@@ -44,10 +44,10 @@ func (d *APIImpl) Call(values url.Values, ctx *middlewares.AutheliaCtx, method s
 }
 
 // PreAuthCall call to the DuoAPI.
-func (d *APIImpl) PreAuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*PreAuthResponse, error) {
+func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*PreAuthResponse, error) {
 	var preAuthResponse PreAuthResponse
 
-	response, err := d.Call(values, ctx, "POST", "/auth/v2/preauth")
+	response, err := d.Call(ctx, values, "POST", "/auth/v2/preauth")
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +61,10 @@ func (d *APIImpl) PreAuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (
 }
 
 // AuthCall call to the DuoAPI.
-func (d *APIImpl) AuthCall(values url.Values, ctx *middlewares.AutheliaCtx) (*AuthResponse, error) {
+func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*AuthResponse, error) {
 	var authResponse AuthResponse
 
-	response, err := d.Call(values, ctx, "POST", "/auth/v2/auth")
+	response, err := d.Call(ctx, values, "POST", "/auth/v2/auth")
 	if err != nil {
 		return nil, err
 	}
