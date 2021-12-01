@@ -56,20 +56,18 @@ func TestShouldRaiseErrorWhenInvalidTOTPAlgorithm(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidAlgorithm, "SHA3", strings.Join(schema.TOTPPossibleAlgorithms, ", ")))
 }
 
-func TestShouldRaiseErrorWhenInvalidTOTPMinimumValues(t *testing.T) {
-	var badSkew = -1
-
+func TestShouldRaiseErrorWhenInvalidTOTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		TOTP: &schema.TOTPConfiguration{
-			Period: -5,
-			Skew:   &badSkew,
+			Period: 5,
+			Digits: 4,
 		},
 	}
 
 	ValidateTOTP(config, validator)
 
 	require.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidPeriod, -5))
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtTOTPInvalidSkew, -1))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidPeriod, 5))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtTOTPInvalidDigits, 4))
 }

@@ -16,8 +16,8 @@ func NewTimeBasedProvider(config *schema.TOTPConfiguration) (provider *TimeBased
 		config: config,
 	}
 
-	if config.Skew != nil && *config.Skew >= 0 {
-		provider.skew = uint(*config.Skew)
+	if config.Skew != nil {
+		provider.skew = *config.Skew
 	} else {
 		provider.skew = 1
 	}
@@ -40,7 +40,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 		AccountName: username,
 		Period:      period,
 		SecretSize:  secretSize,
-		Digits:      otp.Digits(int(digits)),
+		Digits:      otp.Digits(digits),
 		Algorithm:   otpStringToAlgo(algorithm),
 	}
 
@@ -62,7 +62,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 
 // Generate generates a TOTP with default options.
 func (p TimeBased) Generate(username string) (config *models.TOTPConfiguration, err error) {
-	return p.GenerateCustom(username, p.config.Algorithm, 6, uint(p.config.Period), 32)
+	return p.GenerateCustom(username, p.config.Algorithm, p.config.Digits, p.config.Period, 32)
 }
 
 // Validate the token against the given configuration.

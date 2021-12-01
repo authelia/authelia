@@ -57,8 +57,8 @@ const (
 // TOTP Error constants.
 const (
 	errFmtTOTPInvalidAlgorithm = "TOTP: algorithm '%s' is invalid: must be one of %s"
-	errFmtTOTPInvalidPeriod    = "TOTP: period '%d` is invalid: must be 1 or more"
-	errFmtTOTPInvalidSkew      = "TOTP: skew '%d` is invalid: must be 0 or more"
+	errFmtTOTPInvalidPeriod    = "TOTP: period '%d` is invalid: must be 15 or more"
+	errFmtTOTPInvalidDigits    = "TOTP: digits '%d` is invalid: must be 6 or 8"
 )
 
 // OpenID Error constants.
@@ -165,6 +165,7 @@ var ValidKeys = []string{
 	// TOTP Keys.
 	"totp.issuer",
 	"totp.algorithm",
+	"totp.digits",
 	"totp.period",
 	"totp.skew",
 

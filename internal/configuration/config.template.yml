@@ -94,12 +94,19 @@ totp:
   ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
   issuer: authelia.com
 
-  ## The TOTP algorithm to use. It is CRITICAL you read the documentation before changing this option:
-  ## https://www.authelia.com/docs/configuration/one-time-password.html#issuer
+  ## The TOTP algorithm to use.
+  ## It is CRITICAL you read the documentation before changing this option:
+  ## https://www.authelia.com/docs/configuration/one-time-password.html#algorithm
   algorithm: sha1
 
-  ## The period in seconds a one-time password is current for. Changing this will require all users to register
-  ## their TOTP applications again. Warning: before changing period read the docs link below.
+  ## The number of digits a user has to input. Must either be 6 or 8.
+  ## Changing this option only affects newly generated TOTP configurations.
+  ## It is CRITICAL you read the documentation before changing this option:
+  ## https://www.authelia.com/docs/configuration/one-time-password.html#digits
+  digits: 6
+
+  ## The period in seconds a one-time password is valid for.
+  ## Changing this option only affects newly generated TOTP configurations.
   period: 30
 
   ## The skew controls number of one-time passwords either side of the current one that are valid.

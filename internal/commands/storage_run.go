@@ -54,6 +54,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		"postgres.password": "storage.postgres.password",
 		"postgres.schema":   "storage.postgres.schema",
 		"period":            "totp.period",
+		"digits":            "totp.digits",
 		"algorithm":         "totp.algorithm",
 		"issuer":            "totp.issuer",
 	}

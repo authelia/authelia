@@ -102,7 +102,8 @@ func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
 		Args:  cobra.ExactArgs(1),
 	}
 
-	cmd.Flags().Int("period", 30, "set the TOTP period")
+	cmd.Flags().Uint("period", 30, "set the TOTP period")
+	cmd.Flags().Uint("digits", 6, "set the TOTP digits")
 	cmd.Flags().String("algorithm", "SHA1", "set the TOTP algorithm")
 	cmd.Flags().String("issuer", "Authelia", "set the TOTP issuer")
 	cmd.Flags().BoolP("force", "f", false, "forces the TOTP configuration to be generated regardless if it exists or not")

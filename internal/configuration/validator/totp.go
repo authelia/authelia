@@ -32,13 +32,17 @@ func ValidateTOTP(configuration *schema.Configuration, validator *schema.StructV
 
 	if configuration.TOTP.Period == 0 {
 		configuration.TOTP.Period = schema.DefaultTOTPConfiguration.Period
-	} else if configuration.TOTP.Period < 0 {
+	} else if configuration.TOTP.Period < 15 {
 		validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, configuration.TOTP.Period))
+	}
+
+	if configuration.TOTP.Digits == 0 {
+		configuration.TOTP.Digits = schema.DefaultTOTPConfiguration.Digits
+	} else if configuration.TOTP.Digits != 6 && configuration.TOTP.Digits != 8 {
+		validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, configuration.TOTP.Digits))
 	}
 
 	if configuration.TOTP.Skew == nil {
 		configuration.TOTP.Skew = schema.DefaultTOTPConfiguration.Skew
-	} else if *configuration.TOTP.Skew < 0 {
-		validator.Push(fmt.Errorf(errFmtTOTPInvalidSkew, *configuration.TOTP.Skew))
 	}
 }

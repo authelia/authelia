@@ -16,6 +16,7 @@ full example of TOTP configuration below, as well as sections describing them.
 totp:
   issuer: authelia.com
   algorithm: sha1
+  digits: 6
   period: 30
   skew: 1
 ```
@@ -59,6 +60,23 @@ Possible Values (case-insensitive):
 - `sha1`
 - `sha256`
 - `sha512`
+
+### digits
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple } 
+default: 6
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The number of digits a user needs to input to perform authentication. It's generally not recommended for this to be 
+altered as many TOTP applications do not support anything other than 6. What's worse is some TOTP applications allow
+you to add the key, but do not use the correct number of digits specified by the key.
+
+Changing this value only affects newly registered TOTP keys. See the [Registration](#registration) section for more
+information.
 
 ### period
 <div markdown="1">
