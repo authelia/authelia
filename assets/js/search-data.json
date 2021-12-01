@@ -229,13 +229,13 @@
   },"38": {
     "doc": "Duo Push Notifications",
     "title": "Configuration",
-    "content": "The configuration is as follows: . duo_api: hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl . The secret key is shown as an example, you also have the option to set it using an environment variable as described here. ",
+    "content": "The configuration is as follows: . duo_api: hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl enable_self_enrollment: false . The secret key is shown as an example, you also have the option to set it using an environment variable as described here. ",
     "url": "/docs/configuration/duo-push-notifications.html#configuration",
     "relUrl": "/configuration/duo-push-notifications.html#configuration"
   },"39": {
     "doc": "Duo Push Notifications",
     "title": "Options",
-    "content": "hostname . type: string . default: “” . required: yes . The Duo API hostname supplied by Duo. integration_key . type: string . default: “” . required: yes . The non-secret Duo integration key. Similar to a client identifier. secret_key . type: string . default: “” . required: yes . The secret Duo key used to verify your application is valid. ",
+    "content": "hostname . type: string . default: “” . required: yes . The Duo API hostname supplied by Duo. integration_key . type: string . default: “” . required: yes . The non-secret Duo integration key. Similar to a client identifier. secret_key . type: string . default: “” . required: yes . The secret Duo key used to verify your application is valid. enable_self_enrollment . type: boolean . default: false . required: no . Enables Duo device self-enrollment from within the Authelia portal. ",
     "url": "/docs/configuration/duo-push-notifications.html#options",
     "relUrl": "/configuration/duo-push-notifications.html#options"
   },"40": {
@@ -985,7 +985,7 @@
   },"164": {
     "doc": "Push Notification",
     "title": "Mobile Push Notification",
-    "content": "Mobile push notifications is the new trendy second factor method. When second factor is requested by Authelia, a notification is sent on your phone that you can either accept or deny. Authelia leverages Duo third party to provide this feature. First, sign up on their website, log in, create a user account and attach it a mobile device. Beware that the name of the user must match the name of the user in Authelia. Then, in Duo interface, click on Applications and Protect an Application. Select the option Partner Auth API. This will generate an integration key, a secret key and a hostname. You can set the name of the application to Authelia and then you must add the generated information to Authelia configuration as shown below: . duo_api: hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl . Now that Authelia is configured, pass the first factor and select the Push notification option. You should now receive a notification on your mobile phone with all the details about the authentication request. ",
+    "content": "Mobile push notifications is the new trendy second factor method. When second factor is requested by Authelia, a notification is sent on your phone that you can either accept or deny. Authelia leverages Duo third party to provide this feature. First, sign up on their website, log in, create a user account and attach it a mobile device. Beware that the name of the user must match the name of the user in Authelia. Then, in Duo interface, click on Applications and Protect an Application. Select the option Partner Auth API. This will generate an integration key, a secret key and a hostname. You can set the name of the application to Authelia and then you must add the generated information to Authelia configuration as shown below: . duo_api: hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl . Now that Authelia is configured, pass the first factor and select the Push notification option. You should now receive a notification on your mobile phone with all the details about the authentication request. In case you have multiple devices available, you will be asked to select your preferred device. ",
     "url": "/docs/features/2fa/push-notifications.html#mobile-push-notification",
     "relUrl": "/features/2fa/push-notifications.html#mobile-push-notification"
   },"165": {
