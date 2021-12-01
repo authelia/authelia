@@ -30,14 +30,19 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
+	duoSelfEnrollment := f
+	if configuration.DuoAPI != nil {
+		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
+	}
+
 	embeddedPath, _ := fs.Sub(assets, "public_html")
 	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
 	r.GET("/", serveIndexHandler)
@@ -125,8 +130,14 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 				configuration.DuoAPI.Hostname, ""))
 		}
 
+		r.GET("/api/secondfactor/duo_devices", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicesGet(duoAPI))))
+
 		r.POST("/api/secondfactor/duo", autheliaMiddleware(
 			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
+
+		r.POST("/api/secondfactor/duo_device", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicePost)))
 	}
 
 	if configuration.Server.EnablePprof {

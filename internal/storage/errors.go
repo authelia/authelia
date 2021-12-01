@@ -5,14 +5,17 @@ import (
 )
 
 var (
-	// ErrNoU2FDeviceHandle error thrown when no U2F device handle has been found in DB.
-	ErrNoU2FDeviceHandle = errors.New("no U2F device handle found")
-
 	// ErrNoAuthenticationLogs error thrown when no matching authentication logs hve been found in DB.
 	ErrNoAuthenticationLogs = errors.New("no matching authentication logs found")
 
 	// ErrNoTOTPSecret error thrown when no TOTP secret has been found in DB.
 	ErrNoTOTPSecret = errors.New("no TOTP secret registered")
+
+	// ErrNoU2FDeviceHandle error thrown when no U2F device handle has been found in DB.
+	ErrNoU2FDeviceHandle = errors.New("no U2F device handle found")
+
+	// ErrNoDuoDevice error thrown when no Duo device and method has been found in DB.
+	ErrNoDuoDevice = errors.New("no Duo device and method saved")
 
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")

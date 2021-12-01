@@ -26,10 +26,11 @@
     "prepare": "cd .. && husky install .github",
     "start": "vite --host",
     "build": "vite build",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "coverage": "VITE_COVERAGE=true vite build",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "test": "jest --coverage --no-cache",
-    "report": "nyc report -r clover -r json -r lcov -r text"
+    "report": "nyc report -r clover -r json -r lcov -r text",
+    "commit": "commitlint --edit $1"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -141,7 +142,7 @@
     "eslint-plugin-react": "7.27.1",
     "eslint-plugin-react-hooks": "4.3.0",
     "husky": "7.0.2",
-    "jest": "27.4.1",
+    "jest": "27.4.2",
     "jest-transform-stub": "2.0.0",
     "jest-watch-typeahead": "1.0.0",
     "prettier": "2.5.0",

@@ -160,6 +160,7 @@ var ValidKeys = []string{
 
 	// DUO API Keys.
 	"duo_api.hostname",
+	"duo_api.enable_self_enrollment",
 	"duo_api.secret_key",
 	"duo_api.integration_key",
 

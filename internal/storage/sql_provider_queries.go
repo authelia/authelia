@@ -35,7 +35,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
@@ -127,6 +127,23 @@ const (
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
 			DO UPDATE SET key_handle=$2, public_key=$3;`
+)
+
+const (
+	queryFmtUpsertDuoDevice = `
+		REPLACE INTO %s (username, device, method)
+		VALUES (?, ?, ?);`
+
+	queryFmtDeleteDuoDevice = `
+		DELETE
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtSelectDuoDevice = `
+		SELECT id, username, device, method
+		FROM %s
+		WHERE username = ?
+		ORDER BY id;`
 )
 
 const (

@@ -111,6 +111,7 @@ duo_api:
   integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret_key: 1234567890abcdefghifjkl
+  enable_self_enrollment: false
 
 ##
 ## NTP Configuration

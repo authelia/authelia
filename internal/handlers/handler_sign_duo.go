@@ -6,13 +6,19 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // SecondFactorDuoPost handler for sending a push notification via duo api.
 func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
-		var requestBody signDuoRequestBody
+		var (
+			requestBody    signDuoRequestBody
+			device, method string
+		)
 
 		if err := ctx.ParseBody(&requestBody); err != nil {
 			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDUO, err)
@@ -25,43 +31,49 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		userSession := ctx.GetSession()
 		remoteIP := ctx.RemoteIP().String()
 
-		ctx.Logger.Debugf("Starting Duo Push Auth Attempt for user '%s' with IP '%s'", userSession.Username, remoteIP)
-
-		values := url.Values{}
-
-		values.Set("username", userSession.Username)
-		values.Set("ipaddr", remoteIP)
-		values.Set("factor", "push")
-		values.Set("device", "auto")
-
-		if requestBody.TargetURL != "" {
-			values.Set("pushinfo", fmt.Sprintf("target%%20url=%s", requestBody.TargetURL))
+		duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
+		if err != nil {
+			ctx.Logger.Debugf("Error identifying preferred device for user %s: %s", userSession.Username, err)
+			ctx.Logger.Debugf("Starting Duo PreAuth for initial device selection of user: %s", userSession.Username)
+			device, method, err = HandleInitialDeviceSelection(ctx, &userSession, duoAPI, requestBody.TargetURL)
+		} else {
+			ctx.Logger.Debugf("Starting Duo PreAuth to check preferred device of user: %s", userSession.Username)
+			device, method, err = HandlePreferredDeviceCheck(ctx, &userSession, duoAPI, duoDevice.Device, duoDevice.Method, requestBody.TargetURL)
 		}
 
-		duoResponse, err := duoAPI.Call(values, ctx)
 		if err != nil {
-			ctx.Logger.Errorf("Failed to perform DUO call for user '%s': %+v", userSession.Username, err)
+			ctx.Error(err, messageMFAValidationFailed)
+			return
+		}
+
+		if device == "" || method == "" {
+			return
+		}
+
+		ctx.Logger.Debugf("Starting Duo Auth attempt for %s with device %s and method %s from IP %s", userSession.Username, device, method, remoteIP)
+
+		values, err := SetValues(userSession, device, method, remoteIP, requestBody.TargetURL, requestBody.Passcode)
+		if err != nil {
+			ctx.Logger.Errorf("Failed to set values for Duo Auth Call for user '%s': %+v", userSession.Username, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
 			return
 		}
 
-		if duoResponse.Stat == "FAIL" {
-			if duoResponse.Code == 40002 {
-				ctx.Logger.Warnf("Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d. "+
-					"This error often occurs if you've not setup the username in the Admin Dashboard.",
-					userSession.Username, remoteIP, duoResponse.Message, duoResponse.MessageDetail, duoResponse.Code)
-			} else {
-				ctx.Logger.Warnf("Duo Push Auth failed to process the auth request for %s from %s: %s (%s), error code %d.",
-					userSession.Username, remoteIP, duoResponse.Message, duoResponse.MessageDetail, duoResponse.Code)
-			}
+		authResponse, err := duoAPI.AuthCall(ctx, values)
+		if err != nil {
+			ctx.Logger.Errorf("Failed to perform Duo Auth Call for user '%s': %+v", userSession.Username, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
+			return
 		}
 
-		if duoResponse.Response.Result != testResultAllow {
+		if authResponse.Result != allow {
 			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeDUO,
-				fmt.Errorf("result: %s, code: %d, message: %s (%s)", duoResponse.Response.Result, duoResponse.Code,
-					duoResponse.Message, duoResponse.MessageDetail))
+				fmt.Errorf("duo auth result: %s, status: %s, message: %s", authResponse.Result, authResponse.Status,
+					authResponse.StatusMessage))
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -73,29 +85,223 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDUO, userSession.Username, err)
+		HandleAllow(ctx, requestBody.TargetURL)
+	}
+}
 
-			respondUnauthorized(ctx, messageMFAValidationFailed)
+// HandleInitialDeviceSelection handler for retrieving all available devices.
+func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, targetURL string) (device string, method string, err error) {
+	result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
+	if err != nil {
+		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
 
-			return
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return "", "", err
+	}
+
+	switch result {
+	case enroll:
+		ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
+
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
+			return "", "", fmt.Errorf("unable to set JSON body in response")
 		}
 
-		userSession.SetTwoFactor(ctx.Clock.Now())
+		return "", "", nil
+	case deny:
+		ctx.Logger.Infof("Duo user: %s not allowed to authenticate: %s", userSession.Username, message)
 
-		err = ctx.SaveSession(userSession)
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: deny}); err != nil {
+			return "", "", fmt.Errorf("unable to set JSON body in response")
+		}
+
+		return "", "", nil
+	case allow:
+		ctx.Logger.Debugf("Duo authentication was bypassed for user: %s", userSession.Username)
+		HandleAllow(ctx, targetURL)
+
+		return "", "", nil
+	case auth:
+		device, method, err = HandleAutoSelection(ctx, devices, userSession.Username)
 		if err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
-
-			respondUnauthorized(ctx, messageMFAValidationFailed)
-
-			return
+			return "", "", err
 		}
 
-		if userSession.OIDCWorkflowSession != nil {
-			handleOIDCWorkflowResponse(ctx)
+		return device, method, nil
+	}
+
+	return "", "", fmt.Errorf("unknown result: %s", result)
+}
+
+// HandlePreferredDeviceCheck handler to check if the saved device and method is still valid.
+func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, device string, method string, targetURL string) (string, string, error) {
+	result, message, devices, enrollURL, err := DuoPreAuth(ctx, duoAPI)
+	if err != nil {
+		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return "", "", nil
+	}
+
+	switch result {
+	case enroll:
+		ctx.Logger.Debugf("Duo user: %s no longer enrolled removing preferred device", userSession.Username)
+
+		if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
+			return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
+		}
+
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
+			return "", "", fmt.Errorf("unable to set JSON body in response")
+		}
+
+		return "", "", nil
+	case deny:
+		ctx.Logger.Infof("Duo user: %s not allowed to authenticate: %s", userSession.Username, message)
+		ctx.ReplyUnauthorized()
+
+		return "", "", nil
+	case allow:
+		ctx.Logger.Debugf("Duo authentication was bypassed for user: %s", userSession.Username)
+		HandleAllow(ctx, targetURL)
+
+		return "", "", nil
+	case auth:
+		if devices == nil {
+			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available removing preferred device", userSession.Username)
+
+			if err := ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
+				return "", "", fmt.Errorf("unable to delete preferred Duo device and method for user %s: %s", userSession.Username, err)
+			}
+
+			if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll}); err != nil {
+				return "", "", fmt.Errorf("unable to set JSON body in response")
+			}
+
+			return "", "", nil
+		}
+
+		if len(devices) > 0 {
+			for i := range devices {
+				if devices[i].Device == device {
+					if utils.IsStringInSlice(method, devices[i].Capabilities) {
+						return device, method, nil
+					}
+				}
+			}
+		}
+
+		return HandleAutoSelection(ctx, devices, userSession.Username)
+	}
+
+	return "", "", fmt.Errorf("unknown result: %s", result)
+}
+
+// HandleAutoSelection handler automatically selects preferred device if there is only one suitable option.
+func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, username string) (string, string, error) {
+	if devices == nil {
+		ctx.Logger.Debugf("No compatible device/method available for Duo user: %s", username)
+
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: enroll}); err != nil {
+			return "", "", fmt.Errorf("unable to set JSON body in response")
+		}
+
+		return "", "", nil
+	}
+
+	if len(devices) > 1 {
+		ctx.Logger.Debugf("Multiple devices available for Duo user: %s require manual selection", username)
+
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: auth, Devices: devices}); err != nil {
+			return "", "", fmt.Errorf("unable to set JSON body in response")
+		}
+
+		return "", "", nil
+	}
+
+	if len(devices[0].Capabilities) > 1 {
+		ctx.Logger.Debugf("Multiple methods available for Duo user: %s require manual selection", username)
+
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: auth, Devices: devices}); err != nil {
+			return "", "", fmt.Errorf("unable to set JSON body in response")
+		}
+
+		return "", "", nil
+	}
+
+	device := devices[0].Device
+	method := devices[0].Capabilities[0]
+	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
+
+	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
+		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
+	}
+
+	return device, method, nil
+}
+
+// HandleAllow handler for successful logins.
+func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
+	userSession := ctx.GetSession()
+
+	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+	if err != nil {
+		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDUO, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	userSession.SetTwoFactor(ctx.Clock.Now())
+
+	err = ctx.SaveSession(userSession)
+	if err != nil {
+		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	if userSession.OIDCWorkflowSession != nil {
+		handleOIDCWorkflowResponse(ctx)
+	} else {
+		Handle2FAResponse(ctx, targetURL)
+	}
+}
+
+// SetValues sets all appropriate Values for the Auth Request.
+func SetValues(userSession session.UserSession, device string, method string, remoteIP string, targetURL string, passcode string) (url.Values, error) {
+	values := url.Values{}
+	values.Set("username", userSession.Username)
+	values.Set("ipaddr", remoteIP)
+	values.Set("factor", method)
+
+	switch method {
+	case duo.Push:
+		values.Set("device", device)
+
+		if userSession.DisplayName != "" {
+			values.Set("display_username", userSession.DisplayName)
+		}
+
+		if targetURL != "" {
+			values.Set("pushinfo", fmt.Sprintf("target%%20url=%s", targetURL))
+		}
+	case duo.Phone:
+		values.Set("device", device)
+	case duo.SMS:
+		values.Set("device", device)
+	case duo.OTP:
+		if passcode != "" {
+			values.Set("passcode", passcode)
 		} else {
-			Handle2FAResponse(ctx, requestBody.TargetURL)
+			return nil, fmt.Errorf("no passcode received from user: %s", userSession.Username)
 		}
 	}
+
+	return values, nil
 }

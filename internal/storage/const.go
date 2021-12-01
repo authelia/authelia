@@ -9,7 +9,7 @@ const (
 	tableIdentityVerification = "identity_verification"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableU2FDevices           = "u2f_devices"
-	tableDUODevices           = "duo_devices"
+	tableDuoDevices           = "duo_devices"
 	tableAuthenticationLogs   = "authentication_logs"
 	tableMigrations           = "migrations"
 	tableEncryption           = "encryption"
