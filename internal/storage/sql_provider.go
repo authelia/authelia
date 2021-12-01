@@ -12,19 +12,21 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/models"
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (provider SQLProvider) {
+func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider) {
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
 		db:         db,
-		key:        sha256.Sum256([]byte(encryptionKey)),
+		key:        sha256.Sum256([]byte(config.Storage.EncryptionKey)),
 		name:       name,
 		driverName: driverName,
+		config:     config,
 		errOpen:    err,
 		log:        logging.Logger(),
 
@@ -46,9 +48,13 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
 		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
 
+		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
+		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
+		sqlSelectDuoDevice: fmt.Sprintf(queryFmtSelectDuoDevice, tableDuoDevices),
+
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableDuoDevices, tableUserPreferences),
 
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
@@ -60,10 +66,6 @@ func NewSQLProvider(name, driverName, dataSourceName, encryptionKey string) (pro
 		sqlFmtRenameTable: queryFmtRenameTable,
 	}
 
-	key := sha256.Sum256([]byte(encryptionKey))
-
-	provider.key = key
-
 	return provider
 }
 
@@ -73,6 +75,7 @@ type SQLProvider struct {
 	key        [32]byte
 	name       string
 	driverName string
+	config     *schema.Configuration
 	errOpen    error
 
 	log *logrus.Logger
@@ -81,7 +84,7 @@ type SQLProvider struct {
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
 
-	// Table: identity_verification_tokens.
+	// Table: identity_verification.
 	sqlInsertIdentityVerification       string
 	sqlDeleteIdentityVerification       string
 	sqlSelectExistsIdentityVerification string
@@ -98,6 +101,11 @@ type SQLProvider struct {
 	// Table: u2f_devices.
 	sqlUpsertU2FDevice string
 	sqlSelectU2FDevice string
+
+	// Table: duo_devices
+	sqlUpsertDuoDevice string
+	sqlDeleteDuoDevice string
+	sqlSelectDuoDevice string
 
 	// Table: user_preferences.
 	sqlUpsertPreferred2FAMethod string
@@ -186,7 +194,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 
 // LoadUserInfo loads the models.UserInfo from the database.
 func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error) {
-	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username)
+	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
 	switch {
 	case err == nil:
@@ -196,7 +204,7 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 			return models.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
 		}
 
-		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username); err != nil {
+		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username); err != nil {
 			return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 		}
 
@@ -208,7 +216,9 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 
 // SaveIdentityVerification save an identity verification record to the database.
 func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification, verification.Token); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification,
+		verification.JTI, verification.IssuedAt, verification.ExpiresAt,
+		verification.Username, verification.Action); err != nil {
 		return fmt.Errorf("error inserting identity verification: %w", err)
 	}
 
@@ -216,8 +226,8 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 }
 
 // RemoveIdentityVerification remove an identity verification record from the database.
-func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, token string) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, token); err != nil {
+func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, jti string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteIdentityVerification, jti); err != nil {
 		return fmt.Errorf("error updating identity verification: %w", err)
 	}
 
@@ -225,8 +235,8 @@ func (p *SQLProvider) RemoveIdentityVerification(ctx context.Context, token stri
 }
 
 // FindIdentityVerification checks if an identity verification record is in the database and active.
-func (p *SQLProvider) FindIdentityVerification(ctx context.Context, token string) (found bool, err error) {
-	if err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, token); err != nil {
+func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
+	if err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, jti); err != nil {
 		return false, fmt.Errorf("error selecting identity verification exists: %w", err)
 	}
 
@@ -240,7 +250,7 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
-		config.Username, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
+		config.Username, config.Issuer, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
 		return fmt.Errorf("error upserting TOTP configuration: %w", err)
 	}
 
@@ -262,7 +272,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 
 	if err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoTOTPSecret
+			return nil, ErrNoTOTPConfiguration
 		}
 
 		return nil, fmt.Errorf("error selecting TOTP configuration: %w", err)
@@ -353,10 +363,39 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 	return device, nil
 }
 
+// SavePreferredDuoDevice saves a Duo device.
+func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpsertDuoDevice, device.Username, device.Device, device.Method)
+	return err
+}
+
+// DeletePreferredDuoDevice deletes a Duo device of a given user.
+func (p *SQLProvider) DeletePreferredDuoDevice(ctx context.Context, username string) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlDeleteDuoDevice, username)
+	return err
+}
+
+// LoadPreferredDuoDevice loads a Duo device of a given user.
+func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error) {
+	device = &models.DuoDevice{}
+
+	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDuoDevice, username).StructScan(device); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoDuoDevice
+		}
+
+		return nil, err
+	}
+
+	return device, nil
+}
+
 // AppendAuthenticationLog append a mark to the authentication log.
 func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt, attempt.Time, attempt.Successful, attempt.Username); err != nil {
-		return fmt.Errorf("error inserting authentiation attempt: %w", err)
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
+		attempt.Time, attempt.Successful, attempt.Banned, attempt.Username,
+		attempt.Type, attempt.RemoteIP, attempt.RequestURI, attempt.RequestMethod); err != nil {
+		return fmt.Errorf("error inserting authentication attempt: %w", err)
 	}
 
 	return nil

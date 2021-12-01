@@ -27,14 +27,9 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// MethodBody the selected 2FA method.
-type MethodBody struct {
-	Method string `json:"method" valid:"required"`
-}
-
 // MethodPreferencePost update the user preferences regarding 2FA method.
 func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
-	bodyJSON := MethodBody{}
+	bodyJSON := preferred2FAMethodBody{}
 
 	err := ctx.ParseBody(&bodyJSON)
 	if err != nil {

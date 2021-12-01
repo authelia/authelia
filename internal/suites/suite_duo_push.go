@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -41,11 +42,21 @@ func init() {
 
 		fmt.Println(frontendLogs)
 
+		duoAPILogs, err := dockerEnvironment.Logs("duo-api", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(duoAPILogs)
+
 		return nil
 	}
 
 	teardown := func(suitePath string) error {
-		return dockerEnvironment.Down()
+		err := dockerEnvironment.Down()
+		_ = os.Remove("/tmp/db.sqlite3")
+
+		return err
 	}
 
 	GlobalRegistry.Register(duoPushSuiteName, Suite{
@@ -53,7 +64,7 @@ func init() {
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
-		TestTimeout:     2 * time.Minute,
+		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 

@@ -226,7 +226,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, config.Secret)
+		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, p.config.TOTP.Issuer, p.config.TOTP.Period, config.Secret)
 		if err != nil {
 			return err
 		}
@@ -291,7 +291,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 		tableTOTPConfigurations,
 		tableIdentityVerification,
 		tableU2FDevices,
-		tableDUODevices,
+		tableDuoDevices,
 		tableUserPreferences,
 		tableAuthenticationLogs,
 		tableEncryption,
@@ -414,7 +414,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
+		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
 		if err != nil {
 			return err
 		}

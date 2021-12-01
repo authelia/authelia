@@ -30,17 +30,21 @@ type Provider interface {
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
 
+	SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error)
+	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
+	LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error)
+
 	SchemaTables(ctx context.Context) (tables []string, err error)
 	SchemaVersion(ctx context.Context) (version int, err error)
+	SchemaLatestVersion() (version int, err error)
+
 	SchemaMigrate(ctx context.Context, up bool, version int) (err error)
 	SchemaMigrationHistory(ctx context.Context) (migrations []models.Migration, err error)
+	SchemaMigrationsUp(ctx context.Context, version int) (migrations []models.SchemaMigration, err error)
+	SchemaMigrationsDown(ctx context.Context, version int) (migrations []models.SchemaMigration, err error)
 
 	SchemaEncryptionChangeKey(ctx context.Context, encryptionKey string) (err error)
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)
-
-	SchemaLatestVersion() (version int, err error)
-	SchemaMigrationsUp(ctx context.Context, version int) (migrations []SchemaMigration, err error)
-	SchemaMigrationsDown(ctx context.Context, version int) (migrations []SchemaMigration, err error)
 
 	Close() (err error)
 }

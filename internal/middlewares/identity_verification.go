@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 
@@ -20,7 +19,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 
 	return func(ctx *AutheliaCtx) {
 		identity, err := args.IdentityRetrieverFunc(ctx)
-
 		if err != nil {
 			// In that case we reply ok to avoid user enumeration.
 			ctx.Logger.Error(err)
@@ -29,17 +27,11 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
+		verification := models.NewIdentityVerification(identity.Username, args.ActionClaim)
+
 		// Create the claim with the action to sign it.
-		claims := &IdentityVerificationClaim{
-			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: &jwt.NumericDate{
-					Time: time.Now().Add(5 * time.Minute),
-				},
-				Issuer: jwtIssuer,
-			},
-			Action:   args.ActionClaim,
-			Username: identity.Username,
-		}
+		claims := verification.ToIdentityVerificationClaim()
+
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		ss, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
 
@@ -48,9 +40,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, models.IdentityVerification{
-			Token: ss,
-		})
+		err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, verification)
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
@@ -131,20 +121,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		found, err := ctx.Providers.StorageProvider.FindIdentityVerification(ctx, finishBody.Token)
-
-		if err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
-		if !found {
-			ctx.Error(fmt.Errorf("Token is not in DB, it might have already been used"),
-				messageIdentityVerificationTokenAlreadyUsed)
-			return
-		}
-
-		token, err := jwt.ParseWithClaims(finishBody.Token, &IdentityVerificationClaim{},
+		token, err := jwt.ParseWithClaims(finishBody.Token, &models.IdentityVerificationClaim{},
 			func(token *jwt.Token) (interface{}, error) {
 				return []byte(ctx.Configuration.JWTSecret), nil
 			})
@@ -170,9 +147,28 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		claims, ok := token.Claims.(*IdentityVerificationClaim)
+		claims, ok := token.Claims.(*models.IdentityVerificationClaim)
 		if !ok {
 			ctx.Error(fmt.Errorf("Wrong type of claims (%T != *middlewares.IdentityVerificationClaim)", claims), messageOperationFailed)
+			return
+		}
+
+		verification, err := claims.ToIdentityVerification()
+		if err != nil {
+			ctx.Error(fmt.Errorf("Token seems to be invalid: %w", err),
+				messageOperationFailed)
+			return
+		}
+
+		found, err := ctx.Providers.StorageProvider.FindIdentityVerification(ctx, verification.JTI.String())
+		if err != nil {
+			ctx.Error(err, messageOperationFailed)
+			return
+		}
+
+		if !found {
+			ctx.Error(fmt.Errorf("Token is not in DB, it might have already been used"),
+				messageIdentityVerificationTokenAlreadyUsed)
 			return
 		}
 
@@ -187,8 +183,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		// TODO(c.michaud): find a way to garbage collect unused tokens.
-		err = ctx.Providers.StorageProvider.RemoveIdentityVerification(ctx, finishBody.Token)
+		err = ctx.Providers.StorageProvider.RemoveIdentityVerification(ctx, claims.ID)
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return

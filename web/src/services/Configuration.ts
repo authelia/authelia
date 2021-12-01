@@ -1,12 +1,11 @@
 import { Configuration } from "@models/Configuration";
 import { ConfigurationPath } from "@services/Api";
 import { Get } from "@services/Client";
-import { toEnum, Method2FA } from "@services/UserPreferences";
+import { toEnum, Method2FA } from "@services/UserInfo";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];
     second_factor_enabled: boolean;
-    totp_period: number;
 }
 
 export async function getConfiguration(): Promise<Configuration> {

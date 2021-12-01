@@ -12,6 +12,8 @@ import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 export interface Props {
     passcode: string;
     state: State;
+
+    digits: number;
     period: number;
 
     onChange: (passcode: string) => void;
@@ -19,22 +21,23 @@ export interface Props {
 
 const OTPDial = function (props: Props) {
     const style = useStyles();
-    const dial = (
-        <span className={style.otpInput} id="otp-input">
-            <OtpInput
-                shouldAutoFocus
-                onChange={props.onChange}
-                value={props.passcode}
-                numInputs={6}
-                isDisabled={props.state === State.InProgress || props.state === State.Success}
-                isInputNum
-                hasErrored={props.state === State.Failure}
-                inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
-            />
-        </span>
-    );
 
-    return <IconWithContext icon={<Icon state={props.state} period={props.period} />} context={dial} />;
+    return (
+        <IconWithContext icon={<Icon state={props.state} period={props.period} />}>
+            <span className={style.otpInput} id="otp-input">
+                <OtpInput
+                    shouldAutoFocus
+                    onChange={props.onChange}
+                    value={props.passcode}
+                    numInputs={props.digits}
+                    isDisabled={props.state === State.InProgress || props.state === State.Success}
+                    isInputNum
+                    hasErrored={props.state === State.Failure}
+                    inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
+                />
+            </span>
+        </IconWithContext>
+    );
 };
 
 export default OTPDial;

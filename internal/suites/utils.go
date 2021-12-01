@@ -49,7 +49,7 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 }
 
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
-	if err == context.DeadlineExceeded && os.Getenv("CI") == stringTrue {
+	if err == context.DeadlineExceeded && os.Getenv("CI") == t {
 		base := "/buildkite/screenshots"
 		build := os.Getenv("BUILDKITE_BUILD_NUMBER")
 		suite := strings.ToLower(os.Getenv("SUITE"))

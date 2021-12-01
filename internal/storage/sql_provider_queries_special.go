@@ -21,8 +21,8 @@ const (
 		LIMIT 100 OFFSET ?;`
 
 	queryFmtPre1To1InsertAuthenticationLogs = `
-		INSERT INTO %s (username, successful, time)
-		VALUES (?, ?, ?);`
+		INSERT INTO %s (username, successful, time, request_uri)
+		VALUES (?, ?, ?, '');`
 
 	queryFmtPre1InsertUserPreferencesFromSelect = `
 		INSERT INTO %s (username, second_factor_method)
@@ -35,7 +35,11 @@ const (
 		FROM %s
 		ORDER BY username ASC;`
 
-	queryFmtPre1InsertTOTPConfiguration = `
+	queryFmtPre1To1InsertTOTPConfiguration = `
+		INSERT INTO %s (username, issuer, totp_period, secret)
+		VALUES (?, ?, ?, ?);`
+
+	queryFmt1ToPre1InsertTOTPConfiguration = `
 		INSERT INTO %s (username, secret)
 		VALUES (?, ?);`
 

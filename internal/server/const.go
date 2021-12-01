@@ -10,7 +10,11 @@ const (
 
 var rootFiles = []string{"favicon.ico", "manifest.json", "robots.txt"}
 
-const dev = "dev"
+const (
+	dev = "dev"
+	f   = "false"
+	t   = "true"
+)
 
 const healthCheckEnv = `# Written by Authelia Process
 X_AUTHELIA_HEALTHCHECK=1

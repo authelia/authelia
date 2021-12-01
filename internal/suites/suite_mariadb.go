@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-var mariadbSuiteName = "Mariadb"
+var mariadbSuiteName = "MariaDB"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
-		"internal/suites/Mariadb/docker-compose.yml",
+		"internal/suites/MariaDB/docker-compose.yml",
 		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/backend/docker-compose.yml",

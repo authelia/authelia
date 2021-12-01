@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -38,6 +38,7 @@ type Providers struct {
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider
 	Notifier        notification.Notifier
+	TOTP            totp.Provider
 }
 
 // RequestHandler represents an Authelia request handler.
@@ -78,17 +79,6 @@ type IdentityVerificationFinishArgs struct {
 
 	// The function for checking the user in the token is valid for the current action.
 	IsTokenUserValidFunc func(ctx *AutheliaCtx, username string) bool
-}
-
-// IdentityVerificationClaim custom claim for specifying the action claim.
-// The action can be to register a TOTP device, a U2F device or reset one's password.
-type IdentityVerificationClaim struct {
-	jwt.RegisteredClaims
-
-	// The action this token has been crafted for.
-	Action string `json:"action"`
-	// The user this token has been crafted for.
-	Username string `json:"username"`
 }
 
 // IdentityVerificationFinishBody type of the body received by the finish endpoint.

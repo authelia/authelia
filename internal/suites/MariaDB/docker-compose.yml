@@ -1,0 +1,9 @@
+---
+version: '3'
+services:
+  authelia-backend:
+    volumes:
+      - './MariaDB/configuration.yml:/config/configuration.yml:ro'
+      - './MariaDB/users.yml:/config/users.yml'
+      - './common/ssl:/config/ssl:ro'
+...

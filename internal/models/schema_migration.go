@@ -1,4 +1,4 @@
-package storage
+package models
 
 // SchemaMigration represents an intended migration.
 type SchemaMigration struct {

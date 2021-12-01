@@ -10,6 +10,7 @@ export interface UserInfoPayload {
     method: Method2FA;
     has_u2f: boolean;
     has_totp: boolean;
+    has_duo: boolean;
 }
 
 export interface MethodPreferencePayload {
@@ -38,7 +39,7 @@ export function toString(method: SecondFactorMethod): Method2FA {
     }
 }
 
-export async function getUserPreferences(): Promise<UserInfo> {
+export async function getUserInfo(): Promise<UserInfo> {
     const res = await Get<UserInfoPayload>(UserInfoPath);
     return { ...res, method: toEnum(res.method) };
 }

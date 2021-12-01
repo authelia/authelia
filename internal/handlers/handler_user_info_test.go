@@ -96,7 +96,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		err := mock.Ctx.SaveSession(userSession)
 		require.NoError(t, err)
 
-		mock.StorageProviderMock.
+		mock.StorageMock.
 			EXPECT().
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 			Return(resp.db, resp.err)
@@ -139,7 +139,7 @@ func TestMethodSetToU2F(t *testing.T) {
 }
 
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
 		Return(models.UserInfo{}, fmt.Errorf("failure"))
 
@@ -178,7 +178,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -187,7 +187,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -196,7 +196,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "Unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -211,7 +211,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(fmt.Errorf("Failure"))
 
@@ -224,7 +224,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
 		Return(nil)
 

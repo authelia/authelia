@@ -1,6 +1,6 @@
 import { useRemoteCall } from "@hooks/RemoteCall";
-import { getUserPreferences } from "@services/UserPreferences";
+import { getUserInfo } from "@services/UserInfo";
 
-export function useUserPreferences() {
-    return useRemoteCall(getUserPreferences, []);
+export function useUserInfo() {
+    return useRemoteCall(getUserInfo, []);
 }

@@ -45,6 +45,7 @@ module.exports = {
                 "storage",
                 "suites",
                 "templates",
+                "totp",
                 "utils",
                 "web",
             ],
