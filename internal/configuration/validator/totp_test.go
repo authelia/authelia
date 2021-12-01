@@ -61,7 +61,7 @@ func TestShouldRaiseErrorWhenInvalidTOTPValues(t *testing.T) {
 	config := &schema.Configuration{
 		TOTP: &schema.TOTPConfiguration{
 			Period: 5,
-			Digits: 4,
+			Digits: 20,
 		},
 	}
 
@@ -69,5 +69,5 @@ func TestShouldRaiseErrorWhenInvalidTOTPValues(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidPeriod, 5))
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtTOTPInvalidDigits, 4))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtTOTPInvalidDigits, 20))
 }
