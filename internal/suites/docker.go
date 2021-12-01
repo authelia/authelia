@@ -18,7 +18,7 @@ type DockerEnvironment struct {
 
 // NewDockerEnvironment create a new docker environment.
 func NewDockerEnvironment(files []string) *DockerEnvironment {
-	if os.Getenv("CI") == stringTrue {
+	if os.Getenv("CI") == t {
 		for i := range files {
 			files[i] = strings.ReplaceAll(files[i], "{}", "dist")
 		}

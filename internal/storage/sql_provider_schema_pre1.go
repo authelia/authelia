@@ -291,7 +291,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 		tableTOTPConfigurations,
 		tableIdentityVerification,
 		tableU2FDevices,
-		tableDUODevices,
+		tableDuoDevices,
 		tableUserPreferences,
 		tableAuthenticationLogs,
 		tableEncryption,

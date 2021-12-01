@@ -153,3 +153,12 @@ func TestIsStringInSliceSuffix(t *testing.T) {
 	assert.False(t, IsStringInSliceSuffix("an.orange", suffixes))
 	assert.False(t, IsStringInSliceSuffix("an.apple.orange", suffixes))
 }
+
+func TestIsStringSliceContainsAll(t *testing.T) {
+	needles := []string{"abc", "123", "xyz"}
+	haystackOne := []string{"abc", "tvu", "123", "456", "xyz"}
+	haystackTwo := []string{"tvu", "123", "456", "xyz"}
+
+	assert.True(t, IsStringSliceContainsAll(needles, haystackOne))
+	assert.False(t, IsStringSliceContainsAll(needles, haystackTwo))
+}

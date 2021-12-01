@@ -15,17 +15,24 @@ export enum State {
 export interface Props {
     id: string;
     title: string;
+    duoSelfEnrollment: boolean;
     registered: boolean;
     explanation: string;
     state: State;
     children: ReactNode;
 
     onRegisterClick?: () => void;
+    onSelectClick?: () => void;
 }
 
 const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
-    const registerMessage = props.registered ? "Lost your device?" : "Register device";
+    const registerMessage = props.registered
+        ? props.title === "Push Notification"
+            ? ""
+            : "Lost your device?"
+        : "Register device";
+    const selectMessage = "Select a Device";
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -35,7 +42,7 @@ const DefaultMethodContainer = function (props: Props) {
             stateClass = "state-already-authenticated";
             break;
         case State.NOT_REGISTERED:
-            container = <NotRegisteredContainer />;
+            container = <NotRegisteredContainer title={props.title} duoSelfEnrollment={props.duoSelfEnrollment} />;
             stateClass = "state-not-registered";
             break;
         case State.METHOD:
@@ -50,7 +57,13 @@ const DefaultMethodContainer = function (props: Props) {
             <div className={classnames(style.container, stateClass)} id="2fa-container">
                 <div className={style.containerFlex}>{container}</div>
             </div>
-            {props.onRegisterClick ? (
+            {props.onSelectClick && props.registered ? (
+                <Link component="button" id="selection-link" onClick={props.onSelectClick}>
+                    {selectMessage}
+                </Link>
+            ) : null}
+            {(props.onRegisterClick && props.title !== "Push Notification") ||
+            (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
                 <Link component="button" id="register-link" onClick={props.onRegisterClick}>
                     {registerMessage}
                 </Link>
@@ -76,7 +89,12 @@ const useStyles = makeStyles(() => ({
     },
 }));
 
-function NotRegisteredContainer() {
+interface NotRegisteredContainerProps {
+    title: string;
+    duoSelfEnrollment: boolean;
+}
+
+function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const theme = useTheme();
     return (
         <Fragment>
@@ -87,7 +105,11 @@ function NotRegisteredContainer() {
                 The resource you're attempting to access requires two-factor authentication.
             </Typography>
             <Typography style={{ color: "#5858ff" }}>
-                Register your first device by clicking on the link below.
+                {props.title === "Push Notification"
+                    ? props.duoSelfEnrollment
+                        ? "Register your first device by clicking on the link below."
+                        : "Contact your administrator to register a device."
+                    : "Register your first device by clicking on the link below."}
             </Typography>
         </Fragment>
     );

@@ -7,6 +7,10 @@ export function getEmbeddedVariable(variableName: string) {
     return value;
 }
 
+export function getDuoSelfEnrollment() {
+    return getEmbeddedVariable("duoselfenrollment") === "true";
+}
+
 export function getLogoOverride() {
     return getEmbeddedVariable("logooverride") === "true";
 }
