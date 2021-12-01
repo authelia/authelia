@@ -21,15 +21,17 @@ server:
 ```
 
 ## Policy
-
 Our deprecation policy for configuration keys is 3 minor versions. For example if a configuration option is deprecated
 in version 4.30.0, it will remain as a warning for 4.30.x, 4.31.x, and 4.32.x; then it will become a fatal error in
 4.33.0+. 
 
 ## Migrations
 
-### 4.30.0
+### 4.33.0
+The options deprecated in version [4.30.0](#4300) have been fully removed as per our deprecation policy and warnings
+logged for users.
 
+### 4.30.0
 The following changes occurred in 4.30.0:
 
 |Previous Key |New Key               |

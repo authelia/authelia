@@ -32,7 +32,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"TLS_KEY_FILE", filepath.Join(dir, "tls")))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SERVER_TLS_KEY_FILE", filepath.Join(dir, "tls")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
 
@@ -61,7 +61,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.EqualError(t, errs[8], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
 	assert.EqualError(t, errs[9], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
 	assert.EqualError(t, errs[10], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
-	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "tls_key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
+	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "server.tls.key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
 }
 
 func TestLoadShouldReturnErrWithoutValidator(t *testing.T) {
@@ -308,8 +308,8 @@ func testReset() {
 	testUnsetEnvName("SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD")
 	testUnsetEnvName("STORAGE_MYSQL_PASSWORD")
 	testUnsetEnvName("STORAGE_POSTGRES_PASSWORD")
-	testUnsetEnvName("TLS_KEY")
-	testUnsetEnvName("PORT")
+	testUnsetEnvName("SERVER_TLS_KEY")
+	testUnsetEnvName("SERVER_PORT")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
 	testUnsetEnvName("STORAGE_ENCRYPTION_KEY")
