@@ -11,22 +11,10 @@ type MethodList = []string
 
 type authorizationMatching int
 
-// UserInfo is the model of user info and second factor preferences.
-type UserInfo struct {
-	// The users display name.
-	DisplayName string `json:"display_name"`
-
-	// The preferred 2FA method.
-	Method string `json:"method" valid:"required"`
-
-	// True if a security key has been registered.
-	HasU2F bool `json:"has_u2f" valid:"required"`
-
-	// True if a TOTP device has been registered.
-	HasTOTP bool `json:"has_totp" valid:"required"`
-
-	// True if a Duo device and method has been enrolled.
-	HasDuo bool `json:"has_duo" valid:"required"`
+// configurationBody the content returned by the configuration endpoint.
+type configurationBody struct {
+	AvailableMethods    MethodList `json:"available_methods"`
+	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
 }
 
 // signTOTPRequestBody model of the request body received by TOTP authentication endpoint.
@@ -44,6 +32,11 @@ type signU2FRequestBody struct {
 type signDuoRequestBody struct {
 	TargetURL string `json:"targetURL"`
 	Passcode  string `json:"passcode"`
+}
+
+// preferred2FAMethodBody the selected 2FA method.
+type preferred2FAMethodBody struct {
+	Method string `json:"method" valid:"required"`
 }
 
 // firstFactorRequestBody represents the JSON body received by the endpoint.

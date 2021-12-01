@@ -48,16 +48,16 @@ func createToken(secret, username, action string, expiresAt time.Time) (data str
 }
 
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing() {
-	token, v := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", ActionU2FRegistration,
+	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", ActionU2FRegistration,
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
-		FindIdentityVerification(s.mock.Ctx, gomock.Eq(v.JTI.String())).
+	s.mock.StorageMock.EXPECT().
+		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
 		Return(true, nil)
 
-	s.mock.StorageProviderMock.EXPECT().
-		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(v.JTI.String())).
+	s.mock.StorageMock.EXPECT().
+		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
@@ -68,16 +68,16 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissing() {
 	s.mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
-	token, v := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", ActionU2FRegistration,
+	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", ActionU2FRegistration,
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
-	s.mock.StorageProviderMock.EXPECT().
-		FindIdentityVerification(s.mock.Ctx, gomock.Eq(v.JTI.String())).
+	s.mock.StorageMock.EXPECT().
+		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
 		Return(true, nil)
 
-	s.mock.StorageProviderMock.EXPECT().
-		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(v.JTI.String())).
+	s.mock.StorageMock.EXPECT().
+		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)

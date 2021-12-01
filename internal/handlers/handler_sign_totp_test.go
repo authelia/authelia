@@ -37,15 +37,13 @@ func (s *HandlerSignTOTPSuite) TearDownTest() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
-	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
-
 	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -56,9 +54,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
-	verifier.EXPECT().
-		Verify(gomock.Eq(&config), gomock.Eq("abc")).
-		Return(true, nil)
+	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
@@ -68,22 +64,20 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
+	SecondFactorTOTPPost(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: testRedirectionURL,
 	})
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
-	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
-
 	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -94,9 +88,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
-	verifier.EXPECT().
-		Verify(gomock.Eq(&config), gomock.Eq("abc")).
-		Return(true, nil)
+	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token: "abc",
@@ -104,20 +96,18 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
+	SecondFactorTOTPPost(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
-	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
-
 	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -128,9 +118,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
-	verifier.EXPECT().
-		Verify(gomock.Eq(&config), gomock.Eq("abc")).
-		Return(true, nil)
+	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
@@ -139,20 +127,18 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
+	SecondFactorTOTPPost(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: "https://mydomain.local",
 	})
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
-	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
-
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&models.TOTPConfiguration{Secret: []byte("secret")}, nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -163,31 +149,30 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
-	verifier.EXPECT().
-		Verify(gomock.Eq(&models.TOTPConfiguration{Secret: []byte("secret")}), gomock.Eq("abc")).
+	s.mock.TOTPMock.EXPECT().
+		Validate(gomock.Eq("abc"), gomock.Eq(&models.TOTPConfiguration{Secret: []byte("secret")})).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
 		TargetURL: "http://mydomain.local",
 	})
+
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
+	SecondFactorTOTPPost(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
-	verifier := NewMockTOTPVerifier(s.mock.Ctrl)
-
 	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
-	s.mock.StorageProviderMock.EXPECT().
+	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
 		Return(&config, nil)
 
-	s.mock.StorageProviderMock.
+	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
 			Username:   "john",
@@ -198,8 +183,8 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
 		}))
 
-	verifier.EXPECT().
-		Verify(gomock.Eq(&config), gomock.Eq("abc")).
+	s.mock.TOTPMock.EXPECT().
+		Validate(gomock.Eq("abc"), gomock.Eq(&config)).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -211,7 +196,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
-	SecondFactorTOTPPost(verifier)(s.mock.Ctx)
+	SecondFactorTOTPPost(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 
 	s.Assert().NotEqual(

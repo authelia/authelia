@@ -143,21 +143,18 @@ function Icon(props: IconProps) {
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
-            context={<LinearProgressBar value={props.timer} style={progressBarStyle} height={theme.spacing(2)} />}
             className={state === State.WaitTouch ? undefined : "hidden"}
-        />
+        >
+            <LinearProgressBar value={props.timer} style={progressBarStyle} height={theme.spacing(2)} />
+        </IconWithContext>
     );
 
     const failure = (
-        <IconWithContext
-            icon={<FailureIcon />}
-            context={
-                <Button color="secondary" onClick={props.onRetryClick}>
-                    Retry
-                </Button>
-            }
-            className={state === State.Failure ? undefined : "hidden"}
-        />
+        <IconWithContext icon={<FailureIcon />} className={state === State.Failure ? undefined : "hidden"}>
+            <Button color="secondary" onClick={props.onRetryClick}>
+                Retry
+            </Button>
+        </IconWithContext>
     );
 
     return (

@@ -16,9 +16,9 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration, encryptionKey string) (provider *PostgreSQLProvider) {
+func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(providerPostgres, "pgx", dataSourceNamePostgreSQL(config), encryptionKey),
+		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dataSourceNamePostgreSQL(*config.Storage.PostgreSQL)),
 	}
 
 	// All providers have differing SELECT existing table statements.

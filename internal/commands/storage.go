@@ -35,7 +35,7 @@ func NewStorageCmd() (cmd *cobra.Command) {
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
 		newStorageEncryptionCmd(),
-		newStorageExportCmd(),
+		newStorageTOTPCmd(),
 	)
 
 	return cmd
@@ -79,25 +79,57 @@ func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func newStorageExportCmd() (cmd *cobra.Command) {
+func newStorageTOTPCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "export",
-		Short: "Performs exports",
+		Use:   "totp",
+		Short: "Manage TOTP configurations",
 	}
 
-	cmd.AddCommand(newStorageExportTOTPConfigurationsCmd())
+	cmd.AddCommand(
+		newStorageTOTPGenerateCmd(),
+		newStorageTOTPDeleteCmd(),
+		newStorageTOTPExportCmd(),
+	)
 
 	return cmd
 }
 
-func newStorageExportTOTPConfigurationsCmd() (cmd *cobra.Command) {
+func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "totp-configurations",
-		Short: "Performs exports of the totp configurations",
-		RunE:  storageExportTOTPConfigurationsRunE,
+		Use:   "generate username",
+		Short: "Generate a TOTP configuration for a user",
+		RunE:  storageTOTPGenerateRunE,
+		Args:  cobra.ExactArgs(1),
 	}
 
-	cmd.Flags().String("format", storageExportFormatCSV, "changes the format of the export, options are csv and uri")
+	cmd.Flags().Uint("period", 30, "set the TOTP period")
+	cmd.Flags().Uint("digits", 6, "set the TOTP digits")
+	cmd.Flags().String("algorithm", "SHA1", "set the TOTP algorithm")
+	cmd.Flags().String("issuer", "Authelia", "set the TOTP issuer")
+	cmd.Flags().BoolP("force", "f", false, "forces the TOTP configuration to be generated regardless if it exists or not")
+
+	return cmd
+}
+
+func newStorageTOTPDeleteCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "delete username",
+		Short: "Delete a TOTP configuration for a user",
+		RunE:  storageTOTPDeleteRunE,
+		Args:  cobra.ExactArgs(1),
+	}
+
+	return cmd
+}
+
+func newStorageTOTPExportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "export",
+		Short: "Performs exports of the TOTP configurations",
+		RunE:  storageTOTPExportRunE,
+	}
+
+	cmd.Flags().String("format", storageExportFormatURI, "sets the output format")
 
 	return cmd
 }

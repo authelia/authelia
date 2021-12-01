@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/totp"
 )
 
 func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
@@ -52,6 +53,10 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		"postgres.username": "storage.postgres.username",
 		"postgres.password": "storage.postgres.password",
 		"postgres.schema":   "storage.postgres.schema",
+		"period":            "totp.period",
+		"digits":            "totp.digits",
+		"algorithm":         "totp.algorithm",
+		"issuer":            "totp.issuer",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -62,7 +67,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	config = &schema.Configuration{}
 
-	_, err = configuration.LoadAdvanced(val, "storage", &config.Storage, sources...)
+	_, err = configuration.LoadAdvanced(val, "", &config, sources...)
 	if err != nil {
 		return err
 	}
@@ -83,6 +88,8 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	validator.ValidateStorage(config.Storage, val)
+
+	validator.ValidateTOTP(config, val)
 
 	if val.HasErrors() {
 		var finalErr error
@@ -109,9 +116,6 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 	)
 
 	provider = getStorageProvider()
-	if provider == nil {
-		return errNoStorageProvider
-	}
 
 	defer func() {
 		_ = provider.Close()
@@ -145,9 +149,6 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	)
 
 	provider = getStorageProvider()
-	if provider == nil {
-		return errNoStorageProvider
-	}
 
 	defer func() {
 		_ = provider.Close()
@@ -188,16 +189,83 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	return nil
 }
 
-func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err error) {
+func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+		c        *models.TOTPConfiguration
+		force    bool
+	)
+
+	provider = getStorageProvider()
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	force, err = cmd.Flags().GetBool("force")
+
+	_, err = provider.LoadTOTPConfiguration(ctx, args[0])
+	if err == nil && !force {
+		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
+	}
+
+	if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
+		return err
+	}
+
+	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+
+	if c, err = totpProvider.Generate(args[0]); err != nil {
+		return err
+	}
+
+	err = provider.SaveTOTPConfiguration(ctx, *c)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Generated TOTP configuration for user '%s': %s", args[0], c.URI())
+
+	return nil
+}
+
+func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	user := args[0]
+
+	provider = getStorageProvider()
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	_, err = provider.LoadTOTPConfiguration(ctx, user)
+	if err != nil {
+		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
+	}
+
+	err = provider.DeleteTOTPConfiguration(ctx, user)
+	if err != nil {
+		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
+	}
+
+	fmt.Printf("Deleted TOTP configuration for user '%s'.", user)
+
+	return nil
+}
+
+func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
 		ctx      = context.Background()
 	)
 
 	provider = getStorageProvider()
-	if provider == nil {
-		return errNoStorageProvider
-	}
 
 	defer func() {
 		_ = provider.Close()
@@ -236,9 +304,9 @@ func storageExportTOTPConfigurationsRunE(cmd *cobra.Command, args []string) (err
 		for _, c := range configurations {
 			switch format {
 			case storageExportFormatCSV:
-				fmt.Printf("%s,%s,%s,%d,%d,%s\n", "Authelia", c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
+				fmt.Printf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
 			case storageExportFormatURI:
-				fmt.Printf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d\n", "Authelia", c.Username, string(c.Secret), "Authelia", c.Algorithm, c.Digits, c.Period)
+				fmt.Println(c.URI())
 			}
 		}
 
@@ -298,14 +366,11 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 		var (
 			provider     storage.Provider
 			ctx          = context.Background()
-			migrations   []storage.SchemaMigration
+			migrations   []models.SchemaMigration
 			directionStr string
 		)
 
 		provider = getStorageProvider()
-		if provider == nil {
-			return errNoStorageProvider
-		}
 
 		defer func() {
 			_ = provider.Close()
@@ -345,9 +410,6 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 		)
 
 		provider = getStorageProvider()
-		if provider == nil {
-			return errNoStorageProvider
-		}
 
 		defer func() {
 			_ = provider.Close()
@@ -420,9 +482,6 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	)
 
 	provider = getStorageProvider()
-	if provider == nil {
-		return errNoStorageProvider
-	}
 
 	defer func() {
 		_ = provider.Close()

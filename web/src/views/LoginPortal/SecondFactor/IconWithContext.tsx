@@ -5,7 +5,7 @@ import classnames from "classnames";
 
 interface IconWithContextProps {
     icon: ReactNode;
-    context: ReactNode;
+    children: ReactNode;
 
     className?: string;
 }
@@ -33,7 +33,7 @@ const IconWithContext = function (props: IconWithContextProps) {
             <div className={style.iconContainer}>
                 <div className={style.icon}>{props.icon}</div>
             </div>
-            <div className={style.context}>{props.context}</div>
+            <div className={style.context}>{props.children}</div>
         </div>
     );
 };

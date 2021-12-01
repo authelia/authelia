@@ -6,26 +6,26 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type MariadbSuite struct {
+type MariaDBSuite struct {
 	*RodSuite
 }
 
-func NewMariadbSuite() *MariadbSuite {
-	return &MariadbSuite{RodSuite: new(RodSuite)}
+func NewMariaDBSuite() *MariaDBSuite {
+	return &MariaDBSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *MariadbSuite) TestOneFactorScenario() {
+func (s *MariaDBSuite) TestOneFactorScenario() {
 	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *MariadbSuite) TestTwoFactorScenario() {
+func (s *MariaDBSuite) TestTwoFactorScenario() {
 	suite.Run(s.T(), NewTwoFactorScenario())
 }
 
-func TestMariadbSuite(t *testing.T) {
+func TestMariaDBSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewMariadbSuite())
+	suite.Run(t, NewMariaDBSuite())
 }

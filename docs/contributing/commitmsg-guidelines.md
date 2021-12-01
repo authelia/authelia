@@ -86,6 +86,7 @@ The scope should be the name of the package affected
 * storage
 * suites
 * templates
+* totp
 * utils
 
 There are currently a few exceptions to the "use package name" rule:

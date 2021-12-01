@@ -1,6 +1,6 @@
 ---
 storage:
-  encryption_key: a_cli_encryption_key_which_isnt_secure
+  encryption_key: a_not_so_secure_encryption_key
   local:
     path: /tmp/db.sqlite3
 ...

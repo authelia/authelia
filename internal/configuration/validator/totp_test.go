@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,26 +13,61 @@ import (
 
 func TestShouldSetDefaultTOTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := schema.TOTPConfiguration{}
+	config := &schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{},
+	}
 
-	ValidateTOTP(&config, validator)
+	ValidateTOTP(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
-	assert.Equal(t, "Authelia", config.Issuer)
-	assert.Equal(t, *schema.DefaultTOTPConfiguration.Skew, *config.Skew)
-	assert.Equal(t, schema.DefaultTOTPConfiguration.Period, config.Period)
+	assert.Equal(t, "Authelia", config.TOTP.Issuer)
+	assert.Equal(t, schema.DefaultTOTPConfiguration.Algorithm, config.TOTP.Algorithm)
+	assert.Equal(t, schema.DefaultTOTPConfiguration.Skew, config.TOTP.Skew)
+	assert.Equal(t, schema.DefaultTOTPConfiguration.Period, config.TOTP.Period)
 }
 
-func TestShouldRaiseErrorWhenInvalidTOTPMinimumValues(t *testing.T) {
-	var badSkew = -1
-
+func TestShouldNormalizeTOTPAlgorithm(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := schema.TOTPConfiguration{
-		Period: -5,
-		Skew:   &badSkew,
+
+	config := &schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Algorithm: "sha1",
+		},
 	}
-	ValidateTOTP(&config, validator)
-	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "TOTP Period must be 1 or more")
-	assert.EqualError(t, validator.Errors()[1], "TOTP Skew must be 0 or more")
+
+	ValidateTOTP(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, "SHA1", config.TOTP.Algorithm)
+}
+
+func TestShouldRaiseErrorWhenInvalidTOTPAlgorithm(t *testing.T) {
+	validator := schema.NewStructValidator()
+
+	config := &schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Algorithm: "sha3",
+		},
+	}
+
+	ValidateTOTP(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidAlgorithm, "SHA3", strings.Join(schema.TOTPPossibleAlgorithms, ", ")))
+}
+
+func TestShouldRaiseErrorWhenInvalidTOTPValues(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Period: 5,
+			Digits: 20,
+		},
+	}
+
+	ValidateTOTP(config, validator)
+
+	require.Len(t, validator.Errors(), 2)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidPeriod, 5))
+	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtTOTPInvalidDigits, 20))
 }

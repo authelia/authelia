@@ -206,7 +206,7 @@ func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, prior, after in
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
 }
 
-func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration models.SchemaMigration) (err error) {
 	_, err = p.db.ExecContext(ctx, migration.Query)
 	if err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
@@ -231,7 +231,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration SchemaMi
 	return p.schemaMigrateFinalize(ctx, migration)
 }
 
-func (p SQLProvider) schemaMigrateFinalize(ctx context.Context, migration SchemaMigration) (err error) {
+func (p SQLProvider) schemaMigrateFinalize(ctx context.Context, migration models.SchemaMigration) (err error) {
 	return p.schemaMigrateFinalizeAdvanced(ctx, migration.Before(), migration.After())
 }
 
@@ -247,7 +247,7 @@ func (p *SQLProvider) schemaMigrateFinalizeAdvanced(ctx context.Context, before,
 }
 
 // SchemaMigrationsUp returns a list of migrations up available between the current version and the provided version.
-func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migrations []SchemaMigration, err error) {
+func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migrations []models.SchemaMigration, err error) {
 	current, err := p.SchemaVersion(ctx)
 	if err != nil {
 		return migrations, err
@@ -265,7 +265,7 @@ func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migr
 }
 
 // SchemaMigrationsDown returns a list of migrations down available between the current version and the provided version.
-func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (migrations []SchemaMigration, err error) {
+func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (migrations []models.SchemaMigration, err error) {
 	current, err := p.SchemaVersion(ctx)
 	if err != nil {
 		return migrations, err
