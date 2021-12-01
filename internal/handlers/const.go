@@ -1,5 +1,9 @@
 package handlers
 
+import (
+	"github.com/valyala/fasthttp"
+)
+
 const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
@@ -11,20 +15,15 @@ const (
 	ActionResetPassword = "ResetPassword"
 )
 
-const (
-	// HeaderProxyAuthorization is the basic-auth HTTP header Authelia utilises.
-	HeaderProxyAuthorization = "Proxy-Authorization"
+var (
+	headerAuthorization      = []byte(fasthttp.HeaderAuthorization)
+	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
 
-	// HeaderAuthorization is the basic-auth HTTP header Authelia utilises with "auth=basic" query param.
-	HeaderAuthorization = "Authorization"
-
-	// HeaderSessionUsername is used as additional protection to validate a user for things like pam_exec.
-	HeaderSessionUsername = "Session-Username"
-
-	headerRemoteUser   = "Remote-User"
-	headerRemoteName   = "Remote-Name"
-	headerRemoteEmail  = "Remote-Email"
-	headerRemoteGroups = "Remote-Groups"
+	headerSessionUsername = []byte("Session-Username")
+	headerRemoteUser      = []byte("Remote-User")
+	headerRemoteGroups    = []byte("Remote-Groups")
+	headerRemoteName      = []byte("Remote-Name")
+	headerRemoteEmail     = []byte("Remote-Email")
 )
 
 const (

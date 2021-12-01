@@ -1,21 +1,25 @@
 package middlewares
 
-const (
-	headerXForwardedProto  = "X-Forwarded-Proto"
-	headerXForwardedMethod = "X-Forwarded-Method"
-	headerXForwardedHost   = "X-Forwarded-Host"
-	headerXForwardedURI    = "X-Forwarded-URI"
-	headerXOriginalURL     = "X-Original-URL"
-	headerXRequestedWith   = "X-Requested-With"
+import (
+	"github.com/valyala/fasthttp"
+)
+
+var (
+	headerXForwardedProto = []byte(fasthttp.HeaderXForwardedProto)
+	headerXForwardedHost  = []byte(fasthttp.HeaderXForwardedHost)
+	headerXForwardedFor   = []byte(fasthttp.HeaderXForwardedFor)
+	headerXRequestedWith  = []byte(fasthttp.HeaderXRequestedWith)
+	headerAccept          = []byte(fasthttp.HeaderAccept)
+
+	headerXForwardedURI    = []byte("X-Forwarded-URI")
+	headerXOriginalURL     = []byte("X-Original-URL")
+	headerXForwardedMethod = []byte("X-Forwarded-Method")
 )
 
 const (
 	headerValueXRequestedWithXHR = "XMLHttpRequest"
-)
-
-const (
-	contentTypeApplicationJSON = "application/json"
-	contentTypeTextHTML        = "text/html"
+	contentTypeApplicationJSON   = "application/json"
+	contentTypeTextHTML          = "text/html"
 )
 
 var okMessageBytes = []byte("{\"status\":\"OK\"}")

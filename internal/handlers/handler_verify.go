@@ -33,7 +33,7 @@ func isSchemeWSS(url *url.URL) bool {
 
 // parseBasicAuth parses an HTTP Basic Authentication string.
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
-func parseBasicAuth(header, auth string) (username, password string, err error) {
+func parseBasicAuth(header []byte, auth string) (username, password string, err error) {
 	if !strings.HasPrefix(auth, authPrefix) {
 		return "", "", fmt.Errorf("%s prefix not found in %s header", strings.Trim(authPrefix, " "), header)
 	}
@@ -85,7 +85,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource.
-func verifyBasicAuth(header string, auth []byte, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
+func verifyBasicAuth(header, auth []byte, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	username, password, err := parseBasicAuth(header, string(auth))
 
 	if err != nil {
@@ -116,14 +116,14 @@ func verifyBasicAuth(header string, auth []byte, ctx *middlewares.AutheliaCtx) (
 // setForwardedHeaders set the forwarded User, Groups, Name and Email headers.
 func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string, groups, emails []string) {
 	if username != "" {
-		headers.Set(headerRemoteUser, username)
-		headers.Set(headerRemoteGroups, strings.Join(groups, ","))
-		headers.Set(headerRemoteName, name)
+		headers.SetBytesK(headerRemoteUser, username)
+		headers.SetBytesK(headerRemoteGroups, strings.Join(groups, ","))
+		headers.SetBytesK(headerRemoteName, name)
 
 		if emails != nil {
-			headers.Set(headerRemoteEmail, emails[0])
+			headers.SetBytesK(headerRemoteEmail, emails[0])
 		} else {
-			headers.Set(headerRemoteEmail, "")
+			headers.SetBytesK(headerRemoteEmail, "")
 		}
 	}
 }
@@ -403,13 +403,13 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (r
 }
 
 func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
-	authHeader := HeaderProxyAuthorization
+	authHeader := headerProxyAuthorization
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
-		authHeader = HeaderAuthorization
+		authHeader = headerAuthorization
 		isBasicAuth = true
 	}
 
-	authValue := ctx.Request.Header.Peek(authHeader)
+	authValue := ctx.Request.Header.PeekBytes(authHeader)
 	if authValue != nil {
 		isBasicAuth = true
 	} else if isBasicAuth {
@@ -425,16 +425,16 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	userSession := ctx.GetSession()
 	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
 
-	sessionUsername := ctx.Request.Header.Peek(HeaderSessionUsername)
+	sessionUsername := ctx.Request.Header.PeekBytes(headerSessionUsername)
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
 		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
 		if err != nil {
-			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", HeaderSessionUsername, err)
+			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", headerSessionUsername, err)
 		}
 
-		err = fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, HeaderSessionUsername, sessionUsername, targetURL.String())
+		err = fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, headerSessionUsername, sessionUsername, targetURL.String())
 	}
 
 	return

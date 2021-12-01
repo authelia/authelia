@@ -150,7 +150,20 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 	// We only Mark if there was no underlying error.
 	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
 
-	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, string(ctx.RequestCtx.QueryArgs().Peek("rd")), string(ctx.RequestCtx.QueryArgs().Peek("rm")), authType, ctx.RemoteIP()); err != nil {
+	var (
+		requestURI, requestMethod string
+	)
+
+	referer := ctx.Request.Header.Referer()
+	if referer != nil {
+		refererURL, err := url.Parse(string(referer))
+		if err == nil {
+			requestURI = refererURL.Query().Get("rd")
+			requestMethod = refererURL.Query().Get("rm")
+		}
+	}
+
+	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType, ctx.RemoteIP()); err != nil {
 		ctx.Logger.Errorf("Unable to mark %s authentication attempt by user '%s': %+v", authType, username, err)
 
 		return err
