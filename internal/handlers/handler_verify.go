@@ -85,7 +85,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource.
-func verifyBasicAuth(header, auth []byte, ctx *middlewares.AutheliaCtx) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
+func verifyBasicAuth(ctx *middlewares.AutheliaCtx, header, auth []byte) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	username, password, err := parseBasicAuth(header, string(auth))
 
 	if err != nil {
@@ -418,7 +418,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	}
 
 	if isBasicAuth {
-		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, ctx)
+		username, name, groups, emails, authLevel, err = verifyBasicAuth(ctx, authHeader, authValue)
 		return
 	}
 

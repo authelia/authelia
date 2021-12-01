@@ -176,7 +176,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
 
-	_, _, _, _, _, err := verifyBasicAuth(headerProxyAuthorization, []byte("Basic am9objpwYXNzd29yZA=="), mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth(mock.Ctx, headerProxyAuthorization, []byte("Basic am9objpwYXNzd29yZA=="))
 
 	assert.Error(t, err)
 }
