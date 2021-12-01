@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/totp"
 )
 
 type CLISuite struct {
@@ -269,15 +269,13 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	totpProvider := totp.NewTimeBasedProvider(storageLocalTmpConfig.TOTP)
 
 	s.Require().NoError(storageProvider.StartupCheck())
 
 	ctx := context.Background()
 
 	var (
-		err    error
-		config *models.TOTPConfiguration
+		err error
 	)
 
 	var (
@@ -288,14 +286,43 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
-	for _, name := range []string{"john", "mary", "fred"} {
-		config, err = totpProvider.Generate(name)
-		s.Require().NoError(err)
+	configs := []*models.TOTPConfiguration{
+		{
+			Username:  "john",
+			Period:    30,
+			Digits:    6,
+			Algorithm: "SHA1",
+		},
+		{
+			Username:  "mary",
+			Period:    45,
+			Digits:    6,
+			Algorithm: "SHA1",
+		},
+		{
+			Username:  "fred",
+			Period:    30,
+			Digits:    8,
+			Algorithm: "SHA1",
+		},
+		{
+			Username:  "jone",
+			Period:    30,
+			Digits:    6,
+			Algorithm: "SHA512",
+		},
+	}
+
+	for _, config := range configs {
+		output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", config.Username, "--period", strconv.Itoa(int(config.Period)), "--algorithm", config.Algorithm, "--digits", strconv.Itoa(int(config.Digits)), "--config", "/config/configuration.storage.yml"})
+		s.Assert().NoError(err)
+
+		config, err = storageProvider.LoadTOTPConfiguration(ctx, config.Username)
+		s.Assert().NoError(err)
+		s.Assert().Contains(output, config.URI())
 
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
 		expectedLines = append(expectedLines, config.URI())
-
-		s.Require().NoError(storageProvider.SaveTOTPConfiguration(ctx, *config))
 	}
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "uri", "--config", "/config/configuration.storage.yml"})
@@ -333,7 +360,7 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 3 of 3 total TOTP secrets were invalid.\n")
+	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 4 of 4 total TOTP secrets were invalid.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
