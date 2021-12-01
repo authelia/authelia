@@ -56,9 +56,9 @@ const (
 
 // TOTP Error constants.
 const (
-	errFmtTOTPInvalidAlgorithm = "TOTP: algorithm '%s' is invalid: must be one of %s"
-	errFmtTOTPInvalidPeriod    = "TOTP: period '%d` is invalid: must be 15 or more"
-	errFmtTOTPInvalidDigits    = "TOTP: digits '%d` is invalid: must be 6 or 8"
+	errFmtTOTPInvalidAlgorithm = "totp: algorithm '%s' is invalid: must be one of %s"
+	errFmtTOTPInvalidPeriod    = "totp: period '%d' is invalid: must be 15 or more"
+	errFmtTOTPInvalidDigits    = "totp: digits '%d' is invalid: must be 6 or 8"
 )
 
 // OpenID Error constants.

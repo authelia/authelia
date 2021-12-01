@@ -90,8 +90,7 @@ log:
 ##
 ## Parameters used for TOTP generation.
 totp:
-  ## The issuer name displayed in the Authenticator application of your choice
-  ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+  ## The issuer name displayed in the Authenticator application of your choice.
   issuer: authelia.com
 
   ## The TOTP algorithm to use.

@@ -49,17 +49,21 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The algorithm used for TOTP key. It's generally not recommended for this to be altered as many TOTP applications do not
-support anything other than sha1. What's worse is several TOTP applications allow you to add the key, but do not use
-the algorithm specified by the key; one such example is the most commonly used application Google Authenticator.
+_**Important Note:** Many TOTP applications do not support this option. It is strongly advised you find out which
+applications your users use and test them before changing this option. It is insufficient to test that the application
+can add the key, it must also authenticate with Authelia as some applications silently ignore these options. Bitwarden 
+is the only one that has been tested at this time. If you'd like to contribute to documenting support for this option 
+please see [Issue 2650](https://github.com/authelia/authelia/issues/2650)._
 
-Changing this value only affects newly registered TOTP keys. See the [Registration](#registration) section for more
-information.
+The algorithm used for the TOTP key.
 
 Possible Values (case-insensitive):
 - `sha1`
 - `sha256`
 - `sha512`
+
+Changing this value only affects newly registered TOTP keys. See the [Registration](#registration) section for more
+information.
 
 ### digits
 <div markdown="1">
@@ -71,14 +75,20 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
+_**Important Note:** Some TOTP applications do not support this option. It is strongly advised you find out which
+applications your users use and test them before changing this option. It is insufficient to test that the application
+can add the key, it must also authenticate with Authelia as some applications silently ignore these options. Bitwarden
+is the only one that has been tested at this time. If you'd like to contribute to documenting support for this option
+please see [Issue 2650](https://github.com/authelia/authelia/issues/2650)._
+
 The number of digits a user needs to input to perform authentication. It's generally not recommended for this to be 
 altered as many TOTP applications do not support anything other than 6. What's worse is some TOTP applications allow
 you to add the key, but do not use the correct number of digits specified by the key.
 
+The valid values are `6` or `8`.
+
 Changing this value only affects newly registered TOTP keys. See the [Registration](#registration) section for more
 information.
-
-The valid values are `6` or `8`.
 
 ### period
 <div markdown="1">
@@ -93,7 +103,7 @@ required: no
 The period of time in seconds between key rotations or the time element of TOTP. Please see the 
 [input validation](#input-validation) section for how this option and the [skew](#skew) option interact with each other.
 
-It is recommended this va
+It is recommended to keep this value set to 30, the minimum is 15.
 
 Changing this value only affects newly registered TOTP keys. See the [Registration](#registration) section for more
 information.
@@ -128,8 +138,7 @@ users to register a new device, you can delete the old device for a particular u
 
 ## Input Validation
 The period and skew configuration parameters affect each other. The default values are a period of 30 and a skew of 1. 
-It is highly recommended you do not change these unless
-you wish to set skew to 0.
+It is highly recommended you do not change these unless you wish to set skew to 0.
 
 The way you configure these affects security by changing the length of time a one-time
 password is valid for. The formula to calculate the effective validity period is

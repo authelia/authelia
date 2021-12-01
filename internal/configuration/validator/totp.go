@@ -38,7 +38,7 @@ func ValidateTOTP(configuration *schema.Configuration, validator *schema.StructV
 
 	if configuration.TOTP.Digits == 0 {
 		configuration.TOTP.Digits = schema.DefaultTOTPConfiguration.Digits
-	} else if configuration.TOTP.Digits > 10 {
+	} else if configuration.TOTP.Digits != 6 && configuration.TOTP.Digits != 8 {
 		validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, configuration.TOTP.Digits))
 	}
 
