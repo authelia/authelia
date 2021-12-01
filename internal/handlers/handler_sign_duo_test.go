@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -20,7 +21,6 @@ import (
 
 type SecondFactorDuoPostSuite struct {
 	suite.Suite
-
 	mock *mocks.MockAutheliaCtx
 }
 
@@ -36,18 +36,58 @@ func (s *SecondFactorDuoPostSuite) TearDownTest() {
 	s.mock.Close()
 }
 
-func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndAllowAccess() {
+func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(nil, errors.New("no Duo device and method saved"))
+
+	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
 
 	values := url.Values{}
 	values.Set("username", "john")
-	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
-	values.Set("factor", "push")
-	values.Set("device", "auto")
-	values.Set("pushinfo", "target%20url=https://target.example.com")
 
-	response := duo.Response{}
-	response.Response.Result = testResultAllow
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = enroll
+	preAuthResponse.EnrollPortalURL = enrollURL
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoSignResponse{
+		Result:    enroll,
+		EnrollURL: enrollURL,
+	})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().LoadPreferredDuoDevice(s.mock.Ctx, "john").Return(nil, errors.New("no Duo device and method saved"))
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+		{Capabilities: []string{"auto", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	s.mock.StorageMock.EXPECT().
+		SavePreferredDuoDevice(s.mock.Ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}).
+		Return(nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -58,29 +98,313 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndAllowAccess() {
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
 
-	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+	values = url.Values{}
+	values.Set("username", "john")
+	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
+	values.Set("factor", "push")
+	values.Set("device", "12345ABCDEFGHIJ67890")
+	values.Set("pushinfo", "target%20url=https://target.example.com")
 
-	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
+	authResponse := duo.AuthResponse{}
+	authResponse.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&authResponse, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(nil, errors.New("no Duo device and method saved"))
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = deny
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	values = url.Values{}
+	values.Set("username", "john")
+	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
+	values.Set("factor", "push")
+	values.Set("device", "12345ABCDEFGHIJ67890")
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 
-	assert.Equal(s.T(), s.mock.Ctx.Response.StatusCode(), 200)
+	s.mock.Assert200OK(s.T(), DuoSignResponse{
+		Result: deny,
+	})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(nil, errors.New("no Duo device and method saved"))
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Any()).Return(nil, fmt.Errorf("Connnection error"))
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "NOTEXISTENT", Method: "push"}, nil)
+
+	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = enroll
+	preAuthResponse.EnrollPortalURL = enrollURL
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	s.mock.StorageMock.EXPECT().DeletePreferredDuoDevice(s.mock.Ctx, "john").Return(nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoSignResponse{
+		Result:    enroll,
+		EnrollURL: enrollURL,
+	})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWithInvalidDevicesAndEnroll() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "NOTEXISTENT", Method: "push"}, nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"sms"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	s.mock.StorageMock.EXPECT().DeletePreferredDuoDevice(s.mock.Ctx, "john").Return(nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoSignResponse{
+		Result: enroll,
+	})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "NOTEXISTENT", Method: "push"}, nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
+		{Capabilities: []string{"auto", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 3"},
+	}
+
+	var apiDevices = []DuoDevice{
+		{Capabilities: []string{"push"}, Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+		{Capabilities: []string{"push"}, Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "invalidmethod"}, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+			Username:   "john",
+			Successful: true,
+			Banned:     false,
+			Time:       s.mock.Clock.Now(),
+			Type:       regulation.AuthTypeDUO,
+			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+		})).
+		Return(nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	s.mock.StorageMock.EXPECT().
+		SavePreferredDuoDevice(s.mock.Ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}).
+		Return(nil)
+
+	values = url.Values{}
+	values.Set("username", "john")
+	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
+	values.Set("factor", "push")
+	values.Set("device", "12345ABCDEFGHIJ67890")
+	values.Set("pushinfo", "target%20url=https://target.example.com")
+
+	authResponse := duo.AuthResponse{}
+	authResponse.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&authResponse, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = allow
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = deny
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	values = url.Values{}
+	values.Set("username", "john")
+	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
+	values.Set("factor", "push")
+	values.Set("device", "12345ABCDEFGHIJ67890")
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	assert.Equal(s.T(), 401, s.mock.Ctx.Response.StatusCode())
+}
+
+func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
+	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Any()).Return(nil, fmt.Errorf("Connnection error"))
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	values := url.Values{}
-	values.Set("username", "john")
-	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
-	values.Set("factor", "push")
-	values.Set("device", "auto")
-	values.Set("pushinfo", "target%20url=https://target.example.com")
-
-	response := duo.Response{}
-	response.Response.Result = "deny"
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -91,30 +415,67 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
 
-	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(&response, nil)
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
 
-	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	values = url.Values{}
+	values.Set("username", "john")
+	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
+	values.Set("factor", "push")
+	values.Set("device", "12345ABCDEFGHIJ67890")
+
+	response := duo.AuthResponse{}
+	response.Result = deny
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&response, nil)
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 
-	assert.Equal(s.T(), s.mock.Ctx.Response.StatusCode(), 401)
+	assert.Equal(s.T(), 401, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
 	values := url.Values{}
 	values.Set("username", "john")
-	values.Set("ipaddr", s.mock.Ctx.RemoteIP().String())
-	values.Set("factor", "push")
-	values.Set("device", "auto")
-	values.Set("pushinfo", "target%20url=https://target.example.com")
 
-	duoMock.EXPECT().Call(gomock.Eq(values), s.mock.Ctx).Return(nil, fmt.Errorf("connnection error"))
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
 
-	s.mock.Ctx.Request.SetBodyString("{\"targetURL\": \"https://target.example.com\"}")
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(nil, fmt.Errorf("Connnection error"))
+
+	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
 
@@ -124,10 +485,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	response := duo.Response{}
-	response.Response.Result = testResultAllow
-
-	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -138,7 +498,26 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	response := duo.AuthResponse{}
+	response.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
@@ -155,10 +534,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	response := duo.Response{}
-	response.Response.Result = testResultAllow
-
-	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -169,7 +547,26 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	response := duo.AuthResponse{}
+	response.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{})
 	s.Require().NoError(err)
@@ -182,10 +579,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	response := duo.Response{}
-	response.Response.Result = testResultAllow
-
-	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -196,7 +592,26 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	response := duo.AuthResponse{}
+	response.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "https://mydomain.local",
@@ -213,10 +628,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	response := duo.Response{}
-	response.Response.Result = testResultAllow
-
-	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -227,7 +641,26 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	response := duo.AuthResponse{}
+	response.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "http://mydomain.local",
@@ -242,10 +675,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
-	response := duo.Response{}
-	response.Response.Result = testResultAllow
-
-	duoMock.EXPECT().Call(gomock.Any(), s.mock.Ctx).Return(&response, nil)
+	s.mock.StorageMock.EXPECT().
+		LoadPreferredDuoDevice(s.mock.Ctx, "john").
+		Return(&models.DuoDevice{ID: 1, Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -256,7 +688,26 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDUO,
 			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
-		}))
+		})).
+		Return(nil)
+
+	var duoDevices = []duo.Device{
+		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
+	}
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	preAuthResponse := duo.PreAuthResponse{}
+	preAuthResponse.Result = auth
+	preAuthResponse.Devices = duoDevices
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
+
+	response := duo.AuthResponse{}
+	response.Result = allow
+
+	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
 		TargetURL: "http://mydomain.local",

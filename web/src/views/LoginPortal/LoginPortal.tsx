@@ -26,6 +26,7 @@ import FirstFactorForm from "@views/LoginPortal/FirstFactor/FirstFactorForm";
 import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 
 export interface Props {
+    duoSelfEnrollment: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
 }
@@ -189,6 +190,7 @@ const LoginPortal = function (props: Props) {
                             authenticationLevel={state.authentication_level}
                             userInfo={userInfo}
                             configuration={configuration}
+                            duoSelfEnrollment={props.duoSelfEnrollment}
                             onMethodChanged={() => fetchUserInfo()}
                             onAuthenticationSuccess={handleAuthSuccess}
                         />

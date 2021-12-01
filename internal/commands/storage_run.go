@@ -428,16 +428,16 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 				return provider.SchemaMigrate(ctx, true, storage.SchemaLatest)
 			}
 		default:
-			if !cmd.Flags().Changed("target") {
+			pre1, err := cmd.Flags().GetBool("pre1")
+			if err != nil {
+				return err
+			}
+
+			if !cmd.Flags().Changed("target") && !pre1 {
 				return errors.New("must set target")
 			}
 
 			if err = storageMigrateDownConfirmDestroy(cmd); err != nil {
-				return err
-			}
-
-			pre1, err := cmd.Flags().GetBool("pre1")
-			if err != nil {
 				return err
 			}
 

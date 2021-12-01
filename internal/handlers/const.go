@@ -59,7 +59,6 @@ const (
 const (
 	testInactivity     = "10"
 	testRedirectionURL = "http://redirection.local"
-	testResultAllow    = "allow"
 	testUsername       = "john"
 )
 
@@ -67,6 +66,14 @@ const (
 	loginDelayMovingAverageWindow            = 10
 	loginDelayMinimumDelayMilliseconds       = float64(250)
 	loginDelayMaximumRandomDelayMilliseconds = int64(85)
+)
+
+// Duo constants.
+const (
+	allow  = "allow"
+	deny   = "deny"
+	enroll = "enroll"
+	auth   = "auth"
 )
 
 // OIDC constants.

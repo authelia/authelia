@@ -65,6 +65,20 @@ func (mr *MockStorageMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockStorage)(nil).Close))
 }
 
+// DeletePreferredDuoDevice mocks base method.
+func (m *MockStorage) DeletePreferredDuoDevice(arg0 context.Context, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePreferredDuoDevice", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePreferredDuoDevice indicates an expected call of DeletePreferredDuoDevice.
+func (mr *MockStorageMockRecorder) DeletePreferredDuoDevice(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).DeletePreferredDuoDevice), arg0, arg1)
+}
+
 // DeleteTOTPConfiguration mocks base method.
 func (m *MockStorage) DeleteTOTPConfiguration(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -122,6 +136,21 @@ func (m *MockStorage) LoadPreferred2FAMethod(arg0 context.Context, arg1 string) 
 func (mr *MockStorageMockRecorder) LoadPreferred2FAMethod(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferred2FAMethod", reflect.TypeOf((*MockStorage)(nil).LoadPreferred2FAMethod), arg0, arg1)
+}
+
+// LoadPreferredDuoDevice mocks base method.
+func (m *MockStorage) LoadPreferredDuoDevice(arg0 context.Context, arg1 string) (*models.DuoDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadPreferredDuoDevice", arg0, arg1)
+	ret0, _ := ret[0].(*models.DuoDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadPreferredDuoDevice indicates an expected call of LoadPreferredDuoDevice.
+func (mr *MockStorageMockRecorder) LoadPreferredDuoDevice(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).LoadPreferredDuoDevice), arg0, arg1)
 }
 
 // LoadTOTPConfiguration mocks base method.
@@ -224,6 +253,20 @@ func (m *MockStorage) SavePreferred2FAMethod(arg0 context.Context, arg1, arg2 st
 func (mr *MockStorageMockRecorder) SavePreferred2FAMethod(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferred2FAMethod", reflect.TypeOf((*MockStorage)(nil).SavePreferred2FAMethod), arg0, arg1, arg2)
+}
+
+// SavePreferredDuoDevice mocks base method.
+func (m *MockStorage) SavePreferredDuoDevice(arg0 context.Context, arg1 models.DuoDevice) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SavePreferredDuoDevice", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SavePreferredDuoDevice indicates an expected call of SavePreferredDuoDevice.
+func (mr *MockStorageMockRecorder) SavePreferredDuoDevice(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).SavePreferredDuoDevice), arg0, arg1)
 }
 
 // SaveTOTPConfiguration mocks base method.

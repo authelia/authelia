@@ -31,6 +31,7 @@ type signU2FRequestBody struct {
 
 type signDuoRequestBody struct {
 	TargetURL string `json:"targetURL"`
+	Passcode  string `json:"passcode"`
 }
 
 // preferred2FAMethodBody the selected 2FA method.
@@ -69,6 +70,34 @@ type redirectResponse struct {
 type TOTPKeyResponse struct {
 	Base32Secret string `json:"base32_secret"`
 	OTPAuthURL   string `json:"otpauth_url"`
+}
+
+// DuoDeviceBody the selected Duo device and method.
+type DuoDeviceBody struct {
+	Device string `json:"device" valid:"required"`
+	Method string `json:"method" valid:"required"`
+}
+
+// DuoDevice represents Duo devices and methods.
+type DuoDevice struct {
+	Device       string   `json:"device"`
+	DisplayName  string   `json:"display_name"`
+	Capabilities []string `json:"capabilities"`
+}
+
+// DuoDevicesResponse represents all available user devices and methods as well as an optional enrollment url.
+type DuoDevicesResponse struct {
+	Result    string      `json:"result" valid:"required"`
+	Devices   []DuoDevice `json:"devices,omitempty"`
+	EnrollURL string      `json:"enroll_url,omitempty"`
+}
+
+// DuoSignResponse represents a result of the preauth and or auth call with further optional info.
+type DuoSignResponse struct {
+	Result    string      `json:"result" valid:"required"`
+	Devices   []DuoDevice `json:"devices,omitempty"`
+	Redirect  string      `json:"redirect,omitempty"`
+	EnrollURL string      `json:"enroll_url,omitempty"`
 }
 
 // StateResponse represents the response sent by the state endpoint.

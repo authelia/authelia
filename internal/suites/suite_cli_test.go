@@ -35,7 +35,7 @@ func (s *CLISuite) SetupTest() {
 	testArg := ""
 	coverageArg := ""
 
-	if os.Getenv("CI") == stringTrue {
+	if os.Getenv("CI") == t {
 		testArg = "-test.coverprofile=/authelia/coverage-$(date +%s).txt"
 		coverageArg = "COVERAGE"
 	}
@@ -262,7 +262,7 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, user_preferences, migrations, encryption\nSchema Encryption Key: valid`)
+	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, duo_devices, user_preferences, migrations, encryption\nSchema Encryption Key: valid`)
 
 	s.Assert().Regexp(pattern, output)
 }
@@ -322,7 +322,7 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, user_preferences, migrations, encryption\nSchema Encryption Key: invalid`)
+	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, duo_devices, user_preferences, migrations, encryption\nSchema Encryption Key: invalid`)
 	s.Assert().Regexp(pattern, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/configuration.storage.yml"})
