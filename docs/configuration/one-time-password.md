@@ -78,6 +78,8 @@ you to add the key, but do not use the correct number of digits specified by the
 Changing this value only affects newly registered TOTP keys. See the [Registration](#registration) section for more
 information.
 
+The valid values are `6` or `8`.
+
 ### period
 <div markdown="1">
 type: integer
