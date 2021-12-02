@@ -17,10 +17,12 @@ func UserTOTPGet(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
-			ctx.Error(err, "No TOTP Configuration.")
+			ctx.SetJSONError("Could not find TOTP Configuration for user.")
+			ctx.Logger.Errorf("Failed to lookup TOTP configuration for user '%s'", userSession.Username)
 		} else {
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-			ctx.Error(err, "Unknown Error.")
+			ctx.SetJSONError("Could not find TOTP Configuration for user.")
+			ctx.Logger.Errorf("Failed to lookup TOTP configuration for user '%s' with unknown error: %v", userSession.Username, err)
 		}
 
 		return
