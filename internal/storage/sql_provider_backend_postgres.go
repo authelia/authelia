@@ -46,6 +46,8 @@ func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLPr
 	provider.sqlUpdateTOTPConfigSecret = provider.db.Rebind(provider.sqlUpdateTOTPConfigSecret)
 	provider.sqlUpdateTOTPConfigSecretByUsername = provider.db.Rebind(provider.sqlUpdateTOTPConfigSecretByUsername)
 	provider.sqlSelectU2FDevice = provider.db.Rebind(provider.sqlSelectU2FDevice)
+	provider.sqlSelectDuoDevice = provider.db.Rebind(provider.sqlSelectDuoDevice)
+	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
 	provider.sqlSelectAuthenticationAttemptsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationAttemptsByUsername)
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
