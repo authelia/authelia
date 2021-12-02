@@ -33,7 +33,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 
 	challenge, err := u2f.NewChallenge(appID, trustedFacets)
 	if err != nil {
-		ctx.Logger.Errorf("Unable to create %s challenge for user '%s': %+v", regulation.AuthTypeFIDO, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to create %s challenge for user '%s': %+v", regulation.AuthTypeU2F, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -45,11 +45,11 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		if err == storage.ErrNoU2FDeviceHandle {
-			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeFIDO, fmt.Errorf("no registered U2F device"))
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, fmt.Errorf("no registered U2F device"))
 			return
 		}
 
-		ctx.Logger.Errorf("Could not load %s devices for user '%s': %+v", regulation.AuthTypeFIDO, userSession.Username, err)
+		ctx.Logger.Errorf("Could not load %s devices for user '%s': %+v", regulation.AuthTypeU2F, userSession.Username, err)
 
 		return
 	}
@@ -74,7 +74,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	userSession.U2FChallenge = challenge
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionSave, "challenge and registration", regulation.AuthTypeFIDO, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrSessionSave, "challenge and registration", regulation.AuthTypeU2F, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -84,7 +84,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 	signRequest := challenge.SignRequest([]u2f.Registration{registration})
 
 	if err = ctx.SetJSONBody(signRequest); err != nil {
-		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeFIDO, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeU2F, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

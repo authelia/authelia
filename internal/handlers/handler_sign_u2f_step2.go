@@ -16,7 +16,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 		)
 
 		if err := ctx.ParseBody(&requestBody); err != nil {
-			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeFIDO, err)
+			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeU2F, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -25,7 +25,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		userSession := ctx.GetSession()
 		if userSession.U2FChallenge == nil {
-			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeFIDO, errors.New("session did not contain a challenge"))
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, errors.New("session did not contain a challenge"))
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -33,7 +33,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 		}
 
 		if userSession.U2FRegistration == nil {
-			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeFIDO, errors.New("session did not contain a registration"))
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, errors.New("session did not contain a registration"))
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -42,7 +42,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		if err = u2fVerifier.Verify(userSession.U2FRegistration.KeyHandle, userSession.U2FRegistration.PublicKey,
 			requestBody.SignResponse, *userSession.U2FChallenge); err != nil {
-			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeFIDO, err)
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeU2F, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -50,14 +50,14 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 		}
 
 		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeFIDO, userSession.Username, err)
+			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeU2F, userSession.Username, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
 			return
 		}
 
-		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeFIDO, nil); err != nil {
+		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeU2F, nil); err != nil {
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 			return
 		}
@@ -66,7 +66,7 @@ func SecondFactorU2FSignPost(u2fVerifier U2FVerifier) middlewares.RequestHandler
 
 		err = ctx.SaveSession(userSession)
 		if err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeFIDO, userSession.Username, err)
+			ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeU2F, userSession.Username, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
