@@ -55,6 +55,13 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 
 // Error reply with an error and display the stack trace in the logs.
 func (c *AutheliaCtx) Error(err error, message string) {
+	c.SetJSONError(message)
+
+	c.Logger.Error(err)
+}
+
+// SetJSONError sets the body of the response to an JSON error KO message.
+func (c *AutheliaCtx) SetJSONError(message string) {
 	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
 
 	if marshalErr != nil {
@@ -63,7 +70,6 @@ func (c *AutheliaCtx) Error(err error, message string) {
 
 	c.SetContentType(contentTypeApplicationJSON)
 	c.SetBody(b)
-	c.Logger.Error(err)
 }
 
 // ReplyError reply with an error but does not display any stack trace in the logs.
@@ -96,22 +102,22 @@ func (c *AutheliaCtx) ReplyBadRequest() {
 
 // XForwardedProto return the content of the X-Forwarded-Proto header.
 func (c *AutheliaCtx) XForwardedProto() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedProto)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedProto)
 }
 
 // XForwardedMethod return the content of the X-Forwarded-Method header.
 func (c *AutheliaCtx) XForwardedMethod() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedMethod)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
 // XForwardedHost return the content of the X-Forwarded-Host header.
 func (c *AutheliaCtx) XForwardedHost() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedHost)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedHost)
 }
 
 // XForwardedURI return the content of the X-Forwarded-URI header.
 func (c *AutheliaCtx) XForwardedURI() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedURI)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedURI)
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -153,7 +159,7 @@ func (c *AutheliaCtx) ExternalRootURL() (string, error) {
 
 // XOriginalURL return the content of the X-Original-URL header.
 func (c *AutheliaCtx) XOriginalURL() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXOriginalURL)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
 // GetSession return the user session. Any update will be saved in cache.
@@ -183,13 +189,13 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 	err := json.Unmarshal(c.PostBody(), &value)
 
 	if err != nil {
-		return fmt.Errorf("Unable to parse body: %s", err)
+		return fmt.Errorf("unable to parse body: %w", err)
 	}
 
 	valid, err := govalidator.ValidateStruct(value)
 
 	if err != nil {
-		return fmt.Errorf("Unable to validate body: %s", err)
+		return fmt.Errorf("unable to validate body: %w", err)
 	}
 
 	if !valid {
@@ -203,7 +209,7 @@ func (c *AutheliaCtx) ParseBody(value interface{}) error {
 func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 	b, err := json.Marshal(OKResponse{Status: "OK", Data: value})
 	if err != nil {
-		return fmt.Errorf("Unable to marshal JSON body")
+		return fmt.Errorf("unable to marshal JSON body: %w", err)
 	}
 
 	c.SetContentType(contentTypeApplicationJSON)
@@ -214,7 +220,7 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (c *AutheliaCtx) RemoteIP() net.IP {
-	XForwardedFor := c.Request.Header.Peek("X-Forwarded-For")
+	XForwardedFor := c.Request.Header.PeekBytes(headerXForwardedFor)
 	if XForwardedFor != nil {
 		ips := strings.Split(string(XForwardedFor), ",")
 
@@ -272,14 +278,14 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 // IsXHR returns true if the request is a XMLHttpRequest.
 func (c AutheliaCtx) IsXHR() (xhr bool) {
-	requestedWith := c.Request.Header.Peek(headerXRequestedWith)
+	requestedWith := c.Request.Header.PeekBytes(headerXRequestedWith)
 
 	return requestedWith != nil && string(requestedWith) == headerValueXRequestedWithXHR
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
 func (c AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
-	accepts := strings.Split(string(c.Request.Header.Peek("Accept")), ",")
+	accepts := strings.Split(string(c.Request.Header.PeekBytes(headerAccept)), ",")
 
 	for i, accept := range accepts {
 		mimeType := strings.Trim(strings.SplitN(accept, ";", 2)[0], " ")

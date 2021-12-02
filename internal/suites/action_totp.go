@@ -30,7 +30,7 @@ func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page) string {
 func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, code string) {
 	inputs := rs.WaitElementsLocatedByCSSSelector(t, page, "otp-input input")
 
-	for i := 0; i < 6; i++ {
+	for i := 0; i < len(code); i++ {
 		_ = inputs[i].Input(string(code[i]))
 	}
 }

@@ -35,7 +35,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
@@ -60,33 +60,52 @@ const (
 		SELECT EXISTS (
 			SELECT id
 			FROM %s
-			WHERE token = ?
+			WHERE jti = ? AND exp > CURRENT_TIMESTAMP AND used IS NULL
 		);`
 
 	queryFmtInsertIdentityVerification = `
-		INSERT INTO %s (token)
-		VALUES (?);`
+		INSERT INTO %s (jti, iat, exp, username, action)
+		VALUES (?, ?, ?, ?, ?);`
 
 	queryFmtDeleteIdentityVerification = `
-		DELETE FROM %s
-		WHERE token = ?;`
+		UPDATE %s
+		SET used = CURRENT_TIMESTAMP
+		WHERE jti = ?;`
 )
 
 const (
 	queryFmtSelectTOTPConfiguration = `
-		SELECT id, username, algorithm, digits, totp_period, secret
+		SELECT id, username, issuer, algorithm, digits, period, secret
 		FROM %s
 		WHERE username = ?;`
 
+	queryFmtSelectTOTPConfigurations = `
+		SELECT id, username, issuer, algorithm, digits, period, secret
+		FROM %s
+		LIMIT ?
+		OFFSET ?;`
+
+	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
+	queryFmtUpdateTOTPConfigurationSecret = `
+		UPDATE %s
+		SET secret = ?
+		WHERE id = ?;`
+
+	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
+	queryFmtUpdateTOTPConfigurationSecretByUsername = `
+		UPDATE %s
+		SET secret = ?
+		WHERE username = ?;`
+
 	queryFmtUpsertTOTPConfiguration = `
-		REPLACE INTO %s (username, algorithm, digits, totp_period, secret)
-		VALUES (?, ?, ?, ?, ?);`
+		REPLACE INTO %s (username, issuer, algorithm, digits, period, secret)
+		VALUES (?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertTOTPConfiguration = `
-		INSERT INTO %s (username, algorithm, digits, totp_period, secret)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO %s (username, issuer, algorithm, digits, period, secret)
+		VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (username)
-			DO UPDATE SET algorithm = $2, digits = $3, totp_period = $4, secret = $5;`
+			DO UPDATE SET issuer = $2, algorithm = $3, digits = $4, period = $5, secret = $6;`
 
 	queryFmtDeleteTOTPConfiguration = `
 		DELETE FROM %s
@@ -111,15 +130,49 @@ const (
 )
 
 const (
-	queryFmtInsertAuthenticationLogEntry = `
-		INSERT INTO %s (time, successful, username)
+	queryFmtUpsertDuoDevice = `
+		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
+
+	queryFmtDeleteDuoDevice = `
+		DELETE
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtSelectDuoDevice = `
+		SELECT id, username, device, method
+		FROM %s
+		WHERE username = ?
+		ORDER BY id;`
+)
+
+const (
+	queryFmtInsertAuthenticationLogEntry = `
+		INSERT INTO %s (time, successful, banned, username, auth_type, remote_ip, request_uri, request_method)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtSelect1FAAuthenticationLogEntryByUsername = `
 		SELECT time, successful, username
 		FROM %s
-		WHERE time > ? AND username = ?
+		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = 0
 		ORDER BY time DESC
 		LIMIT ?
 		OFFSET ?;`
+)
+
+const (
+	queryFmtSelectEncryptionValue = `
+		SELECT (value)
+        FROM %s
+        WHERE name = ?`
+
+	queryFmtUpsertEncryptionValue = `
+		REPLACE INTO %s (name, value)
+		VALUES (?, ?);`
+
+	queryFmtPostgresUpsertEncryptionValue = `
+		INSERT INTO %s (name, value)
+		VALUES ($1, $2)
+			ON CONFLICT (name)
+			DO UPDATE SET value=$2;`
 )

@@ -41,6 +41,7 @@ const (
 	testModeDisabled  = "disable"
 	testTLSCert       = "/tmp/cert.pem"
 	testTLSKey        = "/tmp/key.pem"
+	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
 // Notifier Error constants.
@@ -51,6 +52,13 @@ const (
 		"is configured"
 	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
 	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
+)
+
+// TOTP Error constants.
+const (
+	errFmtTOTPInvalidAlgorithm = "totp: algorithm '%s' is invalid: must be one of %s"
+	errFmtTOTPInvalidPeriod    = "totp: period '%d' is invalid: must be 15 or more"
+	errFmtTOTPInvalidDigits    = "totp: digits '%d' is invalid: must be 6 or 8"
 )
 
 // OpenID Error constants.
@@ -86,8 +94,16 @@ const (
 
 // Error constants.
 const (
-	errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
-		"removed in %s, please use %s instead"
+	/*
+		errFmtDeprecatedConfigurationKey = "the %s configuration option is deprecated and will be " +
+			"removed in %s, please use %s instead"
+
+		Uncomment for use when deprecating keys.
+
+		TODO: Create a method from within Koanf to automatically remap deprecated keys and produce warnings.
+		TODO (cont): The main consideration is making sure we do not overwrite the destination key name if it already exists.
+	*/
+
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
 	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
@@ -131,16 +147,6 @@ var ValidKeys = []string{
 	"log.file_path",
 	"log.keep_stdout",
 
-	// TODO: DEPRECATED START. Remove in 4.33.0.
-	"host",
-	"port",
-	"tls_key",
-	"tls_cert",
-	"log_level",
-	"log_format",
-	"log_file_path",
-	// TODO: DEPRECATED END. Remove in 4.33.0.
-
 	// Server Keys.
 	"server.host",
 	"server.port",
@@ -156,11 +162,14 @@ var ValidKeys = []string{
 
 	// TOTP Keys.
 	"totp.issuer",
+	"totp.algorithm",
+	"totp.digits",
 	"totp.period",
 	"totp.skew",
 
 	// DUO API Keys.
 	"duo_api.hostname",
+	"duo_api.enable_self_enrollment",
 	"duo_api.secret_key",
 	"duo_api.integration_key",
 
@@ -205,6 +214,8 @@ var ValidKeys = []string{
 	"session.redis.timeouts.pool",
 	"session.redis.timeouts.read",
 	"session.redis.timeouts.write",
+
+	"storage.encryption_key",
 
 	// Local Storage Keys.
 	"storage.local.path",
@@ -315,8 +326,15 @@ var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
 	"notifier.smtp.disable_verify_cert":               "notifier.smtp.tls.skip_verify",
-	"logs_file_path":                                  "log.file_path",
 	"logs_level":                                      "log.level",
+	"logs_file_path":                                  "log.file_path",
+	"log_level":                                       "log.level",
+	"log_file_path":                                   "log.file_path",
+	"log_format":                                      "log.format",
+	"host":                                            "server.host",
+	"port":                                            "server.port",
+	"tls_key":                                         "server.tls.key",
+	"tls_cert":                                        "server.tls.certificate",
 }
 
 var specificErrorKeys = map[string]string{

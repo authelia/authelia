@@ -15,9 +15,9 @@ type MySQLProvider struct {
 }
 
 // NewMySQLProvider a MySQL provider.
-func NewMySQLProvider(config schema.MySQLStorageConfiguration) (provider *MySQLProvider) {
+func NewMySQLProvider(config *schema.Configuration) (provider *MySQLProvider) {
 	provider = &MySQLProvider{
-		SQLProvider: NewSQLProvider(providerMySQL, providerMySQL, dataSourceNameMySQL(config)),
+		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dataSourceNameMySQL(*config.Storage.MySQL)),
 	}
 
 	// All providers have differing SELECT existing table statements.

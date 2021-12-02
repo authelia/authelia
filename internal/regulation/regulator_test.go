@@ -13,7 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 type RegulatorSuite struct {
@@ -21,14 +20,14 @@ type RegulatorSuite struct {
 
 	ctx           context.Context
 	ctrl          *gomock.Controller
-	storageMock   *storage.MockProvider
+	storageMock   *mocks.MockStorage
 	configuration schema.RegulationConfiguration
 	clock         mocks.TestingClock
 }
 
 func (s *RegulatorSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
-	s.storageMock = storage.NewMockProvider(s.ctrl)
+	s.storageMock = mocks.NewMockStorage(s.ctrl)
 	s.ctx = context.Background()
 
 	s.configuration = schema.RegulationConfiguration{

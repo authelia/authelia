@@ -18,6 +18,9 @@ export const CompleteU2FRegistrationStep2Path = basePath + "/api/secondfactor/u2
 export const InitiateU2FSignInPath = basePath + "/api/secondfactor/u2f/sign_request";
 export const CompleteU2FSignInPath = basePath + "/api/secondfactor/u2f/sign";
 
+export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
+export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
+
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
 
@@ -31,6 +34,7 @@ export const LogoutPath = basePath + "/api/logout";
 export const StatePath = basePath + "/api/state";
 export const UserInfoPath = basePath + "/api/user/info";
 export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
+export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
 
 export const ConfigurationPath = basePath + "/api/configuration";
 

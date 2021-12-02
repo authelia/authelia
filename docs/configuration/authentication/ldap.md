@@ -190,6 +190,7 @@ Various replacements occur in the user and groups filter. The replacements eithe
 search.
 
 #### Users filter replacements
+
 |Placeholder             |Phase  |Replacement                                                     |
 |:----------------------:|:-----:|:--------------------------------------------------------------:|
 |{username_attribute}    |startup|The configured username attribute                               |
@@ -198,6 +199,7 @@ search.
 |{input}                 |search |The input into the username field                               |
 
 #### Groups filter replacements
+
 |Placeholder             |Phase  |Replacement                                                                |
 |:----------------------:|:-----:|:-------------------------------------------------------------------------:|
 |{input}                 |search |The input into the username field                                          |

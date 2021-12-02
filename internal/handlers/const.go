@@ -1,5 +1,9 @@
 package handlers
 
+import (
+	"github.com/valyala/fasthttp"
+)
+
 const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
@@ -11,20 +15,15 @@ const (
 	ActionResetPassword = "ResetPassword"
 )
 
-const (
-	// HeaderProxyAuthorization is the basic-auth HTTP header Authelia utilises.
-	HeaderProxyAuthorization = "Proxy-Authorization"
+var (
+	headerAuthorization      = []byte(fasthttp.HeaderAuthorization)
+	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
 
-	// HeaderAuthorization is the basic-auth HTTP header Authelia utilises with "auth=basic" query param.
-	HeaderAuthorization = "Authorization"
-
-	// HeaderSessionUsername is used as additional protection to validate a user for things like pam_exec.
-	HeaderSessionUsername = "Session-Username"
-
-	headerRemoteUser   = "Remote-User"
-	headerRemoteName   = "Remote-Name"
-	headerRemoteEmail  = "Remote-Email"
-	headerRemoteGroups = "Remote-Groups"
+	headerSessionUsername = []byte("Session-Username")
+	headerRemoteUser      = []byte("Remote-User")
+	headerRemoteGroups    = []byte("Remote-Groups")
+	headerRemoteName      = []byte("Remote-Name")
+	headerRemoteEmail     = []byte("Remote-Email")
 )
 
 const (
@@ -46,9 +45,19 @@ const (
 )
 
 const (
+	logFmtErrParseRequestBody     = "Failed to parse %s request body: %+v"
+	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s': %+v"
+	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s': %+v"
+	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s': %+v"
+	logFmtErrSessionReset         = "Could not reset session during %s authentication for user '%s': %+v"
+	logFmtErrSessionSave          = "Could not save session with the %s during %s authentication for user '%s': %+v"
+	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s': %+v"
+	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+)
+
+const (
 	testInactivity     = "10"
 	testRedirectionURL = "http://redirection.local"
-	testResultAllow    = "allow"
 	testUsername       = "john"
 )
 
@@ -56,6 +65,14 @@ const (
 	loginDelayMovingAverageWindow            = 10
 	loginDelayMinimumDelayMilliseconds       = float64(250)
 	loginDelayMaximumRandomDelayMilliseconds = int64(85)
+)
+
+// Duo constants.
+const (
+	allow  = "allow"
+	deny   = "deny"
+	enroll = "enroll"
+	auth   = "auth"
 )
 
 // OIDC constants.
@@ -71,12 +88,6 @@ const (
 
 	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
 	pathOpenIDConnectConsent = "/api/oidc/consent"
-)
-
-const (
-	totpAlgoSHA1   = "SHA1"
-	totpAlgoSHA256 = "SHA256"
-	totpAlgoSHA512 = "SHA512"
 )
 
 const (

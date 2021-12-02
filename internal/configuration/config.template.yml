@@ -92,16 +92,28 @@ log:
 ##
 ## Parameters used for TOTP generation.
 totp:
-  ## The issuer name displayed in the Authenticator application of your choice
-  ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+  ## The issuer name displayed in the Authenticator application of your choice.
   issuer: authelia.com
-  ## The period in seconds a one-time password is current for. Changing this will require all users to register
-  ## their TOTP applications again. Warning: before changing period read the docs link below.
+
+  ## The TOTP algorithm to use.
+  ## It is CRITICAL you read the documentation before changing this option:
+  ## https://www.authelia.com/docs/configuration/one-time-password.html#algorithm
+  algorithm: sha1
+
+  ## The number of digits a user has to input. Must either be 6 or 8.
+  ## Changing this option only affects newly generated TOTP configurations.
+  ## It is CRITICAL you read the documentation before changing this option:
+  ## https://www.authelia.com/docs/configuration/one-time-password.html#digits
+  digits: 6
+
+  ## The period in seconds a one-time password is valid for.
+  ## Changing this option only affects newly generated TOTP configurations.
   period: 30
+
   ## The skew controls number of one-time passwords either side of the current one that are valid.
   ## Warning: before changing skew read the docs link below.
   skew: 1
-  ## See: https://www.authelia.com/docs/configuration/one-time-password.html#period-and-skew to read the documentation.
+  ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
 
 ##
 ## Duo Push API Configuration
@@ -113,6 +125,7 @@ duo_api:
   integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   secret_key: 1234567890abcdefghifjkl
+  enable_self_enrollment: false
 
 ##
 ## NTP Configuration
@@ -509,6 +522,10 @@ regulation:
 ##
 ## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
 storage:
+  ## The encryption key that is used to encrypt sensitive information in the database. Must be a string with a minimum
+  ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it.
+  # encryption_key: you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this
+
   ##
   ## Local (Storage Provider)
   ##
@@ -589,8 +606,10 @@ notifier:
     ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     password: password
 
-    ## The address to send the email FROM.
-    sender: admin@example.com
+    ## The sender is used to is used for the MAIL FROM command and the FROM header.
+    ## If this is not defined and the username is an email, we use the username as this value. This can either be just
+    ## an email address or the RFC5322 'Name <email address>' format.
+    sender: "Authelia <admin@example.com>"
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     identifier: localhost

@@ -16,9 +16,9 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provider *PostgreSQLProvider) {
+func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(providerPostgres, "pgx", dataSourceNamePostgreSQL(config)),
+		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dataSourceNamePostgreSQL(*config.Storage.PostgreSQL)),
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -29,6 +29,7 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provid
 	provider.sqlUpsertU2FDevice = fmt.Sprintf(queryFmtPostgresUpsertU2FDevice, tableU2FDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtPostgresUpsertTOTPConfiguration, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtPostgresUpsertPreferred2FAMethod, tableUserPreferences)
+	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtPostgresUpsertEncryptionValue, tableEncryption)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -40,10 +41,14 @@ func NewPostgreSQLProvider(config schema.PostgreSQLStorageConfiguration) (provid
 	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
 	provider.sqlUpsertTOTPConfig = provider.db.Rebind(provider.sqlUpsertTOTPConfig)
 	provider.sqlDeleteTOTPConfig = provider.db.Rebind(provider.sqlDeleteTOTPConfig)
+	provider.sqlSelectTOTPConfigs = provider.db.Rebind(provider.sqlSelectTOTPConfigs)
+	provider.sqlUpdateTOTPConfigSecret = provider.db.Rebind(provider.sqlUpdateTOTPConfigSecret)
+	provider.sqlUpdateTOTPConfigSecretByUsername = provider.db.Rebind(provider.sqlUpdateTOTPConfigSecretByUsername)
 	provider.sqlSelectU2FDevice = provider.db.Rebind(provider.sqlSelectU2FDevice)
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
 	provider.sqlSelectAuthenticationAttemptsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationAttemptsByUsername)
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
+	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	return provider
 }

@@ -1,7 +1,7 @@
 package configuration
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -46,7 +46,7 @@ func isSecretKey(key string) (isSecretKey bool) {
 }
 
 func loadSecret(path string) (value string, err error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}

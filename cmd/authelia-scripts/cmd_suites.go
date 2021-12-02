@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"sort"
@@ -260,7 +259,7 @@ func getRunningSuite() (string, error) {
 		return "", nil
 	}
 
-	b, err := ioutil.ReadFile(runningSuiteFile)
+	b, err := os.ReadFile(runningSuiteFile)
 
 	return string(b), err
 }

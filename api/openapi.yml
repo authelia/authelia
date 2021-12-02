@@ -317,6 +317,25 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  /api/user/info/totp:
+    get:
+      tags:
+        - User TOTP Information
+      summary: User TOTP Configuration
+      description: >
+        The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
+        TOTP input such as the period/frequency and number of digits.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfoTOTP'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
   /api/user/info/2fa_method:
     post:
       tags:
@@ -540,6 +559,46 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+  /api/secondfactor/duo_devices:
+    get:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - Duo Mobile Push
+      description: This endpoint retreives a users available devices and capabilities from Duo.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.DuoDevicesResponse'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+  /api/secondfactor/duo_device:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - Duo Mobile Push
+      description: This endpoint updates the users preferred Duo device and method.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.DuoDeviceBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
 components:
   parameters:
     originalURLParam:
@@ -600,16 +659,19 @@ components:
             second_factor_enabled:
               type: boolean
               description: If second factor is enabled.
-            totp_period:
-              type: integer
-              example: 30
-    handlers.logoutRequestBody:
+    handlers.DuoDeviceBody:
+      required:
+        - device
+        - method
       type: object
       properties:
-        targetURL:
+        device:
           type: string
-          example: https://redirect.example.com
-    handlers.logoutResponseBody:
+          example: ABCDE123456789FGHIJK
+        method:
+          type: string
+          example: push
+    handlers.DuoDevicesResponse:
       type: object
       properties:
         status:
@@ -618,9 +680,25 @@ components:
         data:
           type: object
           properties:
-            safeTargetURL:
-              type: boolean
-              example: true
+            result:
+              type: string
+              example: auth
+            devices:
+              type: array
+              items:
+                type: object
+                properties:
+                  device:
+                    type: string
+                    example: ABCDE123456789FGHIJK
+                  display_name:
+                    type: string
+                    example: iOS (+XX XXX XXX 123)
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                      example: push
     handlers.firstFactorRequestBody:
       required:
         - username
@@ -642,6 +720,24 @@ components:
         keepMeLoggedIn:
           type: boolean
           example: true
+    handlers.logoutRequestBody:
+      type: object
+      properties:
+        targetURL:
+          type: string
+          example: https://redirect.example.com
+    handlers.logoutResponseBody:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            safeTargetURL:
+              type: boolean
+              example: true
     handlers.redirectResponse:
       type: object
       properties:
@@ -758,6 +854,28 @@ components:
             has_totp:
               type: boolean
               example: true
+            has_duo:
+              type: boolean
+              example: true
+    handlers.UserInfoTOTP:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            period:
+              default: 30
+              description: The period defined in the users TOTP configuration
+              type: integer
+              example: 30
+            digits:
+              default: 6
+              description: The number of digits defined in the users TOTP configuration
+              type: integer
+              example: 6
     handlers.UserInfo.MethodBody:
       required:
         - method

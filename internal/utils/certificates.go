@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -40,7 +40,7 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 	logger.Tracef("Starting scan of directory %s for certificates", directory)
 
 	if directory != "" {
-		certsFileInfo, err := ioutil.ReadDir(directory)
+		certsFileInfo, err := os.ReadDir(directory)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("could not read certificates from directory %v", err))
 		} else {
@@ -52,7 +52,7 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 
 					logger.Tracef("Found possible cert %s, attempting to add it to the pool", certPath)
 
-					certBytes, err := ioutil.ReadFile(certPath)
+					certBytes, err := os.ReadFile(certPath)
 					if err != nil {
 						errors = append(errors, fmt.Errorf("could not read certificate %v", err))
 					} else if ok := certPool.AppendCertsFromPEM(certBytes); !ok {

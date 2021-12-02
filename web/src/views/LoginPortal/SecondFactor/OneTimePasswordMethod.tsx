@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import { AuthenticationLevel } from "@services/State";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
 
@@ -17,7 +19,6 @@ export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
-    totp_period: number;
 
     onRegisterClick: () => void;
     onSignInError: (err: Error) => void;
@@ -35,6 +36,20 @@ const OneTimePasswordMethod = function (props: Props) {
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
+    const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
+
+    useEffect(() => {
+        if (err) {
+            console.error(err);
+            onSignInErrorCallback(new Error("Could not obtain user settings"));
+            setState(State.Failure);
+        }
+    }, [onSignInErrorCallback, err]);
+
+    useEffect(() => {
+        fetch();
+    }, [fetch]);
+
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
             return;
@@ -42,7 +57,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
         const passcodeStr = `${passcode}`;
 
-        if (!passcode || passcodeStr.length !== 6) {
+        if (!passcode || passcodeStr.length !== (resp?.digits || 6)) {
             return;
         }
 
@@ -62,6 +77,7 @@ const OneTimePasswordMethod = function (props: Props) {
         onSignInSuccessCallback,
         passcode,
         redirectionURL,
+        resp,
         props.authenticationLevel,
         props.registered,
     ]);
@@ -89,11 +105,24 @@ const OneTimePasswordMethod = function (props: Props) {
             id={props.id}
             title="One-Time Password"
             explanation="Enter one-time password"
+            duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <OTPDial passcode={passcode} onChange={setPasscode} state={state} period={props.totp_period} />
+            <div>
+                {resp !== undefined || err !== undefined ? (
+                    <OTPDial
+                        passcode={passcode}
+                        period={resp?.period || 30}
+                        digits={resp?.digits || 6}
+                        onChange={setPasscode}
+                        state={state}
+                    />
+                ) : (
+                    <LoadingPage />
+                )}
+            </div>
         </MethodContainer>
     );
 };

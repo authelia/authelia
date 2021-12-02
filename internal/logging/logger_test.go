@@ -2,7 +2,7 @@ package logging
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"testing"
@@ -14,7 +14,7 @@ import (
 )
 
 func TestShouldWriteLogsToFile(t *testing.T) {
-	dir, err := ioutil.TempDir("/tmp", "logs-dir")
+	dir, err := os.MkdirTemp("/tmp", "logs-dir")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,14 +30,14 @@ func TestShouldWriteLogsToFile(t *testing.T) {
 	f, err := os.OpenFile(path, os.O_RDONLY, 0)
 	require.NoError(t, err)
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	require.NoError(t, err)
 
 	assert.Contains(t, string(b), "level=info msg=\"This is a test\"\n")
 }
 
 func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
-	dir, err := ioutil.TempDir("/tmp", "logs-dir")
+	dir, err := os.MkdirTemp("/tmp", "logs-dir")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,14 +53,14 @@ func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
 	f, err := os.OpenFile(path, os.O_RDONLY, 0)
 	require.NoError(t, err)
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	require.NoError(t, err)
 
 	assert.Contains(t, string(b), "level=info msg=\"This is a test\"\n")
 }
 
 func TestShouldFormatLogsAsJSON(t *testing.T) {
-	dir, err := ioutil.TempDir("/tmp", "logs-dir")
+	dir, err := os.MkdirTemp("/tmp", "logs-dir")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	f, err := os.OpenFile(path, os.O_RDONLY, 0)
 	require.NoError(t, err)
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	require.NoError(t, err)
 
 	assert.Contains(t, string(b), "{\"level\":\"info\",\"msg\":\"This is a test\",")

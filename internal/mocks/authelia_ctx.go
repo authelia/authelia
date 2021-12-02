@@ -18,7 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
@@ -29,9 +28,10 @@ type MockAutheliaCtx struct {
 	Ctrl *gomock.Controller
 
 	// Providers.
-	UserProviderMock    *MockUserProvider
-	StorageProviderMock *storage.MockProvider
-	NotifierMock        *MockNotifier
+	UserProviderMock *MockUserProvider
+	StorageMock      *MockStorage
+	NotifierMock     *MockNotifier
+	TOTPMock         *MockTOTP
 
 	UserSession *session.UserSession
 
@@ -98,8 +98,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.UserProviderMock = NewMockUserProvider(mockAuthelia.Ctrl)
 	providers.UserProvider = mockAuthelia.UserProviderMock
 
-	mockAuthelia.StorageProviderMock = storage.NewMockProvider(mockAuthelia.Ctrl)
-	providers.StorageProvider = mockAuthelia.StorageProviderMock
+	mockAuthelia.StorageMock = NewMockStorage(mockAuthelia.Ctrl)
+	providers.StorageProvider = mockAuthelia.StorageMock
 
 	mockAuthelia.NotifierMock = NewMockNotifier(mockAuthelia.Ctrl)
 	providers.Notifier = mockAuthelia.NotifierMock
@@ -111,6 +111,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		configuration.Session, nil)
 
 	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+
+	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
+	providers.TOTP = mockAuthelia.TOTPMock
 
 	request := &fasthttp.RequestCtx{}
 	// Set a cookie to identify this client throughout the test.

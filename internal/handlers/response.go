@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
@@ -24,8 +25,9 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 
 	uri, err := ctx.ExternalRootURL()
 	if err != nil {
-		ctx.Logger.Errorf("Unable to extract external root URL: %v", err)
-		handleAuthenticationUnauthorized(ctx, fmt.Errorf("unable to get forward facing URI"), messageAuthenticationFailed)
+		ctx.Logger.Errorf("Unable to determine external Base URL: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
 
 		return
 	}
@@ -144,8 +146,46 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	}
 }
 
-// handleAuthenticationUnauthorized provides harmonized response codes for 1FA.
-func handleAuthenticationUnauthorized(ctx *middlewares.AutheliaCtx, err error, message string) {
+func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {
+	// We only Mark if there was no underlying error.
+	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
+
+	var (
+		requestURI, requestMethod string
+	)
+
+	referer := ctx.Request.Header.Referer()
+	if referer != nil {
+		refererURL, err := url.Parse(string(referer))
+		if err == nil {
+			requestURI = refererURL.Query().Get("rd")
+			requestMethod = refererURL.Query().Get("rm")
+		}
+	}
+
+	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType, ctx.RemoteIP()); err != nil {
+		ctx.Logger.Errorf("Unable to mark %s authentication attempt by user '%s': %+v", authType, username, err)
+
+		return err
+	}
+
+	if successful {
+		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, username)
+	} else {
+		switch {
+		case errAuth != nil:
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s': %+v", authType, username, errAuth)
+		case bannedUntil != nil:
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, username, bannedUntil)
+		default:
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
+		}
+	}
+
+	return nil
+}
+
+func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
-	ctx.Error(err, message)
+	ctx.SetJSONError(message)
 }

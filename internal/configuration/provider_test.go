@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,7 +19,7 @@ import (
 func TestShouldErrorSecretNotExist(t *testing.T) {
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-test-secret-not-exist")
+	dir, err := os.MkdirTemp("", "authelia-test-secret-not-exist")
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", filepath.Join(dir, "jwt")))
@@ -32,7 +31,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE", filepath.Join(dir, "redis-sentinel")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", filepath.Join(dir, "mysql")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_POSTGRES_PASSWORD_FILE", filepath.Join(dir, "postgres")))
-	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"TLS_KEY_FILE", filepath.Join(dir, "tls")))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"SERVER_TLS_KEY_FILE", filepath.Join(dir, "tls")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE", filepath.Join(dir, "oidc-key")))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac")))
 
@@ -61,7 +60,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	assert.EqualError(t, errs[8], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis"), "session.redis.password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis"))))
 	assert.EqualError(t, errs[9], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "redis-sentinel"), "session.redis.high_availability.sentinel_password", fmt.Sprintf(errFmt, filepath.Join(dir, "redis-sentinel"))))
 	assert.EqualError(t, errs[10], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "session"), "session.secret", fmt.Sprintf(errFmt, filepath.Join(dir, "session"))))
-	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "tls_key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
+	assert.EqualError(t, errs[11], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "tls"), "server.tls.key", fmt.Sprintf(errFmt, filepath.Join(dir, "tls"))))
 }
 
 func TestLoadShouldReturnErrWithoutValidator(t *testing.T) {
@@ -138,6 +137,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD", "an env storage mysql password"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD", "an env authentication backend ldap password"))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_ENCRYPTION_KEY", "a_very_bad_encryption_key"))
 
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -152,6 +152,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	assert.Equal(t, "example_secret value", config.Session.Secret)
 	assert.Equal(t, "an env storage mysql password", config.Storage.MySQL.Password)
 	assert.Equal(t, "an env authentication backend ldap password", config.AuthenticationBackend.LDAP.Password)
+	assert.Equal(t, "a_very_bad_encryption_key", config.Storage.EncryptionKey)
 }
 
 func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
@@ -161,7 +162,7 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-conf")
+	dir, err := os.MkdirTemp("", "authelia-conf")
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "myconf.yml"), []byte("server:\n  port: 9091\n"), 0000))
@@ -184,6 +185,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_MYSQL_PASSWORD_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"JWT_SECRET_FILE", "./test_resources/example_secret"))
 	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE", "./test_resources/example_secret"))
+	assert.NoError(t, os.Setenv(DefaultEnvPrefix+"STORAGE_ENCRYPTION_KEY_FILE", "./test_resources/example_secret"))
 
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -196,6 +198,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.Equal(t, "example_secret value", config.Session.Secret)
 	assert.Equal(t, "example_secret value", config.AuthenticationBackend.LDAP.Password)
 	assert.Equal(t, "example_secret value", config.Storage.MySQL.Password)
+	assert.Equal(t, "example_secret value", config.Storage.EncryptionKey)
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
@@ -220,6 +223,39 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	assert.EqualError(t, val.Errors()[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
 }
 
+func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not parse 'admin' as a RFC5322 address: mail: missing '@' or angle-addr")
+}
+
+func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
+	assert.Equal(t, "", config.Notifier.SMTP.Sender.Address)
+}
+
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	if runtime.GOOS == constWindows {
 		t.Skip("skipping test due to being on windows")
@@ -227,7 +263,7 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	cfg := filepath.Join(dir, "config.yml")
@@ -245,7 +281,7 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	testReset()
 
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	val := schema.NewStructValidator()
@@ -271,10 +307,11 @@ func testReset() {
 	testUnsetEnvName("SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD")
 	testUnsetEnvName("STORAGE_MYSQL_PASSWORD")
 	testUnsetEnvName("STORAGE_POSTGRES_PASSWORD")
-	testUnsetEnvName("TLS_KEY")
-	testUnsetEnvName("PORT")
+	testUnsetEnvName("SERVER_TLS_KEY")
+	testUnsetEnvName("SERVER_PORT")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY")
 	testUnsetEnvName("IDENTITY_PROVIDERS_OIDC_HMAC_SECRET")
+	testUnsetEnvName("STORAGE_ENCRYPTION_KEY")
 }
 
 func testUnsetEnvName(name string) {

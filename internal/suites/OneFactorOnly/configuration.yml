@@ -27,6 +27,7 @@ session:
   remember_me_duration: 1y
 
 storage:
+  encryption_key: a_not_so_secure_encryption_key
   local:
     path: /config/db.sqlite
 
@@ -44,5 +45,5 @@ access_control:
 
 notifier:
   filesystem:
-    filename: /tmp/notifier.html
+    filename: /config/notifier.html
 ...

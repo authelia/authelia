@@ -24,6 +24,7 @@ duo_api:
   hostname: api-123456789.example.com
   integration_key: ABCDEF
   secret_key: 1234567890abcdefghifjkl
+  enable_self_enrollment: false
 ```
 
 The secret key is shown as an example, you also have the option to set it using an environment
@@ -66,5 +67,17 @@ required: yes
 </div>
 
 The secret [Duo] key used to verify your application is valid.
+
+### enable_self_enrollment
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Enables [Duo] device self-enrollment from within the Authelia portal.
 
 [Duo]: https://duo.com/

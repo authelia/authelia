@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -16,15 +16,15 @@ import (
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file, assetPath, rememberMe, resetPassword, session, theme string, https bool) fasthttp.RequestHandler {
+func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, session, theme string, https bool) fasthttp.RequestHandler {
 	logger := logging.Logger()
 
-	f, err := assets.Open(publicDir + file)
+	a, err := assets.Open(publicDir + file)
 	if err != nil {
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(a)
 	if err != nil {
 		logger.Fatalf("Unable to read %s: %s", file, err)
 	}
@@ -40,11 +40,11 @@ func ServeTemplatedFile(publicDir, file, assetPath, rememberMe, resetPassword, s
 			base = baseURL.(string)
 		}
 
-		logoOverride := "false"
+		logoOverride := f
 
 		if assetPath != "" {
 			if _, err := os.Stat(assetPath + logoFile); err == nil {
-				logoOverride = "true"
+				logoOverride = t
 			}
 		}
 
@@ -79,7 +79,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, rememberMe, resetPassword, s
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' ; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
 		}
 
-		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, LogoOverride, RememberMe, ResetPassword, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
+		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
 		if err != nil {
 			ctx.Error("an error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)

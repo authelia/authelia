@@ -85,34 +85,34 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 
 // Test parseBasicAuth.
 func TestShouldRaiseWhenHeaderDoesNotContainBasicPrefix(t *testing.T) {
-	_, _, err := parseBasicAuth(HeaderProxyAuthorization, "alzefzlfzemjfej==")
+	_, _, err := parseBasicAuth(headerProxyAuthorization, "alzefzlfzemjfej==")
 	assert.Error(t, err)
 	assert.Equal(t, "Basic prefix not found in Proxy-Authorization header", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInBase64(t *testing.T) {
-	_, _, err := parseBasicAuth(HeaderProxyAuthorization, "Basic alzefzlfzemjfej==")
+	_, _, err := parseBasicAuth(headerProxyAuthorization, "Basic alzefzlfzemjfej==")
 	assert.Error(t, err)
 	assert.Equal(t, "illegal base64 data at input byte 16", err.Error())
 }
 
 func TestShouldRaiseWhenCredentialsAreNotInCorrectForm(t *testing.T) {
 	// The decoded format should be user:password.
-	_, _, err := parseBasicAuth(HeaderProxyAuthorization, "Basic am9obiBwYXNzd29yZA==")
+	_, _, err := parseBasicAuth(headerProxyAuthorization, "Basic am9obiBwYXNzd29yZA==")
 	assert.Error(t, err)
 	assert.Equal(t, "format of Proxy-Authorization header must be user:password", err.Error())
 }
 
 func TestShouldUseProvidedHeaderName(t *testing.T) {
 	// The decoded format should be user:password.
-	_, _, err := parseBasicAuth("HeaderName", "")
+	_, _, err := parseBasicAuth([]byte("HeaderName"), "")
 	assert.Error(t, err)
 	assert.Equal(t, "Basic prefix not found in HeaderName header", err.Error())
 }
 
 func TestShouldReturnUsernameAndPassword(t *testing.T) {
 	// the decoded format should be user:password.
-	user, password, err := parseBasicAuth(HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+	user, password, err := parseBasicAuth(headerProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	assert.NoError(t, err)
 	assert.Equal(t, "john", user)
 	assert.Equal(t, "password", password)
@@ -176,7 +176,7 @@ func TestShouldVerifyWrongCredentials(t *testing.T) {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
 
-	_, _, _, _, _, err := verifyBasicAuth(HeaderProxyAuthorization, []byte("Basic am9objpwYXNzd29yZA=="), mock.Ctx)
+	_, _, _, _, _, err := verifyBasicAuth(mock.Ctx, headerProxyAuthorization, []byte("Basic am9objpwYXNzd29yZA=="))
 
 	assert.Error(t, err)
 }
@@ -1211,7 +1211,7 @@ func TestShouldCheckValidSessionUsernameHeaderAndReturn200(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
-	mock.Ctx.Request.Header.Set(HeaderSessionUsername, testUsername)
+	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, testUsername)
 	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
@@ -1235,7 +1235,7 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
-	mock.Ctx.Request.Header.Set(HeaderSessionUsername, "root")
+	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, "root")
 	VerifyGet(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())

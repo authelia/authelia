@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -151,7 +150,7 @@ func prepareHostsFile() {
 		modified = true
 	}
 
-	fd, err := ioutil.TempFile("/tmp/authelia/", "hosts")
+	fd, err := os.CreateTemp("/tmp/authelia/", "hosts")
 	if err != nil {
 		panic(err)
 	}
@@ -174,7 +173,7 @@ func prepareHostsFile() {
 
 // ReadHostsFile reads the hosts file.
 func readHostsFile() ([]byte, error) {
-	bs, err := ioutil.ReadFile("/etc/hosts")
+	bs, err := os.ReadFile("/etc/hosts")
 	if err != nil {
 		return nil, err
 	}

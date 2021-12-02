@@ -49,6 +49,10 @@ func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context) (err error) {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
 
+	if err = p.setNewEncryptionCheckValue(ctx, &p.key, nil); err != nil {
+		return err
+	}
+
 	if _, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertUserPreferencesFromSelect),
 		tableUserPreferences, tablePrefixBackup+tableUserPreferences)); err != nil {
 		return err
@@ -213,14 +217,16 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 			return err
 		}
 
-		// TODO: Add encryption migration here.
-		encryptedSecret := "encrypted:" + secret
+		encryptedSecret, err := p.encrypt([]byte(secret))
+		if err != nil {
+			return err
+		}
 
 		totpConfigs = append(totpConfigs, models.TOTPConfiguration{Username: username, Secret: encryptedSecret})
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, config.Secret)
+		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, p.config.TOTP.Issuer, p.config.TOTP.Period, config.Secret)
 		if err != nil {
 			return err
 		}
@@ -285,9 +291,10 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 		tableTOTPConfigurations,
 		tableIdentityVerification,
 		tableU2FDevices,
-		tableDUODevices,
+		tableDuoDevices,
 		tableUserPreferences,
 		tableAuthenticationLogs,
+		tableEncryption,
 	}
 
 	if err = p.schemaMigratePre1Rename(ctx, tables, tablesRename); err != nil {
@@ -388,22 +395,26 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 	}()
 
 	for rows.Next() {
-		var username, encryptedSecret string
+		var (
+			username         string
+			secretCipherText []byte
+		)
 
-		err = rows.Scan(&username, &encryptedSecret)
+		err = rows.Scan(&username, &secretCipherText)
 		if err != nil {
 			return err
 		}
 
-		// TODO: Fix.
-		// TODO: Add DECRYPTION migration here.
-		decryptedSecret := strings.Replace(encryptedSecret, "encrypted:", "", 1)
+		secretClearText, err := p.decrypt(secretCipherText)
+		if err != nil {
+			return err
+		}
 
-		totpConfigs = append(totpConfigs, models.TOTPConfiguration{Username: username, Secret: decryptedSecret})
+		totpConfigs = append(totpConfigs, models.TOTPConfiguration{Username: username, Secret: secretClearText})
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
+		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
 		if err != nil {
 			return err
 		}

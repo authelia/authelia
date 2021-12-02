@@ -15,6 +15,8 @@ func NewStorageCmd() (cmd *cobra.Command) {
 
 	cmd.PersistentFlags().StringSliceP("config", "c", []string{"config.yml"}, "configuration file to load for the storage migration")
 
+	cmd.PersistentFlags().String("encryption-key", "", "the storage encryption key to use")
+
 	cmd.PersistentFlags().String("sqlite.path", "", "the SQLite database path")
 
 	cmd.PersistentFlags().String("mysql.host", "", "the MySQL hostname")
@@ -32,7 +34,102 @@ func NewStorageCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
+		newStorageEncryptionCmd(),
+		newStorageTOTPCmd(),
 	)
+
+	return cmd
+}
+
+func newStorageEncryptionCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "encryption",
+		Short: "Manages encryption",
+	}
+
+	cmd.AddCommand(
+		newStorageEncryptionChangeKeyCmd(),
+		newStorageEncryptionCheckCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "check",
+		Short: "Checks the encryption key against the database data",
+		RunE:  storageSchemaEncryptionCheckRunE,
+	}
+
+	cmd.Flags().Bool("verbose", false, "enables verbose checking of every row of encrypted data")
+
+	return cmd
+}
+
+func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "change-key",
+		Short: "Changes the encryption key",
+		RunE:  storageSchemaEncryptionChangeKeyRunE,
+	}
+
+	cmd.Flags().String("new-encryption-key", "", "the new key to encrypt the data with")
+
+	return cmd
+}
+
+func newStorageTOTPCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "totp",
+		Short: "Manage TOTP configurations",
+	}
+
+	cmd.AddCommand(
+		newStorageTOTPGenerateCmd(),
+		newStorageTOTPDeleteCmd(),
+		newStorageTOTPExportCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "generate username",
+		Short: "Generate a TOTP configuration for a user",
+		RunE:  storageTOTPGenerateRunE,
+		Args:  cobra.ExactArgs(1),
+	}
+
+	cmd.Flags().Uint("period", 30, "set the TOTP period")
+	cmd.Flags().Uint("digits", 6, "set the TOTP digits")
+	cmd.Flags().String("algorithm", "SHA1", "set the TOTP algorithm")
+	cmd.Flags().String("issuer", "Authelia", "set the TOTP issuer")
+	cmd.Flags().BoolP("force", "f", false, "forces the TOTP configuration to be generated regardless if it exists or not")
+
+	return cmd
+}
+
+func newStorageTOTPDeleteCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "delete username",
+		Short: "Delete a TOTP configuration for a user",
+		RunE:  storageTOTPDeleteRunE,
+		Args:  cobra.ExactArgs(1),
+	}
+
+	return cmd
+}
+
+func newStorageTOTPExportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "export",
+		Short: "Performs exports of the TOTP configurations",
+		RunE:  storageTOTPExportRunE,
+	}
+
+	cmd.Flags().String("format", storageExportFormatURI, "sets the output format")
 
 	return cmd
 }

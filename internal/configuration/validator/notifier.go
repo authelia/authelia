@@ -31,7 +31,7 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 
 func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {
 	if configuration.StartupCheckAddress == "" {
-		configuration.StartupCheckAddress = "test@authelia.com"
+		configuration.StartupCheckAddress = schema.DefaultSMTPNotifierConfiguration.StartupCheckAddress
 	}
 
 	if configuration.Host == "" {
@@ -46,7 +46,7 @@ func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, valid
 		configuration.Timeout = schema.DefaultSMTPNotifierConfiguration.Timeout
 	}
 
-	if configuration.Sender == "" {
+	if configuration.Sender.Address == "" {
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "sender"))
 	}
 

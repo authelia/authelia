@@ -28,8 +28,9 @@ session:
 
 # Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
+  encryption_key: a_not_so_secure_encryption_key
   local:
-    path: /config/db.sqlite
+    path: /tmp/db.sqlite3
 
 # TOTP Issuer Name
 #
@@ -43,6 +44,7 @@ duo_api:
   hostname: duo.example.com
   integration_key: ABCDEFGHIJKL
   secret_key: abcdefghijklmnopqrstuvwxyz123456789
+  enable_self_enrollment: true
 
 # Access Control
 #

@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,7 +13,7 @@ import (
 )
 
 func TestShouldGenerateConfiguration(t *testing.T) {
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	cfg := filepath.Join(dir, "config.yml")
@@ -32,7 +31,7 @@ func TestShouldNotGenerateConfigurationOnFSAccessDenied(t *testing.T) {
 		t.Skip("skipping test due to being on windows")
 	}
 
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.Mkdir(filepath.Join(dir, "zero"), 0000))
@@ -45,7 +44,7 @@ func TestShouldNotGenerateConfigurationOnFSAccessDenied(t *testing.T) {
 }
 
 func TestShouldNotGenerateConfiguration(t *testing.T) {
-	dir, err := ioutil.TempDir("", "authelia-config")
+	dir, err := os.MkdirTemp("", "authelia-config")
 	assert.NoError(t, err)
 
 	cfg := filepath.Join(dir, "..", "not-a-dir", "config.yml")

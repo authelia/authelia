@@ -3,7 +3,6 @@ package suites
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -37,7 +36,7 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	_ = os.MkdirAll(coverageDir, 0775)
 
 	if coverageData != "<nil>" {
-		err = ioutil.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, now.Unix()), []byte(coverageData), 0664) //nolint:gosec
+		err = os.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, now.Unix()), []byte(coverageData), 0664) //nolint:gosec
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -50,7 +49,7 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 }
 
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
-	if err == context.DeadlineExceeded && os.Getenv("CI") == stringTrue {
+	if err == context.DeadlineExceeded && os.Getenv("CI") == t {
 		base := "/buildkite/screenshots"
 		build := os.Getenv("BUILDKITE_BUILD_NUMBER")
 		suite := strings.ToLower(os.Getenv("SUITE"))
@@ -86,7 +85,7 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	}
 
 	if coverage {
-		read, err := ioutil.ReadFile(path)
+		read, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -95,7 +94,7 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 		ciPath := strings.TrimSuffix(wd, "internal/suites")
 		content := strings.ReplaceAll(string(read), "/node/src/app/", ciPath+"web/")
 
-		err = ioutil.WriteFile(path, []byte(content), 0)
+		err = os.WriteFile(path, []byte(content), 0)
 		if err != nil {
 			return err
 		}
