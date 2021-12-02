@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -57,9 +58,13 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 		return migration.After, nil
 	}
 
-	if utils.IsStringInSlice(tableUserPreferences, tables) && utils.IsStringInSlice(tablePre1TOTPSecrets, tables) &&
-		utils.IsStringInSlice(tableU2FDevices, tables) && utils.IsStringInSlice(tableAuthenticationLogs, tables) &&
-		utils.IsStringInSlice(tablePre1IdentityVerificationTokens, tables) && !utils.IsStringInSlice(tableMigrations, tables) {
+	var tablesV1 = []string{tableDuoDevices, tableEncryption, tableIdentityVerification, tableMigrations}
+
+	if utils.IsStringSliceContainsAll(tablesPre1, tables) {
+		if utils.IsStringSliceContainsAny(tablesV1, tables) {
+			return -2, errors.New("pre1 schema contains v1 tables it shouldn't contain")
+		}
+
 		return -1, nil
 	}
 

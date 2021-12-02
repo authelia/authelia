@@ -35,6 +35,14 @@ const (
 	tableAlphaU2FDeviceHandles           = "U2FDeviceHandles"
 )
 
+var tablesPre1 = []string{
+	tableUserPreferences,
+	tablePre1TOTPSecrets,
+	tableU2FDevices,
+	tableAuthenticationLogs,
+	tablePre1IdentityVerificationTokens,
+}
+
 const (
 	providerAll      = "all"
 	providerMySQL    = "mysql"

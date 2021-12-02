@@ -7,10 +7,6 @@ import (
 	"net"
 )
 
-type IPAddress struct {
-	*net.IP
-}
-
 // NewIP easily constructs a new IP.
 func NewIP(value net.IP) (ip IP) {
 	return IP{IP: value}
