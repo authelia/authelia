@@ -556,11 +556,16 @@ storage:
   #   host: 127.0.0.1
   #   port: 5432
   #   database: authelia
+  #   schema: public
   #   username: authelia
   #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
   #   password: mypassword
   #   timeout: 5s
-  #   sslmode: disable
+  #   ssl:
+  #     mode: disable
+  #     root_certificate: disable
+  #     certificate: disable
+  #     key: disable
 
 ##
 ## Notification Provider

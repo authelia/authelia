@@ -41,10 +41,7 @@ func dataSourceNameMySQL(config schema.MySQLStorageConfiguration) (dataSourceNam
 		address += fmt.Sprintf(":%d", config.Port)
 	}
 
-	dataSourceName += fmt.Sprintf("tcp(%s)", address)
-	if config.Database != "" {
-		dataSourceName += fmt.Sprintf("/%s", config.Database)
-	}
+	dataSourceName += fmt.Sprintf("tcp(%s)/%s", address, config.Database)
 
 	dataSourceName += "?"
 	dataSourceName += fmt.Sprintf("timeout=%ds&multiStatements=true&parseTime=true", int32(config.Timeout/time.Second))

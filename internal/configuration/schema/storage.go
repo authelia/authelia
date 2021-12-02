@@ -22,10 +22,23 @@ type MySQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
 }
 
-// PostgreSQLStorageConfiguration represents the configuration of a Postgres database.
+// PostgreSQLStorageConfiguration represents the configuration of a PostgreSQL database.
 type PostgreSQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
-	SSLMode                 string `koanf:"sslmode"`
+	Schema                  string `koanf:"schema"`
+
+	SSL PostgreSQLSSLStorageConfiguration `koanf:"ssl"`
+
+	// Deprecated. TODO: Remove in v4.36.0.
+	SSLMode string `koanf:"sslmode"`
+}
+
+// PostgreSQLSSLStorageConfiguration represents the SSL configuration of a PostgreSQL database.
+type PostgreSQLSSLStorageConfiguration struct {
+	Mode            string `koanf:"mode"`
+	RootCertificate string `koanf:"root_certificate"`
+	Certificate     string `koanf:"certificate"`
+	Key             string `koanf:"key"`
 }
 
 // StorageConfiguration represents the configuration of the storage backend.
@@ -37,16 +50,7 @@ type StorageConfiguration struct {
 	EncryptionKey string `koanf:"encryption_key"`
 }
 
-// DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
-var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
-	SQLStorageConfiguration: SQLStorageConfiguration{
-		Timeout: 5 * time.Second,
-	},
-}
-
-// DefaultMySQLStorageConfiguration represents the default MySQL configuration.
-var DefaultMySQLStorageConfiguration = MySQLStorageConfiguration{
-	SQLStorageConfiguration: SQLStorageConfiguration{
-		Timeout: 5 * time.Second,
-	},
+// DefaultSQLStorageConfiguration represents the default SQL configuration.
+var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
+	Timeout: 5 * time.Second,
 }
