@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
     successful BOOLEAN NOT NULL,
     banned BOOLEAN NOT NULL DEFAULT FALSE,
     username VARCHAR(100) NOT NULL,
-    auth_type VARCHAR(5) NOT NULL DEFAULT '1FA',
+    auth_type VARCHAR(8) NOT NULL DEFAULT '1FA',
     remote_ip VARCHAR(47) NULL DEFAULT NULL,
     request_uri TEXT,
     request_method VARCHAR(8) NOT NULL DEFAULT '',

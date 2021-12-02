@@ -457,31 +457,3 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
 }
-
-// UpdateTOTPConfigurationSecret mocks base method.
-func (m *MockStorage) UpdateTOTPConfigurationSecret(arg0 context.Context, arg1 models.TOTPConfiguration) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTOTPConfigurationSecret", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateTOTPConfigurationSecret indicates an expected call of UpdateTOTPConfigurationSecret.
-func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSecret(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSecret", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSecret), arg0, arg1)
-}
-
-// UpdateU2FDevicePublicKey mocks base method.
-func (m *MockStorage) UpdateU2FDevicePublicKey(arg0 context.Context, arg1 models.U2FDevice) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateU2FDevicePublicKey", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateU2FDevicePublicKey indicates an expected call of UpdateU2FDevicePublicKey.
-func (mr *MockStorageMockRecorder) UpdateU2FDevicePublicKey(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateU2FDevicePublicKey", reflect.TypeOf((*MockStorage)(nil).UpdateU2FDevicePublicKey), arg0, arg1)
-}

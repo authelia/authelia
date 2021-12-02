@@ -329,8 +329,7 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
-// UpdateTOTPConfigurationSecret updates a TOTP configuration secret.
-func (p *SQLProvider) UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error) {
+func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error) {
 	switch config.ID {
 	case 0:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
@@ -347,12 +346,12 @@ func (p *SQLProvider) UpdateTOTPConfigurationSecret(ctx context.Context, config 
 
 // SaveU2FDevice saves a registered U2F device.
 func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.Description, device.KeyHandle, device.PublicKey); err != nil {
-		return fmt.Errorf("error upserting U2F device: %v", err)
-	}
-
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
 		return fmt.Errorf("error encrypting the U2F device public key: %v", err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.Description, device.KeyHandle, device.PublicKey); err != nil {
+		return fmt.Errorf("error upserting U2F device: %v", err)
 	}
 
 	return nil
@@ -413,8 +412,7 @@ func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devi
 	return devices, nil
 }
 
-// UpdateU2FDevicePublicKey updates a TOTP configuration secret.
-func (p *SQLProvider) UpdateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error) {
+func (p *SQLProvider) updateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error) {
 	switch device.ID {
 	case 0:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateU2FDevicePublicKeyByUsername, device.PublicKey, device.Username)

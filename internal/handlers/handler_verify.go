@@ -95,7 +95,7 @@ func verifyBasicAuth(ctx *middlewares.AutheliaCtx, header, auth []byte) (usernam
 	authenticated, err := ctx.Providers.UserProvider.CheckUserPassword(username, password)
 
 	if err != nil {
-		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to check credentials extracted from %s header: %s", header, err)
+		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to check credentials extracted from %s header: %w", header, err)
 	}
 
 	// If the user is not correctly authenticated, send a 401.

@@ -252,7 +252,7 @@ typically located at `/etc/fail2ban/filter.d`.
 
 [Definition]
 failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?<HOST>"? stack.*
-            ^.*Unsuccessful (TOTP|DUO|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
+            ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
 
 ignoreregex = ^.*level=debug.*
               ^.*level=info.*

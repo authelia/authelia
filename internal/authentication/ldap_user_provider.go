@@ -117,7 +117,7 @@ func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password stri
 
 	userConn, err := p.connect(profile.DN, password)
 	if err != nil {
-		return false, fmt.Errorf("Authentication of user %s failed. Cause: %s", inputUsername, err)
+		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 	defer userConn.Close()
 

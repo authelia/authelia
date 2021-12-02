@@ -47,8 +47,10 @@ const OneTimePasswordMethod = function (props: Props) {
     }, [onSignInErrorCallback, err]);
 
     useEffect(() => {
-        fetch();
-    }, [fetch]);
+        if (props.registered && props.authenticationLevel === AuthenticationLevel.OneFactor) {
+            fetch();
+        }
+    }, [fetch, props.authenticationLevel, props.registered]);
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {

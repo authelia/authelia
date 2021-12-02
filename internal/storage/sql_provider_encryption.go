@@ -62,7 +62,7 @@ func (p *SQLProvider) schemaEncryptionChangeKeyTOTP(ctx context.Context, tx *sql
 				return fmt.Errorf("rollback due to error: %w", err)
 			}
 
-			if err = p.UpdateTOTPConfigurationSecret(ctx, config); err != nil {
+			if err = p.updateTOTPConfigurationSecret(ctx, config); err != nil {
 				if rollbackErr := tx.Rollback(); rollbackErr != nil {
 					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 				}
@@ -100,7 +100,7 @@ func (p *SQLProvider) schemaEncryptionChangeKeyU2F(ctx context.Context, tx *sqlx
 				return fmt.Errorf("rollback due to error: %w", err)
 			}
 
-			if err = p.UpdateU2FDevicePublicKey(ctx, device); err != nil {
+			if err = p.updateU2FDevicePublicKey(ctx, device); err != nil {
 				if rollbackErr := tx.Rollback(); rollbackErr != nil {
 					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 				}

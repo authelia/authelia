@@ -25,12 +25,10 @@ type Provider interface {
 	DeleteTOTPConfiguration(ctx context.Context, username string) (err error)
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
-	UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error)
 
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
 	LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error)
-	UpdateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error)
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
