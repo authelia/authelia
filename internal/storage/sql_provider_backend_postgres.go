@@ -40,7 +40,6 @@ func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLPr
 	provider.sqlInsertIdentityVerification = provider.db.Rebind(provider.sqlInsertIdentityVerification)
 	provider.sqlDeleteIdentityVerification = provider.db.Rebind(provider.sqlDeleteIdentityVerification)
 	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
-	provider.sqlUpsertTOTPConfig = provider.db.Rebind(provider.sqlUpsertTOTPConfig)
 	provider.sqlDeleteTOTPConfig = provider.db.Rebind(provider.sqlDeleteTOTPConfig)
 	provider.sqlSelectTOTPConfigs = provider.db.Rebind(provider.sqlSelectTOTPConfigs)
 	provider.sqlUpdateTOTPConfigSecret = provider.db.Rebind(provider.sqlUpdateTOTPConfigSecret)
@@ -51,6 +50,8 @@ func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLPr
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
 	provider.sqlSelectAuthenticationAttemptsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationAttemptsByUsername)
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
+	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
+	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	return provider
