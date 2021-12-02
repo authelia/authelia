@@ -1,6 +1,7 @@
 package models
 
 import (
+	"net"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -8,25 +9,28 @@ import (
 )
 
 // NewIdentityVerification creates a new IdentityVerification from a given username and action.
-func NewIdentityVerification(username, action string) (verification IdentityVerification) {
+func NewIdentityVerification(username, action string, ip net.IP) (verification IdentityVerification) {
 	return IdentityVerification{
 		JTI:       uuid.New(),
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(5 * time.Minute),
 		Action:    action,
 		Username:  username,
+		IssuedIP:  NewIPAddress(ip),
 	}
 }
 
 // IdentityVerification represents an identity verification row in the database.
 type IdentityVerification struct {
-	ID        int        `db:"id"`
-	JTI       uuid.UUID  `db:"jti"`
-	IssuedAt  time.Time  `db:"iat"`
-	ExpiresAt time.Time  `db:"exp"`
-	Used      *time.Time `db:"used"`
-	Action    string     `db:"action"`
-	Username  string     `db:"username"`
+	ID         int        `db:"id"`
+	JTI        uuid.UUID  `db:"jti"`
+	IssuedAt   time.Time  `db:"iat"`
+	IssuedIP   IPAddress  `db:"issued_ip"`
+	ExpiresAt  time.Time  `db:"exp"`
+	Action     string     `db:"action"`
+	Username   string     `db:"username"`
+	Consumed   *time.Time `db:"consumed"`
+	ConsumedIP IPAddress  `db:"consumed_ip"`
 }
 
 // ToIdentityVerificationClaim converts the IdentityVerification into a IdentityVerificationClaim.

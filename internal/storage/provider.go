@@ -18,7 +18,7 @@ type Provider interface {
 	LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error)
 
 	SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error)
-	RemoveIdentityVerification(ctx context.Context, jti string) (err error)
+	ConsumeIdentityVerification(ctx context.Context, jti string, ip models.IPAddress) (err error)
 	FindIdentityVerification(ctx context.Context, jti string) (found bool, err error)
 
 	SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error)

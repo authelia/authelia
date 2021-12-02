@@ -65,6 +65,20 @@ func (mr *MockStorageMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockStorage)(nil).Close))
 }
 
+// ConsumeIdentityVerification mocks base method.
+func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 models.IPAddress) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeIdentityVerification", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeIdentityVerification indicates an expected call of ConsumeIdentityVerification.
+func (mr *MockStorageMockRecorder) ConsumeIdentityVerification(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).ConsumeIdentityVerification), arg0, arg1, arg2)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -226,20 +240,6 @@ func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.Us
 func (mr *MockStorageMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadUserInfo), arg0, arg1)
-}
-
-// RemoveIdentityVerification mocks base method.
-func (m *MockStorage) RemoveIdentityVerification(arg0 context.Context, arg1 string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveIdentityVerification", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RemoveIdentityVerification indicates an expected call of RemoveIdentityVerification.
-func (mr *MockStorageMockRecorder) RemoveIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIdentityVerification", reflect.TypeOf((*MockStorage)(nil).RemoveIdentityVerification), arg0, arg1)
 }
 
 // SaveIdentityVerification mocks base method.

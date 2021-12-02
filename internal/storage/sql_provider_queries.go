@@ -60,16 +60,16 @@ const (
 		SELECT EXISTS (
 			SELECT id
 			FROM %s
-			WHERE jti = ? AND exp > CURRENT_TIMESTAMP AND used IS NULL
+			WHERE jti = ? AND exp > CURRENT_TIMESTAMP AND consumed IS NULL
 		);`
 
 	queryFmtInsertIdentityVerification = `
-		INSERT INTO %s (jti, iat, exp, username, action)
-		VALUES (?, ?, ?, ?, ?);`
+		INSERT INTO %s (jti, iat, issued_ip, exp, username, action)
+		VALUES (?, ?, ?, ?, ?, ?);`
 
-	queryFmtDeleteIdentityVerification = `
+	queryFmtConsumeIdentityVerification = `
 		UPDATE %s
-		SET used = CURRENT_TIMESTAMP
+		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
 		WHERE jti = ?;`
 )
 

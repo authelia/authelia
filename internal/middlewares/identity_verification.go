@@ -27,7 +27,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
-		verification := models.NewIdentityVerification(identity.Username, args.ActionClaim)
+		verification := models.NewIdentityVerification(identity.Username, args.ActionClaim, ctx.RemoteIP())
 
 		// Create the claim with the action to sign it.
 		claims := verification.ToIdentityVerificationClaim()
@@ -183,7 +183,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.RemoveIdentityVerification(ctx, claims.ID)
+		err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, models.NewIPAddress(ctx.RemoteIP()))
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return

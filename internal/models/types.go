@@ -12,6 +12,11 @@ func NewIPAddressFromString(ip string) (ipAddress IPAddress) {
 	return IPAddress{IP: &actualIP}
 }
 
+// NewIPAddress creates an IPAddress from net.IP.
+func NewIPAddress(ip net.IP) (ipAddress IPAddress) {
+	return IPAddress{IP: &ip}
+}
+
 // IPAddress is a type specific for storage of a net.IP in the database.
 type IPAddress struct {
 	*net.IP
