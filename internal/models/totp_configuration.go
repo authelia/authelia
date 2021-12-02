@@ -12,7 +12,7 @@ type TOTPConfiguration struct {
 	Issuer    string `db:"issuer" json:"-"`
 	Algorithm string `db:"algorithm" json:"-"`
 	Digits    uint   `db:"digits" json:"digits"`
-	Period    uint   `db:"totp_period" json:"period"`
+	Period    uint   `db:"period" json:"period"`
 	Secret    []byte `db:"secret" json:"-"`
 }
 
