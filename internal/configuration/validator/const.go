@@ -61,6 +61,18 @@ const (
 	errFmtTOTPInvalidDigits    = "totp: digits '%d' is invalid: must be 6 or 8"
 )
 
+// Storage Error constants.
+const (
+	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
+	errStrStorageEncryptionKeyMustBeProvided = "storage: 'encryption_key' configuration option must be provided"
+	errStrStorageEncryptionKeyTooShort       = "storage: 'encryption_key' configuration option must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided      = "storage: %s: 'username' and 'password' configuration options must be provided" //nolint: gosec
+	errFmtStorageOptionMustBeProvided        = "storage: %s: '%s' configuration option must be provided"
+	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: 'mode' configuration option '%s' is invalid: must be one of '%s'"
+)
+
+var storagePostgreSQLValidSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
+
 // OpenID Error constants.
 const (
 	errFmtOIDCClientsDuplicateID        = "openid connect provider: one or more clients have the same ID"
@@ -235,7 +247,13 @@ var ValidKeys = []string{
 	"storage.postgres.username",
 	"storage.postgres.password",
 	"storage.postgres.timeout",
-	"storage.postgres.sslmode",
+	"storage.postgres.schema",
+	"storage.postgres.ssl.mode",
+	"storage.postgres.ssl.root_certificate",
+	"storage.postgres.ssl.certificate",
+	"storage.postgres.ssl.key",
+
+	"storage.postgres.sslmode", // Deprecated. TODO: Remove in v4.36.0.
 
 	// FileSystem Notifier Keys.
 	"notifier.filesystem.filename",

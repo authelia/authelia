@@ -40,23 +40,30 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	mapping := map[string]string{
-		"encryption-key":    "storage.encryption_key",
-		"sqlite.path":       "storage.local.path",
-		"mysql.host":        "storage.mysql.host",
-		"mysql.port":        "storage.mysql.port",
-		"mysql.database":    "storage.mysql.database",
-		"mysql.username":    "storage.mysql.username",
-		"mysql.password":    "storage.mysql.password",
-		"postgres.host":     "storage.postgres.host",
-		"postgres.port":     "storage.postgres.port",
-		"postgres.database": "storage.postgres.database",
-		"postgres.username": "storage.postgres.username",
-		"postgres.password": "storage.postgres.password",
-		"postgres.schema":   "storage.postgres.schema",
-		"period":            "totp.period",
-		"digits":            "totp.digits",
-		"algorithm":         "totp.algorithm",
-		"issuer":            "totp.issuer",
+		"encryption-key": "storage.encryption_key",
+		"sqlite.path":    "storage.local.path",
+
+		"mysql.host":     "storage.mysql.host",
+		"mysql.port":     "storage.mysql.port",
+		"mysql.database": "storage.mysql.database",
+		"mysql.username": "storage.mysql.username",
+		"mysql.password": "storage.mysql.password",
+
+		"postgres.host":                 "storage.postgres.host",
+		"postgres.port":                 "storage.postgres.port",
+		"postgres.database":             "storage.postgres.database",
+		"postgres.schema":               "storage.postgres.schema",
+		"postgres.username":             "storage.postgres.username",
+		"postgres.password":             "storage.postgres.password",
+		"postgres.ssl.mode":             "storage.postgres.ssl.mode",
+		"postgres.ssl.root_certificate": "storage.postgres.ssl.root_certificate",
+		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
+		"postgres.ssl.key":              "storage.postgres.ssl.key",
+
+		"period":    "totp.period",
+		"digits":    "totp.digits",
+		"algorithm": "totp.algorithm",
+		"issuer":    "totp.issuer",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))

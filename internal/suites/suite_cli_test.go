@@ -168,12 +168,12 @@ func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info"})
 	s.Assert().EqualError(err, "exit status 1")
 
-	s.Assert().Contains(output, "Error: A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres', the configuration option storage.encryption_key must be provided\n")
+	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: 'encryption_key' configuration option must be provided\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "history"})
 	s.Assert().EqualError(err, "exit status 1")
 
-	s.Assert().Contains(output, "Error: A storage configuration must be provided. It could be 'local', 'mysql' or 'postgres', the configuration option storage.encryption_key must be provided\n")
+	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: 'encryption_key' configuration option must be provided\n")
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {

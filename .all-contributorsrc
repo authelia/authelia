@@ -575,6 +575,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "kaysond",
+      "name": "Aram Akhavan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1147328?v=4",
+      "profile": "https://github.com/kaysond",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
