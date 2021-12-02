@@ -61,7 +61,7 @@ add_header X-XSS-Protection "1; mode=block";
 
 [Definition]
 failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?&lt;HOST&gt;"? stack.*
-            ^.*Unsuccessful (TOTP|DUO|U2F) authentication attempt by user .*remote_ip="?&lt;HOST&gt;"? stack.*
+            ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?&lt;HOST&gt;"? stack.*
 
 ignoreregex = ^.*level=debug.*
               ^.*level=info.*
