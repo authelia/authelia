@@ -45,8 +45,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateTOTPConfigSecret:           fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigSecretByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
 
-		sqlUpsertU2FDevice: fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
-		sqlSelectU2FDevice: fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
+		sqlUpsertU2FDevice:  fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
+		sqlSelectU2FDevice:  fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
+		sqlSelectU2FDevices: fmt.Sprintf(queryFmtSelectU2FDevices, tableU2FDevices),
+
+		sqlUpdateU2FDevicePublicKey:           fmt.Sprintf(queryFmtUpdateU2FDevicePublicKey, tableU2FDevices),
+		sqlUpdateU2FDevicePublicKeyByUsername: fmt.Sprintf(queryFmtUpdateUpdateU2FDevicePublicKeyByUsername, tableU2FDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
@@ -99,8 +103,12 @@ type SQLProvider struct {
 	sqlUpdateTOTPConfigSecretByUsername string
 
 	// Table: u2f_devices.
-	sqlUpsertU2FDevice string
-	sqlSelectU2FDevice string
+	sqlUpsertU2FDevice  string
+	sqlSelectU2FDevice  string
+	sqlSelectU2FDevices string
+
+	sqlUpdateU2FDevicePublicKey           string
+	sqlUpdateU2FDevicePublicKeyByUsername string
 
 	// Table: duo_devices
 	sqlUpsertDuoDevice string
@@ -343,14 +351,16 @@ func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice
 		return fmt.Errorf("error upserting U2F device: %v", err)
 	}
 
+	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
+		return fmt.Errorf("error encrypting the U2F device public key: %v", err)
+	}
+
 	return nil
 }
 
 // LoadU2FDevice loads a U2F device registration for a given username.
 func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error) {
-	device = &models.U2FDevice{
-		Username: username,
-	}
+	device = &models.U2FDevice{}
 
 	if err = p.db.GetContext(ctx, device, p.sqlSelectU2FDevice, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -360,7 +370,63 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 		return nil, fmt.Errorf("error selecting U2F device: %w", err)
 	}
 
+	if device.PublicKey, err = p.decrypt(device.PublicKey); err != nil {
+		return nil, fmt.Errorf("error decrypting the U2F device public key: %v", err)
+	}
+
 	return device, nil
+}
+
+// LoadU2FDevices loads U2F device registrations.
+func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error) {
+	rows, err := p.db.QueryxContext(ctx, p.sqlSelectU2FDevices, limit, limit*page)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return devices, nil
+		}
+
+		return nil, fmt.Errorf("error selecting U2F devices: %w", err)
+	}
+
+	defer func() {
+		if err := rows.Close(); err != nil {
+			p.log.Errorf(logFmtErrClosingConn, err)
+		}
+	}()
+
+	devices = make([]models.U2FDevice, 0, limit)
+
+	var device models.U2FDevice
+
+	for rows.Next() {
+		if err = rows.StructScan(&device); err != nil {
+			return nil, fmt.Errorf("error scanning U2F device to struct: %w", err)
+		}
+
+		if device.PublicKey, err = p.decrypt(device.PublicKey); err != nil {
+			return nil, fmt.Errorf("error decrypting the U2F device public key: %v", err)
+		}
+
+		devices = append(devices, device)
+	}
+
+	return devices, nil
+}
+
+// UpdateU2FDevicePublicKey updates a TOTP configuration secret.
+func (p *SQLProvider) UpdateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error) {
+	switch device.ID {
+	case 0:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateU2FDevicePublicKeyByUsername, device.PublicKey, device.Username)
+	default:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateU2FDevicePublicKey, device.PublicKey, device.ID)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error updating U2F public key: %w", err)
+	}
+
+	return nil
 }
 
 // SavePreferredDuoDevice saves a Duo device.

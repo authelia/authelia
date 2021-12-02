@@ -114,8 +114,24 @@ const (
 
 const (
 	queryFmtSelectU2FDevice = `
-		SELECT key_handle, public_key
+		SELECT id, username, key_handle, public_key
 		FROM %s
+		WHERE username = ?;`
+
+	queryFmtSelectU2FDevices = `
+		SELECT id, username, key_handle, public_key
+		FROM %s
+		LIMIT ?
+		OFFSET ?;`
+
+	queryFmtUpdateU2FDevicePublicKey = `
+		UPDATE %s
+		SET public_key = ?
+		WHERE id = ?;`
+
+	queryFmtUpdateUpdateU2FDevicePublicKeyByUsername = `
+		UPDATE %s
+		SET public_key = ?
 		WHERE username = ?;`
 
 	queryFmtUpsertU2FDevice = `

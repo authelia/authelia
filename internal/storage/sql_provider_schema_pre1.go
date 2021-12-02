@@ -267,7 +267,12 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 			return err
 		}
 
-		devices = append(devices, models.U2FDevice{Username: username, KeyHandle: keyHandle, PublicKey: publicKey})
+		encryptedPublicKey, err := p.encrypt(publicKey)
+		if err != nil {
+			return err
+		}
+
+		devices = append(devices, models.U2FDevice{Username: username, KeyHandle: keyHandle, PublicKey: encryptedPublicKey})
 	}
 
 	for _, device := range devices {
@@ -442,6 +447,11 @@ func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
 
 	for rows.Next() {
 		err = rows.StructScan(&device)
+		if err != nil {
+			return err
+		}
+
+		device.PublicKey, err = p.decrypt(device.PublicKey)
 		if err != nil {
 			return err
 		}

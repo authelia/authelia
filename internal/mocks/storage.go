@@ -198,6 +198,21 @@ func (mr *MockStorageMockRecorder) LoadU2FDevice(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevice", reflect.TypeOf((*MockStorage)(nil).LoadU2FDevice), arg0, arg1)
 }
 
+// LoadU2FDevices mocks base method.
+func (m *MockStorage) LoadU2FDevices(arg0 context.Context, arg1, arg2 int) ([]models.U2FDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadU2FDevices", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.U2FDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadU2FDevices indicates an expected call of LoadU2FDevices.
+func (mr *MockStorageMockRecorder) LoadU2FDevices(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevices", reflect.TypeOf((*MockStorage)(nil).LoadU2FDevices), arg0, arg1, arg2)
+}
+
 // LoadUserInfo mocks base method.
 func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.UserInfo, error) {
 	m.ctrl.T.Helper()
@@ -455,4 +470,18 @@ func (m *MockStorage) UpdateTOTPConfigurationSecret(arg0 context.Context, arg1 m
 func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSecret(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSecret", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSecret), arg0, arg1)
+}
+
+// UpdateU2FDevicePublicKey mocks base method.
+func (m *MockStorage) UpdateU2FDevicePublicKey(arg0 context.Context, arg1 models.U2FDevice) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateU2FDevicePublicKey", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateU2FDevicePublicKey indicates an expected call of UpdateU2FDevicePublicKey.
+func (mr *MockStorageMockRecorder) UpdateU2FDevicePublicKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateU2FDevicePublicKey", reflect.TypeOf((*MockStorage)(nil).UpdateU2FDevicePublicKey), arg0, arg1)
 }

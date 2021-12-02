@@ -29,6 +29,8 @@ type Provider interface {
 
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
+	LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error)
+	UpdateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error)
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
