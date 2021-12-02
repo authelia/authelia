@@ -4,6 +4,8 @@
 #                           Authelia Configuration                            #
 ###############################################################################
 
+## Note: the container by default expects to find this file at /config/configuration.yml.
+
 ## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
 ## the system certificates store.
 ## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.

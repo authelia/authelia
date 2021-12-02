@@ -27,12 +27,15 @@ You can have multiple configuration files which will be merged in the order spec
 the last one to be specified is the one that takes precedence. Example:
 
 ```console
-$ authelia --config config.yml --config config-acl.yml --config config-other.yml
-$ authelia --config config.yml,config-acl.yml,config-other.yml
+$ authelia --config configuration.yml --config config-acl.yml --config config-other.yml
+$ authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
 
 Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the 
 repository [here](https://github.com/authelia/authelia/blob/master/config.template.yml).
+
+### Docker
+By default, the container looks for a configuration file at `/config/configuration.yml`. This can be changed using the `command` setting.
 
 ## Environment
 You may also provide the configuration by using environment variables. Environment variables are applied after the 
