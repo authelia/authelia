@@ -4,7 +4,7 @@
 #                           Authelia Configuration                            #
 ###############################################################################
 
-## Note: the docker container by default expects to find this file at /config/configuration.yml
+## Note: the container by default expects to find this file at /config/configuration.yml.
 
 ## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
 ## the system certificates store.
