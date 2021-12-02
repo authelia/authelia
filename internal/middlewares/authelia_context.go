@@ -102,22 +102,22 @@ func (c *AutheliaCtx) ReplyBadRequest() {
 
 // XForwardedProto return the content of the X-Forwarded-Proto header.
 func (c *AutheliaCtx) XForwardedProto() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedProto)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedProto)
 }
 
 // XForwardedMethod return the content of the X-Forwarded-Method header.
 func (c *AutheliaCtx) XForwardedMethod() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedMethod)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
 // XForwardedHost return the content of the X-Forwarded-Host header.
 func (c *AutheliaCtx) XForwardedHost() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedHost)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedHost)
 }
 
 // XForwardedURI return the content of the X-Forwarded-URI header.
 func (c *AutheliaCtx) XForwardedURI() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXForwardedURI)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXForwardedURI)
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -159,7 +159,7 @@ func (c *AutheliaCtx) ExternalRootURL() (string, error) {
 
 // XOriginalURL return the content of the X-Original-URL header.
 func (c *AutheliaCtx) XOriginalURL() []byte {
-	return c.RequestCtx.Request.Header.Peek(headerXOriginalURL)
+	return c.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
 // GetSession return the user session. Any update will be saved in cache.
@@ -220,7 +220,7 @@ func (c *AutheliaCtx) SetJSONBody(value interface{}) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (c *AutheliaCtx) RemoteIP() net.IP {
-	XForwardedFor := c.Request.Header.Peek("X-Forwarded-For")
+	XForwardedFor := c.Request.Header.PeekBytes(headerXForwardedFor)
 	if XForwardedFor != nil {
 		ips := strings.Split(string(XForwardedFor), ",")
 
@@ -278,14 +278,14 @@ func (c *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 // IsXHR returns true if the request is a XMLHttpRequest.
 func (c AutheliaCtx) IsXHR() (xhr bool) {
-	requestedWith := c.Request.Header.Peek(headerXRequestedWith)
+	requestedWith := c.Request.Header.PeekBytes(headerXRequestedWith)
 
 	return requestedWith != nil && string(requestedWith) == headerValueXRequestedWithXHR
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
 func (c AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
-	accepts := strings.Split(string(c.Request.Header.Peek("Accept")), ",")
+	accepts := strings.Split(string(c.Request.Header.PeekBytes(headerAccept)), ",")
 
 	for i, accept := range accepts {
 		mimeType := strings.Trim(strings.SplitN(accept, ";", 2)[0], " ")
