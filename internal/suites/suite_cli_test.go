@@ -270,8 +270,6 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 
-	s.Require().NoError(storageProvider.StartupCheck())
-
 	ctx := context.Background()
 
 	var (

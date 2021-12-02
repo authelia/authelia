@@ -21,7 +21,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		)
 
 		if err := ctx.ParseBody(&requestBody); err != nil {
-			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDUO, err)
+			ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo, err)
 
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -71,7 +71,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		if authResponse.Result != allow {
-			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeDUO,
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeDuo,
 				fmt.Errorf("duo auth result: %s, status: %s, message: %s", authResponse.Result, authResponse.Status,
 					authResponse.StatusMessage))
 
@@ -80,7 +80,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeDUO, nil); err != nil {
+		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeDuo, nil); err != nil {
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 			return
 		}
@@ -248,7 +248,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 
 	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
 	if err != nil {
-		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDUO, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
