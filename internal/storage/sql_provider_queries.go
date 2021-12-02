@@ -119,20 +119,26 @@ const (
 		WHERE username = ?;`
 
 	queryFmtUpsertU2FDevice = `
-		REPLACE INTO %s (username, key_handle, public_key)
-		VALUES (?, ?, ?);`
+		REPLACE INTO %s (username, description, key_handle, public_key)
+		VALUES (?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertU2FDevice = `
-		INSERT INTO %s (username, key_handle, public_key)
-		VALUES ($1, $2, $3)
-			ON CONFLICT (username)
-			DO UPDATE SET key_handle=$2, public_key=$3;`
+		INSERT INTO %s (username, description, key_handle, public_key)
+		VALUES ($1, $2, $3, $4)
+			ON CONFLICT (username, description)
+			DO UPDATE SET key_handle=$3, public_key=$4;`
 )
 
 const (
 	queryFmtUpsertDuoDevice = `
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
+
+	queryFmtPostgresUpsertDuoDevice = `
+		INSERT INTO %s (username, device, method)
+		VALUES ($1, $2, $3)
+			ON CONFLICT (username)
+			DO UPDATE SET device=$2, method=$3;`
 
 	queryFmtDeleteDuoDevice = `
 		DELETE

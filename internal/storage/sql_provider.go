@@ -339,8 +339,8 @@ func (p *SQLProvider) UpdateTOTPConfigurationSecret(ctx context.Context, config 
 
 // SaveU2FDevice saves a registered U2F device.
 func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.KeyHandle, device.PublicKey); err != nil {
-		return fmt.Errorf("error upserting U2F device secret: %v", err)
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.Description, device.KeyHandle, device.PublicKey); err != nil {
+		return fmt.Errorf("error upserting U2F device: %v", err)
 	}
 
 	return nil
