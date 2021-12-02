@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
     banned BOOLEAN NOT NULL DEFAULT FALSE,
     username VARCHAR(100) NOT NULL,
     auth_type VARCHAR(8) NOT NULL DEFAULT '1FA',
-    remote_ip VARCHAR(47) NULL DEFAULT NULL,
+    remote_ip VARCHAR(39) NULL DEFAULT NULL,
     request_uri TEXT,
     request_method VARCHAR(8) NOT NULL DEFAULT '',
     PRIMARY KEY (id)
@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS identity_verification (
     id SERIAL,
     jti CHAR(36),
     iat TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    issued_ip VARCHAR(47) NOT NULL,
+    issued_ip VARCHAR(39) NOT NULL,
     exp TIMESTAMP WITH TIME ZONE NOT NULL,
     username VARCHAR(100) NOT NULL,
     action VARCHAR(50) NOT NULL,
     consumed TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
-    consumed_ip VARCHAR(47) NULL DEFAULT NULL,
+    consumed_ip VARCHAR(39) NULL DEFAULT NULL,
     PRIMARY KEY (id),
     UNIQUE (jti)
 );
