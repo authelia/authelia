@@ -553,7 +553,7 @@
   },"92": {
     "doc": "Configuration",
     "title": "Files",
-    "content": "When running Authelia, you can specify your configuration by passing the file path as shown below. $ authelia --config config.custom.yml . You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified the last one to be specified is the one that takes precedence. Example: . $ authelia --config config.yml --config config-acl.yml --config config-other.yml $ authelia --config config.yml,config-acl.yml,config-other.yml . Authelia’s configuration files use the YAML format. A template with all possible options can be found at the root of the repository here. ",
+    "content": "When running Authelia, you can specify your configuration by passing the file path as shown below. $ authelia --config config.custom.yml . You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified the last one to be specified is the one that takes precedence. Example: . $ authelia --config configuration.yml --config config-acl.yml --config config-other.yml $ authelia --config configuration.yml,config-acl.yml,config-other.yml . Authelia’s configuration files use the YAML format. A template with all possible options can be found at the root of the repository here. Docker . By default, the container looks for a configuration file at /config/configuration.yml. This can be changed using the command setting. ",
     "url": "/docs/configuration/#files",
     "relUrl": "/configuration/#files"
   },"93": {
