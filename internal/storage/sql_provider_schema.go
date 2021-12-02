@@ -58,7 +58,7 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 		return migration.After, nil
 	}
 
-	var tablesV1 = []string{tableDuoDevices, tableEncryption, tableIdentityVerification, tableMigrations}
+	var tablesV1 = []string{tableDuoDevices, tableEncryption, tableIdentityVerification, tableMigrations, tableTOTPConfigurations}
 
 	if utils.IsStringSliceContainsAll(tablesPre1, tables) {
 		if utils.IsStringSliceContainsAny(tablesV1, tables) {
