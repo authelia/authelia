@@ -52,7 +52,6 @@ If properly configured, Authelia guarantees the following for security of your u
 * Binding session cookies to single IP addresses.  
 * Authenticate communication between Authelia and reverse proxy.
 * Securely transmit authentication data to backends (OAuth2 with bearer tokens).
-* Protect secrets stored in the database with encryption to prevent secrets leak by database exfiltration.
 * Least privilege on LDAP binding operations (currently administrative user is used to bind while it could be anonymous 
   for most operations).
 * Extend the check of user group memberships to authentication backends other than LDAP (File currently).

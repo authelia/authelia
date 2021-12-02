@@ -104,6 +104,10 @@ for this purpose prevent this attack vector.
 A bad actor who has the SQL password and access to the database can theoretically change another users credential, this
 theoretically bypasses authentication. Columns encrypted for this purpose prevent this attack vector.
 
+A bad actor may also be able to use data in the database to bypass 2FA silently depending on the credentials. In the
+instance of the U2F public key this is not possible, they can only change it which would eventually alert the user in 
+question. But in the case of TOTP they can use the secret to authenticate without knowledge of the user in question.
+
 ### Encryption key management
 
 You must supply the encryption key in the recommended method of a [secret](../configuration/secrets.md) or in one of
