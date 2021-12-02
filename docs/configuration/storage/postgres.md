@@ -19,9 +19,14 @@ storage:
     host: 127.0.0.1
     port: 5432
     database: authelia
+    schema: public
     username: authelia
     password: mypassword
-    sslmode: disable
+    ssl:
+      mode: disable
+      root_certificate: /path/to/root_cert.pem
+      certificate: /path/to/cert.pem
+      key: /path/to/key.pem
 ```
 
 ## Options
@@ -59,9 +64,28 @@ required: no
 The port the database server is listening on.
 
 ### database
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
 
 The database name on the database server that the assigned [user](#username) has access to for the purpose of
 **Authelia**.
+
+### schema
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: public
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The database schema name to use on the database server that the assigned [user](#username) has access to for the purpose
+of **Authelia**. By default this is the public schema.
 
 ### username
 <div markdown="1">
@@ -96,7 +120,9 @@ required: no
 
 The SQL connection timeout.
 
-### sslmode
+### ssl
+
+#### mode
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -111,3 +137,33 @@ Valid options are 'disable', 'require', 'verify-ca', or 'verify-full'.
 See the [PostgreSQL Documentation](https://www.postgresql.org/docs/12/libpq-ssl.html)
 or [pgx - PostgreSQL Driver and Toolkit Documentation](https://pkg.go.dev/github.com/jackc/pgx?tab=doc)
 for more information.
+
+#### root_certificate
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The optional location of the root certificate file encoded in the PEM format for validation purposes.
+
+#### certificate
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The optional location of the certificate file encoded in the PEM format for validation purposes.
+
+#### key
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The optional location of the key file encoded in the PEM format for authentication purposes.

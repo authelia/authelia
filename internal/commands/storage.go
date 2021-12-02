@@ -28,8 +28,13 @@ func NewStorageCmd() (cmd *cobra.Command) {
 	cmd.PersistentFlags().String("postgres.host", "", "the PostgreSQL hostname")
 	cmd.PersistentFlags().Int("postgres.port", 5432, "the PostgreSQL port")
 	cmd.PersistentFlags().String("postgres.database", "authelia", "the PostgreSQL database name")
+	cmd.PersistentFlags().String("postgres.schema", "public", "the PostgreSQL schema name")
 	cmd.PersistentFlags().String("postgres.username", "authelia", "the PostgreSQL username")
 	cmd.PersistentFlags().String("postgres.password", "", "the PostgreSQL password")
+	cmd.PersistentFlags().String("postgres.ssl.mode", "disable", "the PostgreSQL ssl mode")
+	cmd.PersistentFlags().String("postgres.ssl.root_certificate", "", "the PostgreSQL ssl root certificate file location")
+	cmd.PersistentFlags().String("postgres.ssl.certificate", "", "the PostgreSQL ssl certificate file location")
+	cmd.PersistentFlags().String("postgres.ssl.key", "", "the PostgreSQL ssl key file location")
 
 	cmd.AddCommand(
 		newStorageMigrateCmd(),
