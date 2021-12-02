@@ -51,7 +51,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -85,7 +85,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -115,7 +115,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -146,7 +146,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().
@@ -180,7 +180,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().

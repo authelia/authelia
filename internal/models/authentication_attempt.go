@@ -12,7 +12,7 @@ type AuthenticationAttempt struct {
 	Banned        bool      `db:"banned"`
 	Username      string    `db:"username"`
 	Type          string    `db:"auth_type"`
-	RemoteIP      IPAddress `db:"remote_ip"`
+	RemoteIP      NullIP    `db:"remote_ip"`
 	RequestURI    string    `db:"request_uri"`
 	RequestMethod string    `db:"request_method"`
 }

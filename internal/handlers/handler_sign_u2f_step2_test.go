@@ -51,7 +51,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToDefaultURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeU2F,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
@@ -83,7 +83,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotReturnRedirectURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeU2F,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
@@ -111,7 +111,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRedirectUserToSafeTargetURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeU2F,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
@@ -142,7 +142,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldNotRedirectToUnsafeURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeU2F,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{
@@ -171,7 +171,7 @@ func (s *HandlerSignU2FStep2Suite) TestShouldRegenerateSessionForPreventingSessi
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeU2F,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	bodyBytes, err := json.Marshal(signU2FRequestBody{

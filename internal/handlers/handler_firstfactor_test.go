@@ -65,7 +65,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -93,7 +93,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -119,7 +119,7 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{

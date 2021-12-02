@@ -57,7 +57,7 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissi
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewIPAddress(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)
@@ -77,7 +77,7 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissin
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewIPAddress(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)

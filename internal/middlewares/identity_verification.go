@@ -183,7 +183,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, models.NewIPAddress(ctx.RemoteIP()))
+		err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, models.NewNullIP(ctx.RemoteIP()))
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return

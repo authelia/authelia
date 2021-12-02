@@ -66,7 +66,7 @@ func (mr *MockStorageMockRecorder) Close() *gomock.Call {
 }
 
 // ConsumeIdentityVerification mocks base method.
-func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 models.IPAddress) error {
+func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 models.NullIP) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConsumeIdentityVerification", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

@@ -234,7 +234,7 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 }
 
 // ConsumeIdentityVerification marks an identity verification record in the database as consumed.
-func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip models.IPAddress) (err error) {
+func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip models.NullIP) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlConsumeIdentityVerification, ip, jti); err != nil {
 		return fmt.Errorf("error updating identity verification: %w", err)
 	}

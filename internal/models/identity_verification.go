@@ -16,7 +16,7 @@ func NewIdentityVerification(username, action string, ip net.IP) (verification I
 		ExpiresAt: time.Now().Add(5 * time.Minute),
 		Action:    action,
 		Username:  username,
-		IssuedIP:  NewIPAddress(ip),
+		IssuedIP:  NewIP(ip),
 	}
 }
 
@@ -25,12 +25,12 @@ type IdentityVerification struct {
 	ID         int        `db:"id"`
 	JTI        uuid.UUID  `db:"jti"`
 	IssuedAt   time.Time  `db:"iat"`
-	IssuedIP   IPAddress  `db:"issued_ip"`
+	IssuedIP   IP         `db:"issued_ip"`
 	ExpiresAt  time.Time  `db:"exp"`
 	Action     string     `db:"action"`
 	Username   string     `db:"username"`
 	Consumed   *time.Time `db:"consumed"`
-	ConsumedIP IPAddress  `db:"consumed_ip"`
+	ConsumedIP NullIP     `db:"consumed_ip"`
 }
 
 // ToIdentityVerificationClaim converts the IdentityVerification into a IdentityVerificationClaim.

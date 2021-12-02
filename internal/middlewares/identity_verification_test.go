@@ -281,7 +281,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewIPAddress(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(fmt.Errorf("cannot remove"))
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
@@ -300,7 +300,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewIPAddress(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
