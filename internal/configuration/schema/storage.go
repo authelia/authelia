@@ -52,6 +52,5 @@ type StorageConfiguration struct {
 
 // DefaultSQLStorageConfiguration represents the default SQL configuration.
 var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
-	Host:    "127.0.0.1",
 	Timeout: 5 * time.Second,
 }
