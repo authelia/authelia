@@ -274,6 +274,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/you1996"><img src="https://avatars.githubusercontent.com/u/45292366?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yossbg</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=you1996" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/mpdcampbell"><img src="https://avatars.githubusercontent.com/u/47434940?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Michael Campbell</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=mpdcampbell" title="Documentation">📖</a></td>
     <td align="center"><a href="https://sievenpiper.co"><img src="https://avatars.githubusercontent.com/u/1131882?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Justin Sievenpiper</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=jsievenpiper" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/kaysond"><img src="https://avatars.githubusercontent.com/u/1147328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aram Akhavan</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=kaysond" title="Documentation">📖</a></td>
   </tr>
 </table>
 
