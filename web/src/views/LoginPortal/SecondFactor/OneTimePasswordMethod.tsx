@@ -113,7 +113,7 @@ const OneTimePasswordMethod = function (props: Props) {
             onRegisterClick={props.onRegisterClick}
         >
             <div>
-                {!props.registered || resp !== undefined || err !== undefined ? (
+                {resp !== undefined || err !== undefined ? (
                     <OTPDial
                         passcode={passcode}
                         period={resp?.period || 30}
