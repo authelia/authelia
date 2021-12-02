@@ -246,13 +246,13 @@ typically located at `/etc/fail2ban/filter.d`.
 # only contains a single IP address (the one from the end-user), and not the proxy chain
 # (it is misleading: usually, this is the purpose of this header).
 
-# the failregex rule counts every failed login (wrong username or password) and failed TOTP entry as a failure
+# the failregex rule counts every failed 1FA attempt (first line, wrong username or password) and failed 2FA attempt
+# second line) as a failure.
 # the ignoreregex rule ignores debug, info and warning messages as all authentication failures are flagged as errors
 
 [Definition]
-failregex = ^.*Error while checking password for.*remote_ip=<HOST> stack.*
-            ^.*Credentials are wrong for user .*remote_ip=<HOST> stack.*
-            ^.*Wrong passcode during TOTP validation.*remote_ip=<HOST> stack.*
+failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?<HOST>"? stack.*
+            ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
 
 ignoreregex = ^.*level=debug.*
               ^.*level=info.*
