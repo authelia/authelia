@@ -38,10 +38,8 @@ See the [encryption_key docs](./index.md#encryption_key).
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
-default: localhost
-{: .label .label-config .label-blue }
-required: no
-{: .label .label-config .label-green }
+required: yes
+{: .label .label-config .label-red }
 </div>
 
 The database server host.

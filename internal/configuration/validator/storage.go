@@ -37,7 +37,7 @@ func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, val
 	}
 
 	if configuration.Host == "" {
-		configuration.Host = schema.DefaultSQLStorageConfiguration.Host
+		validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "host"))
 	}
 
 	if configuration.Username == "" || configuration.Password == "" {
