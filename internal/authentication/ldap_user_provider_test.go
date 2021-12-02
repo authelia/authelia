@@ -1098,14 +1098,14 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 			Return(mockConn, nil),
 		mockConn.EXPECT().
 			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
-			Return(errors.New("Invalid username or password")),
+			Return(errors.New("invalid username or password")),
 		mockConn.EXPECT().Close(),
 	)
 
 	valid, err := ldapClient.CheckUserPassword("john", "password")
 
 	assert.False(t, valid)
-	require.EqualError(t, err, "Authentication of user john failed. Cause: Invalid username or password")
+	require.EqualError(t, err, "authentication failed. Cause: invalid username or password")
 }
 
 func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
