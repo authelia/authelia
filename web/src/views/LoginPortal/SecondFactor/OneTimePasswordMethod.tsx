@@ -47,8 +47,10 @@ const OneTimePasswordMethod = function (props: Props) {
     }, [onSignInErrorCallback, err]);
 
     useEffect(() => {
-        fetch();
-    }, [fetch]);
+        if (props.registered) {
+            fetch();
+        }
+    }, [fetch, props.registered]);
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -111,7 +113,7 @@ const OneTimePasswordMethod = function (props: Props) {
             onRegisterClick={props.onRegisterClick}
         >
             <div>
-                {resp !== undefined || err !== undefined ? (
+                {!props.registered || resp !== undefined || err !== undefined ? (
                     <OTPDial
                         passcode={passcode}
                         period={resp?.period || 30}
