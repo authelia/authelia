@@ -104,7 +104,7 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
-func (suite *StorageSuite) TestShouldValidatePostgresSSLModeIsDisableByDefault() {
+func (suite *StorageSuite) TestShouldValidatePostgresSSLModeAndSchemaDefaults() {
 	suite.configuration.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
 		SQLStorageConfiguration: schema.SQLStorageConfiguration{
 			Host:     "db1",
@@ -120,6 +120,30 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeIsDisableByDefault()
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("disable", suite.configuration.PostgreSQL.SSL.Mode)
+	suite.Assert().Equal("public", suite.configuration.PostgreSQL.Schema)
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfiguration() {
+	suite.configuration.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		Schema: "authelia",
+		SSL: schema.PostgreSQLSSLStorageConfiguration{
+			Mode: "require",
+		},
+	}
+
+	ValidateStorage(suite.configuration, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal("require", suite.configuration.PostgreSQL.SSL.Mode)
+	suite.Assert().Equal("authelia", suite.configuration.PostgreSQL.Schema)
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
