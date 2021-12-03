@@ -50,7 +50,7 @@ steps:
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
     depends_on: ~
-    if: build.tag != null || build.branch == "master" && build.env("CI_BYPASS") != "true"
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
 
   - label: ":debian: :fedora: :ubuntu: Deploy APT"
     command: "aptdeploy.sh"
