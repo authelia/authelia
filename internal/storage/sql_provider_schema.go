@@ -17,16 +17,15 @@ import (
 func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err error) {
 	var rows *sqlx.Rows
 
-	if p.schema != "" {
-		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables, p.schema)
-		if err != nil {
-			return tables, err
-		}
-	} else {
+	switch p.schema {
+	case "":
 		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables)
-		if err != nil {
-			return tables, err
-		}
+	default:
+		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables, p.schema)
+	}
+
+	if err != nil {
+		return tables, err
 	}
 
 	defer func() {
