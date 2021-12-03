@@ -52,13 +52,17 @@ func validateSQLConfiguration(configuration *schema.SQLStorageConfiguration, val
 func validatePostgreSQLConfiguration(configuration *schema.PostgreSQLStorageConfiguration, validator *schema.StructValidator) {
 	validateSQLConfiguration(&configuration.SQLStorageConfiguration, validator, "postgres")
 
+	if configuration.Schema == "" {
+		configuration.Schema = schema.DefaultPostgreSQLStorageConfiguration.Schema
+	}
+
 	// Deprecated. TODO: Remove in v4.36.0.
 	if configuration.SSLMode != "" && configuration.SSL.Mode == "" {
 		configuration.SSL.Mode = configuration.SSLMode
 	}
 
 	if configuration.SSL.Mode == "" {
-		configuration.SSL.Mode = testModeDisabled
+		configuration.SSL.Mode = schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode
 	} else if !utils.IsStringInSlice(configuration.SSL.Mode, storagePostgreSQLValidSSLModes) {
 		validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, configuration.SSL.Mode, strings.Join(storagePostgreSQLValidSSLModes, "', '")))
 	}

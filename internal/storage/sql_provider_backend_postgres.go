@@ -57,6 +57,8 @@ func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLPr
 	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
+	provider.schema = config.Storage.PostgreSQL.Schema
+
 	return provider
 }
 
@@ -66,18 +68,12 @@ func dataSourceNamePostgreSQL(config schema.PostgreSQLStorageConfiguration) (dat
 		fmt.Sprintf("user='%s'", config.Username),
 		fmt.Sprintf("password='%s'", config.Password),
 		fmt.Sprintf("dbname=%s", config.Database),
+		fmt.Sprintf("search_path=%s", config.Schema),
+		fmt.Sprintf("sslmode=%s", config.SSL.Mode),
 	}
 
 	if config.Port > 0 {
 		args = append(args, fmt.Sprintf("port=%d", config.Port))
-	}
-
-	if config.Schema != "" {
-		args = append(args, fmt.Sprintf("search_path=%s", config.Schema))
-	}
-
-	if config.SSL.Mode != "" {
-		args = append(args, fmt.Sprintf("sslmode=%s", config.SSL.Mode))
 	}
 
 	if config.SSL.RootCertificate != "" {

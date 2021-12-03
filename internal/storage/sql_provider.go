@@ -79,6 +79,7 @@ type SQLProvider struct {
 	key        [32]byte
 	name       string
 	driverName string
+	schema     string
 	config     *schema.Configuration
 	errOpen    error
 
