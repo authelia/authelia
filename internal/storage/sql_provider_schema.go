@@ -7,15 +7,26 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // SchemaTables returns a list of tables.
 func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err error) {
-	rows, err := p.db.QueryxContext(ctx, p.sqlSelectExistingTables)
-	if err != nil {
-		return tables, err
+	var rows *sqlx.Rows
+
+	if p.schema != "" {
+		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables, p.schema)
+		if err != nil {
+			return tables, err
+		}
+	} else {
+		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables)
+		if err != nil {
+			return tables, err
+		}
 	}
 
 	defer func() {

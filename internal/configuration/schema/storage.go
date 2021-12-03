@@ -54,3 +54,11 @@ type StorageConfiguration struct {
 var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
 	Timeout: 5 * time.Second,
 }
+
+// DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
+var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
+	Schema: "public",
+	SSL: PostgreSQLSSLStorageConfiguration{
+		Mode: "disable",
+	},
+}
