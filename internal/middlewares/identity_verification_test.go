@@ -165,15 +165,15 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 	s.mock.Close()
 }
 
-func createToken(secret, username, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
-	verification = models.NewIdentityVerification(username, action)
+func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
+	verification = models.NewIdentityVerification(username, action, ctx.Ctx.RemoteIP())
 
 	verification.ExpiresAt = expiresAt
 
 	claims := verification.ToIdentityVerificationClaim()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, _ := token.SignedString([]byte(secret))
+	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.JWTSecret))
 
 	return ss, verification
 }
@@ -203,7 +203,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotProvided()
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB() {
-	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", "Login",
+	token, verification := createToken(s.mock, "john", "Login",
 		time.Now().Add(1*time.Minute))
 
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
@@ -229,7 +229,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 	args := newArgs(defaultRetriever)
-	token, _ := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", args.ActionClaim,
+	token, _ := createToken(s.mock, "john", args.ActionClaim,
 		time.Now().Add(-1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -240,7 +240,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
-	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "", "",
+	token, verification := createToken(s.mock, "", "",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -255,7 +255,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
-	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "harry", "EXP_ACTION",
+	token, verification := createToken(s.mock, "harry", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -272,7 +272,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemovedFromDB() {
-	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", "EXP_ACTION",
+	token, verification := createToken(s.mock, "john", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -281,7 +281,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(fmt.Errorf("cannot remove"))
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
@@ -291,7 +291,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete() {
-	token, verification := createToken(s.mock.Ctx.Configuration.JWTSecret, "john", "EXP_ACTION",
+	token, verification := createToken(s.mock, "john", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -300,7 +300,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		RemoveIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)

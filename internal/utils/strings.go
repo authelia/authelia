@@ -91,6 +91,17 @@ func IsStringSliceContainsAll(needles []string, haystack []string) (inSlice bool
 	return true
 }
 
+// IsStringSliceContainsAny checks if the haystack contains any of the strings in the needles.
+func IsStringSliceContainsAny(needles []string, haystack []string) (inSlice bool) {
+	for _, n := range needles {
+		if IsStringInSlice(n, haystack) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // SliceString splits a string s into an array with each item being a max of int d
 // d = denominator, n = numerator, q = quotient, r = remainder.
 func SliceString(s string, d int) (array []string) {

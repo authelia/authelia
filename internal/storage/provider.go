@@ -18,17 +18,17 @@ type Provider interface {
 	LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error)
 
 	SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error)
-	RemoveIdentityVerification(ctx context.Context, jti string) (err error)
+	ConsumeIdentityVerification(ctx context.Context, jti string, ip models.NullIP) (err error)
 	FindIdentityVerification(ctx context.Context, jti string) (found bool, err error)
 
 	SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error)
 	DeleteTOTPConfiguration(ctx context.Context, username string) (err error)
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
-	UpdateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error)
 
 	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
 	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
+	LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error)
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)

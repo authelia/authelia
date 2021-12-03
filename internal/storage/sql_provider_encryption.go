@@ -22,6 +22,26 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 
 	key := sha256.Sum256([]byte(encryptionKey))
 
+	if err = p.schemaEncryptionChangeKeyTOTP(ctx, tx, key); err != nil {
+		return err
+	}
+
+	if err = p.schemaEncryptionChangeKeyU2F(ctx, tx, key); err != nil {
+		return err
+	}
+
+	if err = p.setNewEncryptionCheckValue(ctx, &key, tx); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
+		}
+
+		return fmt.Errorf("rollback due to error: %w", err)
+	}
+
+	return tx.Commit()
+}
+
+func (p *SQLProvider) schemaEncryptionChangeKeyTOTP(ctx context.Context, tx *sqlx.Tx, key [32]byte) (err error) {
 	var configs []models.TOTPConfiguration
 
 	for page := 0; true; page++ {
@@ -42,7 +62,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 				return fmt.Errorf("rollback due to error: %w", err)
 			}
 
-			if err = p.UpdateTOTPConfigurationSecret(ctx, config); err != nil {
+			if err = p.updateTOTPConfigurationSecret(ctx, config); err != nil {
 				if rollbackErr := tx.Rollback(); rollbackErr != nil {
 					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 				}
@@ -56,15 +76,45 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 		}
 	}
 
-	if err = p.setNewEncryptionCheckValue(ctx, &key, tx); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
+	return nil
+}
+
+func (p *SQLProvider) schemaEncryptionChangeKeyU2F(ctx context.Context, tx *sqlx.Tx, key [32]byte) (err error) {
+	var devices []models.U2FDevice
+
+	for page := 0; true; page++ {
+		if devices, err = p.LoadU2FDevices(ctx, 10, page); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
+			}
+
+			return fmt.Errorf("rollback due to error: %w", err)
 		}
 
-		return fmt.Errorf("rollback due to error: %w", err)
+		for _, device := range devices {
+			if device.PublicKey, err = utils.Encrypt(device.PublicKey, &key); err != nil {
+				if rollbackErr := tx.Rollback(); rollbackErr != nil {
+					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
+				}
+
+				return fmt.Errorf("rollback due to error: %w", err)
+			}
+
+			if err = p.updateU2FDevicePublicKey(ctx, device); err != nil {
+				if rollbackErr := tx.Rollback(); rollbackErr != nil {
+					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
+				}
+
+				return fmt.Errorf("rollback due to error: %w", err)
+			}
+		}
+
+		if len(devices) != 10 {
+			break
+		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // SchemaEncryptionCheckKey checks the encryption key configured is valid for the database.
@@ -85,49 +135,12 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 	}
 
 	if verbose {
-		var (
-			config  models.TOTPConfiguration
-			row     int
-			invalid int
-			total   int
-		)
-
-		pageSize := 10
-
-		var rows *sqlx.Rows
-
-		for page := 0; true; page++ {
-			if rows, err = p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, pageSize, pageSize*page); err != nil {
-				_ = rows.Close()
-
-				return fmt.Errorf("error selecting TOTP configurations: %w", err)
-			}
-
-			row = 0
-
-			for rows.Next() {
-				total++
-				row++
-
-				if err = rows.StructScan(&config); err != nil {
-					_ = rows.Close()
-					return fmt.Errorf("error scanning TOTP configuration to struct: %w", err)
-				}
-
-				if _, err = p.decrypt(config.Secret); err != nil {
-					invalid++
-				}
-			}
-
-			_ = rows.Close()
-
-			if row < pageSize {
-				break
-			}
+		if err = p.schemaEncryptionCheckTOTP(ctx); err != nil {
+			errs = append(errs, err)
 		}
 
-		if invalid != 0 {
-			errs = append(errs, fmt.Errorf("%d of %d total TOTP secrets were invalid", invalid, total))
+		if err = p.schemaEncryptionCheckU2F(ctx); err != nil {
+			errs = append(errs, err)
 		}
 	}
 
@@ -143,6 +156,104 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 		}
 
 		return err
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) schemaEncryptionCheckTOTP(ctx context.Context) (err error) {
+	var (
+		config  models.TOTPConfiguration
+		row     int
+		invalid int
+		total   int
+	)
+
+	pageSize := 10
+
+	var rows *sqlx.Rows
+
+	for page := 0; true; page++ {
+		if rows, err = p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, pageSize, pageSize*page); err != nil {
+			_ = rows.Close()
+
+			return fmt.Errorf("error selecting TOTP configurations: %w", err)
+		}
+
+		row = 0
+
+		for rows.Next() {
+			total++
+			row++
+
+			if err = rows.StructScan(&config); err != nil {
+				_ = rows.Close()
+				return fmt.Errorf("error scanning TOTP configuration to struct: %w", err)
+			}
+
+			if _, err = p.decrypt(config.Secret); err != nil {
+				invalid++
+			}
+		}
+
+		_ = rows.Close()
+
+		if row < pageSize {
+			break
+		}
+	}
+
+	if invalid != 0 {
+		return fmt.Errorf("%d of %d total TOTP secrets were invalid", invalid, total)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) {
+	var (
+		device  models.U2FDevice
+		row     int
+		invalid int
+		total   int
+	)
+
+	pageSize := 10
+
+	var rows *sqlx.Rows
+
+	for page := 0; true; page++ {
+		if rows, err = p.db.QueryxContext(ctx, p.sqlSelectU2FDevices, pageSize, pageSize*page); err != nil {
+			_ = rows.Close()
+
+			return fmt.Errorf("error selecting U2F devices: %w", err)
+		}
+
+		row = 0
+
+		for rows.Next() {
+			total++
+			row++
+
+			if err = rows.StructScan(&device); err != nil {
+				_ = rows.Close()
+				return fmt.Errorf("error scanning U2F device to struct: %w", err)
+			}
+
+			if _, err = p.decrypt(device.PublicKey); err != nil {
+				invalid++
+			}
+		}
+
+		_ = rows.Close()
+
+		if row < pageSize {
+			break
+		}
+	}
+
+	if invalid != 0 {
+		return fmt.Errorf("%d of %d total U2F devices were invalid", invalid, total)
 	}
 
 	return nil

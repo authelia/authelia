@@ -81,6 +81,54 @@ LDAP implementations vary, so please ask if you need some assistance in configur
 These protections can be [tuned](../configuration/authentication/ldap.md#refresh-interval) according to your security 
 policy by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
 
+## Storage security measures
+
+We force users to encrypt vulnerable data stored in the database. It is strongly advised you do not give this encryption
+key to anyone. In the instance of a database installation that multiple users have access to, you should aim to ensure
+that users who have access to the database do not also have access to this key.
+
+The encrypted data in the database is as follows:
+
+|Table              |Column    |Rational                                                                                              |
+|:-----------------:|:--------:|:----------------------------------------------------------------------------------------------------:|
+|totp_configurations|secret    |Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security|
+|u2f_devices        |public_key|Prevents [Bad Actors](#bad-actors) from compromising security                                         |
+
+### Leaked Database
+
+A leaked database can reasonably compromise security if there are credentials that are not encrypted. Columns encrypted
+for this purpose prevent this attack vector.
+
+### Bad Actors
+
+A bad actor who has the SQL password and access to the database can theoretically change another users credential, this
+theoretically bypasses authentication. Columns encrypted for this purpose prevent this attack vector.
+
+A bad actor may also be able to use data in the database to bypass 2FA silently depending on the credentials. In the
+instance of the U2F public key this is not possible, they can only change it which would eventually alert the user in 
+question. But in the case of TOTP they can use the secret to authenticate without knowledge of the user in question.
+
+### Encryption key management
+
+You must supply the encryption key in the recommended method of a [secret](../configuration/secrets.md) or in one of
+the other methods available for [configuration](../configuration/index.md#configuration).
+
+If you wish to change your encryption key for any reason you can do so using the following steps:
+
+1. Run the `authelia --version` command to determine the version of Authelia you're running and either download that
+   version or run another container of that version interactively. All the subsequent commands assume you're running
+   the `authelia` binary in the current working directory. You will have to adjust this according to how you're running
+   it.
+2. Run the `./authelia storage encryption change-key --help` command.
+3. Stop Authelia.
+   - You can skip this step, however note that any data changed between the time you make the change and the time when 
+   you stop Authelia i.e. via user registering a device; will be encrypted with the incorrect key.
+4. Run the `./authelia storage encryption change-key` command with the appropriate parameters.
+   - The help from step 1 will be useful here. The easiest method to accomplish this is with the `--config`,
+   `--encryption-key`, and `--new-encryption-key` parameters.
+5. Update the encryption key Authelia uses on startup.
+6. Start Authelia.
+
 ## Notifier security measures (SMTP)
 
 The SMTP Notifier implementation does not allow connections that are not secure without changing default configuration

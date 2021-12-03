@@ -51,7 +51,7 @@ func (r *Regulator) Mark(ctx context.Context, successful, banned bool, username,
 		Banned:        banned,
 		Username:      username,
 		Type:          authType,
-		RemoteIP:      models.IPAddress{IP: &remoteIP},
+		RemoteIP:      models.NewNullIP(remoteIP),
 		RequestURI:    requestURI,
 		RequestMethod: requestMethod,
 	})

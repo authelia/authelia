@@ -23,9 +23,11 @@ const (
 
 // WARNING: Do not change/remove these consts. They are used for Pre1 migrations.
 const (
-	tablePre1TOTPSecrets                 = "totp_secrets"
-	tablePre1Config                      = "config"
-	tablePre1IdentityVerificationTokens  = "identity_verification_tokens"
+	tablePre1TOTPSecrets                = "totp_secrets"
+	tablePre1IdentityVerificationTokens = "identity_verification_tokens"
+
+	tablePre1Config = "config"
+
 	tableAlphaAuthenticationLogs         = "AuthenticationLogs"
 	tableAlphaIdentityVerificationTokens = "IdentityVerificationTokens"
 	tableAlphaPreferences                = "Preferences"
@@ -34,6 +36,15 @@ const (
 	tableAlphaTOTPSecrets                = "TOTPSecrets"
 	tableAlphaU2FDeviceHandles           = "U2FDeviceHandles"
 )
+
+var tablesPre1 = []string{
+	tablePre1TOTPSecrets,
+	tablePre1IdentityVerificationTokens,
+
+	tableUserPreferences,
+	tableU2FDevices,
+	tableAuthenticationLogs,
+}
 
 const (
 	providerAll      = "all"

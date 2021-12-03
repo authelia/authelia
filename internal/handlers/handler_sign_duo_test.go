@@ -97,7 +97,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -286,7 +286,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -414,7 +414,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -497,7 +497,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -546,7 +546,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -591,7 +591,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -640,7 +640,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 
@@ -687,7 +687,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeDuo,
-			RemoteIP:   models.NewIPAddressFromString("0.0.0.0"),
+			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		})).
 		Return(nil)
 

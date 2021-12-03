@@ -65,6 +65,20 @@ func (mr *MockStorageMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockStorage)(nil).Close))
 }
 
+// ConsumeIdentityVerification mocks base method.
+func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 models.NullIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeIdentityVerification", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeIdentityVerification indicates an expected call of ConsumeIdentityVerification.
+func (mr *MockStorageMockRecorder) ConsumeIdentityVerification(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).ConsumeIdentityVerification), arg0, arg1, arg2)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -198,6 +212,21 @@ func (mr *MockStorageMockRecorder) LoadU2FDevice(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevice", reflect.TypeOf((*MockStorage)(nil).LoadU2FDevice), arg0, arg1)
 }
 
+// LoadU2FDevices mocks base method.
+func (m *MockStorage) LoadU2FDevices(arg0 context.Context, arg1, arg2 int) ([]models.U2FDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadU2FDevices", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.U2FDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadU2FDevices indicates an expected call of LoadU2FDevices.
+func (mr *MockStorageMockRecorder) LoadU2FDevices(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevices", reflect.TypeOf((*MockStorage)(nil).LoadU2FDevices), arg0, arg1, arg2)
+}
+
 // LoadUserInfo mocks base method.
 func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.UserInfo, error) {
 	m.ctrl.T.Helper()
@@ -211,20 +240,6 @@ func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.Us
 func (mr *MockStorageMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadUserInfo), arg0, arg1)
-}
-
-// RemoveIdentityVerification mocks base method.
-func (m *MockStorage) RemoveIdentityVerification(arg0 context.Context, arg1 string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveIdentityVerification", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RemoveIdentityVerification indicates an expected call of RemoveIdentityVerification.
-func (mr *MockStorageMockRecorder) RemoveIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIdentityVerification", reflect.TypeOf((*MockStorage)(nil).RemoveIdentityVerification), arg0, arg1)
 }
 
 // SaveIdentityVerification mocks base method.
@@ -441,18 +456,4 @@ func (m *MockStorage) StartupCheck() error {
 func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
-}
-
-// UpdateTOTPConfigurationSecret mocks base method.
-func (m *MockStorage) UpdateTOTPConfigurationSecret(arg0 context.Context, arg1 models.TOTPConfiguration) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTOTPConfigurationSecret", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateTOTPConfigurationSecret indicates an expected call of UpdateTOTPConfigurationSecret.
-func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSecret(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSecret", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSecret), arg0, arg1)
 }

@@ -162,3 +162,12 @@ func TestIsStringSliceContainsAll(t *testing.T) {
 	assert.True(t, IsStringSliceContainsAll(needles, haystackOne))
 	assert.False(t, IsStringSliceContainsAll(needles, haystackTwo))
 }
+
+func TestIsStringSliceContainsAny(t *testing.T) {
+	needles := []string{"abc", "123", "xyz"}
+	haystackOne := []string{"tvu", "456", "hij"}
+	haystackTwo := []string{"tvu", "123", "456", "xyz"}
+
+	assert.False(t, IsStringSliceContainsAny(needles, haystackOne))
+	assert.True(t, IsStringSliceContainsAny(needles, haystackTwo))
+}
