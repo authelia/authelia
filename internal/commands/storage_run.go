@@ -305,8 +305,10 @@ func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 
 func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider    storage.Provider
-		format, dir string
+		provider       storage.Provider
+		format, dir    string
+		configurations []models.TOTPConfiguration
+		img            image.Image
 
 		ctx = context.Background()
 	)
@@ -349,12 +351,6 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	limit := 10
-
-	var (
-		configurations []models.TOTPConfiguration
-
-		img image.Image
-	)
 
 	for page := 0; true; page++ {
 		configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page)
