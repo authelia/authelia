@@ -13,7 +13,7 @@
   [![License](https://img.shields.io/github/license/authelia/authelia?logo=apache&style=flat-square&color=blue)][Apache 2.0]
   [![Sponsor](https://img.shields.io/opencollective/all/authelia-sponsors?logo=Open%20Collective&label=financial%20contributors&style=flat-square&color=blue)](https://opencollective.com/authelia-sponsors)
   [![Discord](https://img.shields.io/discord/707844280412012608?label=discord&logo=discord&style=flat-square&color=blue)](https://discord.authelia.com)
-  [![Matrix](https://img.shields.io/matrix/authelia-support:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://matrix.to/#/#authelia-support:matrix.org)
+  [![Matrix](https://img.shields.io/matrix/authelia-support:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://matrix.to/#/#support:authelia.com)
 
 **Authelia** is an open-source authentication and authorization server providing two-factor authentication and single 
 sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx], [Traefik] 
@@ -147,8 +147,8 @@ Several contact options exist for our community, the primary one being [Matrix](
 
 ### Matrix
 
-Community members are invited to join the [Matrix Space](https://matrix.to/#/#authelia:matrix.org) which includes both
-the [Support Room](https://matrix.to/#/#authelia-support:matrix.org) and the [Contributing Room](https://matrix.to/#/#authelia-contributing:matrix.org).
+Community members are invited to join the [Matrix Space](https://matrix.to/#/#community:authelia.com) which includes both
+the [Support Room](https://matrix.to/#/#support:authelia.com) and the [Contributing Room](https://matrix.to/#/#contributing:authelia.com).
 
 - The core team members are identified as administrators in the Space and individual Rooms.
 - All channels are linked to [Discord](#discord).
