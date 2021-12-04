@@ -5,7 +5,7 @@ contact_links:
     url: https://www.authelia.com/docs/
     about: Read the Documentation
   - name: Matrix
-    url: https://matrix.to/#/#authelia:matrix.org
+    url: https://matrix.to/#/#community:authelia.com
     about: Discuss Authelia with the Developers on Matrix which is the preferred method of contact
   - name: Discord
     url: https://discord.authelia.com

@@ -44,8 +44,8 @@ Several contact options exist for our community, the primary one being [Matrix](
 
 ### Matrix
 
-Community members are invited to join the [Matrix Space](https://matrix.to/#/#authelia:matrix.org) which includes both
-the [Support Room](https://matrix.to/#/#authelia-support:matrix.org) and the [Contributing Room](https://matrix.to/#/#authelia-contributing:matrix.org). 
+Community members are invited to join the [Matrix Space](https://matrix.to/#/#community:authelia.com) which includes both
+the [Support Room](https://matrix.to/#/#support:authelia.com) and the [Contributing Room](https://matrix.to/#/#contributing:authelia.com). 
 
 - The core team members are identified as administrators in the Space and individual Rooms.
 - All channels are linked to [Discord](#discord).
