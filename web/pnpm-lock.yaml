@@ -10,7 +10,7 @@ specifiers:
   '@material-ui/core': 4.12.3
   '@material-ui/icons': 4.11.2
   '@material-ui/styles': 4.11.4
-  '@testing-library/jest-dom': 5.15.1
+  '@testing-library/jest-dom': 5.16.0
   '@testing-library/react': 12.1.2
   '@types/node': 16.11.11
   '@types/qrcode.react': 1.0.2
@@ -77,7 +77,7 @@ dependencies:
 devDependencies:
   '@commitlint/cli': 15.0.0
   '@commitlint/config-conventional': 15.0.0
-  '@testing-library/jest-dom': 5.15.1
+  '@testing-library/jest-dom': 5.16.0
   '@testing-library/react': 12.1.2_react-dom@17.0.2+react@17.0.2
   '@types/node': 16.11.11
   '@types/qrcode.react': 1.0.2
@@ -1344,13 +1344,13 @@ packages:
       pretty-format: 27.4.1
     dev: true
 
-  /@testing-library/jest-dom/5.15.1:
-    resolution: {integrity: sha512-kmj8opVDRE1E4GXyLlESsQthCXK7An28dFWxhiMwD7ZUI7ZxA6sjdJRxLerD9Jd8cHX4BDc1jzXaaZKqzlUkvg==}
+  /@testing-library/jest-dom/5.16.0:
+    resolution: {integrity: sha512-ECygvCL6ufPfHna4fsk7o24+3PVNhRbioDpFbfSVEZaglT6EjuRP+w8I5tzigFz1fobpvCrVRoKyR4qx2QUCxw==}
     engines: {node: '>=8', npm: '>=6', yarn: '>=1'}
     dependencies:
       '@babel/runtime': 7.16.3
       '@types/testing-library__jest-dom': 5.14.1
-      aria-query: 4.2.2
+      aria-query: 5.0.0
       chalk: 3.0.0
       css: 3.0.0
       css.escape: 1.5.1

@@ -51,6 +51,8 @@ func (ip *IP) Scan(src interface{}) (err error) {
 	switch v := src.(type) {
 	case string:
 		value = v
+	case []byte:
+		value = string(v)
 	default:
 		return fmt.Errorf("invalid type %T for IP %v", src, src)
 	}
@@ -86,6 +88,8 @@ func (ip *NullIP) Scan(src interface{}) (err error) {
 	switch v := src.(type) {
 	case string:
 		value = v
+	case []byte:
+		value = string(v)
 	default:
 		return fmt.Errorf("invalid type %T for NullIP %v", src, src)
 	}
