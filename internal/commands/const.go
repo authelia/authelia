@@ -88,6 +88,7 @@ const (
 const (
 	storageExportFormatCSV = "csv"
 	storageExportFormatURI = "uri"
+	storageExportFormatPNG = "png"
 )
 
 var (
