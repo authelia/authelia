@@ -182,11 +182,14 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return errors.New("schema version must be at least version 1 to change the encryption key")
 	}
 
-	if key, err = cmd.Flags().GetString("new-encryption-key"); err != nil {
+	key, err = cmd.Flags().GetString("new-encryption-key")
+
+	switch {
+	case err != nil:
 		return err
-	} else if key == "" {
+	case key == "":
 		return errors.New("you must set the --new-encryption-key flag")
-	} else if len(key) < 20 {
+	case len(key) < 20:
 		return errors.New("the encryption key must be at least 20 characters")
 	}
 
@@ -264,6 +267,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		if err = png.Encode(file, img); err != nil {
 			return err
 		}
+
 		fmt.Printf("Generated TOTP QR code in PNG format for user '%s' at path: %s\n", args[0], filename)
 	}
 
