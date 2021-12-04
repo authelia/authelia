@@ -56,12 +56,10 @@ const (
 )
 
 const (
-	queryFmtSelectExistsIdentityVerification = `
-		SELECT EXISTS (
-			SELECT id
-			FROM %s
-			WHERE jti = ? AND exp > CURRENT_TIMESTAMP AND consumed IS NULL
-		);`
+	queryFmtSelectIdentityVerification = `
+		SELECT id, jti, iat, issued_ip, exp, username, action, consumed, consumed_ip
+		FROM %s
+		WHERE jti = ?;`
 
 	queryFmtInsertIdentityVerification = `
 		INSERT INTO %s (jti, iat, issued_ip, exp, username, action)
