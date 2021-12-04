@@ -211,6 +211,14 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	}()
 
 	force, err = cmd.Flags().GetBool("force")
+	if err != nil {
+		return err
+	}
+
+	secret, err := cmd.Flags().GetString("shared-secret")
+	if err != nil {
+		return err
+	}
 
 	_, err = provider.LoadTOTPConfiguration(ctx, args[0])
 	if err == nil && !force {
@@ -221,18 +229,33 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+	if secret != "" {
+		c = &models.TOTPConfiguration{
+			Username:  args[0],
+			Issuer:    config.TOTP.Issuer,
+			Algorithm: config.TOTP.Algorithm,
+			Digits:    config.TOTP.Digits,
+			Period:    config.TOTP.Period,
+			Secret:    []byte(secret),
+		}
 
-	if c, err = totpProvider.Generate(args[0]); err != nil {
-		return err
+		if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
+			return err
+		}
+	} else {
+		totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+
+		if c, err = totpProvider.Generate(args[0]); err != nil {
+			return err
+		}
+
+		err = provider.SaveTOTPConfiguration(ctx, *c)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Generated TOTP configuration for user '%s': %s", args[0], c.URI())
 	}
-
-	err = provider.SaveTOTPConfiguration(ctx, *c)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Generated TOTP configuration for user '%s': %s", args[0], c.URI())
 
 	return nil
 }
