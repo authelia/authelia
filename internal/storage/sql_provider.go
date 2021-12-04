@@ -33,9 +33,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
 		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
 
-		sqlInsertIdentityVerification:       fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
-		sqlConsumeIdentityVerification:      fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
-		sqlSelectExistsIdentityVerification: fmt.Sprintf(queryFmtSelectExistsIdentityVerification, tableIdentityVerification),
+		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
+		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
+		sqlSelectIdentityVerification:  fmt.Sprintf(queryFmtSelectIdentityVerification, tableIdentityVerification),
 
 		sqlUpsertTOTPConfig:  fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
 		sqlDeleteTOTPConfig:  fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
@@ -90,9 +90,9 @@ type SQLProvider struct {
 	sqlSelectAuthenticationAttemptsByUsername string
 
 	// Table: identity_verification.
-	sqlInsertIdentityVerification       string
-	sqlConsumeIdentityVerification      string
-	sqlSelectExistsIdentityVerification string
+	sqlInsertIdentityVerification  string
+	sqlConsumeIdentityVerification string
+	sqlSelectIdentityVerification  string
 
 	// Table: totp_configurations.
 	sqlUpsertTOTPConfig  string
@@ -245,11 +245,21 @@ func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti strin
 
 // FindIdentityVerification checks if an identity verification record is in the database and active.
 func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
-	if err = p.db.GetContext(ctx, &found, p.sqlSelectExistsIdentityVerification, jti); err != nil {
+	verification := models.IdentityVerification{}
+	if err = p.db.GetContext(ctx, &verification, p.sqlSelectIdentityVerification, jti); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
 		return false, fmt.Errorf("error selecting identity verification exists: %w", err)
 	}
 
-	return found, nil
+	switch {
+	case verification.Consumed != nil, verification.ExpiresAt.Before(time.Now()):
+		return false, nil
+	default:
+		return true, nil
+	}
 }
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the database.
