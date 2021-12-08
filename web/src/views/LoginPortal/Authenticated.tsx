@@ -1,17 +1,19 @@
 import React from "react";
 
 import { Typography, makeStyles } from "@material-ui/core";
+import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
 
 const Authenticated = function () {
     const classes = useStyles();
+    const { t } = useTranslation("Portal");
     return (
         <div id="authenticated-stage">
             <div className={classes.iconContainer}>
                 <SuccessIcon />
             </div>
-            <Typography>Authenticated</Typography>
+            <Typography>{t("Authenticated")}</Typography>
         </div>
     );
 };

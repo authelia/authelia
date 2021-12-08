@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
@@ -31,6 +33,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
     const redirectionURL = useRedirectionURL();
+    const { t } = useTranslation("Portal");
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -41,7 +44,7 @@ const OneTimePasswordMethod = function (props: Props) {
     useEffect(() => {
         if (err) {
             console.error(err);
-            onSignInErrorCallback(new Error("Could not obtain user settings"));
+            onSignInErrorCallback(new Error(t("Could not obtain user settings")));
             setState(State.Failure);
         }
     }, [onSignInErrorCallback, err]);
@@ -105,8 +108,8 @@ const OneTimePasswordMethod = function (props: Props) {
     return (
         <MethodContainer
             id={props.id}
-            title="One-Time Password"
-            explanation="Enter one-time password"
+            title={t("One-Time Password")}
+            explanation={t("Enter one-time password")}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}

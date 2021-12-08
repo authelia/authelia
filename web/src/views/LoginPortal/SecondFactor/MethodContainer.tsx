@@ -2,6 +2,7 @@ import React, { ReactNode, Fragment } from "react";
 
 import { makeStyles, Typography, Link, useTheme } from "@material-ui/core";
 import classnames from "classnames";
+import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
 import Authenticated from "@views/LoginPortal/Authenticated";
@@ -27,12 +28,13 @@ export interface Props {
 
 const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
+    const { t } = useTranslation("Portal");
     const registerMessage = props.registered
         ? props.title === "Push Notification"
             ? ""
-            : "Lost your device?"
-        : "Register device";
-    const selectMessage = "Select a Device";
+            : t("Lost your device?")
+        : t("Register device");
+    const selectMessage = t("Select a Device");
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -95,6 +97,7 @@ interface NotRegisteredContainerProps {
 }
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
+    const { t } = useTranslation("Portal");
     const theme = useTheme();
     return (
         <Fragment>
@@ -102,14 +105,14 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
                 <InformationIcon />
             </div>
             <Typography style={{ color: "#5858ff" }}>
-                The resource you're attempting to access requires two-factor authentication.
+                {t("The resource you're attempting to access requires two-factor authentication")}
             </Typography>
             <Typography style={{ color: "#5858ff" }}>
                 {props.title === "Push Notification"
                     ? props.duoSelfEnrollment
-                        ? "Register your first device by clicking on the link below."
-                        : "Contact your administrator to register a device."
-                    : "Register your first device by clicking on the link below."}
+                        ? t("Register your first device by clicking on the link below")
+                        : t("Contact your administrator to register a device.")
+                    : t("Register your first device by clicking on the link below")}
             </Typography>
         </Fragment>
     );

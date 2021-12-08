@@ -1,6 +1,7 @@
 import React from "react";
 
 import { Grid, makeStyles, Button } from "@material-ui/core";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
@@ -20,11 +21,11 @@ const AuthenticatedView = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="authenticated-stage" title={`Hi ${props.name}`} showBrand>
+        <LoginLayout id="authenticated-stage" title={`${t("Hi")} ${props.name}`} showBrand>
             <Grid container>
                 <Grid item xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
-                        Logout
+                        {t("Logout")}
                     </Button>
                 </Grid>
                 <Grid item xs={12} className={style.mainContainer}>

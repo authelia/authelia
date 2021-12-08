@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import { Grid, Button, makeStyles } from "@material-ui/core";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
@@ -15,6 +16,7 @@ const ResetPasswordStep1 = function () {
     const [error, setError] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
+    const { t } = useTranslation("Portal");
 
     const doInitiateResetPasswordProcess = async () => {
         if (username === "") {
@@ -24,9 +26,9 @@ const ResetPasswordStep1 = function () {
 
         try {
             await initiateResetPasswordProcess(username);
-            createInfoNotification("An email has been sent to your address to complete the process.");
+            createInfoNotification(t("An email has been sent to your address to complete the process"));
         } catch (err) {
-            createErrorNotification("There was an issue initiating the password reset process.");
+            createErrorNotification(t("There was an issue initiating the password reset process"));
         }
     };
 
@@ -39,12 +41,12 @@ const ResetPasswordStep1 = function () {
     };
 
     return (
-        <LoginLayout title="Reset password" id="reset-password-step1-stage">
+        <LoginLayout title={t("Reset password")} id="reset-password-step1-stage">
             <Grid container className={style.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="username-textfield"
-                        label="Username"
+                        label={t("Username")}
                         variant="outlined"
                         fullWidth
                         error={error}
@@ -60,7 +62,7 @@ const ResetPasswordStep1 = function () {
                 </Grid>
                 <Grid item xs={6}>
                     <Button id="reset-button" variant="contained" color="primary" fullWidth onClick={handleResetClick}>
-                        Reset
+                        {t("Reset")}
                     </Button>
                 </Grid>
                 <Grid item xs={6}>
@@ -71,7 +73,7 @@ const ResetPasswordStep1 = function () {
                         fullWidth
                         onClick={handleCancelClick}
                     >
-                        Cancel
+                        {t("Cancel")}
                     </Button>
                 </Grid>
             </Grid>

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 
 import { Grid, Button, makeStyles } from "@material-ui/core";
 import classnames from "classnames";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
@@ -20,6 +21,7 @@ const ResetPasswordStep2 = function () {
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { t } = useTranslation("Portal");
     const navigate = useNavigate();
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
@@ -28,7 +30,7 @@ const ResetPasswordStep2 = function () {
     const completeProcess = useCallback(async () => {
         if (!processToken) {
             setFormDisabled(true);
-            createErrorNotification("No verification token provided");
+            createErrorNotification(t("No verification token provided"));
             return;
         }
 
@@ -39,7 +41,7 @@ const ResetPasswordStep2 = function () {
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                "There was an issue completing the process. The verification token might have expired.",
+                t("There was an issue completing the process. The verification token might have expired"),
             );
             setFormDisabled(true);
         }
@@ -62,21 +64,21 @@ const ResetPasswordStep2 = function () {
         if (password1 !== password2) {
             setErrorPassword1(true);
             setErrorPassword2(true);
-            createErrorNotification("Passwords do not match.");
+            createErrorNotification(t("Passwords do not match"));
             return;
         }
 
         try {
             await resetPassword(password1);
-            createSuccessNotification("Password has been reset.");
+            createSuccessNotification(t("Password has been reset"));
             setTimeout(() => navigate(FirstFactorRoute), 1500);
             setFormDisabled(true);
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+                createErrorNotification(t("Your supplied password does not meet the password policy requirements"));
             } else {
-                createErrorNotification("There was an issue resetting the password.");
+                createErrorNotification(t("There was an issue resetting the password"));
             }
         }
     };
@@ -86,12 +88,12 @@ const ResetPasswordStep2 = function () {
     const handleCancelClick = () => navigate(FirstFactorRoute);
 
     return (
-        <LoginLayout title="Enter new password" id="reset-password-step2-stage">
+        <LoginLayout title={t("Enter new password")} id="reset-password-step2-stage">
             <Grid container className={style.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="password1-textfield"
-                        label="New password"
+                        label={t("New password")}
                         variant="outlined"
                         type="password"
                         value={password1}
@@ -105,7 +107,7 @@ const ResetPasswordStep2 = function () {
                 <Grid item xs={12}>
                     <FixedTextField
                         id="password2-textfield"
-                        label="Repeat new password"
+                        label={t("Repeat new password")}
                         variant="outlined"
                         type="password"
                         disabled={formDisabled}
@@ -132,7 +134,7 @@ const ResetPasswordStep2 = function () {
                         onClick={handleResetClick}
                         className={style.fullWidth}
                     >
-                        Reset
+                        {t("Reset")}
                     </Button>
                 </Grid>
                 <Grid item xs={6}>
@@ -144,7 +146,7 @@ const ResetPasswordStep2 = function () {
                         onClick={handleCancelClick}
                         className={style.fullWidth}
                     >
-                        Cancel
+                        {t("Cancel")}
                     </Button>
                 </Grid>
             </Grid>

@@ -1,35 +1,24 @@
----
-###############################################################
-#                         Users Database                      #
-###############################################################
-
-# This file can be used if you do not have an LDAP set up.
-
-# List of users
 users:
-  john:
-    displayname: "John Doe"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
-    email: john.doe@authelia.com
-    groups:
-      - admins
-      - dev
-
-  harry:
-    displayname: "Harry Potter"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
-    email: harry.potter@authelia.com
-    groups: []
-
   bob:
-    displayname: "Bob Dylan"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+    displayname: Bob Dylan
     email: bob.dylan@authelia.com
     groups:
-      - dev
-
+    - dev
+  harry:
+    password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+    displayname: Harry Potter
+    email: harry.potter@authelia.com
+    groups: []
   james:
-    displayname: "James Dean"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+    displayname: James Dean
     email: james.dean@authelia.com
-...
+    groups: []
+  john:
+    password: $argon2id$v=19$m=65536,t=1,p=8$bFZpMEhxYURwZjlmSXAwZQ$lp670PJYkGfgAqiU5+4jC1I3jS/AcOy1Z601ONWtbxM
+    displayname: John Doe
+    email: john.doe@authelia.com
+    groups:
+    - admins
+    - dev
