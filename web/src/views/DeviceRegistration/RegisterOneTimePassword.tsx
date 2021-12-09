@@ -63,8 +63,7 @@ const RegisterOneTimePassword = function () {
             setHasErrored(true);
         }
         setIsLoading(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [processToken, createErrorNotification]);
+    }, [processToken, createErrorNotification, t]);
 
     useEffect(() => {
         completeRegistrationProcess();

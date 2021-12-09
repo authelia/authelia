@@ -40,8 +40,7 @@ const SignOut = function (props: Props) {
             console.error(err);
             createErrorNotification(t("There was an issue signing out"));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted]);
+    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted, t]);
 
     useEffect(() => {
         doSignOut();

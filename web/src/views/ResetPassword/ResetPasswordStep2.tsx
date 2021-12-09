@@ -45,8 +45,7 @@ const ResetPasswordStep2 = function () {
             );
             setFormDisabled(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [processToken, createErrorNotification]);
+    }, [processToken, createErrorNotification, t]);
 
     useEffect(() => {
         completeProcess();

@@ -46,8 +46,7 @@ const OneTimePasswordMethod = function (props: Props) {
             onSignInErrorCallback(new Error(t("Could not obtain user settings")));
             setState(State.Failure);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onSignInErrorCallback, err]);
+    }, [onSignInErrorCallback, err, t]);
 
     useEffect(() => {
         if (props.registered && props.authenticationLevel === AuthenticationLevel.OneFactor) {
