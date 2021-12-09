@@ -38,7 +38,6 @@ const OneTimePasswordMethod = function (props: Props) {
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
-
     const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
 
     useEffect(() => {
@@ -47,6 +46,7 @@ const OneTimePasswordMethod = function (props: Props) {
             onSignInErrorCallback(new Error(t("Could not obtain user settings")));
             setState(State.Failure);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onSignInErrorCallback, err]);
 
     useEffect(() => {
