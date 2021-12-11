@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
 );
 
 INSERT INTO webauthn_devices (id, username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
-SELECT id, username, description, encode(key_handle::bytea, 'hex'), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0, FALSE
+SELECT id, username, description, key_handle, public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0, FALSE
 FROM u2f_devices;
 
 UPDATE user_preferences
