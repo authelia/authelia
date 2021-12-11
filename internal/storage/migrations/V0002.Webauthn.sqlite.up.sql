@@ -2,15 +2,14 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',
-    kid VARCHAR(1024) NOT NULL,
+    kid BLOB NOT NULL,
     public_key BLOB NOT NULL,
     attestation_type VARCHAR(32),
     aaguid CHAR(36) NOT NULL,
     sign_count INTEGER,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id),
-    UNIQUE (username, description),
-    UNIQUE (kid)
+    UNIQUE (username, description)
 );
 
 INSERT INTO webauthn_devices (id, username, description, kid, public_key, attestation_type, aaguid, sign_count)

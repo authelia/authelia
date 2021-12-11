@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql/driver"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -96,53 +95,6 @@ func (ip *NullIP) Scan(src interface{}) (err error) {
 	}
 
 	ip.IP = net.ParseIP(value)
-
-	return nil
-}
-
-// NewHexadecimal returns a new  Hexadecimal given some bytes.
-func NewHexadecimal(value []byte) (hexadecimal Hexadecimal) {
-	return Hexadecimal{value: value}
-}
-
-// Hexadecimal represents bytes stored in the database as a hexadecimal string.
-type Hexadecimal struct {
-	value []byte
-}
-
-// String returns the encoded string value of the bytes.
-func (h Hexadecimal) String() string {
-	return hex.EncodeToString(h.value)
-}
-
-// Bytes returns the value.
-func (h Hexadecimal) Bytes() []byte {
-	return h.value
-}
-
-// Value implements the driver.Valuer.
-func (h Hexadecimal) Value() (value driver.Value, err error) {
-	return hex.EncodeToString(h.value), nil
-}
-
-// Scan implements the sql.Scanner.
-func (h *Hexadecimal) Scan(src interface{}) (err error) {
-	if src == nil {
-		return errors.New("cannot scan nil to type Hexadecimal")
-	}
-
-	switch v := src.(type) {
-	case string:
-		if h.value, err = hex.DecodeString(v); err != nil {
-			return fmt.Errorf("can't convert string to hex: %w", err)
-		}
-	case []byte:
-		if h.value, err = hex.DecodeString(string(v)); err != nil {
-			return fmt.Errorf("can't convert byte[] to hex: %w", err)
-		}
-	default:
-		return fmt.Errorf("invalid type %T for Hexadecimal %v", src, src)
-	}
 
 	return nil
 }

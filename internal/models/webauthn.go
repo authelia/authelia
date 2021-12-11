@@ -57,7 +57,7 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 		}
 
 		credentials[i] = webauthn.Credential{
-			ID:              device.KID.Bytes(),
+			ID:              device.KID,
 			PublicKey:       device.PublicKey,
 			AttestationType: device.AttestationType,
 			Authenticator: webauthn.Authenticator{
@@ -78,7 +78,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 	for i, device := range w.Devices {
 		descriptor := protocol.CredentialDescriptor{
 			Type:         protocol.PublicKeyCredentialType,
-			CredentialID: device.KID.Bytes(),
+			CredentialID: device.KID,
 		}
 
 		for _, t := range device.Transport {
@@ -101,7 +101,7 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 	device = WebauthnDevice{
 		Username:        username,
 		Description:     description,
-		KID:             Hexadecimal{value: credential.ID},
+		KID:             credential.ID,
 		PublicKey:       credential.PublicKey,
 		AttestationType: credential.AttestationType,
 		SignCount:       credential.Authenticator.SignCount,
@@ -115,14 +115,14 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
-	ID              int         `db:"id"`
-	Username        string      `db:"username"`
-	Description     string      `db:"description"`
-	KID             Hexadecimal `db:"kid"`
-	PublicKey       []byte      `db:"public_key"`
-	AttestationType string      `db:"attestation_type"`
-	Transport       []string    `db:"transport"`
-	AAGUID          uuid.UUID   `db:"aaguid"`
-	SignCount       uint32      `db:"sign_count"`
-	CloneWarning    bool        `db:"clone_warning"`
+	ID              int       `db:"id"`
+	Username        string    `db:"username"`
+	Description     string    `db:"description"`
+	KID             []byte    `db:"kid"`
+	PublicKey       []byte    `db:"public_key"`
+	AttestationType string    `db:"attestation_type"`
+	Transport       []string  `db:"transport"`
+	AAGUID          uuid.UUID `db:"aaguid"`
+	SignCount       uint32    `db:"sign_count"`
+	CloneWarning    bool      `db:"clone_warning"`
 }
