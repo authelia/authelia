@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     kid BYTEA NOT NULL,
     public_key BYTEA NOT NULL,
     attestation_type VARCHAR(32),
+    transport VARCHAR(20) DEFAULT '',
     aaguid CHAR(36) NOT NULL,
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,

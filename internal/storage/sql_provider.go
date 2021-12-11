@@ -355,7 +355,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
 		device.Username, device.Description,
 		device.KID, device.PublicKey,
-		device.AttestationType, device.AAGUID, device.SignCount, device.CloneWarning,
+		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,
 	); err != nil {
 		return fmt.Errorf("error upserting Webauthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}

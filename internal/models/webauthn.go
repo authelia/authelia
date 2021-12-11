@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/hex"
+	"strings"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
@@ -50,13 +51,15 @@ func (w WebauthnUser) WebAuthnIcon() string {
 func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
 	credentials = make([]webauthn.Credential, len(w.Devices))
 
+	var credential webauthn.Credential
+
 	for i, device := range w.Devices {
 		aaguid, err := device.AAGUID.MarshalBinary()
 		if err != nil {
 			continue
 		}
 
-		credentials[i] = webauthn.Credential{
+		credential = webauthn.Credential{
 			ID:              device.KID,
 			PublicKey:       device.PublicKey,
 			AttestationType: device.AttestationType,
@@ -66,6 +69,20 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 				CloneWarning: device.CloneWarning,
 			},
 		}
+
+		transports := strings.Split(device.Transport, ",")
+		credential.Transport = make([]protocol.AuthenticatorTransport, len(transports))
+
+		for _, t := range transports {
+			transport := protocol.AuthenticatorTransport(t)
+
+			switch transport {
+			case protocol.Internal, protocol.USB, protocol.NFC, protocol.BLE:
+				credential.Transport = append(credential.Transport, transport)
+			}
+		}
+
+		credentials[i] = credential
 	}
 
 	return credentials
@@ -81,7 +98,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 			CredentialID: device.KID,
 		}
 
-		for _, t := range device.Transport {
+		for _, t := range strings.Split(device.Transport, ",") {
 			transport := protocol.AuthenticatorTransport(t)
 
 			switch transport {
@@ -98,6 +115,12 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 
 // NewWebauthnDeviceFromCredential creates a WebauthnDevice from a webauthn.Credential.
 func NewWebauthnDeviceFromCredential(username, description string, credential *webauthn.Credential) (device WebauthnDevice) {
+	transport := make([]string, len(credential.Transport))
+
+	for i, t := range credential.Transport {
+		transport[i] = string(t)
+	}
+
 	device = WebauthnDevice{
 		Username:        username,
 		Description:     description,
@@ -106,6 +129,7 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 		AttestationType: credential.AttestationType,
 		SignCount:       credential.Authenticator.SignCount,
 		CloneWarning:    credential.Authenticator.CloneWarning,
+		Transport:       strings.Join(transport, ","),
 	}
 
 	device.AAGUID, _ = uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
@@ -121,7 +145,7 @@ type WebauthnDevice struct {
 	KID             []byte    `db:"kid"`
 	PublicKey       []byte    `db:"public_key"`
 	AttestationType string    `db:"attestation_type"`
-	Transport       []string  `db:"transport"`
+	Transport       string    `db:"transport"`
 	AAGUID          uuid.UUID `db:"aaguid"`
 	SignCount       uint32    `db:"sign_count"`
 	CloneWarning    bool      `db:"clone_warning"`

@@ -89,8 +89,8 @@ github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:o
 github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d h1:Byv0BzEl3/e6D5CLfI0j/7hiIEtvGVFPCZ7Ei2oq8iQ=
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
-github.com/authelia/webauthn v0.0.0-20211211134741-3b83e04d2e21 h1:6VsiwqNHyjRcCifgMCEb31Cz+0a+R/36M5sFUSUMGzk=
-github.com/authelia/webauthn v0.0.0-20211211134741-3b83e04d2e21/go.mod h1:1EXYqVHig5qL5WyKtcdVTSCcJMzv/9ho0ADueuqlEbE=
+github.com/authelia/webauthn v0.0.0-20211211140036-4441f3a81f06 h1:6xsYc3js8fnOYRUSf7wJv5hlTWoK7R1e0qzV5/hgIIs=
+github.com/authelia/webauthn v0.0.0-20211211140036-4441f3a81f06/go.mod h1:1EXYqVHig5qL5WyKtcdVTSCcJMzv/9ho0ADueuqlEbE=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-sdk-go v1.23.19/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.27.0/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
