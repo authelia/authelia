@@ -42,17 +42,16 @@ func (s *BackendProtectionScenario) AssertRequestStatusCode(method, url string, 
 func (s *BackendProtectionScenario) TestProtectionOfBackendEndpoints() {
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/totp", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn/assertion", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn/register", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn/attestation", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/user/info/2fa_method", AutheliaBaseURL), 403)
 
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/user/info", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("GET", fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), 403)
 
-	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/identity/start", AutheliaBaseURL), 403)
-	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/u2f/identity/finish", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/totp/identity/start", AutheliaBaseURL), 403)
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/totp/identity/finish", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn/identity/start", AutheliaBaseURL), 403)
+	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/secondfactor/webauthn/identity/finish", AutheliaBaseURL), 403)
 }
 
 func (s *BackendProtectionScenario) TestInvalidEndpointsReturn404() {

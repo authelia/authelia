@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/hex"
+
 	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/google/uuid"
 )
@@ -74,11 +76,9 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 	device.KID = credential.ID
 	device.PublicKey = credential.PublicKey
 	device.AttestationType = credential.AttestationType
-
-	aaguid, _ := uuid.ParseBytes(credential.Authenticator.AAGUID)
-
-	device.AAGUID = aaguid
 	device.SignCount = credential.Authenticator.SignCount
+
+	device.AAGUID, _ = uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
 
 	return device
 }
