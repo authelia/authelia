@@ -16,5 +16,5 @@ WHERE attestation_type = 'fido-u2f';
 DROP TABLE IF EXISTS webauthn_devices;
 
 UPDATE user_preferences
-SET second_factor_method = 'webauthn'
-WHERE second_factor_method = 'u2f';
+SET second_factor_method = 'u2f'
+WHERE second_factor_method = 'webauthn';
