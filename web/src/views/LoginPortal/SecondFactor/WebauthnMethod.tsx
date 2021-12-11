@@ -110,7 +110,7 @@ const WebauthnMethod = function (props: Props) {
 
             setState(State.InProgress);
 
-            const response = await postWebauthnAssertionChallengeResponse(result.credential);
+            const response = await postWebauthnAssertionChallengeResponse(result.credential, redirectionURL);
 
             if (response.data.status === "OK") {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);

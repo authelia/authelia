@@ -84,6 +84,7 @@ interface AssertionChallengeResponse {
     type: string;
     clientExtensionResults: AuthenticationExtensionsClientOutputs;
     response: AssertionResponse;
+    targetURL?: string;
 }
 
 interface AssertionResponse {
@@ -161,7 +162,10 @@ function createAttestationResponse(credential: PublicKeyCredential): Attestation
     return response;
 }
 
-function createAssertionResponse(credential: PublicKeyCredential): AssertionChallengeResponse {
+function createAssertionResponse(
+    credential: PublicKeyCredential,
+    targetURL: string | undefined,
+): AssertionChallengeResponse {
     const assertionResponse = credential.response as AuthenticatorAssertionResponse;
 
     let userHandle: string;
@@ -183,6 +187,7 @@ function createAssertionResponse(credential: PublicKeyCredential): AssertionChal
             signature: bufferEncode(new Uint8Array(assertionResponse.signature)),
             userHandle: userHandle,
         },
+        targetURL: targetURL,
     };
 }
 
@@ -328,7 +333,7 @@ async function completeAttestationChallenge(
     return axios.post<OptionalDataServiceResponse<any>>(WebauthnAttestationPath, attestationResponse);
 }
 
-export async function performWebauthnAssertionCeremony(): Promise<AssertionResult> {
+export async function performWebauthnAssertionCeremony(targetURL: string | undefined): Promise<AssertionResult> {
     if (!browserSupportsWebauthn()) {
         return AssertionResult.FailureWebauthnNotSupported;
     }
@@ -347,7 +352,7 @@ export async function performWebauthnAssertionCeremony(): Promise<AssertionResul
         return AssertionResult.Failure;
     }
 
-    const response = await postWebauthnAssertionChallengeResponse(result.credential);
+    const response = await postWebauthnAssertionChallengeResponse(result.credential, targetURL);
 
     if (response.data.status === "OK") {
         return AssertionResult.Success;
@@ -368,8 +373,9 @@ export async function getWebauthnAssertionChallenge(): Promise<PublicKeyCredenti
 
 export async function postWebauthnAssertionChallengeResponse(
     credential: PublicKeyCredential,
+    targetURL: string | undefined,
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
-    const assertionResponse = createAssertionResponse(credential);
+    const assertionResponse = createAssertionResponse(credential, targetURL);
 
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, assertionResponse);
 }

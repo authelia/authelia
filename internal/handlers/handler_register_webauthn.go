@@ -28,6 +28,7 @@ var SecondFactorWebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
 	}, SecondFactorWebauthnAttestationGET)
 
+// SecondFactorWebauthnAttestationGET returns the attestation challenge from the server.
 func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
 	var (
 		w    *webauthn.WebAuthn
@@ -80,6 +81,7 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 	}
 }
 
+// SecondFactorWebauthnAttestationPOST processes the attestation challenge response from the client.
 func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err  error

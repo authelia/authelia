@@ -11,7 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// SecondFactorWebauthnAssertionGET handler starting the assertion ceremony.
+// SecondFactorWebauthnAssertionGET handler starts the assertion ceremony.
 func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w     *webauthn.WebAuthn
@@ -79,7 +79,7 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// SecondFactorWebauthnAssertionPOST handler completing the assertion ceremony after verifying the challenge.
+// SecondFactorWebauthnAssertionPOST handler completes the assertion ceremony after verifying the challenge.
 func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err error
