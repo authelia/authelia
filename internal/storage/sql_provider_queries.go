@@ -147,7 +147,7 @@ const (
 		VALUES (?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertWebauthnDevice = `
-		INSERT INTO %s (username, description, key_handle, public_key)
+		INSERT INTO %s (username, description, kid, public_key)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (username, description)
 			DO UPDATE SET kid=$3, public_key=$4, attestation=$5, aaguid=$6, sign_count=$7;`
