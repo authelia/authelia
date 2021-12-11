@@ -15,8 +15,8 @@ const (
 	// AuthTypeU2F is the string representing an auth log for second-factor authentication via FIDO/CTAP1/U2F.
 	AuthTypeU2F = "U2F"
 
-	// AuthTypeWebAuthn is the string representing an auth log for second-factor authentication via FIDO2/CTAP2/WebAuthn.
-	// TODO: Add WebAuthn.
+	// AuthTypeWebauthn is the string representing an auth log for second-factor authentication via FIDO2/CTAP2/WebAuthn.
+	AuthTypeWebauthn = "Webauthn"
 
 	// AuthTypeDuo is the string representing an auth log for second-factor authentication via DUO.
 	AuthTypeDuo = "Duo"

@@ -35,7 +35,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
@@ -111,36 +111,46 @@ const (
 )
 
 const (
-	queryFmtSelectU2FDevice = `
-		SELECT id, username, key_handle, public_key
-		FROM %s
-		WHERE username = ?;`
-
-	queryFmtSelectU2FDevices = `
-		SELECT id, username, key_handle, public_key
+	queryFmtSelectWebauthnDevices = `
+		SELECT id, username, description, kid, public_key, attestation_type, aaguid, sign_count 
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtUpdateU2FDevicePublicKey = `
+	queryFmtSelectWebauthnDevicesByUsername = `
+		SELECT id, username, description, kid, public_key, attestation_type, aaguid, sign_count 
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtUpdateWebauthnDevicePublicKey = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
 
-	queryFmtUpdateUpdateU2FDevicePublicKeyByUsername = `
+	queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername = `
 		UPDATE %s
 		SET public_key = ?
-		WHERE username = ?;`
+		WHERE username = ? AND kid = ?;`
 
-	queryFmtUpsertU2FDevice = `
-		REPLACE INTO %s (username, description, key_handle, public_key)
-		VALUES (?, ?, ?, ?);`
+	queryFmtUpdateWebauthnDeviceSignCount = `
+		UPDATE %s
+		SET sign_count = ?
+		WHERE id = ?;`
 
-	queryFmtPostgresUpsertU2FDevice = `
+	queryFmtUpdateUpdateWebauthnDeviceSignCountByUsername = `
+		UPDATE %s
+		SET sign_count = ?
+		WHERE username = ? and kid = ?;`
+
+	queryFmtUpsertWebauthnDevice = `
+		REPLACE INTO %s (username, description, kid, public_key, attestation, aaguid, sign_count)
+		VALUES (?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtPostgresUpsertWebauthnDevice = `
 		INSERT INTO %s (username, description, key_handle, public_key)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (username, description)
-			DO UPDATE SET key_handle=$3, public_key=$4;`
+			DO UPDATE SET kid=$3, public_key=$4, attestation=$5, aaguid=$6, sign_count=$7;`
 )
 
 const (

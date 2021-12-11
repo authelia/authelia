@@ -4,7 +4,7 @@ import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, make
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useNavigate } from "react-router-dom";
 
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useRequestedScopes } from "@hooks/Consent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
@@ -38,7 +38,7 @@ const ConsentView = function (props: Props) {
 
     useEffect(() => {
         if (err) {
-            navigate(FirstFactorRoute);
+            navigate(IndexRoute);
             console.error(`Unable to display consent screen: ${err.message}`);
         }
     }, [navigate, resetNotification, createErrorNotification, err]);

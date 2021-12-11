@@ -4,7 +4,7 @@ import { Grid, Button, makeStyles } from "@material-ui/core";
 import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
@@ -35,7 +35,7 @@ const ResetPasswordStep1 = function () {
     };
 
     const handleCancelClick = () => {
-        navigate(FirstFactorRoute);
+        navigate(IndexRoute);
     };
 
     return (

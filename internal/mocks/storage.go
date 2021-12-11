@@ -9,9 +9,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	gomock "github.com/golang/mock/gomock"
-
 	models "github.com/authelia/authelia/v4/internal/models"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -197,36 +196,6 @@ func (mr *MockStorageMockRecorder) LoadTOTPConfigurations(arg0, arg1, arg2 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadTOTPConfigurations), arg0, arg1, arg2)
 }
 
-// LoadU2FDevice mocks base method.
-func (m *MockStorage) LoadU2FDevice(arg0 context.Context, arg1 string) (*models.U2FDevice, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadU2FDevice", arg0, arg1)
-	ret0, _ := ret[0].(*models.U2FDevice)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadU2FDevice indicates an expected call of LoadU2FDevice.
-func (mr *MockStorageMockRecorder) LoadU2FDevice(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevice", reflect.TypeOf((*MockStorage)(nil).LoadU2FDevice), arg0, arg1)
-}
-
-// LoadU2FDevices mocks base method.
-func (m *MockStorage) LoadU2FDevices(arg0 context.Context, arg1, arg2 int) ([]models.U2FDevice, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadU2FDevices", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]models.U2FDevice)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadU2FDevices indicates an expected call of LoadU2FDevices.
-func (mr *MockStorageMockRecorder) LoadU2FDevices(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadU2FDevices", reflect.TypeOf((*MockStorage)(nil).LoadU2FDevices), arg0, arg1, arg2)
-}
-
 // LoadUserInfo mocks base method.
 func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.UserInfo, error) {
 	m.ctrl.T.Helper()
@@ -240,6 +209,36 @@ func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.Us
 func (mr *MockStorageMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadUserInfo), arg0, arg1)
+}
+
+// LoadWebauthnDevices mocks base method.
+func (m *MockStorage) LoadWebauthnDevices(arg0 context.Context, arg1, arg2 int) ([]models.WebauthnDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWebauthnDevices", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.WebauthnDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadWebauthnDevices indicates an expected call of LoadWebauthnDevices.
+func (mr *MockStorageMockRecorder) LoadWebauthnDevices(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebauthnDevices", reflect.TypeOf((*MockStorage)(nil).LoadWebauthnDevices), arg0, arg1, arg2)
+}
+
+// LoadWebauthnDevicesByUsername mocks base method.
+func (m *MockStorage) LoadWebauthnDevicesByUsername(arg0 context.Context, arg1 string) ([]models.WebauthnDevice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWebauthnDevicesByUsername", arg0, arg1)
+	ret0, _ := ret[0].([]models.WebauthnDevice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadWebauthnDevicesByUsername indicates an expected call of LoadWebauthnDevicesByUsername.
+func (mr *MockStorageMockRecorder) LoadWebauthnDevicesByUsername(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebauthnDevicesByUsername", reflect.TypeOf((*MockStorage)(nil).LoadWebauthnDevicesByUsername), arg0, arg1)
 }
 
 // SaveIdentityVerification mocks base method.
@@ -298,18 +297,18 @@ func (mr *MockStorageMockRecorder) SaveTOTPConfiguration(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).SaveTOTPConfiguration), arg0, arg1)
 }
 
-// SaveU2FDevice mocks base method.
-func (m *MockStorage) SaveU2FDevice(arg0 context.Context, arg1 models.U2FDevice) error {
+// SaveWebauthnDevice mocks base method.
+func (m *MockStorage) SaveWebauthnDevice(arg0 context.Context, arg1 models.WebauthnDevice) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveU2FDevice", arg0, arg1)
+	ret := m.ctrl.Call(m, "SaveWebauthnDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveU2FDevice indicates an expected call of SaveU2FDevice.
-func (mr *MockStorageMockRecorder) SaveU2FDevice(arg0, arg1 interface{}) *gomock.Call {
+// SaveWebauthnDevice indicates an expected call of SaveWebauthnDevice.
+func (mr *MockStorageMockRecorder) SaveWebauthnDevice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveU2FDevice", reflect.TypeOf((*MockStorage)(nil).SaveU2FDevice), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveWebauthnDevice", reflect.TypeOf((*MockStorage)(nil).SaveWebauthnDevice), arg0, arg1)
 }
 
 // SchemaEncryptionChangeKey mocks base method.
@@ -456,4 +455,18 @@ func (m *MockStorage) StartupCheck() error {
 func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
+}
+
+// UpdateWebauthnDeviceSignCount mocks base method.
+func (m *MockStorage) UpdateWebauthnDeviceSignCount(arg0 context.Context, arg1 models.WebauthnDevice) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceSignCount", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWebauthnDeviceSignCount indicates an expected call of UpdateWebauthnDeviceSignCount.
+func (mr *MockStorageMockRecorder) UpdateWebauthnDeviceSignCount(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebauthnDeviceSignCount", reflect.TypeOf((*MockStorage)(nil).UpdateWebauthnDeviceSignCount), arg0, arg1)
 }

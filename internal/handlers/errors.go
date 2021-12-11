@@ -11,3 +11,10 @@ const UnauthorizedError = "You're not authorized."
 
 var errMissingXForwardedHost = errors.New("missing header X-Forwarded-Host")
 var errMissingXForwardedProto = errors.New("missing header X-Forwarded-Proto")
+var errMissingOrigin = errors.New("missing header Origin")
+
+const (
+	errFmtInvalidOrigin       = "invalid header Origin %s: %w"
+	errFmtOriginProtoMismatch = "protocol mismatch from expected '%s'"
+	errFmtOriginHostMismatch  = "host mismatch from expected '%s'"
+)

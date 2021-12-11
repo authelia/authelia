@@ -4,11 +4,11 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import {
     AuthenticatedRoute,
-    FirstFactorRoute,
+    IndexRoute,
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorU2FSubRoute,
+    SecondFactorWebauthnSubRoute,
 } from "@constants/Routes";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -123,13 +123,13 @@ const LoginPortal = function (props: Props) {
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(`${FirstFactorRoute}${redirectionSuffix}`);
+                redirect(`${IndexRoute}${redirectionSuffix}`);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (!configuration.second_factor_enabled) {
                     redirect(AuthenticatedRoute);
                 } else {
-                    if (userInfo.method === SecondFactorMethod.U2F) {
-                        redirect(`${SecondFactorRoute}${SecondFactorU2FSubRoute}${redirectionSuffix}`);
+                    if (userInfo.method === SecondFactorMethod.Webauthn) {
+                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}${redirectionSuffix}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
                         redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}${redirectionSuffix}`);
                     } else {
@@ -163,12 +163,12 @@ const LoginPortal = function (props: Props) {
     const firstFactorReady =
         state !== undefined &&
         state.authentication_level === AuthenticationLevel.Unauthenticated &&
-        location.pathname === FirstFactorRoute;
+        location.pathname === IndexRoute;
 
     return (
         <Routes>
             <Route
-                path={FirstFactorRoute}
+                path={IndexRoute}
                 element={
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm

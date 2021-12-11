@@ -11,12 +11,11 @@ export const FirstFactorPath = basePath + "/api/firstfactor";
 export const InitiateTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/start";
 export const CompleteTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/finish";
 
-export const InitiateU2FRegistrationPath = basePath + "/api/secondfactor/u2f/identity/start";
-export const CompleteU2FRegistrationStep1Path = basePath + "/api/secondfactor/u2f/identity/finish";
-export const CompleteU2FRegistrationStep2Path = basePath + "/api/secondfactor/u2f/register";
+export const WebauthnIdentityPathStart = basePath + "/api/secondfactor/webauthn/identity/start";
+export const WebauthnIdentityPathFinish = basePath + "/api/secondfactor/webauthn/identity/finish";
+export const WebauthnAttestationPath = basePath + "/api/secondfactor/webauthn/attestation";
 
-export const InitiateU2FSignInPath = basePath + "/api/secondfactor/u2f/sign_request";
-export const CompleteU2FSignInPath = basePath + "/api/secondfactor/u2f/sign";
+export const WebauthnAssertionPath = basePath + "/api/secondfactor/webauthn/assertion";
 
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
@@ -48,6 +47,12 @@ export interface Response<T> {
     data: T;
 }
 
+export interface OptionalDataResponse<T> {
+    status: "OK";
+    data?: T;
+}
+
+export type OptionalDataServiceResponse<T> = OptionalDataResponse<T> | ErrorResponse;
 export type ServiceResponse<T> = Response<T> | ErrorResponse;
 
 function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorResponse | undefined {

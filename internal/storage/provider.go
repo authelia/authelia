@@ -26,9 +26,10 @@ type Provider interface {
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
 
-	SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error)
-	LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error)
-	LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error)
+	SaveWebauthnDevice(ctx context.Context, device models.WebauthnDevice) (err error)
+	UpdateWebauthnDeviceSignCount(ctx context.Context, device models.WebauthnDevice) (err error)
+	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []models.WebauthnDevice, err error)
+	LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []models.WebauthnDevice, err error)
 
 	SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error)
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)

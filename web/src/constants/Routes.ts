@@ -1,9 +1,9 @@
-export const FirstFactorRoute: string = "/";
+export const IndexRoute: string = "/";
 export const AuthenticatedRoute: string = "/authenticated";
 export const ConsentRoute: string = "/consent";
 
 export const SecondFactorRoute: string = "/2fa/";
-export const SecondFactorU2FSubRoute: string = "security-key";
+export const SecondFactorWebauthnSubRoute: string = "webauthn";
 export const SecondFactorTOTPSubRoute: string = "one-time-password";
 export const SecondFactorPushSubRoute: string = "push-notification";
 

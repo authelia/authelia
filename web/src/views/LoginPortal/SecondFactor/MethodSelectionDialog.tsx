@@ -19,7 +19,7 @@ import { SecondFactorMethod } from "@models/Methods";
 export interface Props {
     open: boolean;
     methods: Set<SecondFactorMethod>;
-    u2fSupported: boolean;
+    webauthnSupported: boolean;
 
     onClose: () => void;
     onClick: (method: SecondFactorMethod) => void;
@@ -45,12 +45,12 @@ const MethodSelectionDialog = function (props: Props) {
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)}
                         />
                     ) : null}
-                    {props.methods.has(SecondFactorMethod.U2F) && props.u2fSupported ? (
+                    {props.methods.has(SecondFactorMethod.Webauthn) && props.webauthnSupported ? (
                         <MethodItem
-                            id="security-key-option"
-                            method="Security Key - U2F"
+                            id="webauthn-option"
+                            method="Security Key - Webauthn"
                             icon={<FingerTouchIcon size={32} />}
-                            onClick={() => props.onClick(SecondFactorMethod.U2F)}
+                            onClick={() => props.onClick(SecondFactorMethod.Webauthn)}
                         />
                     ) : null}
                     {props.methods.has(SecondFactorMethod.MobilePush) ? (

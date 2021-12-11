@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
 import {
-    FirstFactorRoute,
+    IndexRoute,
     ResetPasswordStep2Route,
     ResetPasswordStep1Route,
     RegisterSecurityKeyRoute,
@@ -20,7 +20,7 @@ import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
 import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
-import RegisterSecurityKey from "@views/DeviceRegistration/RegisterSecurityKey";
+import RegisterWebauthn from "@views/DeviceRegistration/RegisterWebauthn";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
@@ -67,12 +67,12 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                         <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                        <Route path={RegisterSecurityKeyRoute} element={<RegisterSecurityKey />} />
+                        <Route path={RegisterSecurityKeyRoute} element={<RegisterWebauthn />} />
                         <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                         <Route path={LogoutRoute} element={<SignOut />} />
                         <Route path={ConsentRoute} element={<ConsentView />} />
                         <Route
-                            path={`${FirstFactorRoute}*`}
+                            path={`${IndexRoute}*`}
                             element={
                                 <LoginPortal
                                     duoSelfEnrollment={getDuoSelfEnrollment()}

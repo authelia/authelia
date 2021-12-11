@@ -4,6 +4,7 @@ package schema
 type ServerConfiguration struct {
 	Host               string `koanf:"host"`
 	Port               int    `koanf:"port"`
+	Domain             string `koanf:"domain"`
 	Path               string `koanf:"path"`
 	AssetPath          string `koanf:"asset_path"`
 	ReadBufferSize     int    `koanf:"read_buffer_size"`

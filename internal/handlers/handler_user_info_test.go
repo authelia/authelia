@@ -51,25 +51,25 @@ func TestMethodSetToU2F(t *testing.T) {
 		},
 		{
 			db: models.UserInfo{
-				Method:  "u2f",
-				HasU2F:  true,
-				HasTOTP: true,
+				Method:      "u2f",
+				HasWebauthn: true,
+				HasTOTP:     true,
 			},
 			err: nil,
 		},
 		{
 			db: models.UserInfo{
-				Method:  "u2f",
-				HasU2F:  true,
-				HasTOTP: false,
+				Method:      "u2f",
+				HasWebauthn: true,
+				HasTOTP:     false,
 			},
 			err: nil,
 		},
 		{
 			db: models.UserInfo{
-				Method:  "mobile_push",
-				HasU2F:  false,
-				HasTOTP: false,
+				Method:      "mobile_push",
+				HasWebauthn: false,
+				HasTOTP:     false,
 			},
 			err: nil,
 		},
@@ -117,7 +117,7 @@ func TestMethodSetToU2F(t *testing.T) {
 			})
 
 			t.Run("registered u2f", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasU2F, actualPreferences.HasU2F)
+				assert.Equal(t, resp.api.HasWebauthn, actualPreferences.HasWebauthn)
 			})
 
 			t.Run("registered totp", func(t *testing.T) {

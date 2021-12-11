@@ -8,12 +8,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/tstranex/u2f"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type HandlerSignTOTPSuite struct {
@@ -26,8 +24,6 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
-	userSession.U2FChallenge = &u2f.Challenge{}
-	userSession.U2FRegistration = &session.U2FRegistration{}
 	err := s.mock.Ctx.SaveSession(userSession)
 	require.NoError(s.T(), err)
 }

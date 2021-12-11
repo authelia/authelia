@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState, Fragment } from "react";
+import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { makeStyles, Button, useTheme } from "@material-ui/core";
+import { Button, makeStyles, useTheme } from "@material-ui/core";
 import { CSSProperties } from "@material-ui/styles";
-import u2fApi from "u2f-api";
 
 import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -10,14 +9,19 @@ import LinearProgressBar from "@components/LinearProgressBar";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useTimer } from "@hooks/Timer";
-import { initiateU2FSignin, completeU2FSignin } from "@services/SecurityKey";
 import { AuthenticationLevel } from "@services/State";
+import {
+    AssertionResult,
+    getWebauthnAssertionChallenge,
+    getWebauthnAssertionPublicKeyCredential,
+    postWebauthnAssertionChallengeResponse,
+} from "@services/Webauthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export enum State {
     WaitTouch = 1,
-    SigninInProgress = 2,
+    InProgress = 2,
     Failure = 3,
 }
 
@@ -31,7 +35,7 @@ export interface Props {
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
 
-const SecurityKeyMethod = function (props: Props) {
+const WebauthnMethod = function (props: Props) {
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
     const style = useStyles();
@@ -52,25 +56,71 @@ const SecurityKeyMethod = function (props: Props) {
         try {
             triggerTimer();
             setState(State.WaitTouch);
-            const signRequest = await initiateU2FSignin();
-            const signRequests: u2fApi.SignRequest[] = [];
-            for (var i in signRequest.registeredKeys) {
-                const r = signRequest.registeredKeys[i];
-                signRequests.push({
-                    appId: signRequest.appId,
-                    challenge: signRequest.challenge,
-                    keyHandle: r.keyHandle,
-                    version: r.version,
-                });
+            const challengeOptions = await getWebauthnAssertionChallenge();
+
+            if (challengeOptions === undefined) {
+                setState(State.Failure);
+                onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
+                return;
             }
-            const signResponse = await u2fApi.sign(signRequests, signInTimeout);
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
+
+            const result = await getWebauthnAssertionPublicKeyCredential(challengeOptions);
+
+            if (result.result !== AssertionResult.Success) {
+                if (!mounted.current) return;
+                switch (result.result) {
+                    case AssertionResult.FailureUserConsent:
+                        onSignInErrorCallback(new Error("You cancelled the assertion request."));
+                        break;
+                    case AssertionResult.FailureU2FFacetID:
+                        onSignInErrorCallback(new Error("The server responded with an invalid Facet ID for the URL."));
+                        break;
+                    case AssertionResult.FailureSyntax:
+                        onSignInErrorCallback(
+                            new Error(
+                                "The assertion challenge was rejected as malformed or incompatible by your browser.",
+                            ),
+                        );
+                        break;
+                    case AssertionResult.FailureWebauthnNotSupported:
+                        onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
+                        break;
+                    case AssertionResult.FailureUnknownSecurity:
+                        onSignInErrorCallback(new Error("An unknown security error occurred."));
+                        break;
+                    case AssertionResult.FailureUnknown:
+                        onSignInErrorCallback(new Error("An unknown error occurred."));
+                        break;
+                    default:
+                        onSignInErrorCallback(new Error("An unexpected error occurred."));
+                        break;
+                }
+                setState(State.Failure);
+
+                return;
+            }
+
+            if (result.credential === undefined) {
+                onSignInErrorCallback(new Error("The browser did not respond with the expected attestation data."));
+                setState(State.Failure);
+                return;
+            }
+
             if (!mounted.current) return;
 
-            setState(State.SigninInProgress);
-            const res = await completeU2FSignin(signResponse, redirectionURL);
-            onSignInSuccessCallback(res ? res.redirect : undefined);
+            setState(State.InProgress);
+
+            const response = await postWebauthnAssertionChallengeResponse(result.credential);
+
+            if (response.data.status === "OK") {
+                onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
+                return;
+            }
+
+            if (!mounted.current) return;
+
+            onSignInErrorCallback(new Error("The server rejected the security key."));
+            setState(State.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -117,7 +167,7 @@ const SecurityKeyMethod = function (props: Props) {
     );
 };
 
-export default SecurityKeyMethod;
+export default WebauthnMethod;
 
 const useStyles = makeStyles(() => ({
     icon: {

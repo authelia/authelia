@@ -99,20 +99,35 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.POST("/api/secondfactor/totp", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
 
-	// U2F related endpoints.
-	r.POST("/api/secondfactor/u2f/identity/start", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityStart)))
-	r.POST("/api/secondfactor/u2f/identity/finish", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityFinish)))
+	// Webauthn Endpoints
+	r.POST("/api/secondfactor/webauthn/identity/start", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
+	r.POST("/api/secondfactor/webauthn/identity/finish", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityFinish)))
+	r.POST("/api/secondfactor/webauthn/attestation", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAttestationPOST)))
 
-	r.POST("/api/secondfactor/u2f/register", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FRegister)))
+	r.GET("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionGET)))
+	r.POST("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionPOST)))
 
-	r.POST("/api/secondfactor/u2f/sign_request", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignGet)))
+	/*
+		// U2F related endpoints.
+		r.POST("/api/secondfactor/u2f/identity/start", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityStart)))
+		r.POST("/api/secondfactor/u2f/identity/finish", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorU2FIdentityFinish)))
 
-	r.POST("/api/secondfactor/u2f/sign", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
+		r.POST("/api/secondfactor/u2f/register", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorU2FRegister)))
+
+		r.POST("/api/secondfactor/u2f/sign_request", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignGet)))
+
+		r.POST("/api/secondfactor/u2f/sign", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorU2FSignPost(&handlers.U2FVerifierImpl{}))))
+	*/
 
 	// Configure DUO api endpoint only if configuration exists.
 	if configuration.DuoAPI != nil {

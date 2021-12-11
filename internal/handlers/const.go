@@ -11,6 +11,9 @@ const (
 	// ActionU2FRegistration is the string representation of the action for which the token has been produced.
 	ActionU2FRegistration = "RegisterU2FDevice"
 
+	// ActionWebauthnRegistration is the string representation of the action for which the token has been produced.
+	ActionWebauthnRegistration = "RegisterWebauthnDevice"
+
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
 )
@@ -18,6 +21,7 @@ const (
 var (
 	headerAuthorization      = []byte(fasthttp.HeaderAuthorization)
 	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
+	headerOrigin             = []byte(fasthttp.HeaderOrigin)
 
 	headerSessionUsername = []byte("Session-Username")
 	headerRemoteUser      = []byte("Remote-User")

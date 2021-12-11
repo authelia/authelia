@@ -45,12 +45,14 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateTOTPConfigSecret:           fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigSecretByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
 
-		sqlUpsertU2FDevice:  fmt.Sprintf(queryFmtUpsertU2FDevice, tableU2FDevices),
-		sqlSelectU2FDevice:  fmt.Sprintf(queryFmtSelectU2FDevice, tableU2FDevices),
-		sqlSelectU2FDevices: fmt.Sprintf(queryFmtSelectU2FDevices, tableU2FDevices),
+		sqlUpsertWebauthnDevice:            fmt.Sprintf(queryFmtUpsertWebauthnDevice, tableWebauthnDevices),
+		sqlSelectWebauthnDevices:           fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
+		sqlSelectWebauthnDevicesByUsername: fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
 
-		sqlUpdateU2FDevicePublicKey:           fmt.Sprintf(queryFmtUpdateU2FDevicePublicKey, tableU2FDevices),
-		sqlUpdateU2FDevicePublicKeyByUsername: fmt.Sprintf(queryFmtUpdateUpdateU2FDevicePublicKeyByUsername, tableU2FDevices),
+		sqlUpdateWebauthnDevicePublicKey:           fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
+		sqlUpdateWebauthnDevicePublicKeyByUsername: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
+		sqlUpdateWebauthnDeviceSignCount:           fmt.Sprintf(queryFmtUpdateWebauthnDeviceSignCount, tableWebauthnDevices),
+		sqlUpdateWebauthnDeviceSignCountByUsername: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceSignCountByUsername, tableWebauthnDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
@@ -58,7 +60,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableU2FDevices, tableDuoDevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebauthnDevices, tableDuoDevices, tableUserPreferences),
 
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
@@ -103,13 +105,15 @@ type SQLProvider struct {
 	sqlUpdateTOTPConfigSecret           string
 	sqlUpdateTOTPConfigSecretByUsername string
 
-	// Table: u2f_devices.
-	sqlUpsertU2FDevice  string
-	sqlSelectU2FDevice  string
-	sqlSelectU2FDevices string
+	// Table: webauthn_devices.
+	sqlUpsertWebauthnDevice            string
+	sqlSelectWebauthnDevices           string
+	sqlSelectWebauthnDevicesByUsername string
 
-	sqlUpdateU2FDevicePublicKey           string
-	sqlUpdateU2FDevicePublicKeyByUsername string
+	sqlUpdateWebauthnDevicePublicKey           string
+	sqlUpdateWebauthnDevicePublicKeyByUsername string
+	sqlUpdateWebauthnDeviceSignCount           string
+	sqlUpdateWebauthnDeviceSignCountByUsername string
 
 	// Table: duo_devices
 	sqlUpsertDuoDevice string
@@ -182,9 +186,11 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method)
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method); err != nil {
+		return fmt.Errorf("error upserting preferred two factor method for user '%s': %w", username, err)
+	}
 
-	return err
+	return nil
 }
 
 // LoadPreferred2FAMethod load the preferred method for 2FA from the database.
@@ -228,7 +234,7 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification,
 		verification.JTI, verification.IssuedAt, verification.IssuedIP, verification.ExpiresAt,
 		verification.Username, verification.Action); err != nil {
-		return fmt.Errorf("error inserting identity verification: %w", err)
+		return fmt.Errorf("error inserting identity verification for user '%s' with uuid '%s': %w", verification.Username, verification.JTI, err)
 	}
 
 	return nil
@@ -265,12 +271,12 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the database.
 func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
 	if config.Secret, err = p.encrypt(config.Secret); err != nil {
-		return fmt.Errorf("error encrypting the TOTP configuration secret: %v", err)
+		return fmt.Errorf("error encrypting the TOTP configuration secret for user '%s': %w", config.Username, err)
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
 		config.Username, config.Issuer, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
-		return fmt.Errorf("error upserting TOTP configuration: %w", err)
+		return fmt.Errorf("error upserting TOTP configuration for user '%s': %w", config.Username, err)
 	}
 
 	return nil
@@ -279,7 +285,7 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 // DeleteTOTPConfiguration delete a TOTP configuration from the database given a username.
 func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlDeleteTOTPConfig, username); err != nil {
-		return fmt.Errorf("error deleting TOTP configuration: %w", err)
+		return fmt.Errorf("error deleting TOTP configuration for user '%s': %w", username, err)
 	}
 
 	return nil
@@ -294,11 +300,11 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 			return nil, ErrNoTOTPConfiguration
 		}
 
-		return nil, fmt.Errorf("error selecting TOTP configuration: %w", err)
+		return nil, fmt.Errorf("error selecting TOTP configuration for user '%s': %w", username, err)
 	}
 
 	if config.Secret, err = p.decrypt(config.Secret); err != nil {
-		return nil, fmt.Errorf("error decrypting the TOTP secret: %v", err)
+		return nil, fmt.Errorf("error decrypting the TOTP secret for user '%s': %w", username, err)
 	}
 
 	return config, nil
@@ -306,35 +312,14 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 
 // LoadTOTPConfigurations load a set of TOTP configurations.
 func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error) {
-	rows, err := p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, limit, limit*page)
-	if err != nil {
+	configs = make([]models.TOTPConfiguration, 0, limit)
+
+	if err = p.db.SelectContext(ctx, &configs, p.sqlSelectTOTPConfigs, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return configs, nil
+			return nil, nil
 		}
 
 		return nil, fmt.Errorf("error selecting TOTP configurations: %w", err)
-	}
-
-	defer func() {
-		if err := rows.Close(); err != nil {
-			p.log.Errorf(logFmtErrClosingConn, err)
-		}
-	}()
-
-	configs = make([]models.TOTPConfiguration, 0, limit)
-
-	var config models.TOTPConfiguration
-
-	for rows.Next() {
-		if err = rows.StructScan(&config); err != nil {
-			return nil, fmt.Errorf("error scanning TOTP configuration to struct: %w", err)
-		}
-
-		if config.Secret, err = p.decrypt(config.Secret); err != nil {
-			return nil, fmt.Errorf("error decrypting the TOTP secret: %v", err)
-		}
-
-		configs = append(configs, config)
 	}
 
 	return configs, nil
@@ -349,90 +334,83 @@ func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config 
 	}
 
 	if err != nil {
-		return fmt.Errorf("error updating TOTP configuration secret: %w", err)
+		return fmt.Errorf("error updating TOTP configuration secret for user '%s': %w", config.Username, err)
 	}
 
 	return nil
 }
 
-// SaveU2FDevice saves a registered U2F device.
-func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error) {
+// SaveWebauthnDevice saves a registered Webauthn device.
+func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.WebauthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
-		return fmt.Errorf("error encrypting the U2F device public key: %v", err)
+		return fmt.Errorf("error encrypting the Webauthn device public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertU2FDevice, device.Username, device.Description, device.KeyHandle, device.PublicKey); err != nil {
-		return fmt.Errorf("error upserting U2F device: %v", err)
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
+		device.Username, device.Description,
+		device.KID, device.PublicKey,
+		device.AttestationType, device.AAGUID, device.SignCount,
+	); err != nil {
+		return fmt.Errorf("error upserting Webauthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
 
 	return nil
 }
 
-// LoadU2FDevice loads a U2F device registration for a given username.
-func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error) {
-	device = &models.U2FDevice{}
-
-	if err = p.db.GetContext(ctx, device, p.sqlSelectU2FDevice, username); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoU2FDeviceHandle
-		}
-
-		return nil, fmt.Errorf("error selecting U2F device: %w", err)
+// UpdateWebauthnDeviceSignCount updates a registered Webauthn devices sign count.
+func (p *SQLProvider) UpdateWebauthnDeviceSignCount(ctx context.Context, device models.WebauthnDevice) (err error) {
+	switch device.ID {
+	case 0:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceSignCountByUsername, device.SignCount, device.Username, device.KID)
+	default:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceSignCount, device.SignCount, device.ID)
 	}
 
-	if device.PublicKey, err = p.decrypt(device.PublicKey); err != nil {
-		return nil, fmt.Errorf("error decrypting the U2F device public key: %v", err)
+	if err != nil {
+		return fmt.Errorf("error updating Webauthn sign count for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
 
-	return device, nil
+	return nil
 }
 
-// LoadU2FDevices loads U2F device registrations.
-func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error) {
-	rows, err := p.db.QueryxContext(ctx, p.sqlSelectU2FDevices, limit, limit*page)
-	if err != nil {
+// LoadWebauthnDevices loads Webauthn device registrations.
+func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []models.WebauthnDevice, err error) {
+	devices = make([]models.WebauthnDevice, 0, limit)
+
+	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevices, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return devices, nil
+			return nil, nil
 		}
 
-		return nil, fmt.Errorf("error selecting U2F devices: %w", err)
-	}
-
-	defer func() {
-		if err := rows.Close(); err != nil {
-			p.log.Errorf(logFmtErrClosingConn, err)
-		}
-	}()
-
-	devices = make([]models.U2FDevice, 0, limit)
-
-	var device models.U2FDevice
-
-	for rows.Next() {
-		if err = rows.StructScan(&device); err != nil {
-			return nil, fmt.Errorf("error scanning U2F device to struct: %w", err)
-		}
-
-		if device.PublicKey, err = p.decrypt(device.PublicKey); err != nil {
-			return nil, fmt.Errorf("error decrypting the U2F device public key: %v", err)
-		}
-
-		devices = append(devices, device)
+		return nil, fmt.Errorf("error selecting Webauthn devices: %w", err)
 	}
 
 	return devices, nil
 }
 
-func (p *SQLProvider) updateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error) {
+// LoadWebauthnDevicesByUsername loads all webauthn devices registration for a given username.
+func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []models.WebauthnDevice, err error) {
+	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByUsername, username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoWebauthnDevice
+		}
+
+		return nil, fmt.Errorf("error selecting Webauthn devices for user '%s': %w", username, err)
+	}
+
+	return devices, nil
+}
+
+func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device models.WebauthnDevice) (err error) {
 	switch device.ID {
 	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateU2FDevicePublicKeyByUsername, device.PublicKey, device.Username)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKeyByUsername, device.PublicKey, device.Username, device.KID)
 	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateU2FDevicePublicKey, device.PublicKey, device.ID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKey, device.PublicKey, device.ID)
 	}
 
 	if err != nil {
-		return fmt.Errorf("error updating U2F public key: %w", err)
+		return fmt.Errorf("error updating Webauthn public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
 
 	return nil
@@ -440,26 +418,32 @@ func (p *SQLProvider) updateU2FDevicePublicKey(ctx context.Context, device model
 
 // SavePreferredDuoDevice saves a Duo device.
 func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpsertDuoDevice, device.Username, device.Device, device.Method)
-	return err
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertDuoDevice, device.Username, device.Device, device.Method); err != nil {
+		return fmt.Errorf("error upserting preferred duo device for user '%s': %w", device.Username, err)
+	}
+
+	return nil
 }
 
 // DeletePreferredDuoDevice deletes a Duo device of a given user.
 func (p *SQLProvider) DeletePreferredDuoDevice(ctx context.Context, username string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlDeleteDuoDevice, username)
-	return err
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteDuoDevice, username); err != nil {
+		return fmt.Errorf("error deleting preferred duo device for user '%s': %w", username, err)
+	}
+
+	return nil
 }
 
 // LoadPreferredDuoDevice loads a Duo device of a given user.
 func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error) {
 	device = &models.DuoDevice{}
 
-	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDuoDevice, username).StructScan(device); err != nil {
+	if err = p.db.QueryRowxContext(ctx, p.sqlSelectDuoDevice, username).StructScan(device); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoDuoDevice
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("error selecting preferred duo device for user '%s': %w", username, err)
 	}
 
 	return device, nil
@@ -470,7 +454,7 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
 		attempt.Time, attempt.Successful, attempt.Banned, attempt.Username,
 		attempt.Type, attempt.RemoteIP, attempt.RequestURI, attempt.RequestMethod); err != nil {
-		return fmt.Errorf("error inserting authentication attempt: %w", err)
+		return fmt.Errorf("error inserting authentication attempt for user '%s': %w", attempt.Username, err)
 	}
 
 	return nil
@@ -478,31 +462,14 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 
 // LoadAuthenticationLogs retrieve the latest failed authentications from the authentication log.
 func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
-	rows, err := p.db.QueryxContext(ctx, p.sqlSelectAuthenticationAttemptsByUsername, fromDate, username, limit, limit*page)
-	if err != nil {
+	attempts = make([]models.AuthenticationAttempt, 0, limit)
+
+	if err = p.db.SelectContext(ctx, &attempts, p.sqlSelectAuthenticationAttemptsByUsername, fromDate, username, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoAuthenticationLogs
 		}
 
-		return nil, fmt.Errorf("error selecting authentication logs: %w", err)
-	}
-
-	defer func() {
-		if err := rows.Close(); err != nil {
-			p.log.Errorf(logFmtErrClosingConn, err)
-		}
-	}()
-
-	var attempt models.AuthenticationAttempt
-
-	attempts = make([]models.AuthenticationAttempt, 0, limit)
-
-	for rows.Next() {
-		if err = rows.StructScan(&attempt); err != nil {
-			return nil, err
-		}
-
-		attempts = append(attempts, attempt)
+		return nil, fmt.Errorf("error selecting authentication logs for user '%s': %w", username, err)
 	}
 
 	return attempts, nil

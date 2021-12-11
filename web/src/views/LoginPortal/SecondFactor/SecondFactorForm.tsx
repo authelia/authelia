@@ -2,26 +2,26 @@ import React, { useState, useEffect } from "react";
 
 import { Grid, makeStyles, Button } from "@material-ui/core";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import u2fApi from "u2f-api";
 
 import {
     LogoutRoute as SignOutRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorU2FSubRoute,
+    SecondFactorWebauthnSubRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { initiateTOTPRegistrationProcess, initiateU2FRegistrationProcess } from "@services/RegisterDevice";
+import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
+import { browserSupportsWebauthn } from "@services/Webauthn";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
-import SecurityKeyMethod from "@views/LoginPortal/SecondFactor/SecurityKeyMethod";
+import WebauthnMethod from "@views/LoginPortal/SecondFactor/WebauthnMethod";
 
 const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to complete the process.";
 
@@ -41,15 +41,23 @@ const SecondFactorForm = function (props: Props) {
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
-    const [u2fSupported, setU2fSupported] = useState(false);
+    const [webauthnSupported, setWebauthnSupported] = useState(false);
 
-    // Check that U2F is supported.
     useEffect(() => {
-        u2fApi.ensureSupport().then(
-            () => setU2fSupported(true),
-            () => console.error("U2F not supported"),
-        );
-    }, [setU2fSupported]);
+        if (browserSupportsWebauthn()) {
+            setWebauthnSupported(true);
+        } else {
+            console.error("Browser does not support Webauthn.");
+        }
+    }, [setWebauthnSupported]);
+
+    useEffect(() => {
+        if (window.PublicKeyCredential && typeof window.PublicKeyCredential === "function") {
+            setWebauthnSupported(true);
+        } else {
+            console.error("Webauthn not supported");
+        }
+    }, [setWebauthnSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
         return async () => {
@@ -92,7 +100,7 @@ const SecondFactorForm = function (props: Props) {
             <MethodSelectionDialog
                 open={methodSelectionOpen}
                 methods={props.configuration.available_methods}
-                u2fSupported={u2fSupported}
+                webauthnSupported={webauthnSupported}
                 onClose={() => setMethodSelectionOpen(false)}
                 onClick={handleMethodSelected}
             />
@@ -123,14 +131,14 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                         <Route
-                            path={SecondFactorU2FSubRoute}
+                            path={SecondFactorWebauthnSubRoute}
                             element={
-                                <SecurityKeyMethod
-                                    id="security-key-method"
+                                <WebauthnMethod
+                                    id="webauthn-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    // Whether the user has a U2F device registered already
-                                    registered={props.userInfo.has_u2f}
-                                    onRegisterClick={initiateRegistration(initiateU2FRegistrationProcess)}
+                                    // Whether the user has a Webauthn device registered already
+                                    registered={props.userInfo.has_webauthn}
+                                    onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />
