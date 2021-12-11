@@ -3,6 +3,7 @@ package configuration
 import (
 	"fmt"
 	"net/mail"
+	"net/url"
 	"reflect"
 
 	"github.com/mitchellh/mapstructure"
@@ -22,14 +23,38 @@ func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
 		}
 
 		var (
-			mailAddress *mail.Address
+			parsedAddress *mail.Address
 		)
 
-		mailAddress, err = mail.ParseAddress(dataStr)
-		if err != nil {
+		if parsedAddress, err = mail.ParseAddress(dataStr); err != nil {
 			return nil, fmt.Errorf("could not parse '%s' as a RFC5322 address: %w", dataStr, err)
 		}
 
-		return *mailAddress, nil
+		return *parsedAddress, nil
+	}
+}
+
+// StringToURLFunc creates a mapstructure.DecodeHookFunc that decodes strings into a url.URL.
+func StringToURLFunc() mapstructure.DecodeHookFunc {
+	return func(f reflect.Kind, t reflect.Kind, data interface{}) (value interface{}, err error) {
+		if f != reflect.String || t != reflect.TypeOf(url.URL{}).Kind() {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		if dataStr == "" {
+			return url.URL{}, nil
+		}
+
+		var (
+			parsedURL *url.URL
+		)
+
+		if parsedURL, err = url.Parse(dataStr); err != nil {
+			return nil, fmt.Errorf("could not parse '%s' as a URL: %w", dataStr, err)
+		}
+
+		return *parsedURL, nil
 	}
 }

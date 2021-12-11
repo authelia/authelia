@@ -164,6 +164,7 @@ var ValidKeys = []string{
 	"server.port",
 	"server.read_buffer_size",
 	"server.write_buffer_size",
+	"server.external_url",
 	"server.path",
 	"server.asset_path",
 	"server.enable_pprof",

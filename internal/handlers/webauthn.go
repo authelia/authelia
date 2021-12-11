@@ -28,27 +28,37 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 		headerProtoV, headerXForwardedHostV []byte
 	)
 
-	if headerProtoV = ctx.XForwardedProto(); headerProtoV == nil {
-		return nil, "", errMissingXForwardedProto
-	}
-
-	if headerXForwardedHostV = ctx.XForwardedHost(); headerXForwardedHostV == nil {
-		return nil, "", errMissingXForwardedHost
-	}
-
-	appid = fmt.Sprintf("%s://%s", headerProtoV, headerXForwardedHostV)
-
 	config := &webauthn.Config{
 		RPDisplayName: "Authelia",
-		RPID:          appid,
-		RPOrigin:      appid,
 
 		AttestationPreference: ctx.Configuration.Webauthn.AttestationPreference,
 		Timeout:               ctx.Configuration.Webauthn.Timeout,
 		Debug:                 ctx.Configuration.Webauthn.Debug,
 	}
 
-	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID/Origin %s", appid)
+	if ctx.Configuration.Server.ExternalURL.Scheme != "" && ctx.Configuration.Server.Host != "" {
+		u := ctx.Configuration.Server.ExternalURL
+
+		config.RPID = u.Hostname()
+		config.RPOrigin = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+
+		appid = fmt.Sprintf("%s://%s", u.Scheme, u.Hostname())
+	} else {
+		if headerProtoV = ctx.XForwardedProto(); headerProtoV == nil {
+			return nil, "", errMissingXForwardedProto
+		}
+
+		if headerXForwardedHostV = ctx.XForwardedHost(); headerXForwardedHostV == nil {
+			return nil, "", errMissingXForwardedHost
+		}
+
+		config.RPID = string(headerXForwardedHostV)
+		config.RPOrigin = fmt.Sprintf("%s://%s", headerProtoV, headerXForwardedHostV)
+
+		appid = config.RPOrigin
+	}
+
+	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s AppID %s and Origin %s", config.RPID, appid, config.RPOrigin)
 
 	w, err = webauthn.New(config)
 
