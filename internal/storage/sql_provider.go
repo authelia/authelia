@@ -322,6 +322,12 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 		return nil, fmt.Errorf("error selecting TOTP configurations: %w", err)
 	}
 
+	for i, config := range configs {
+		if configs[i].Secret, err = p.decrypt(config.Secret); err != nil {
+			return nil, fmt.Errorf("error decrypting TOTP configuration for user '%s': %w", config.Username, err)
+		}
+	}
+
 	return configs, nil
 }
 
@@ -385,6 +391,12 @@ func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) 
 		return nil, fmt.Errorf("error selecting Webauthn devices: %w", err)
 	}
 
+	for i, device := range devices {
+		if devices[i].PublicKey, err = p.decrypt(device.PublicKey); err != nil {
+			return nil, fmt.Errorf("error decrypting Webauthn public key for user '%s': %w", device.Username, err)
+		}
+	}
+
 	return devices, nil
 }
 
@@ -396,6 +408,12 @@ func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, usernam
 		}
 
 		return nil, fmt.Errorf("error selecting Webauthn devices for user '%s': %w", username, err)
+	}
+
+	for i, device := range devices {
+		if devices[i].PublicKey, err = p.decrypt(device.PublicKey); err != nil {
+			return nil, fmt.Errorf("error decrypting Webauthn public key for user '%s': %w", username, err)
+		}
 	}
 
 	return devices, nil
