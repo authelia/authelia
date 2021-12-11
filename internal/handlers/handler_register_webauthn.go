@@ -73,7 +73,7 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 	}
 
 	if err = ctx.SetJSONBody(credentialCreation); err != nil {
-		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeU2F, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 

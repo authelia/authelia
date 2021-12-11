@@ -71,7 +71,7 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(assertion); err != nil {
-		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeU2F, userSession.Username, err)
+		ctx.Logger.Errorf(logFmtErrWriteResponseBody, regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

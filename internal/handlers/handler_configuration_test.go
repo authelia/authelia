@@ -30,7 +30,7 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
 	expectedBody := configurationBody{
-		AvailableMethods:    []string{"totp", "u2f"},
+		AvailableMethods:    []string{"totp", "webauthn"},
 		SecondFactorEnabled: false,
 	}
 
@@ -43,7 +43,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMo
 		DuoAPI: &schema.DuoAPIConfiguration{},
 	}
 	expectedBody := configurationBody{
-		AvailableMethods:    []string{"totp", "u2f", "mobile_push"},
+		AvailableMethods:    []string{"totp", "webauthn", "mobile_push"},
 		SecondFactorEnabled: false,
 	}
 
@@ -73,7 +73,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisab
 			}})
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "u2f"},
+		AvailableMethods:    []string{"totp", "webauthn"},
 		SecondFactorEnabled: false,
 	})
 }
@@ -99,7 +99,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 		}})
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "u2f"},
+		AvailableMethods:    []string{"totp", "webauthn"},
 		SecondFactorEnabled: true,
 	})
 }
@@ -126,7 +126,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabl
 			}})
 	ConfigurationGet(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "u2f"},
+		AvailableMethods:    []string{"totp", "webauthn"},
 		SecondFactorEnabled: true,
 	})
 }

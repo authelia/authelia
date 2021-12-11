@@ -51,7 +51,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		},
 		{
 			db: models.UserInfo{
-				Method:      "u2f",
+				Method:      "webauthn",
 				HasWebauthn: true,
 				HasTOTP:     true,
 			},
@@ -59,7 +59,7 @@ func TestMethodSetToU2F(t *testing.T) {
 		},
 		{
 			db: models.UserInfo{
-				Method:      "u2f",
+				Method:      "webauthn",
 				HasWebauthn: true,
 				HasTOTP:     false,
 			},
@@ -205,14 +205,14 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unknown method 'abc', it should be one of totp, u2f, mobile_push", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unknown method 'abc', it should be one of totp, webauthn, mobile_push", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
-	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"webauthn\"}"))
 	s.mock.StorageMock.EXPECT().
-		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(fmt.Errorf("Failure"))
 
 	MethodPreferencePost(s.mock.Ctx)
@@ -223,9 +223,9 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 }
 
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
-	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"webauthn\"}"))
 	s.mock.StorageMock.EXPECT().
-		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(nil)
 
 	MethodPreferencePost(s.mock.Ctx)

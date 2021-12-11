@@ -12,9 +12,6 @@ const (
 	// AuthTypeTOTP is the string representing an auth log for second-factor authentication via TOTP.
 	AuthTypeTOTP = "TOTP"
 
-	// AuthTypeU2F is the string representing an auth log for second-factor authentication via FIDO/CTAP1/U2F.
-	AuthTypeU2F = "U2F"
-
 	// AuthTypeWebauthn is the string representing an auth log for second-factor authentication via FIDO2/CTAP2/WebAuthn.
 	AuthTypeWebauthn = "Webauthn"
 
