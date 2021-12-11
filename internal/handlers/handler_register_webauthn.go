@@ -16,7 +16,7 @@ import (
 var SecondFactorWebauthnIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
 	MailTitle:             "Register your key",
 	MailButtonContent:     "Register",
-	TargetEndpoint:        "/webauthn/attestation",
+	TargetEndpoint:        "/webauthn/register",
 	ActionClaim:           ActionWebauthnRegistration,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 })

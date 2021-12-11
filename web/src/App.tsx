@@ -9,7 +9,7 @@ import {
     IndexRoute,
     ResetPasswordStep2Route,
     ResetPasswordStep1Route,
-    RegisterSecurityKeyRoute,
+    RegisterWebauthnRoute,
     RegisterOneTimePasswordRoute,
     LogoutRoute,
     ConsentRoute,
@@ -67,7 +67,7 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                         <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                        <Route path={RegisterSecurityKeyRoute} element={<RegisterWebauthn />} />
+                        <Route path={RegisterWebauthnRoute} element={<RegisterWebauthn />} />
                         <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                         <Route path={LogoutRoute} element={<SignOut />} />
                         <Route path={ConsentRoute} element={<ConsentView />} />
