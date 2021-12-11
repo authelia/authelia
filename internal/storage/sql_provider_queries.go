@@ -143,14 +143,14 @@ const (
 		WHERE username = ? and kid = ?;`
 
 	queryFmtUpsertWebauthnDevice = `
-		REPLACE INTO %s (username, description, kid, public_key, attestation, aaguid, sign_count)
+		REPLACE INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count)
 		VALUES (?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertWebauthnDevice = `
-		INSERT INTO %s (username, description, kid, public_key, attestation, aaguid, sign_count)
+		INSERT INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (username, description)
-			DO UPDATE SET kid=$3, public_key=$4, attestation=$5, aaguid=$6, sign_count=$7;`
+			DO UPDATE SET kid=$3, public_key=$4, attestation_type=$5, aaguid=$6, sign_count=$7;`
 )
 
 const (
