@@ -373,7 +373,7 @@ func (p *SQLProvider) UpdateWebauthnDeviceSignCount(ctx context.Context, device 
 	}
 
 	if err != nil {
-		return fmt.Errorf("error updating Webauthn sign count for user '%s' kid '%x': %w", device.Username, device.KID, err)
+		return fmt.Errorf("error updating Webauthn signin metadata for kid '%x': %w", device.KID, err)
 	}
 
 	return nil

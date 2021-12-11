@@ -142,7 +142,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 			device.SignCount = credential.Authenticator.SignCount
 
 			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignCount(ctx, device); err != nil {
-				ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s' device '%x' count '%d': %+v", regulation.AuthTypeWebauthn, userSession.Username, credential.ID, credential.Authenticator.SignCount, err)
+				ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 			}
 
 			saved = true

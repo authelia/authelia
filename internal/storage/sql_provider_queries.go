@@ -148,7 +148,7 @@ const (
 
 	queryFmtPostgresUpsertWebauthnDevice = `
 		INSERT INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username, description)
 			DO UPDATE SET kid=$3, public_key=$4, attestation_type=$5, aaguid=$6, sign_count=$7, clone_warning=$8;`
 )

@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
@@ -51,8 +50,6 @@ func (w WebauthnUser) WebAuthnIcon() string {
 func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
 	credentials = make([]webauthn.Credential, len(w.Devices))
 
-	fmt.Printf("devices: %d\n", len(w.Devices))
-
 	for i, device := range w.Devices {
 		aaguid, err := device.AAGUID.MarshalBinary()
 		if err != nil {
@@ -69,8 +66,6 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 				CloneWarning: device.CloneWarning,
 			},
 		}
-
-		fmt.Printf("decoded device - id: %x, attestation: %s, aaguid: %x, sign count: %d\n", credentials[i].ID, credentials[i].AttestationType, credentials[i].Authenticator.AAGUID, credentials[i].Authenticator.SignCount)
 	}
 
 	return credentials
@@ -79,8 +74,6 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 // WebAuthnCredentialDescriptors decodes the users credentials into protocol.CredentialDescriptor's.
 func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.CredentialDescriptor) {
 	descriptors = make([]protocol.CredentialDescriptor, len(w.Devices))
-
-	fmt.Printf("descriptors: %d\n", len(w.Devices))
 
 	for i, device := range w.Devices {
 		descriptor := protocol.CredentialDescriptor{
@@ -98,8 +91,6 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 		}
 
 		descriptors[i] = descriptor
-
-		fmt.Printf("decoded descriptor - id: %x, type: %s, transport: %+v\n", descriptors[i].CredentialID, descriptors[i].Type, descriptors[i].Transport)
 	}
 
 	return descriptors
