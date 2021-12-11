@@ -21,7 +21,7 @@ type signTOTPRequestBody struct {
 	TargetURL string `json:"targetURL"`
 }
 
-// signWebauthnRequestBody model of the request body of U2F authentication endpoint.
+// signWebauthnRequestBody model of the request body of Webauthn authentication endpoint.
 type signWebauthnRequestBody struct {
 	TargetURL string `json:"targetURL"`
 }

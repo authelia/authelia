@@ -22,12 +22,6 @@ type ProviderConfig struct {
 	providerName        string
 }
 
-// U2FRegistration is a serializable version of a U2F registration.
-type U2FRegistration struct {
-	KeyHandle []byte
-	PublicKey []byte
-}
-
 // UserSession is the structure representing the session of a user.
 type UserSession struct {
 	Username    string

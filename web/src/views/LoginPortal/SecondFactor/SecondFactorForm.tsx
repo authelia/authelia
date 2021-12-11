@@ -46,6 +46,7 @@ const SecondFactorForm = function (props: Props) {
     useEffect(() => {
         if (browserSupportsWebauthn()) {
             setWebauthnSupported(true);
+            console.log("Webauthn support detected.")
         } else {
             console.error("Browser does not support Webauthn.");
         }

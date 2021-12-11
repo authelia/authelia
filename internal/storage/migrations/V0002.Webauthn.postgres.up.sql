@@ -16,3 +16,7 @@ SELECT id, username, description, key_handle, public_key, 'fido-u2f', '00000000-
 FROM u2f_devices;
 
 DROP TABLE IF EXISTS u2f_devices;
+
+UPDATE user_preferences
+SET second_factor_method = 'webauthn'
+WHERE second_factor_method = 'u2f';
