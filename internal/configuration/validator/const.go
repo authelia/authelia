@@ -180,6 +180,13 @@ var ValidKeys = []string{
 	"totp.period",
 	"totp.skew",
 
+	// Webauthn Keys.
+	"webauthn.display_name",
+	"webauthn.timeout",
+	"webauthn.debug",
+	"webauthn.attestation_preference",
+	"webauthn.user_verification",
+
 	// DUO API Keys.
 	"duo_api.hostname",
 	"duo_api.enable_self_enrollment",

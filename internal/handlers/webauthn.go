@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -32,8 +33,12 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 		RPDisplayName: "Authelia",
 
 		AttestationPreference: ctx.Configuration.Webauthn.AttestationPreference,
-		Timeout:               ctx.Configuration.Webauthn.Timeout,
-		Debug:                 ctx.Configuration.Webauthn.Debug,
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			UserVerification: ctx.Configuration.Webauthn.UserVerification,
+		},
+
+		Timeout: ctx.Configuration.Webauthn.Timeout,
+		Debug:   ctx.Configuration.Webauthn.Debug,
 	}
 
 	if ctx.Configuration.Server.ExternalURL.Scheme != "" && ctx.Configuration.Server.Host != "" {

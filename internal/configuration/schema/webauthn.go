@@ -6,19 +6,24 @@ import (
 
 // WebauthnConfiguration represents the webauthn config.
 type WebauthnConfiguration struct {
-	Enabled     bool   `koanf:"enabled"`
 	DisplayName string `koanf:"display_name"`
 	Timeout     int    `koanf:"timeout"`
 	Debug       bool   `koanf:"debug"`
 
-	AttestationPreference protocol.ConveyancePreference `koanf:"attestation_preference"`
-
-	AuthenticatorSelection *WebAuthnAuthenticatorSelectionConfiguration `koanf:"authenticator_selection"`
+	AttestationPreference protocol.ConveyancePreference        `koanf:"attestation_preference"`
+	UserVerification      protocol.UserVerificationRequirement `koanf:"user_verification"`
 }
 
-// WebAuthnAuthenticatorSelectionConfiguration represents the authenticator selection.
-type WebAuthnAuthenticatorSelectionConfiguration struct {
-	AuthenticatorAttachment protocol.AuthenticatorAttachment     `koanf:"authenticator_attachment"`
-	RequireResidentKey      bool                                 `koanf:"require_resident_key"`
-	UserVerification        protocol.UserVerificationRequirement `koanf:"user_verification"`
+// WebauthnAuthenticatorSelectionConfiguration represents the authenticator selection.
+type WebauthnAuthenticatorSelectionConfiguration struct {
+	UserVerification protocol.UserVerificationRequirement `koanf:"user_verification"`
+}
+
+// DefaultWebauthnConfiguration describes the default values for the WebauthnConfiguration.
+var DefaultWebauthnConfiguration = WebauthnConfiguration{
+	DisplayName: "Authelia",
+	Timeout:     60000,
+
+	AttestationPreference: protocol.PreferIndirectAttestation,
+	UserVerification:      protocol.VerificationPreferred,
 }

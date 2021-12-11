@@ -38,9 +38,7 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	var opts = []webauthn.LoginOption{
-		webauthn.WithUserVerification(ctx.Configuration.Webauthn.AuthenticatorSelection.UserVerification),
-	}
+	var opts []webauthn.LoginOption
 
 	extensions := make(map[string]interface{})
 
