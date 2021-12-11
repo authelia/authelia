@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/duo-labs/webauthn/webauthn"
 
@@ -27,8 +25,7 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 
 func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid string, err error) {
 	var (
-		headerProtoV, headerXForwardedHostV, headerOriginV []byte
-		originURL                                          *url.URL
+		headerProtoV, headerXForwardedHostV []byte
 	)
 
 	if headerProtoV = ctx.XForwardedProto(); headerProtoV == nil {
@@ -41,33 +38,17 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 
 	appid = fmt.Sprintf("%s://%s", headerProtoV, headerXForwardedHostV)
 
-	if headerOriginV = ctx.Request.Header.PeekBytes(headerOrigin); headerOriginV == nil {
-		return nil, "", errMissingOrigin
-	}
-
-	if originURL, err = url.Parse(string(headerOriginV)); err != nil {
-		return nil, "", fmt.Errorf(errFmtInvalidOrigin, headerOriginV, err)
-	}
-
-	if strings.EqualFold(originURL.Scheme, string(headerProtoV)) {
-		return nil, "", fmt.Errorf(errFmtInvalidOrigin, headerOriginV, fmt.Errorf(errFmtOriginProtoMismatch, headerProtoV))
-	}
-
-	if strings.EqualFold(originURL.Host, string(headerXForwardedHostV)) {
-		return nil, "", fmt.Errorf(errFmtInvalidOrigin, headerOriginV, fmt.Errorf(errFmtOriginHostMismatch, headerXForwardedHostV))
-	}
-
 	config := &webauthn.Config{
 		RPDisplayName: "Authelia",
 		RPID:          appid,
-		RPOrigin:      string(headerOriginV),
+		RPOrigin:      appid,
 
 		AttestationPreference: ctx.Configuration.Webauthn.AttestationPreference,
 		Timeout:               ctx.Configuration.Webauthn.Timeout,
 		Debug:                 ctx.Configuration.Webauthn.Debug,
 	}
 
-	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origin %s", appid, string(headerOriginV))
+	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID/Origin %s", appid)
 
 	w, err = webauthn.New(config)
 
