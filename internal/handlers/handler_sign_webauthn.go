@@ -38,7 +38,9 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	var opts []webauthn.LoginOption
+	var opts = []webauthn.LoginOption{
+		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
+	}
 
 	extensions := make(map[string]interface{})
 
@@ -136,7 +138,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	for _, device := range user.Devices {
-		if bytes.Equal(device.KID, credential.ID) {
+		if bytes.Equal(device.KID.Bytes(), credential.ID) {
 			device.SignCount = credential.Authenticator.SignCount
 
 			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignCount(ctx, device); err != nil {

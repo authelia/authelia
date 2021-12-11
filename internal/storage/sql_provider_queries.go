@@ -112,13 +112,13 @@ const (
 
 const (
 	queryFmtSelectWebauthnDevices = `
-		SELECT id, username, description, kid, public_key, attestation_type, aaguid, sign_count 
+		SELECT id, username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning 
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
 	queryFmtSelectWebauthnDevicesByUsername = `
-		SELECT id, username, description, kid, public_key, attestation_type, aaguid, sign_count 
+		SELECT id, username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning 
 		FROM %s
 		WHERE username = ?;`
 
@@ -134,23 +134,23 @@ const (
 
 	queryFmtUpdateWebauthnDeviceSignCount = `
 		UPDATE %s
-		SET sign_count = ?
+		SET sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
 	queryFmtUpdateUpdateWebauthnDeviceSignCountByUsername = `
 		UPDATE %s
-		SET sign_count = ?
-		WHERE username = ? and kid = ?;`
+		SET sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		WHERE username = ? AND kid = ?;`
 
 	queryFmtUpsertWebauthnDevice = `
-		REPLACE INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count)
-		VALUES (?, ?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertWebauthnDevice = `
-		INSERT INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count)
+		INSERT INTO %s (username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (username, description)
-			DO UPDATE SET kid=$3, public_key=$4, attestation_type=$5, aaguid=$6, sign_count=$7;`
+			DO UPDATE SET kid=$3, public_key=$4, attestation_type=$5, aaguid=$6, sign_count=$7, clone_warning=$8;`
 )
 
 const (

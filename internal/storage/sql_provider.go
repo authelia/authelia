@@ -355,7 +355,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
 		device.Username, device.Description,
 		device.KID, device.PublicKey,
-		device.AttestationType, device.AAGUID, device.SignCount,
+		device.AttestationType, device.AAGUID, device.SignCount, device.CloneWarning,
 	); err != nil {
 		return fmt.Errorf("error upserting Webauthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
@@ -367,9 +367,9 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 func (p *SQLProvider) UpdateWebauthnDeviceSignCount(ctx context.Context, device models.WebauthnDevice) (err error) {
 	switch device.ID {
 	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceSignCountByUsername, device.SignCount, device.Username, device.KID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceSignCountByUsername, device.SignCount, device.CloneWarning, device.Username, device.KID)
 	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceSignCount, device.SignCount, device.ID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceSignCount, device.SignCount, device.CloneWarning, device.ID)
 	}
 
 	if err != nil {
