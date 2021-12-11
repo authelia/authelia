@@ -36,6 +36,8 @@ func ValidateConfiguration(configuration *schema.Configuration, validator *schem
 
 	ValidateTOTP(configuration, validator)
 
+	ValidateWebauthn(configuration, validator)
+
 	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
 
 	ValidateAccessControl(&configuration.AccessControl, validator)
