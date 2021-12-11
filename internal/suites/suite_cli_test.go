@@ -262,7 +262,7 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, duo_devices, user_preferences, migrations, encryption\nSchema Encryption Key: valid`)
+	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, duo_devices, user_preferences, migrations, encryption, webauthn_devices\nSchema Encryption Key: valid`)
 
 	s.Assert().Regexp(pattern, output)
 }
