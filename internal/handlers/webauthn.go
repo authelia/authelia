@@ -46,7 +46,6 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 
 		config.RPID = u.Hostname()
 		config.RPOrigin = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
-
 		appid = fmt.Sprintf("%s://%s", u.Scheme, u.Hostname())
 	} else {
 		if headerProtoV = ctx.XForwardedProto(); headerProtoV == nil {
@@ -59,7 +58,6 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 
 		config.RPID = string(headerXForwardedHostV)
 		config.RPOrigin = fmt.Sprintf("%s://%s", headerProtoV, headerXForwardedHostV)
-
 		appid = config.RPOrigin
 	}
 
