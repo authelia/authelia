@@ -23,7 +23,7 @@
     "react-i18next": "^11.14.3",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.0.2",
+    "react-router-dom": "6.1.1",
     "u2f-api": "1.2.1"
   },
   "scripts": {
@@ -145,12 +145,12 @@
     "eslint-plugin-react": "7.27.1",
     "eslint-plugin-react-hooks": "4.3.0",
     "husky": "7.0.2",
-    "jest": "27.4.3",
+    "jest": "27.4.4",
     "jest-transform-stub": "2.0.0",
     "jest-watch-typeahead": "1.0.0",
     "prettier": "2.5.1",
     "react-test-renderer": "17.0.2",
-    "typescript": "4.5.2",
+    "typescript": "4.5.3",
     "vite": "2.7.1",
     "vite-plugin-eslint": "1.3.0",
     "vite-plugin-istanbul": "2.3.0",
