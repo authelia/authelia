@@ -19,7 +19,7 @@
     "react-ga": "3.3.0",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.1.0",
+    "react-router-dom": "6.1.1",
     "u2f-api": "1.2.1"
   },
   "scripts": {
