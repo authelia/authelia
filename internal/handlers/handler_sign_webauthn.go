@@ -138,7 +138,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	for _, device := range user.Devices {
-		if bytes.Equal(device.KID, credential.ID) {
+		if bytes.Equal(device.KID.Bytes(), credential.ID) {
 			device.SignCount = credential.Authenticator.SignCount
 
 			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignCount(ctx, device); err != nil {

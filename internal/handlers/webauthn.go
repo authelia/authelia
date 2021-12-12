@@ -25,12 +25,8 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 }
 
 func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid string, err error) {
-	var (
-		headerProtoV, headerXForwardedHostV []byte
-	)
-
 	config := &webauthn.Config{
-		RPDisplayName: "Authelia",
+		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
 
 		AttestationPreference: ctx.Configuration.Webauthn.AttestationPreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
@@ -38,7 +34,6 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 		},
 
 		Timeout: ctx.Configuration.Webauthn.Timeout,
-		Debug:   ctx.Configuration.Webauthn.Debug,
 	}
 
 	if ctx.Configuration.Server.ExternalURL.Scheme != "" && ctx.Configuration.Server.Host != "" {
@@ -48,6 +43,10 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 		config.RPOrigin = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 		appid = fmt.Sprintf("%s://%s", u.Scheme, u.Hostname())
 	} else {
+		var (
+			headerProtoV, headerXForwardedHostV []byte
+		)
+
 		if headerProtoV = ctx.XForwardedProto(); headerProtoV == nil {
 			return nil, "", errMissingXForwardedProto
 		}

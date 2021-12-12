@@ -8,7 +8,6 @@ import (
 type WebauthnConfiguration struct {
 	DisplayName string `koanf:"display_name"`
 	Timeout     int    `koanf:"timeout"`
-	Debug       bool   `koanf:"debug"`
 
 	AttestationPreference protocol.ConveyancePreference        `koanf:"attestation_preference"`
 	UserVerification      protocol.UserVerificationRequirement `koanf:"user_verification"`

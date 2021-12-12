@@ -60,7 +60,7 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 		}
 
 		credential = webauthn.Credential{
-			ID:              device.KID,
+			ID:              device.KID.Bytes(),
 			PublicKey:       device.PublicKey,
 			AttestationType: device.AttestationType,
 			Authenticator: webauthn.Authenticator{
@@ -95,7 +95,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 	for i, device := range w.Devices {
 		descriptor := protocol.CredentialDescriptor{
 			Type:         protocol.PublicKeyCredentialType,
-			CredentialID: device.KID,
+			CredentialID: device.KID.Bytes(),
 		}
 
 		for _, t := range strings.Split(device.Transport, ",") {
@@ -124,7 +124,7 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 	device = WebauthnDevice{
 		Username:        username,
 		Description:     description,
-		KID:             credential.ID,
+		KID:             NewBase64(credential.ID),
 		PublicKey:       credential.PublicKey,
 		AttestationType: credential.AttestationType,
 		SignCount:       credential.Authenticator.SignCount,
@@ -142,7 +142,7 @@ type WebauthnDevice struct {
 	ID              int       `db:"id"`
 	Username        string    `db:"username"`
 	Description     string    `db:"description"`
-	KID             []byte    `db:"kid"`
+	KID             Base64    `db:"kid"`
 	PublicKey       []byte    `db:"public_key"`
 	AttestationType string    `db:"attestation_type"`
 	Transport       string    `db:"transport"`

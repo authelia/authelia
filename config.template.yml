@@ -116,6 +116,20 @@ totp:
   ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
 
 ##
+## WebAuthn Configuration
+##
+## Parameters used for WebAuthn.
+webauthn:
+  ## The display name shown to the user.
+  display_name: Authelia
+
+  ## Attestation preference controls if we collect the AAGUID from users.
+  attestation_preference: indirect
+
+  ## User verification controls if the user must make a gesture to confirm they are the owner of the WebAuthn credential.
+  user_verification: preferred
+
+##
 ## Duo Push API Configuration
 ##
 ## Parameters used to contact the Duo API. Those are generated when you protect an application of type
