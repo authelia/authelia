@@ -9,8 +9,9 @@ import (
 	reflect "reflect"
 	time "time"
 
-	models "github.com/authelia/authelia/v4/internal/models"
 	gomock "github.com/golang/mock/gomock"
+
+	models "github.com/authelia/authelia/v4/internal/models"
 )
 
 // MockStorage is a mock of Provider interface.
