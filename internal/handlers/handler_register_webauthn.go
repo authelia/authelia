@@ -57,6 +57,7 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 	var credentialCreation *protocol.CredentialCreation
 
 	rrk := true
+
 	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user,
 		webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
 			RequireResidentKey:      &rrk,
