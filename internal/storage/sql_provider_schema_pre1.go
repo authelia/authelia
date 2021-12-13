@@ -13,7 +13,7 @@ import (
 )
 
 // schemaMigratePre1To1 takes the v1 migration and migrates to this version.
-func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context) (err error) {
+func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context, db DBOrTx) (err error) {
 	migration, err := loadMigration(p.name, 1, true)
 	if err != nil {
 		return err
@@ -41,11 +41,11 @@ func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context) (err error) {
 		tableAlphaU2FDeviceHandles,
 	}
 
-	if err = p.schemaMigratePre1Rename(ctx, tables, tablesRename); err != nil {
+	if err = p.schemaMigratePre1Rename(ctx, db, tables, tablesRename); err != nil {
 		return err
 	}
 
-	if _, err = p.db.ExecContext(ctx, migration.Query); err != nil {
+	if _, err = db.ExecContext(ctx, migration.Query); err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
 
@@ -53,33 +53,33 @@ func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context) (err error) {
 		return err
 	}
 
-	if _, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertUserPreferencesFromSelect),
+	if _, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1InsertUserPreferencesFromSelect),
 		tableUserPreferences, tablePrefixBackup+tableUserPreferences)); err != nil {
 		return err
 	}
 
-	if err = p.schemaMigratePre1To1AuthenticationLogs(ctx); err != nil {
+	if err = p.schemaMigratePre1To1AuthenticationLogs(ctx, db); err != nil {
 		return err
 	}
 
-	if err = p.schemaMigratePre1To1U2F(ctx); err != nil {
+	if err = p.schemaMigratePre1To1U2F(ctx, db); err != nil {
 		return err
 	}
 
-	if err = p.schemaMigratePre1To1TOTP(ctx); err != nil {
+	if err = p.schemaMigratePre1To1TOTP(ctx, db); err != nil {
 		return err
 	}
 
 	for _, table := range tablesRename {
-		if _, err = p.db.Exec(fmt.Sprintf(p.db.Rebind(queryFmtDropTableIfExists), tablePrefixBackup+table)); err != nil {
+		if _, err = db.Exec(fmt.Sprintf(db.Rebind(queryFmtDropTableIfExists), tablePrefixBackup+table)); err != nil {
 			return err
 		}
 	}
 
-	return p.schemaMigrateFinalizeAdvanced(ctx, -1, 1)
+	return p.schemaMigrateFinalizeAdvanced(ctx, db, -1, 1)
 }
 
-func (p *SQLProvider) schemaMigratePre1Rename(ctx context.Context, tables, tablesRename []string) (err error) {
+func (p *SQLProvider) schemaMigratePre1Rename(ctx context.Context, db DBOrTx, tables, tablesRename []string) (err error) {
 	// Rename Tables and Indexes.
 	for _, table := range tables {
 		if !utils.IsStringInSlice(table, tablesRename) {
@@ -88,13 +88,13 @@ func (p *SQLProvider) schemaMigratePre1Rename(ctx context.Context, tables, table
 
 		tableNew := tablePrefixBackup + table
 
-		if _, err = p.db.ExecContext(ctx, fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
+		if _, err = db.ExecContext(ctx, fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
 			return err
 		}
 
 		if p.name == providerPostgres {
 			if table == tableU2FDevices || table == tableUserPreferences {
-				if _, err = p.db.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
+				if _, err = db.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 					tableNew, table, tableNew)); err != nil {
 					continue
 				}
@@ -105,14 +105,14 @@ func (p *SQLProvider) schemaMigratePre1Rename(ctx context.Context, tables, table
 	return nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1Rollback(ctx context.Context, up bool) (err error) {
+func (p *SQLProvider) schemaMigratePre1To1Rollback(ctx context.Context, db DBOrTx, up bool) (err error) {
 	if up {
 		migration, err := loadMigration(p.name, 1, false)
 		if err != nil {
 			return err
 		}
 
-		if _, err = p.db.ExecContext(ctx, migration.Query); err != nil {
+		if _, err = db.ExecContext(ctx, migration.Query); err != nil {
 			return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 		}
 	}
@@ -128,12 +128,12 @@ func (p *SQLProvider) schemaMigratePre1To1Rollback(ctx context.Context, up bool)
 		}
 
 		tableNew := strings.Replace(table, tablePrefixBackup, "", 1)
-		if _, err = p.db.ExecContext(ctx, fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
+		if _, err = db.ExecContext(ctx, fmt.Sprintf(p.sqlFmtRenameTable, table, tableNew)); err != nil {
 			return err
 		}
 
 		if p.name == providerPostgres && (tableNew == tableU2FDevices || tableNew == tableUserPreferences) {
-			if _, err = p.db.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
+			if _, err = db.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 				tableNew, table, tableNew)); err != nil {
 				continue
 			}
@@ -143,9 +143,9 @@ func (p *SQLProvider) schemaMigratePre1To1Rollback(ctx context.Context, up bool)
 	return nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogs(ctx context.Context) (err error) {
+func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogs(ctx context.Context, db DBOrTx) (err error) {
 	for page := 0; true; page++ {
-		attempts, err := p.schemaMigratePre1To1AuthenticationLogsGetRows(ctx, page)
+		attempts, err := p.schemaMigratePre1To1AuthenticationLogsGetRows(ctx, db, page)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				break
@@ -155,7 +155,7 @@ func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogs(ctx context.Context
 		}
 
 		for _, attempt := range attempts {
-			_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertAuthenticationLogs), tableAuthenticationLogs), attempt.Username, attempt.Successful, attempt.Time)
+			_, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1To1InsertAuthenticationLogs), tableAuthenticationLogs), attempt.Username, attempt.Successful, attempt.Time)
 			if err != nil {
 				return err
 			}
@@ -169,8 +169,8 @@ func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogs(ctx context.Context
 	return nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(ctx context.Context, page int) (attempts []models.AuthenticationAttempt, err error) {
-	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1SelectAuthenticationLogs), tablePrefixBackup+tableAuthenticationLogs), page*100)
+func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(ctx context.Context, db DBOrTx, page int) (attempts []models.AuthenticationAttempt, err error) {
+	rows, err := db.QueryxContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1To1SelectAuthenticationLogs), tablePrefixBackup+tableAuthenticationLogs), page*100)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +195,8 @@ func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(ctx context.
 	return attempts, nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) {
-	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1SelectTOTPConfigurations), tablePrefixBackup+tablePre1TOTPSecrets))
+func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context, db DBOrTx) (err error) {
+	rows, err := db.QueryxContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1SelectTOTPConfigurations), tablePrefixBackup+tablePre1TOTPSecrets))
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, p.config.TOTP.Issuer, p.config.TOTP.Period, config.Secret)
+		_, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1To1InsertTOTPConfiguration), tableTOTPConfigurations), config.Username, p.config.TOTP.Issuer, p.config.TOTP.Period, config.Secret)
 		if err != nil {
 			return err
 		}
@@ -235,8 +235,8 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 	return nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
-	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1To1SelectU2FDevices), tablePrefixBackup+tableU2FDevices))
+func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context, db DBOrTx) (err error) {
+	rows, err := db.Queryx(fmt.Sprintf(db.Rebind(queryFmtPre1To1SelectU2FDevices), tablePrefixBackup+tableU2FDevices))
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 	}
 
 	for _, device := range devices {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertU2FDevice), tableU2FDevices), device.Username, device.KeyHandle, device.PublicKey)
+		_, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1To1InsertU2FDevice), tableU2FDevices), device.Username, device.KeyHandle, device.PublicKey)
 		if err != nil {
 			return err
 		}
@@ -285,7 +285,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
+func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context, db DBOrTx) (err error) {
 	tables, err := p.SchemaTables(ctx)
 	if err != nil {
 		return err
@@ -302,35 +302,35 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 		tableEncryption,
 	}
 
-	if err = p.schemaMigratePre1Rename(ctx, tables, tablesRename); err != nil {
+	if err = p.schemaMigratePre1Rename(ctx, db, tables, tablesRename); err != nil {
 		return err
 	}
 
-	if _, err := p.db.ExecContext(ctx, queryCreatePre1); err != nil {
+	if _, err := db.ExecContext(ctx, queryCreatePre1); err != nil {
 		return err
 	}
 
-	if _, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1InsertUserPreferencesFromSelect),
+	if _, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1InsertUserPreferencesFromSelect),
 		tableUserPreferences, tablePrefixBackup+tableUserPreferences)); err != nil {
 		return err
 	}
 
-	if err = p.schemaMigrate1ToPre1AuthenticationLogs(ctx); err != nil {
+	if err = p.schemaMigrate1ToPre1AuthenticationLogs(ctx, db); err != nil {
 		return err
 	}
 
-	if err = p.schemaMigrate1ToPre1U2F(ctx); err != nil {
+	if err = p.schemaMigrate1ToPre1U2F(ctx, db); err != nil {
 		return err
 	}
 
-	if err = p.schemaMigrate1ToPre1TOTP(ctx); err != nil {
+	if err = p.schemaMigrate1ToPre1TOTP(ctx, db); err != nil {
 		return err
 	}
 
-	queryFmtDropTableRebound := p.db.Rebind(queryFmtDropTableIfExists)
+	queryFmtDropTableRebound := db.Rebind(queryFmtDropTableIfExists)
 
 	for _, table := range tablesRename {
-		if _, err = p.db.Exec(fmt.Sprintf(queryFmtDropTableRebound, tablePrefixBackup+table)); err != nil {
+		if _, err = db.Exec(fmt.Sprintf(queryFmtDropTableRebound, tablePrefixBackup+table)); err != nil {
 			return err
 		}
 	}
@@ -338,9 +338,9 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogs(ctx context.Context) (err error) {
+func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogs(ctx context.Context, db DBOrTx) (err error) {
 	for page := 0; true; page++ {
-		attempts, err := p.schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx, page)
+		attempts, err := p.schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx, db, page)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				break
@@ -350,7 +350,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogs(ctx context.Context
 		}
 
 		for _, attempt := range attempts {
-			_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertAuthenticationLogs), tableAuthenticationLogs), attempt.Username, attempt.Successful, attempt.Time.Unix())
+			_, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmt1ToPre1InsertAuthenticationLogs), tableAuthenticationLogs), attempt.Username, attempt.Successful, attempt.Time.Unix())
 			if err != nil {
 				return err
 			}
@@ -364,8 +364,8 @@ func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogs(ctx context.Context
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx context.Context, page int) (attempts []models.AuthenticationAttempt, err error) {
-	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1SelectAuthenticationLogs), tablePrefixBackup+tableAuthenticationLogs), page*100)
+func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx context.Context, db DBOrTx, page int) (attempts []models.AuthenticationAttempt, err error) {
+	rows, err := db.QueryxContext(ctx, fmt.Sprintf(db.Rebind(queryFmt1ToPre1SelectAuthenticationLogs), tablePrefixBackup+tableAuthenticationLogs), page*100)
 	if err != nil {
 		return nil, err
 	}
@@ -385,8 +385,8 @@ func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx context.
 	return attempts, nil
 }
 
-func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) {
-	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1SelectTOTPConfigurations), tablePrefixBackup+tableTOTPConfigurations))
+func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context, db DBOrTx) (err error) {
+	rows, err := db.QueryxContext(ctx, fmt.Sprintf(db.Rebind(queryFmtPre1SelectTOTPConfigurations), tablePrefixBackup+tableTOTPConfigurations))
 	if err != nil {
 		return err
 	}
@@ -419,7 +419,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 	}
 
 	for _, config := range totpConfigs {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
+		_, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmt1ToPre1InsertTOTPConfiguration), tablePre1TOTPSecrets), config.Username, config.Secret)
 		if err != nil {
 			return err
 		}
@@ -428,8 +428,8 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
-	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1SelectU2FDevices), tablePrefixBackup+tableU2FDevices))
+func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context, db DBOrTx) (err error) {
+	rows, err := db.QueryxContext(ctx, fmt.Sprintf(db.Rebind(queryFmt1ToPre1SelectU2FDevices), tablePrefixBackup+tableU2FDevices))
 	if err != nil {
 		return err
 	}
@@ -460,7 +460,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
 	}
 
 	for _, device := range devices {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertU2FDevice), tableU2FDevices), device.Username, base64.StdEncoding.EncodeToString(device.KeyHandle), base64.StdEncoding.EncodeToString(device.PublicKey))
+		_, err = db.ExecContext(ctx, fmt.Sprintf(db.Rebind(queryFmt1ToPre1InsertU2FDevice), tableU2FDevices), device.Username, base64.StdEncoding.EncodeToString(device.KeyHandle), base64.StdEncoding.EncodeToString(device.PublicKey))
 		if err != nil {
 			return err
 		}

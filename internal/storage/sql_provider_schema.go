@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -130,11 +131,24 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 		return err
 	}
 
-	return p.schemaMigrate(ctx, currentVersion, version)
+	if p.name != providerSQLite {
+		tx, err := p.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
+		if err != nil {
+			return fmt.Errorf("could not begin transaction for migration: %w", err)
+		}
+
+		err = p.schemaMigrate(ctx, tx, currentVersion, version)
+
+		_ = tx.Commit()
+	} else {
+		err = p.schemaMigrate(ctx, p.db, currentVersion, version)
+	}
+
+	return err
 }
 
 //nolint: gocyclo
-func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err error) {
+func (p *SQLProvider) schemaMigrate(ctx context.Context, db DBOrTx, prior, target int) (err error) {
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
 		return err
@@ -148,9 +162,9 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 	case prior == -1:
 		p.log.Infof(logFmtMigrationFromTo, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
 
-		err = p.schemaMigratePre1To1(ctx)
+		err = p.schemaMigratePre1To1(ctx, db)
 		if err != nil {
-			if errRollback := p.schemaMigratePre1To1Rollback(ctx, true); errRollback != nil {
+			if errRollback := p.schemaMigratePre1To1Rollback(ctx, db, true); errRollback != nil {
 				return fmt.Errorf(errFmtFailedMigrationPre1, err)
 			}
 
@@ -168,9 +182,9 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 			continue
 		}
 
-		err = p.schemaMigrateApply(ctx, migration)
+		err = p.schemaMigrateApply(ctx, db, migration)
 		if err != nil {
-			return p.schemaMigrateRollback(ctx, prior, migration.After(), err)
+			return p.schemaMigrateRollback(ctx, db, prior, migration.After(), err)
 		}
 	}
 
@@ -178,9 +192,9 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 	case prior == -1:
 		p.log.Infof(logFmtMigrationComplete, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
 	case target == -1:
-		err = p.schemaMigrate1ToPre1(ctx)
+		err = p.schemaMigrate1ToPre1(ctx, db)
 		if err != nil {
-			if errRollback := p.schemaMigratePre1To1Rollback(ctx, false); errRollback != nil {
+			if errRollback := p.schemaMigratePre1To1Rollback(ctx, db, false); errRollback != nil {
 				return fmt.Errorf(errFmtFailedMigrationPre1, err)
 			}
 
@@ -195,7 +209,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, prior, after int, migrateErr error) (err error) {
+func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, db DBOrTx, prior, after int, migrateErr error) (err error) {
 	migrations, err := loadMigrations(p.name, after, prior)
 	if err != nil {
 		return fmt.Errorf("error loading migrations from version %d to version %d for rollback: %+v. rollback caused by: %+v", prior, after, err, migrateErr)
@@ -206,14 +220,14 @@ func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, prior, after in
 			continue
 		}
 
-		err = p.schemaMigrateApply(ctx, migration)
+		err = p.schemaMigrateApply(ctx, db, migration)
 		if err != nil {
 			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %+v", migration.Before(), migration.After(), err, migrateErr)
 		}
 	}
 
 	if prior == -1 {
-		if err = p.schemaMigrate1ToPre1(ctx); err != nil {
+		if err = p.schemaMigrate1ToPre1(ctx, db); err != nil {
 			return fmt.Errorf("error applying migration version 1 to version pre1 for rollback: %+v. rollback caused by: %+v", err, migrateErr)
 		}
 	}
@@ -221,8 +235,8 @@ func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, prior, after in
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
 }
 
-func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration models.SchemaMigration) (err error) {
-	_, err = p.db.ExecContext(ctx, migration.Query)
+func (p *SQLProvider) schemaMigrateApply(ctx context.Context, db DBOrTx, migration models.SchemaMigration) (err error) {
+	_, err = db.ExecContext(ctx, migration.Query)
 	if err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
@@ -243,15 +257,15 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration models.S
 		return nil
 	}
 
-	return p.schemaMigrateFinalize(ctx, migration)
+	return p.schemaMigrateFinalize(ctx, db, migration)
 }
 
-func (p SQLProvider) schemaMigrateFinalize(ctx context.Context, migration models.SchemaMigration) (err error) {
-	return p.schemaMigrateFinalizeAdvanced(ctx, migration.Before(), migration.After())
+func (p SQLProvider) schemaMigrateFinalize(ctx context.Context, db DBOrTx, migration models.SchemaMigration) (err error) {
+	return p.schemaMigrateFinalizeAdvanced(ctx, db, migration.Before(), migration.After())
 }
 
-func (p *SQLProvider) schemaMigrateFinalizeAdvanced(ctx context.Context, before, after int) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertMigration, time.Now(), before, after, utils.Version())
+func (p *SQLProvider) schemaMigrateFinalizeAdvanced(ctx context.Context, db DBOrTx, before, after int) (err error) {
+	_, err = db.ExecContext(ctx, p.sqlInsertMigration, time.Now(), before, after, utils.Version())
 	if err != nil {
 		return err
 	}
