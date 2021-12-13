@@ -56,7 +56,13 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 
 	var credentialCreation *protocol.CredentialCreation
 
-	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user); err != nil {
+	rrk := true
+	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user,
+		webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
+			RequireResidentKey:      &rrk,
+			UserVerification:        protocol.VerificationRequired,
+			AuthenticatorAttachment: protocol.CrossPlatform,
+		})); err != nil {
 		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
