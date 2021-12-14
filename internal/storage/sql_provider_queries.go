@@ -96,14 +96,14 @@ const (
 		WHERE username = ?;`
 
 	queryFmtUpsertTOTPConfiguration = `
-		REPLACE INTO %s (username, issuer, algorithm, digits, period, secret)
-		VALUES (?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (created, ip, username, issuer, algorithm, digits, period, secret)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertTOTPConfiguration = `
-		INSERT INTO %s (username, issuer, algorithm, digits, period, secret)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO %s (created, ip, username, issuer, algorithm, digits, period, secret)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username)
-			DO UPDATE SET issuer = $2, algorithm = $3, digits = $4, period = $5, secret = $6;`
+			DO UPDATE SET created = $1, ip = $2, issuer = $4, algorithm = $5, digits = $6, period = $7, secret = $8;`
 
 	queryFmtDeleteTOTPConfiguration = `
 		DELETE FROM %s
@@ -143,14 +143,14 @@ const (
 		WHERE username = ? AND kid = ?;`
 
 	queryFmtUpsertWebauthnDevice = `
-		REPLACE INTO %s (username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (created, ip, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertWebauthnDevice = `
-		INSERT INTO %s (username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO %s (created, ip, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			ON CONFLICT (username, description)
-			DO UPDATE SET kid=$3, public_key=$4, attestation_type=$5, transport=$6, aaguid=$7, sign_count=$8, clone_warning=$9;`
+			DO UPDATE SET created = $1, ip = $2, kid = $5, public_key = $6, attestation_type = $7, transport = $8, aaguid = $9, sign_count = $10, clone_warning = $11;`
 )
 
 const (
@@ -162,7 +162,7 @@ const (
 		INSERT INTO %s (username, device, method)
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
-			DO UPDATE SET device=$2, method=$3;`
+			DO UPDATE SET device = $2, method = $3;`
 
 	queryFmtDeleteDuoDevice = `
 		DELETE
@@ -204,5 +204,5 @@ const (
 		INSERT INTO %s (name, value)
 		VALUES ($1, $2)
 			ON CONFLICT (name)
-			DO UPDATE SET value=$2;`
+			DO UPDATE SET value = $2;`
 )

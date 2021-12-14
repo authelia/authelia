@@ -56,14 +56,7 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 
 	var credentialCreation *protocol.CredentialCreation
 
-	rrk := true
-
-	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user,
-		webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
-			RequireResidentKey:      &rrk,
-			UserVerification:        protocol.VerificationRequired,
-			AuthenticatorAttachment: protocol.CrossPlatform,
-		})); err != nil {
+	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user); err != nil {
 		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -133,7 +126,7 @@ func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := models.NewWebauthnDeviceFromCredential(userSession.Username, "Primary", credential)
+	device := models.NewWebauthnDeviceFromCredential(userSession.Username, "Primary", ctx.RemoteIP(), credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)

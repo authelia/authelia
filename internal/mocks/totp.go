@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	net "net"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,33 +37,33 @@ func (m *MockTOTP) EXPECT() *MockTOTPMockRecorder {
 }
 
 // Generate mocks base method.
-func (m *MockTOTP) Generate(arg0 string) (*models.TOTPConfiguration, error) {
+func (m *MockTOTP) Generate(arg0 string, arg1 net.IP) (*models.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Generate", arg0)
+	ret := m.ctrl.Call(m, "Generate", arg0, arg1)
 	ret0, _ := ret[0].(*models.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Generate indicates an expected call of Generate.
-func (mr *MockTOTPMockRecorder) Generate(arg0 interface{}) *gomock.Call {
+func (mr *MockTOTPMockRecorder) Generate(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockTOTP)(nil).Generate), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockTOTP)(nil).Generate), arg0, arg1)
 }
 
 // GenerateCustom mocks base method.
-func (m *MockTOTP) GenerateCustom(arg0, arg1 string, arg2, arg3, arg4 uint) (*models.TOTPConfiguration, error) {
+func (m *MockTOTP) GenerateCustom(arg0 string, arg1 net.IP, arg2 string, arg3, arg4, arg5 uint) (*models.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(*models.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateCustom indicates an expected call of GenerateCustom.
-func (mr *MockTOTPMockRecorder) GenerateCustom(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockTOTPMockRecorder) GenerateCustom(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCustom", reflect.TypeOf((*MockTOTP)(nil).GenerateCustom), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCustom", reflect.TypeOf((*MockTOTP)(nil).GenerateCustom), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // Validate mocks base method.

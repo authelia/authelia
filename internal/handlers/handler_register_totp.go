@@ -41,7 +41,7 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 		err    error
 	)
 
-	if config, err = ctx.Providers.TOTP.Generate(username); err != nil {
+	if config, err = ctx.Providers.TOTP.Generate(username, ctx.RemoteIP()); err != nil {
 		ctx.Error(fmt.Errorf("unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
 	}
 

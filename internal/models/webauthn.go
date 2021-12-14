@@ -2,7 +2,9 @@ package models
 
 import (
 	"encoding/hex"
+	"net"
 	"strings"
+	"time"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
@@ -114,7 +116,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 }
 
 // NewWebauthnDeviceFromCredential creates a WebauthnDevice from a webauthn.Credential.
-func NewWebauthnDeviceFromCredential(username, description string, credential *webauthn.Credential) (device WebauthnDevice) {
+func NewWebauthnDeviceFromCredential(username, description string, ip net.IP, credential *webauthn.Credential) (device WebauthnDevice) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
@@ -123,6 +125,8 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 
 	device = WebauthnDevice{
 		Username:        username,
+		Created:         time.Now(),
+		IP:              NewIP(ip),
 		Description:     description,
 		KID:             NewBase64(credential.ID),
 		PublicKey:       credential.PublicKey,
@@ -140,6 +144,8 @@ func NewWebauthnDeviceFromCredential(username, description string, credential *w
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
 	ID              int       `db:"id"`
+	Created         time.Time `db:"created"`
+	IP              IP        `db:"ip"`
 	Username        string    `db:"username"`
 	Description     string    `db:"description"`
 	KID             Base64    `db:"kid"`

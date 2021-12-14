@@ -275,7 +275,9 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
-		config.Username, config.Issuer, config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
+		config.Created, config.IP,
+		config.Username, config.Issuer,
+		config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
 		return fmt.Errorf("error upserting TOTP configuration for user '%s': %w", config.Username, err)
 	}
 
@@ -353,6 +355,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
+		device.Created, device.IP,
 		device.Username, device.Description,
 		device.KID, device.PublicKey,
 		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,

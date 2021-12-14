@@ -3,17 +3,20 @@ package models
 import (
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // TOTPConfiguration represents a users TOTP configuration row in the database.
 type TOTPConfiguration struct {
-	ID        int    `db:"id" json:"-"`
-	Username  string `db:"username" json:"-"`
-	Issuer    string `db:"issuer" json:"-"`
-	Algorithm string `db:"algorithm" json:"-"`
-	Digits    uint   `db:"digits" json:"digits"`
-	Period    uint   `db:"period" json:"period"`
-	Secret    []byte `db:"secret" json:"-"`
+	ID        int       `db:"id" json:"-"`
+	Created   time.Time `db:"created" json:"-"`
+	IP        IP        `db:"ip" json:"-"`
+	Username  string    `db:"username" json:"-"`
+	Issuer    string    `db:"issuer" json:"-"`
+	Algorithm string    `db:"algorithm" json:"-"`
+	Digits    uint      `db:"digits" json:"digits"`
+	Period    uint      `db:"period" json:"period"`
+	Secret    []byte    `db:"secret" json:"-"`
 }
 
 // URI shows the configuration in the URI representation.
