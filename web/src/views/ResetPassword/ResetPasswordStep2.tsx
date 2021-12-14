@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 
-import { Grid, Button, makeStyles } from "@material-ui/core";
+import { Grid, Button, makeStyles, InputAdornment, IconButton } from "@material-ui/core";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 import classnames from "classnames";
 import { useLocation, useNavigate } from "react-router-dom";
+import zxcvbn from "zxcvbn";
 
 import FixedTextField from "@components/FixedTextField";
 import { FirstFactorRoute } from "@constants/Routes";
@@ -21,6 +23,7 @@ const ResetPasswordStep2 = function () {
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createSuccessNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
     const processToken = extractIdentityToken(location.search);
@@ -81,6 +84,11 @@ const ResetPasswordStep2 = function () {
         }
     };
 
+    const checkPasswordStrength = async (password) => {
+        const evaluation = zxcvbn(password);
+        console.log(password, evaluation, evaluation.crack_times_display);
+    };
+
     const handleResetClick = () => doResetPassword();
 
     const handleCancelClick = () => navigate(FirstFactorRoute);
@@ -93,13 +101,29 @@ const ResetPasswordStep2 = function () {
                         id="password1-textfield"
                         label="New password"
                         variant="outlined"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={password1}
                         disabled={formDisabled}
                         onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
                         className={classnames(style.fullWidth)}
                         autoComplete="new-password"
+                        onInput={(ev) => {
+                            checkPasswordStrength(ev.target.value);
+                        }}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={(e) => setShowPassword(!showPassword)}
+                                        edge="end"
+                                    >
+                                        {showPassword ? <VisibilityOff></VisibilityOff> : <Visibility></Visibility>}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -107,7 +131,7 @@ const ResetPasswordStep2 = function () {
                         id="password2-textfield"
                         label="Repeat new password"
                         variant="outlined"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         disabled={formDisabled}
                         value={password2}
                         onChange={(e) => setPassword2(e.target.value)}
