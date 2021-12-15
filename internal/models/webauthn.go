@@ -125,8 +125,8 @@ func NewWebauthnDeviceFromCredential(username, description string, ip net.IP, cr
 
 	device = WebauthnDevice{
 		Username:        username,
-		Created:         time.Now(),
 		IP:              NewIP(ip),
+		Created:         time.Now(),
 		Description:     description,
 		KID:             NewBase64(credential.ID),
 		PublicKey:       credential.PublicKey,
@@ -143,16 +143,17 @@ func NewWebauthnDeviceFromCredential(username, description string, ip net.IP, cr
 
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
-	ID              int       `db:"id"`
-	Created         time.Time `db:"created"`
-	IP              IP        `db:"ip"`
-	Username        string    `db:"username"`
-	Description     string    `db:"description"`
-	KID             Base64    `db:"kid"`
-	PublicKey       []byte    `db:"public_key"`
-	AttestationType string    `db:"attestation_type"`
-	Transport       string    `db:"transport"`
-	AAGUID          uuid.UUID `db:"aaguid"`
-	SignCount       uint32    `db:"sign_count"`
-	CloneWarning    bool      `db:"clone_warning"`
+	ID              int        `db:"id"`
+	IP              IP         `db:"ip"`
+	Created         time.Time  `db:"created"`
+	Used            *time.Time `db:"used"`
+	Username        string     `db:"username"`
+	Description     string     `db:"description"`
+	KID             Base64     `db:"kid"`
+	PublicKey       []byte     `db:"public_key"`
+	AttestationType string     `db:"attestation_type"`
+	Transport       string     `db:"transport"`
+	AAGUID          uuid.UUID  `db:"aaguid"`
+	SignCount       uint32     `db:"sign_count"`
+	CloneWarning    bool       `db:"clone_warning"`
 }

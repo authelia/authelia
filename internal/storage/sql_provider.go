@@ -355,7 +355,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
-		device.Created, device.IP,
+		device.IP, device.Created, device.Used,
 		device.Username, device.Description,
 		device.KID, device.PublicKey,
 		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,

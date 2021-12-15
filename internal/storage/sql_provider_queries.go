@@ -112,13 +112,13 @@ const (
 
 const (
 	queryFmtSelectWebauthnDevices = `
-		SELECT id, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		SELECT id, ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
 	queryFmtSelectWebauthnDevicesByUsername = `
-		SELECT id, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		SELECT id, ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
 		FROM %s
 		WHERE username = ?;`
 
@@ -134,23 +134,23 @@ const (
 
 	queryFmtUpdateWebauthnDeviceSignCount = `
 		UPDATE %s
-		SET sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		SET used = CURRENT_TIMESTAMP, sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
 	queryFmtUpdateUpdateWebauthnDeviceSignCountByUsername = `
 		UPDATE %s
-		SET sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		SET used = CURRENT_TIMESTAMP, sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE username = ? AND kid = ?;`
 
 	queryFmtUpsertWebauthnDevice = `
-		REPLACE INTO %s (created, ip, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertWebauthnDevice = `
-		INSERT INTO %s (created, ip, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO %s (ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
-			DO UPDATE SET created = $1, ip = $2, kid = $5, public_key = $6, attestation_type = $7, transport = $8, aaguid = $9, sign_count = $10, clone_warning = $11;`
+			DO UPDATE SET ip = $1, created = $2, used = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
 )
 
 const (
