@@ -22,7 +22,7 @@ const SignOut = function (props: Props) {
     const redirector = useRedirector();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
-    const { t } = useTranslation("Portal");
+    const { t: translate } = useTranslation("Portal");
 
     const doSignOut = useCallback(async () => {
         try {
@@ -38,9 +38,9 @@ const SignOut = function (props: Props) {
             }, 2000);
         } catch (err) {
             console.error(err);
-            createErrorNotification(t("There was an issue signing out"));
+            createErrorNotification(translate("There was an issue signing out"));
         }
-    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted, t]);
+    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted, translate]);
 
     useEffect(() => {
         doSignOut();
@@ -55,8 +55,8 @@ const SignOut = function (props: Props) {
     }
 
     return (
-        <LoginLayout title={t("Sign out")}>
-            <Typography className={style.typo}>{t("You're being signed out and redirected")}...</Typography>
+        <LoginLayout title={translate("Sign out")}>
+            <Typography className={style.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </LoginLayout>
     );
 };

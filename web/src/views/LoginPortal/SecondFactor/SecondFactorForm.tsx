@@ -43,7 +43,7 @@ const SecondFactorForm = function (props: Props) {
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [u2fSupported, setU2fSupported] = useState(false);
-    const { t } = useTranslation("Portal");
+    const { t: translate } = useTranslation("Portal");
 
     // Check that U2F is supported.
     useEffect(() => {
@@ -61,10 +61,10 @@ const SecondFactorForm = function (props: Props) {
             setRegistrationInProgress(true);
             try {
                 await initiateRegistrationFunc();
-                createInfoNotification(t(EMAIL_SENT_NOTIFICATION));
+                createInfoNotification(translate(EMAIL_SENT_NOTIFICATION));
             } catch (err) {
                 console.error(err);
-                createErrorNotification(t("There was a problem initiating the registration process"));
+                createErrorNotification(translate("There was a problem initiating the registration process"));
             }
             setRegistrationInProgress(false);
         };
@@ -90,7 +90,7 @@ const SecondFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="second-factor-stage" title={`${t("Hi")} ${props.userInfo.display_name}`} showBrand>
+        <LoginLayout id="second-factor-stage" title={`${translate("Hi")} ${props.userInfo.display_name}`} showBrand>
             <MethodSelectionDialog
                 open={methodSelectionOpen}
                 methods={props.configuration.available_methods}
@@ -101,11 +101,11 @@ const SecondFactorForm = function (props: Props) {
             <Grid container>
                 <Grid item xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
-                        {t("Logout")}
+                        {translate("Logout")}
                     </Button>
                     {" | "}
                     <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
-                        {t("Methods")}
+                        {translate("Methods")}
                     </Button>
                 </Grid>
                 <Grid item xs={12} className={style.methodContainer}>

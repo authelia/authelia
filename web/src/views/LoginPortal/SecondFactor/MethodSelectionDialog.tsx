@@ -29,7 +29,7 @@ export interface Props {
 const MethodSelectionDialog = function (props: Props) {
     const style = useStyles();
     const theme = useTheme();
-    const { t } = useTranslation("Portal");
+    const { t: translate } = useTranslation("Portal");
 
     const pieChartIcon = (
         <TimerIcon width={24} height={24} period={15} color={theme.palette.primary.main} backgroundColor={"white"} />
@@ -42,7 +42,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
                         <MethodItem
                             id="one-time-password-option"
-                            method={t("Time-based One-Time Password")}
+                            method={translate("Time-based One-Time Password")}
                             icon={pieChartIcon}
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)}
                         />
@@ -50,7 +50,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.U2F) && props.u2fSupported ? (
                         <MethodItem
                             id="security-key-option"
-                            method={t("Security Key - U2F")}
+                            method={translate("Security Key - U2F")}
                             icon={<FingerTouchIcon size={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.U2F)}
                         />
@@ -58,7 +58,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.MobilePush) ? (
                         <MethodItem
                             id="push-notification-option"
-                            method={t("Push Notification")}
+                            method={translate("Push Notification")}
                             icon={<PushNotificationIcon width={32} height={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.MobilePush)}
                         />

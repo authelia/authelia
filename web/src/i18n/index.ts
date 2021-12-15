@@ -3,8 +3,8 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import XHR from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-import langEn from "./locales/en.json";
-import langEs from "./locales/es.json";
+import langEn from "@i18n/locales/en.json";
+import langEs from "@i18n/locales/es.json";
 
 const resources = {
     en: langEn,

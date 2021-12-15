@@ -81,6 +81,9 @@
       "^@hooks/(.*)$": [
         "<rootDir>/src/hooks/$1"
       ],
+      "^@i18n/(.*)$": [
+        "<rootDir>/src/i18n/$1"
+      ],
       "^@layouts/(.*)$": [
         "<rootDir>/src/layouts/$1"
       ],

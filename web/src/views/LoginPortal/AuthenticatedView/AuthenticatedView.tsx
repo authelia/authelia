@@ -15,18 +15,18 @@ export interface Props {
 const AuthenticatedView = function (props: Props) {
     const style = useStyles();
     const navigate = useNavigate();
-    const { t } = useTranslation("Portal");
+    const { t: translate } = useTranslation("Portal");
 
     const handleLogoutClick = () => {
         navigate(SignOutRoute);
     };
 
     return (
-        <LoginLayout id="authenticated-stage" title={`${t("Hi")} ${props.name}`} showBrand>
+        <LoginLayout id="authenticated-stage" title={`${translate("Hi")} ${props.name}`} showBrand>
             <Grid container>
                 <Grid item xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
-                        {t("Logout")}
+                        {translate("Logout")}
                     </Button>
                 </Grid>
                 <Grid item xs={12} className={style.mainContainer}>

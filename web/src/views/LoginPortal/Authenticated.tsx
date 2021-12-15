@@ -7,13 +7,13 @@ import SuccessIcon from "@components/SuccessIcon";
 
 const Authenticated = function () {
     const classes = useStyles();
-    const { t } = useTranslation("Portal");
+    const { t: translate } = useTranslation("Portal");
     return (
         <div id="authenticated-stage">
             <div className={classes.iconContainer}>
                 <SuccessIcon />
             </div>
-            <Typography>{t("Authenticated")}</Typography>
+            <Typography>{translate("Authenticated")}</Typography>
         </div>
     );
 };

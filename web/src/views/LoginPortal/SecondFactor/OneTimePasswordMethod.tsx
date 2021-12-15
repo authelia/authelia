@@ -33,7 +33,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
     const redirectionURL = useRedirectionURL();
-    const { t } = useTranslation("Portal");
+    const { t: translate } = useTranslation("Portal");
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -43,10 +43,10 @@ const OneTimePasswordMethod = function (props: Props) {
     useEffect(() => {
         if (err) {
             console.error(err);
-            onSignInErrorCallback(new Error(t("Could not obtain user settings")));
+            onSignInErrorCallback(new Error(translate("Could not obtain user settings")));
             setState(State.Failure);
         }
-    }, [onSignInErrorCallback, err, t]);
+    }, [onSignInErrorCallback, err, translate]);
 
     useEffect(() => {
         if (props.registered && props.authenticationLevel === AuthenticationLevel.OneFactor) {
@@ -107,8 +107,8 @@ const OneTimePasswordMethod = function (props: Props) {
     return (
         <MethodContainer
             id={props.id}
-            title={t("One-Time Password")}
-            explanation={t("Enter one-time password")}
+            title={translate("One-Time Password")}
+            explanation={translate("Enter one-time password")}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}
