@@ -11,6 +11,10 @@ export const FirstFactorPath = basePath + "/api/firstfactor";
 export const InitiateTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/start";
 export const CompleteTOTPRegistrationPath = basePath + "/api/secondfactor/totp/identity/finish";
 
+export const InitiateU2FRegistrationPath = basePath + "/api/secondfactor/u2f/identity/start";
+export const CompleteU2FRegistrationStep1Path = basePath + "/api/secondfactor/u2f/identity/finish";
+export const CompleteU2FRegistrationStep2Path = basePath + "/api/secondfactor/u2f/register";
+
 export const WebauthnIdentityPathStart = basePath + "/api/secondfactor/webauthn/identity/start";
 export const WebauthnIdentityPathFinish = basePath + "/api/secondfactor/webauthn/identity/finish";
 export const WebauthnAttestationPath = basePath + "/api/secondfactor/webauthn/attestation";

@@ -6,13 +6,14 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
 import {
+    ConsentRoute,
     IndexRoute,
+    LogoutRoute,
+    RegisterOneTimePasswordRoute,
+    RegisterU2FRoute,
+    RegisterWebauthnRoute,
     ResetPasswordStep2Route,
     ResetPasswordStep1Route,
-    RegisterWebauthnRoute,
-    RegisterOneTimePasswordRoute,
-    LogoutRoute,
-    ConsentRoute,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
@@ -20,6 +21,7 @@ import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
 import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
+import RegisterU2F from "@views/DeviceRegistration/RegisterU2F";
 import RegisterWebauthn from "@views/DeviceRegistration/RegisterWebauthn";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
@@ -67,6 +69,7 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                         <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                        <Route path={RegisterU2FRoute} element={<RegisterU2F />} />
                         <Route path={RegisterWebauthnRoute} element={<RegisterWebauthn />} />
                         <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                         <Route path={LogoutRoute} element={<SignOut />} />

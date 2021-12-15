@@ -9,6 +9,7 @@ export const SecondFactorPushSubRoute: string = "push-notification";
 
 export const ResetPasswordStep1Route: string = "/reset-password/step1";
 export const ResetPasswordStep2Route: string = "/reset-password/step2";
+export const RegisterU2FRoute: string = "/u2f/register";
 export const RegisterWebauthnRoute: string = "/webauthn/register";
 export const RegisterOneTimePasswordRoute: string = "/one-time-password/register";
 export const LogoutRoute: string = "/logout";

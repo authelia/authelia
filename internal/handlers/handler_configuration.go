@@ -10,6 +10,10 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{}
 	body.AvailableMethods = MethodList{authentication.TOTP, authentication.Webauthn}
 
+	if ctx.Configuration.Webauthn.EnableU2F {
+		body.AvailableMethods = append(body.AvailableMethods, authentication.U2F)
+	}
+
 	if ctx.Configuration.DuoAPI != nil {
 		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
 	}

@@ -47,6 +47,7 @@ specifiers:
   react-router-dom: 6.0.2
   react-test-renderer: 17.0.2
   typescript: 4.5.3
+  u2f-api: 1.2.1
   vite: 2.7.1
   vite-plugin-eslint: 1.3.0
   vite-plugin-istanbul: 2.3.0
@@ -71,6 +72,7 @@ dependencies:
   react-loading: 2.0.3_react@17.0.2
   react-otp-input: 2.4.0_react-dom@17.0.2+react@17.0.2
   react-router-dom: 6.0.2_react-dom@17.0.2+react@17.0.2
+  u2f-api: 1.2.1
 
 devDependencies:
   '@commitlint/cli': 15.0.0
@@ -6497,6 +6499,10 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
+
+  /u2f-api/1.2.1:
+    resolution: {integrity: sha512-4kfxen+mVxYkdJWHIS7c4HxsqNUs6fkrxlMLi7uQTVVYMVfTh73PhYoAmp1B0PRGELGDiKmXlssgqxcPvtpfSg==}
+    dev: false
 
   /unbox-primitive/1.0.1:
     resolution: {integrity: sha512-tZU/3NqK3dA5gpE1KtyiJUrEB0lxnGkMFHptJ7q6ewdZ8s12QrODwNbhIJStmJkd1QDXa1NRA8aF2A1zk/Ypyw==}

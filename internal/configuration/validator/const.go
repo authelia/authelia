@@ -186,6 +186,7 @@ var ValidKeys = []string{
 	"webauthn.debug",
 	"webauthn.attestation_preference",
 	"webauthn.user_verification",
+	"webauthn.enable_u2f",
 
 	// DUO API Keys.
 	"duo_api.hostname",

@@ -29,6 +29,7 @@ export interface Props {
     id: string;
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
+    u2f: boolean;
 
     onRegisterClick: () => void;
     onSignInError: (err: Error) => void;

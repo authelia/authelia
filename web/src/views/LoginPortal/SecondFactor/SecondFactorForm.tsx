@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import { Grid, makeStyles, Button } from "@material-ui/core";
+import { Button, Grid, makeStyles } from "@material-ui/core";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
@@ -139,6 +139,7 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
+                                    u2f={props.configuration.available_methods.has(SecondFactorMethod.U2F)}
                                     onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
