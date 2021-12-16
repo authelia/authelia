@@ -4,9 +4,9 @@ import { Grid, Button, makeStyles, InputAdornment, IconButton } from "@material-
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import classnames from "classnames";
 import { useLocation, useNavigate } from "react-router-dom";
-import zxcvbn from "zxcvbn";
 
 import FixedTextField from "@components/FixedTextField";
+import PasswordMeter from "@components/PasswordMeter";
 import { FirstFactorRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
@@ -24,8 +24,6 @@ const ResetPasswordStep2 = function () {
     const { createSuccessNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [passwordScore, setPasswordScore] = useState(0);
-    const [progressColor] = useState(["#D32F2F", "#FF5722", "#FFEB3B", "#AFB42B", "#62D32F"]);
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
@@ -87,11 +85,6 @@ const ResetPasswordStep2 = function () {
         }
     };
 
-    const checkPasswordStrength = async (password) => {
-        const evaluation = zxcvbn(password);
-        setPasswordScore(evaluation.score);
-    };
-
     const handleResetClick = () => doResetPassword();
 
     const handleCancelClick = () => navigate(FirstFactorRoute);
@@ -111,9 +104,6 @@ const ResetPasswordStep2 = function () {
                         error={errorPassword1}
                         className={classnames(style.fullWidth)}
                         autoComplete="new-password"
-                        onInput={(ev) => {
-                            checkPasswordStrength(ev.target.value);
-                        }}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -128,15 +118,7 @@ const ResetPasswordStep2 = function () {
                             ),
                         }}
                     />
-                    <div className={classnames(style.fullWidth)}>
-                        <div
-                            className={classnames(style.progressBar)}
-                            style={{
-                                width: `${(passwordScore + 1) * 20}%`,
-                                backgroundColor: progressColor[passwordScore],
-                            }}
-                        ></div>
-                    </div>
+                    <PasswordMeter value={password1} legacy={false} minLength={8}></PasswordMeter>
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
@@ -197,11 +179,5 @@ const useStyles = makeStyles((theme) => ({
     },
     fullWidth: {
         width: "100%",
-    },
-    progressBar: {
-        height: "5px",
-        marginTop: "2px",
-        backgroundColor: "red",
-        width: "50%",
     },
 }));
