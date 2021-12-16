@@ -21,7 +21,7 @@
     "react-otp-input": "2.4.0",
     "react-router-dom": "6.0.2",
     "u2f-api": "1.2.1",
-    "zxcvbn": "^4.4.2"
+    "zxcvbn": "4.4.2"
   },
   "scripts": {
     "prepare": "cd .. && husky install .github",
