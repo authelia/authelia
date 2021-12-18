@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
-	github.com/deckarep/golang-set v1.7.1
+	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20211027140842-72da735c6f15
 	github.com/fasthttp/router v1.4.4
 	github.com/fasthttp/session/v2 v2.4.4
