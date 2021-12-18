@@ -24,6 +24,12 @@ const ResetPasswordStep2 = function () {
     const { createSuccessNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const [pPolicyMode, setPPolicyMode] = useState("none");
+    const [pPolicyMinLength, setPPolicyMinLength] = useState(0);
+    const [pPolicyRequireUpperCase, setPPolicyRequireUpperCase] = useState(false);
+    const [pPolicyRequireLowerCase, setPPolicyRequireLowerCase] = useState(false);
+    const [pPolicyRequireNumber, setPPolicyRequireNumber] = useState(false);
+    const [pPolicyRequireSpecial, setPPolicyRequireSpecial] = useState(false);
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
@@ -38,7 +44,14 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            await completeResetPasswordProcess(processToken);
+            const { mode, min_length, require_uppercase, require_lowercase, require_number, require_special } =
+                await completeResetPasswordProcess(processToken);
+            setPPolicyMode(mode);
+            setPPolicyMinLength(min_length);
+            setPPolicyRequireLowerCase(require_lowercase);
+            setPPolicyRequireUpperCase(require_uppercase);
+            setPPolicyRequireNumber(require_number);
+            setPPolicyRequireSpecial(require_special);
             setFormDisabled(false);
         } catch (err) {
             console.error(err);
@@ -118,7 +131,15 @@ const ResetPasswordStep2 = function () {
                             ),
                         }}
                     />
-                    <PasswordMeter value={password1} legacy={false} minLength={8}></PasswordMeter>
+                    <PasswordMeter
+                        value={password1}
+                        mode={pPolicyMode}
+                        minLength={pPolicyMinLength}
+                        requireLowerCase={pPolicyRequireLowerCase}
+                        requireUpperCase={pPolicyRequireUpperCase}
+                        requireNumber={pPolicyRequireNumber}
+                        requireSpecial={pPolicyRequireSpecial}
+                    ></PasswordMeter>
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField

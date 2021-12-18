@@ -7,17 +7,23 @@ import zxcvbn from "zxcvbn";
 export interface Props {
     value: string;
     /**
-     * legacy mode requires at least one uppercase, lowercase, number, and special letter to be entered
+     * mode password meter mode
+     *   classic: classic mode (checks lowercase, uppercase, specials and numbers)
+     *   zxcvbn: uses zxcvbn package to get the password strength
      **/
-    legacy?: boolean;
-    minLength?: number;
+    mode: string;
+    minLength: number;
+    requireLowerCase: boolean;
+    requireUpperCase: boolean;
+    requireNumber: boolean;
+    requireSpecial: boolean;
 }
 
 const PasswordMeter = function (props: Props) {
     const [progressColor] = useState(["#D32F2F", "#FF5722", "#FFEB3B", "#AFB42B", "#62D32F"]);
     const [passwordScore, setPasswordScore] = useState(0);
-
-    const [maxScores] = useState(5);
+    const [maxScores, setMaxScores] = useState(0);
+    const [feedback, setFeedback] = useState("");
     const style = makeStyles((theme) => ({
         progressBar: {
             height: "5px",
@@ -30,34 +36,72 @@ const PasswordMeter = function (props: Props) {
 
     useEffect(() => {
         const password = props.value;
+        if (props.mode === "classic") {
+            //use mode mode
+            setMaxScores(4);
+            if (password.length < props.minLength) {
+                setPasswordScore(0);
+                setFeedback(`Two short, minimun length is ${props.minLength} letters`);
+                return;
+            }
+            setFeedback("");
+            let score = 1;
+            let required = 0;
+            let hits = 0;
+            let warning = "";
+            if (props.requireLowerCase) {
+                required++;
+                const hasLowercase = /[a-z]/.test(password);
+                if (hasLowercase) {
+                    hits++;
+                } else {
+                    warning += "* Add some lowercase letter\n";
+                }
+            }
 
-        if (password.length < props.minLength) {
-            setPasswordScore(0);
-            return;
-        }
-        let score = 0;
+            if (props.requireUpperCase) {
+                required++;
+                const hasUppercase = /[A-Z]/.test(password);
+                if (hasUppercase) {
+                    hits++;
+                } else {
+                    warning += "* Add some UPPERCASE letter\n";
+                }
+            }
 
-        if (props.legacy) {
-            //use legacy mode
-            const hasLowercase = /[a-z]/.test(password);
-            score += hasLowercase ? 1 : 0;
+            if (props.requireNumber) {
+                required++;
+                const hasNumber = /[0-9]/.test(password);
+                if (hasNumber) {
+                    hits++;
+                } else {
+                    warning += "* Add some Numb3rs\n";
+                }
+            }
 
-            const hasUppercase = /[A-Z]/.test(password);
-            score += hasUppercase ? 1 : 0;
-
-            const hasNumber = /[0-9]/.test(password);
-            score += hasNumber ? 1 : 0;
-
-            const hasSpecial = /[^0-9\w]/i.test(password);
-            score += hasSpecial ? 1 : 0;
-        } else {
+            if (props.requireSpecial) {
+                required++;
+                const hasSpecial = /[^0-9\w]/i.test(password);
+                if (hasSpecial) {
+                    hits++;
+                } else {
+                    warning += "* Add some $pecial!\n";
+                }
+            }
+            score += hits > 0 ? 1 : 0;
+            score += required === hits ? 1 : 0;
+            setFeedback(warning);
+            setPasswordScore(score);
+        } else if (props.mode === "zxcvbn") {
             //use zxcvbn mode
-            const evaluation = zxcvbn(password);
-            score = evaluation.score;
+            setMaxScores(5);
+            const { score, feedback } = zxcvbn(password);
+            setFeedback(feedback.warning);
+            setPasswordScore(score);
         }
-
-        setPasswordScore(score);
     }, [props]);
+
+    if (props.mode === "" || props.mode === "none") return <span></span>;
 
     return (
         <div
@@ -66,6 +110,7 @@ const PasswordMeter = function (props: Props) {
             }}
         >
             <div
+                title={feedback}
                 className={classnames(style.progressBar)}
                 style={{
                     width: `${(passwordScore + 1) * (100 / maxScores)}%`,
