@@ -19,4 +19,5 @@ type Configuration struct {
 	Storage               StorageConfiguration               `koanf:"storage"`
 	Notifier              *NotifierConfiguration             `koanf:"notifier"`
 	Server                ServerConfiguration                `koanf:"server"`
+	PasswordPolicy        *PasswordPolicyConfiguration       `koanf:"password_policy"`
 }

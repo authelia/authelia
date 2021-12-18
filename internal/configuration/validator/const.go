@@ -338,6 +338,15 @@ var ValidKeys = []string{
 	"ntp.max_desync",
 	"ntp.disable_startup_check",
 	"ntp.disable_failure",
+
+	// Password Policy keys
+	"password_policy.mode",
+	"password_policy.min_length",
+	"password_policy.min_score",
+	"password_policy.require_uppercase",
+	"password_policy.require_lowercase",
+	"password_policy.require_number",
+	"password_policy.require_special",
 }
 
 var replacedKeys = map[string]string{
