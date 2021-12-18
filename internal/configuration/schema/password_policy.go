@@ -19,7 +19,7 @@ type PasswordPolicyConfiguration struct {
 
 // DefaultPasswordPolicyConfiguration is the default password policy configuration.
 var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
-	Mode:      "classic",
-	MinLength: 0,
+	Mode:      "none",
+	MinLength: 4,
 	MinScore:  0,
 }
