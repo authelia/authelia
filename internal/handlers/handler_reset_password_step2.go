@@ -61,70 +61,63 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 }
 
+// validatePassword validates if the password met the password policy rules.
 func validatePassword(ctx *middlewares.AutheliaCtx, password string) error {
-	mode := ctx.Configuration.PasswordPolicy.Mode
-	ctx.Logger.Debugf("validando password %s", password)
+	requireLowercase := ctx.Configuration.PasswordPolicy.RequireLowercase
+	requireUppercase := ctx.Configuration.PasswordPolicy.RequireUppercase
+	requireNumber := ctx.Configuration.PasswordPolicy.RequireNumber
+	requireSpecial := ctx.Configuration.PasswordPolicy.RequireSpecial
 
-	switch mode {
-	case "classic":
-		requireLowercase := ctx.Configuration.PasswordPolicy.RequireLowercase
-		requireUppercase := ctx.Configuration.PasswordPolicy.RequireUppercase
-		requireNumber := ctx.Configuration.PasswordPolicy.RequireNumber
-		requireSpecial := ctx.Configuration.PasswordPolicy.RequireSpecial
+	if requireLowercase {
+		regexStr := "[a-z]+"
+		re, err := regexp.Compile(regexStr)
 
-		if requireLowercase {
-			regexStr := "[a-z]+"
-			re, err := regexp.Compile(regexStr)
-
-			if err != nil {
-				return err
-			}
-
-			if found := re.MatchString(password); !found {
-				return errPasswordPolicyNoMet
-			}
+		if err != nil {
+			return err
 		}
 
-		if requireUppercase {
-			regexStr := "[A-Z]+"
-			re, err := regexp.Compile(regexStr)
+		if found := re.MatchString(password); !found {
+			return errPasswordPolicyNoMet
+		}
+	}
 
-			if err != nil {
-				return err
-			}
+	if requireUppercase {
+		regexStr := "[A-Z]+"
+		re, err := regexp.Compile(regexStr)
 
-			if found := re.MatchString(password); !found {
-				return errPasswordPolicyNoMet
-			}
+		if err != nil {
+			return err
 		}
 
-		if requireNumber {
-			regexStr := "[0-9]+"
-			re, err := regexp.Compile(regexStr)
+		if found := re.MatchString(password); !found {
+			return errPasswordPolicyNoMet
+		}
+	}
 
-			if err != nil {
-				return err
-			}
+	if requireNumber {
+		regexStr := "[0-9]+"
+		re, err := regexp.Compile(regexStr)
 
-			if found := re.MatchString(password); !found {
-				return errPasswordPolicyNoMet
-			}
+		if err != nil {
+			return err
 		}
 
-		if requireSpecial {
-			regexStr := "[^a-zA-Z0-9]+"
-			re, err := regexp.Compile(regexStr)
-
-			if err != nil {
-				return err
-			}
-
-			if found := re.MatchString(password); !found {
-				return errPasswordPolicyNoMet
-			}
+		if found := re.MatchString(password); !found {
+			return errPasswordPolicyNoMet
 		}
-	case "zxcvbn":
-		ctx.Logger.Debug("zxcvbn")
+	}
+
+	if requireSpecial {
+		regexStr := "[^a-zA-Z0-9]+"
+		re, err := regexp.Compile(regexStr)
+
+		if err != nil {
+			return err
+		}
+
+		if found := re.MatchString(password); !found {
+			return errPasswordPolicyNoMet
+		}
 	}
 
 	return nil

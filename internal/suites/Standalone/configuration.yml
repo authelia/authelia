@@ -102,7 +102,10 @@ ntp:
 password_policy:
   ## modes:
   ##  classic: uses classic password rules
-  ##  zxcvbn: uses zxcvbn for password strength cheching (see: https://github.com/dropbox/zxcvbn)
+  ##  zxcvbn: uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn)
+  ##    Note that the zxcvbn option does not prohibit the user from using a weak password, 
+  ##    it only offers feedback about the strength of the password they are entering.
+  ##    if you need to enforce password rules, you should use `mode=classic`
   mode: classic
   ## params applicable to mode=classic
   min_length: 8
@@ -110,6 +113,4 @@ password_policy:
   require_lowercase: true
   require_number: true
   require_special: true
-  ## params applicable to mode=zxcvbn
-  min_score: 2
 ...
