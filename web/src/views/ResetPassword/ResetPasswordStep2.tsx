@@ -92,6 +92,8 @@ const ResetPasswordStep2 = function () {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
                 createErrorNotification("Your supplied password does not meet the password policy requirements.");
+            } else if ((err as Error).message.includes("policy")) {
+                createErrorNotification("Your supplied password does not meet the password policy requirements.");
             } else {
                 createErrorNotification("There was an issue resetting the password.");
             }
