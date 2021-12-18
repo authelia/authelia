@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -24,6 +25,11 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 	if err != nil {
 		ctx.Error(err, messageUnableToResetPassword)
+		return
+	}
+
+	if err := validatePassword(ctx, requestBody.Password); err != nil {
+		ctx.Error(err, messagePasswordWeak)
 		return
 	}
 
@@ -53,4 +59,73 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.ReplyOK()
+}
+
+func validatePassword(ctx *middlewares.AutheliaCtx, password string) error {
+	mode := ctx.Configuration.PasswordPolicy.Mode
+	ctx.Logger.Debugf("validando password %s", password)
+
+	switch mode {
+	case "classic":
+		requireLowercase := ctx.Configuration.PasswordPolicy.RequireLowercase
+		requireUppercase := ctx.Configuration.PasswordPolicy.RequireUppercase
+		requireNumber := ctx.Configuration.PasswordPolicy.RequireNumber
+		requireSpecial := ctx.Configuration.PasswordPolicy.RequireSpecial
+
+		if requireLowercase {
+			regexStr := "[a-z]+"
+			re, err := regexp.Compile(regexStr)
+
+			if err != nil {
+				return err
+			}
+
+			if found := re.MatchString(password); !found {
+				return errPasswordPolicyNoMet
+			}
+		}
+
+		if requireUppercase {
+			regexStr := "[A-Z]+"
+			re, err := regexp.Compile(regexStr)
+
+			if err != nil {
+				return err
+			}
+
+			if found := re.MatchString(password); !found {
+				return errPasswordPolicyNoMet
+			}
+		}
+
+		if requireNumber {
+			regexStr := "[0-9]+"
+			re, err := regexp.Compile(regexStr)
+
+			if err != nil {
+				return err
+			}
+
+			if found := re.MatchString(password); !found {
+				return errPasswordPolicyNoMet
+			}
+		}
+
+		if requireSpecial {
+			regexStr := "[^a-zA-Z0-9]+"
+			re, err := regexp.Compile(regexStr)
+
+			if err != nil {
+				return err
+			}
+
+			if found := re.MatchString(password); !found {
+				return errPasswordPolicyNoMet
+			}
+		}
+	case "zxcvbn":
+		ctx.Logger.Debug("zxcvbn")
+	}
+
+	return nil
 }

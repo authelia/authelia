@@ -11,3 +11,5 @@ const UnauthorizedError = "You're not authorized."
 
 var errMissingXForwardedHost = errors.New("missing header X-Forwarded-Host")
 var errMissingXForwardedProto = errors.New("missing header X-Forwarded-Proto")
+
+var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")
