@@ -44,7 +44,7 @@ specifiers:
   react-ga: 3.3.0
   react-loading: 2.0.3
   react-otp-input: 2.4.0
-  react-router-dom: 6.1.1
+  react-router-dom: 6.2.1
   react-test-renderer: 17.0.2
   typescript: 4.5.4
   u2f-api: 1.2.1
@@ -71,7 +71,7 @@ dependencies:
   react-ga: 3.3.0_react@17.0.2
   react-loading: 2.0.3_react@17.0.2
   react-otp-input: 2.4.0_react-dom@17.0.2+react@17.0.2
-  react-router-dom: 6.1.1_react-dom@17.0.2+react@17.0.2
+  react-router-dom: 6.2.1_react-dom@17.0.2+react@17.0.2
   u2f-api: 1.2.1
 
 devDependencies:
@@ -4808,8 +4808,8 @@ packages:
       function-bind: 1.1.1
     dev: true
 
-  /history/5.1.0:
-    resolution: {integrity: sha512-zPuQgPacm2vH2xdORvGGz1wQMuHSIB56yNAy5FnLuwOwgSYyPKptJtcMm6Ev+hRGeS+GzhbmRacHzvlESbFwDg==}
+  /history/5.2.0:
+    resolution: {integrity: sha512-uPSF6lAJb3nSePJ43hN3eKj1dTWpN9gMod0ZssbFTIsen+WehTmEadgL+kg78xLJFdRfrrC//SavDzmRVdE+Ig==}
     dependencies:
       '@babel/runtime': 7.16.3
     dev: false
@@ -6825,24 +6825,24 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router-dom/6.1.1_react-dom@17.0.2+react@17.0.2:
-    resolution: {integrity: sha512-O3UH89DI4o+swd2q6lF4dSmpuNCxwkUXcj0zAFcVc1H+YoPE6T7uwoFMX0ws1pUvCY8lYDucFpOqCCdal6VFzg==}
+  /react-router-dom/6.2.1_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-I6Zax+/TH/cZMDpj3/4Fl2eaNdcvoxxHoH1tYOREsQ22OKDYofGebrNm6CTPUcvLvZm63NL/vzCYdjf9CUhqmA==}
     peerDependencies:
       react: '>=16.8'
       react-dom: '>=16.8'
     dependencies:
-      history: 5.1.0
+      history: 5.2.0
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
-      react-router: 6.1.1_react@17.0.2
+      react-router: 6.2.1_react@17.0.2
     dev: false
 
-  /react-router/6.1.1_react@17.0.2:
-    resolution: {integrity: sha512-55o96RiDZmC0uD17DPqVmzzfdNd2Dc+EjkYvMAmHl43du/GItaTdFr5WwjTryNWPXZ+OOVQxQhwAX25UwxpHtw==}
+  /react-router/6.2.1_react@17.0.2:
+    resolution: {integrity: sha512-2fG0udBtxou9lXtK97eJeET2ki5//UWfQSl1rlJ7quwe6jrktK9FCCc8dQb5QY6jAv3jua8bBQRhhDOM/kVRsg==}
     peerDependencies:
       react: '>=16.8'
     dependencies:
-      history: 5.1.0
+      history: 5.2.0
       react: 17.0.2
     dev: false
 
