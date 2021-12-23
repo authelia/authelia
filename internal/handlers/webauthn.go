@@ -17,6 +17,10 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 		DisplayName: userSession.DisplayName,
 	}
 
+	if user.DisplayName == "" {
+		user.DisplayName = user.Username
+	}
+
 	if user.Devices, err = ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username); err != nil {
 		return nil, err
 	}
