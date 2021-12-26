@@ -9,7 +9,7 @@ import (
 // RegisterOIDC registers the handlers with the fasthttp *router.Router. TODO: Add paths for UserInfo, Flush, Logout.
 func RegisterOIDC(router *router.Router, middleware middlewares.RequestHandlerBridge) {
 	// TODO: Add OPTIONS handler.
-	router.GET(pathOpenIDConnectWellKnown, middleware(oidcWellKnown))
+	router.GET(pathOpenIDConnectWellKnown, middleware(middlewares.CORSApplyAutomaticBasicPolicy(oidcWellKnown)))
 
 	router.GET(pathOpenIDConnectConsent, middleware(oidcConsent))
 
