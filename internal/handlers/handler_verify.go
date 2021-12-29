@@ -413,6 +413,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	if authValue == nil && bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("both")) {
 		authValue = ctx.Request.Header.PeekBytes(headerAuthorization)
 	}
+
 	if authValue != nil {
 		isBasicAuth = true
 	} else if isBasicAuth {
