@@ -53,14 +53,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			IssuerPrivateKey: "key-material",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
-					ID:     "",
-					Secret: "",
-					Policy: "",
-					RedirectURIs: []string{
-						"tcp://google.com",
-					},
-				},
-				{
 					ID:     "a-client",
 					Secret: "a-secret",
 					Policy: "a-policy",
@@ -102,7 +94,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.Policy, config.OIDC.Clients[0].Policy)
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtOIDCClientInvalidSecret, ""))
-	assert.EqualError(t, validator.Errors()[1], fmt.Sprintf(errFmtOIDCClientRedirectURI, "", "tcp://google.com", "tcp"))
 	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errFmtOIDCClientInvalidPolicy, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errFmtOIDCClientInvalidPolicy, "a-client", "a-policy"))
 	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errFmtOIDCClientRedirectURICantBeParsed, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")))
@@ -431,4 +422,23 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, time.Minute, config.OIDC.AuthorizeCodeLifespan)
 	assert.Equal(t, time.Hour, config.OIDC.IDTokenLifespan)
 	assert.Equal(t, time.Minute*90, config.OIDC.RefreshTokenLifespan)
+}
+
+// All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
+func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing.T) {
+	validator := schema.NewStructValidator()
+	conf := schema.OpenIDConnectClientConfiguration{
+		ID: "owncloud",
+		RedirectURIs: []string{
+			"https://www.mywebsite.com",
+			"http://www.mywebsite.com",
+			"oc://ios.owncloud.com",
+			// example given in the RFC https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
+			"com.example.app:/oauth2redirect/example-provider",
+		},
+	}
+	validateOIDCClientRedirectURIs(conf, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
 }

@@ -189,9 +189,5 @@ func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfigurati
 			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
 			return
 		}
-
-		if parsedURL.Scheme != schemeHTTPS && parsedURL.Scheme != schemeHTTP {
-			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURI, client.ID, redirectURI, parsedURL.Scheme))
-		}
 	}
 }
