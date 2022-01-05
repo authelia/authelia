@@ -46,28 +46,61 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 }
 
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.IdentityProvidersConfiguration{
-		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+	testCases := []struct {
+		Name    string
+		Clients []schema.OpenIDConnectClientConfiguration
+		Errors  []error
+	}{
+		{
+			Name: "empty",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
-					ID:     "a-client",
+					ID:           "",
+					Secret:       "",
+					Policy:       "",
+					RedirectURIs: []string{},
+				},
+			},
+			Errors: []error{
+				fmt.Errorf(errFmtOIDCClientInvalidSecret, ""),
+				errors.New(errFmtOIDCClientsWithEmptyID),
+			},
+		},
+		{
+			Name: "client-1",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-1",
 					Secret: "a-secret",
 					Policy: "a-policy",
 					RedirectURIs: []string{
 						"https://google.com",
 					},
+				},
+			},
+			Errors: []error{fmt.Errorf(errFmtOIDCClientInvalidPolicy, "client-1", "a-policy")},
+		},
+		{
+			Name: "client-duplicate",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:           "client-x",
+					Secret:       "a-secret",
+					Policy:       policyTwoFactor,
+					RedirectURIs: []string{},
 				},
 				{
-					ID:     "a-client",
-					Secret: "a-secret",
-					Policy: "a-policy",
-					RedirectURIs: []string{
-						"https://google.com",
-					},
+					ID:           "client-x",
+					Secret:       "a-secret",
+					Policy:       policyTwoFactor,
+					RedirectURIs: []string{},
 				},
+			},
+			Errors: []error{errors.New(errFmtOIDCClientsDuplicateID)},
+		},
+		{
+			Name: "client-check-uri-parse",
+			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-parse",
 					Secret: "a-secret",
@@ -76,6 +109,14 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 						"http://abc@%two",
 					},
 				},
+			},
+			Errors: []error{
+				fmt.Errorf(errFmtOIDCClientRedirectURICantBeParsed, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")),
+			},
+		},
+		{
+			Name: "client-check-uri-abs",
+			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-abs",
 					Secret: "a-secret",
@@ -85,21 +126,28 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
+			Errors: []error{
+				fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, "client-check-uri-abs", "google.com"),
+			},
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.IdentityProvidersConfiguration{
+				OIDC: &schema.OpenIDConnectConfiguration{
+					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+					IssuerPrivateKey: "key-material",
+					Clients:          tc.Clients,
+				},
+			}
 
-	require.Len(t, validator.Errors(), 8)
+			ValidateIdentityProviders(config, validator)
 
-	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.Policy, config.OIDC.Clients[0].Policy)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtOIDCClientInvalidSecret, ""))
-	assert.EqualError(t, validator.Errors()[2], fmt.Sprintf(errFmtOIDCClientInvalidPolicy, "a-client", "a-policy"))
-	assert.EqualError(t, validator.Errors()[3], fmt.Sprintf(errFmtOIDCClientInvalidPolicy, "a-client", "a-policy"))
-	assert.EqualError(t, validator.Errors()[4], fmt.Sprintf(errFmtOIDCClientRedirectURICantBeParsed, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")))
-	assert.EqualError(t, validator.Errors()[5], fmt.Sprintf(errFmtOIDCClientRedirectURIAbsolute, "client-check-uri-abs", "google.com"))
-	assert.EqualError(t, validator.Errors()[6], errFmtOIDCClientsWithEmptyID)
-	assert.EqualError(t, validator.Errors()[7], errFmtOIDCClientsDuplicateID)
+			assert.ElementsMatch(t, validator.Errors(), tc.Errors)
+		})
+	}
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {

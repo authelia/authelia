@@ -25,8 +25,6 @@ const (
 const (
 	schemeLDAP  = "ldap"
 	schemeLDAPS = "ldaps"
-	schemeHTTP  = "http"
-	schemeHTTPS = "https"
 )
 
 // Test constants.
