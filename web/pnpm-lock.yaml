@@ -32,7 +32,7 @@ specifiers:
   eslint-plugin-prettier: 4.0.0
   eslint-plugin-react: 7.28.0
   eslint-plugin-react-hooks: 4.3.0
-  husky: 7.0.2
+  husky: 7.0.4
   jest: 27.4.7
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0
@@ -97,7 +97,7 @@ devDependencies:
   eslint-plugin-prettier: 4.0.0_061d5edf7f5aff866b334ca1cc7c88d8
   eslint-plugin-react: 7.28.0
   eslint-plugin-react-hooks: 4.3.0
-  husky: 7.0.2
+  husky: 7.0.4
   jest: 27.4.7
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0_jest@27.4.7
@@ -5099,8 +5099,8 @@ packages:
     engines: {node: '>=10.17.0'}
     dev: true
 
-  /husky/7.0.2:
-    resolution: {integrity: sha512-8yKEWNX4z2YsofXAMT7KvA1g8p+GxtB1ffV8XtpAEGuXNAbCV5wdNKH+qTpw8SM9fh4aMPDR+yQuKfgnreyZlg==}
+  /husky/7.0.4:
+    resolution: {integrity: sha512-vbaCKN2QLtP/vD4yvs6iz6hBEo6wkSzs8HpRah1Z6aGmF2KW5PdYuAd7uX5a+OyBZHBhd+TFLqgjUgytQr4RvQ==}
     engines: {node: '>=12'}
     hasBin: true
     dev: true
