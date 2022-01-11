@@ -25,6 +25,8 @@ const (
 const (
 	schemeLDAP  = "ldap"
 	schemeLDAPS = "ldaps"
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 )
 
 // Test constants.
@@ -80,6 +82,8 @@ const (
 	errFmtOIDCClientInvalidSecret       = "openid connect provider: client with ID '%s' has an empty secret"
 	errFmtOIDCClientPublicInvalidSecret = "openid connect provider: client with ID '%s' is public but does not have " +
 		"an empty secret"
+	errFmtOIDCClientRedirectURI = "openid connect provider: client with ID '%s' redirect URI %s has an " +
+		"invalid scheme %s, should be http or https"
 	errFmtOIDCClientRedirectURICantBeParsed = "openid connect provider: client with ID '%s' has an invalid redirect " +
 		"URI '%s' could not be parsed: %v"
 	errFmtOIDCClientRedirectURIPublic = "openid connect provider: client with ID '%s' redirect URI '%s' is " +

@@ -474,7 +474,6 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
 func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing.T) {
-	validator := schema.NewStructValidator()
 	conf := schema.OpenIDConnectClientConfiguration{
 		ID: "owncloud",
 		RedirectURIs: []string{
@@ -485,8 +484,26 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 			"com.example.app:/oauth2redirect/example-provider",
 		},
 	}
-	validateOIDCClientRedirectURIs(conf, validator)
 
-	assert.Len(t, validator.Warnings(), 0)
-	assert.Len(t, validator.Errors(), 0)
+	t.Run("public", func(t *testing.T) {
+		validator := schema.NewStructValidator()
+		conf.Public = true
+		validateOIDCClientRedirectURIs(conf, validator)
+
+		assert.Len(t, validator.Warnings(), 0)
+		assert.Len(t, validator.Errors(), 0)
+	})
+
+	t.Run("not public", func(t *testing.T) {
+		validator := schema.NewStructValidator()
+		conf.Public = false
+		validateOIDCClientRedirectURIs(conf, validator)
+
+		assert.Len(t, validator.Warnings(), 0)
+		assert.Len(t, validator.Errors(), 2)
+		assert.ElementsMatch(t, validator.Errors(), []error{
+			errors.New("openid connect provider: client with ID 'owncloud' redirect URI oc://ios.owncloud.com has an invalid scheme oc, should be http or https"),
+			errors.New("openid connect provider: client with ID 'owncloud' redirect URI com.example.app:/oauth2redirect/example-provider has an invalid scheme com.example.app, should be http or https"),
+		})
+	})
 }
