@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -29,4 +30,44 @@ func (acd AccessControlDomain) IsMatch(subject Subject, object Object) (match bo
 	default:
 		return object.Domain == acd.Name
 	}
+}
+
+// AccessControlDomainRegex represents an ACL domain regex.
+type AccessControlDomainRegex struct {
+	Pattern *regexp.Regexp
+}
+
+// IsMatch returns true if the ACL domain matches the object domain.
+func (acdr AccessControlDomainRegex) IsMatch(subject Subject, object Object) (match bool) {
+	matches := acdr.Pattern.FindAllStringSubmatch(object.Domain, -1)
+	if matches == nil {
+		return false
+	}
+
+	subexpNames := acdr.Pattern.SubexpNames()
+
+	if !utils.IsStringSliceContainsAny(IdentitySubexpNames, subexpNames) {
+		return true
+	}
+
+	var user, group string
+
+	for i, regexGroup := range subexpNames {
+		switch regexGroup {
+		case subexpNameUser:
+			user = matches[i][1]
+		case subexpNameGroup:
+			group = matches[i][1]
+		}
+	}
+
+	if user != "" && !strings.EqualFold(subject.Username, user) {
+		return false
+	}
+
+	if group != "" && !utils.IsStringInSliceFold(group, subject.Groups) {
+		return false
+	}
+
+	return true
 }

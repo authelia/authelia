@@ -369,12 +369,12 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		WithRule(schema.ACLRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    bypass,
-			Resources: []string{"^/bypass/[a-z]+$", "^/$", "embedded"},
+			Resources: stringSliceToRegexpSlice([]string{"^/bypass/[a-z]+$", "^/$", "embedded"}),
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    oneFactor,
-			Resources: []string{"^/one_factor/[a-z]+$"},
+			Resources: stringSliceToRegexpSlice([]string{"^/one_factor/[a-z]+$"}),
 		}).
 		Build()
 
@@ -425,13 +425,13 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 		WithDefaultPolicy(deny).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public.example.com"},
-			Resources: []string{"^/admin/.*$"},
+			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
 			Subjects:  [][]string{{"group:admins"}},
 			Policy:    oneFactor,
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public.example.com"},
-			Resources: []string{"^/admin/.*$"},
+			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
 			Policy:    deny,
 		}).
 		WithRule(schema.ACLRule{
@@ -440,13 +440,13 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public2.example.com"},
-			Resources: []string{"^/admin/.*$"},
+			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
 			Subjects:  [][]string{{"group:admins"}},
 			Policy:    bypass,
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public2.example.com"},
-			Resources: []string{"^/admin/.*$"},
+			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
 			Policy:    deny,
 		}).
 		WithRule(schema.ACLRule{

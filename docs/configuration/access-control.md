@@ -23,6 +23,7 @@ access_control:
 
   rules:
   - domain: public.example.com
+    domain_regex: "^\d+\\.public.example.com$"
     policy: bypass
     networks:
     - internal
@@ -95,6 +96,7 @@ A rule defines two primary things:
 The criteria is broken into several parts:
 
 * [domain](#domain): domain or list of domains targeted by the request.
+* [domain_regex](#domain_regex): regex form of [domain](#domain).
 * [resources](#resources): pattern or list of patterns that the path should match.
 * [subject](#subject): the user or group of users to define the policy for.
 * [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
@@ -125,8 +127,12 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
+_**Required:** This criteria OR the [domain_regex](#domain_regex) criteria are required._
+
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of 
 strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
+When used in conjunction with [domain_regex](#domain_regex) the rule will match when either the [domain](#domain) or the 
+[domain_regex](#domain_regex) criteria matches.
 
 Rules may start with a few different wildcards:
 
@@ -135,12 +141,17 @@ Rules may start with a few different wildcards:
   string **must** be quoted like `"*.example.com"`.
     
 * The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
-  example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. ***Note:** we're
-  considering refactoring this to just be regex which would likely allow many additional possibilities.*
+  example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. _**Warning:** this is
+  officially deprecated as the [domain_regex](#domain_regex) criteria completely replaces the functionality in a much
+  more useful way. It is strongly recommended you do not use this as it will be removed in a future version, most likely
+  v5.0.0._
   
 * The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
   group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
-  in the following groups `admins,users,people` because `admins` is in the list.
+  in the following groups `admins,users,people` because `admins` is in the list. _**Warning:** this is
+  officially deprecated as the [domain_regex](#domain_regex) criteria completely replaces the functionality in a much
+  more useful way. It is strongly recommended you do not use this as it will be removed in a future version, most likely
+  v5.0.0._
 
 Domains in this section must be the domain configured in the [session](./session/index.md#domain) configuration or
 subdomains of that domain. This is because a website can only write cookies for a domain it is part of. It is
@@ -175,6 +186,52 @@ access_control:
     - banana.example.com
     policy: bypass
 ```
+
+### domain_regex
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Required:** This criteria OR the [domain](#domain) criteria are required._
+
+_**Important Note:** If you intend to use this criteria with a bypass rule please read 
+[bypass and subjects](#bypass-and-user-identity) before doing so._
+
+This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
+strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
+When used in conjunction with [domain](#domain) the rule will match when either the [domain](#domain) or the
+[domain_regex](#domain_regex) criteria matches.
+
+This criteria takes any standard go regex pattern to match the requests. However you may be required to double escape
+things you'd normally single escape due to the configuration parser. We additionally utilize two special named match 
+groups which match attributes of the user:
+
+| Group Name |    Match Value    |
+|:----------:|:-----------------:|
+|    User    |     username      |
+|   Group    | groups (contains) |
+
+For the group match it matches if the user has any group name that matches, and both matches are case-insensitive due to
+the nature of the URL specification.
+
+Examples:
+
+```yaml
+access_control:
+  rules:
+  - domain: 
+    - apple.example.com
+    - banana.example.com
+    policy: bypass
+  - domain_regex:
+    - "^user-(?P<User>\w+)\\.example\\.com$"
+    - "^group-(?P<Group>\w+)\\.example\\.com$"
+    policy: one_factor
+```
+
 
 ### subject
 <div markdown="1">
@@ -366,11 +423,8 @@ access_control:
 
 ## Policies
 
-With **Authelia** you can define a list of rules that are going to be evaluated in
-sequential order when authorization is delegated to Authelia.
-
-The first matching rule of the list defines the policy applied to the resource, if
-no rule matches the resource a customizable default policy is applied.
+The policy of the first matching rule in the configured list decides the policy applied to the request, if no rule 
+matches the request the [default_policy](#default_policy) is applied.
 
 ### deny
 
@@ -383,6 +437,18 @@ access in desired situations. Examples include denying access to an API that has
 This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
 that includes a [subject](#subject) restriction because the minimum authentication level required to obtain information 
 about the subject is [one_factor](#one_factor).
+
+#### bypass and user identity
+
+The [bypass](#bypass) policy cannot be used when the rule uses a criteria that requires we know the users identity. This
+means: 
+
+- If the rule defines [subjects](#subject) criteria
+- If the rule defines [domain regex](#domain_regex) criteria which contains either the user or group named match groups 
+
+This is because these criteria types require knowing who the user is in order to determine if their identity matches the 
+request. This information can only be known after 1FA, which means the minimum policy that can be used logically is 
+[one_factor](#one_factor). 
 
 ### one_factor
 

@@ -25,15 +25,23 @@ func PolicyToLevel(policy string) Level {
 	return Denied
 }
 
-func schemaSubjectToACLSubject(subjectRule string) (subject AccessControlSubject) {
-	if strings.HasPrefix(subjectRule, userPrefix) {
-		user := strings.Trim(subjectRule[len(userPrefix):], " ")
+func stringSliceToRegexpSlice(strings []string) (regexps []*regexp.Regexp) {
+	for _, str := range strings {
+		regexps = append(regexps, regexp.MustCompile(str))
+	}
+
+	return regexps
+}
+
+func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
+	if strings.HasPrefix(subjectRule, prefixUser) {
+		user := strings.Trim(subjectRule[len(prefixUser):], " ")
 
 		return AccessControlUser{Name: user}
 	}
 
-	if strings.HasPrefix(subjectRule, groupPrefix) {
-		group := strings.Trim(subjectRule[len(groupPrefix):], " ")
+	if strings.HasPrefix(subjectRule, prefixGroup) {
+		group := strings.Trim(subjectRule[len(prefixGroup):], " ")
 
 		return AccessControlGroup{Name: group}
 	}
@@ -41,7 +49,7 @@ func schemaSubjectToACLSubject(subjectRule string) (subject AccessControlSubject
 	return nil
 }
 
-func schemaDomainsToACL(domainRules []string) (domains []AccessControlDomain) {
+func schemaDomainsToACL(domainRules []string, domainRegexRules []*regexp.Regexp) (domains []SubjectObjectMatcher) {
 	for _, domainRule := range domainRules {
 		domain := AccessControlDomain{}
 
@@ -64,12 +72,16 @@ func schemaDomainsToACL(domainRules []string) (domains []AccessControlDomain) {
 		domains = append(domains, domain)
 	}
 
+	for _, domainRegexRule := range domainRegexRules {
+		domains = append(domains, AccessControlDomainRegex{Pattern: domainRegexRule})
+	}
+
 	return domains
 }
 
-func schemaResourcesToACL(resourceRules []string) (resources []AccessControlResource) {
+func schemaResourcesToACL(resourceRules []*regexp.Regexp) (resources []AccessControlResource) {
 	for _, resourceRule := range resourceRules {
-		resources = append(resources, AccessControlResource{regexp.MustCompile(resourceRule)})
+		resources = append(resources, AccessControlResource{Pattern: resourceRule})
 	}
 
 	return resources

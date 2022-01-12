@@ -104,6 +104,32 @@ const (
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
 
+// ACL Error constants.
+const (
+	warnAccessControlNoRules                    = "access control: no access control rules have been defined so the default policy '%s' will be applied to all requests"
+	errAccessControlInvalidDefaultPolicy        = "access control: default_policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"
+	errAccessControlInvalidDefaultPolicyNoRules = "access control: default policy '%s' is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'"
+	errAccessControlInvalidNetwork              = "access control: network '%s' from network group: '%s' must be a valid IP or CIDR"
+
+	errAccessControlRuleInvalidPolicy = "access control: rule #%d: policy '%s' is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'"
+
+	errAccessControlRuleNoDomains = "access control: rule #%d: rules must have one or more domains"
+
+	errAccessControlRuleInvalidSubjectPrefix = "access control: rule #%d: subject '%s' for rule is invalid, must start with 'user:' or 'group:'"
+
+	errAccessControlRuleInvalidMethod = "access control: rule #%d: method '%s' is invalid, must be one of the following methods: %s"
+
+	errAccessControlRuleNetworkInvalid = "access control: rule #%d: network '%s' is not a valid network or network group"
+
+	errAccessControlRuleInvalidPolicyWithSubjects = "access control: rule #%d: policy 'bypass' is invalid when subjects " +
+		"are configured. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
+
+	errAccessControlRuleInvalidPolicyWithSpecialDomainRegexp = "access control: rule #%d: policy 'bypass' is invalid when " +
+		"domain_regex contains the user or group named match groups. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
+)
+
 // Error constants.
 const (
 	/*
@@ -128,10 +154,6 @@ const (
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
-
-	errAccessControlInvalidPolicyWithSubjects = "policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
-		"not supported to configure both policy bypass and subjects. For more information see: " +
-		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
@@ -190,6 +212,7 @@ var ValidKeys = []string{
 	"access_control.networks",
 	"access_control.rules",
 	"access_control.rules[].domain",
+	"access_control.rules[].domain_regex",
 	"access_control.rules[].methods",
 	"access_control.rules[].networks",
 	"access_control.rules[].subject",
