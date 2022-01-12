@@ -108,17 +108,6 @@ is a match for a given request is the rule applied; subsequent rules have *no ef
 carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A comprehensive 
 understanding of how rules apply is also recommended.
 
-#### policy
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple } 
-required: yes
-{: .label .label-config .label-red }
-</div>
-
-The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
-take when a match is made.
-
 #### domain
 <div markdown="1">
 type: list(string)
@@ -232,6 +221,16 @@ access_control:
     policy: one_factor
 ```
 
+#### policy
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
+take when a match is made.
 
 ### subject
 <div markdown="1">

@@ -335,6 +335,18 @@ access_control:
     - domain: public.example.com
       policy: bypass
 
+    ## Domain Regex examples. Generally we recommend just using a standard domain.
+    # - domain_regex: "^(?P<User>\w+)\\.example\\.com$"
+    #   policy: one_factor
+    # - domain_regex: "^(?P<Group>\w+)\\.example\\.com$"
+    #   policy: one_factor
+    # - domain_regex:
+    #    - "^appgroup-.*\\.example\\.com$"
+    #    - "^appgroup2-.*\\.example\\.com$"
+    #   policy: one_factor
+    # - domain_regex: "^.*\\.example.com$"
+    #   policy: two_factor
+
     - domain: secure.example.com
       policy: one_factor
       ## Network based rule, if not provided any network matches.
