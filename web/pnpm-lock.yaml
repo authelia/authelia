@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@commitlint/cli': 16.0.1
+  '@commitlint/cli': 16.0.2
   '@commitlint/config-conventional': 16.0.0
   '@fortawesome/fontawesome-svg-core': 1.2.36
   '@fortawesome/free-regular-svg-icons': 5.15.4
@@ -75,7 +75,7 @@ dependencies:
   u2f-api: 1.2.1
 
 devDependencies:
-  '@commitlint/cli': 16.0.1_@types+node@16.11.19
+  '@commitlint/cli': 16.0.2_@types+node@16.11.19
   '@commitlint/config-conventional': 16.0.0
   '@testing-library/jest-dom': 5.16.1
   '@testing-library/react': 12.1.2_react-dom@17.0.2+react@17.0.2
@@ -1782,8 +1782,8 @@ packages:
       minimist: 1.2.5
     dev: true
 
-  /@commitlint/cli/16.0.1_@types+node@16.11.19:
-    resolution: {integrity: sha512-61gGRy65WiVDRsqP0dAR2fAgE3qrTBW3fgz9MySv32y5Ib3ZXXDDq6bGyQqi2dSaPuDYzNCRwwlC7mmQM73T/g==}
+  /@commitlint/cli/16.0.2_@types+node@16.11.19:
+    resolution: {integrity: sha512-Jt7iaBjoLGC5Nq4dHPTvTYnqPGkElFPBtTXTvBpTgatZApczyjI2plE0oG4GYWPp1suHIS/VdVDOMpPZjGVusg==}
     engines: {node: '>=v12'}
     hasBin: true
     dependencies:
