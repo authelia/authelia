@@ -333,6 +333,12 @@ access_control:
   rules:
     ## Rules applied to everyone
     - domain: public.example.com
+
+      ## You can override the priority of 0 though we recommend ordering your rules correctly in the configuration instead.
+      ## Higher priority rules come before lower priority ones (i.e. 100 is higher than 0), and lower priority rules come
+      ## after higher priority ones (i.e. -100 is lower than 0).
+      priority: 0
+
       policy: bypass
 
     ## Domain Regex examples. Generally we recommend just using a standard domain.
