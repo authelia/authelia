@@ -40,6 +40,7 @@ type Object struct {
 	Domain string
 	Path   string
 	Method string
+	Query  string
 }
 
 // String is a string representation of the Object.
@@ -58,6 +59,7 @@ func NewObject(targetURL *url.URL, method string) (object Object) {
 		Scheme: targetURL.Scheme,
 		Domain: targetURL.Hostname(),
 		Method: method,
+		Query:  targetURL.RawQuery,
 	}
 
 	if targetURL.RawQuery == "" {

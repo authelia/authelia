@@ -19,6 +19,7 @@ type ACLNetwork struct {
 
 // ACLRule represents one ACL rule entry.
 type ACLRule struct {
+	Priority     int              `koanf:"priority"`
 	Domains      []string         `koanf:"domain"`
 	DomainsRegex []*regexp.Regexp `koanf:"domain_regex"`
 	Policy       string           `koanf:"policy"`

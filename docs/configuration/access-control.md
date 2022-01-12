@@ -24,6 +24,7 @@ access_control:
   rules:
   - domain: public.example.com
     domain_regex: "^\d+\\.public.example.com$"
+    priorty: 0
     policy: bypass
     networks:
     - internal
@@ -118,6 +119,25 @@ required: yes
 
 The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
 take when a match is made.
+
+### priority
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The priority of the rule. This overrides the order of rules, higher values move rules up in the list, and lower ones move
+rules down. 
+
+As the default is 0 a rule will need to be at the bottom of the list or a value less than 0 such as -1 to put
+it lower in the list, conversely any value above 0 will put a rule above all rules without a priority value.
+
+It is recommended that rules are placed in order rather than using this option. This option should be considered an
+advanced configuration option.
 
 #### domain
 <div markdown="1">

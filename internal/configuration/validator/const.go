@@ -211,6 +211,7 @@ var ValidKeys = []string{
 	"access_control.default_policy",
 	"access_control.networks",
 	"access_control.rules",
+	"access_control.rules[].priority",
 	"access_control.rules[].domain",
 	"access_control.rules[].domain_regex",
 	"access_control.rules[].methods",

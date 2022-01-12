@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"net"
+	"sort"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -15,6 +16,10 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 		rules = append(rules, NewAccessControlRule(i+1, schemaRule, networksMap, networksCacheMap))
 	}
 
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].Priority <= rules[j].Priority
+	})
+
 	return rules
 }
 
@@ -22,6 +27,7 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
 	return &AccessControlRule{
 		Position:  pos,
+		Priority:  rule.Priority,
 		Domains:   schemaDomainsToACL(rule.Domains, rule.DomainsRegex),
 		Resources: schemaResourcesToACL(rule.Resources),
 		Methods:   schemaMethodsToACL(rule.Methods),
@@ -34,6 +40,7 @@ func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][
 // AccessControlRule controls and represents an ACL internally.
 type AccessControlRule struct {
 	Position  int
+	Priority  int
 	Domains   []SubjectObjectMatcher
 	Resources []AccessControlResource
 	Methods   []string
