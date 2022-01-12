@@ -22,5 +22,5 @@ if [[ "${PACKAGE}" == "amd64" ]]; then
 elif [[ "${PACKAGE}" == "armhf" ]]; then
   docker run --rm --platform linux/arm/v7 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb -A"
 else
-  docker run --rm --platform linux/arm64 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb -A"
+  docker run --rm --platform linux/arm64 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 fi
