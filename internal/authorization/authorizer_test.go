@@ -420,6 +420,53 @@ func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "POST", Denied)
 }
 
+func (s *AuthorizerSuite) TestShouldOrderRulesCorrectly() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.ACLRule{
+			Priority: 1,
+			Domains:  []string{"one-one.example.com"},
+			Policy:   oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Priority: 1,
+			Domains:  []string{"one-two.example.com"},
+			Policy:   oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Priority: 100,
+			Domains:  []string{"one-hundred.example.com"},
+			Policy:   oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"zero.example.com"},
+			Policy:  oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Priority: 100,
+			Domains:  []string{"one-hundred-two.example.com"},
+			Policy:   oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Priority: -1,
+			Domains:  []string{"neg-one.example.com"},
+			Policy:   oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"zero-two.example.com"},
+			Policy:  oneFactor,
+		}).
+		Build()
+
+	assert.True(s.T(), tester.rules[0].Domains[0].IsMatch(Subject{}, Object{Domain: "neg-one.example.com"}))
+	assert.True(s.T(), tester.rules[1].Domains[0].IsMatch(Subject{}, Object{Domain: "zero.example.com"}))
+	assert.True(s.T(), tester.rules[2].Domains[0].IsMatch(Subject{}, Object{Domain: "zero-two.example.com"}))
+	assert.True(s.T(), tester.rules[3].Domains[0].IsMatch(Subject{}, Object{Domain: "one-one.example.com"}))
+	assert.True(s.T(), tester.rules[4].Domains[0].IsMatch(Subject{}, Object{Domain: "one-two.example.com"}))
+	assert.True(s.T(), tester.rules[5].Domains[0].IsMatch(Subject{}, Object{Domain: "one-hundred.example.com"}))
+	assert.True(s.T(), tester.rules[6].Domains[0].IsMatch(Subject{}, Object{Domain: "one-hundred-two.example.com"}))
+}
+
 func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).

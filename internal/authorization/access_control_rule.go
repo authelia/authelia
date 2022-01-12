@@ -17,7 +17,11 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 	}
 
 	sort.Slice(rules, func(i, j int) bool {
-		return rules[i].Priority <= rules[j].Priority
+		if rules[i].Priority == rules[j].Priority {
+			return rules[i].Position < rules[j].Position
+		}
+
+		return rules[i].Priority < rules[j].Priority
 	})
 
 	return rules
