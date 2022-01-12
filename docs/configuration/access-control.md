@@ -109,36 +109,6 @@ is a match for a given request is the rule applied; subsequent rules have *no ef
 carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A comprehensive 
 understanding of how rules apply is also recommended.
 
-#### policy
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple } 
-required: yes
-{: .label .label-config .label-red }
-</div>
-
-The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
-take when a match is made.
-
-### priority
-<div markdown="1">
-type: integer
-{: .label .label-config .label-purple }
-default: 0
-{: .label .label-config .label-blue }
-required: no
-{: .label .label-config .label-green }
-</div>
-
-The priority of the rule. This overrides the order of rules, higher values move rules up in the list, and lower ones move
-rules down. 
-
-As the default is 0 a rule will need to be at the bottom of the list or a value less than 0 such as -1 to put
-it lower in the list, conversely any value above 0 will put a rule above all rules without a priority value.
-
-It is recommended that rules are placed in order rather than using this option. This option should be considered an
-advanced configuration option.
-
 #### domain
 <div markdown="1">
 type: list(string)
@@ -252,6 +222,35 @@ access_control:
     policy: one_factor
 ```
 
+### priority
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+The priority of the rule. This overrides the order of rules, higher values move rules up in the list, and lower ones move
+rules down.
+
+As the default is 0 a rule will need to be at the bottom of the list or a value less than 0 such as -1 to put
+it lower in the list, conversely any value above 0 will put a rule above all rules without a priority value.
+
+It is recommended that rules are placed in order rather than using this option. This option should be considered an
+advanced configuration option.
+
+#### policy
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
+take when a match is made.
 
 ### subject
 <div markdown="1">
