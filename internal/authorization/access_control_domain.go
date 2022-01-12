@@ -55,9 +55,9 @@ func (acdr AccessControlDomainRegex) IsMatch(subject Subject, object Object) (ma
 	for i, regexGroup := range subexpNames {
 		switch regexGroup {
 		case subexpNameUser:
-			user = matches[i][1]
+			user = matches[0][i]
 		case subexpNameGroup:
-			group = matches[i][1]
+			group = matches[0][i]
 		}
 	}
 

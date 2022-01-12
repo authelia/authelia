@@ -420,6 +420,36 @@ func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "POST", Denied)
 }
 
+func (s *AuthorizerSuite) TestShouldMatchDomainRegex() {
+	tester := NewAuthorizerBuilder().
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example.com$`}),
+			Policy:       bypass,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example2.com$`}),
+			Policy:       oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
+			Policy:       oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
+			Policy:       twoFactor,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.(one|two).com$`}),
+			Policy:       twoFactor,
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://john.regex.com", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://john.regex.com", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example2.com", "GET", OneFactor)
+}
+
 func (s *AuthorizerSuite) TestShouldOrderRulesCorrectly() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
