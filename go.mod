@@ -7,8 +7,8 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20211027140842-72da735c6f15
-	github.com/fasthttp/router v1.4.4
-	github.com/fasthttp/session/v2 v2.4.4
+	github.com/fasthttp/router v1.4.5
+	github.com/fasthttp/session/v2 v2.4.5
 	github.com/go-ldap/ldap/v3 v3.4.1
 	github.com/go-rod/rod v0.101.8
 	github.com/go-sql-driver/mysql v1.6.0
@@ -17,10 +17,10 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/knadh/koanf v1.3.3
+	github.com/knadh/koanf v1.4.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.3
-	github.com/ory/fosite v0.40.2
+	github.com/ory/fosite v0.42.0
 	github.com/ory/herodot v0.9.12
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
@@ -31,7 +31,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/tstranex/u2f v1.0.0
-	github.com/valyala/fasthttp v1.31.0
+	github.com/valyala/fasthttp v1.32.0
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -79,7 +79,7 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20210921080634-84324d0689d7 // indirect
-	github.com/savsgio/gotils v0.0.0-20210921075833-21a6215cb0e4 // indirect
+	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/seatgeek/logrus-gelf-formatter v0.0.0-20210414080842-5b05eb8ff761 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
