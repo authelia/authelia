@@ -119,6 +119,6 @@ notifier:
     username: test
     host: 127.0.0.1
     port: 1025
-    sender: admin@example.com
+    sender: Admin <admin@example.com>
     disable_require_tls: true
 ...
