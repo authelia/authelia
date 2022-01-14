@@ -10,7 +10,11 @@ import {
 import { SignInResponse } from "@services/SignIn";
 
 export function browserSupportsWebauthn(): boolean {
-    return window?.PublicKeyCredential !== undefined && typeof window.PublicKeyCredential === "function";
+    return (
+        window.isSecureContext &&
+        window.PublicKeyCredential !== undefined &&
+        typeof window.PublicKeyCredential === "function"
+    );
 }
 
 export async function platformAuthenticatorAvailable(): Promise<boolean> {
