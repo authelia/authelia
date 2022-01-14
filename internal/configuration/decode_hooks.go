@@ -35,8 +35,8 @@ func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
 	}
 }
 
-// StringToRegexpPtrFunc decodes a string into a regexp.Regexp.
-func StringToRegexpPtrFunc() mapstructure.DecodeHookFunc {
+// StringToRegexpFunc decodes a string into a *regexp.Regexp.
+func StringToRegexpFunc() mapstructure.DecodeHookFunc {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
 		if f.Kind() != reflect.String || t != reflect.TypeOf(&regexp.Regexp{}) {
 			return data, nil

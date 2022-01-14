@@ -15,6 +15,7 @@ type SubjectMatcher interface {
 // SubjectObjectMatcher is a matcher that takes both a subject and an object.
 type SubjectObjectMatcher interface {
 	IsMatch(subject Subject, object Object) (match bool)
+	String() string
 }
 
 // Subject represents the identity of a user for the purposes of ACL matching.

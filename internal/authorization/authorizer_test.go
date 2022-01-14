@@ -227,6 +227,110 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", "GET", TwoFactor)
 }
 
+func (s *AuthorizerSuite) TestShouldcheckDomainMatching() {
+	tester := NewAuthorizerBuilder().
+		WithRule(schema.ACLRule{
+			Domains: []string{"public.example.com"},
+			Policy:  bypass,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"one-factor.example.com"},
+			Policy:  oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"two-factor.example.com"},
+			Policy:  twoFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains:  []string{"*.example.com"},
+			Policy:   oneFactor,
+			Subjects: [][]string{{"group:admins"}},
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"*.example.com"},
+			Policy:  twoFactor,
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com", "GET", Bypass)
+
+	tester.CheckAuthorizations(s.T(), John, "https://one-factor.example.com", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://one-factor.example.com", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one-factor.example.com", "GET", OneFactor)
+
+	tester.CheckAuthorizations(s.T(), John, "https://two-factor.example.com", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://two-factor.example.com", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://two-factor.example.com", "GET", TwoFactor)
+
+	tester.CheckAuthorizations(s.T(), John, "https://x.example.com", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://x.example.com", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://x.example.com", "GET", OneFactor)
+
+	assert.Equal(s.T(), "public.example.com", tester.configuration.AccessControl.Rules[0].Domains[0])
+	assert.Equal(s.T(), "domain:public.example.com", tester.rules[0].Domains[0].String())
+
+	assert.Equal(s.T(), "one-factor.example.com", tester.configuration.AccessControl.Rules[1].Domains[0])
+	assert.Equal(s.T(), "domain:one-factor.example.com", tester.rules[1].Domains[0].String())
+
+	assert.Equal(s.T(), "two-factor.example.com", tester.configuration.AccessControl.Rules[2].Domains[0])
+	assert.Equal(s.T(), "domain:two-factor.example.com", tester.rules[2].Domains[0].String())
+
+	assert.Equal(s.T(), "*.example.com", tester.configuration.AccessControl.Rules[3].Domains[0])
+	assert.Equal(s.T(), "domain:.example.com", tester.rules[3].Domains[0].String())
+
+	assert.Equal(s.T(), "*.example.com", tester.configuration.AccessControl.Rules[4].Domains[0])
+	assert.Equal(s.T(), "domain:.example.com", tester.rules[4].Domains[0].String())
+}
+
+func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
+	tester := NewAuthorizerBuilder().
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example.com$`}),
+			Policy:       bypass,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example2.com$`}),
+			Policy:       oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
+			Policy:       oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
+			Policy:       twoFactor,
+		}).
+		WithRule(schema.ACLRule{
+			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.(one|two).com$`}),
+			Policy:       twoFactor,
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), John, "https://john.regex.com", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://john.regex.com", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example2.com", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://group-dev.regex.com", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://group-dev.regex.com", "GET", Denied)
+
+	assert.Equal(s.T(), "^.*\\.example.com$", tester.configuration.AccessControl.Rules[0].DomainsRegex[0].String())
+	assert.Equal(s.T(), "domain_regex:^.*\\.example.com$", tester.rules[0].Domains[0].String())
+
+	assert.Equal(s.T(), "^.*\\.example2.com$", tester.configuration.AccessControl.Rules[1].DomainsRegex[0].String())
+	assert.Equal(s.T(), "domain_regex:^.*\\.example2.com$", tester.rules[1].Domains[0].String())
+
+	assert.Equal(s.T(), "^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[2].DomainsRegex[0].String())
+	assert.Equal(s.T(), "domain_regex(subexp):^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.rules[2].Domains[0].String())
+
+	assert.Equal(s.T(), "^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[3].DomainsRegex[0].String())
+	assert.Equal(s.T(), "domain_regex(subexp):^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.rules[3].Domains[0].String())
+
+	assert.Equal(s.T(), "^.*\\.(one|two).com$", tester.configuration.AccessControl.Rules[4].DomainsRegex[0].String())
+	assert.Equal(s.T(), "domain_regex:^.*\\.(one|two).com$", tester.rules[4].Domains[0].String())
+}
+
 func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
@@ -418,36 +522,6 @@ func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 	tester.CheckAuthorizations(s.T(), John, "https://one.domain-four.com", "POST", Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-three.com", "POST", Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://one.domain-two.com", "POST", Denied)
-}
-
-func (s *AuthorizerSuite) TestShouldMatchDomainRegex() {
-	tester := NewAuthorizerBuilder().
-		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example.com$`}),
-			Policy:       bypass,
-		}).
-		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example2.com$`}),
-			Policy:       oneFactor,
-		}).
-		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
-			Policy:       oneFactor,
-		}).
-		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
-			Policy:       twoFactor,
-		}).
-		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.(one|two).com$`}),
-			Policy:       twoFactor,
-		}).
-		Build()
-
-	tester.CheckAuthorizations(s.T(), John, "https://john.regex.com", "GET", OneFactor)
-	tester.CheckAuthorizations(s.T(), Bob, "https://john.regex.com", "GET", Denied)
-	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example2.com", "GET", OneFactor)
 }
 
 func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {

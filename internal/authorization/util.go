@@ -51,29 +51,11 @@ func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 
 func schemaDomainsToACL(domainRules []string, domainRegexRules []*regexp.Regexp) (domains []SubjectObjectMatcher) {
 	for _, domainRule := range domainRules {
-		domain := AccessControlDomain{}
-
-		domainRule = strings.ToLower(domainRule)
-
-		switch {
-		case strings.HasPrefix(domainRule, "*."):
-			domain.Wildcard = true
-			domain.Name = domainRule[1:]
-		case strings.HasPrefix(domainRule, "{user}"):
-			domain.UserWildcard = true
-			domain.Name = domainRule[7:]
-		case strings.HasPrefix(domainRule, "{group}"):
-			domain.GroupWildcard = true
-			domain.Name = domainRule[8:]
-		default:
-			domain.Name = domainRule
-		}
-
-		domains = append(domains, domain)
+		domains = append(domains, NewAccessControlDomain(domainRule))
 	}
 
 	for _, domainRegexRule := range domainRegexRules {
-		domains = append(domains, AccessControlDomainRegex{Pattern: domainRegexRule})
+		domains = append(domains, NewAccessControlDomainRegex(domainRegexRule))
 	}
 
 	return domains
