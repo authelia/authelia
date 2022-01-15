@@ -1,10 +1,17 @@
 package oidc
 
-var scopeDescriptions = map[string]string{
-	"openid":  "Use OpenID to verify your identity",
-	"email":   "Access your email addresses",
-	"profile": "Access your display name",
-	"groups":  "Access your group membership",
-}
+// Scope strings.
+const (
+	ScopeProfile = "profile"
+	ScopeEmail   = "email"
+	ScopeGroups  = "groups"
+)
 
-var audienceDescriptions = map[string]string{}
+// Claim strings.
+const (
+	ClaimGroups        = "groups"
+	ClaimDisplayName   = "name"
+	ClaimEmail         = "email"
+	ClaimEmailVerified = "email_verified"
+	ClaimAltEmails     = "alt_emails"
+)

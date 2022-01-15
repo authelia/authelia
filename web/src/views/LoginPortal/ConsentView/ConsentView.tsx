@@ -14,7 +14,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {}
 
-function showListItemAvatar(id: string) {
+function scopeNameToAvatar(id: string) {
     switch (id) {
         case "openid":
             return <AccountBox />;
@@ -26,6 +26,21 @@ function showListItemAvatar(id: string) {
             return <Drafts />;
         default:
             return <CheckBox />;
+    }
+}
+
+function scopeNameToDescription(id: string): string {
+    switch (id) {
+        case "openid":
+            return "Use OpenID to verify your identity";
+        case "profile":
+            return "Access your display name";
+        case "groups":
+            return "Access your group membership";
+        case "email":
+            return "Access your email addresses";
+        default:
+            return id;
     }
 }
 
@@ -86,11 +101,11 @@ const ConsentView = function (props: Props) {
                     <Grid item xs={12}>
                         <div className={classes.scopesListContainer}>
                             <List className={classes.scopesList}>
-                                {resp?.scopes.map((s) => (
-                                    <Tooltip title={"Scope " + s.name}>
-                                        <ListItem id={"scope-" + s.name} dense>
-                                            <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
-                                            <ListItemText primary={s.description} />
+                                {resp?.scopes.map((scope: string) => (
+                                    <Tooltip title={"Scope " + scope}>
+                                        <ListItem id={"scope-" + scope} dense>
+                                            <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
+                                            <ListItemText primary={scopeNameToDescription(scope)} />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
