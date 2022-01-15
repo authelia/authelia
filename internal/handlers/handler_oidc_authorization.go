@@ -93,7 +93,8 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 			Headers: &jwt.Headers{Extra: map[string]interface{}{
 				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
 			}},
-			Subject: userSession.Username,
+			Subject:  userSession.Username,
+			Username: userSession.Username,
 		},
 		ClientID: clientID,
 	})
@@ -108,24 +109,26 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 }
 
 func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
-	extraClaims = map[string]interface{}{}
+	extraClaims = map[string]interface{}{
+		oidc.ClaimPreferredUsername: userSession.Username,
+	}
 
 	for _, scope := range scopes {
 		ar.GrantScope(scope)
 
 		switch scope {
-		case "groups":
-			extraClaims["groups"] = userSession.Groups
-		case "profile":
-			extraClaims["name"] = userSession.DisplayName
-		case "email":
+		case oidc.ScopeGroups:
+			extraClaims[oidc.ClaimGroups] = userSession.Groups
+		case oidc.ScopeProfile:
+			extraClaims[oidc.ClaimDisplayName] = userSession.DisplayName
+		case oidc.ScopeEmail:
 			if len(userSession.Emails) != 0 {
-				extraClaims["email"] = userSession.Emails[0]
+				extraClaims[oidc.ClaimEmail] = userSession.Emails[0]
 				if len(userSession.Emails) > 1 {
-					extraClaims["alt_emails"] = userSession.Emails[1:]
+					extraClaims[oidc.ClaimAltEmails] = userSession.Emails[1:]
 				}
 				// TODO (james-d-elliott): actually verify emails and record that information.
-				extraClaims["email_verified"] = true
+				extraClaims[oidc.ClaimEmailVerified] = true
 			}
 		}
 	}
