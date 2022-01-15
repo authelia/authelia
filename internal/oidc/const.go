@@ -9,9 +9,10 @@ const (
 
 // Claim strings.
 const (
-	ClaimGroups        = "groups"
-	ClaimDisplayName   = "name"
-	ClaimEmail         = "email"
-	ClaimEmailVerified = "email_verified"
-	ClaimAltEmails     = "alt_emails"
+	ClaimGroups            = "groups"
+	ClaimDisplayName       = "name"
+	ClaimPreferredUsername = "preferred_username"
+	ClaimEmail             = "email"
+	ClaimEmailVerified     = "email_verified"
+	ClaimAltEmails         = "alt_emails"
 )

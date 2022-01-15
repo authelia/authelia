@@ -19,8 +19,8 @@ providers for authentication and authorization. We do not intend to support this
 ## Roadmap
 
 We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and
-providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related endpoints
-are not enabled by default unless you specifically configure the [OpenID Connect] section.
+providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related 
+endpoints are not enabled by default unless you specifically configure the [OpenID Connect] section.
 
 As [OpenID Connect] is fairly complex (the [OpenID Connect] Provider role especially so) it's intentional that it is 
 both a beta and that the implemented features are part of a thoughtful roadmap. Items that are not immediately obvious
@@ -489,48 +489,52 @@ characters. For Kubernetes, see [this section too](../secrets.md#Kubernetes).
 
 ### openid
 
-This is the default scope for openid. This field is forced on every client by the configuration
-validation that Authelia does.
+This is the default scope for openid. This field is forced on every client by the configuration validation that Authelia
+does.
 
-|JWT Field|JWT Type     |Authelia Attribute|Description                                  |
-|:-------:|:-----------:|:----------------:|:-------------------------------------------:|
-|sub      |string       |Username          |The username the user used to login with     |
-|scope    |string       |scopes            |Granted scopes (space delimited)             |
-|scp      |array[string]|scopes            |Granted scopes                               |
-|iss      |string       |hostname          |The issuer name, determined by URL           |
-|at_hash  |string       |_N/A_             |Access Token Hash                            |
-|aud      |array[string]|_N/A_             |Audience                                     |
-|exp      |number       |_N/A_             |Expires                                      |
-|auth_time|number       |_N/A_             |The time the user authenticated with Authelia|
-|rat      |number       |_N/A_             |The time when the token was requested        |
-|iat      |number       |_N/A_             |The time when the token was issued           |
-|jti      |string(uuid) |_N/A_             |JWT Identifier                               |
+_**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
+individual user. Please use the claim `preferred_username` instead._
+
+|     JWT Field      |   JWT Type    | Authelia Attribute |                  Description                  |
+|:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
+|        sub         |    string     |      Username      |   The username the user used to login with    |
+|       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
+|        scp         | array[string] |       scopes       |                Granted scopes                 |
+|        iss         |    string     |      hostname      |      The issuer name, determined by URL       |
+|      at_hash       |    string     |       _N/A_        |               Access Token Hash               |
+|        aud         | array[string] |       _N/A_        |                   Audience                    |
+|        exp         |    number     |       _N/A_        |                    Expires                    |
+|     auth_time      |    number     |       _N/A_        | The time the user authenticated with Authelia |
+|        rat         |    number     |       _N/A_        |     The time when the token was requested     |
+|        iat         |    number     |       _N/A_        |      The time when the token was issued       |
+|        jti         | string(uuid)  |       _N/A_        |                JWT Identifier                 |
+| preferred_username |    string     |      Username      |   The username the user used to login with    |
 
 ### groups
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
 
-|JWT Field|JWT Type     |Authelia Attribute|Description           |
-|:-------:|:-----------:|:----------------:|:--------------------:|
-|groups   |array[string]|Groups            |The users display name|
+| JWT Field |   JWT Type    | Authelia Attribute |      Description       |
+|:---------:|:-------------:|:------------------:|:----------------------:|
+|  groups   | array[string] |       Groups       | The users display name |
 
 ### email
 
 This scope includes the email information the authentication backend reports about the user in the token.
 
-|JWT Field     |JWT Type     |Authelia Attribute|Description                                              |
-|:------------:|:-----------:|:----------------:|:-------------------------------------------------------:|
-|email         |string       |email[0]          |The first email address in the list of emails            |
-|email_verified|bool         |_N/A_             |If the email is verified, assumed true for the time being|
-|alt_emails    |array[string]|email[1:]         |All email addresses that are not in the email JWT field  |
+|   JWT Field    |   JWT Type    | Authelia Attribute |                        Description                        |
+|:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
+|     email      |    string     |      email[0]      |       The first email address in the list of emails       |
+| email_verified |     bool      |       _N/A_        | If the email is verified, assumed true for the time being |
+|   alt_emails   | array[string] |     email[1:]      |  All email addresses that are not in the email JWT field  |
 
 ### profile
 
 This scope includes the profile information the authentication backend reports about the user in the token.
 
-|JWT Field|JWT Type|Authelia Attribute|Description           |
-|:-------:|:------:|:----------------:|:--------------------:|
-|name     |string  | display_name     |The users display name|
+| JWT Field | JWT Type | Authelia Attribute |      Description       |
+|:---------:|:--------:|:------------------:|:----------------------:|
+|   name    |  string  |    display_name    | The users display name |
 
 ## Endpoint Implementations
 
@@ -539,15 +543,15 @@ particularly those that don't use [discovery](https://openid.net/specs/openid-co
 appended to the end of the primary URL used to access Authelia. For example in the Discovery example provided you access
 Authelia via https://auth.example.com, the discovery URL is https://auth.example.com/.well-known/openid-configuration.
 
-|Endpoint     |Path                            |
-|:-----------:|:------------------------------:|
-|Discovery    |.well-known/openid-configuration|
-|JWKS         |api/oidc/jwks                   |
-|Authorization|api/oidc/authorize              |
-|Token        |api/oidc/token                  |
-|Introspection|api/oidc/introspect             |
-|Revocation   |api/oidc/revoke                 |
-|Userinfo     |api/oidc/userinfo               |
+|   Endpoint    |               Path               |
+|:-------------:|:--------------------------------:|
+|   Discovery   | .well-known/openid-configuration |
+|     JWKS      |          api/oidc/jwks           |
+| Authorization |        api/oidc/authorize        |
+|     Token     |          api/oidc/token          |
+| Introspection |       api/oidc/introspect        |
+|  Revocation   |         api/oidc/revoke          |
+|   Userinfo    |        api/oidc/userinfo         |
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration

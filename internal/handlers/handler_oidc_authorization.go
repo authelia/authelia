@@ -93,7 +93,8 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 			Headers: &jwt.Headers{Extra: map[string]interface{}{
 				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
 			}},
-			Subject: userSession.Username,
+			Subject:  userSession.Username,
+			Username: userSession.Username,
 		},
 		ClientID: clientID,
 	})
@@ -109,6 +110,8 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
 	extraClaims = map[string]interface{}{}
+
+	extraClaims[oidc.ClaimPreferredUsername] = userSession.Username
 
 	for _, scope := range scopes {
 		ar.GrantScope(scope)
