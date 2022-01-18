@@ -19,7 +19,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': 5.10.0
   '@typescript-eslint/parser': 5.10.0
   '@vitejs/plugin-react': 1.1.4
-  axios: 0.24.0
+  axios: 0.25.0
   classnames: 2.3.1
   esbuild-jest: 0.5.0
   eslint-config-prettier: 8.3.0
@@ -62,7 +62,7 @@ dependencies:
   '@material-ui/core': 4.12.3_b3482aaf5744fc7c2aeb7941b0e0a78f
   '@material-ui/icons': 4.11.2_d7c58ad036f460dedca755aa3bc1bb8f
   '@material-ui/styles': 4.11.4_b3482aaf5744fc7c2aeb7941b0e0a78f
-  axios: 0.24.0
+  axios: 0.25.0
   classnames: 2.3.1
   qrcode.react: 1.0.1_react@17.0.2
   query-string: 7.1.0
@@ -3102,10 +3102,10 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios/0.24.0:
-    resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
+  /axios/0.25.0:
+    resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.5
+      follow-redirects: 1.14.7
     transitivePeerDependencies:
       - debug
     dev: false
@@ -4720,8 +4720,8 @@ packages:
     resolution: {integrity: sha512-JaTY/wtrcSyvXJl4IMFHPKyFur1sE9AUqc0QnhOaJ0CxHtAoIV8pYDzeEfAaNEtGkOfq4gr3LBFmdXW5mOQFnA==}
     dev: true
 
-  /follow-redirects/1.14.5:
-    resolution: {integrity: sha512-wtphSXy7d4/OR+MvIFbCVBDzZ5520qV8XfPklSN5QtxuMUJZ+b0Wnst1e1lCDocfzuCkHqj8k0FpZqO+UIaKNA==}
+  /follow-redirects/1.14.7:
+    resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
