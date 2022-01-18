@@ -11,6 +11,7 @@ var audienceDescriptions = map[string]string{}
 
 // Scope strings.
 const (
+	ScopeOpenID  = "openid"
 	ScopeProfile = "profile"
 	ScopeEmail   = "email"
 	ScopeGroups  = "groups"
