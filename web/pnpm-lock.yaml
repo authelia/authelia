@@ -48,7 +48,7 @@ specifiers:
   react-test-renderer: 17.0.2
   typescript: 4.5.4
   u2f-api: 1.2.1
-  vite: 2.7.12
+  vite: 2.7.13
   vite-plugin-eslint: 1.3.0
   vite-plugin-istanbul: 2.4.0
   vite-plugin-svgr: 1.0.1
@@ -104,11 +104,11 @@ devDependencies:
   prettier: 2.5.1
   react-test-renderer: 17.0.2_react@17.0.2
   typescript: 4.5.4
-  vite: 2.7.12
-  vite-plugin-eslint: 1.3.0_vite@2.7.12
+  vite: 2.7.13
+  vite-plugin-eslint: 1.3.0_vite@2.7.13
   vite-plugin-istanbul: 2.4.0
-  vite-plugin-svgr: 1.0.1_vite@2.7.12
-  vite-tsconfig-paths: 3.3.17_vite@2.7.12
+  vite-plugin-svgr: 1.0.1_vite@2.7.13
+  vite-tsconfig-paths: 3.3.17_vite@2.7.13
 
 packages:
 
@@ -8030,7 +8030,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.3.0_vite@2.7.12:
+  /vite-plugin-eslint/1.3.0_vite@2.7.13:
     resolution: {integrity: sha512-ng6liBWegj6bovfJVGsXXL2XeQR3xnqe4UsnwTE8rbsYTnAaiLfaZK3rruGAyiwCBPbBc2IEED6T7sus5NJfEw==}
     peerDependencies:
       vite: ^2.0.0
@@ -8038,7 +8038,7 @@ packages:
       '@rollup/pluginutils': 4.1.1
       eslint: 7.32.0
       rollup: 2.59.0
-      vite: 2.7.12
+      vite: 2.7.13
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -8053,18 +8053,18 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/1.0.1_vite@2.7.12:
+  /vite-plugin-svgr/1.0.1_vite@2.7.13:
     resolution: {integrity: sha512-7jHIC2Bi83KRwBB/b5FLcQdqWfzOSDVy7BtE9g4GXoY1axTZRKeqyWMEK3LCySQ70+BSYFtoSwHJaNLeqxjYlg==}
     peerDependencies:
       vite: ^2.6.0
     dependencies:
       '@svgr/core': 6.2.0
-      vite: 2.7.12
+      vite: 2.7.13
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.3.17_vite@2.7.12:
+  /vite-tsconfig-paths/3.3.17_vite@2.7.13:
     resolution: {integrity: sha512-wx+rfC53moVLxMBj2EApJZgY6HtvWUFVZ4dBxNGYBxSSqU6UaHdKlcOxrfGDxyTGtYEr9beWCryHn18C4EtZkg==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -8073,13 +8073,13 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.1
       tsconfig-paths: 3.11.0
-      vite: 2.7.12
+      vite: 2.7.13
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/2.7.12:
-    resolution: {integrity: sha512-KvPYToRQWhRfBeVkyhkZ5hASuHQkqZUUdUcE3xyYtq5oYEPIJ0h9LWiWTO6v990glmSac2cEPeYeXzpX5Z6qKQ==}
+  /vite/2.7.13:
+    resolution: {integrity: sha512-Mq8et7f3aK0SgSxjDNfOAimZGW9XryfHRa/uV0jseQSilg+KhYDSoNb9h1rknOy6SuMkvNDLKCYAYYUMCE+IgQ==}
     engines: {node: '>=12.2.0'}
     hasBin: true
     peerDependencies:
