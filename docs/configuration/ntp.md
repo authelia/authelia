@@ -17,7 +17,7 @@ In the instance of inability to contact the NTP server Authelia will just log an
 
 ```yaml
 ntp:
-  address: "time.cloudflare.com:123"
+  address: "time.cloudflare.com:1234"
   version: 3
   max_desync: 3s
   disable_startup_check: false
@@ -29,8 +29,8 @@ ntp:
 ### address
 <div markdown="1">
 type: string
-{: .label .label-config .label-purple } 
-default: time.cloudflare.com:123
+{: .label .label-config .label-purple }
+default: time.cloudflare.com:1234
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -42,7 +42,7 @@ required.
 ### version
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 4
 {: .label .label-config .label-blue }
 required: no
@@ -54,20 +54,20 @@ Determines the NTP verion supported. Valid values are 3 or 4.
 ### max_desync
 <div markdown="1">
 type: duration
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: 3s
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
 
-This is used to tune the acceptable desync from the time reported from the NTP server. This uses our 
+This is used to tune the acceptable desync from the time reported from the NTP server. This uses our
 [duration notation](./index.md#duration-notation-format) format.
 
 ### disable_startup_check
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no
@@ -79,7 +79,7 @@ Setting this to true will disable the startup check entirely.
 ### disable_failure
 <div markdown="1">
 type: boolean
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 default: false
 {: .label .label-config .label-blue }
 required: no

@@ -92,7 +92,7 @@ notifier:
     disable_require_tls: true
 ntp:
   ## NTP server address
-  address: "time.cloudflare.com:123"
+  address: "time.cloudflare.com:1234"
   ## ntp version
   version: 4
   ## "maximum desynchronization" is the allowed offset time between the host and the ntp server

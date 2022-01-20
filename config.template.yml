@@ -133,7 +133,7 @@ duo_api:
 ## This is used to validate the servers time is accurate enough to validate TOTP.
 ntp:
   ## NTP server address.
-  address: "time.cloudflare.com:123"
+  address: "time.cloudflare.com:1234"
 
   ## NTP version.
   version: 4

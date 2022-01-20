@@ -11,7 +11,7 @@ type NTPConfiguration struct {
 
 // DefaultNTPConfiguration represents default configuration parameters for the NTP server.
 var DefaultNTPConfiguration = NTPConfiguration{
-	Address:       "time.cloudflare.com:123",
+	Address:       "time.cloudflare.com:1234",
 	Version:       4,
 	MaximumDesync: "3s",
 }
