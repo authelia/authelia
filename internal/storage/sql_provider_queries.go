@@ -184,7 +184,7 @@ const (
 	queryFmtSelect1FAAuthenticationLogEntryByUsername = `
 		SELECT time, successful, username
 		FROM %s
-		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = 0
+		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = FALSE
 		ORDER BY time DESC
 		LIMIT ?
 		OFFSET ?;`

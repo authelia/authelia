@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
@@ -93,7 +92,8 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 			Headers: &jwt.Headers{Extra: map[string]interface{}{
 				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
 			}},
-			Subject: userSession.Username,
+			Subject:  userSession.Username,
+			Username: userSession.Username,
 		},
 		ClientID: clientID,
 	})
@@ -105,40 +105,6 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	}
 
 	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, ar, response)
-}
-
-func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
-	extraClaims = map[string]interface{}{}
-
-	for _, scope := range scopes {
-		ar.GrantScope(scope)
-
-		switch scope {
-		case "groups":
-			extraClaims["groups"] = userSession.Groups
-		case "profile":
-			extraClaims["name"] = userSession.DisplayName
-		case "email":
-			if len(userSession.Emails) != 0 {
-				extraClaims["email"] = userSession.Emails[0]
-				if len(userSession.Emails) > 1 {
-					extraClaims["alt_emails"] = userSession.Emails[1:]
-				}
-				// TODO (james-d-elliott): actually verify emails and record that information.
-				extraClaims["email_verified"] = true
-			}
-		}
-	}
-
-	for _, audience := range audiences {
-		ar.GrantAudience(audience)
-	}
-
-	if !utils.IsStringInSlice(ar.GetClient().GetID(), ar.GetGrantedAudience()) {
-		ar.GrantAudience(ar.GetClient().GetID())
-	}
-
-	return extraClaims
 }
 
 func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(

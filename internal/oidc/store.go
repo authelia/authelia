@@ -169,6 +169,11 @@ func (s *OpenIDConnectStore) RevokeRefreshToken(ctx context.Context, requestID s
 	return s.memory.RevokeRefreshToken(ctx, requestID)
 }
 
+// RevokeRefreshTokenMaybeGracePeriod decorates fosite's storage.MemoryStore RevokeRefreshTokenMaybeGracePeriod method.
+func (s OpenIDConnectStore) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
+	return s.memory.RevokeRefreshTokenMaybeGracePeriod(ctx, requestID, signature)
+}
+
 // RevokeAccessToken decorates fosite's storage.MemoryStore RevokeAccessToken method.
 func (s *OpenIDConnectStore) RevokeAccessToken(ctx context.Context, requestID string) error {
 	return s.memory.RevokeAccessToken(ctx, requestID)

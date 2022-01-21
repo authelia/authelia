@@ -64,12 +64,6 @@ const (
 	testUsername       = "john"
 )
 
-const (
-	loginDelayMovingAverageWindow            = 10
-	loginDelayMinimumDelayMilliseconds       = float64(250)
-	loginDelayMaximumRandomDelayMilliseconds = int64(85)
-)
-
 // Duo constants.
 const (
 	allow  = "allow"

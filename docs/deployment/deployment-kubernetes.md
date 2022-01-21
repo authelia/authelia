@@ -21,6 +21,22 @@ The following areas are actively being worked on for Kubernetes:
 
 Users are welcome to reach out directly by using any of our various [contact options](../about-us.md#contact-options). 
 
+###  NGINX Ingress Controller 
+If you use NGINX Ingress Controller you can protect an ingress with the following annotations.
+The assumptions are that your public domain where authelia is running would be https://auth.mypublicdomain.com
+and there would be a service called authelia with port 80 in the default namespace.
+
+```yaml
+annotations:
+  nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
+  nginx.ingress.kubernetes.io/auth-signin: https://auth.mypublicdomain.com
+  nginx.ingress.kubernetes.io/auth-snippet: |
+    proxy_set_header X-Forwarded-Method $request_method;
+  nginx.ingress.kubernetes.io/auth-url: http://authelia.default.svc.cluster.local/api/verify
+  nginx.ingress.kubernetes.io/configuration-snippet: |
+    proxy_set_header X-Forwarded-Method $request_method;
+```
+
 ## FAQ
 
 ### RAM usage

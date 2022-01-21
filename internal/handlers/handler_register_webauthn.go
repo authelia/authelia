@@ -19,7 +19,7 @@ var SecondFactorWebauthnIdentityStart = middlewares.IdentityVerificationStart(mi
 	TargetEndpoint:        "/webauthn/register",
 	ActionClaim:           ActionWebauthnRegistration,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
-})
+}, nil)
 
 // SecondFactorWebauthnIdentityFinish the handler for finishing the identity validation.
 var SecondFactorWebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
