@@ -33,7 +33,7 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 	TargetEndpoint:        "/one-time-password/register",
 	ActionClaim:           ActionTOTPRegistration,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
-})
+}, nil)
 
 func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (

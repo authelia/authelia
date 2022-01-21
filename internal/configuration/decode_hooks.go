@@ -10,8 +10,8 @@ import (
 
 // StringToMailAddressFunc decodes a string into a mail.Address.
 func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
-	return func(f reflect.Kind, t reflect.Kind, data interface{}) (value interface{}, err error) {
-		if f != reflect.String || t != reflect.TypeOf(mail.Address{}).Kind() {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		if f.Kind() != reflect.String || t != reflect.TypeOf(mail.Address{}) {
 			return data, nil
 		}
 
