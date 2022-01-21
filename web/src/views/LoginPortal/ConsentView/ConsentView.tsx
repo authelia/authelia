@@ -94,8 +94,12 @@ const ConsentView = function (props: Props) {
             <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
                 <Grid container>
                     <Grid item xs={12}>
-                        <div style={{ textAlign: "left" }}>
-                            <b>{` ${resp?.client_description} (${resp?.client_id}) `}</b>
+                        <div>
+                            {resp !== undefined && resp.client_description !== "" ? (
+                                <b>{` ${resp.client_description} (${resp.client_id}) `}</b>
+                            ) : (
+                                <b>{resp?.client_id}</b>
+                            )}
                         </div>
                     </Grid>
                     <Grid item xs={12}>
