@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.33.1",
+  "version": "4.33.2",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "1.2.36",
