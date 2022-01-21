@@ -115,7 +115,7 @@ require (
 )
 
 replace (
-	github.com/duo-labs/webauthn => github.com/authelia/webauthn v0.0.0-20220121105144-15fbae2a1492
+	github.com/duo-labs/webauthn => github.com/authelia/webauthn v0.0.0-20220121235411-48b845773323
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.9
 	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
 )
