@@ -2,6 +2,7 @@ package oidc
 
 // Scope strings.
 const (
+	ScopeOpenID  = "openid"
 	ScopeProfile = "profile"
 	ScopeEmail   = "email"
 	ScopeGroups  = "groups"

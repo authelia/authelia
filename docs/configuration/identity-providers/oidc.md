@@ -8,9 +8,9 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#roadmap) feature. The OP role is the 
-[OpenID Connect] Provider role, not the Relying Party or RP role. This means other applications that implement the 
-[OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use 
+**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#roadmap) feature. The OP role is the
+[OpenID Connect] Provider role, not the Relying Party or RP role. This means other applications that implement the
+[OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use
 social media or development platforms for login.
 
 The Relying Party role is the role which allows an application to use GitHub, Google, or other [OpenID Connect]
@@ -19,10 +19,10 @@ providers for authentication and authorization. We do not intend to support this
 ## Roadmap
 
 We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and
-providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related 
+providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect] and it's related
 endpoints are not enabled by default unless you specifically configure the [OpenID Connect] section.
 
-As [OpenID Connect] is fairly complex (the [OpenID Connect] Provider role especially so) it's intentional that it is 
+As [OpenID Connect] is fairly complex (the [OpenID Connect] Provider role especially so) it's intentional that it is
 both a beta and that the implemented features are part of a thoughtful roadmap. Items that are not immediately obvious
 as required (i.e. bug fixes or spec features), will likely be discussed in team meetings or on GitHub issues before being
 added to the list. We want to implement this feature in a very thoughtful way in order to avoid security issues.
@@ -90,7 +90,14 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Audit Storage</td>
       </tr>
       <tr>
-        <td rowspan="4" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
+        <td rowspan="2" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
+        <td class="tbl-beta-stage">Prompt Handling</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Display Handling</td>
+      </tr>
+      <tr>
+        <td rowspan="4" class="tbl-header tbl-beta-stage">beta5 <sup>1</sup></td>
         <td><a href="https://openid.net/specs/openid-connect-backchannel-1_0.html" target="_blank" rel="noopener noreferrer">Back-Channel Logout</a></td>
       </tr>
       <tr>
@@ -257,7 +264,7 @@ The maximum lifetime of a refresh token. The
 refresh token can be used to obtain new refresh tokens as well as access tokens or id tokens with an
 up-to-date expiration. For more information read these docs about [token lifespan].
 
-A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the 
+A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the
 [access token lifespan](#access_token_lifespan), the [authorize code lifespan](#authorize_code_lifespan), and the
 [id token lifespan](#id_token_lifespan). For instance the default for all of these is 60 minutes, so the default refresh
 token lifespan is 90 minutes.
@@ -348,9 +355,9 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-This enables the public client type for this client. This is for clients that are not capable of maintaining 
+This enables the public client type for this client. This is for clients that are not capable of maintaining
 confidentiality of credentials, you can read more about client types in [RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1).
-This is particularly useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a 
+This is particularly useful for SPA's and CLI tools. This option requires setting the [client secret](#secret) to a
 blank string.
 
 In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect URI.
@@ -412,7 +419,7 @@ their redirect URIs are as follows:
 
 1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
    attempt to authorize wil fail and an error will be generated.
-2. The redirect URIs are case-sensitive. 
+2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
 4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
@@ -442,7 +449,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-A list of response types this client can return. _It is recommended that this isn't configured at this time unless you 
+A list of response types this client can return. _It is recommended that this isn't configured at this time unless you
 know what you're doing_. Valid options are: `code`, `code id_token`, `id_token`, `token id_token`, `token`,
 `token id_token code`.
 
@@ -471,7 +478,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`. 
+The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
 
 ## Generating a random secret
 
@@ -495,7 +502,7 @@ does.
 _**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
 individual user. Please use the claim `preferred_username` instead._
 
-|     JWT Field      |   JWT Type    | Authelia Attribute |                  Description                  |
+|       Claim        |   JWT Type    | Authelia Attribute |                  Description                  |
 |:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
 |        sub         |    string     |      Username      |   The username the user used to login with    |
 |       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
@@ -514,15 +521,15 @@ individual user. Please use the claim `preferred_username` instead._
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
 
-| JWT Field |   JWT Type    | Authelia Attribute |      Description       |
-|:---------:|:-------------:|:------------------:|:----------------------:|
-|  groups   | array[string] |       Groups       | The users display name |
+| Claim  |   JWT Type    | Authelia Attribute |      Description       |
+|:------:|:-------------:|:------------------:|:----------------------:|
+| groups | array[string] |       Groups       | The users display name |
 
 ### email
 
 This scope includes the email information the authentication backend reports about the user in the token.
 
-|   JWT Field    |   JWT Type    | Authelia Attribute |                        Description                        |
+|     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
 |:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
 |     email      |    string     |      email[0]      |       The first email address in the list of emails       |
 | email_verified |     bool      |       _N/A_        | If the email is verified, assumed true for the time being |
@@ -532,9 +539,9 @@ This scope includes the email information the authentication backend reports abo
 
 This scope includes the profile information the authentication backend reports about the user in the token.
 
-| JWT Field | JWT Type | Authelia Attribute |      Description       |
-|:---------:|:--------:|:------------------:|:----------------------:|
-|   name    |  string  |    display_name    | The users display name |
+| Claim | JWT Type | Authelia Attribute |      Description       |
+|:-----:|:--------:|:------------------:|:----------------------:|
+| name  |  string  |    display_name    | The users display name |
 
 ## Endpoint Implementations
 
