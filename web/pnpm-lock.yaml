@@ -45,7 +45,7 @@ specifiers:
   react: 17.0.2
   react-dom: 17.0.2
   react-ga: 3.3.0
-  react-i18next: 11.14.3
+  react-i18next: 11.15.3
   react-loading: 2.0.3
   react-otp-input: 2.4.0
   react-router-dom: 6.2.1
@@ -76,7 +76,7 @@ dependencies:
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
   react-ga: 3.3.0_react@17.0.2
-  react-i18next: 11.14.3_i18next@21.6.6+react@17.0.2
+  react-i18next: 11.15.3_bc514be083f1f06b28df24d5713fc600
   react-loading: 2.0.3_react@17.0.2
   react-otp-input: 2.4.0_react-dom@17.0.2+react@17.0.2
   react-router-dom: 6.2.1_react-dom@17.0.2+react@17.0.2
@@ -5016,7 +5016,6 @@ packages:
 
   /html-escaper/2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
-    dev: true
 
   /html-parse-stringify/3.0.1:
     resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
@@ -6994,16 +6993,25 @@ packages:
       react: 17.0.2
     dev: false
 
-  /react-i18next/11.14.3_i18next@21.6.6+react@17.0.2:
-    resolution: {integrity: sha512-Hf2aanbKgYxPjG8ZdKr+PBz9sY6sxXuZWizxCYyJD2YzvJ0W9JTQcddVEjDaKyBoCyd3+5HTerdhc9ehFugc6g==}
+  /react-i18next/11.15.3_bc514be083f1f06b28df24d5713fc600:
+    resolution: {integrity: sha512-RSUEM4So3Tu2JHV0JsZ5Yje+4nz66YViMfPZoywxOy0xyn3L7tE2CHvJ7Y9LUsrTU7vGmZ5bwb8PpjnkatdIxg==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
     dependencies:
       '@babel/runtime': 7.16.3
+      html-escaper: 2.0.2
       html-parse-stringify: 3.0.1
       i18next: 21.6.6
       react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
     dev: false
 
   /react-is/16.13.1:
