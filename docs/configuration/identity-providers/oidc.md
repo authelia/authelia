@@ -90,7 +90,14 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Audit Storage</td>
       </tr>
       <tr>
-        <td rowspan="4" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
+        <td rowspan="2" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
+        <td class="tbl-beta-stage">Prompt Handling</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Display Handling</td>
+      </tr>
+      <tr>
+        <td rowspan="4" class="tbl-header tbl-beta-stage">beta5 <sup>1</sup></td>
         <td><a href="https://openid.net/specs/openid-connect-backchannel-1_0.html" target="_blank" rel="noopener noreferrer">Back-Channel Logout</a></td>
       </tr>
       <tr>
