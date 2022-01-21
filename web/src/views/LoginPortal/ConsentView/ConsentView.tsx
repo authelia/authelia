@@ -2,6 +2,7 @@ import React, { useEffect, Fragment, ReactNode } from "react";
 
 import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, makeStyles } from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { FirstFactorRoute } from "@constants/Routes";
@@ -29,27 +30,13 @@ function scopeNameToAvatar(id: string) {
     }
 }
 
-function scopeNameToDescription(id: string): string {
-    switch (id) {
-        case "openid":
-            return "Use OpenID to verify your identity";
-        case "profile":
-            return "Access your display name";
-        case "groups":
-            return "Access your group membership";
-        case "email":
-            return "Access your email addresses";
-        default:
-            return id;
-    }
-}
-
 const ConsentView = function (props: Props) {
     const classes = useStyles();
     const navigate = useNavigate();
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
+    const { t: translate } = useTranslation("Portal");
 
     useEffect(() => {
         if (err) {
@@ -61,6 +48,21 @@ const ConsentView = function (props: Props) {
     useEffect(() => {
         fetch();
     }, [fetch]);
+
+    const translateScopeNameToDescription = (id: string): string => {
+        switch (id) {
+            case "openid":
+                return translate("Use OpenID to verify your identity");
+            case "profile":
+                return translate("Access your display name");
+            case "groups":
+                return translate("Access your group membership");
+            case "email":
+                return translate("Access your email addresses");
+            default:
+                return id;
+        }
+    };
 
     const handleAcceptConsent = async () => {
         // This case should not happen in theory because the buttons are disabled when response is undefined.
@@ -93,10 +95,11 @@ const ConsentView = function (props: Props) {
                 <Grid container>
                     <Grid item xs={12}>
                         <div style={{ textAlign: "left" }}>
-                            The application
                             <b>{` ${resp?.client_description} (${resp?.client_id}) `}</b>
-                            is requesting the following permissions
                         </div>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div>{translate("The above application is requesting the following permissions")}:</div>
                     </Grid>
                     <Grid item xs={12}>
                         <div className={classes.scopesListContainer}>
@@ -105,7 +108,7 @@ const ConsentView = function (props: Props) {
                                     <Tooltip title={"Scope " + scope}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                            <ListItemText primary={scopeNameToDescription(scope)} />
+                                            <ListItemText primary={translateScopeNameToDescription(scope)} />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
@@ -123,7 +126,7 @@ const ConsentView = function (props: Props) {
                                     color="primary"
                                     variant="contained"
                                 >
-                                    Accept
+                                    {translate("Accept")}
                                 </Button>
                             </Grid>
                             <Grid item xs={6}>
@@ -135,7 +138,7 @@ const ConsentView = function (props: Props) {
                                     color="secondary"
                                     variant="contained"
                                 >
-                                    Deny
+                                    {translate("Deny")}
                                 </Button>
                             </Grid>
                         </Grid>
