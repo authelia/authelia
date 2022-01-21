@@ -76,7 +76,12 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 				"button": args.MailButtonContent,
 			}
 
+			// if ctx.Configuration.Notifier.Template.PasswordResetHTML != nil { //use custom template
+			// 	err = ctx.Configuration.Notifier.Template.PasswordResetHTML.Execute(bufHTML, htmlParams)
+
+			// } else { //use default template
 			err = templates.HTMLEmailTemplate.Execute(bufHTML, htmlParams)
+			// }
 
 			if err != nil {
 				ctx.Error(err, messageOperationFailed)
@@ -89,7 +94,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			"url": link,
 		}
 
+		fmt.Sprintln(ctx.Configuration.Notifier.Template.PasswordResetHTML)
+		// if ctx.Configuration.Notifier.Template.PasswordResetHTML != nil { //use custom template
+		// 	err = ctx.Configuration.Notifier.Template.PasswordResetText.Execute(bufHTML, textParams)
+
+		// } else { //use default template
 		err = templates.PlainTextEmailTemplate.Execute(bufText, textParams)
+		// }
 
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)

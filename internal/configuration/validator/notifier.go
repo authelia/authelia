@@ -2,6 +2,8 @@ package validator
 
 import (
 	"fmt"
+	"os"
+	"text/template"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -27,6 +29,40 @@ func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *sc
 	}
 
 	validateSMTPNotifier(configuration.SMTP, validator)
+
+	validateNotifierTemplates(configuration, validator)
+}
+
+func validateNotifierTemplates(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
+	if configuration.TemplatePath != "" {
+		_, err := os.Stat(configuration.TemplatePath)
+		if os.IsNotExist(err) {
+			validator.PushWarning(fmt.Errorf("e-mail template folder '%s' does not exists. Using default templates", configuration.TemplatePath))
+			return
+		}
+
+		configuration.Template = &schema.NotifierTemplateConfiguration{}
+		configuration.Template.PasswordResetHTML, err = template.ParseFiles(configuration.TemplatePath + `/PasswordResetTemplate.html`)
+
+		if err != nil {
+			validator.PushWarning(fmt.Errorf("error loading html template: %s ", err.Error()))
+		}
+
+		configuration.Template.PasswordResetText, err = template.ParseFiles(configuration.TemplatePath + `/PasswordResetTemplate.txt`)
+		if err != nil {
+			validator.PushWarning(fmt.Errorf("error loading text template: %s ", err.Error()))
+		}
+
+		configuration.Template.PasswordChangedHTML, err = template.ParseFiles(configuration.TemplatePath + `/PasswordChangedTemplate.html`)
+		if err != nil {
+			validator.PushWarning(fmt.Errorf("error loading html template: %s ", err.Error()))
+		}
+
+		configuration.Template.PasswordChangedText, err = template.ParseFiles(configuration.TemplatePath + `/PasswordChangedTemplate.txt`)
+		if err != nil {
+			validator.PushWarning(fmt.Errorf("error loading text template: %s ", err.Error()))
+		}
+	}
 }
 
 func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {

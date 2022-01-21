@@ -274,6 +274,7 @@ var ValidKeys = []string{
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
+	"notifier.template_path",
 
 	// Regulation Keys.
 	"regulation.max_retries",
