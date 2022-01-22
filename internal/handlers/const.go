@@ -4,6 +4,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// A random commment.
+
 const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
