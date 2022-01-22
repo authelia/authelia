@@ -24,5 +24,5 @@ const (
 	ClaimPreferredUsername = "preferred_username"
 	ClaimEmail             = "email"
 	ClaimEmailVerified     = "email_verified"
-	ClaimAltEmails         = "alt_emails"
+	ClaimEmailAlts         = "alt_emails"
 )
