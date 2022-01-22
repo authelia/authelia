@@ -62,8 +62,9 @@ type UserSession struct {
 
 // Identity identity of the user who is being verified.
 type Identity struct {
-	Username string
-	Email    string
+	Username    string
+	Email       string
+	DisplayName string
 }
 
 // OIDCWorkflowSession represent an OIDC workflow session.

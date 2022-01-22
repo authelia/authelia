@@ -4,19 +4,19 @@ import (
 	"text/template"
 )
 
-// HTMLEmailTemplate the template of email that the user will receive for identity verification.
-var HTMLEmailTemplate *template.Template
+// HTMLEmailTemplateStep2 the template of email that the user will receive for identity verification.
+var HTMLEmailTemplateStep2 *template.Template
 
 func init() {
-	t, err := template.New("html_email_template").Parse(emailHTMLContent)
+	t, err := template.New("html_email_template").Parse(emailHTMLContentStep2)
 	if err != nil {
 		panic(err)
 	}
 
-	HTMLEmailTemplate = t
+	HTMLEmailTemplateStep2 = t
 }
 
-const emailHTMLContent = `
+const emailHTMLContentStep2 = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -311,7 +311,8 @@ const emailHTMLContent = `
                                              <tr>
                                                 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
                                                    st-title="fulltext-content">
-                                                   This email has been sent to you in order to validate your identity.
+                                                   Hi {{.displayName}} <br/>
+                                                   Your password has been successfully reset.
                                                    If you did not initiate the process your credentials might have been compromised. You should reset your password and contact an administrator.
                                                 </td>
                                              </tr>
@@ -323,14 +324,6 @@ const emailHTMLContent = `
                                                    &nbsp;</td>
                                              </tr>
                                              <!-- End of spacing -->
-                                             <!-- content -->
-                                             <tr>
-                                                <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;"
-                                                   st-content="fulltext-content">
-                                                   <a href="{{.url}}" class="button">{{.button}}</a>
-                                                </td>
-                                             </tr>
-                                             <!-- End of content -->
                                           </tbody>
                                        </table>
                                     </td>

@@ -79,17 +79,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		if !disableHTML {
 			htmlParams := map[string]interface{}{
-				"title":  args.MailTitle,
-				"url":    link,
-				"button": args.MailButtonContent,
+				"title":       args.MailTitle,
+				"url":         link,
+				"button":      args.MailButtonContent,
+				"displayName": identity.DisplayName,
 			}
 
-			// if ctx.Configuration.Notifier.Template.PasswordResetHTML != nil { //use custom template
-			// 	err = ctx.Configuration.Notifier.Template.PasswordResetHTML.Execute(bufHTML, htmlParams)
-
-			// } else { //use default template
-			err = templates.HTMLEmailTemplate.Execute(bufHTML, htmlParams)
-			// }
+			err = templates.HTMLEmailTemplateStep1.Execute(bufHTML, htmlParams)
 
 			if err != nil {
 				ctx.Error(err, messageOperationFailed)
@@ -99,16 +95,11 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		bufText := new(bytes.Buffer)
 		textParams := map[string]interface{}{
-			"url": link,
+			"url":         link,
+			"displayName": identity.DisplayName,
 		}
 
-		fmt.Sprintln(ctx.Configuration.Notifier.Template.PasswordResetHTML)
-		// if ctx.Configuration.Notifier.Template.PasswordResetHTML != nil { //use custom template
-		// 	err = ctx.Configuration.Notifier.Template.PasswordResetText.Execute(bufHTML, textParams)
-
-		// } else { //use default template
-		err = templates.PlainTextEmailTemplate.Execute(bufText, textParams)
-		// }
+		err = templates.PlainTextEmailTemplateStep1.Execute(bufText, textParams)
 
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)

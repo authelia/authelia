@@ -2,7 +2,6 @@ package schema
 
 import (
 	"net/mail"
-	"text/template"
 	"time"
 )
 
@@ -27,21 +26,12 @@ type SMTPNotifierConfiguration struct {
 	TLS                 *TLSConfig    `koanf:"tls"`
 }
 
-// NotifierTemplateConfiguration contains custom notification templates.
-type NotifierTemplateConfiguration struct {
-	PasswordResetHTML   *template.Template
-	PasswordResetText   *template.Template
-	PasswordChangedHTML *template.Template
-	PasswordChangedText *template.Template
-}
-
 // NotifierConfiguration represents the configuration of the notifier to use when sending notifications to users.
 type NotifierConfiguration struct {
 	DisableStartupCheck bool                             `koanf:"disable_startup_check"`
 	FileSystem          *FileSystemNotifierConfiguration `koanf:"filesystem"`
 	SMTP                *SMTPNotifierConfiguration       `koanf:"smtp"`
 	TemplatePath        string                           `koanf:"template_path"`
-	Template            *NotifierTemplateConfiguration
 }
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.

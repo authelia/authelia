@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	autheliaTemplates "github.com/authelia/authelia/v4/internal/templates"
 )
 
 // ValidateNotifier validates and update notifier configuration.
@@ -41,25 +42,27 @@ func validateNotifierTemplates(configuration *schema.NotifierConfiguration, vali
 			return
 		}
 
-		configuration.Template = &schema.NotifierTemplateConfiguration{}
-		configuration.Template.PasswordResetHTML, err = template.ParseFiles(configuration.TemplatePath + `/PasswordResetTemplate.html`)
-
-		if err != nil {
+		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep1.html`); err == nil {
+			autheliaTemplates.HTMLEmailTemplateStep1 = t
+		} else {
 			validator.PushWarning(fmt.Errorf("error loading html template: %s ", err.Error()))
 		}
 
-		configuration.Template.PasswordResetText, err = template.ParseFiles(configuration.TemplatePath + `/PasswordResetTemplate.txt`)
-		if err != nil {
+		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep1.txt`); err == nil {
+			autheliaTemplates.PlainTextEmailTemplateStep1 = t
+		} else {
 			validator.PushWarning(fmt.Errorf("error loading text template: %s ", err.Error()))
 		}
 
-		configuration.Template.PasswordChangedHTML, err = template.ParseFiles(configuration.TemplatePath + `/PasswordChangedTemplate.html`)
-		if err != nil {
+		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep2.html`); err == nil {
+			autheliaTemplates.HTMLEmailTemplateStep2 = t
+		} else {
 			validator.PushWarning(fmt.Errorf("error loading html template: %s ", err.Error()))
 		}
 
-		configuration.Template.PasswordChangedText, err = template.ParseFiles(configuration.TemplatePath + `/PasswordChangedTemplate.txt`)
-		if err != nil {
+		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep2.txt`); err == nil {
+			autheliaTemplates.PlainTextEmailTemplateStep2 = t
+		} else {
 			validator.PushWarning(fmt.Errorf("error loading text template: %s ", err.Error()))
 		}
 	}
