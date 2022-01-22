@@ -114,7 +114,7 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">General Availability after previous stages are vetted for bug fixes</td>
       </tr>
       <tr>
-        <td rowspan="4" class="tbl-header">misc</td>
+        <td rowspan="7" class="tbl-header">misc</td>
         <td>List of other features that may be implemented</td>
       </tr>
       <tr>
@@ -126,12 +126,22 @@ for which stage will have each feature, and may evolve over time:
       <tr>
         <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-session-1_0-17.html" target="_blank" rel="noopener noreferrer">OpenID Connect Session Management</a> <sup>2</sup></td>
       </tr>
+      <tr>
+        <td class="tbl-beta-stage">End-User Scope Grants <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Client RBAC <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Preferred Username Claim (implemented in 4.33.2)</td>
+      </tr>
     </tbody>
 </table>
 
 ¹ _This stage has not been implemented as of yet_.
 
 ² _This individual feature has not been implemented as of yet_.
+
 
 ## Configuration
 
