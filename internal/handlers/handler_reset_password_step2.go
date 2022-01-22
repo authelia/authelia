@@ -20,6 +20,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("no identity verification process has been initiated"), messageUnableToResetPassword)
 		return
 	}
+
 	username := *userSession.PasswordResetUsername
 
 	var requestBody resetPasswordStep2RequestBody
@@ -57,13 +58,15 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 	defer ctx.ReplyOK()
 
-	//Send Notification
+	// Send Notification
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.Logger.Error(err)
 		ctx.ReplyOK()
+
 		return
 	}
+
 	if len(userInfo.Emails) == 0 {
 		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", username))
 		return
@@ -103,7 +106,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
-		userSession.PasswordResetUsername, userInfo.Emails[0])
+		username, userInfo.Emails[0])
 
 	err = ctx.Providers.Notifier.Send(userInfo.Emails[0], "Password changed successfully", bufText.String(), bufHTML.String())
 
@@ -111,5 +114,4 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
-
 }
