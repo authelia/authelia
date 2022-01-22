@@ -1,6 +1,16 @@
 import React, { useEffect, Fragment, ReactNode } from "react";
 
-import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, makeStyles } from "@material-ui/core";
+import {
+    Button,
+    Grid,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Tooltip,
+    Typography,
+    makeStyles,
+} from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -96,9 +106,15 @@ const ConsentView = function (props: Props) {
                     <Grid item xs={12}>
                         <div>
                             {resp !== undefined && resp.client_description !== "" ? (
-                                <b>{` ${resp.client_description} (${resp.client_id}) `}</b>
+                                <Tooltip title={"Client ID: " + resp.client_id}>
+                                    <Typography className={classes.clientDescription}>
+                                        {resp.client_description}
+                                    </Typography>
+                                </Tooltip>
                             ) : (
-                                <b>{resp?.client_id}</b>
+                                <Tooltip title={"Client ID: " + resp?.client_id}>
+                                    <Typography className={classes.clientDescription}>{resp?.client_id}</Typography>
+                                </Tooltip>
                             )}
                         </div>
                     </Grid>
@@ -159,6 +175,9 @@ const useStyles = makeStyles((theme) => ({
         paddingBottom: theme.spacing(4),
         display: "block",
         justifyContent: "center",
+    },
+    clientDescription: {
+        fontWeight: 600,
     },
     scopesListContainer: {
         textAlign: "center",
