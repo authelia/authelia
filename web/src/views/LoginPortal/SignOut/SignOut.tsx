@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 
 import { Typography, makeStyles } from "@material-ui/core";
+import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
@@ -21,6 +22,7 @@ const SignOut = function (props: Props) {
     const redirector = useRedirector();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
+    const { t: translate } = useTranslation("Portal");
 
     const doSignOut = useCallback(async () => {
         try {
@@ -36,9 +38,9 @@ const SignOut = function (props: Props) {
             }, 2000);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue signing out");
+            createErrorNotification(translate("There was an issue signing out"));
         }
-    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted]);
+    }, [createErrorNotification, redirectionURL, setSafeRedirect, setTimedOut, mounted, translate]);
 
     useEffect(() => {
         doSignOut();
@@ -53,8 +55,8 @@ const SignOut = function (props: Props) {
     }
 
     return (
-        <LoginLayout title="Sign out">
-            <Typography className={style.typo}>You're being signed out and redirected...</Typography>
+        <LoginLayout title={translate("Sign out")}>
+            <Typography className={style.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </LoginLayout>
     );
 };

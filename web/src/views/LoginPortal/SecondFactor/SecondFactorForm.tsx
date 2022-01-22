@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 
-import { Button, Grid, makeStyles } from "@material-ui/core";
+import { Grid, makeStyles, Button } from "@material-ui/core";
+import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
@@ -23,8 +24,6 @@ import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswo
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
 import WebauthnMethod from "@views/LoginPortal/SecondFactor/WebauthnMethod";
 
-const EMAIL_SENT_NOTIFICATION = "An email has been sent to your address to complete the process.";
-
 export interface Props {
     authenticationLevel: AuthenticationLevel;
     userInfo: UserInfo;
@@ -42,6 +41,7 @@ const SecondFactorForm = function (props: Props) {
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [webauthnSupported, setWebauthnSupported] = useState(false);
+    const { t: translate } = useTranslation("Portal");
 
     useEffect(() => {
         if (browserSupportsWebauthn()) {
@@ -68,10 +68,10 @@ const SecondFactorForm = function (props: Props) {
             setRegistrationInProgress(true);
             try {
                 await initiateRegistrationFunc();
-                createInfoNotification(EMAIL_SENT_NOTIFICATION);
+                createInfoNotification(translate("An email has been sent to your address to complete the process"));
             } catch (err) {
                 console.error(err);
-                createErrorNotification("There was a problem initiating the registration process");
+                createErrorNotification(translate("There was a problem initiating the registration process"));
             }
             setRegistrationInProgress(false);
         };
@@ -97,7 +97,7 @@ const SecondFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="second-factor-stage" title={`Hi ${props.userInfo.display_name}`} showBrand>
+        <LoginLayout id="second-factor-stage" title={`${translate("Hi")} ${props.userInfo.display_name}`} showBrand>
             <MethodSelectionDialog
                 open={methodSelectionOpen}
                 methods={props.configuration.available_methods}
@@ -108,11 +108,11 @@ const SecondFactorForm = function (props: Props) {
             <Grid container>
                 <Grid item xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
-                        Logout
+                        {translate("Logout")}
                     </Button>
                     {" | "}
                     <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
-                        Methods
+                        {translate("Methods")}
                     </Button>
                 </Grid>
                 <Grid item xs={12} className={style.methodContainer}>

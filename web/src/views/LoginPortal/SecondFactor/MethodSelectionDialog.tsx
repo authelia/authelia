@@ -10,6 +10,7 @@ import {
     Typography,
     useTheme,
 } from "@material-ui/core";
+import { useTranslation } from "react-i18next";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -28,6 +29,7 @@ export interface Props {
 const MethodSelectionDialog = function (props: Props) {
     const style = useStyles();
     const theme = useTheme();
+    const { t: translate } = useTranslation("Portal");
 
     const pieChartIcon = (
         <TimerIcon width={24} height={24} period={15} color={theme.palette.primary.main} backgroundColor={"white"} />
@@ -40,7 +42,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
                         <MethodItem
                             id="one-time-password-option"
-                            method="Time-based One-Time Password"
+                            method={translate("Time-based One-Time Password")}
                             icon={pieChartIcon}
                             onClick={() => props.onClick(SecondFactorMethod.TOTP)}
                         />
@@ -48,7 +50,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.Webauthn) && props.webauthnSupported ? (
                         <MethodItem
                             id="webauthn-option"
-                            method="Security Key - Webauthn"
+                            method={translate("Security Key - WebAuthN")}
                             icon={<FingerTouchIcon size={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.Webauthn)}
                         />
@@ -56,7 +58,7 @@ const MethodSelectionDialog = function (props: Props) {
                     {props.methods.has(SecondFactorMethod.MobilePush) ? (
                         <MethodItem
                             id="push-notification-option"
-                            method="Push Notification"
+                            method={translate("Push Notification")}
                             icon={<PushNotificationIcon width={32} height={32} />}
                             onClick={() => props.onClick(SecondFactorMethod.MobilePush)}
                         />
