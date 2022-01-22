@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
@@ -59,8 +60,10 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 			return nil, "", errMissingXForwardedHost
 		}
 
-		config.RPID = string(headerXForwardedHostV)
-		config.RPOrigin = fmt.Sprintf("%s://%s", headerProtoV, headerXForwardedHostV)
+		hostname := strings.Split(string(headerXForwardedHostV), ":")[0]
+
+		config.RPID = hostname
+		config.RPOrigin = fmt.Sprintf("%s://%s", headerProtoV, hostname)
 		appid = config.RPOrigin
 	}
 
