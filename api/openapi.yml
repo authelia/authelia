@@ -320,7 +320,7 @@ paths:
   /api/user/info/totp:
     get:
       tags:
-        - User TOTP Information
+        - User Information
       summary: User TOTP Configuration
       description: >
         The user TOTP info endpoint provides information necessary to display the TOTP component to validate their
