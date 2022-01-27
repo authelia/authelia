@@ -5,6 +5,7 @@ import ReactDOM from "react-dom";
 import "@root/index.css";
 import App from "@root/App";
 import * as serviceWorker from "@root/serviceWorker";
+import "./i18n/index.ts";
 
 ReactDOM.render(<App />, document.getElementById("root"));
 

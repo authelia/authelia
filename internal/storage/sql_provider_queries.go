@@ -56,12 +56,10 @@ const (
 )
 
 const (
-	queryFmtSelectExistsIdentityVerification = `
-		SELECT EXISTS (
-			SELECT id
-			FROM %s
-			WHERE jti = ? AND exp > CURRENT_TIMESTAMP AND consumed IS NULL
-		);`
+	queryFmtSelectIdentityVerification = `
+		SELECT id, jti, iat, issued_ip, exp, username, action, consumed, consumed_ip
+		FROM %s
+		WHERE jti = ?;`
 
 	queryFmtInsertIdentityVerification = `
 		INSERT INTO %s (jti, iat, issued_ip, exp, username, action)
@@ -176,7 +174,7 @@ const (
 	queryFmtSelect1FAAuthenticationLogEntryByUsername = `
 		SELECT time, successful, username
 		FROM %s
-		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = 0
+		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = FALSE
 		ORDER BY time DESC
 		LIMIT ?
 		OFFSET ?;`

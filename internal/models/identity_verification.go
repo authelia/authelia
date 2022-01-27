@@ -9,9 +9,9 @@ import (
 )
 
 // NewIdentityVerification creates a new IdentityVerification from a given username and action.
-func NewIdentityVerification(username, action string, ip net.IP) (verification IdentityVerification) {
+func NewIdentityVerification(jti uuid.UUID, username, action string, ip net.IP) (verification IdentityVerification) {
 	return IdentityVerification{
-		JTI:       uuid.New(),
+		JTI:       jti,
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(5 * time.Minute),
 		Action:    action,

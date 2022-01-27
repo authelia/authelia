@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -43,7 +44,7 @@ func TestShouldFailStartingProcessIfUserHasNoEmailAddress(t *testing.T) {
 		return nil, fmt.Errorf("User does not have any email")
 	}
 
-	middlewares.IdentityVerificationStart(newArgs(retriever))(mock.Ctx)
+	middlewares.IdentityVerificationStart(newArgs(retriever), nil)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "User does not have any email", mock.Hook.LastEntry().Message)
@@ -60,7 +61,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 		Return(fmt.Errorf("cannot save"))
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
@@ -83,7 +84,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
@@ -101,7 +102,7 @@ func TestShouldFailWhenXForwardedProtoHeaderIsMissing(t *testing.T) {
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Missing header X-Forwarded-Proto", mock.Hook.LastEntry().Message)
@@ -119,7 +120,7 @@ func TestShouldFailWhenXForwardedHostHeaderIsMissing(t *testing.T) {
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Missing header X-Forwarded-Host", mock.Hook.LastEntry().Message)
@@ -141,7 +142,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args)(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
@@ -166,7 +167,7 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 }
 
 func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
-	verification = models.NewIdentityVerification(username, action, ctx.Ctx.RemoteIP())
+	verification = models.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
 
 	verification.ExpiresAt = expiresAt
 
