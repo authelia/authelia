@@ -72,7 +72,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		compose.OAuth2ClientCredentialsGrantFactory,
 		compose.OAuth2RefreshTokenGrantFactory,
 		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
-		// compose.RFC7523AssertionGrantFactory,
+		// compose.RFC7523AssertionGrantFactory,.
 
 		compose.OpenIDConnectExplicitFactory,
 		compose.OpenIDConnectImplicitFactory,
@@ -82,7 +82,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		compose.OAuth2TokenIntrospectionFactory,
 		compose.OAuth2TokenRevocationFactory,
 
-		// compose.OAuth2PKCEFactory,
+		// compose.OAuth2PKCEFactory,.
 	)
 
 	provider.herodot = herodot.NewJSONWriter(nil)
