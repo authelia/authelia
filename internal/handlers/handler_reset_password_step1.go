@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -40,7 +41,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	TargetEndpoint:        "/reset-password/step2",
 	ActionClaim:           ActionResetPassword,
 	IdentityRetrieverFunc: identityRetrieverFromStorage,
-})
+}, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500))
 
 func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	userSession := ctx.GetSession()

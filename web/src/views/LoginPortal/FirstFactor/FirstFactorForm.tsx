@@ -2,6 +2,7 @@ import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
 import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
 import classnames from "classnames";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
@@ -37,6 +38,7 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const { t: translate } = useTranslation("Portal");
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);
@@ -66,7 +68,7 @@ const FirstFactorForm = function (props: Props) {
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            createErrorNotification("Incorrect username or password.");
+            createErrorNotification(translate("Incorrect username or password"));
             props.onAuthenticationFailure();
             setPassword("");
             passwordRef.current.focus();
@@ -78,14 +80,14 @@ const FirstFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="first-factor-stage" title="Sign in" showBrand>
+        <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={usernameRef}
                         id="username-textfield"
-                        label="Username"
+                        label={translate("Username")}
                         variant="outlined"
                         required
                         value={username}
@@ -115,7 +117,7 @@ const FirstFactorForm = function (props: Props) {
                         // TODO (PR: #806, Issue: #511) potentially refactor
                         inputRef={passwordRef}
                         id="password-textfield"
-                        label="Password"
+                        label={translate("Password")}
                         variant="outlined"
                         required
                         fullWidth
@@ -163,7 +165,7 @@ const FirstFactorForm = function (props: Props) {
                                 />
                             }
                             className={style.rememberMe}
-                            label="Remember me"
+                            label={translate("Remember me")}
                         />
                     </Grid>
                 ) : null}
@@ -176,7 +178,7 @@ const FirstFactorForm = function (props: Props) {
                         disabled={disabled}
                         onClick={handleSignIn}
                     >
-                        Sign in
+                        {translate("Sign in")}
                     </Button>
                 </Grid>
                 {props.resetPassword ? (
@@ -187,7 +189,7 @@ const FirstFactorForm = function (props: Props) {
                             onClick={handleResetPasswordClick}
                             className={style.resetLink}
                         >
-                            Reset password?
+                            {translate("Reset password?")}
                         </Link>
                     </Grid>
                 ) : null}
