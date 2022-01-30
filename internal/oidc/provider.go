@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ory/fosite/compose"
+	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -43,23 +44,32 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		return provider, err
 	}
 
-	strategy := &compose.CommonStrategy{
-		CoreStrategy: compose.NewOAuth2HMACStrategy(
-			composeConfiguration,
-			[]byte(utils.HashSHA256FromString(configuration.HMACSecret)),
-			nil,
-		),
-		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(
-			composeConfiguration,
-			key,
-		),
-		JWTStrategy: provider.KeyManager.Strategy(),
+	hmacStrategy := compose.NewOAuth2HMACStrategy(
+		composeConfiguration,
+		[]byte(utils.HashSHA256FromString(configuration.HMACSecret)),
+		nil,
+	)
+
+	coreStrategy := &oauth2.DefaultJWTStrategy{
+		JWTStrategy:     provider.KeyManager.Strategy(),
+		HMACSHAStrategy: hmacStrategy,
+	}
+
+	openIDConbectTokenStrategy := compose.NewOpenIDConnectStrategy(
+		composeConfiguration,
+		key,
+	)
+
+	commonStrategy := &compose.CommonStrategy{
+		CoreStrategy:               coreStrategy,
+		OpenIDConnectTokenStrategy: openIDConbectTokenStrategy,
+		JWTStrategy:                provider.KeyManager.Strategy(),
 	}
 
 	provider.Fosite = compose.Compose(
 		composeConfiguration,
 		provider.Store,
-		strategy,
+		commonStrategy,
 		AutheliaHasher{},
 
 		/*
@@ -71,18 +81,19 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		compose.OAuth2AuthorizeImplicitFactory,
 		compose.OAuth2ClientCredentialsGrantFactory,
 		compose.OAuth2RefreshTokenGrantFactory,
-		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+		// compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
 		// compose.RFC7523AssertionGrantFactory,
 
 		compose.OpenIDConnectExplicitFactory,
-		compose.OpenIDConnectImplicitFactory,
 		compose.OpenIDConnectHybridFactory,
+		compose.OpenIDConnectImplicitFactory,
 		compose.OpenIDConnectRefreshFactory,
 
-		compose.OAuth2TokenIntrospectionFactory,
 		compose.OAuth2TokenRevocationFactory,
+		compose.OAuth2TokenIntrospectionFactory,
 
 		// compose.OAuth2PKCEFactory,
+		// compose.RFC7523AssertionGrantFactory,
 	)
 
 	provider.herodot = herodot.NewJSONWriter(nil)
