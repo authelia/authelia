@@ -139,7 +139,6 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    u2f={props.configuration.available_methods.has(SecondFactorMethod.U2F)}
                                     onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}

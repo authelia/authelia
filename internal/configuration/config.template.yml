@@ -129,10 +129,6 @@ webauthn:
   ## User verification controls if the user must make a gesture to confirm they are the owner of the WebAuthn credential.
   user_verification: preferred
 
-  ## Enable U2F Registrations via the legacy U2F API. With this disabled old keys generated via this API will continue
-  ## to work, but new ones will NOT be able to be registered by users.
-  enable_u2f: false
-
 ##
 ## Duo Push API Configuration
 ##

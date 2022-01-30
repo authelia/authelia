@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
@@ -41,37 +40,9 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 		Timeout: ctx.Configuration.Webauthn.Timeout,
 	}
 
-	var u *url.URL
-
-	if ctx.Configuration.Server.ExternalURL.Scheme != "" && ctx.Configuration.Server.Host != "" {
-		u = &ctx.Configuration.Server.ExternalURL
-	} else {
-		/*
-			var (
-				headerProtoV, headerXForwardedHostV []byte
-			)
-
-			ctx.GetOriginalURL()
-			if headerProtoV = ctx.XForwardedProto(); headerProtoV == nil {
-				return nil, "", errMissingXForwardedProto
-			}
-
-			if headerXForwardedHostV = ctx.XForwardedHost(); headerXForwardedHostV == nil {
-				return nil, "", errMissingXForwardedHost
-			}
-
-			hostname := strings.Split(string(headerXForwardedHostV), ":")[0]
-
-			config.RPID = hostname
-			config.RPOrigin = fmt.Sprintf("%s://%s", headerProtoV, hostname)
-			appid = fmt.Sprintf("%s://%s", headerProtoV, headerXForwardedHostV)
-
-		*/
-
-		u, err = ctx.GetOriginalURL()
-		if err != nil {
-			return nil, "", err
-		}
+	u, err := ctx.GetOriginalURL()
+	if err != nil {
+		return nil, "", err
 	}
 
 	config.RPID = u.Hostname()

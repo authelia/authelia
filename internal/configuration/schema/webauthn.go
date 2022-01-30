@@ -11,8 +11,6 @@ type WebauthnConfiguration struct {
 
 	AttestationPreference protocol.ConveyancePreference        `koanf:"attestation_preference"`
 	UserVerification      protocol.UserVerificationRequirement `koanf:"user_verification"`
-
-	EnableU2F bool `koanf:"enable_u2f"`
 }
 
 // WebauthnAuthenticatorSelectionConfiguration represents the authenticator selection.

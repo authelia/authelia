@@ -164,7 +164,6 @@ var ValidKeys = []string{
 	"server.port",
 	"server.read_buffer_size",
 	"server.write_buffer_size",
-	"server.external_url",
 	"server.path",
 	"server.asset_path",
 	"server.enable_pprof",
@@ -186,7 +185,6 @@ var ValidKeys = []string{
 	"webauthn.debug",
 	"webauthn.attestation_preference",
 	"webauthn.user_verification",
-	"webauthn.enable_u2f",
 
 	// DUO API Keys.
 	"duo_api.hostname",
