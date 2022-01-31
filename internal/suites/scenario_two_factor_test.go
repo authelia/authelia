@@ -58,18 +58,18 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	username := testUsername
 	password := testPassword
 
-	// Login and register TOTP, logout and login again with 1FA & 2FA
+	// Login and register TOTP, logout and login again with 1FA & 2FA.
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 	_ = s.doRegisterAndLogin2FA(s.T(), s.Context(ctx), username, password, false, targetURL)
 
 	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
-	// Leave the secret
+	// Leave the secret.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// And try to reload it again to check the session is kept
+	// And try to reload it again to check the session is kept.
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }

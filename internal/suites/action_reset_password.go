@@ -11,10 +11,10 @@ import (
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
 	err := rs.WaitElementLocatedByCSSSelector(t, page, "reset-password-button").Click("left")
 	require.NoError(t, err)
-	// Fill in username
+	// Fill in username.
 	err = rs.WaitElementLocatedByCSSSelector(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
-	// And click on the reset button
+	// And click on the reset button.
 	err = rs.WaitElementLocatedByCSSSelector(t, page, "reset-button").Click("left")
 	require.NoError(t, err)
 }
@@ -49,7 +49,7 @@ func (rs *RodSession) doUnsuccessfulPasswordReset(t *testing.T, page *rod.Page, 
 
 func (rs *RodSession) doResetPassword(t *testing.T, page *rod.Page, username, newPassword1, newPassword2 string, unsuccessful bool) {
 	rs.doInitiatePasswordReset(t, page, username)
-	// then wait for the "email sent notification"
+	// then wait for the "email sent notification".
 	rs.verifyMailNotificationDisplayed(t, page)
 
 	if unsuccessful {
