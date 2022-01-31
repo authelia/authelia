@@ -151,7 +151,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 					ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
 					return
 				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
-					// Token is either expired or not active yet
+					// Token is either expired or not active yet.
 					ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
 					return
 				default:

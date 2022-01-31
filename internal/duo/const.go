@@ -13,4 +13,4 @@ const (
 )
 
 // PossibleMethods is the set of all possible Duo 2FA methods.
-var PossibleMethods = []string{Push} // OTP, Phone, SMS
+var PossibleMethods = []string{Push} // OTP, Phone, SMS.
