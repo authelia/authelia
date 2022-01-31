@@ -164,7 +164,7 @@ func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
 
 	s.Assert().Contains(output, "Common Name: example.com, Organization: [Acme Co.], Organizational Unit: [Tech]")
 	s.Assert().Contains(output, "Country: [Australia], Province: [QLD], Street Address: [123 Smith St], Postal Code: [4000], Locality: [Internet]")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA1-RSA, Public Key Algorithm: RSA, Bits: 4096")
+	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA1-RSA, Public Key Algorithm: RSA, Bits: 2048")
 	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
@@ -303,7 +303,7 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
 	s.Assert().Contains(output, "Algorithm: RSA-256 2048 bits")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
@@ -314,7 +314,7 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
 	s.Assert().Contains(output, "Algorithm: RSA-512 4096 bits")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
