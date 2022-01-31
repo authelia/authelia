@@ -11,7 +11,7 @@ import (
 type Regulator struct {
 	// Is the regulation enabled.
 	enabled bool
-	// The number of failed authentication attempt before banning the user
+	// The number of failed authentication attempt before banning the user.
 	maxRetries int
 	// If a user does the max number of retries within that duration, she will be banned.
 	findTime time.Duration

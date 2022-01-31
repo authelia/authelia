@@ -84,7 +84,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// Search for the 'login' link
+	// Search for the 'login' link.
 	err := s.Page.MustSearch("Log in").Click("left")
 	assert.NoError(s.T(), err)
 
@@ -92,7 +92,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "accept-button").Click("left")
 	assert.NoError(s.T(), err)
 
-	// Verify that the app is showing the info related to the user stored in the JWT token
+	// Verify that the app is showing the info related to the user stored in the JWT token.
 	s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!")
 }
 
@@ -111,7 +111,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// Search for the 'login' link
+	// Search for the 'login' link.
 	err := s.Page.MustSearch("Log in").Click("left")
 	assert.NoError(s.T(), err)
 

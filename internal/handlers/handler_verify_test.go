@@ -1023,7 +1023,7 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 	userSession = mock.Ctx.GetSession()
 	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 
-	// Simulate a Deleted User
+	// Simulate a Deleted User.
 	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
 	err = mock.Ctx.SaveSession(userSession)
 
