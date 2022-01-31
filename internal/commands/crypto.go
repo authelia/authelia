@@ -264,7 +264,7 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 		fmt.Println("")
 	default:
 		parent = caCert
-		
+
 		fmt.Printf("Signed By: %s\n", caCert.Subject.CommonName)
 		fmt.Printf("\tSerial: %x, Expires: %v\n\n", caCert.SerialNumber, caCert.NotAfter)
 	}
