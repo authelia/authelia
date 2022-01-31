@@ -53,7 +53,7 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		panic(err)
 	}
 
-	// Early check whether hashed passwords are correct for all users
+	// Early check whether hashed passwords are correct for all users.
 	err = checkPasswordHashes(database)
 	if err != nil {
 		panic(err)

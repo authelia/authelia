@@ -54,11 +54,11 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	// Authenticate
+	// Authenticate.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
-	// Then switch to push notification method
+	// Then switch to push notification method.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
 
@@ -71,7 +71,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	// And check the latest method is still used.
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
-	// Meaning the authentication is successful
+	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	// Logout the user and see what user 'harry' sees.
@@ -83,7 +83,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	// Then log back as previous user and verify the push notification is still the default method
+	// Then log back as previous user and verify the push notification is still the default method.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
@@ -92,7 +92,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 
-	// Eventually restore the default method
+	// Eventually restore the default method.
 	s.doChangeMethod(s.T(), s.Context(ctx), "one-time-password")
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "one-time-password-method")
 }

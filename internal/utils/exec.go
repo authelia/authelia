@@ -136,12 +136,12 @@ func RunFuncUntilCtrlC(fn func() error) error {
 
 // RunCommandWithTimeout run a command with timeout.
 func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
-	// Start a process:
+	// Start a process.
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	// Wait for the process to finish or kill it after a timeout (whichever happens first):
+	// Wait for the process to finish or kill it after a timeout (whichever happens first).
 	done := make(chan error, 1)
 
 	go func() {

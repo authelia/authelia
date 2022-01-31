@@ -111,7 +111,7 @@ type SQLProvider struct {
 	sqlUpdateU2FDevicePublicKey           string
 	sqlUpdateU2FDevicePublicKeyByUsername string
 
-	// Table: duo_devices
+	// Table: duo_devices.
 	sqlUpsertDuoDevice string
 	sqlDeleteDuoDevice string
 	sqlSelectDuoDevice string

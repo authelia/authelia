@@ -59,7 +59,7 @@ func TestShouldCreateRedisSessionProviderTLS(t *testing.T) {
 	pConfig := providerConfig.redisConfig
 	assert.Equal(t, "redis.example.com:6379", pConfig.Addr)
 	assert.Equal(t, "pass", pConfig.Password)
-	// DbNumber is the fasthttp/session property for the Redis DB Index
+	// DbNumber is the fasthttp/session property for the Redis DB Index.
 	assert.Equal(t, 0, pConfig.DB)
 	assert.Equal(t, 0, pConfig.PoolSize)
 	assert.Equal(t, 0, pConfig.MinIdleConns)
@@ -94,7 +94,7 @@ func TestShouldCreateRedisSessionProvider(t *testing.T) {
 	pConfig := providerConfig.redisConfig
 	assert.Equal(t, "redis.example.com:6379", pConfig.Addr)
 	assert.Equal(t, "pass", pConfig.Password)
-	// DbNumber is the fasthttp/session property for the Redis DB Index
+	// DbNumber is the fasthttp/session property for the Redis DB Index.
 	assert.Equal(t, 0, pConfig.DB)
 	assert.Equal(t, 0, pConfig.PoolSize)
 	assert.Equal(t, 0, pConfig.MinIdleConns)
@@ -180,7 +180,7 @@ func TestShouldCreateRedisSentinelSessionProvider(t *testing.T) {
 	assert.Equal(t, 8, pConfig.PoolSize)
 	assert.Equal(t, 2, pConfig.MinIdleConns)
 
-	// DbNumber is the fasthttp/session property for the Redis DB Index
+	// DbNumber is the fasthttp/session property for the Redis DB Index.
 	assert.Equal(t, 0, pConfig.DB)
 	assert.Nil(t, pConfig.TLSConfig)
 }
@@ -233,7 +233,7 @@ func TestShouldCreateRedisSessionProviderWithUnixSocket(t *testing.T) {
 	pConfig := providerConfig.redisConfig
 	assert.Equal(t, "/var/run/redis/redis.sock", pConfig.Addr)
 	assert.Equal(t, "pass", pConfig.Password)
-	// DbNumber is the fasthttp/session property for the Redis DB Index
+	// DbNumber is the fasthttp/session property for the Redis DB Index.
 	assert.Equal(t, 0, pConfig.DB)
 	assert.Nil(t, pConfig.TLSConfig)
 }
@@ -256,7 +256,7 @@ func TestShouldSetDbNumber(t *testing.T) {
 
 	assert.Equal(t, "redis", providerConfig.providerName)
 	pConfig := providerConfig.redisConfig
-	// DbNumber is the fasthttp/session property for the Redis DB Index
+	// DbNumber is the fasthttp/session property for the Redis DB Index.
 	assert.Equal(t, 5, pConfig.DB)
 }
 
@@ -277,7 +277,7 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 	encoded, err := providerConfig.config.EncodeFunc(payload)
 	require.NoError(t, err)
 
-	// Now we try to decrypt what has been serialized
+	// Now we try to decrypt what has been serialized.
 	key := sha256.Sum256([]byte("abc"))
 	decrypted, err := utils.Decrypt(encoded, &key)
 	require.NoError(t, err)

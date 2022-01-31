@@ -45,7 +45,7 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 	if configuration.Password == nil {
 		configuration.Password = &schema.DefaultPasswordConfiguration
 	} else {
-		// Salt Length
+		// Salt Length.
 		switch {
 		case configuration.Password.SaltLength == 0:
 			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
@@ -72,32 +72,32 @@ func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationB
 }
 
 func validateFileAuthenticationBackendSHA512(configuration *schema.FileAuthenticationBackendConfiguration) {
-	// Iterations (time)
+	// Iterations (time).
 	if configuration.Password.Iterations == 0 {
 		configuration.Password.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
 	}
 }
 func validateFileAuthenticationBackendArgon2id(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	// Iterations (time)
+	// Iterations (time).
 	if configuration.Password.Iterations == 0 {
 		configuration.Password.Iterations = schema.DefaultPasswordConfiguration.Iterations
 	}
 
-	// Parallelism
+	// Parallelism.
 	if configuration.Password.Parallelism == 0 {
 		configuration.Password.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
 	} else if configuration.Password.Parallelism < 1 {
 		validator.Push(fmt.Errorf("Parallelism for argon2id must be 1 or more, you configured %d", configuration.Password.Parallelism))
 	}
 
-	// Memory
+	// Memory.
 	if configuration.Password.Memory == 0 {
 		configuration.Password.Memory = schema.DefaultPasswordConfiguration.Memory
 	} else if configuration.Password.Memory < configuration.Password.Parallelism*8 {
 		validator.Push(fmt.Errorf("Memory for argon2id must be %d or more (parallelism * 8), you configured memory as %d and parallelism as %d", configuration.Password.Parallelism*8, configuration.Password.Memory, configuration.Password.Parallelism))
 	}
 
-	// Key Length
+	// Key Length.
 	if configuration.Password.KeyLength == 0 {
 		configuration.Password.KeyLength = schema.DefaultPasswordConfiguration.KeyLength
 	} else if configuration.Password.KeyLength < 16 {
@@ -185,12 +185,12 @@ func validateLDAPURL(ldapURL string, validator *schema.StructValidator) (finalUR
 }
 
 func validateLDAPRequiredParameters(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
+	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387).
 	if configuration.User == "" {
 		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))
 	}
 
-	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387)
+	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387).
 	if configuration.Password == "" {
 		validator.Push(errors.New("Please provide a password to connect to the LDAP server"))
 	}
