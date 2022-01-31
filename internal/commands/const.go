@@ -90,6 +90,18 @@ const (
 	storageExportFormatURI = "uri"
 )
 
+const (
+	timeLayoutCertificateNotBefore = "Jan 2 15:04:05 2006"
+)
+
+const (
+	flagNamePrivateKey    = "private-key"
+	flagNamePublicKey     = "public-key"
+	flagNameCertificate   = "certificate"
+	flagNameCAPrivateKey  = "ca-private-key"
+	flagNameCACertificate = "ca-certificate"
+)
+
 var (
 	errNoStorageProvider = errors.New("no storage provider configured")
 )

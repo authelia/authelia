@@ -86,9 +86,15 @@ func (m KeyManager) GetActivePrivateKey() (key *rsa.PrivateKey, err error) {
 
 // AddActivePrivateKeyData adds a rsa.PublicKey given the key in the PEM string format, then sets it to the active key.
 func (m *KeyManager) AddActivePrivateKeyData(data string) (key *rsa.PrivateKey, webKey *jose.JSONWebKey, err error) {
-	key, err = utils.ParseRsaPrivateKeyFromPemStr(data)
+	ikey, err := utils.ParseX509FromPEM([]byte(data))
 	if err != nil {
 		return nil, nil, err
+	}
+
+	var ok bool
+
+	if key, ok = ikey.(*rsa.PrivateKey); !ok {
+		return nil, nil, errors.New("key must be an RSA private key")
 	}
 
 	webKey, err = m.AddActivePrivateKey(key)
