@@ -115,7 +115,7 @@ type SQLProvider struct {
 	sqlUpdateWebauthnDeviceSignCount           string
 	sqlUpdateWebauthnDeviceSignCountByUsername string
 
-	// Table: duo_devices
+	// Table: duo_devices.
 	sqlUpsertDuoDevice string
 	sqlDeleteDuoDevice string
 	sqlSelectDuoDevice string

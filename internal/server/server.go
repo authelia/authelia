@@ -100,7 +100,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.POST("/api/secondfactor/totp", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
 
-	// Webauthn Endpoints
+	// Webauthn Endpoints.
 	r.POST("/api/secondfactor/webauthn/identity/start", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
 	r.POST("/api/secondfactor/webauthn/identity/finish", autheliaMiddleware(

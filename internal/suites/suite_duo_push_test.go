@@ -132,18 +132,18 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	// Authenticate
+	// Authenticate.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// Switch Method where single Device should be selected automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Re-Login the user
+	// Re-Login the user.
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// And check the latest method and device is still used.
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
-	// Meaning the authentication is successful
+	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
@@ -171,7 +171,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	// Authenticate
+	// Authenticate.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// Switch Method where Device Selection should open automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
@@ -183,12 +183,12 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	s.doChangeDevice(s.T(), s.Context(ctx), "1234567890ABCDEFGHIJ")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Re-Login the user
+	// Re-Login the user.
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// And check the latest method and device is still used.
 	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
-	// Meaning the authentication is successful
+	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
