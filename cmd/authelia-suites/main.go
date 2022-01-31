@@ -125,7 +125,7 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Create the .suite file
+	// Create the .suite file.
 	if err := createRunningSuiteFile(suiteName); err != nil {
 		log.Fatal(err)
 	}

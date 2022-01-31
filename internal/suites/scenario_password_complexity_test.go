@@ -55,7 +55,7 @@ func (s *PasswordComplexityScenario) TestShouldRejectPasswordReset() {
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	// Attempt to reset the password to a
+	// Attempt to reset the password to a.
 	s.doResetPassword(s.T(), s.Context(ctx), "john", "a", "a", true)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Your supplied password does not meet the password policy requirements.")
 }

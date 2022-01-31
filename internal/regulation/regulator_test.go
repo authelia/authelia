@@ -282,7 +282,7 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	// Check Disabled Functionality
+	// Check Disabled Functionality.
 	configuration := schema.RegulationConfiguration{
 		MaxRetries: 0,
 		FindTime:   "180",
@@ -293,7 +293,7 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
 
-	// Check Enabled Functionality
+	// Check Enabled Functionality.
 	configuration = schema.RegulationConfiguration{
 		MaxRetries: 1,
 		FindTime:   "180",
