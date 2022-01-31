@@ -156,6 +156,21 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWith4096Bits() {
 	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
 }
 
+func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name", "example.com", "--sans", "*.example.com", "--country", "Australia", "--organization", "'Acme Co.'", "--organizational-unit", "Tech", "--province", "QLD", "--street-address", "'123 Smith St'", "--postcode", "4000", "--locality", "Internet", "--directory", "/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate with serial ")
+	s.Assert().Contains(output, "Signed By: Self-Signed")
+
+	s.Assert().Contains(output, "Common Name: example.com, Organization: [Acme Co.], Organizational Unit: [Tech]")
+	s.Assert().Contains(output, "Country: [Australia], Province: [QLD], Street Address: [123 Smith St], Postal Code: [4000], Locality: [Internet]")
+	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA1-RSA, Public Key Algorithm: RSA, Bits: 4096")
+	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
+	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+}
+
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name", "'Authelia Standalone Root Certificate Authority'", "--ca", "--directory", "/tmp/"})
 	s.Assert().NoError(err)
@@ -284,7 +299,6 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "rsa", "--directory", "/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
 
 	s.Assert().Contains(output, "Algorithm: RSA-256 2048 bits")
 
@@ -296,7 +310,6 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "rsa", "--bits", "4096", "--directory", "/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
 
 	s.Assert().Contains(output, "Algorithm: RSA-512 4096 bits")
 
@@ -312,7 +325,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
@@ -323,7 +336,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-224")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
@@ -334,7 +347,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
@@ -345,7 +358,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-384")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
@@ -356,7 +369,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-521")
 
 	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.pem")
+	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldNotGenerateECDSAKeyPairCurveInvalid() {
