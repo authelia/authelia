@@ -38,7 +38,7 @@ func NewSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, certPool *
 
 // Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred).
 func (n *SMTPNotifier) startTLS() error {
-	// Only start if not already encrypted
+	// Only start if not already encrypted.
 	if _, ok := n.client.TLSConnectionState(); ok {
 		n.log.Debugf("Notifier SMTP connection is already encrypted, skipping STARTTLS")
 		return nil
