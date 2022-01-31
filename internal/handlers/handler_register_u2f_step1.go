@@ -21,7 +21,7 @@ var SecondFactorU2FIdentityStart = middlewares.IdentityVerificationStart(middlew
 	TargetEndpoint:        "/security-key/register",
 	ActionClaim:           ActionU2FRegistration,
 	IdentityRetrieverFunc: identityRetrieverFromSession,
-})
+}, nil)
 
 func secondFactorU2FIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	if ctx.XForwardedProto() == nil {

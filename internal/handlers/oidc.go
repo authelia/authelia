@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
@@ -29,4 +30,44 @@ func newOpenIDSession(subject string) *oidc.OpenIDSession {
 		},
 		Extra: map[string]interface{}{},
 	}
+}
+
+func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
+	extraClaims = map[string]interface{}{
+		oidc.ClaimPreferredUsername: userSession.Username,
+	}
+
+	for _, scope := range scopes {
+		if ar != nil {
+			ar.GrantScope(scope)
+		}
+
+		switch scope {
+		case oidc.ScopeGroups:
+			extraClaims[oidc.ClaimGroups] = userSession.Groups
+		case oidc.ScopeProfile:
+			extraClaims[oidc.ClaimDisplayName] = userSession.DisplayName
+		case oidc.ScopeEmail:
+			if len(userSession.Emails) != 0 {
+				extraClaims[oidc.ClaimEmail] = userSession.Emails[0]
+				if len(userSession.Emails) > 1 {
+					extraClaims[oidc.ClaimAltEmails] = userSession.Emails[1:]
+				}
+				// TODO (james-d-elliott): actually verify emails and record that information.
+				extraClaims[oidc.ClaimEmailVerified] = true
+			}
+		}
+	}
+
+	if ar != nil {
+		for _, audience := range audiences {
+			ar.GrantAudience(audience)
+		}
+
+		if !utils.IsStringInSlice(ar.GetClient().GetID(), ar.GetGrantedAudience()) {
+			ar.GrantAudience(ar.GetClient().GetID())
+		}
+	}
+
+	return extraClaims
 }

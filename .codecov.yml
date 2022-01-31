@@ -32,9 +32,11 @@ flags:
   frontend:
     paths:
       - "web/"
+      - "!web/coverage/"
 
 ignore:
   - "web/src/serviceWorker.ts"
+  - "**/coverage.txt"
 
 parsers:
   gcov:

@@ -254,6 +254,47 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 
 	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
 	assert.Equal(t, "", config.Notifier.SMTP.Sender.Address)
+
+	validator.ValidateNotifier(config.Notifier, val)
+
+	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.EqualError(t, val.Errors()[0], "smtp notifier: the 'sender' must be configured")
+}
+
+func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "", config.Notifier.SMTP.Sender.Name)
+	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
+}
+
+func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "Admin", config.Notifier.SMTP.Sender.Name)
+	assert.Equal(t, "admin@example.com", config.Notifier.SMTP.Sender.Address)
 }
 
 func TestShouldParseRegex(t *testing.T) {

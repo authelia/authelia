@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -13,12 +14,19 @@ import (
 )
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
-func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandler {
+func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc TimingAttackDelayFunc) RequestHandler {
 	if args.IdentityRetrieverFunc == nil {
 		panic(fmt.Errorf("Identity verification requires an identity retriever"))
 	}
 
 	return func(ctx *AutheliaCtx) {
+		requestTime := time.Now()
+		success := false
+
+		if delayFunc != nil {
+			defer delayFunc(ctx.Logger, requestTime, &success)
+		}
+
 		identity, err := args.IdentityRetrieverFunc(ctx)
 		if err != nil {
 			// In that case we reply ok to avoid user enumeration.
@@ -106,6 +114,8 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs) RequestHandle
 			return
 		}
 
+		success = true
+
 		ctx.ReplyOK()
 	}
 }
@@ -141,7 +151,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 					ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
 					return
 				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
-					// Token is either expired or not active yet
+					// Token is either expired or not active yet.
 					ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
 					return
 				default:

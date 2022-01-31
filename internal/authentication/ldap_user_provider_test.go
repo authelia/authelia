@@ -89,10 +89,10 @@ func TestEscapeSpecialCharsFromUserInput(t *testing.T) {
 		nil,
 		mockFactory)
 
-	// No escape
+	// No escape.
 	assert.Equal(t, "xyz", ldapClient.ldapEscape("xyz"))
 
-	// Escape
+	// Escape.
 	assert.Equal(t, "test\\,abc", ldapClient.ldapEscape("test,abc"))
 	assert.Equal(t, "test\\5cabc", ldapClient.ldapEscape("test\\abc"))
 	assert.Equal(t, "test\\2aabc", ldapClient.ldapEscape("test*abc"))
