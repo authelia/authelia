@@ -13,12 +13,13 @@ import {
     RegisterOneTimePasswordRoute,
     LogoutRoute,
     ConsentRoute,
+    SignUpRoute,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
-import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
+import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getSignUp, getTheme } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
 import RegisterSecurityKey from "@views/DeviceRegistration/RegisterSecurityKey";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
@@ -26,6 +27,7 @@ import LoginPortal from "@views/LoginPortal/LoginPortal";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
 import ResetPasswordStep1 from "@views/ResetPassword/ResetPasswordStep1";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
+import SignUp from "@views/SignUp/SignUp";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
@@ -78,9 +80,11 @@ const App: React.FC = () => {
                                     duoSelfEnrollment={getDuoSelfEnrollment()}
                                     rememberMe={getRememberMe()}
                                     resetPassword={getResetPassword()}
+                                    signUp={getSignUp()}
                                 />
                             }
                         />
+                        <Route path={SignUpRoute} element={<SignUp signUp={getSignUp()} />} />
                     </Routes>
                 </Router>
             </NotificationsContext.Provider>

@@ -6,17 +6,19 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
-import { ResetPasswordStep1Route } from "@constants/Routes";
+import { ResetPasswordStep1Route, SignUpRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
+import { makeParams } from "@utils/MakeParams";
 
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
+    signUp: boolean;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -77,6 +79,11 @@ const FirstFactorForm = function (props: Props) {
 
     const handleResetPasswordClick = () => {
         navigate(ResetPasswordStep1Route);
+    };
+
+    const handleSignUpClick = () => {
+        const params = makeParams({ rd: redirectionURL, rm: requestMethod });
+        navigate(`${SignUpRoute}${params}`);
     };
 
     return (
@@ -193,6 +200,15 @@ const FirstFactorForm = function (props: Props) {
                         </Link>
                     </Grid>
                 ) : null}
+                {props.signUp ? (
+                    <Grid item xs={12} className={classnames(style.actionRow, style.center)}>
+                        {translate("Don't have an account?")}
+                        &nbsp;
+                        <Link id="signup-button" component="button" onClick={handleSignUpClick}>
+                            {translate("Sign Up")}
+                        </Link>
+                    </Grid>
+                ) : null}
             </Grid>
         </LoginLayout>
     );
@@ -217,5 +233,8 @@ const useStyles = makeStyles((theme) => ({
     },
     flexEnd: {
         justifyContent: "flex-end",
+    },
+    center: {
+        justifyContent: "center",
     },
 }));

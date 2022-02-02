@@ -23,6 +23,10 @@ export function getResetPassword() {
     return getEmbeddedVariable("resetpassword") === "true";
 }
 
+export function getSignUp() {
+    return getEmbeddedVariable("signup") === "true";
+}
+
 export function getTheme() {
     return getEmbeddedVariable("theme");
 }
