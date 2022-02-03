@@ -110,7 +110,9 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	} else if err = doStartupCheck(logger, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
 		logger.Errorf("Failure running the user provider startup check: %+v", err)
 
-		failures = append(failures, "ntp")
+		if !config.NTP.DisableFailure {
+			failures = append(failures, "ntp")
+		}
 	}
 
 	if len(failures) != 0 {
