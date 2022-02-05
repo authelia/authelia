@@ -77,12 +77,10 @@ func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
 
 	mock.Ctx.RequestCtx.Request.SetRequestURI("/2fa/one-time-password")
 	mock.Ctx.RequestCtx.Request.SetHost("auth.example.com:1234")
-	mock.Ctx.RequestCtx.Request.Header.SetMethod("GET")
 
 	assert.Equal(t, []byte("http"), mock.Ctx.XForwardedProto())
 	assert.Equal(t, []byte("auth.example.com:1234"), mock.Ctx.XForwardedHost())
 	assert.Equal(t, []byte("/2fa/one-time-password"), mock.Ctx.XForwardedURI())
-	assert.Equal(t, []byte("GET"), mock.Ctx.XForwardedMethod())
 }
 
 func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {

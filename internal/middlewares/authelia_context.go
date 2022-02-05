@@ -118,13 +118,7 @@ func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 
 // XForwardedMethod return the content of the X-Forwarded-Method header.
 func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
-	method = ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
-
-	if method == nil {
-		return ctx.RequestCtx.Method()
-	}
-
-	return method
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
 // XForwardedHost return the content of the X-Forwarded-Host header.
@@ -261,7 +255,7 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 	return ctx.RequestCtx.RemoteIP()
 }
 
-// GetOriginalURL extract the URL from the request headers (X-Original-URI or X-Forwarded-* headers).
+// GetOriginalURL extract the URL from the request headers (X-Original-URL or X-Forwarded-* headers).
 func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 	originalURL := ctx.XOriginalURL()
 	if originalURL != nil {
@@ -275,9 +269,7 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 		return parsedURL, nil
 	}
 
-	forwardedProto := ctx.XForwardedProto()
-	forwardedHost := ctx.XForwardedHost()
-	forwardedURI := ctx.XForwardedURI()
+	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
 
 	if forwardedProto == nil {
 		return nil, errMissingXForwardedProto
