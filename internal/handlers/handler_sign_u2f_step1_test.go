@@ -27,7 +27,7 @@ func (s *HandlerSignU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing()
 	SecondFactorU2FSignGet(s.mock.Ctx)
 
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "missing header X-Forwarded-Proto", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "missing header X-Forwarded-Host", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *HandlerSignU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissing() {

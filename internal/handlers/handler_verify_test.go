@@ -45,7 +45,7 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Forwarded-Proto", err.Error())
+	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
 }
 
 func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
