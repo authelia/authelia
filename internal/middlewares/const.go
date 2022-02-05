@@ -14,6 +14,15 @@ var (
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
+
+	protoHTTPS = []byte("https")
+	protoHTTP  = []byte("http")
+
+	// UserValueKeyProto is the User Value key where we store the operating proto.
+	UserValueKeyProto = []byte("proto")
+
+	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
+	UserValueKeyBaseURL = []byte("base_url")
 )
 
 const (
