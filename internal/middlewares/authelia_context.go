@@ -49,12 +49,6 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 				return
 			}
 
-			if configuration.Server.TLS.Certificate != "" && configuration.Server.TLS.Key != "" {
-				autheliaCtx.SetUserValueBytes(UserValueKeyProto, protoHTTPS)
-			} else {
-				autheliaCtx.SetUserValueBytes(UserValueKeyProto, protoHTTP)
-			}
-
 			next(autheliaCtx)
 		}
 	}
@@ -112,7 +106,11 @@ func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 	proto = ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedProto)
 
 	if proto == nil {
-		return ctx.RequestCtx.UserValueBytes(UserValueKeyProto).([]byte)
+		if ctx.RequestCtx.IsTLS() {
+			return protoHTTPS
+		}
+
+		return protoHTTP
 	}
 
 	return proto
@@ -311,7 +309,7 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 func (ctx AutheliaCtx) IsXHR() (xhr bool) {
 	requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith)
 
-	return requestedWith != nil && string(requestedWith) == headerValueXRequestedWithXHR
+	return requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR)
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
