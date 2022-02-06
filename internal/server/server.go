@@ -46,11 +46,11 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
-	r.GET("/", serveIndexHandler)
+	r.GET("/", autheliaMiddleware(serveIndexHandler))
 	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 
-	r.GET("/api/", serveSwaggerHandler)
-	r.GET("/api/"+apiFile, serveSwaggerAPIHandler)
+	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
+	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
@@ -146,7 +146,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = serveIndexHandler
+	r.NotFound = autheliaMiddleware(serveIndexHandler)
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {

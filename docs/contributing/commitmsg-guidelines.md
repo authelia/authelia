@@ -79,6 +79,7 @@ The scope should be the name of the package affected
 * mocks
 * models
 * notification
+* ntp
 * oidc
 * regulation
 * server
