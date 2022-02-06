@@ -59,7 +59,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 			}
 		}
 
-		baseURL := scheme + "://" + string(ctx.XForwardedHost()) + ctx.Configuration.Server.Path + "/"
+		baseURL := scheme + "://" + string(ctx.XForwardedHost()) + base + "/"
 		nonce := utils.RandomString(32, utils.AlphaNumericCharacters, true)
 
 		switch extension := filepath.Ext(file); extension {
