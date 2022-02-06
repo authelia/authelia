@@ -19,9 +19,7 @@ const (
 const (
 	// TOTP Method using Time-Based One-Time Password applications like Google Authenticator.
 	TOTP = "totp"
-	// U2F Method using U2F devices like Yubikeys.
-	U2F = "u2f"
-	// Webauthn Method using Webauthn devices like Yubikeys.
+	// Webauthn Method using Webauthn devices like YubiKeys.
 	Webauthn = "webauthn"
 	// Push Method using Duo application to receive push notifications.
 	Push = "mobile_push"

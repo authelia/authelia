@@ -116,7 +116,7 @@ func TestMethodSetToU2F(t *testing.T) {
 				assert.Equal(t, resp.api.Method, actualPreferences.Method)
 			})
 
-			t.Run("registered u2f", func(t *testing.T) {
+			t.Run("registered webauthn", func(t *testing.T) {
 				assert.Equal(t, resp.api.HasWebauthn, actualPreferences.HasWebauthn)
 			})
 

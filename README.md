@@ -52,7 +52,7 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * Several second factor methods:
-  * **[Security Key (U2F)](https://www.authelia.com/docs/features/2fa/security-key)** with [Yubikey].
+  * **[Security Key (Webauthn)](https://www.authelia.com/docs/features/2fa/security-key)** with [YubiKey].
   * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)** 
     with [Google Authenticator].
   * **[Mobile Push Notifications](https://www.authelia.com/docs/features/2fa/push-notifications)** 
@@ -346,7 +346,7 @@ for providing us with free licenses to their great tools.
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
 [Security Key]: https://www.yubico.com/about/background/fido/
-[Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
+[YubiKey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
 [auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: ./config.template.yml

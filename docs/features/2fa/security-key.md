@@ -55,9 +55,7 @@ Multiple single type device enrollment will be available when [this issue](https
 
 ### Why don't I have access to the *Security Key* option?
 
-U2F protocol is a new protocol that is only supported by recent browsers
-and might even be enabled on some of them. Please be sure your browser
-supports U2F and that the feature is enabled to make the option
-available in **Authelia**.
+The Webauthn protocol is a new protocol that is only supported by modern browsers. Please ensure your browser is up to
+date, supports Webauthn, and that the feature is not disabled if the option is not available to you in **Authelia**.
 
 [YubiKey]: https://www.yubico.com/products/yubikey-5-overview/

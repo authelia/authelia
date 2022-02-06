@@ -11,7 +11,7 @@ has_children: true
 There are multiple supported options for the second factor.
 
 * Time-based One-Time passwords with [Google Authenticator]
-* Security Keys with tokens like [Yubikey].
+* Security Keys with tokens like [YubiKey].
 * Push notifications on your mobile using [Duo].
 
 <p align="center">
@@ -20,5 +20,5 @@ There are multiple supported options for the second factor.
 
 
 [Duo]: https://duo.com/
-[Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
+[YubiKey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
 [Google Authenticator]: https://google-authenticator.com/
