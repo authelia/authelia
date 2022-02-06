@@ -48,25 +48,6 @@ func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt 
 	return ss, verification
 }
 
-func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedProtoIsMissing() {
-	token, verification := createToken(s.mock, "john", ActionU2FRegistration,
-		time.Now().Add(1*time.Minute))
-	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
-
-	s.mock.StorageMock.EXPECT().
-		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
-		Return(true, nil)
-
-	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
-		Return(nil)
-
-	SecondFactorU2FIdentityFinish(s.mock.Ctx)
-
-	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "missing header X-Forwarded-Proto", s.mock.Hook.LastEntry().Message)
-}
-
 func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissing() {
 	s.mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
 	token, verification := createToken(s.mock, "john", ActionU2FRegistration,
