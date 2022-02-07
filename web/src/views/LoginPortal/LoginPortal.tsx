@@ -29,6 +29,8 @@ export interface Props {
     duoSelfEnrollment: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
+    externalResetPassword: boolean;
+    externalResetUrl: string;
 }
 
 const RedirectionErrorMessage =
@@ -175,6 +177,8 @@ const LoginPortal = function (props: Props) {
                             disabled={firstFactorDisabled}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
+                            externalResetPassword={props.externalResetPassword}
+                            externalResetUrl={props.externalResetUrl}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}

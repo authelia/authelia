@@ -282,6 +282,8 @@ var ValidKeys = []string{
 
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
+	"authentication_backend.enable_external_reset_password",
+	"authentication_backend.external_reset_password_url",
 	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.

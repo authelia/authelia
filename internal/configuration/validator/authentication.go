@@ -34,6 +34,17 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
 		}
 	}
+
+	if configuration.EnableExternalResetPassword && !configuration.DisableResetPassword {
+		validator.Push(errors.New("You cannot enable both `internal reset password` and `external reset password` processes in `authentication_backend`"))
+	}
+
+	if configuration.EnableExternalResetPassword {
+		err := utils.IsStringAbsURL(configuration.ExternalResetPasswordURL)
+		if err != nil {
+			validator.Push(fmt.Errorf("Provided reset url is invalid. Error from parser: %s", err))
+		}
+	}
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.

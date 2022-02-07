@@ -30,6 +30,12 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
+	externalResetPassword := strconv.FormatBool(configuration.AuthenticationBackend.EnableExternalResetPassword)
+
+	externalResetURL := ""
+	if configuration.AuthenticationBackend.EnableExternalResetPassword {
+		externalResetURL = configuration.AuthenticationBackend.ExternalResetPasswordURL
+	}
 
 	duoSelfEnrollment := f
 	if configuration.DuoAPI != nil {
@@ -41,9 +47,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, externalResetPassword, externalResetURL, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, externalResetPassword, externalResetURL, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, externalResetPassword, externalResetURL, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
 	r.GET("/", autheliaMiddleware(serveIndexHandler))

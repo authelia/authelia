@@ -230,6 +230,19 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateCompleteConfigura
 	suite.Assert().False(suite.validator.HasErrors())
 }
 
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsInvalid() {
+	suite.configuration.EnableExternalResetPassword = true
+	suite.configuration.DisableResetPassword = true
+	suite.configuration.ExternalResetPasswordURL = "example.com" //nolint:goconst
+
+	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "Provided reset url is invalid. Error from parser: the url 'example.com' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'")
+}
+
 func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateDefaultImplementationAndUsernameAttribute() {
 	suite.configuration.LDAP.Implementation = ""
 	suite.configuration.LDAP.UsernameAttribute = ""

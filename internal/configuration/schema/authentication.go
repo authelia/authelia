@@ -45,10 +45,12 @@ type PasswordConfiguration struct {
 
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
-	DisableResetPassword bool                                    `koanf:"disable_reset_password"`
-	RefreshInterval      string                                  `koanf:"refresh_interval"`
-	LDAP                 *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
-	File                 *FileAuthenticationBackendConfiguration `koanf:"file"`
+	DisableResetPassword        bool                                    `koanf:"disable_reset_password"`
+	EnableExternalResetPassword bool                                    `koanf:"enable_external_reset_password"`
+	ExternalResetPasswordURL    string                                  `koanf:"external_reset_password_url"`
+	RefreshInterval             string                                  `koanf:"refresh_interval"`
+	LDAP                        *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
+	File                        *FileAuthenticationBackendConfiguration `koanf:"file"`
 }
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
