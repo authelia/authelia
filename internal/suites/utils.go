@@ -54,7 +54,7 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 		build := os.Getenv("BUILDKITE_BUILD_NUMBER")
 		suite := strings.ToLower(os.Getenv("SUITE"))
 		job := os.Getenv("BUILDKITE_JOB_ID")
-		path := filepath.Join(fmt.Sprintf("%s/%s/%s/%s", base, build, suite, job)) //nolint: gocritic
+		path := filepath.Join(fmt.Sprintf("%s/%s/%s/%s", base, build, suite, job))
 
 		if err := os.MkdirAll(path, 0755); err != nil {
 			log.Fatal(err)
