@@ -48,6 +48,12 @@
         "Username": "Usuario",
         "You must open the link from the same device and browser that initiated the registration process": "Debe abrir el link desde el mismo dispositivo y navegador desde el que inició el proceso de registración",
         "You're being signed out and redirected": "Cerrando Sesión y redirigiendo",
-        "Your supplied password does not meet the password policy requirements": "La contraseña suministrada no cumple con los requerimientos de la política de contraseñas"
+        "Your supplied password does not meet the password policy requirements": "La contraseña suministrada no cumple con los requerimientos de la política de contraseñas",
+        "Add some lowercase letter": "Agregue alguna letra minúscula",
+        "Add some UPPERCASE letter": "Agregue alguna letra MAYUSCULA",
+        "Add some Numbers": "Agregue algún número",
+        "Add some Special character": "Agregue algún caracter especial (!,#,:,?,¿. etc)",
+        "Two short, minimun length is {{len}} letters": "Contraseña demasiado corta, el tamaño mínimo debe ser {{len}} caracteres",
+        "Two long, maximum length is {{len}} letters": "Contraseña demasiado larga, el tamaño máximo debe ser {{len}} caracteres"
     }
 }

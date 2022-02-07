@@ -48,6 +48,13 @@
         "Username": "Username",
         "You must open the link from the same device and browser that initiated the registration process": "You must open the link from the same device and browser that initiated the registration process",
         "You're being signed out and redirected": "You're being signed out and redirected",
-        "Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements."
+        "Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements.",
+        "Add some lowercase letter": "Add some lowercase letter",
+        "Add some UPPERCASE letter": "Add some UPPERCASE letter",
+        "Add some Numbers": "Add some Numbers",
+        "Add some Epecial character": "Add some Epecial character",
+        "Two short, minimun length is {{len}} letters": "Two short, minimun length is {{len}} letters",
+        "Two long, maximum length is {{len}} letters": "Two long, maximum length is {{len}} letters"
+
     }
 }

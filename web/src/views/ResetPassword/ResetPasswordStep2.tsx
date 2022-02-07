@@ -28,6 +28,7 @@ const ResetPasswordStep2 = function () {
     const [showPassword, setShowPassword] = useState(false);
     const [pPolicyMode, setPPolicyMode] = useState("none");
     const [pPolicyMinLength, setPPolicyMinLength] = useState(0);
+    const [pPolicyMaxLength, setPPolicyMaxLength] = useState(0);
     const [pPolicyRequireUpperCase, setPPolicyRequireUpperCase] = useState(false);
     const [pPolicyRequireLowerCase, setPPolicyRequireLowerCase] = useState(false);
     const [pPolicyRequireNumber, setPPolicyRequireNumber] = useState(false);
@@ -46,10 +47,18 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            const { mode, min_length, require_uppercase, require_lowercase, require_number, require_special } =
-                await completeResetPasswordProcess(processToken);
+            const {
+                mode,
+                min_length,
+                max_length,
+                require_uppercase,
+                require_lowercase,
+                require_number,
+                require_special,
+            } = await completeResetPasswordProcess(processToken);
             setPPolicyMode(mode);
             setPPolicyMinLength(min_length);
+            setPPolicyMaxLength(max_length);
             setPPolicyRequireLowerCase(require_lowercase);
             setPPolicyRequireUpperCase(require_uppercase);
             setPPolicyRequireNumber(require_number);
@@ -139,6 +148,7 @@ const ResetPasswordStep2 = function () {
                         value={password1}
                         mode={pPolicyMode}
                         minLength={pPolicyMinLength}
+                        maxLength={pPolicyMaxLength}
                         requireLowerCase={pPolicyRequireLowerCase}
                         requireUpperCase={pPolicyRequireUpperCase}
                         requireNumber={pPolicyRequireNumber}

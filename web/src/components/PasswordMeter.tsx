@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import { makeStyles } from "@material-ui/core";
 import classnames from "classnames";
+import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
 export interface Props {
@@ -13,6 +14,7 @@ export interface Props {
      **/
     mode: string;
     minLength: number;
+    maxLength: number;
     requireLowerCase: boolean;
     requireUpperCase: boolean;
     requireNumber: boolean;
@@ -24,6 +26,7 @@ const PasswordMeter = function (props: Props) {
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
+    const { t: translate } = useTranslation("Portal");
     const style = makeStyles((theme) => ({
         progressBar: {
             height: "5px",
@@ -41,7 +44,12 @@ const PasswordMeter = function (props: Props) {
             setMaxScores(4);
             if (password.length < props.minLength) {
                 setPasswordScore(0);
-                setFeedback(`Two short, minimun length is ${props.minLength} letters`);
+                setFeedback(translate("Two short, minimun length is {{len}} letters", { len: props.minLength }));
+                return;
+            }
+            if (password.length > props.maxLength) {
+                setPasswordScore(0);
+                setFeedback(translate("Two long, maximum length is {{len}} letters", { len: props.maxLength }));
                 return;
             }
             setFeedback("");
@@ -55,7 +63,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasLowercase) {
                     hits++;
                 } else {
-                    warning += "* Add some lowercase letter\n";
+                    warning += "* " + translate("Add some lowercase letter") + "\n";
                 }
             }
 
@@ -65,7 +73,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasUppercase) {
                     hits++;
                 } else {
-                    warning += "* Add some UPPERCASE letter\n";
+                    warning += "* " + translate("Add some UPPERCASE letter") + "\n";
                 }
             }
 
@@ -75,7 +83,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasNumber) {
                     hits++;
                 } else {
-                    warning += "* Add some Numb3rs\n";
+                    warning += "* " + translate("Add some Numbers") + "\n";
                 }
             }
 
@@ -85,7 +93,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasSpecial) {
                     hits++;
                 } else {
-                    warning += "* Add some $pecial!\n";
+                    warning += "* " + translate("Add some Special character") + "\n";
                 }
             }
             score += hits > 0 ? 1 : 0;
@@ -99,7 +107,7 @@ const PasswordMeter = function (props: Props) {
             setFeedback(feedback.warning);
             setPasswordScore(score);
         }
-    }, [props]);
+    }, [props, translate]);
 
     if (props.mode === "" || props.mode === "none") return <span></span>;
 
