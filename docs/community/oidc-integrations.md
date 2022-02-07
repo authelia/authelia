@@ -22,7 +22,8 @@ has_toc: false
 | MinIO          | `RELEASE.2021-11-09T03-21-45Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies] as groups in Authelia |
 | Nextcloud      | `22.1.0`                       | Tested using the `nextcloud-oidc-login` app - [Link](https://github.com/pulsejet/nextcloud-oidc-login)|
 | Wekan          | `5.41`                         | |
-| Portainer CE   | `2.6.1`                         | Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `sub` |
+| Portainer CE   | `2.6.1`                        | Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `sub` |
+| Bookstack      | `21.10`                        | |
 
 [MinIO policies]: https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy
 
@@ -41,3 +42,4 @@ If you do not find the application in the list below, you will need to search fo
 | Nextcloud     | `22.1.0` + `nextcloud-oidc-login` app | `<DOMAIN>/apps/oidc_login/oidc`                          | |
 | Wekan         | `5.41`                                | `<DOMAIN>/_oauth_oidc`                                   | |
 | Portainer CE  | `2.6.1`                               | `<DOMAIN>`                                               | |
+| Bookstack     | `21.10`                               | `<DOMAIN>/oidc/callback`                                 | |

@@ -65,7 +65,7 @@ func SecondFactorU2FSignGet(ctx *middlewares.AutheliaCtx) {
 		},
 	}
 
-	// Save the challenge and registration for use in next request
+	// Save the challenge and registration for use in next request.
 	userSession.U2FRegistration = &session.U2FRegistration{
 		KeyHandle: device.KeyHandle,
 		PublicKey: device.PublicKey,
