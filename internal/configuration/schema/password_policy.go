@@ -9,6 +9,7 @@ type PasswordPolicyConfiguration struct {
 	// 	ldap: uses classic rules, but the rules are fetched from ldap
 	Mode      string `koanf:"mode"`
 	MinLength int    `koanf:"min_length"`
+	MaxLength int    `koanf:"max_length"`
 	// MinScore set the minimal acceptable score for mode 'zxcvbn'
 	MinScore         int  `koanf:"min_score"`
 	RequireUppercase bool `koanf:"require_uppercase"`
@@ -21,5 +22,6 @@ type PasswordPolicyConfiguration struct {
 var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
 	Mode:      "none",
 	MinLength: 4,
+	MaxLength: 0,
 	MinScore:  0,
 }

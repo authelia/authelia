@@ -39,6 +39,10 @@ func ValidatePasswordPolicy(configuration *schema.PasswordPolicyConfiguration, v
 			validator.Push(fmt.Errorf("password_policy: min_length must be > 0"))
 		}
 
+		if configuration.MaxLength == 0 {
+			configuration.MaxLength = schema.DefaultPasswordPolicyConfiguration.MaxLength
+		}
+
 		configuration.MinScore = 0
 	}
 }

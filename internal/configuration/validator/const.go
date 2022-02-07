@@ -342,6 +342,7 @@ var ValidKeys = []string{
 	// Password Policy keys
 	"password_policy.mode",
 	"password_policy.min_length",
+	"password_policy.max_length",
 	"password_policy.min_score",
 	"password_policy.require_uppercase",
 	"password_policy.require_lowercase",

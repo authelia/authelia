@@ -106,9 +106,10 @@ password_policy:
   ##    Note that the zxcvbn option does not prohibit the user from using a weak password,
   ##    it only offers feedback about the strength of the password they are entering.
   ##    if you need to enforce password rules, you should use `mode=classic`
-  mode: none
+  mode: classic
   ## params applicable to mode=classic
   min_length: 8
+  max_length: 12
   require_uppercase: true
   require_lowercase: true
   require_number: true

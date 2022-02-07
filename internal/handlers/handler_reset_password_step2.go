@@ -67,49 +67,33 @@ func validatePassword(ctx *middlewares.AutheliaCtx, password string) error {
 	requireUppercase := ctx.Configuration.PasswordPolicy.RequireUppercase
 	requireNumber := ctx.Configuration.PasswordPolicy.RequireNumber
 	requireSpecial := ctx.Configuration.PasswordPolicy.RequireSpecial
+	minLength := ctx.Configuration.PasswordPolicy.MinLength
+	maxlength := ctx.Configuration.PasswordPolicy.MaxLength
+
+	var patterns []string
+
+	if (minLength > 0 && len(password) < minLength) || (maxlength > 0 && len(password) > maxlength) {
+		return errPasswordPolicyNoMet
+	}
 
 	if requireLowercase {
-		regexStr := "[a-z]+"
-		re, err := regexp.Compile(regexStr)
-
-		if err != nil {
-			return err
-		}
-
-		if found := re.MatchString(password); !found {
-			return errPasswordPolicyNoMet
-		}
+		patterns = append(patterns, "[a-z]+")
 	}
 
 	if requireUppercase {
-		regexStr := "[A-Z]+"
-		re, err := regexp.Compile(regexStr)
-
-		if err != nil {
-			return err
-		}
-
-		if found := re.MatchString(password); !found {
-			return errPasswordPolicyNoMet
-		}
+		patterns = append(patterns, "[A-Z]+")
 	}
 
 	if requireNumber {
-		regexStr := "[0-9]+"
-		re, err := regexp.Compile(regexStr)
-
-		if err != nil {
-			return err
-		}
-
-		if found := re.MatchString(password); !found {
-			return errPasswordPolicyNoMet
-		}
+		patterns = append(patterns, "[0-9]+")
 	}
 
 	if requireSpecial {
-		regexStr := "[^a-zA-Z0-9]+"
-		re, err := regexp.Compile(regexStr)
+		patterns = append(patterns, "[^a-zA-Z0-9]+")
+	}
+
+	for _, pattern := range patterns {
+		re, err := regexp.Compile(pattern)
 
 		if err != nil {
 			return err

@@ -56,6 +56,7 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 	policyResponse := PassworPolicyBody{
 		Mode:             ctx.Configuration.PasswordPolicy.Mode,
 		MinLength:        ctx.Configuration.PasswordPolicy.MinLength,
+		MaxLength:        ctx.Configuration.PasswordPolicy.MaxLength,
 		MinScore:         ctx.Configuration.PasswordPolicy.MinScore,
 		RequireLowercase: ctx.Configuration.PasswordPolicy.RequireLowercase,
 		RequireUppercase: ctx.Configuration.PasswordPolicy.RequireUppercase,
