@@ -512,7 +512,7 @@ does.
 _**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
 individual user. Please use the claim `preferred_username` instead._
 
-|     JWT Field      |   JWT Type    | Authelia Attribute |                  Description                  |
+|       Claim        |   JWT Type    | Authelia Attribute |                  Description                  |
 |:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
 |        sub         |    string     |      Username      |   The username the user used to login with    |
 |       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
@@ -531,15 +531,15 @@ individual user. Please use the claim `preferred_username` instead._
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
 
-| JWT Field |   JWT Type    | Authelia Attribute |      Description       |
-|:---------:|:-------------:|:------------------:|:----------------------:|
-|  groups   | array[string] |       Groups       | The users display name |
+| Claim  |   JWT Type    | Authelia Attribute |      Description       |
+|:------:|:-------------:|:------------------:|:----------------------:|
+| groups | array[string] |       Groups       | The users display name |
 
 ### email
 
 This scope includes the email information the authentication backend reports about the user in the token.
 
-|   JWT Field    |   JWT Type    | Authelia Attribute |                        Description                        |
+|     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
 |:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
 |     email      |    string     |      email[0]      |       The first email address in the list of emails       |
 | email_verified |     bool      |       _N/A_        | If the email is verified, assumed true for the time being |
@@ -549,9 +549,9 @@ This scope includes the email information the authentication backend reports abo
 
 This scope includes the profile information the authentication backend reports about the user in the token.
 
-| JWT Field | JWT Type | Authelia Attribute |      Description       |
-|:---------:|:--------:|:------------------:|:----------------------:|
-|   name    |  string  |    display_name    | The users display name |
+| Claim | JWT Type | Authelia Attribute |      Description       |
+|:-----:|:--------:|:------------------:|:----------------------:|
+| name  |  string  |    display_name    | The users display name |
 
 ## Endpoint Implementations
 
