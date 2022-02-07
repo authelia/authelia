@@ -66,7 +66,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 		require.NoError(s.T(), err)
 	}
 
-	// Enter the correct password and test the regulation lock out
+	// Enter the correct password and test the regulation lock out.
 	err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
 	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
@@ -76,7 +76,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 	time.Sleep(10 * time.Second)
 
-	// Enter the correct password and test a successful login
+	// Enter the correct password and test a successful login.
 	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
 	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")

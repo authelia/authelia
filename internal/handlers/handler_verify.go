@@ -73,7 +73,7 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 		// deduce the access is forbidden
 		// For anonymous users though, we cannot be sure that she
 		// could not be granted the rights to access the resource. Consequently
-		// for anonymous users we send Unauthorized instead of Forbidden
+		// for anonymous users we send Unauthorized instead of Forbidden.
 		return Forbidden
 	case level == authorization.OneFactor && authLevel >= authentication.OneFactor,
 		level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
@@ -100,7 +100,7 @@ func verifyBasicAuth(ctx *middlewares.AutheliaCtx, header, auth []byte) (usernam
 
 	// If the user is not correctly authenticated, send a 401.
 	if !authenticated {
-		// Request Basic Authentication otherwise
+		// Request Basic Authentication otherwise.
 		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("user %s is not authenticated", username)
 	}
 
@@ -391,7 +391,7 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (r
 			refresh = true
 
 			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
-				// Skip Error Check since validator checks it
+				// Skip Error Check since validator checks it.
 				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
 			} else {
 				refreshInterval = schema.RefreshIntervalAlways

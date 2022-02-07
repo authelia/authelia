@@ -33,13 +33,13 @@ func (s *FirstFactorSuite) TearDownTest() {
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPost(nil)(s.mock.Ctx)
 
-	// No body
+	// No body.
 	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
-	// Missing password
+	// Missing password.
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)

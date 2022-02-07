@@ -10,11 +10,11 @@ import (
 // ValidateRegulation validates and update regulator configuration.
 func ValidateRegulation(configuration *schema.RegulationConfiguration, validator *schema.StructValidator) {
 	if configuration.FindTime == "" {
-		configuration.FindTime = schema.DefaultRegulationConfiguration.FindTime // 2 min
+		configuration.FindTime = schema.DefaultRegulationConfiguration.FindTime // 2 min.
 	}
 
 	if configuration.BanTime == "" {
-		configuration.BanTime = schema.DefaultRegulationConfiguration.BanTime // 5 min
+		configuration.BanTime = schema.DefaultRegulationConfiguration.BanTime // 5 min.
 	}
 
 	findTime, err := utils.ParseDurationString(configuration.FindTime)
