@@ -339,7 +339,7 @@ var ValidKeys = []string{
 	"ntp.disable_startup_check",
 	"ntp.disable_failure",
 
-	// Password Policy keys
+	// Password Policy keys.
 	"password_policy.mode",
 	"password_policy.min_length",
 	"password_policy.max_length",
