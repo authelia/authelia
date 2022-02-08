@@ -24,6 +24,8 @@ server:
   tls:
     key: ""
     certificate: ""
+  headers:
+    csp_template: ""
 ```
 
 ## Options
@@ -208,6 +210,23 @@ required: situational
 </div>
 
 The path to the public certificate for TLS connections. Must be in DER base64/PEM format.
+
+
+### headers
+
+#### csp_template
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: ""
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This customizes the value of the Content-Security-Policy header. It will replace all instances of `${NONCE}` with the 
+nonce value of the Authelia react bundle. This is an advanced option to customize and you should do sufficient research 
+about how browsers utilize and understand this header before attempting to customize it.
 
 ## Additional Notes
 
