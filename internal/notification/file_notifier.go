@@ -38,22 +38,12 @@ func (n *FileNotifier) StartupCheck() (err error) {
 		}
 	}
 
-	if err := os.WriteFile(n.path, []byte(""), fileNotifierMode); err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(n.path, []byte(""), fileNotifierMode)
 }
 
 // Send send a identity verification link to a user.
 func (n *FileNotifier) Send(recipient, subject, body, _ string) error {
 	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, body)
 
-	err := os.WriteFile(n.path, []byte(content), fileNotifierMode)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(n.path, []byte(content), fileNotifierMode)
 }
