@@ -243,11 +243,7 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 		return err
 	}
 
-	if err := n.client.Reset(); err != nil {
-		return err
-	}
-
-	return nil
+	return n.client.Reset()
 }
 
 // Send is used to send an email to a recipient.
