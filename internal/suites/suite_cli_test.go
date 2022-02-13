@@ -66,13 +66,13 @@ func (s *CLISuite) TestShouldPrintVersion() {
 }
 
 func (s *CLISuite) TestShouldValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "/config/configuration.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Configuration parsed successfully without errors")
 }
 
 func (s *CLISuite) TestShouldFailValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "/config/invalid.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config", "/config/invalid.yml"})
 	s.Assert().NotNil(err)
 	s.Assert().Contains(output, "Error Loading Configuration: stat /config/invalid.yml: no such file or directory")
 }

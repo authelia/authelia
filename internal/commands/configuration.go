@@ -12,8 +12,12 @@ import (
 )
 
 // cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
-func cmdWithConfigFlags(cmd *cobra.Command) {
-	cmd.Flags().StringSliceP("config", "c", []string{}, "Configuration files")
+func cmdWithConfigFlags(cmd *cobra.Command, persistent bool, configs []string) {
+	if persistent {
+		cmd.PersistentFlags().StringSliceP("config", "c", configs, "configuration files to load")
+	} else {
+		cmd.Flags().StringSliceP("config", "c", configs, "configuration files to load")
+	}
 }
 
 var config *schema.Configuration
