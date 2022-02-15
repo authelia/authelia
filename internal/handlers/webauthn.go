@@ -28,7 +28,7 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 	return user, nil
 }
 
-func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid string, err error) {
+func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	config := &webauthn.Config{
 		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
 
@@ -42,16 +42,13 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, appid stri
 
 	u, err := ctx.GetOriginalURL()
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	config.RPID = u.Hostname()
 	config.RPOrigin = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
-	appid = fmt.Sprintf("%s://%s", u.Scheme, u.Hostname())
 
-	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s AppID %s and Origin %s", config.RPID, appid, config.RPOrigin)
+	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origin %s", config.RPID, config.RPOrigin)
 
-	w, err = webauthn.New(config)
-
-	return w, appid, err
+	return webauthn.New(config)
 }

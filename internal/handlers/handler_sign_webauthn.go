@@ -14,15 +14,14 @@ import (
 // SecondFactorWebauthnAssertionGET handler starts the assertion ceremony.
 func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
-		w     *webauthn.WebAuthn
-		user  *models.WebauthnUser
-		appid string
-		err   error
+		w    *webauthn.WebAuthn
+		user *models.WebauthnUser
+		err  error
 	)
 
 	userSession := ctx.GetSession()
 
-	if w, appid, err = getWebauthn(ctx); err != nil {
+	if w, err = getWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to configire %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -45,7 +44,7 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	extensions := make(map[string]interface{})
 
 	if user.HasFIDOU2F() {
-		extensions["appid"] = appid
+		extensions["appid"] = w.Config.RPOrigin
 	}
 
 	if len(extensions) != 0 {
@@ -98,7 +97,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 
-	if w, _, err = getWebauthn(ctx); err != nil {
+	if w, err = getWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to configire %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)

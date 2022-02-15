@@ -38,7 +38,7 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 
 	userSession := ctx.GetSession()
 
-	if w, _, err = getWebauthn(ctx); err != nil {
+	if w, err = getWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -94,7 +94,7 @@ func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 
-	if w, _, err = getWebauthn(ctx); err != nil {
+	if w, err = getWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to configire %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
