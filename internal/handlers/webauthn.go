@@ -29,24 +29,30 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 }
 
 func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
-	config := &webauthn.Config{
-		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
-
-		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
-		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			UserVerification: ctx.Configuration.Webauthn.UserVerification,
-		},
-
-		Timeout: ctx.Configuration.Webauthn.Timeout,
-	}
-
 	u, err := ctx.GetOriginalURL()
 	if err != nil {
 		return nil, err
 	}
 
-	config.RPID = u.Hostname()
-	config.RPOrigin = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+	rpID := u.Hostname()
+	origin := fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+
+	config := &webauthn.Config{
+		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
+		RPID:          rpID,
+		RPOrigin:      origin,
+		RPIcon:        "",
+
+		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			AuthenticatorAttachment: protocol.CrossPlatform,
+			UserVerification:        ctx.Configuration.Webauthn.UserVerification,
+			RequireResidentKey:      protocol.ResidentKeyUnrequired(),
+		},
+
+		Timeout: ctx.Configuration.Webauthn.Timeout,
+		Debug:   false,
+	}
 
 	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origin %s", config.RPID, config.RPOrigin)
 
