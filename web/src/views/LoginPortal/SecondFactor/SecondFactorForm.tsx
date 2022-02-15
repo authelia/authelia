@@ -18,7 +18,7 @@ import { UserInfo } from "@models/UserInfo";
 import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
-import { browserSupportsWebauthn } from "@services/Webauthn";
+import { isWebauthnSupported } from "@services/Webauthn";
 import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelectionDialog";
 import OneTimePasswordMethod from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotificationMethod";
@@ -44,7 +44,7 @@ const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation("Portal");
 
     useEffect(() => {
-        if (browserSupportsWebauthn()) {
+        if (isWebauthnSupported()) {
             setWebauthnSupported(true);
             console.log("Webauthn support detected.");
         } else {

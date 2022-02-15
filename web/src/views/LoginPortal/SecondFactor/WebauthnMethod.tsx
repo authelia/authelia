@@ -9,12 +9,12 @@ import LinearProgressBar from "@components/LinearProgressBar";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useTimer } from "@hooks/Timer";
+import { AssertionResult } from "@models/Webauthn";
 import { AuthenticationLevel } from "@services/State";
 import {
-    AssertionResult,
-    getWebauthnAssertionChallenge,
-    getWebauthnAssertionPublicKeyCredential,
-    postWebauthnAssertionChallengeResponse,
+    getAssertionPublicKeyCredentialResult,
+    getAssertionRequestOptions,
+    postAssertionPublicKeyCredentialResult,
 } from "@services/Webauthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
@@ -56,15 +56,16 @@ const WebauthnMethod = function (props: Props) {
         try {
             triggerTimer();
             setState(State.WaitTouch);
-            const challengeOptions = await getWebauthnAssertionChallenge();
+            const assertionRequestResponse = await getAssertionRequestOptions();
 
-            if (challengeOptions === undefined) {
+            if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
                 setState(State.Failure);
                 onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
+
                 return;
             }
 
-            const result = await getWebauthnAssertionPublicKeyCredential(challengeOptions);
+            const result = await getAssertionPublicKeyCredentialResult(assertionRequestResponse.options);
 
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
@@ -100,9 +101,10 @@ const WebauthnMethod = function (props: Props) {
                 return;
             }
 
-            if (result.credential === undefined) {
+            if (result.credential == null) {
                 onSignInErrorCallback(new Error("The browser did not respond with the expected attestation data."));
                 setState(State.Failure);
+
                 return;
             }
 
@@ -110,9 +112,9 @@ const WebauthnMethod = function (props: Props) {
 
             setState(State.InProgress);
 
-            const response = await postWebauthnAssertionChallengeResponse(result.credential, redirectionURL);
+            const response = await postAssertionPublicKeyCredentialResult(result.credential, redirectionURL);
 
-            if (response.data.status === "OK") {
+            if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
                 return;
             }

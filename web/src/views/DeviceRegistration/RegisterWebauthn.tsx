@@ -6,8 +6,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
+import { AttestationResult } from "@models/Webauthn";
 import { FirstFactorPath } from "@services/Api";
-import { AttestationResult, performWebauthnAttestationCeremony } from "@services/Webauthn";
+import { performAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterWebauthn = function () {
@@ -30,7 +31,7 @@ const RegisterWebauthn = function () {
         try {
             setRegistrationInProgress(true);
 
-            const result = await performWebauthnAttestationCeremony(processToken);
+            const result = await performAttestationCeremony(processToken);
 
             setRegistrationInProgress(false);
 
