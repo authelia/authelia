@@ -123,10 +123,12 @@ webauthn:
   ## The display name shown to the user.
   display_name: Authelia
 
-  ## Attestation preference controls if we collect the AAGUID from the device.
-  attestation_preference: indirect
+  ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
+  ## Options are none, indirect, direct.
+  conveyance_preference: indirect
 
   ## User verification controls if the user must make a gesture or action to confirm they are present.
+  ## Options are required, preferred, discouraged.
   user_verification: preferred
 
 ##

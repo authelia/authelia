@@ -9,8 +9,8 @@ type WebauthnConfiguration struct {
 	DisplayName string `koanf:"display_name"`
 	Timeout     int    `koanf:"timeout"`
 
-	AttestationPreference protocol.ConveyancePreference        `koanf:"attestation_preference"`
-	UserVerification      protocol.UserVerificationRequirement `koanf:"user_verification"`
+	ConveyancePreference protocol.ConveyancePreference        `koanf:"conveyance_preference"`
+	UserVerification     protocol.UserVerificationRequirement `koanf:"user_verification"`
 }
 
 // WebauthnAuthenticatorSelectionConfiguration represents the authenticator selection.
@@ -23,6 +23,6 @@ var DefaultWebauthnConfiguration = WebauthnConfiguration{
 	DisplayName: "Authelia",
 	Timeout:     60000,
 
-	AttestationPreference: protocol.PreferIndirectAttestation,
-	UserVerification:      protocol.VerificationPreferred,
+	ConveyancePreference: protocol.PreferIndirectAttestation,
+	UserVerification:     protocol.VerificationPreferred,
 }

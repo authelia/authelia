@@ -14,8 +14,8 @@ func ValidateWebauthn(configuration *schema.Configuration, validator *schema.Str
 		configuration.Webauthn.Timeout = schema.DefaultWebauthnConfiguration.Timeout
 	}
 
-	if configuration.Webauthn.AttestationPreference == "" {
-		configuration.Webauthn.AttestationPreference = schema.DefaultWebauthnConfiguration.AttestationPreference
+	if configuration.Webauthn.ConveyancePreference == "" {
+		configuration.Webauthn.ConveyancePreference = schema.DefaultWebauthnConfiguration.ConveyancePreference
 	}
 
 	if configuration.Webauthn.UserVerification == "" {

@@ -32,7 +32,7 @@ func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 	config := &webauthn.Config{
 		RPDisplayName: ctx.Configuration.Webauthn.DisplayName,
 
-		AttestationPreference: ctx.Configuration.Webauthn.AttestationPreference,
+		AttestationPreference: ctx.Configuration.Webauthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			UserVerification: ctx.Configuration.Webauthn.UserVerification,
 		},

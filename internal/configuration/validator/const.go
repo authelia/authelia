@@ -183,7 +183,7 @@ var ValidKeys = []string{
 	"webauthn.display_name",
 	"webauthn.timeout",
 	"webauthn.debug",
-	"webauthn.attestation_preference",
+	"webauthn.conveyance_preference",
 	"webauthn.user_verification",
 
 	// DUO API Keys.
