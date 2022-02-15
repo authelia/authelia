@@ -183,6 +183,12 @@ connection is over TLS. As SMTPS is deprecated, the only way to configure this i
 to automatically consider it to be a SMTPS connection. As such your SMTP server, if not offering SMTPS, should not be
 listening on port 465 which is bad practice anyway.
 
+## Protection against open redirects
+
+Authelia protects your users against open redirect attacks by always checking if redirection URLs are pointing
+to a subdomain of the domain protected by Authelia. This prevents phishing campaigns tricking users into visiting
+infected websites leveraging legit links.
+
 ## Additional security
 
 ### Reset Password

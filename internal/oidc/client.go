@@ -54,8 +54,8 @@ func (c InternalClient) GetConsentResponseBody(session *session.OIDCWorkflowSess
 	}
 
 	if session != nil {
-		body.Scopes = scopeNamesToScopes(session.RequestedScopes)
-		body.Audience = audienceNamesToAudience(session.RequestedAudience)
+		body.Scopes = session.RequestedScopes
+		body.Audience = session.RequestedAudience
 	}
 
 	return body
