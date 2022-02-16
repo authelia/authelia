@@ -292,9 +292,9 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, config models.TOTPConfiguration) (err error) {
 	switch config.ID {
 	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignInByUsername, config.Used, config.ID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignInByUsername, config.Used, config.Username)
 	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, config.Used, config.Username)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, config.Used, config.ID)
 	}
 
 	if err != nil {
