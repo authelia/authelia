@@ -96,24 +96,12 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 
 // WebAuthnCredentialDescriptors decodes the users credentials into protocol.CredentialDescriptor's.
 func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.CredentialDescriptor) {
-	descriptors = make([]protocol.CredentialDescriptor, len(w.Devices))
+	credentials := w.WebAuthnCredentials()
 
-	for i, device := range w.Devices {
-		descriptor := protocol.CredentialDescriptor{
-			Type:         protocol.PublicKeyCredentialType,
-			CredentialID: device.KID.Bytes(),
-		}
+	descriptors = make([]protocol.CredentialDescriptor, len(credentials))
 
-		for _, t := range strings.Split(device.Transport, ",") {
-			transport := protocol.AuthenticatorTransport(t)
-
-			switch transport {
-			case protocol.Internal, protocol.USB, protocol.NFC, protocol.BLE:
-				descriptor.Transport = append(descriptor.Transport, transport)
-			}
-		}
-
-		descriptors[i] = descriptor
+	for i, credential := range credentials {
+		descriptors[i] = credential.Descriptor()
 	}
 
 	return descriptors

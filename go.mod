@@ -31,7 +31,6 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/tstranex/u2f v1.0.0
 	github.com/valyala/fasthttp v1.32.0
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
@@ -43,7 +42,7 @@ require (
 	github.com/andybalholm/brotli v1.0.2 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/cloudflare/cfssl v1.4.1 // indirect
+	github.com/cloudflare/cfssl v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -101,7 +100,7 @@ require (
 	go.opentelemetry.io/otel v0.20.0 // indirect
 	go.opentelemetry.io/otel/metric v0.20.0 // indirect
 	go.opentelemetry.io/otel/trace v0.20.0 // indirect
-	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
+	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
@@ -115,7 +114,7 @@ require (
 )
 
 replace (
-	github.com/duo-labs/webauthn => github.com/authelia/webauthn v0.0.0-20220121235411-48b845773323
+	github.com/duo-labs/webauthn => github.com/authelia/webauthn v0.0.0-20220216100910-de134f84fbaa
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.9
 	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
 )
