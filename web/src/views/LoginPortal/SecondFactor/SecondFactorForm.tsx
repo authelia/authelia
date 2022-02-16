@@ -44,20 +44,7 @@ const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation("Portal");
 
     useEffect(() => {
-        if (isWebauthnSupported()) {
-            setWebauthnSupported(true);
-            console.log("Webauthn support detected.");
-        } else {
-            console.error("Browser does not support Webauthn.");
-        }
-    }, [setWebauthnSupported]);
-
-    useEffect(() => {
-        if (window.PublicKeyCredential && typeof window.PublicKeyCredential === "function") {
-            setWebauthnSupported(true);
-        } else {
-            console.error("Webauthn not supported");
-        }
+        setWebauthnSupported(isWebauthnSupported());
     }, [setWebauthnSupported]);
 
     const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
