@@ -36,6 +36,7 @@ module.exports = {
                 "models",
                 "notification",
                 "npm",
+                "ntp",
                 "oidc",
                 "regulation",
                 "renovate",

@@ -48,6 +48,13 @@
         "Username": "Username",
         "You must open the link from the same device and browser that initiated the registration process": "You must open the link from the same device and browser that initiated the registration process",
         "You're being signed out and redirected": "You're being signed out and redirected",
-        "Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements."
+        "Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements.",
+        "Use OpenID to verify your identity": "Use OpenID to verify your identity",
+        "Access your display name": "Access your display name",
+        "Access your group membership": "Access your group membership",
+        "Access your email addresses": "Access your email addresses",
+        "Accept": "Accept",
+        "Deny": "Deny",
+        "The above application is requesting the following permissions": "The above application is requesting the following permissions"
     }
 }
