@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS webauthn_devices (
     id SERIAL,
-    ip VARCHAR(39) NOT NULL,
     created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     used TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
     rpid TEXT,
@@ -18,8 +17,8 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     UNIQUE (kid)
 );
 
-INSERT INTO webauthn_devices (id, ip, rpid, username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
-SELECT id, '0.0.0.0', '', username, description, ENCODE(key_handle::BYTEA, 'base64'), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0, FALSE
+INSERT INTO webauthn_devices (id, rpid, username, description, kid, public_key, attestation_type, aaguid, sign_count)
+SELECT id, '', username, description, ENCODE(key_handle::BYTEA, 'base64'), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0
 FROM u2f_devices;
 
 UPDATE user_preferences
@@ -34,7 +33,7 @@ ALTER TABLE totp_configurations RENAME TO _bkp_UP_V0002_totp_configurations;
 CREATE TABLE IF NOT EXISTS totp_configurations (
     id SERIAL,
     created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ip VARCHAR(39) NOT NULL,
+    used TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
     algorithm VARCHAR(6) NOT NULL DEFAULT 'SHA1',
@@ -45,8 +44,8 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     UNIQUE (username)
 );
 
-INSERT INTO totp_configurations (id, ip, username, issuer, algorithm, digits, period, secret)
-SELECT id, '0.0.0.0', username, issuer, algorithm, digits, period, secret
+INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period, secret)
+SELECT id, username, issuer, algorithm, digits, period, secret
 FROM _bkp_UP_V0002_totp_configurations;
 
 DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;

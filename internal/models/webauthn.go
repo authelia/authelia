@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/hex"
-	"net"
 	"strings"
 	"time"
 
@@ -108,7 +107,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 }
 
 // NewWebauthnDeviceFromCredential creates a WebauthnDevice from a webauthn.Credential.
-func NewWebauthnDeviceFromCredential(rpid, username, description string, ip net.IP, credential *webauthn.Credential) (device WebauthnDevice) {
+func NewWebauthnDeviceFromCredential(rpid, username, description string, credential *webauthn.Credential) (device WebauthnDevice) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
@@ -118,7 +117,6 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, ip net.
 	device = WebauthnDevice{
 		RPID:            rpid,
 		Username:        username,
-		IP:              NewIP(ip),
 		Created:         time.Now(),
 		Description:     description,
 		KID:             NewBase64(credential.ID),
@@ -137,7 +135,6 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, ip net.
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
 	ID              int        `db:"id"`
-	IP              IP         `db:"ip"`
 	Created         time.Time  `db:"created"`
 	Used            *time.Time `db:"used"`
 	RPID            string     `db:"rpid"`
@@ -153,7 +150,9 @@ type WebauthnDevice struct {
 }
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.
-func (w *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, signCount uint32) {
+func (w *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
+	w.Used = &now
+
 	w.SignCount = signCount
 
 	if w.RPID != "" {

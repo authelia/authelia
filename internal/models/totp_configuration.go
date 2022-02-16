@@ -8,15 +8,15 @@ import (
 
 // TOTPConfiguration represents a users TOTP configuration row in the database.
 type TOTPConfiguration struct {
-	ID        int       `db:"id" json:"-"`
-	Created   time.Time `db:"created" json:"-"`
-	IP        IP        `db:"ip" json:"-"`
-	Username  string    `db:"username" json:"-"`
-	Issuer    string    `db:"issuer" json:"-"`
-	Algorithm string    `db:"algorithm" json:"-"`
-	Digits    uint      `db:"digits" json:"digits"`
-	Period    uint      `db:"period" json:"period"`
-	Secret    []byte    `db:"secret" json:"-"`
+	ID        int        `db:"id" json:"-"`
+	Created   time.Time  `db:"created" json:"-"`
+	Used      *time.Time `db:"used" json:"-"`
+	Username  string     `db:"username" json:"-"`
+	Issuer    string     `db:"issuer" json:"-"`
+	Algorithm string     `db:"algorithm" json:"-"`
+	Digits    uint       `db:"digits" json:"digits"`
+	Period    uint       `db:"period" json:"period"`
+	Secret    []byte     `db:"secret" json:"-"`
 }
 
 // URI shows the configuration in the URI representation.
@@ -36,4 +36,9 @@ func (c TOTPConfiguration) URI() (uri string) {
 	}
 
 	return u.String()
+}
+
+// UpdateSignInInfo adjusts the values of the TOTPConfiguration after a sign in.
+func (c *TOTPConfiguration) UpdateSignInInfo(now time.Time) {
+	c.Used = &now
 }

@@ -52,6 +52,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any())
+
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -86,6 +90,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any())
+
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token: "abc",
 	})
@@ -116,10 +124,15 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any())
+
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
 		TargetURL: "https://mydomain.local",
 	})
+
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -131,7 +144,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 	s.mock.StorageMock.EXPECT().
-		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+		LoadTOTPConfiguration(s.mock.Ctx, "john").
 		Return(&models.TOTPConfiguration{Secret: []byte("secret")}, nil)
 
 	s.mock.StorageMock.
@@ -144,6 +157,10 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 			Type:       regulation.AuthTypeTOTP,
 			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
 		}))
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any())
 
 	s.mock.TOTPMock.EXPECT().
 		Validate(gomock.Eq("abc"), gomock.Eq(&models.TOTPConfiguration{Secret: []byte("secret")})).
@@ -182,6 +199,10 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 	s.mock.TOTPMock.EXPECT().
 		Validate(gomock.Eq("abc"), gomock.Eq(&config)).
 		Return(true, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any())
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token: "abc",

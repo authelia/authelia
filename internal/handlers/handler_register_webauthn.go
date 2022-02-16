@@ -126,7 +126,7 @@ func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := models.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", ctx.RemoteIP(), credential)
+	device := models.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)

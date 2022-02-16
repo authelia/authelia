@@ -1,7 +1,6 @@
 package totp
 
 import (
-	"net"
 	"time"
 
 	"github.com/pquerna/otp"
@@ -33,7 +32,7 @@ type TimeBased struct {
 }
 
 // GenerateCustom generates a TOTP with custom options.
-func (p TimeBased) GenerateCustom(username string, ip net.IP, algorithm string, digits, period, secretSize uint) (config *models.TOTPConfiguration, err error) {
+func (p TimeBased) GenerateCustom(username string, algorithm string, digits, period, secretSize uint) (config *models.TOTPConfiguration, err error) {
 	var key *otp.Key
 
 	opts := totp.GenerateOpts{
@@ -51,7 +50,6 @@ func (p TimeBased) GenerateCustom(username string, ip net.IP, algorithm string, 
 
 	config = &models.TOTPConfiguration{
 		Created:   time.Now(),
-		IP:        models.NewIP(ip),
 		Username:  username,
 		Issuer:    p.config.Issuer,
 		Algorithm: algorithm,
@@ -64,8 +62,8 @@ func (p TimeBased) GenerateCustom(username string, ip net.IP, algorithm string, 
 }
 
 // Generate generates a TOTP with default options.
-func (p TimeBased) Generate(username string, ip net.IP) (config *models.TOTPConfiguration, err error) {
-	return p.GenerateCustom(username, ip, p.config.Algorithm, p.config.Digits, p.config.Period, 32)
+func (p TimeBased) Generate(username string) (config *models.TOTPConfiguration, err error) {
+	return p.GenerateCustom(username, p.config.Algorithm, p.config.Digits, p.config.Period, 32)
 }
 
 // Validate the token against the given configuration.

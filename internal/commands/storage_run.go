@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 
@@ -222,7 +221,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-	if c, err = totpProvider.Generate(args[0], net.ParseIP("127.0.0.1")); err != nil {
+	if c, err = totpProvider.Generate(args[0]); err != nil {
 		return err
 	}
 

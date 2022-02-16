@@ -42,8 +42,10 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectTOTPConfig:  fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
 		sqlSelectTOTPConfigs: fmt.Sprintf(queryFmtSelectTOTPConfigurations, tableTOTPConfigurations),
 
-		sqlUpdateTOTPConfigSecret:           fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
-		sqlUpdateTOTPConfigSecretByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
+		sqlUpdateTOTPConfigSecret:                 fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
+		sqlUpdateTOTPConfigSecretByUsername:       fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
+		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
+		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
 
 		sqlUpsertWebauthnDevice:            fmt.Sprintf(queryFmtUpsertWebauthnDevice, tableWebauthnDevices),
 		sqlSelectWebauthnDevices:           fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
@@ -52,7 +54,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateWebauthnDevicePublicKey:              fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
 		sqlUpdateWebauthnDevicePublicKeyByUsername:    fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignIn:           fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
-		sqlUpdateWebauthnDeviceRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
+		sqlUpdateWebauthnDeviceRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignInByUsername, tableWebauthnDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
@@ -102,8 +104,10 @@ type SQLProvider struct {
 	sqlSelectTOTPConfig  string
 	sqlSelectTOTPConfigs string
 
-	sqlUpdateTOTPConfigSecret           string
-	sqlUpdateTOTPConfigSecretByUsername string
+	sqlUpdateTOTPConfigSecret                 string
+	sqlUpdateTOTPConfigSecretByUsername       string
+	sqlUpdateTOTPConfigRecordSignIn           string
+	sqlUpdateTOTPConfigRecordSignInByUsername string
 
 	// Table: webauthn_devices.
 	sqlUpsertWebauthnDevice            string
@@ -275,10 +279,26 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
-		config.Created, config.IP,
+		config.Created, config.Used,
 		config.Username, config.Issuer,
 		config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
 		return fmt.Errorf("error upserting TOTP configuration for user '%s': %w", config.Username, err)
+	}
+
+	return nil
+}
+
+// UpdateTOTPConfigurationSignIn updates a registered Webauthn devices sign in information.
+func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, config models.TOTPConfiguration) (err error) {
+	switch config.ID {
+	case 0:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignInByUsername, config.Used, config.ID)
+	default:
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, config.Used, config.Username)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error updating TOTP configuration for user '%s': %w", config.Username, err)
 	}
 
 	return nil
@@ -355,7 +375,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
-		device.IP, device.Created, device.Used,
+		device.Created, device.Used,
 		device.RPID, device.Username, device.Description,
 		device.KID, device.PublicKey,
 		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,
@@ -370,9 +390,9 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, device models.WebauthnDevice) (err error) {
 	switch device.ID {
 	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignInByUsername, device.RPID, device.SignCount, device.CloneWarning, device.Username, device.KID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignInByUsername, device.RPID, device.Used, device.SignCount, device.CloneWarning, device.Username, device.KID)
 	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, device.RPID, device.SignCount, device.CloneWarning, device.ID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, device.RPID, device.Used, device.SignCount, device.CloneWarning, device.ID)
 	}
 
 	if err != nil {

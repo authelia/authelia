@@ -109,7 +109,6 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		assertionResponse *protocol.ParsedCredentialAssertionData
 		credential        *webauthn.Credential
 		user              *models.WebauthnUser
-		saved             bool
 	)
 
 	if assertionResponse, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {
@@ -136,21 +135,23 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var found bool
+
 	for _, device := range user.Devices {
 		if bytes.Equal(device.KID.Bytes(), credential.ID) {
-			device.UpdateSignInInfo(w.Config, credential.Authenticator.SignCount)
+			device.UpdateSignInInfo(w.Config, ctx.Clock.Now(), credential.Authenticator.SignCount)
+
+			found = true
 
 			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignIn(ctx, device); err != nil {
 				ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 			}
 
-			saved = true
-
 			break
 		}
 	}
 
-	if !saved {
+	if !found {
 		ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s' device '%x' count '%d': unable to find device", regulation.AuthTypeWebauthn, userSession.Username, credential.ID, credential.Authenticator.SignCount)
 	}
 
