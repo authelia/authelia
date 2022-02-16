@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     UNIQUE (kid)
 );
 
-INSERT INTO webauthn_devices (id, ip, username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
-SELECT id, '0.0.0.0', username, description, ENCODE(key_handle::BYTEA, 'base64'), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0, FALSE
+INSERT INTO webauthn_devices (id, ip, rpid, username, description, kid, public_key, attestation_type, aaguid, sign_count, clone_warning)
+SELECT id, '0.0.0.0', '', username, description, ENCODE(key_handle::BYTEA, 'base64'), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0, FALSE
 FROM u2f_devices;
 
 UPDATE user_preferences
