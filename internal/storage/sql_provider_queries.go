@@ -112,13 +112,13 @@ const (
 
 const (
 	queryFmtSelectWebauthnDevices = `
-		SELECT id, ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		SELECT id, ip, created, used, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
 	queryFmtSelectWebauthnDevicesByUsername = `
-		SELECT id, ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		SELECT id, ip, created, used, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
 		FROM %s
 		WHERE username = ?;`
 
@@ -132,25 +132,31 @@ const (
 		SET public_key = ?
 		WHERE username = ? AND kid = ?;`
 
-	queryFmtUpdateWebauthnDeviceSignCount = `
+	queryFmtUpdateWebauthnDeviceRecordSignIn = `
 		UPDATE %s
-		SET used = CURRENT_TIMESTAMP, sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		SET 
+			rpid = CASE rpid WHEN '' THEN ? ELSE rpid END,
+			used = CURRENT_TIMESTAMP, sign_count = ?,
+			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
-	queryFmtUpdateUpdateWebauthnDeviceSignCountByUsername = `
+	queryFmtUpdateUpdateWebauthnDeviceRecordSignIn = `
 		UPDATE %s
-		SET used = CURRENT_TIMESTAMP, sign_count = ?, clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		SET 
+			rpid = CASE rpid WHEN '' THEN ? ELSE rpid END,
+			used = CURRENT_TIMESTAMP, sign_count = ?,
+			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE username = ? AND kid = ?;`
 
 	queryFmtUpsertWebauthnDevice = `
-		REPLACE INTO %s (ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (ip, created, used, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertWebauthnDevice = `
-		INSERT INTO %s (ip, created, used, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		INSERT INTO %s (ip, created, used, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 			ON CONFLICT (username, description)
-			DO UPDATE SET ip = $1, created = $2, used = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
+			DO UPDATE SET ip = $1, created = $2, used = $3, rpid = $4, kid = $7, public_key = $8, attestation_type = $9, transport = $10, aaguid = $11, sign_count = $12, clone_warning = $13;`
 )
 
 const (

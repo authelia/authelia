@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
     username VARCHAR(100) NOT NULL,
     auth_type VARCHAR(8) NOT NULL DEFAULT '1FA',
     remote_ip VARCHAR(39) NULL DEFAULT NULL,
-    request_uri TEXT NOT NULL,
+    request_uri TEXT,
     request_method VARCHAR(8) NOT NULL DEFAULT '',
     PRIMARY KEY (id)
 );

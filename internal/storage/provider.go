@@ -27,7 +27,7 @@ type Provider interface {
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
 
 	SaveWebauthnDevice(ctx context.Context, device models.WebauthnDevice) (err error)
-	UpdateWebauthnDeviceSignCount(ctx context.Context, device models.WebauthnDevice) (err error)
+	UpdateWebauthnDeviceSignIn(ctx context.Context, device models.WebauthnDevice) (err error)
 	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []models.WebauthnDevice, err error)
 	LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []models.WebauthnDevice, err error)
 

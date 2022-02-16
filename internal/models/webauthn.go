@@ -11,6 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	attestationTypeFIDOU2F = "fido-u2f"
+)
+
 // WebauthnUser is an object to represent a user for the Webauthn lib.
 type WebauthnUser struct {
 	Username    string
@@ -21,7 +25,7 @@ type WebauthnUser struct {
 // HasFIDOU2F returns true if the user has any attestation type `fido-u2f` devices.
 func (w WebauthnUser) HasFIDOU2F() bool {
 	for _, c := range w.Devices {
-		if c.AttestationType == "fido-u2f" {
+		if c.AttestationType == attestationTypeFIDOU2F {
 			return true
 		}
 	}
@@ -116,7 +120,7 @@ func (w WebauthnUser) WebAuthnCredentialDescriptors() (descriptors []protocol.Cr
 }
 
 // NewWebauthnDeviceFromCredential creates a WebauthnDevice from a webauthn.Credential.
-func NewWebauthnDeviceFromCredential(username, description string, ip net.IP, credential *webauthn.Credential) (device WebauthnDevice) {
+func NewWebauthnDeviceFromCredential(rpid, username, description string, ip net.IP, credential *webauthn.Credential) (device WebauthnDevice) {
 	transport := make([]string, len(credential.Transport))
 
 	for i, t := range credential.Transport {
@@ -124,6 +128,7 @@ func NewWebauthnDeviceFromCredential(username, description string, ip net.IP, cr
 	}
 
 	device = WebauthnDevice{
+		RPID:            rpid,
 		Username:        username,
 		IP:              NewIP(ip),
 		Created:         time.Now(),
@@ -147,6 +152,7 @@ type WebauthnDevice struct {
 	IP              IP         `db:"ip"`
 	Created         time.Time  `db:"created"`
 	Used            *time.Time `db:"used"`
+	RPID            string     `db:"rpid"`
 	Username        string     `db:"username"`
 	Description     string     `db:"description"`
 	KID             Base64     `db:"kid"`
@@ -156,4 +162,20 @@ type WebauthnDevice struct {
 	AAGUID          uuid.UUID  `db:"aaguid"`
 	SignCount       uint32     `db:"sign_count"`
 	CloneWarning    bool       `db:"clone_warning"`
+}
+
+// UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.
+func (w *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, signCount uint32) {
+	w.SignCount = signCount
+
+	if w.RPID != "" {
+		return
+	}
+
+	switch w.AttestationType {
+	case attestationTypeFIDOU2F:
+		w.RPID = config.RPOrigin
+	default:
+		w.RPID = config.RPID
+	}
 }

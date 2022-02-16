@@ -459,9 +459,9 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 }
 
 // UpdateWebauthnDeviceSignCount mocks base method.
-func (m *MockStorage) UpdateWebauthnDeviceSignCount(arg0 context.Context, arg1 models.WebauthnDevice) error {
+func (m *MockStorage) UpdateWebauthnDeviceSignIn(arg0 context.Context, arg1 models.WebauthnDevice) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceSignCount", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceSignIn", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -469,5 +469,5 @@ func (m *MockStorage) UpdateWebauthnDeviceSignCount(arg0 context.Context, arg1 m
 // UpdateWebauthnDeviceSignCount indicates an expected call of UpdateWebauthnDeviceSignCount.
 func (mr *MockStorageMockRecorder) UpdateWebauthnDeviceSignCount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebauthnDeviceSignCount", reflect.TypeOf((*MockStorage)(nil).UpdateWebauthnDeviceSignCount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebauthnDeviceSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebauthnDeviceSignIn), arg0, arg1)
 }

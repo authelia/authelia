@@ -138,9 +138,9 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, device := range user.Devices {
 		if bytes.Equal(device.KID.Bytes(), credential.ID) {
-			device.SignCount = credential.Authenticator.SignCount
+			device.UpdateSignInInfo(w.Config, credential.Authenticator.SignCount)
 
-			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignCount(ctx, device); err != nil {
+			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignIn(ctx, device); err != nil {
 				ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 			}
 
