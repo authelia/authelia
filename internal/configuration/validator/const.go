@@ -104,6 +104,12 @@ const (
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
 
+// Webauthn Error constants.
+const (
+	errFmtWebauthnConveyancePreference = "webauthn: 'conveyance_preference' configuration option '%s' is invalid: must be one of 'none', 'indirect', 'direct'"
+	errFmtWebauthnUserVerification     = "webauthn: 'user_verification' configuration option '%s' is invalid: must be one of 'discouraged', 'preferred', 'required'"
+)
+
 // Error constants.
 const (
 	/*
