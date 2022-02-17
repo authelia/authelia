@@ -5,7 +5,8 @@ if [[ $(uname) == "Darwin" ]]; then
   exit
 fi
 
-export PATH=$PATH:./cmd/authelia-scripts/:./.buildkite/steps/:$GOPATH/bin:./web/node_modules/.bin:/tmp
+export PATH=$PATH:./cmd/authelia-scripts/:./.buildkite/steps/:$GOPATH/bin:./web/node_modules/.bin:/tmp \
+DOCKER_BUILDKIT=1
 
 if [[ -z "$OLD_PS1" ]]; then
   OLD_PS1="$PS1"

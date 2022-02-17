@@ -110,7 +110,9 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	} else if err = doStartupCheck(logger, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
 		logger.Errorf("Failure running the user provider startup check: %+v", err)
 
-		failures = append(failures, "ntp")
+		if !config.NTP.DisableFailure {
+			failures = append(failures, "ntp")
+		}
 	}
 
 	if len(failures) != 0 {
@@ -118,7 +120,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 }
 
-func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) (err error) {
+func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) error {
 	if disabled {
 		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
 		return nil
@@ -128,9 +130,5 @@ func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupC
 		return fmt.Errorf("unrecognized provider or it is not configured properly")
 	}
 
-	if err = provider.StartupCheck(); err != nil {
-		return err
-	}
-
-	return nil
+	return provider.StartupCheck()
 }

@@ -38,10 +38,8 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 
 			sources = append(sources, configuration.NewYAMLFileSource(configFile))
 		}
-	} else {
-		if _, err := os.Stat(configs[0]); err == nil {
-			sources = append(sources, configuration.NewYAMLFileSource(configs[0]))
-		}
+	} else if _, err := os.Stat(configs[0]); err == nil {
+		sources = append(sources, configuration.NewYAMLFileSource(configs[0]))
 	}
 
 	mapping := map[string]string{

@@ -114,7 +114,7 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">General Availability after previous stages are vetted for bug fixes</td>
       </tr>
       <tr>
-        <td rowspan="4" class="tbl-header">misc</td>
+        <td rowspan="7" class="tbl-header">misc</td>
         <td>List of other features that may be implemented</td>
       </tr>
       <tr>
@@ -126,12 +126,22 @@ for which stage will have each feature, and may evolve over time:
       <tr>
         <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-session-1_0-17.html" target="_blank" rel="noopener noreferrer">OpenID Connect Session Management</a> <sup>2</sup></td>
       </tr>
+      <tr>
+        <td class="tbl-beta-stage">End-User Scope Grants <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Client RBAC <sup>2</sup></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Preferred Username Claim (implemented in 4.33.2)</td>
+      </tr>
     </tbody>
 </table>
 
 ¹ _This stage has not been implemented as of yet_.
 
 ² _This individual feature has not been implemented as of yet_.
+
 
 ## Configuration
 
@@ -502,7 +512,7 @@ does.
 _**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
 individual user. Please use the claim `preferred_username` instead._
 
-|     JWT Field      |   JWT Type    | Authelia Attribute |                  Description                  |
+|       Claim        |   JWT Type    | Authelia Attribute |                  Description                  |
 |:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
 |        sub         |    string     |      Username      |   The username the user used to login with    |
 |       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
@@ -521,15 +531,15 @@ individual user. Please use the claim `preferred_username` instead._
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
 
-| JWT Field |   JWT Type    | Authelia Attribute |      Description       |
-|:---------:|:-------------:|:------------------:|:----------------------:|
-|  groups   | array[string] |       Groups       | The users display name |
+| Claim  |   JWT Type    | Authelia Attribute |      Description       |
+|:------:|:-------------:|:------------------:|:----------------------:|
+| groups | array[string] |       Groups       | The users display name |
 
 ### email
 
 This scope includes the email information the authentication backend reports about the user in the token.
 
-|   JWT Field    |   JWT Type    | Authelia Attribute |                        Description                        |
+|     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
 |:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
 |     email      |    string     |      email[0]      |       The first email address in the list of emails       |
 | email_verified |     bool      |       _N/A_        | If the email is verified, assumed true for the time being |
@@ -539,9 +549,9 @@ This scope includes the email information the authentication backend reports abo
 
 This scope includes the profile information the authentication backend reports about the user in the token.
 
-| JWT Field | JWT Type | Authelia Attribute |      Description       |
-|:---------:|:--------:|:------------------:|:----------------------:|
-|   name    |  string  |    display_name    | The users display name |
+| Claim | JWT Type | Authelia Attribute |      Description       |
+|:-----:|:--------:|:------------------:|:----------------------:|
+| name  |  string  |    display_name    | The users display name |
 
 ## Endpoint Implementations
 
