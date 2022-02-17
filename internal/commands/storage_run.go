@@ -321,31 +321,8 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if format, err = cmd.Flags().GetString("format"); err != nil {
+	if format, dir, err = storageTOTPExportGetConfigFromFlags(cmd); err != nil {
 		return err
-	}
-
-	if dir, err = cmd.Flags().GetString("path"); err != nil {
-		return err
-	}
-
-	switch format {
-	case storageExportFormatCSV, storageExportFormatURI:
-		break
-	case storageExportFormatPNG:
-		if dir == "" {
-			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
-		}
-
-		if _, err = os.Stat(dir); !os.IsNotExist(err) {
-			return errors.New("output directory must not exist")
-		}
-
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return err
-		}
-	default:
-		return errors.New("format must be csv or uri")
 	}
 
 	limit := 10
@@ -390,6 +367,37 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
+}
+
+func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string, err error) {
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return "", "", err
+	}
+
+	if dir, err = cmd.Flags().GetString("dir"); err != nil {
+		return "", "", err
+	}
+
+	switch format {
+	case storageExportFormatCSV, storageExportFormatURI:
+		break
+	case storageExportFormatPNG:
+		if dir == "" {
+			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
+		}
+
+		if _, err = os.Stat(dir); !os.IsNotExist(err) {
+			return "", "", errors.New("output directory must not exist")
+		}
+
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return "", "", err
+		}
+	default:
+		return "", "", errors.New("format must be csv, uri, or png")
+	}
+
+	return format, dir, nil
 }
 
 func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {

@@ -136,7 +136,7 @@ func newStorageTOTPExportCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().String("format", storageExportFormatURI, "sets the output format")
-	cmd.Flags().String("path", "", "used with the png output format to specify which new directory to save the files in")
+	cmd.Flags().String("dir", "", "used with the png output format to specify which new directory to save the files in")
 
 	return cmd
 }
