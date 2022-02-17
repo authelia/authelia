@@ -3,6 +3,7 @@ package commands
 import (
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -24,10 +25,15 @@ var config *schema.Configuration
 
 func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfiguration bool) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, _ []string) {
-		logger := logging.Logger()
+		var (
+			logger  *logrus.Logger
+			configs []string
+			err     error
+		)
 
-		configs, err := cmd.Root().Flags().GetStringSlice("config")
-		if err != nil {
+		logger = logging.Logger()
+
+		if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
 			logger.Fatalf("Error reading flags: %v", err)
 		}
 
@@ -47,8 +53,11 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 
 		val := schema.NewStructValidator()
 
-		keys, config, err = configuration.Load(val, configuration.NewDefaultSources(configs, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
-		if err != nil {
+		if keys, config, err = configuration.Load(val,
+			configuration.NewDefaultSources(
+				configs,
+				configuration.DefaultEnvPrefix,
+				configuration.DefaultEnvDelimiter)...); err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
 		}
 
