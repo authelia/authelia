@@ -200,6 +200,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		ctx      = context.Background()
 		c        *models.TOTPConfiguration
 		force    bool
+		secret   string
 	)
 
 	provider = getStorageProvider()
@@ -208,22 +209,17 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	force, err = cmd.Flags().GetBool("force")
-	if err != nil {
+	if force, err = cmd.Flags().GetBool("force"); err != nil {
 		return err
 	}
 
-	secret, err := cmd.Flags().GetString("shared-secret")
-	if err != nil {
+	if secret, err = cmd.Flags().GetString("shared-secret"); err != nil {
 		return err
 	}
 
-	_, err = provider.LoadTOTPConfiguration(ctx, args[0])
-	if err == nil && !force {
+	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
-	}
-
-	if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
+	} else if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
 		return err
 	}
 
@@ -247,8 +243,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 
-		err = provider.SaveTOTPConfiguration(ctx, *c)
-		if err != nil {
+		if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
 			return err
 		}
 
