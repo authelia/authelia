@@ -213,8 +213,12 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if secret, err = cmd.Flags().GetString("shared-secret"); err != nil {
+	if secret, err = cmd.Flags().GetString("secret"); err != nil {
 		return err
+	}
+
+	if secret != "" && len(secret) < 20 {
+		return errors.New("secret must be more than 20 characters")
 	}
 
 	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
