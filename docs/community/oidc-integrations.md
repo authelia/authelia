@@ -24,7 +24,9 @@ has_toc: false
 |      Wekan       |             `5.41`             |                                                                                                             |
 |   Portainer CE   |            `2.6.1`             |   Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `preferred_username`    |
 | Bookstack        | `21.10`                        |                                                                                                             |
-
+| Harbor        |                `1.10`             |   It works on >v2.1 also, but not sure if there is OIDC support on v2.0|
+| Verdaccio        |              `5`               |   Depends on this fork of verdaccio-github-oauth-ui: [Link](https://github.com/OnekO/verdaccio-github-oauth-ui)
+|
 [MinIO policies]: https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy
 
 ## Known Callback URLs
@@ -43,3 +45,5 @@ If you do not find the application in the list below, you will need to search fo
 |      Wekan      |                `5.41`                 |                          `<DOMAIN>/_oauth_oidc`                          |                                                                                                                                                                                                                                                                                                  |
 |  Portainer CE   |                `2.6.1`                |                                `<DOMAIN>`                                |                                                                                                                                                                                                                                                                                                  |
 | Bookstack       | `21.10`                               |        `<DOMAIN>/oidc/callback`                                          |                                                                                                                                                                                                                                                                                                  |
+| Harbor          | `1.10`                                |        `<DOMAIN>/-/oauth/callback`                                       |                                                                                                                                                                                                                                                                                                  |
+| Verdaccio       | `5`                                   |        `<DOMAIN>/oidc/callback`                                          |                                                                                                                                                                                                                                                                                                  |
