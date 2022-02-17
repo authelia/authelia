@@ -1,6 +1,10 @@
 package validator
 
-import "regexp"
+import (
+	"regexp"
+
+	"github.com/authelia/authelia/v4/internal/oidc"
+)
 
 const (
 	loopback           = "127.0.0.1"
@@ -47,18 +51,18 @@ const (
 // Notifier Error constants.
 const (
 	errFmtNotifierMultipleConfigured = "notifier: you can't configure more than one notifier, please ensure " +
-		"only 'smtp' or 'filesystem' is configured"
+		"only 'smtp' or 'filesystem' notifier is configured"
 	errFmtNotifierNotConfigured = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
-	errFmtNotifierFileSystemFileNameNotConfigured = "filesystem notifier: the 'filename' must be configured"
-	errFmtNotifierSMTPNotConfigured               = "smtp notifier: the '%s' must be configured"
+	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: 'filename' option must be configured"
+	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: '%s' option must be configured"
 )
 
 // TOTP Error constants.
 const (
-	errFmtTOTPInvalidAlgorithm = "totp: algorithm '%s' is invalid: must be one of %s"
-	errFmtTOTPInvalidPeriod    = "totp: period '%d' is invalid: must be 15 or more"
-	errFmtTOTPInvalidDigits    = "totp: digits '%d' is invalid: must be 6 or 8"
+	errFmtTOTPInvalidAlgorithm = "totp: 'algorithm' option '%s' is invalid: must be one of %s"
+	errFmtTOTPInvalidPeriod    = "totp: 'period' option '%d' is invalid: must be 15 or more"
+	errFmtTOTPInvalidDigits    = "totp: 'digits' option '%d' is invalid: must be 6 or 8"
 )
 
 // Storage Error constants.
@@ -104,6 +108,33 @@ const (
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
 
+// Access Control error constants.
+const (
+	errFmtAccessControlDefaultPolicyValue = "access control: 'default_policy' option '%s' is invalid: must " +
+		"either be 'deny', 'two_factor', 'one_factor' or 'bypass'"
+	errFmtAccessControlDefaultPolicyWithoutRules = "access control: 'default_policy' option '%s' is invalid: when " +
+		"no rules are specified it must be 'two_factor' or 'one_factor'"
+	errFmtAccessControlNetworkGroupIPCIDRInvalid = "access control: networks: network group '%s' is invalid: the " +
+		"network '%s' is not a valid IP or CIDR notation"
+	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
+		"'default_policy' of '%s' is going to be applied to all requests"
+	errFmtAccessControlRuleNoDomains = "access control: rule %s: rule is invalid: must have the option " +
+		"'domain' configured"
+	errFmtAccessControlRuleInvalidPolicy = "access control: rule %s: rule 'policy' option '%s' " +
+		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
+	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
+		"not supported when 'subject' option is configured: see " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass"
+	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
+		"valid Group Name, IP, or CIDR notation"
+	errFmtAccessControlRuleResourceInvalid = "access control: rule %s: 'resources' option '%s' is " +
+		"invalid: %w"
+	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
+		"invalid: must start with 'user:' or 'group:'"
+	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
+		"invalid: must be one of '%s'"
+)
+
 // Error constants.
 const (
 	/*
@@ -128,16 +159,12 @@ const (
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
-
-	errAccessControlInvalidPolicyWithSubjects = "policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
-		"not supported to configure both policy bypass and subjects. For more information see: " +
-		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validHTTPRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 
-var validOIDCScopes = []string{"openid", "email", "profile", "groups", "offline_access"}
+var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
