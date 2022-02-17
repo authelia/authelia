@@ -1,18 +1,19 @@
 package commands
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func newValidateConfigCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:    "validate-config",
-		Short:  "Check a configuration against the internal configuration validation mechanisms",
-		Args:   cobra.NoArgs,
-		PreRun: newCmdWithConfigPreRun(false, true, true),
-		Run:    cmdValidateConfigRun,
+		Use:   "validate-config",
+		Short: "Check a configuration against the internal configuration validation mechanisms",
+		Args:  cobra.NoArgs,
+		RunE:  cmdValidateConfigRunE,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{"config.yml"})
@@ -20,6 +21,50 @@ func newValidateConfigCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdValidateConfigRun(_ *cobra.Command, _ []string) {
-	log.Println("Configuration parsed successfully without errors.")
+func cmdValidateConfigRunE(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		configs []string
+		val     *schema.StructValidator
+	)
+
+	if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
+		return err
+	}
+
+	config, val, err = loadConfig(configs, true, true)
+	if err != nil {
+		return fmt.Errorf("error occurred loading configuration: %v", err)
+	}
+
+	switch {
+	case val.HasErrors():
+		fmt.Println("Configuration parsed and loaded with errors:")
+		fmt.Println("")
+
+		for _, err = range val.Errors() {
+			fmt.Printf("\t - %v\n", err)
+		}
+
+		fmt.Println("")
+
+		if !val.HasWarnings() {
+			break
+		}
+
+		fallthrough
+	case val.HasWarnings():
+		fmt.Println("Configuration parsed and loaded with warnings:")
+		fmt.Println("")
+
+		for _, err = range val.Warnings() {
+			fmt.Printf("\t - %v\n", err)
+		}
+
+		fmt.Println("")
+	default:
+		fmt.Println("Configuration parsed and loaded successfully without errors.")
+		fmt.Println("")
+	}
+
+	return nil
 }

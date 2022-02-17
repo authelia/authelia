@@ -49,24 +49,13 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			}
 		}
 
-		var keys []string
+		var (
+			val *schema.StructValidator
+		)
 
-		val := schema.NewStructValidator()
-
-		if keys, config, err = configuration.Load(val,
-			configuration.NewDefaultSources(
-				configs,
-				configuration.DefaultEnvPrefix,
-				configuration.DefaultEnvDelimiter)...); err != nil {
+		config, val, err = loadConfig(configs, validateKeys, validateConfiguration)
+		if err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
-		}
-
-		if validateKeys {
-			validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
-		}
-
-		if validateConfiguration {
-			validator.ValidateConfiguration(config, val)
 		}
 
 		warnings := val.Warnings()
@@ -85,4 +74,28 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			logger.Fatalf("Can't continue due to the errors loading the configuration")
 		}
 	}
+}
+
+func loadConfig(configs []string, validateKeys, validateConfiguration bool) (c *schema.Configuration, val *schema.StructValidator, err error) {
+	var keys []string
+
+	val = schema.NewStructValidator()
+
+	if keys, c, err = configuration.Load(val,
+		configuration.NewDefaultSources(
+			configs,
+			configuration.DefaultEnvPrefix,
+			configuration.DefaultEnvDelimiter)...); err != nil {
+		return nil, nil, err
+	}
+
+	if validateKeys {
+		validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
+	}
+
+	if validateConfiguration {
+		validator.ValidateConfiguration(c, val)
+	}
+
+	return c, val, nil
 }
