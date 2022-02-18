@@ -902,17 +902,15 @@ components:
         data:
           type: object
     webauthn.PublicKeyCredential:
-      allOf:
-        - $ref: '#/components/schemas/webauthn.AuthenticationExtensionsClientOutputs'
-        - type: object
-          properties:
-            rawId:
-              type: string
-              format: byte
-            id:
-              type: string
-            type:
-              type: string
+      type: object
+      properties:
+        rawId:
+          type: string
+          format: byte
+        id:
+          type: string
+        type:
+          type: string
     webauthn.AuthenticatorResponse:
       type: object
       properties:
@@ -924,6 +922,11 @@ components:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
         - type: object
           properties:
+            clientExtensionResults:
+              type: object
+              properties:
+                appidExclude:
+                  type: boolean
             response:
               allOf:
                 - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
@@ -949,6 +952,12 @@ components:
                     clientDataJSON:
                       type: string
                       format: byte
+                    clientExtensionResults:
+                      type: object
+                      properties:
+                        appid:
+                          type: boolean
+                          example: false
                     signature:
                       type: string
                       format: byte
@@ -1000,10 +1009,13 @@ components:
                       type: array
                       items:
                         allOf:
-                          - $ref: '#/components/schemas/webauthn.Credential'
+                          - $ref: '#/components/schemas/webauthn.CredentialDescriptor'
                     extensions:
                       type: object
-                      additionalProperties: true
+                      properties:
+                        appidExclude:
+                          type: string
+                          example: https://auth.example.com
     webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
@@ -1028,11 +1040,11 @@ components:
                     rpId:
                       type: string
                       example: auth.example.com
-                    allowedCredentials:
+                    allowCredentials:
                       type: array
                       items:
                         allOf:
-                          - $ref: '#/components/schemas/webauthn.Credential'
+                          - $ref: '#/components/schemas/webauthn.CredentialDescriptor'
                     extensions:
                       type: object
                       properties:
@@ -1095,7 +1107,7 @@ components:
                 - "required"
             requireResidentKey:
               type: boolean
-    webauthn.Credential:
+    webauthn.CredentialDescriptor:
       allOf:
         - $ref: '#/components/schemas/webauthn.Transports'
         - type: object
@@ -1105,6 +1117,7 @@ components:
           properties:
             id:
               type: string
+              format: byte
             type:
               type: string
               example: public-key
