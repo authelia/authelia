@@ -902,29 +902,20 @@ components:
         data:
           type: object
     webauthn.PublicKeyCredential:
-      type: object
-      properties:
-        rawId:
-          type: string
-        clientExtensionResults:
-          type: object
-          additionalProperties:
-            type: string
-        response:
-          type: object
+      allOf:
+        - $ref: '#/components/schemas/webauthn.Transports'
+        - $ref: '#/components/schemas/webauthn.AuthenticationExtensionsClientOutputs'
+        - type: object
           properties:
-            clientDataJSON:
+            rawId:
               type: string
-            attestationObject:
-              type: string
-        transports:
-          type: array
-          items:
-            enum:
-              - "usb"
-              - "nfc"
-              - "ble"
-              - "internal"
+            response:
+              type: object
+              properties:
+                clientDataJSON:
+                  type: string
+                attestationObject:
+                  type: string
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
@@ -935,83 +926,56 @@ components:
           type: object
           properties:
             publicKey:
-              type: object
-              properties:
-                challenge:
-                  type: string
-                rp:
-                  type: object
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AttestationType'
+                - $ref: '#/components/schemas/webauthn.AuthenticatorSelection'
+                - type: object
                   properties:
-                    id:
+                    challenge:
                       type: string
-                    name:
-                      type: string
-                    icon:
-                      type: string
-                user:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    displayName:
-                      type: string
-                    name:
-                      type: string
-                    icon:
-                      type: string
-                pubKeyCredParams:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      alg:
-                        type: integer
-                      type:
-                        enum:
-                          - "public-key"
-                timeout:
-                  type: integer
-                excludeCredentials:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      id:
+                    rp:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        icon:
+                          type: string
+                    user:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        displayName:
+                          type: string
+                        name:
+                          type: string
+                        icon:
+                          type: string
+                    pubKeyCredParams:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          alg:
+                            type: integer
+                          type:
+                            type: string
+                            example: public-key
+                            enum:
+                              - "public-key"
+                    timeout:
+                      type: integer
+                    excludeCredentials:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/webauthn.Credential'
+                    extensions:
+                      type: object
+                      additionalProperties:
                         type: string
-                      type:
-                        enum:
-                          - "public-key"
-                      transports:
-                        type: array
-                        items:
-                          enum:
-                            - "usb"
-                            - "nfc"
-                            - "ble"
-                            - "internal"
-                authenticatorSelection:
-                  type: object
-                  properties:
-                    authenticatorAttachment:
-                      enum:
-                        - "platform"
-                        - "cross-platform"
-                    residentKey:
-                      enum:
-                        - "discouraged"
-                        - "preferred"
-                        - "required"
-                    requireResidentKey:
-                      type: boolean
-                extensions:
-                  type: object
-                  additionalProperties:
-                    type: string
-                attestation:
-                  enum:
-                    - "none"
-                    - "indirect"
-                    - "direct"
     webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
@@ -1022,41 +986,134 @@ components:
           type: object
           properties:
             publicKey:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.UserVerification'
+                - type: object
+                  properties:
+                    challenge:
+                      type: string
+                    timeout:
+                      type: integer
+                      example: 60000
+                    rpId:
+                      type: string
+                      example: auth.example.com
+                    allowedCredentials:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/webauthn.Credential'
+                    extensions:
+                      type: object
+                      properties:
+                        appid:
+                          type: string
+                          example: https://auth.example.com
+    webauthn.Transports:
+      type: object
+      properties:
+        transports:
+          type: array
+          items:
+            type: string
+            example:
+              - "usb"
+              - "nfc"
+            enum:
+              - "usb"
+              - "nfc"
+              - "ble"
+              - "internal"
+    webauthn.UserVerification:
+      type: object
+      properties:
+        userVerification:
+          type: string
+          example: preferred
+          enum:
+            - "required"
+            - "preferred"
+            - "discouraged"
+    webauthn.AttestationType:
+      type: object
+      properties:
+        attestation:
+          type: string
+          example: direct
+          enum:
+            - "none"
+            - "indirect"
+            - "direct"
+    webauthn.AuthenticatorSelection:
+      type: object
+      properties:
+        authenticatorSelection:
+          type: object
+          properties:
+            authenticatorAttachment:
+              type: string
+              example: cross-platform
+              enum:
+                - "platform"
+                - "cross-platform"
+            residentKey:
+              type: string
+              example: discouraged
+              enum:
+                - "discouraged"
+                - "preferred"
+                - "required"
+            requireResidentKey:
+              type: boolean
+    webauthn.Credential:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.Transports'
+        - type: object
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+              example: public-key
+                - "public-key"
+    webauthn.AuthenticationExtensionsClientOutputs:
+      type: object
+      properties:
+        clientExtensionResults:
+          type: object
+          properties:
+            appid:
+              type: boolean
+              example: true
+            appidExclude:
+              type: boolean
+              example: false
+            uvm:
+              type: array
+              items:
+                type: array
+                items:
+                  example: 8
+                  type: integer
+                  minItems: 3
+                  maxItems: 3
+            credProps:
               type: object
               properties:
-                challenge:
+                rk:
+                  type: boolean
+                  example: false
+            largeBlob:
+              type: object
+              properties:
+                supported:
+                  type: boolean
+                  example: false
+                blob:
                   type: string
-                timeout:
-                  type: integer
-                rpId:
-                  type: string
-                allowedCredentials:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      type:
-                        enum:
-                          - "public-key"
-                      transports:
-                        type: array
-                        items:
-                          enum:
-                            - "usb"
-                            - "nfc"
-                            - "ble"
-                            - "internal"
-                userVerification:
-                  enum:
-                    - "required"
-                    - "preferred"
-                    - "discouraged"
-                extensions:
-                  type: object
-                  additionalProperties:
-                    type: string
+                written:
+                  type: boolean
+                  example: false
   securitySchemes:
     authelia_auth:
       type: apiKey
