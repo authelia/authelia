@@ -52,9 +52,9 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * Several second factor methods:
-  * **[Security Key (Webauthn)](https://www.authelia.com/docs/features/2fa/security-key)** with [YubiKey].
-  * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)** 
-    with [Google Authenticator].
+  * **[Security Keys](https://www.authelia.com/docs/features/2fa/security-key)** that support [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
+  * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)**
+    with compatible authenticator applications.
   * **[Mobile Push Notifications](https://www.authelia.com/docs/features/2fa/push-notifications)** 
     with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
@@ -345,10 +345,10 @@ for providing us with free licenses to their great tools.
 
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
-[Security Key]: https://www.yubico.com/about/background/fido/
-[YubiKey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
+[FIDO2]: https://www.yubico.com/authentication-standards/fido2/
+[YubiKey]: https://www.yubico.com/products/yubikey-5-overview/
+[Webauthn]: https://www.yubico.com/authentication-standards/webauthn/
 [auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
-[Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: ./config.template.yml
 [nginx]: https://www.nginx.com/
 [Traefik]: https://traefik.io/
