@@ -475,7 +475,7 @@ paths:
         - Second Factor
       summary: Identity Verification Webauthn Credential Creation
       description: >
-        This endpoint performs identity verification to begin the FIDO2 Webauthn credential attestation process 
+        This endpoint performs identity verification to begin the FIDO2 Webauthn credential attestation process
         (registration).
 
         The session generated from this endpoint must be utilised for the subsequent steps in the
@@ -495,11 +495,11 @@ paths:
         - Second Factor
       summary: Identity Verification FIDO2 Webauthn Credential Validation
       description: >
-        This endpoint performs identity and token verification, upon success generates a FIDO2 Webauthn device attestation
-        challenge (registration).
+        This endpoint performs identity and token verification, upon success generates a FIDO2 Webauthn device
+        attestation challenge (registration).
 
-        The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised for the
-        subsequent steps here and in the `/api/secondfactor/webauthn/attestation` endpoint.
+        The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
+        for the subsequent steps here and in the `/api/secondfactor/webauthn/attestation` endpoint.
       requestBody:
         required: true
         content:
