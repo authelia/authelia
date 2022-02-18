@@ -457,7 +457,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/webauthn.PublicKeyCredential"
+              $ref: "#/components/schemas/webauthn.CredentialAssertionResponse"
       responses:
         "200":
           description: Successful Operation
@@ -526,7 +526,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+              $ref: '#/components/schemas/webauthn.CredentialAttestationResponse'
       responses:
         "200":
           description: Successful Operation
@@ -903,19 +903,58 @@ components:
           type: object
     webauthn.PublicKeyCredential:
       allOf:
-        - $ref: '#/components/schemas/webauthn.Transports'
         - $ref: '#/components/schemas/webauthn.AuthenticationExtensionsClientOutputs'
         - type: object
           properties:
             rawId:
               type: string
+              format: byte
+            id:
+              type: string
+            type:
+              type: string
+    webauthn.AuthenticatorResponse:
+      type: object
+      properties:
+        clientDataJSON:
+          type: string
+          format: byte
+    webauthn.CredentialAttestationResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+        - type: object
+          properties:
             response:
-              type: object
-              properties:
-                clientDataJSON:
-                  type: string
-                attestationObject:
-                  type: string
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                - type: object
+                  properties:
+                    attestationObject:
+                      type: string
+                      format: byte
+    webauthn.CredentialAssertionResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+        - type: object
+          properties:
+            response:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                - type: object
+                  required: [authenticatorData, clientDataJSON, signature]
+                  properties:
+                    authenticatorData:
+                      type: string
+                      format: byte
+                    clientDataJSON:
+                      type: string
+                      format: byte
+                    signature:
+                      type: string
+                      format: byte
+                    userHandle:
+                      type: string
+                      format: byte
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
@@ -929,32 +968,17 @@ components:
               allOf:
                 - $ref: '#/components/schemas/webauthn.AttestationType'
                 - $ref: '#/components/schemas/webauthn.AuthenticatorSelection'
+                - $ref: '#/components/schemas/webauthn.CredentialUserEntity'
+                - $ref: '#/components/schemas/webauthn.CredentialRPEntity'
                 - type: object
+                  required: [challenge, pubKeyCredParams]
                   properties:
                     challenge:
                       type: string
-                    rp:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        name:
-                          type: string
-                        icon:
-                          type: string
-                    user:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        displayName:
-                          type: string
-                        name:
-                          type: string
-                        icon:
-                          type: string
+                      format: byte
                     pubKeyCredParams:
                       type: array
+                      required: [alg, type]
                       items:
                         type: object
                         properties:
@@ -967,6 +991,7 @@ components:
                               - "public-key"
                     timeout:
                       type: integer
+                      example: 60000
                     excludeCredentials:
                       type: array
                       items:
@@ -974,8 +999,7 @@ components:
                           - $ref: '#/components/schemas/webauthn.Credential'
                     extensions:
                       type: object
-                      additionalProperties:
-                        type: string
+                      additionalProperties: true
     webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
@@ -1076,6 +1100,33 @@ components:
               type: string
               example: public-key
                 - "public-key"
+    webauthn.CredentialEntity:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+    webauthn.CredentialRPEntity:
+      type: object
+      properties:
+        rp:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.CredentialEntity'
+    webauthn.CredentialUserEntity:
+      type: object
+      properties:
+        user:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.CredentialEntity'
+            - type: object
+              required: [displayName]
+              properties:
+                displayName:
+                  type: string
     webauthn.AuthenticationExtensionsClientOutputs:
       type: object
       properties:
