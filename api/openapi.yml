@@ -967,20 +967,24 @@ components:
             publicKey:
               allOf:
                 - $ref: '#/components/schemas/webauthn.AttestationType'
-                - $ref: '#/components/schemas/webauthn.AuthenticatorSelection'
+                - $ref: '#/components/schemas/webauthn.AuthenticatorSelectionCriteria'
                 - $ref: '#/components/schemas/webauthn.CredentialUserEntity'
                 - $ref: '#/components/schemas/webauthn.CredentialRPEntity'
                 - type: object
-                  required: [challenge, pubKeyCredParams]
+                  required:
+                    - "challenge"
+                    - "pubKeyCredParams"
                   properties:
                     challenge:
                       type: string
                       format: byte
                     pubKeyCredParams:
                       type: array
-                      required: [alg, type]
                       items:
                         type: object
+                        required:
+                          - "alg"
+                          - "type"
                         properties:
                           alg:
                             type: integer
@@ -1013,6 +1017,8 @@ components:
               allOf:
                 - $ref: '#/components/schemas/webauthn.UserVerification'
                 - type: object
+                  required:
+                    - "challenge"
                   properties:
                     challenge:
                       type: string
@@ -1068,7 +1074,7 @@ components:
             - "none"
             - "indirect"
             - "direct"
-    webauthn.AuthenticatorSelection:
+    webauthn.AuthenticatorSelectionCriteria:
       type: object
       properties:
         authenticatorSelection:
@@ -1093,16 +1099,22 @@ components:
       allOf:
         - $ref: '#/components/schemas/webauthn.Transports'
         - type: object
+          required:
+            - "id"
+            - "type"
           properties:
             id:
               type: string
             type:
               type: string
               example: public-key
+              enum:
                 - "public-key"
     webauthn.CredentialEntity:
       type: object
-      required: [id, name]
+      required:
+        - "id"
+        - "name"
       properties:
         id:
           type: string
@@ -1112,18 +1124,23 @@ components:
           type: string
     webauthn.CredentialRPEntity:
       type: object
+      required:
+        - "rp"
       properties:
         rp:
           allOf:
             - $ref: '#/components/schemas/webauthn.CredentialEntity'
     webauthn.CredentialUserEntity:
       type: object
+      required:
+        - "user"
       properties:
         user:
           allOf:
             - $ref: '#/components/schemas/webauthn.CredentialEntity'
             - type: object
-              required: [displayName]
+              required:
+                - "displayName"
               properties:
                 displayName:
                   type: string
