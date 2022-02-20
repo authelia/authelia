@@ -1172,12 +1172,8 @@ components:
             uvm:
               type: array
               items:
-                type: array
-                items:
-                  example: 8
-                  type: integer
-                  minItems: 3
-                  maxItems: 3
+                type: string
+                format: byte
             credProps:
               type: object
               properties:
