@@ -32,8 +32,8 @@ func (s *RegulatorSuite) SetupTest() {
 
 	s.configuration = schema.RegulationConfiguration{
 		MaxRetries: 3,
-		BanTime:    "180",
-		FindTime:   "30",
+		BanTime:    time.Second * 180,
+		FindTime:   time.Second * 30,
 	}
 	s.clock.Set(time.Now())
 }
@@ -285,8 +285,8 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	// Check Disabled Functionality.
 	configuration := schema.RegulationConfiguration{
 		MaxRetries: 0,
-		FindTime:   "180",
-		BanTime:    "180",
+		FindTime:   time.Second * 180,
+		BanTime:    time.Second * 180,
 	}
 
 	regulator := regulation.NewRegulator(&configuration, s.storageMock, &s.clock)
@@ -296,8 +296,8 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	// Check Enabled Functionality.
 	configuration = schema.RegulationConfiguration{
 		MaxRetries: 1,
-		FindTime:   "180",
-		BanTime:    "180",
+		FindTime:   time.Second * 180,
+		BanTime:    time.Second * 180,
 	}
 
 	regulator = regulation.NewRegulator(&configuration, s.storageMock, &s.clock)

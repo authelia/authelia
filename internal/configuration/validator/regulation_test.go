@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -36,24 +38,11 @@ func TestShouldSetDefaultRegulationFindTime(t *testing.T) {
 func TestShouldRaiseErrorWhenFindTimeLessThanBanTime(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultRegulationConfig()
-	config.FindTime = "1m"
-	config.BanTime = "10s"
+	config.FindTime = time.Minute
+	config.BanTime = time.Second * 10
 
 	ValidateRegulation(&config, validator)
 
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "find_time cannot be greater than ban_time")
-}
-
-func TestShouldRaiseErrorOnBadDurationStrings(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultRegulationConfig()
-	config.FindTime = "a year"
-	config.BanTime = "forever"
-
-	ValidateRegulation(&config, validator)
-
-	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing regulation find_time string: could not parse 'a year' as a duration string")
-	assert.EqualError(t, validator.Errors()[1], "Error occurred parsing regulation ban_time string: could not parse 'forever' as a duration string")
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("regulation: invalid find_time '%s' and ban_time '%s': find_time cannot be greater than ban_time", config.FindTime.String(), config.BanTime.String()))
 }

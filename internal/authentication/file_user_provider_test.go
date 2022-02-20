@@ -41,7 +41,7 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 	_ = os.Mkdir("/tmp/noperms/", 0000)
 	err := fileProviderEnsureDatabaseExists("/tmp/noperms/users_database.yml")
 
-	assert.EqualError(t, err, "")
+	assert.EqualError(t, err, "unknown error when trying to initiate the user database at path '/tmp/noperms/users_database.yml': stat /tmp/noperms/users_database.yml: permission denied")
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {

@@ -2,7 +2,6 @@ package regulation
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 
@@ -13,30 +12,14 @@ import (
 )
 
 // NewRegulator create a regulator instance.
-func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.RegulatorProvider, clock utils.Clock) *Regulator {
+func NewRegulator(config *schema.RegulationConfiguration, provider storage.RegulatorProvider, clock utils.Clock) *Regulator {
 	regulator := &Regulator{storageProvider: provider}
 	regulator.clock = clock
 
-	if configuration != nil {
-		findTime, err := utils.ParseDurationString(configuration.FindTime)
-		if err != nil {
-			panic(err)
-		}
-
-		banTime, err := utils.ParseDurationString(configuration.BanTime)
-		if err != nil {
-			panic(err)
-		}
-
-		if findTime > banTime {
-			panic(fmt.Errorf("find_time cannot be greater than ban_time"))
-		}
-
+	if config != nil {
 		// Set regulator enabled only if MaxRetries is not 0.
-		regulator.enabled = configuration.MaxRetries > 0
-		regulator.maxRetries = configuration.MaxRetries
-		regulator.findTime = findTime
-		regulator.banTime = banTime
+		regulator.enabled = config.MaxRetries > 0
+		regulator.maxRetries, regulator.findTime, regulator.banTime = config.MaxRetries, config.FindTime, config.BanTime
 	}
 
 	return regulator
