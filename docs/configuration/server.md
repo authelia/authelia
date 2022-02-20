@@ -228,6 +228,8 @@ This customizes the value of the Content-Security-Policy header. It will replace
 nonce value of the Authelia react bundle. This is an advanced option to customize and you should do sufficient research 
 about how browsers utilize and understand this header before attempting to customize it.
 
+For example, the default CSP template is `default-src 'self'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'`.
+
 ## Additional Notes
 
 ### Buffer Sizes
