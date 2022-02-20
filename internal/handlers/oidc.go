@@ -51,7 +51,7 @@ func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string,
 			if len(userSession.Emails) != 0 {
 				extraClaims[oidc.ClaimEmail] = userSession.Emails[0]
 				if len(userSession.Emails) > 1 {
-					extraClaims[oidc.ClaimAltEmails] = userSession.Emails[1:]
+					extraClaims[oidc.ClaimEmailAlts] = userSession.Emails[1:]
 				}
 				// TODO (james-d-elliott): actually verify emails and record that information.
 				extraClaims[oidc.ClaimEmailVerified] = true
