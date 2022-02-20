@@ -48,6 +48,10 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 	}
 
+	if !config.AuthenticationBackend.Cached.Disable {
+		userProvider = authentication.NewMemoryCachedUserProvider(config.AuthenticationBackend.Cached, userProvider)
+	}
+
 	var notifier notification.Notifier
 
 	switch {

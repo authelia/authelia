@@ -12,7 +12,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Provider a session provider.
@@ -31,21 +30,18 @@ func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertP
 
 	logger := logging.Logger()
 
-	duration, err := utils.ParseDurationString(configuration.RememberMeDuration)
-	if err != nil {
-		logger.Fatal(err)
+	rememberMe := time.Hour * 24 * 30
+
+	if configuration.RememberMeDuration != nil {
+		rememberMe = *configuration.RememberMeDuration
 	}
 
-	provider.RememberMe = duration
+	provider.RememberMe, provider.Inactivity = rememberMe, configuration.Inactivity
 
-	duration, err = utils.ParseDurationString(configuration.Inactivity)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	provider.Inactivity = duration
-
-	var providerImpl fasthttpsession.Provider
+	var (
+		providerImpl fasthttpsession.Provider
+		err          error
+	)
 
 	switch {
 	case providerConfig.redisConfig != nil:

@@ -6,6 +6,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewDefaultUserSession create a default user session.
@@ -18,7 +19,7 @@ func NewDefaultUserSession() UserSession {
 }
 
 // SetOneFactor sets the expected property values for one factor authentication.
-func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+func (s *UserSession) SetOneFactor(now time.Time, details *model.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.OneFactor
@@ -26,9 +27,6 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	s.KeepMeLoggedIn = keepMeLoggedIn
 
 	s.Username = details.Username
-	s.DisplayName = details.DisplayName
-	s.Groups = details.Groups
-	s.Emails = details.Emails
 }
 
 // SetTwoFactor sets the expected property values for two factor authentication.

@@ -5,6 +5,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -32,9 +33,9 @@ func newOpenIDSession(subject string) *oidc.OpenIDSession {
 	}
 }
 
-func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
+func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, details *model.UserDetails) (extraClaims map[string]interface{}) {
 	extraClaims = map[string]interface{}{
-		oidc.ClaimPreferredUsername: userSession.Username,
+		oidc.ClaimPreferredUsername: details.Username,
 	}
 
 	for _, scope := range scopes {
@@ -44,14 +45,14 @@ func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string,
 
 		switch scope {
 		case oidc.ScopeGroups:
-			extraClaims[oidc.ClaimGroups] = userSession.Groups
+			extraClaims[oidc.ClaimGroups] = details.Groups
 		case oidc.ScopeProfile:
-			extraClaims[oidc.ClaimDisplayName] = userSession.DisplayName
+			extraClaims[oidc.ClaimDisplayName] = details.DisplayName
 		case oidc.ScopeEmail:
-			if len(userSession.Emails) != 0 {
-				extraClaims[oidc.ClaimEmail] = userSession.Emails[0]
-				if len(userSession.Emails) > 1 {
-					extraClaims[oidc.ClaimEmailAlts] = userSession.Emails[1:]
+			if len(details.Emails) != 0 {
+				extraClaims[oidc.ClaimEmail] = details.Emails[0]
+				if len(details.Emails) > 1 {
+					extraClaims[oidc.ClaimEmailAlts] = details.Emails[1:]
 				}
 				// TODO (james-d-elliott): actually verify emails and record that information.
 				extraClaims[oidc.ClaimEmailVerified] = true

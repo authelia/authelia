@@ -20,18 +20,31 @@ func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendCo
 		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
 	}
 
+	validateCachedAuthenticationBackend(configuration, validator)
+
 	if configuration.File != nil {
 		validateFileAuthenticationBackend(configuration.File, validator)
 	} else if configuration.LDAP != nil {
 		validateLDAPAuthenticationBackend(configuration.LDAP, validator)
 	}
+}
 
-	if configuration.RefreshInterval == "" {
-		configuration.RefreshInterval = schema.RefreshIntervalDefault
-	} else {
-		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
-			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
+func validateCachedAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if !configuration.Cached.Disable {
+		if configuration.Cached.Duration == nil {
+			if configuration.RefreshInterval != "" {
+				duration, err := utils.ParseDurationString(configuration.RefreshInterval)
+				if err != nil {
+					validator.Push(fmt.Errorf("authentication_backend: failed to parse refresh_interval: %v", err))
+
+					configuration.Cached.Duration = schema.DefaultCachedAuthenticationBackendConfiguration.Duration
+				} else {
+					validator.PushWarning(fmt.Errorf("authentication_backend: the configuration option 'refresh_interval' is deprecated"))
+					configuration.Cached.Duration = &duration
+				}
+			} else {
+				configuration.Cached.Duration = schema.DefaultCachedAuthenticationBackendConfiguration.Duration
+			}
 		}
 	}
 }

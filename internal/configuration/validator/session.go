@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateSession validates and update session configuration.
@@ -31,22 +30,16 @@ func ValidateSession(configuration *schema.SessionConfiguration, validator *sche
 }
 
 func validateSession(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Expiration == "" {
+	if configuration.Expiration == 0 {
 		configuration.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
-	} else if _, err := utils.ParseDurationString(configuration.Expiration); err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing session expiration string: %s", err))
 	}
 
-	if configuration.Inactivity == "" {
+	if configuration.Inactivity == 0 {
 		configuration.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
-	} else if _, err := utils.ParseDurationString(configuration.Inactivity); err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing session inactivity string: %s", err))
 	}
 
-	if configuration.RememberMeDuration == "" {
+	if configuration.RememberMeDuration == nil {
 		configuration.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
-	} else if _, err := utils.ParseDurationString(configuration.RememberMeDuration); err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing session remember_me_duration string: %s", err))
 	}
 
 	if configuration.Domain == "" {

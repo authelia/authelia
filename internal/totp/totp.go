@@ -7,7 +7,7 @@ import (
 	"github.com/pquerna/otp/totp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewTimeBasedProvider creates a new totp.TimeBased which implements the totp.Provider.
@@ -32,7 +32,7 @@ type TimeBased struct {
 }
 
 // GenerateCustom generates a TOTP with custom options.
-func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, secretSize uint) (config *models.TOTPConfiguration, err error) {
+func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, secretSize uint) (config *model.TOTPConfiguration, err error) {
 	var key *otp.Key
 
 	opts := totp.GenerateOpts{
@@ -48,7 +48,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 		return nil, err
 	}
 
-	config = &models.TOTPConfiguration{
+	config = &model.TOTPConfiguration{
 		Username:  username,
 		Issuer:    p.config.Issuer,
 		Algorithm: algorithm,
@@ -61,12 +61,12 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 }
 
 // Generate generates a TOTP with default options.
-func (p TimeBased) Generate(username string) (config *models.TOTPConfiguration, err error) {
+func (p TimeBased) Generate(username string) (config *model.TOTPConfiguration, err error) {
 	return p.GenerateCustom(username, p.config.Algorithm, p.config.Digits, p.config.Period, 32)
 }
 
 // Validate the token against the given configuration.
-func (p TimeBased) Validate(token string, config *models.TOTPConfiguration) (valid bool, err error) {
+func (p TimeBased) Validate(token string, config *model.TOTPConfiguration) (valid bool, err error) {
 	opts := totp.ValidateOpts{
 		Period:    config.Period,
 		Skew:      p.skew,

@@ -13,13 +13,19 @@ import (
 func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
+	details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+	if err != nil {
+		ctx.Error(fmt.Errorf("unable to load user details: %v", err), messageOperationFailed)
+		return
+	}
+
 	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
 		return
 	}
 
-	userInfo.DisplayName = userSession.DisplayName
+	userInfo.DisplayName = details.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {

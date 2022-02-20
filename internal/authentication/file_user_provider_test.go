@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -8,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -39,24 +39,16 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 	}
 
 	_ = os.Mkdir("/tmp/noperms/", 0000)
-	errors := checkDatabase("/tmp/noperms/users_database.yml")
+	err := fileProviderEnsureDatabaseExists("/tmp/noperms/users_database.yml")
 
-	require.Len(t, errors, 3)
-
-	require.EqualError(t, errors[0], "Unable to find database file: /tmp/noperms/users_database.yml")
-	require.EqualError(t, errors[1], "Generating database file: /tmp/noperms/users_database.yml")
-	require.EqualError(t, errors[2], "Unable to generate /tmp/noperms/users_database.yml: open /tmp/noperms/users_database.yml: permission denied")
+	assert.EqualError(t, err, "")
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
-	errors := checkDatabase("./nonexistent.yml")
+	err := fileProviderEnsureDatabaseExists("./nonexistent.yml")
 	_ = os.Remove("./nonexistent.yml")
 
-	require.Len(t, errors, 3)
-
-	require.EqualError(t, errors[0], "Unable to find database file: ./nonexistent.yml")
-	require.EqualError(t, errors[1], "Generating database file: ./nonexistent.yml")
-	require.EqualError(t, errors[2], "Generated database at: ./nonexistent.yml")
+	assert.EqualError(t, err, "the user database was successfully generated at path './nonexistent.yml', please ensure you update it")
 }
 
 func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
@@ -64,6 +56,9 @@ func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("john", "password")
 
 		assert.NoError(t, err)
@@ -76,6 +71,9 @@ func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("harry", "password")
 
 		assert.NoError(t, err)
@@ -88,6 +86,9 @@ func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("john", "wrong_password")
 
 		assert.NoError(t, err)
@@ -101,6 +102,8 @@ func TestShouldCheckUserPasswordIsWrongForEnumerationCompare(t *testing.T) {
 		config.Path = path
 		provider := NewFileUserProvider(&config)
 
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("enumeration", "wrong_password")
 		assert.NoError(t, err)
 		assert.False(t, ok)
@@ -112,6 +115,9 @@ func TestShouldCheckUserPasswordOfUserThatDoesNotExist(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("fake", "password")
 		assert.Error(t, err)
 		assert.Equal(t, false, ok)
@@ -124,6 +130,9 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		details, err := provider.GetDetails("john")
 		assert.NoError(t, err)
 		assert.Equal(t, details.Username, "john")
@@ -137,11 +146,17 @@ func TestShouldUpdatePassword(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
 		provider = NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -154,12 +169,18 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
 		provider = NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -175,12 +196,18 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		config.Password.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "$argon2id$"))
 		err := provider.UpdatePassword("john", "newpassword")
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
 		provider = NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("john", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -192,9 +219,10 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 	WithDatabase(MalformedUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithError(t, "Unable to parse database: yaml: line 4: mapping values are not allowed in this context", func() {
-			NewFileUserProvider(&config)
-		})
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), fmt.Sprintf("unable to parse user database file '%s': yaml: line 4: mapping values are not allowed in this context", path))
 	})
 }
 
@@ -202,9 +230,10 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 	WithDatabase(BadSchemaUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithError(t, "Invalid schema of database: Users: non zero value required", func() {
-			NewFileUserProvider(&config)
-		})
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), fmt.Sprintf("unable to parse user database file '%s': there is an issue with the schema: Users: non zero value required", path))
 	})
 }
 
@@ -212,9 +241,10 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 	WithDatabase(BadSHA512HashContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithError(t, "Unable to parse hash of user john: Hash key is not the last parameter, the hash is likely malformed ($6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/)", func() {
-			NewFileUserProvider(&config)
-		})
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), fmt.Sprintf("unable to parse user database file '%s': failed to parse password hash of user '%s': hash key 'jgiCMRyGXzoqpxS3' is not the last parameter in the hash '$6$rounds00000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/', the hash is likely malformed", path, "john"))
 	})
 }
 
@@ -222,9 +252,10 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTim
 	WithDatabase(BadArgon2idHashSettingsContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithError(t, "Unable to parse hash of user john: Hash key is not the last parameter, the hash is likely malformed ($argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM)", func() {
-			NewFileUserProvider(&config)
-		})
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), fmt.Sprintf("unable to parse user database file '%s': failed to parse password hash of user '%s': hash key 'BpLnfgDsc2WD8F2q' is not the last parameter in the hash '$argon2id$v=19$m65536,t3,p2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM', the hash is likely malformed", path, "john"))
 	})
 }
 
@@ -232,9 +263,10 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *
 	WithDatabase(BadArgon2idHashKeyContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithError(t, "Unable to parse hash of user john: Hash key contains invalid base64 characters", func() {
-			NewFileUserProvider(&config)
-		})
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), fmt.Sprintf("unable to parse user database file '%s': failed to parse password hash of user '%s': hash key '^^vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM' contains invalid base64 characters", path, "john"))
 	})
 }
 
@@ -242,9 +274,9 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t 
 	WithDatabase(BadArgon2idHashSaltContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		assert.PanicsWithError(t, "Unable to parse hash of user john: Salt contains invalid base64 characters", func() {
-			NewFileUserProvider(&config)
-		})
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), fmt.Sprintf("unable to parse user database file '%s': failed to parse password hash of user '%s': invalid base64 characters in salt '^^LnfgDsc2WD8F2q'", path, "john"))
 	})
 }
 
@@ -253,6 +285,9 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
 		ok, err := provider.CheckUserPassword("john", "password")
 
 		assert.NoError(t, err)
@@ -278,7 +313,7 @@ var UserDatabaseContent = []byte(`
 users:
   john:
     displayname: "John Doe"
-    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: john.doe@authelia.com
     groups:
       - admins
@@ -286,20 +321,20 @@ users:
 
   harry:
     displayname: "Harry Potter"
-    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: harry.potter@authelia.com
     groups: []
 
   bob:
     displayname: "Bob Dylan"
-    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: bob.dylan@authelia.com
     groups:
       - dev
 
   james:
     displayname: "James Dean"
-    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: james.dean@authelia.com
 
 
@@ -323,7 +358,7 @@ var BadSchemaUserDatabaseContent = []byte(`
 user:
   john:
     displayname: "John Doe"
-    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
     email: john.doe@authelia.com
     groups:
       - admins

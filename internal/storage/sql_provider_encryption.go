@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -42,7 +42,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 }
 
 func (p *SQLProvider) schemaEncryptionChangeKeyTOTP(ctx context.Context, tx *sqlx.Tx, key [32]byte) (err error) {
-	var configs []models.TOTPConfiguration
+	var configs []model.TOTPConfiguration
 
 	for page := 0; true; page++ {
 		if configs, err = p.LoadTOTPConfigurations(ctx, 10, page); err != nil {
@@ -80,7 +80,7 @@ func (p *SQLProvider) schemaEncryptionChangeKeyTOTP(ctx context.Context, tx *sql
 }
 
 func (p *SQLProvider) schemaEncryptionChangeKeyU2F(ctx context.Context, tx *sqlx.Tx, key [32]byte) (err error) {
-	var devices []models.U2FDevice
+	var devices []model.U2FDevice
 
 	for page := 0; true; page++ {
 		if devices, err = p.LoadU2FDevices(ctx, 10, page); err != nil {
@@ -163,7 +163,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 
 func (p *SQLProvider) schemaEncryptionCheckTOTP(ctx context.Context) (err error) {
 	var (
-		config  models.TOTPConfiguration
+		config  model.TOTPConfiguration
 		row     int
 		invalid int
 		total   int
@@ -212,7 +212,7 @@ func (p *SQLProvider) schemaEncryptionCheckTOTP(ctx context.Context) (err error)
 
 func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) {
 	var (
-		device  models.U2FDevice
+		device  model.U2FDevice
 		row     int
 		invalid int
 		total   int

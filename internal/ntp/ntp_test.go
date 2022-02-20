@@ -2,6 +2,7 @@ package ntp
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -13,7 +14,7 @@ func TestShouldCheckNTP(t *testing.T) {
 	config := schema.NTPConfiguration{
 		Address:             "time.cloudflare.com:123",
 		Version:             4,
-		MaximumDesync:       "3s",
+		MaximumDesync:       time.Second * 3,
 		DisableStartupCheck: false,
 	}
 	sv := schema.NewStructValidator()

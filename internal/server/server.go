@@ -28,7 +28,7 @@ var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != "0")
+	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration == nil || *configuration.Session.RememberMeDuration != 0)
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
 	duoSelfEnrollment := f
@@ -65,8 +65,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/api/configuration", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
-	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
-	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
+	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet))
+	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet))
 
 	r.POST("/api/checks/safe-redirection", autheliaMiddleware(handlers.CheckSafeRedirection))
 

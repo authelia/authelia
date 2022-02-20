@@ -27,6 +27,12 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password string `koanf:"password"`
 }
 
+// CachedAuthenticationBackendConfiguration represents the configuration related to backend cache provider.
+type CachedAuthenticationBackendConfiguration struct {
+	Disable  bool           `koanf:"disable"`
+	Duration *time.Duration `koanf:"duration"`
+}
+
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
 type FileAuthenticationBackendConfiguration struct {
 	Path     string                 `koanf:"path"`
@@ -45,10 +51,11 @@ type PasswordConfiguration struct {
 
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
-	DisableResetPassword bool                                    `koanf:"disable_reset_password"`
-	RefreshInterval      string                                  `koanf:"refresh_interval"`
-	LDAP                 *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
-	File                 *FileAuthenticationBackendConfiguration `koanf:"file"`
+	DisableResetPassword bool                                     `koanf:"disable_reset_password"`
+	RefreshInterval      string                                   `koanf:"refresh_interval"`
+	LDAP                 *LDAPAuthenticationBackendConfiguration  `koanf:"ldap"`
+	File                 *FileAuthenticationBackendConfiguration  `koanf:"file"`
+	Cached               CachedAuthenticationBackendConfiguration `koanf:"cached"`
 }
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
@@ -76,6 +83,13 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 	Iterations: 50000,
 	SaltLength: 16,
 	Algorithm:  "sha512",
+}
+
+var minutesFive = time.Duration(5) * time.Minute
+
+// DefaultCachedAuthenticationBackendConfiguration represents the default Cached config.
+var DefaultCachedAuthenticationBackendConfiguration = CachedAuthenticationBackendConfiguration{
+	Duration: &minutesFive,
 }
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.

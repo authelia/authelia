@@ -9,64 +9,96 @@ import (
 
 func TestShouldParseDurationString(t *testing.T) {
 	duration, err := ParseDurationString("1h")
+
 	assert.NoError(t, err)
 	assert.Equal(t, 60*time.Minute, duration)
 }
 
 func TestShouldParseDurationStringAllUnits(t *testing.T) {
 	duration, err := ParseDurationString("1y")
+
 	assert.NoError(t, err)
-	assert.Equal(t, Year, duration)
+	assert.Equal(t, time.Hour*24*365, duration)
 
 	duration, err = ParseDurationString("1M")
+
 	assert.NoError(t, err)
-	assert.Equal(t, Month, duration)
+	assert.Equal(t, time.Hour*24*30, duration)
 
 	duration, err = ParseDurationString("1w")
+
 	assert.NoError(t, err)
-	assert.Equal(t, Week, duration)
+	assert.Equal(t, time.Hour*24*7, duration)
 
 	duration, err = ParseDurationString("1d")
+
 	assert.NoError(t, err)
-	assert.Equal(t, Day, duration)
+	assert.Equal(t, time.Hour*24, duration)
 
 	duration, err = ParseDurationString("1h")
+
 	assert.NoError(t, err)
-	assert.Equal(t, Hour, duration)
+	assert.Equal(t, time.Hour, duration)
 
 	duration, err = ParseDurationString("1s")
+
 	assert.NoError(t, err)
 	assert.Equal(t, time.Second, duration)
 }
 
 func TestShouldParseSecondsString(t *testing.T) {
 	duration, err := ParseDurationString("100")
+
 	assert.NoError(t, err)
 	assert.Equal(t, 100*time.Second, duration)
 }
 
 func TestShouldNotParseDurationStringWithOutOfOrderQuantitiesAndUnits(t *testing.T) {
 	duration, err := ParseDurationString("h1")
-	assert.EqualError(t, err, "could not convert the input string of h1 into a duration")
+
+	assert.EqualError(t, err, "could not parse 'h1' as a duration string")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
 func TestShouldNotParseBadDurationString(t *testing.T) {
 	duration, err := ParseDurationString("10x")
-	assert.EqualError(t, err, "could not convert the input string of 10x into a duration")
+
+	assert.EqualError(t, err, "could not parse the units portion of '10x' in duration string '10x': the unit 'x' is not valid")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
-func TestShouldNotParseDurationStringWithMultiValueUnits(t *testing.T) {
+func TestShouldParseDurationStringWithMultiValueUnits(t *testing.T) {
 	duration, err := ParseDurationString("10ms")
-	assert.EqualError(t, err, "could not convert the input string of 10ms into a duration")
-	assert.Equal(t, time.Duration(0), duration)
+
+	assert.NoError(t, err)
+	assert.Equal(t, time.Duration(10)*time.Millisecond, duration)
 }
 
-func TestShouldNotParseDurationStringWithLeadingZero(t *testing.T) {
+func TestShouldParseDurationStringWithLeadingZero(t *testing.T) {
 	duration, err := ParseDurationString("005h")
-	assert.EqualError(t, err, "could not convert the input string of 005h into a duration")
-	assert.Equal(t, time.Duration(0), duration)
+
+	assert.NoError(t, err)
+	assert.Equal(t, time.Duration(5)*time.Hour, duration)
+}
+
+func TestShouldParseMultiUnitValues(t *testing.T) {
+	duration, err := ParseDurationString("1d3w10ms")
+
+	assert.NoError(t, err)
+	assert.Equal(t,
+		(time.Hour*time.Duration(24))+
+			(time.Hour*time.Duration(24)*time.Duration(7)*time.Duration(3))+
+			(time.Millisecond*time.Duration(10)), duration)
+}
+
+func TestShouldParseDuplicateUnitValues(t *testing.T) {
+	duration, err := ParseDurationString("1d4d2d")
+
+	assert.NoError(t, err)
+	assert.Equal(t,
+		(time.Hour*time.Duration(24))+
+			(time.Hour*time.Duration(24)*time.Duration(4))+
+			(time.Hour*time.Duration(24)*time.Duration(2)), duration)
 }
 
 func TestShouldTimeIntervalsMakeSense(t *testing.T) {

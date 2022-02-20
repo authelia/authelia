@@ -36,6 +36,19 @@ required: no
 
 This setting controls if users can reset their password from the web frontend or not.
 
+### refresh_interval
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This option is deprecated in favor of [cached](cached.md) configurations. For backwards compatability if you have not
+configured the cached duration we utilize this value to configure the cached duration setting.
+
 ### file
 
 The [file](file.md) authentication provider.

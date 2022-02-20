@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func TestShouldInitializerSession(t *testing.T) {
@@ -68,7 +69,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	provider := NewProvider(configuration, nil)
 	session, _ := provider.GetSession(ctx)
 
-	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
+	session.SetOneFactor(timeOneFactor, &model.UserDetails{Username: testUsername}, false)
 
 	err := provider.SaveSession(ctx, session)
 	require.NoError(t, err)

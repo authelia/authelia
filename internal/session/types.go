@@ -2,7 +2,6 @@ package session
 
 import (
 	"context"
-	"time"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
@@ -30,11 +29,7 @@ type U2FRegistration struct {
 
 // UserSession is the structure representing the session of a user.
 type UserSession struct {
-	Username    string
-	DisplayName string
-	// TODO(c.michaud): move groups out of the session.
-	Groups []string
-	Emails []string
+	Username string
 
 	KeepMeLoggedIn      bool
 	AuthenticationLevel authentication.Level
@@ -53,11 +48,9 @@ type UserSession struct {
 	// Represent an OIDC workflow session initiated by the client if not null.
 	OIDCWorkflowSession *OIDCWorkflowSession
 
-	// This boolean is set to true after identity verification and checked
+	// This string is set to the username after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
-
-	RefreshTTL time.Time
 }
 
 // Identity identity of the user who is being verified.

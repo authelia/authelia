@@ -1,6 +1,8 @@
 package validator
 
-import "regexp"
+import (
+	"regexp"
+)
 
 const (
 	loopback           = "127.0.0.1"
@@ -31,7 +33,6 @@ const (
 
 // Test constants.
 const (
-	testBadTimer      = "-1"
 	testInvalidPolicy = "invalid"
 	testJWTSecret     = "a_secret"
 	testLDAPBaseDN    = "base_dn"
@@ -132,6 +133,8 @@ const (
 	errAccessControlInvalidPolicyWithSubjects = "policy [bypass] for rule #%d domain %s with subjects %s is invalid. It is " +
 		"not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
+
+	errFmtNTPVersion = "ntp: version '%d' is invalid, must be one of 3 or 4"
 )
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
@@ -283,6 +286,10 @@ var ValidKeys = []string{
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
 	"authentication_backend.refresh_interval",
+
+	// Cached Authentication Backend Keys.
+	"authentication_backend.cached.disable",
+	"authentication_backend.cached.duration",
 
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.implementation",

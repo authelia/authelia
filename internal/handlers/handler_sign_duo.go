@@ -6,7 +6,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -31,6 +31,15 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 		userSession := ctx.GetSession()
 		remoteIP := ctx.RemoteIP().String()
 
+		details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+		if err != nil {
+			ctx.Logger.Errorf(logFmtErrUserDetailsLookup, regulation.AuthTypeDuo, err)
+
+			respondUnauthorized(ctx, messageMFAValidationFailed)
+
+			return
+		}
+
 		duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
 		if err != nil {
 			ctx.Logger.Debugf("Error identifying preferred device for user %s: %s", userSession.Username, err)
@@ -52,7 +61,7 @@ func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
 
 		ctx.Logger.Debugf("Starting Duo Auth attempt for %s with device %s and method %s from IP %s", userSession.Username, device, method, remoteIP)
 
-		values, err := SetValues(userSession, device, method, remoteIP, requestBody.TargetURL, requestBody.Passcode)
+		values, err := SetValues(details, device, method, remoteIP, requestBody.TargetURL, requestBody.Passcode)
 		if err != nil {
 			ctx.Logger.Errorf("Failed to set values for Duo Auth Call for user '%s': %+v", userSession.Username, err)
 
@@ -235,7 +244,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	method := devices[0].Capabilities[0]
 	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
 
-	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
+	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
 		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
 	}
 
@@ -274,9 +283,9 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 }
 
 // SetValues sets all appropriate Values for the Auth Request.
-func SetValues(userSession session.UserSession, device string, method string, remoteIP string, targetURL string, passcode string) (url.Values, error) {
+func SetValues(details *model.UserDetails, device string, method string, remoteIP string, targetURL string, passcode string) (url.Values, error) {
 	values := url.Values{}
-	values.Set("username", userSession.Username)
+	values.Set("username", details.Username)
 	values.Set("ipaddr", remoteIP)
 	values.Set("factor", method)
 
@@ -284,8 +293,8 @@ func SetValues(userSession session.UserSession, device string, method string, re
 	case duo.Push:
 		values.Set("device", device)
 
-		if userSession.DisplayName != "" {
-			values.Set("display_username", userSession.DisplayName)
+		if details.DisplayName != "" {
+			values.Set("display_username", details.DisplayName)
 		}
 
 		if targetURL != "" {
@@ -299,7 +308,7 @@ func SetValues(userSession session.UserSession, device string, method string, re
 		if passcode != "" {
 			values.Set("passcode", passcode)
 		} else {
-			return nil, fmt.Errorf("no passcode received from user: %s", userSession.Username)
+			return nil, fmt.Errorf("no passcode received from user: %s", details.Username)
 		}
 	}
 

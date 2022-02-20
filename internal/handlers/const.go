@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -46,6 +48,7 @@ const (
 
 const (
 	logFmtErrParseRequestBody     = "Failed to parse %s request body: %+v"
+	logFmtErrUserDetailsLookup    = "Failed to lookup user details during %s authentication: %+v"
 	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s': %+v"
 	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s': %+v"
 	logFmtErrSessionRegenerate    = "Could not regenerate session during %s authentication for user '%s': %+v"
@@ -56,7 +59,7 @@ const (
 )
 
 const (
-	testInactivity     = "10"
+	testInactivity     = time.Second * 10
 	testRedirectionURL = "http://redirection.local"
 	testUsername       = "john"
 )

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 type HandlerRegisterU2FStep1Suite struct {
@@ -35,8 +35,8 @@ func (s *HandlerRegisterU2FStep1Suite) TearDownTest() {
 	s.mock.Close()
 }
 
-func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
-	verification = models.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
+func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
+	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
 
 	verification.ExpiresAt = expiresAt
 
@@ -59,7 +59,7 @@ func (s *HandlerRegisterU2FStep1Suite) TestShouldRaiseWhenXForwardedHostIsMissin
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
 	SecondFactorU2FIdentityFinish(s.mock.Ctx)

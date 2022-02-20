@@ -52,9 +52,7 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 
 	// Only serve the header over HTTPS.
 	config.Secure = true
-
-	// Ignore the error as it will be handled by validator.
-	config.Expiration, _ = utils.ParseDurationString(configuration.Expiration)
+	config.Expiration = configuration.Expiration
 
 	config.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
 		return true

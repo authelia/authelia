@@ -38,6 +38,14 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	userSession := ctx.GetSession()
 
+	details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+	if err != nil {
+		ctx.Logger.Errorf("Error occurred obtaining user details: %+v", err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+
+		return
+	}
+
 	requestedScopes := ar.GetRequestedScopes()
 	requestedAudience := ar.GetRequestedAudience()
 
@@ -49,7 +57,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
-	extraClaims := oidcGrantRequests(ar, requestedScopes, requestedAudience, &userSession)
+	extraClaims := oidcGrantRequests(ar, requestedScopes, requestedAudience, details)
 
 	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 

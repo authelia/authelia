@@ -36,6 +36,16 @@ func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "Please provide `ldap` or `file` object in `authentication_backend`")
 }
 
+func TestShouldSetCachedProviderDefaultsWhenNotDisabled(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.AuthenticationBackendConfiguration{}
+
+	ValidateAuthenticationBackend(config, validator)
+
+	require.NotNil(t, config.Cached.Duration)
+	assert.Equal(t, time.Duration(5)*time.Minute, *config.Cached.Duration)
+}
+
 type FileBasedAuthenticationBackend struct {
 	suite.Suite
 	configuration schema.AuthenticationBackendConfiguration
@@ -335,7 +345,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "Auth Backend `refresh_interval` is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: could not convert the input string of blah into a duration")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: failed to parse refresh_interval: could not parse 'blah' as a duration string")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultImplementation() {
@@ -389,15 +399,6 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttr
 	suite.Assert().False(suite.validator.HasErrors())
 
 	suite.Assert().Equal("displayName", suite.configuration.LDAP.DisplayNameAttribute)
-}
-
-func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {
-	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
-
-	suite.Assert().Equal("5m", suite.configuration.RefreshInterval)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesNotContainEnclosingParenthesis() {

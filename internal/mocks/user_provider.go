@@ -9,7 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	authentication "github.com/authelia/authelia/v4/internal/authentication"
+	model "github.com/authelia/authelia/v4/internal/model"
 )
 
 // MockUserProvider is a mock of UserProvider interface.
@@ -50,11 +50,26 @@ func (mr *MockUserProviderMockRecorder) CheckUserPassword(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUserPassword", reflect.TypeOf((*MockUserProvider)(nil).CheckUserPassword), arg0, arg1)
 }
 
+// GetCurrentDetails mocks base method.
+func (m *MockUserProvider) GetCurrentDetails(arg0 string) (*model.UserDetails, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentDetails", arg0)
+	ret0, _ := ret[0].(*model.UserDetails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCurrentDetails indicates an expected call of GetCurrentDetails.
+func (mr *MockUserProviderMockRecorder) GetCurrentDetails(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentDetails", reflect.TypeOf((*MockUserProvider)(nil).GetCurrentDetails), arg0)
+}
+
 // GetDetails mocks base method.
-func (m *MockUserProvider) GetDetails(arg0 string) (*authentication.UserDetails, error) {
+func (m *MockUserProvider) GetDetails(arg0 string) (*model.UserDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDetails", arg0)
-	ret0, _ := ret[0].(*authentication.UserDetails)
+	ret0, _ := ret[0].(*model.UserDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

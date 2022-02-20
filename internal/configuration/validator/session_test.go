@@ -420,32 +420,6 @@ func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	}
 }
 
-func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Inactivity = testBadTimer
-	config.Expiration = testBadTimer
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing session expiration string: could not convert the input string of -1 into a duration")
-	assert.EqualError(t, validator.Errors()[1], "Error occurred parsing session inactivity string: could not convert the input string of -1 into a duration")
-}
-
-func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.RememberMeDuration = "1 year"
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing session remember_me_duration string: could not convert the input string of 1 year into a duration")
-}
-
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()

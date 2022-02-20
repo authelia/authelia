@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -12,13 +12,18 @@ import (
 func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
 	userSession := ctx.GetSession()
 
-	if len(userSession.Emails) == 0 {
-		return nil, fmt.Errorf("user %s does not have any email address", userSession.Username)
+	details, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
+	if err != nil {
+		return nil, fmt.Errorf("could not lookup details for user '%s': %w", userSession.Username, err)
+	}
+
+	if len(details.Emails) == 0 {
+		return nil, fmt.Errorf("user '%s' does not have any email address", userSession.Username)
 	}
 
 	return &session.Identity{
-		Username: userSession.Username,
-		Email:    userSession.Emails[0],
+		Username: details.Username,
+		Email:    details.Emails[0],
 	}, nil
 }
 
@@ -37,7 +42,7 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 
 func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (
-		config *models.TOTPConfiguration
+		config *model.TOTPConfiguration
 		err    error
 	)
 

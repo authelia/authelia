@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"crypto/subtle"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -32,7 +31,7 @@ func ConfigAlgoToCryptoAlgo(fromConfig string) (CryptAlgo, error) {
 	case sha512:
 		return HashingAlgorithmSHA512, nil
 	default:
-		return HashingAlgorithmArgon2id, errors.New("Invalid algorithm in configuration. It should be `argon2id` or `sha512`")
+		return HashingAlgorithmArgon2id, fmt.Errorf(errFmtPasswordInvalidAlgorithm, fromConfig)
 	}
 }
 
@@ -49,11 +48,11 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 	h.Key = key
 
 	if h.Key != parts[len(parts)-1] {
-		return nil, fmt.Errorf("Hash key is not the last parameter, the hash is likely malformed (%s)", hash)
+		return nil, fmt.Errorf(errFmtPasswordHashKeyNotLastParameter, h.Key, hash)
 	}
 
 	if h.Key == "" {
-		return nil, fmt.Errorf("Hash key contains no characters or the field length is invalid (%s)", hash)
+		return nil, fmt.Errorf(errFmtPasswordEmptyKeyOrInvalidFieldLength, hash)
 	}
 
 	switch code {
@@ -62,23 +61,23 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		h.Algorithm = HashingAlgorithmSHA512
 
 		if parameters["rounds"] != "" && parameters["rounds"] != strconv.Itoa(h.Iterations) {
-			return nil, fmt.Errorf("SHA512 iterations is not numeric (%s)", parameters["rounds"])
+			return nil, fmt.Errorf("sha512 iterations '%s' is not numeric", parameters["rounds"])
 		}
 	case HashingAlgorithmArgon2id:
 		_, err = crypt.Base64Encoding.DecodeString(h.Salt)
 		if err != nil {
-			return nil, errors.New("Salt contains invalid base64 characters")
+			return nil, fmt.Errorf("invalid base64 characters in salt '%s'", h.Salt)
 		}
 
 		version := parameters.GetInt("v", 0)
 		if version < 19 {
 			if version == 0 {
-				return nil, fmt.Errorf("Argon2id version parameter not found (%s)", hash)
+				return nil, fmt.Errorf("argon2id version parameter not found in hash '%s'", hash)
 			}
 
-			return nil, fmt.Errorf("Argon2id versions less than v19 are not supported (hash is version %d)", version)
+			return nil, fmt.Errorf("argon2id version '%d' is invalid as versions less than v19 are not supported", version)
 		} else if version > 19 {
-			return nil, fmt.Errorf("Argon2id versions greater than v19 are not supported (hash is version %d)", version)
+			return nil, fmt.Errorf("argon2id version '%d' is invalid as versions greater than v19 are not supported", version)
 		}
 
 		h.Algorithm = HashingAlgorithmArgon2id
@@ -90,14 +89,14 @@ func ParseHash(hash string) (passwordHash *PasswordHash, err error) {
 		decodedKey, err := crypt.Base64Encoding.DecodeString(h.Key)
 
 		if err != nil {
-			return nil, errors.New("Hash key contains invalid base64 characters")
+			return nil, fmt.Errorf("hash key '%s' contains invalid base64 characters", h.Key)
 		}
 
 		if len(decodedKey) != h.KeyLength {
-			return nil, fmt.Errorf("Argon2id key length parameter (%d) does not match the actual key length (%d)", h.KeyLength, len(decodedKey))
+			return nil, fmt.Errorf("argon2id key length parameter '%d' does not match the actual key length '%d'", h.KeyLength, len(decodedKey))
 		}
 	default:
-		return nil, fmt.Errorf("Authelia only supports salted SHA512 hashing ($6$) and salted argon2id ($argon2id$), not $%s$", code)
+		return nil, fmt.Errorf("invalid hash type prefix '%s', must be one of salted sha512 '$6$' or salted argon2id '$argon2id$'", code)
 	}
 
 	return h, nil
@@ -108,7 +107,7 @@ func HashPassword(password, salt string, algorithm CryptAlgo, iterations, memory
 	var settings string
 
 	if algorithm != HashingAlgorithmArgon2id && algorithm != HashingAlgorithmSHA512 {
-		return "", fmt.Errorf("Hashing algorithm input of '%s' is invalid, only values of %s and %s are supported", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
+		return "", fmt.Errorf("hashing algorithm input of '%s' is invalid, must be one of '%s' and '%s'", algorithm, HashingAlgorithmArgon2id, HashingAlgorithmSHA512)
 	}
 
 	if algorithm == HashingAlgorithmArgon2id {
@@ -174,7 +173,7 @@ func getCryptSettings(salt string, algorithm CryptAlgo, iterations, memory, para
 func validateSalt(salt string, saltLength int) error {
 	if salt == "" {
 		if saltLength < 8 {
-			return fmt.Errorf("Salt length input of %d is invalid, it must be 8 or higher", saltLength)
+			return fmt.Errorf("salt length input of '%d' is invalid, it must be 8 or higher", saltLength)
 		}
 
 		return nil
@@ -182,11 +181,11 @@ func validateSalt(salt string, saltLength int) error {
 
 	decodedSalt, err := crypt.Base64Encoding.DecodeString(salt)
 	if err != nil {
-		return fmt.Errorf("Salt input of %s is invalid, only base64 strings are valid for input", salt)
+		return fmt.Errorf("salt input of '%s' is invalid, only base64 strings are valid for input", salt)
 	}
 
 	if len(decodedSalt) < 8 {
-		return fmt.Errorf("Salt input of %s is invalid (%d characters), it must be 8 or more characters", decodedSalt, len(decodedSalt))
+		return fmt.Errorf("salt input of '%s' is invalid due to it's length being %d, it must be 8 or more characters", decodedSalt, len(decodedSalt))
 	}
 
 	return nil
@@ -196,23 +195,23 @@ func validateSalt(salt string, saltLength int) error {
 func validateArgon2idSettings(memory, parallelism, iterations, keyLength int) error {
 	// Caution: Increasing any of the values in the below block has a high chance in old passwords that cannot be verified.
 	if memory < 8 {
-		return fmt.Errorf("Memory (argon2id) input of %d is invalid, it must be 8 or higher", memory)
+		return fmt.Errorf("argon2id memory input of '%d' is invalid, it must be 8 or higher", memory)
 	}
 
 	if parallelism < 1 {
-		return fmt.Errorf("Parallelism (argon2id) input of %d is invalid, it must be 1 or higher", parallelism)
+		return fmt.Errorf("argon2id parallelism input of '%d' is invalid, it must be 1 or higher", parallelism)
 	}
 
 	if memory < parallelism*8 {
-		return fmt.Errorf("Memory (argon2id) input of %d is invalid with a parallelism input of %d, it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
+		return fmt.Errorf("argon2id memory input of '%d' is invalid with a parallelism input of '%d', it must be %d (parallelism * 8) or higher", memory, parallelism, parallelism*8)
 	}
 
 	if keyLength < 16 {
-		return fmt.Errorf("Key length (argon2id) input of %d is invalid, it must be 16 or higher", keyLength)
+		return fmt.Errorf("argon2id key length input of '%d' is invalid, it must be 16 or higher", keyLength)
 	}
 
 	if iterations < 1 {
-		return fmt.Errorf("Iterations (argon2id) input of %d is invalid, it must be 1 or more", iterations)
+		return fmt.Errorf("argon2id iterations input of '%d' is invalid, it must be 1 or higher", iterations)
 	}
 
 	// Caution: Increasing any of the values in the above block has a high chance in old passwords that cannot be verified.

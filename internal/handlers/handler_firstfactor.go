@@ -107,7 +107,7 @@ func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		// Get the details of the given user from the user provider.
-		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
+		details, err := ctx.Providers.UserProvider.GetCurrentDetails(bodyJSON.Username)
 		if err != nil {
 			ctx.Logger.Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username, err)
 
@@ -116,16 +116,12 @@ func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		ctx.Logger.Tracef(logFmtTraceProfileDetails, bodyJSON.Username, userDetails.Groups, userDetails.Emails)
+		ctx.Logger.Tracef(logFmtTraceProfileDetails, details.Username, details.Groups, details.Emails)
 
-		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
-
-		if refresh, refreshInterval := getProfileRefreshSettings(ctx.Configuration.AuthenticationBackend); refresh {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshInterval)
-		}
+		userSession.SetOneFactor(ctx.Clock.Now(), details, keepMeLoggedIn)
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, bodyJSON.Username, err)
+			ctx.Logger.Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, details.Username, err)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -137,7 +133,7 @@ func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		if userSession.OIDCWorkflowSession != nil {
 			handleOIDCWorkflowResponse(ctx)
 		} else {
-			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, details.Username, details.Groups)
 		}
 	}
 }

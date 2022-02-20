@@ -11,7 +11,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	models "github.com/authelia/authelia/v4/internal/models"
+	model "github.com/authelia/authelia/v4/internal/model"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -38,7 +38,7 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // AppendAuthenticationLog mocks base method.
-func (m *MockStorage) AppendAuthenticationLog(arg0 context.Context, arg1 models.AuthenticationAttempt) error {
+func (m *MockStorage) AppendAuthenticationLog(arg0 context.Context, arg1 model.AuthenticationAttempt) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AppendAuthenticationLog", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -66,7 +66,7 @@ func (mr *MockStorageMockRecorder) Close() *gomock.Call {
 }
 
 // ConsumeIdentityVerification mocks base method.
-func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 models.NullIP) error {
+func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConsumeIdentityVerification", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -123,10 +123,10 @@ func (mr *MockStorageMockRecorder) FindIdentityVerification(arg0, arg1 interface
 }
 
 // LoadAuthenticationLogs mocks base method.
-func (m *MockStorage) LoadAuthenticationLogs(arg0 context.Context, arg1 string, arg2 time.Time, arg3, arg4 int) ([]models.AuthenticationAttempt, error) {
+func (m *MockStorage) LoadAuthenticationLogs(arg0 context.Context, arg1 string, arg2 time.Time, arg3, arg4 int) ([]model.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].([]models.AuthenticationAttempt)
+	ret0, _ := ret[0].([]model.AuthenticationAttempt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -153,10 +153,10 @@ func (mr *MockStorageMockRecorder) LoadPreferred2FAMethod(arg0, arg1 interface{}
 }
 
 // LoadPreferredDuoDevice mocks base method.
-func (m *MockStorage) LoadPreferredDuoDevice(arg0 context.Context, arg1 string) (*models.DuoDevice, error) {
+func (m *MockStorage) LoadPreferredDuoDevice(arg0 context.Context, arg1 string) (*model.DuoDevice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadPreferredDuoDevice", arg0, arg1)
-	ret0, _ := ret[0].(*models.DuoDevice)
+	ret0, _ := ret[0].(*model.DuoDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -168,10 +168,10 @@ func (mr *MockStorageMockRecorder) LoadPreferredDuoDevice(arg0, arg1 interface{}
 }
 
 // LoadTOTPConfiguration mocks base method.
-func (m *MockStorage) LoadTOTPConfiguration(arg0 context.Context, arg1 string) (*models.TOTPConfiguration, error) {
+func (m *MockStorage) LoadTOTPConfiguration(arg0 context.Context, arg1 string) (*model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadTOTPConfiguration", arg0, arg1)
-	ret0, _ := ret[0].(*models.TOTPConfiguration)
+	ret0, _ := ret[0].(*model.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -183,10 +183,10 @@ func (mr *MockStorageMockRecorder) LoadTOTPConfiguration(arg0, arg1 interface{})
 }
 
 // LoadTOTPConfigurations mocks base method.
-func (m *MockStorage) LoadTOTPConfigurations(arg0 context.Context, arg1, arg2 int) ([]models.TOTPConfiguration, error) {
+func (m *MockStorage) LoadTOTPConfigurations(arg0 context.Context, arg1, arg2 int) ([]model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadTOTPConfigurations", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]models.TOTPConfiguration)
+	ret0, _ := ret[0].([]model.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -198,10 +198,10 @@ func (mr *MockStorageMockRecorder) LoadTOTPConfigurations(arg0, arg1, arg2 inter
 }
 
 // LoadU2FDevice mocks base method.
-func (m *MockStorage) LoadU2FDevice(arg0 context.Context, arg1 string) (*models.U2FDevice, error) {
+func (m *MockStorage) LoadU2FDevice(arg0 context.Context, arg1 string) (*model.U2FDevice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadU2FDevice", arg0, arg1)
-	ret0, _ := ret[0].(*models.U2FDevice)
+	ret0, _ := ret[0].(*model.U2FDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -213,10 +213,10 @@ func (mr *MockStorageMockRecorder) LoadU2FDevice(arg0, arg1 interface{}) *gomock
 }
 
 // LoadU2FDevices mocks base method.
-func (m *MockStorage) LoadU2FDevices(arg0 context.Context, arg1, arg2 int) ([]models.U2FDevice, error) {
+func (m *MockStorage) LoadU2FDevices(arg0 context.Context, arg1, arg2 int) ([]model.U2FDevice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadU2FDevices", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]models.U2FDevice)
+	ret0, _ := ret[0].([]model.U2FDevice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -228,10 +228,10 @@ func (mr *MockStorageMockRecorder) LoadU2FDevices(arg0, arg1, arg2 interface{}) 
 }
 
 // LoadUserInfo mocks base method.
-func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (models.UserInfo, error) {
+func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (model.UserInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadUserInfo", arg0, arg1)
-	ret0, _ := ret[0].(models.UserInfo)
+	ret0, _ := ret[0].(model.UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -243,7 +243,7 @@ func (mr *MockStorageMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.
 }
 
 // SaveIdentityVerification mocks base method.
-func (m *MockStorage) SaveIdentityVerification(arg0 context.Context, arg1 models.IdentityVerification) error {
+func (m *MockStorage) SaveIdentityVerification(arg0 context.Context, arg1 model.IdentityVerification) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveIdentityVerification", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -271,7 +271,7 @@ func (mr *MockStorageMockRecorder) SavePreferred2FAMethod(arg0, arg1, arg2 inter
 }
 
 // SavePreferredDuoDevice mocks base method.
-func (m *MockStorage) SavePreferredDuoDevice(arg0 context.Context, arg1 models.DuoDevice) error {
+func (m *MockStorage) SavePreferredDuoDevice(arg0 context.Context, arg1 model.DuoDevice) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SavePreferredDuoDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -285,7 +285,7 @@ func (mr *MockStorageMockRecorder) SavePreferredDuoDevice(arg0, arg1 interface{}
 }
 
 // SaveTOTPConfiguration mocks base method.
-func (m *MockStorage) SaveTOTPConfiguration(arg0 context.Context, arg1 models.TOTPConfiguration) error {
+func (m *MockStorage) SaveTOTPConfiguration(arg0 context.Context, arg1 model.TOTPConfiguration) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveTOTPConfiguration", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -299,7 +299,7 @@ func (mr *MockStorageMockRecorder) SaveTOTPConfiguration(arg0, arg1 interface{})
 }
 
 // SaveU2FDevice mocks base method.
-func (m *MockStorage) SaveU2FDevice(arg0 context.Context, arg1 models.U2FDevice) error {
+func (m *MockStorage) SaveU2FDevice(arg0 context.Context, arg1 model.U2FDevice) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveU2FDevice", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -370,10 +370,10 @@ func (mr *MockStorageMockRecorder) SchemaMigrate(arg0, arg1, arg2 interface{}) *
 }
 
 // SchemaMigrationHistory mocks base method.
-func (m *MockStorage) SchemaMigrationHistory(arg0 context.Context) ([]models.Migration, error) {
+func (m *MockStorage) SchemaMigrationHistory(arg0 context.Context) ([]model.Migration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SchemaMigrationHistory", arg0)
-	ret0, _ := ret[0].([]models.Migration)
+	ret0, _ := ret[0].([]model.Migration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -385,10 +385,10 @@ func (mr *MockStorageMockRecorder) SchemaMigrationHistory(arg0 interface{}) *gom
 }
 
 // SchemaMigrationsDown mocks base method.
-func (m *MockStorage) SchemaMigrationsDown(arg0 context.Context, arg1 int) ([]models.SchemaMigration, error) {
+func (m *MockStorage) SchemaMigrationsDown(arg0 context.Context, arg1 int) ([]model.SchemaMigration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SchemaMigrationsDown", arg0, arg1)
-	ret0, _ := ret[0].([]models.SchemaMigration)
+	ret0, _ := ret[0].([]model.SchemaMigration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -400,10 +400,10 @@ func (mr *MockStorageMockRecorder) SchemaMigrationsDown(arg0, arg1 interface{}) 
 }
 
 // SchemaMigrationsUp mocks base method.
-func (m *MockStorage) SchemaMigrationsUp(arg0 context.Context, arg1 int) ([]models.SchemaMigration, error) {
+func (m *MockStorage) SchemaMigrationsUp(arg0 context.Context, arg1 int) ([]model.SchemaMigration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SchemaMigrationsUp", arg0, arg1)
-	ret0, _ := ret[0].([]models.SchemaMigration)
+	ret0, _ := ret[0].([]model.SchemaMigration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -1,4 +1,4 @@
-package models
+package model
 
 // UserInfo represents the user information required by the web UI.
 type UserInfo struct {
@@ -16,4 +16,12 @@ type UserInfo struct {
 
 	// True if a duo device has been configured as the preferred.
 	HasDuo bool `db:"has_duo" json:"has_duo" valid:"required"`
+}
+
+// UserDetails represent the details retrieved for a given user.
+type UserDetails struct {
+	Username    string
+	DisplayName string
+	Emails      []string
+	Groups      []string
 }

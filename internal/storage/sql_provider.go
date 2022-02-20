@@ -14,7 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
@@ -201,8 +201,8 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	}
 }
 
-// LoadUserInfo loads the models.UserInfo from the database.
-func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error) {
+// LoadUserInfo loads the model.UserInfo from the database.
+func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error) {
 	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
 	switch {
@@ -210,21 +210,21 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 		return info, nil
 	case errors.Is(err, sql.ErrNoRows):
 		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, authentication.PossibleMethods[0]); err != nil {
-			return models.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
+			return model.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
 		}
 
 		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username); err != nil {
-			return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
+			return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 		}
 
 		return info, nil
 	default:
-		return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
+		return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 	}
 }
 
 // SaveIdentityVerification save an identity verification record to the database.
-func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error) {
+func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification model.IdentityVerification) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification,
 		verification.JTI, verification.IssuedAt, verification.IssuedIP, verification.ExpiresAt,
 		verification.Username, verification.Action); err != nil {
@@ -235,7 +235,7 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 }
 
 // ConsumeIdentityVerification marks an identity verification record in the database as consumed.
-func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip models.NullIP) (err error) {
+func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlConsumeIdentityVerification, ip, jti); err != nil {
 		return fmt.Errorf("error updating identity verification: %w", err)
 	}
@@ -245,7 +245,7 @@ func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti strin
 
 // FindIdentityVerification checks if an identity verification record is in the database and active.
 func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
-	verification := models.IdentityVerification{}
+	verification := model.IdentityVerification{}
 	if err = p.db.GetContext(ctx, &verification, p.sqlSelectIdentityVerification, jti); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -263,7 +263,7 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 }
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the database.
-func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
+func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config model.TOTPConfiguration) (err error) {
 	if config.Secret, err = p.encrypt(config.Secret); err != nil {
 		return fmt.Errorf("error encrypting the TOTP configuration secret: %v", err)
 	}
@@ -286,8 +286,8 @@ func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username stri
 }
 
 // LoadTOTPConfiguration load a TOTP configuration given a username from the database.
-func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error) {
-	config = &models.TOTPConfiguration{}
+func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error) {
+	config = &model.TOTPConfiguration{}
 
 	if err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -305,7 +305,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 }
 
 // LoadTOTPConfigurations load a set of TOTP configurations.
-func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error) {
+func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectTOTPConfigs, limit, limit*page)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -321,9 +321,9 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 		}
 	}()
 
-	configs = make([]models.TOTPConfiguration, 0, limit)
+	configs = make([]model.TOTPConfiguration, 0, limit)
 
-	var config models.TOTPConfiguration
+	var config model.TOTPConfiguration
 
 	for rows.Next() {
 		if err = rows.StructScan(&config); err != nil {
@@ -340,7 +340,7 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
-func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error) {
+func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config model.TOTPConfiguration) (err error) {
 	switch config.ID {
 	case 0:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
@@ -356,7 +356,7 @@ func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config 
 }
 
 // SaveU2FDevice saves a registered U2F device.
-func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice) (err error) {
+func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device model.U2FDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
 		return fmt.Errorf("error encrypting the U2F device public key: %v", err)
 	}
@@ -369,8 +369,8 @@ func (p *SQLProvider) SaveU2FDevice(ctx context.Context, device models.U2FDevice
 }
 
 // LoadU2FDevice loads a U2F device registration for a given username.
-func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (device *models.U2FDevice, err error) {
-	device = &models.U2FDevice{}
+func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (device *model.U2FDevice, err error) {
+	device = &model.U2FDevice{}
 
 	if err = p.db.GetContext(ctx, device, p.sqlSelectU2FDevice, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -388,7 +388,7 @@ func (p *SQLProvider) LoadU2FDevice(ctx context.Context, username string) (devic
 }
 
 // LoadU2FDevices loads U2F device registrations.
-func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devices []models.U2FDevice, err error) {
+func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devices []model.U2FDevice, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectU2FDevices, limit, limit*page)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -404,9 +404,9 @@ func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devi
 		}
 	}()
 
-	devices = make([]models.U2FDevice, 0, limit)
+	devices = make([]model.U2FDevice, 0, limit)
 
-	var device models.U2FDevice
+	var device model.U2FDevice
 
 	for rows.Next() {
 		if err = rows.StructScan(&device); err != nil {
@@ -423,7 +423,7 @@ func (p *SQLProvider) LoadU2FDevices(ctx context.Context, limit, page int) (devi
 	return devices, nil
 }
 
-func (p *SQLProvider) updateU2FDevicePublicKey(ctx context.Context, device models.U2FDevice) (err error) {
+func (p *SQLProvider) updateU2FDevicePublicKey(ctx context.Context, device model.U2FDevice) (err error) {
 	switch device.ID {
 	case 0:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateU2FDevicePublicKeyByUsername, device.PublicKey, device.Username)
@@ -439,7 +439,7 @@ func (p *SQLProvider) updateU2FDevicePublicKey(ctx context.Context, device model
 }
 
 // SavePreferredDuoDevice saves a Duo device.
-func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error) {
+func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device model.DuoDevice) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpsertDuoDevice, device.Username, device.Device, device.Method)
 	return err
 }
@@ -451,8 +451,8 @@ func (p *SQLProvider) DeletePreferredDuoDevice(ctx context.Context, username str
 }
 
 // LoadPreferredDuoDevice loads a Duo device of a given user.
-func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error) {
-	device = &models.DuoDevice{}
+func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error) {
+	device = &model.DuoDevice{}
 
 	if err := p.db.QueryRowxContext(ctx, p.sqlSelectDuoDevice, username).StructScan(device); err != nil {
 		if err == sql.ErrNoRows {
@@ -466,7 +466,7 @@ func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username strin
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.
-func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
+func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model.AuthenticationAttempt) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
 		attempt.Time, attempt.Successful, attempt.Banned, attempt.Username,
 		attempt.Type, attempt.RemoteIP, attempt.RequestURI, attempt.RequestMethod); err != nil {
@@ -477,7 +477,7 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 }
 
 // LoadAuthenticationLogs retrieve the latest failed authentications from the authentication log.
-func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
+func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectAuthenticationAttemptsByUsername, fromDate, username, limit, limit*page)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -493,9 +493,9 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 		}
 	}()
 
-	var attempt models.AuthenticationAttempt
+	var attempt model.AuthenticationAttempt
 
-	attempts = make([]models.AuthenticationAttempt, 0, limit)
+	attempts = make([]model.AuthenticationAttempt, 0, limit)
 
 	for rows.Next() {
 		if err = rows.StructScan(&attempt); err != nil {

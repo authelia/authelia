@@ -12,7 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -57,13 +57,13 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -85,13 +85,13 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -111,13 +111,13 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -142,7 +142,7 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 
 	s.mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("test")).
+		GetCurrentDetails(gomock.Eq("test")).
 		Return(nil, fmt.Errorf("failed"))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -186,8 +186,8 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 
 	s.mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		GetCurrentDetails(gomock.Eq("test")).
+		Return(&model.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
@@ -214,8 +214,6 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	assert.Equal(s.T(), "test", session.Username)
 	assert.Equal(s.T(), true, session.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
-	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
@@ -226,8 +224,8 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 
 	s.mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		GetCurrentDetails(gomock.Eq("test")).
+		Return(&model.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
@@ -255,8 +253,6 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	assert.Equal(s.T(), "test", session.Username)
 	assert.Equal(s.T(), false, session.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
-	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
 }
 
 func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
@@ -267,8 +263,8 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 
 	s.mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		GetCurrentDetails(gomock.Eq("test")).
+		Return(&model.UserDetails{
 			// This is the name in authentication backend, in some setups the binding is
 			// case insensitive but the user ID in session must match the user in LDAP
 			// for the other modules of Authelia to be coherent.
@@ -299,8 +295,6 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	assert.Equal(s.T(), "Test", session.Username)
 	assert.Equal(s.T(), true, session.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, session.AuthenticationLevel)
-	assert.Equal(s.T(), []string{"test@example.com"}, session.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, session.Groups)
 }
 
 type FirstFactorRedirectionSuite struct {
@@ -319,6 +313,7 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 			Policy:  "one_factor",
 		},
 	}
+
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
 	s.mock.UserProviderMock.
@@ -328,8 +323,8 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 
 	s.mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("test")).
-		Return(&authentication.UserDetails{
+		GetCurrentDetails(gomock.Eq("test")).
+		Return(&model.UserDetails{
 			Username: "test",
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},

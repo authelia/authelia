@@ -31,6 +31,12 @@ const (
 )
 
 const (
+	errFmtPasswordInvalidAlgorithm             = "hashing algorithm '%s' is not valid, must be either 'argon2iid' or 'sha512'"            //nolint:gosec
+	errFmtPasswordHashKeyNotLastParameter      = "hash key '%s' is not the last parameter in the hash '%s', the hash is likely malformed" //nolint:gosec
+	errFmtPasswordEmptyKeyOrInvalidFieldLength = "hash key contains no characters or the field length is invalid in the hash '%s'"
+)
+
+const (
 	ldapPlaceholderInput             = "{input}"
 	ldapPlaceholderDistinguishedName = "{dn}"
 	ldapPlaceholderUsername          = "{username}"

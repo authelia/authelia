@@ -3,7 +3,7 @@ layout: default
 title: LDAP
 parent: Authentication Backends
 grand_parent: Configuration
-nav_order: 2
+nav_order: 3
 ---
 
 # LDAP
@@ -13,7 +13,6 @@ nav_order: 2
 ```yaml
 authentication_backend:
   disable_reset_password: false
-  refresh_interval: 5m
   ldap:
     implementation: custom
     url: ldap://127.0.0.1

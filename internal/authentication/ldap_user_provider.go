@@ -13,6 +13,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -228,8 +229,13 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 	return filter, nil
 }
 
-// GetDetails retrieve the groups a user belongs to.
-func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error) {
+// GetCurrentDetails returns GetDetails.
+func (p *LDAPUserProvider) GetCurrentDetails(username string) (details *model.UserDetails, err error) {
+	return p.GetDetails(username)
+}
+
+// GetDetails retrieves the groups a user belongs to and other profile information.
+func (p *LDAPUserProvider) GetDetails(inputUsername string) (*model.UserDetails, error) {
 	conn, err := p.connect(p.configuration.User, p.configuration.Password)
 	if err != nil {
 		return nil, err
@@ -270,7 +276,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 		groups = append(groups, res.Attributes[0].Values...)
 	}
 
-	return &UserDetails{
+	return &model.UserDetails{
 		Username:    profile.Username,
 		DisplayName: profile.DisplayName,
 		Emails:      profile.Emails,

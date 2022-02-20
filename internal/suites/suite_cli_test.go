@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -284,7 +284,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
-	configs := []*models.TOTPConfiguration{
+	configs := []*model.TOTPConfiguration{
 		{
 			Username:  "john",
 			Period:    30,
