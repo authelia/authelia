@@ -112,7 +112,7 @@ func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
 	cmd.Flags().String("algorithm", "SHA1", "set the TOTP algorithm")
 	cmd.Flags().String("issuer", "Authelia", "set the TOTP issuer")
 	cmd.Flags().BoolP("force", "f", false, "forces the TOTP configuration to be generated regardless if it exists or not")
-	cmd.Flags().StringP("image", "i", "", "path to a file to create, if specified also creates a PNG with the QR code")
+	cmd.Flags().StringP("path", "p", "", "path to a file to create a PNG file with the QR code (optional)")
 
 	return cmd
 }

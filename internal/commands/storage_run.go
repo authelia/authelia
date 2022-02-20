@@ -221,7 +221,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if filename, err = cmd.Flags().GetString("image"); err != nil {
+	if filename, err = cmd.Flags().GetString("path"); err != nil {
 		return err
 	}
 
