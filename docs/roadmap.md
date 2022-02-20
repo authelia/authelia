@@ -17,14 +17,15 @@ Below are the prioritised roadmap items:
 1. Webauthn needs to be implemented because U2F is being deprecated in the browsers. Chrome displays an annoying popup
 advertising the deprecation. This is being implemented [here](https://github.com/authelia/authelia/pull/2707).
 
-2. **[In Preview](./configuration/identity-providers/oidc.md)** *this roadmap item is in preview status since information 
-   is not yet persisted in the database. More information can be found in the docs*. 
-   [Authelia acts as an OpenID Connect Provider](https://github.com/authelia/authelia/issues/189). This is a high
+2. [Authelia acts as an OpenID Connect Provider](https://github.com/authelia/authelia/issues/189). This is a high
 priority because currently the only way to pass authentication information back to the protected app is through the
 use of HTTP headers as described
 [here](https://www.authelia.com/docs/deployment/supported-proxies/#how-can-the-backend-be-aware-of-the-authenticated-users)
 however, many apps either do not support this method or are starting to move away from this in favour of OpenID Connect or OAuth2
 internally or via plugins.
+
+**[In Preview](./configuration/identity-providers/oidc.md)** *this roadmap item is in preview status since information
+is not yet persisted in the database. More information can be found in the docs*.
 
 3. [Multilingual full support](https://github.com/authelia/authelia/issues/625). Support as been added but we heed to study multiple providers like Crowdin or Weblate
 to help us translate in more languages and make Authelia available to even more people around the world! 
