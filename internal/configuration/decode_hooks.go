@@ -40,13 +40,21 @@ func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
 // ToTimeDurationFunc converts string and integer types to a time.Duration.
 func ToTimeDurationFunc() mapstructure.DecodeHookFunc {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
-		o := time.Minute
 		ptr := false
 
+		o := time.Duration(0)
+		valueType, referenceType := reflect.TypeOf(o), reflect.TypeOf(&o)
+
 		switch t {
-		case reflect.TypeOf(o):
-			break
-		case reflect.TypeOf(&o):
+		case valueType:
+			if f == valueType {
+				return data, nil
+			}
+		case referenceType:
+			if f == referenceType {
+				return data, nil
+			}
+
 			ptr = true
 		default:
 			return data, nil
