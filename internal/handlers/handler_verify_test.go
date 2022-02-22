@@ -21,11 +21,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-var verifyGetCfg = schema.AuthenticationBackendConfiguration{
-	RefreshInterval: schema.RefreshIntervalDefault,
-	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
-}
-
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -1108,27 +1103,4 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Unauthorized", string(mock.Ctx.Response.Body()))
-}
-
-func TestGetProfileRefreshSettings(t *testing.T) {
-	cfg := verifyGetCfg
-
-	refresh, interval := getProfileRefreshSettings(cfg)
-
-	assert.Equal(t, true, refresh)
-	assert.Equal(t, 5*time.Minute, interval)
-
-	cfg.RefreshInterval = schema.ProfileRefreshDisabled
-
-	refresh, interval = getProfileRefreshSettings(cfg)
-
-	assert.Equal(t, false, refresh)
-	assert.Equal(t, time.Duration(0), interval)
-
-	cfg.RefreshInterval = schema.ProfileRefreshAlways
-
-	refresh, interval = getProfileRefreshSettings(cfg)
-
-	assert.Equal(t, true, refresh)
-	assert.Equal(t, time.Duration(0), interval)
 }

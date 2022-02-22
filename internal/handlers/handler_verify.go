@@ -7,16 +7,13 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
@@ -283,26 +280,6 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, use
 	userSession.LastActivity = ctx.Clock.Now().Unix()
 
 	return ctx.SaveSession(userSession)
-}
-
-func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
-	if cfg.LDAP != nil {
-		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
-			refresh = false
-			refreshInterval = 0
-		} else {
-			refresh = true
-
-			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
-				// Skip Error Check since validator checks it.
-				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
-			} else {
-				refreshInterval = schema.RefreshIntervalAlways
-			}
-		}
-	}
-
-	return refresh, refreshInterval
 }
 
 func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
