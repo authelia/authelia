@@ -12,8 +12,6 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
-		body.SecondFactorEnabled = true
-
 		if ctx.Configuration.TOTP == nil || !ctx.Configuration.TOTP.Disable {
 			body.AvailableMethods = append(body.AvailableMethods, authentication.TOTP)
 		}
@@ -27,7 +25,6 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
-	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
 
 	err := ctx.SetJSONBody(body)

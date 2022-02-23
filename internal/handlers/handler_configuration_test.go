@@ -52,8 +52,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 	ConfigurationGet(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "webauthn", "mobile_push"},
-		SecondFactorEnabled: true,
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
 	})
 }
 
@@ -81,8 +80,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 	ConfigurationGet(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"webauthn", "mobile_push"},
-		SecondFactorEnabled: true,
+		AvailableMethods: []string{"webauthn", "mobile_push"},
 	})
 }
 
@@ -110,8 +108,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvaila
 	ConfigurationGet(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "mobile_push"},
-		SecondFactorEnabled: true,
+		AvailableMethods: []string{"totp", "mobile_push"},
 	})
 }
 
@@ -139,8 +136,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 	ConfigurationGet(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "webauthn"},
-		SecondFactorEnabled: true,
+		AvailableMethods: []string{"totp", "webauthn"},
 	})
 }
 
@@ -168,8 +164,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 	ConfigurationGet(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{},
-		SecondFactorEnabled: false,
+		AvailableMethods: []string{},
 	})
 }
 
@@ -197,8 +192,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllD
 	ConfigurationGet(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{},
-		SecondFactorEnabled: true,
+		AvailableMethods: []string{},
 	})
 }
 

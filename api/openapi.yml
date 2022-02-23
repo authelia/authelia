@@ -653,15 +653,13 @@ components:
           properties:
             available_methods:
               type: array
+              description: List of available 2FA methods. If no methods exist 2FA is disabled.
               items:
                 enum:
                   - "totp"
                   - "webauthn"
                   - "mobile_push"
               example: [totp, webauthn, mobile_push]
-            second_factor_enabled:
-              type: boolean
-              description: If second factor is enabled.
     handlers.DuoDeviceBody:
       required:
         - device

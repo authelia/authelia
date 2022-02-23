@@ -100,7 +100,7 @@ const LoginPortal = function (props: Props) {
             if (
                 redirectionURL &&
                 ((configuration &&
-                    !configuration.second_factor_enabled &&
+                    configuration.available_methods.size === 0 &&
                     state.authentication_level >= AuthenticationLevel.OneFactor) ||
                     state.authentication_level === AuthenticationLevel.TwoFactor)
             ) {
@@ -125,7 +125,7 @@ const LoginPortal = function (props: Props) {
                 setFirstFactorDisabled(false);
                 redirect(`${IndexRoute}${redirectionSuffix}`);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-                if (!configuration.second_factor_enabled) {
+                if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.Webauthn) {

@@ -11,8 +11,7 @@ type authorizationMatching int
 
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
-	AvailableMethods    MethodList `json:"available_methods"`
-	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
+	AvailableMethods MethodList `json:"available_methods"`
 }
 
 // signTOTPRequestBody model of the request body received by TOTP authentication endpoint.
