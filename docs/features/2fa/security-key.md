@@ -45,15 +45,19 @@ Easy, right?!
 
 ## FAQ
 
+### Can I register multiple FIDO2 Webauthn devices?
+
+At present this is not possible in the frontend. However the backend technically supports it. We plan to add this to the
+frontend in the near future. Subscribe to [this issue](https://github.com/authelia/authelia/issues/275) for updates.
+
+### Can I perform a passwordless login?
+
+Not at this time. We will tackle this at a later date.
+
 ### Why don't I have access to the *Security Key* option?
 
 The [Webauthn] protocol is a new protocol that is only supported by modern browsers. Please ensure your browser is up to
 date, supports [Webauthn], and that the feature is not disabled if the option is not available to you in **Authelia**.
-
-### Can I register multiple FIDO2 Webauthn devices?
-
-At present this is not possible in the frontend. However the backend technically supports it. We plan to add this to the
-frontend in the near future. Subscripe to [this issue](https://github.com/authelia/authelia/issues/275) for updates.
 
 ### Can my FIDO U2F device operate with Authelia?
 

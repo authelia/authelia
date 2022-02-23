@@ -100,18 +100,20 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.POST("/api/secondfactor/totp", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
 
-	// Webauthn Endpoints.
-	r.POST("/api/secondfactor/webauthn/identity/start", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
-	r.POST("/api/secondfactor/webauthn/identity/finish", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityFinish)))
-	r.POST("/api/secondfactor/webauthn/attestation", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAttestationPOST)))
+	if !configuration.Webauthn.Disable {
+		// Webauthn Endpoints.
+		r.POST("/api/secondfactor/webauthn/identity/start", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
+		r.POST("/api/secondfactor/webauthn/identity/finish", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityFinish)))
+		r.POST("/api/secondfactor/webauthn/attestation", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAttestationPOST)))
 
-	r.GET("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionGET)))
-	r.POST("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionPOST)))
+		r.GET("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionGET)))
+		r.POST("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionPOST)))
+	}
 
 	// Configure DUO api endpoint only if configuration exists.
 	if configuration.DuoAPI != nil {

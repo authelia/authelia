@@ -120,6 +120,15 @@ totp:
 ##
 ## Parameters used for WebAuthn.
 webauthn:
+  ## Disable Webauthn.
+  disable: false
+
+  ## Enable debug messages.
+  debug: false
+
+  ## Adjust the interaction timeout for Webauthn dialogues.
+  timeout: 60000
+
   ## The display name shown to the user.
   display_name: Authelia
 

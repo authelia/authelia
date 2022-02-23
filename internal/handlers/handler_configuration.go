@@ -8,10 +8,14 @@ import (
 // ConfigurationGet get the configuration accessible to authenticated users.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{}
-	body.AvailableMethods = MethodList{authentication.TOTP, authentication.Webauthn}
+	body.AvailableMethods = MethodList{authentication.TOTP}
 
 	if ctx.Configuration.DuoAPI != nil {
 		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
+	}
+
+	if !ctx.Configuration.Webauthn.Disable {
+		body.AvailableMethods = append(body.AvailableMethods, authentication.Webauthn)
 	}
 
 	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()

@@ -6,11 +6,14 @@ import (
 
 // WebauthnConfiguration represents the webauthn config.
 type WebauthnConfiguration struct {
+	Disable     bool   `koanf:"disable"`
+	Debug       bool   `koanf:"debug"`
 	DisplayName string `koanf:"display_name"`
-	Timeout     int    `koanf:"timeout"`
 
 	ConveyancePreference protocol.ConveyancePreference        `koanf:"conveyance_preference"`
 	UserVerification     protocol.UserVerificationRequirement `koanf:"user_verification"`
+
+	Timeout int `koanf:"timeout"`
 }
 
 // WebauthnAuthenticatorSelectionConfiguration represents the authenticator selection.
