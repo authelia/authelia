@@ -10,7 +10,7 @@ specifiers:
   '@material-ui/core': 4.12.3
   '@material-ui/icons': 4.11.2
   '@material-ui/styles': 4.11.4
-  '@testing-library/jest-dom': 5.16.1
+  '@testing-library/jest-dom': 5.16.2
   '@testing-library/react': 12.1.2
   '@types/node': 16.11.21
   '@types/qrcode.react': 1.0.2
@@ -85,7 +85,7 @@ dependencies:
 devDependencies:
   '@commitlint/cli': 16.1.0_@types+node@16.11.21
   '@commitlint/config-conventional': 16.0.0
-  '@testing-library/jest-dom': 5.16.1
+  '@testing-library/jest-dom': 5.16.2
   '@testing-library/react': 12.1.2_react-dom@17.0.2+react@17.0.2
   '@types/node': 16.11.21
   '@types/qrcode.react': 1.0.2
@@ -2467,11 +2467,11 @@ packages:
       chalk: 4.1.2
       dom-accessibility-api: 0.5.10
       lz-string: 1.4.4
-      pretty-format: 27.4.1
+      pretty-format: 27.4.6
     dev: true
 
-  /@testing-library/jest-dom/5.16.1:
-    resolution: {integrity: sha512-ajUJdfDIuTCadB79ukO+0l8O+QwN0LiSxDaYUTI4LndbbUsGi6rWU1SCexXzBA2NSjlVB9/vbkasQIL3tmPBjw==}
+  /@testing-library/jest-dom/5.16.2:
+    resolution: {integrity: sha512-6ewxs1MXWwsBFZXIk4nKKskWANelkdUehchEOokHsN8X7c2eKXGw+77aRV63UU8f/DTSVUPLaGxdrj4lN7D/ug==}
     engines: {node: '>=8', npm: '>=6', yarn: '>=1'}
     dependencies:
       '@babel/runtime': 7.16.3
@@ -2577,8 +2577,8 @@ packages:
   /@types/jest/27.0.2:
     resolution: {integrity: sha512-4dRxkS/AFX0c5XW6IPMNOydLn2tEhNhJV7DnYK+0bjoJZ+QTmfucBlihX7aoEsh/ocYtkLC73UbnBXBXIxsULA==}
     dependencies:
-      jest-diff: 27.4.2
-      pretty-format: 27.4.2
+      jest-diff: 27.4.6
+      pretty-format: 27.4.6
     dev: true
 
   /@types/json-schema/7.0.9:
@@ -5565,16 +5565,6 @@ packages:
       - utf-8-validate
     dev: true
 
-  /jest-diff/27.4.2:
-    resolution: {integrity: sha512-ujc9ToyUZDh9KcqvQDkk/gkbf6zSaeEg9AiBxtttXW59H/AcqEYp1ciXAtJp+jXWva5nAf/ePtSsgWwE5mqp4Q==}
-    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
-    dependencies:
-      chalk: 4.1.2
-      diff-sequences: 27.4.0
-      jest-get-type: 27.4.0
-      pretty-format: 27.4.2
-    dev: true
-
   /jest-diff/27.4.6:
     resolution: {integrity: sha512-zjaB0sh0Lb13VyPsd92V7HkqF6yKRH9vm33rwBt7rPYrpQvS1nCvlIy2pICbKta+ZjWngYLNn4cCK4nyZkjS/w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
@@ -6880,26 +6870,6 @@ packages:
     hasBin: true
     dev: true
 
-  /pretty-format/27.4.1:
-    resolution: {integrity: sha512-JJw4GzG0vP5dHA+D84zryrX3S34B6rZaJj6zsrN/sdNpcUNf1X6aH/7sPSqwtAGNXCxDqMa1wAKX4EH1Tv62aw==}
-    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
-    dependencies:
-      '@jest/types': 27.4.2
-      ansi-regex: 5.0.1
-      ansi-styles: 5.2.0
-      react-is: 17.0.2
-    dev: true
-
-  /pretty-format/27.4.2:
-    resolution: {integrity: sha512-p0wNtJ9oLuvgOQDEIZ9zQjZffK7KtyR6Si0jnXULIDwrlNF8Cuir3AZP0hHv0jmKuNN/edOnbMjnzd4uTcmWiw==}
-    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
-    dependencies:
-      '@jest/types': 27.4.2
-      ansi-regex: 5.0.1
-      ansi-styles: 5.2.0
-      react-is: 17.0.2
-    dev: true
-
   /pretty-format/27.4.6:
     resolution: {integrity: sha512-NblstegA1y/RJW2VyML+3LlpFjzx62cUrtBIKIWDXEDkjNeleA7Od7nrzcs/VLQvAeV4CgSYhrN39DRN88Qi/g==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
@@ -7514,6 +7484,7 @@ packages:
 
   /source-map-resolve/0.5.3:
     resolution: {integrity: sha512-Htz+RnsXWk5+P2slx5Jh3Q66vhQj1Cllm0zvnaY98+NFx+Dv2CF/f5O/t8x+KaNdrdIAsruNzoh/KpialbqAnw==}
+    deprecated: See https://github.com/lydell/source-map-resolve#deprecated
     dependencies:
       atob: 2.1.2
       decode-uri-component: 0.2.0
@@ -7524,6 +7495,7 @@ packages:
 
   /source-map-resolve/0.6.0:
     resolution: {integrity: sha512-KXBr9d/fO/bWo97NXsPIAW1bFSBOuCnjbNTBMO7N59hsv5i9yzRDfcYwwt0l04+VqnKC+EwzvJZIP/qkuMgR/w==}
+    deprecated: See https://github.com/lydell/source-map-resolve#deprecated
     dependencies:
       atob: 2.1.2
       decode-uri-component: 0.2.0
