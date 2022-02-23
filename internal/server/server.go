@@ -89,16 +89,19 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
 	r.POST("/api/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
-	r.GET("/api/user/info/totp", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.UserTOTPGet)))
 
-	// TOTP related endpoints.
-	r.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
-	r.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
-	r.POST("/api/secondfactor/totp", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
+	if !configuration.TOTP.Disable {
+		// TOTP related endpoints.
+		r.GET("/api/user/info/totp", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.UserTOTPGet)))
+
+		r.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
+		r.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
+		r.POST("/api/secondfactor/totp", autheliaMiddleware(
+			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
+	}
 
 	if !configuration.Webauthn.Disable {
 		// Webauthn Endpoints.

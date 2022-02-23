@@ -92,6 +92,9 @@ log:
 ##
 ## Parameters used for TOTP generation.
 totp:
+  ## Disable TOTP.
+  disable: false
+
   ## The issuer name displayed in the Authenticator application of your choice.
   issuer: authelia.com
 

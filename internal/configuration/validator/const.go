@@ -179,6 +179,7 @@ var ValidKeys = []string{
 	"server.tls.certificate",
 
 	// TOTP Keys.
+	"totp.disable",
 	"totp.issuer",
 	"totp.algorithm",
 	"totp.digits",

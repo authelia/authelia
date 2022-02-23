@@ -28,105 +28,176 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 	s.mock.Close()
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethods() {
-	expectedBody := configurationBody{
-		AvailableMethods:    []string{"totp", "webauthn"},
-		SecondFactorEnabled: false,
-	}
-
-	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), expectedBody)
-}
-
-func (s *SecondFactorAvailableMethodsFixture) TestShouldServeDefaultMethodsAndMobilePush() {
+func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
-	}
-	expectedBody := configurationBody{
-		AvailableMethods:    []string{"totp", "webauthn", "mobile_push"},
-		SecondFactorEnabled: false,
-	}
-
-	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), expectedBody)
-}
-
-func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsDisabledWhenNoRuleIsSetToTwoFactor() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
-		&schema.Configuration{
-			AccessControl: schema.AccessControlConfiguration{
-				DefaultPolicy: "bypass",
-				Rules: []schema.ACLRule{
-					{
-						Domains: []string{"example.com"},
-						Policy:  "deny",
-					},
-					{
-						Domains: []string{"abc.example.com"},
-						Policy:  "single_factor",
-					},
-					{
-						Domains: []string{"def.example.com"},
-						Policy:  "bypass",
-					},
-				},
-			}})
-	ConfigurationGet(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "webauthn"},
-		SecondFactorEnabled: false,
-	})
-}
-
-func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenDefaultPolicySetToTwoFactor() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		TOTP: &schema.TOTPConfiguration{
+			Disable: false,
+		},
+		Webauthn: schema.WebauthnConfiguration{
+			Disable: false,
+		},
 		AccessControl: schema.AccessControlConfiguration{
-			DefaultPolicy: "two_factor",
+			DefaultPolicy: "deny",
 			Rules: []schema.ACLRule{
 				{
 					Domains: []string{"example.com"},
-					Policy:  "deny",
-				},
-				{
-					Domains: []string{"abc.example.com"},
-					Policy:  "single_factor",
-				},
-				{
-					Domains: []string{"def.example.com"},
-					Policy:  "bypass",
+					Policy:  "two_factor",
 				},
 			},
-		}})
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
 	ConfigurationGet(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods:    []string{"totp", "webauthn", "mobile_push"},
+		SecondFactorEnabled: true,
+	})
+}
+
+func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableMethodsWhenDisabled() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: &schema.DuoAPIConfiguration{},
+		TOTP: &schema.TOTPConfiguration{
+			Disable: true,
+		},
+		Webauthn: schema.WebauthnConfiguration{
+			Disable: false,
+		},
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  "two_factor",
+				},
+			},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGet(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods:    []string{"webauthn", "mobile_push"},
+		SecondFactorEnabled: true,
+	})
+}
+
+func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvailableMethodsWhenDisabled() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: &schema.DuoAPIConfiguration{},
+		TOTP: &schema.TOTPConfiguration{
+			Disable: false,
+		},
+		Webauthn: schema.WebauthnConfiguration{
+			Disable: true,
+		},
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  "two_factor",
+				},
+			},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGet(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods:    []string{"totp", "mobile_push"},
+		SecondFactorEnabled: true,
+	})
+}
+
+func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMethodsWhenNotConfigured() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: nil,
+		TOTP: &schema.TOTPConfiguration{
+			Disable: false,
+		},
+		Webauthn: schema.WebauthnConfiguration{
+			Disable: false,
+		},
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  "two_factor",
+				},
+			},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGet(s.mock.Ctx)
+
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods:    []string{"totp", "webauthn"},
 		SecondFactorEnabled: true,
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldCheckSecondFactorIsEnabledWhenSomePolicySetToTwoFactor() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(
-		&schema.Configuration{
-			AccessControl: schema.AccessControlConfiguration{
-				DefaultPolicy: "bypass",
-				Rules: []schema.ACLRule{
-					{
-						Domains: []string{"example.com"},
-						Policy:  "deny",
-					},
-					{
-						Domains: []string{"abc.example.com"},
-						Policy:  "two_factor",
-					},
-					{
-						Domains: []string{"def.example.com"},
-						Policy:  "bypass",
-					},
+func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTwoFactorACLRulesConfigured() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: &schema.DuoAPIConfiguration{},
+		TOTP: &schema.TOTPConfiguration{
+			Disable: false,
+		},
+		Webauthn: schema.WebauthnConfiguration{
+			Disable: false,
+		},
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  "one_factor",
 				},
-			}})
+			},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
 	ConfigurationGet(s.mock.Ctx)
+
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods:    []string{"totp", "webauthn"},
+		AvailableMethods:    []string{},
+		SecondFactorEnabled: false,
+	})
+}
+
+func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllDisabledOrNotConfigured() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI: nil,
+		TOTP: &schema.TOTPConfiguration{
+			Disable: true,
+		},
+		Webauthn: schema.WebauthnConfiguration{
+			Disable: true,
+		},
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"example.com"},
+					Policy:  "two_factor",
+				},
+			},
+		}}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGet(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods:    []string{},
 		SecondFactorEnabled: true,
 	})
 }

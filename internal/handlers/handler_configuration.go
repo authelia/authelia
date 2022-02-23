@@ -7,18 +7,25 @@ import (
 
 // ConfigurationGet get the configuration accessible to authenticated users.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
-	body := configurationBody{}
-	body.AvailableMethods = MethodList{authentication.TOTP}
-
-	if ctx.Configuration.DuoAPI != nil {
-		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
+	body := configurationBody{
+		AvailableMethods: MethodList{},
 	}
 
-	if !ctx.Configuration.Webauthn.Disable {
-		body.AvailableMethods = append(body.AvailableMethods, authentication.Webauthn)
-	}
+	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
+		body.SecondFactorEnabled = true
 
-	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
+		if ctx.Configuration.TOTP == nil || !ctx.Configuration.TOTP.Disable {
+			body.AvailableMethods = append(body.AvailableMethods, authentication.TOTP)
+		}
+
+		if !ctx.Configuration.Webauthn.Disable {
+			body.AvailableMethods = append(body.AvailableMethods, authentication.Webauthn)
+		}
+
+		if ctx.Configuration.DuoAPI != nil {
+			body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
+		}
+	}
 
 	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
