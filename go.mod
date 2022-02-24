@@ -110,6 +110,6 @@ require (
 )
 
 replace (
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.9
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.11
 	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
 )
