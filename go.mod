@@ -6,21 +6,21 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20211027140842-72da735c6f15
-	github.com/fasthttp/router v1.4.5
-	github.com/fasthttp/session/v2 v2.4.5
-	github.com/go-ldap/ldap/v3 v3.4.1
-	github.com/go-rod/rod v0.101.8
+	github.com/duosecurity/duo_api_golang v0.0.0-20220201180708-96a8851a8448
+	github.com/fasthttp/router v1.4.6
+	github.com/fasthttp/session/v2 v2.4.7
+	github.com/go-ldap/ldap/v3 v3.4.2
+	github.com/go-rod/rod v0.102.1
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang-jwt/jwt/v4 v4.2.0
+	github.com/golang-jwt/jwt/v4 v4.3.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
-	github.com/jackc/pgx/v4 v4.14.1
+	github.com/jackc/pgx/v4 v4.15.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/knadh/koanf v1.4.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.3
-	github.com/ory/fosite v0.42.0
+	github.com/ory/fosite v0.42.1
 	github.com/ory/herodot v0.9.12
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
@@ -57,12 +57,12 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.1 // indirect
+	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.9.1 // indirect
+	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jandelgado/gcov2lcov v1.0.4 // indirect
 	github.com/klauspost/compress v1.14.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
@@ -78,8 +78,8 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/savsgio/dictpool v0.0.0-20210921080634-84324d0689d7 // indirect
-	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
+	github.com/savsgio/dictpool v0.0.0-20220201165159-a5d561a1a2c9 // indirect
+	github.com/savsgio/gotils v0.0.0-20220201163454-d252f0a44d5b // indirect
 	github.com/seatgeek/logrus-gelf-formatter v0.0.0-20210414080842-5b05eb8ff761 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
@@ -88,7 +88,7 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/ysmood/goob v0.3.0 // indirect
+	github.com/ysmood/goob v0.3.1 // indirect
 	github.com/ysmood/gson v0.6.4 // indirect
 	github.com/ysmood/leakless v0.7.0 // indirect
 	go.opentelemetry.io/contrib v0.20.0 // indirect
