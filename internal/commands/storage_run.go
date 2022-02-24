@@ -77,8 +77,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	config = &schema.Configuration{}
 
-	_, err = configuration.LoadAdvanced(val, "", &config, sources...)
-	if err != nil {
+	if _, err = configuration.LoadAdvanced(val, "", &config, sources...); err != nil {
 		return err
 	}
 
@@ -157,6 +156,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	var (
 		provider storage.Provider
 		key      string
+		version  int
 
 		ctx = context.Background()
 	)
@@ -171,8 +171,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
+	if version, err = provider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
@@ -225,8 +224,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	_, err = provider.LoadTOTPConfiguration(ctx, args[0])
-	if err == nil && !force {
+	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
 	}
 
@@ -240,8 +238,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	err = provider.SaveTOTPConfiguration(ctx, *c)
-	if err != nil {
+	if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
 		return err
 	}
 
@@ -286,13 +283,11 @@ func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	_, err = provider.LoadTOTPConfiguration(ctx, user)
-	if err != nil {
+	if _, err = provider.LoadTOTPConfiguration(ctx, user); err != nil {
 		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
 	}
 
-	err = provider.DeleteTOTPConfiguration(ctx, user)
-	if err != nil {
+	if err = provider.DeleteTOTPConfiguration(ctx, user); err != nil {
 		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
 	}
 
@@ -328,8 +323,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	limit := 10
 
 	for page := 0; true; page++ {
-		configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page)
-		if err != nil {
+		if configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page); err != nil {
 			return err
 		}
 
@@ -402,8 +396,11 @@ func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string
 
 func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
-		provider storage.Provider
-		ctx      = context.Background()
+		provider   storage.Provider
+		version    int
+		migrations []models.Migration
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -415,8 +412,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
+	if version, err = provider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
@@ -425,8 +421,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		return
 	}
 
-	migrations, err := provider.SchemaMigrationHistory(ctx)
-	if err != nil {
+	if migrations, err = provider.SchemaMigrationHistory(ctx); err != nil {
 		return err
 	}
 
@@ -559,10 +554,13 @@ func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
 
 func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
-		provider   storage.Provider
-		ctx        = context.Background()
-		upgradeStr string
-		tablesStr  string
+		upgradeStr, tablesStr string
+
+		provider        storage.Provider
+		tables          []string
+		version, latest int
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -571,13 +569,11 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil && err.Error() != "unknown schema state" {
+	if version, err = provider.SchemaVersion(ctx); err != nil && err.Error() != "unknown schema state" {
 		return err
 	}
 
-	tables, err := provider.SchemaTables(ctx)
-	if err != nil {
+	if tables, err = provider.SchemaTables(ctx); err != nil {
 		return err
 	}
 
@@ -587,8 +583,7 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		tablesStr = strings.Join(tables, ", ")
 	}
 
-	latest, err := provider.SchemaLatestVersion()
-	if err != nil {
+	if latest, err = provider.SchemaLatestVersion(); err != nil {
 		return err
 	}
 
@@ -616,13 +611,13 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 }
 
 func checkStorageSchemaUpToDate(ctx context.Context, provider storage.Provider) (err error) {
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
+	var version, latest int
+
+	if version, err = provider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
-	latest, err := provider.SchemaLatestVersion()
-	if err != nil {
+	if latest, err = provider.SchemaLatestVersion(); err != nil {
 		return err
 	}
 
