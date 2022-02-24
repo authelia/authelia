@@ -20,7 +20,7 @@ require (
 	github.com/knadh/koanf v1.4.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.3
-	github.com/ory/fosite v0.42.0
+	github.com/ory/fosite v0.42.1
 	github.com/ory/herodot v0.9.12
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
