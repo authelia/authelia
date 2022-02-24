@@ -11,7 +11,7 @@ specifiers:
   '@material-ui/icons': 4.11.2
   '@material-ui/styles': 4.11.4
   '@testing-library/jest-dom': 5.16.2
-  '@testing-library/react': 12.1.2
+  '@testing-library/react': 12.1.3
   '@types/node': 16.11.21
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.38
@@ -86,7 +86,7 @@ devDependencies:
   '@commitlint/cli': 16.1.0_@types+node@16.11.21
   '@commitlint/config-conventional': 16.0.0
   '@testing-library/jest-dom': 5.16.2
-  '@testing-library/react': 12.1.2_react-dom@17.0.2+react@17.0.2
+  '@testing-library/react': 12.1.3_react-dom@17.0.2+react@17.0.2
   '@types/node': 16.11.21
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.38
@@ -1607,6 +1607,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.9
+    dev: false
 
   /@babel/runtime/7.16.3:
     resolution: {integrity: sha512-WBwekcqacdY2e9AF/Q7WLFUWmdJGJTkbjqTjoMDgXkVZ3ZRUvOPsLb5KdwISoQVsbP+DQzVZW4Zhci0DvpbNTQ==}
@@ -2485,15 +2486,16 @@ packages:
       redent: 3.0.0
     dev: true
 
-  /@testing-library/react/12.1.2_react-dom@17.0.2+react@17.0.2:
-    resolution: {integrity: sha512-ihQiEOklNyHIpo2Y8FREkyD1QAea054U0MVbwH1m8N9TxeFz+KoJ9LkqoKqJlzx2JDm56DVwaJ1r36JYxZM05g==}
+  /@testing-library/react/12.1.3_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-oCULRXWRrBtC9m6G/WohPo1GLcLesH7T4fuKzRAKn1CWVu9BzXtqLXDDTA6KhFNNtRwLtfSMr20HFl+Qrdrvmg==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '*'
       react-dom: '*'
     dependencies:
-      '@babel/runtime': 7.16.0
+      '@babel/runtime': 7.16.3
       '@testing-library/dom': 8.11.0
+      '@types/react-dom': 17.0.11
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: true
