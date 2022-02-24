@@ -71,6 +71,12 @@ server:
     ## The path to the DER base64/PEM format public certificate.
     certificate: ""
 
+  ## Server headers configuration/customization.
+  headers:
+
+    ## The CSP Template. Read the docs.
+    csp_template: ""
+
 ##
 ## Log Configuration
 ##
