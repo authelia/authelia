@@ -65,14 +65,20 @@ type RuleMatchResult struct {
 
 	Skipped bool
 
-	MatchDomain    bool
-	MatchResources bool
-	MatchMethods   bool
-	MatchNetworks  bool
-	MatchSubjects  bool
+	MatchDomain        bool
+	MatchResources     bool
+	MatchMethods       bool
+	MatchNetworks      bool
+	MatchSubjects      bool
+	MatchSubjectsExact bool
 }
 
 // IsMatch returns true if all the criteria matched.
 func (r RuleMatchResult) IsMatch() (match bool) {
-	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjects
+	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjectsExact
+}
+
+// IsPotentialMatch returns true if the rule is potentially a match.
+func (r RuleMatchResult) IsPotentialMatch() (match bool) {
+	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjects && !r.MatchSubjectsExact
 }

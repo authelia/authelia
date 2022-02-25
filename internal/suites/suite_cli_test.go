@@ -382,6 +382,94 @@ func (s *CLISuite) TestStorage05ShouldMigrateDown() {
 	s.Regexp(pattern1, output)
 }
 
+func (s *CLISuite) TestACLPolicyCheckVerbose() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://public.example.com", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://public.example.com --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://public.example.com' method 'GET'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "* 1\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\tmiss\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\tmiss\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "  9\tmiss\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "The policy 'bypass' from rule #1 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://admin.example.com", "--method=HEAD", "--username=tom", "--groups=basic,test", "--ip=192.168.2.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://admin.example.com --method=HEAD --username=tom --groups=basic,test --ip=192.168.2.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://admin.example.com' method 'HEAD' username 'tom' groups 'basic,test' from IP '192.168.2.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "* 2\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\tmiss\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\tmiss\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  9\tmiss\thit\t\thit\thit\tmiss\n")
+	s.Contains(output, "The policy 'two_factor' from rule #2 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://resources.example.com/resources/test", "--method=POST", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://resources.example.com/resources/test --method=POST --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://resources.example.com/resources/test' method 'POST' username 'john' groups 'admin,test' from IP '192.168.1.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "* 5\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmiss\n")
+	s.Contains(output, "  9\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "The policy 'one_factor' from rule #5 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com/resources/test", "--method=HEAD", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://user.example.com/resources/test' method 'HEAD' username 'john' groups 'admin,test' from IP '192.168.1.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmiss\n")
+	s.Contains(output, "* 9\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "The policy 'one_factor' from rule #9 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com", "--method=HEAD", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --ip=192.168.1.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://user.example.com' method 'HEAD' from IP '192.168.1.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\tmiss\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "~ 9\thit\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "The policy 'one_factor' from rule #9 will potentially be applied to this request. Otherwise the policy 'bypass' from the default policy will be.")
+}
+
 func TestCLISuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
