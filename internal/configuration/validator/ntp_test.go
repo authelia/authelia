@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -61,6 +62,19 @@ func TestShouldRaiseErrorOnMaximumDesyncString(t *testing.T) {
 
 	ValidateNTP(&config, validator)
 
-	assert.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Errors(), 1)
+
 	assert.EqualError(t, validator.Errors()[0], "ntp: option 'max_desync' can't be parsed: could not convert the input string of a second into a duration")
+}
+
+func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultNTPConfig()
+	config.NTP.Version = 1
+
+	ValidateNTP(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'version' must be either 3 or 4 but it is configured as '1'")
 }

@@ -169,6 +169,8 @@ func validateLDAPURL(config *schema.LDAPAuthenticationBackendConfiguration, vali
 
 	if parsedURL.Scheme != schemeLDAP && parsedURL.Scheme != schemeLDAPS {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLInvalidScheme, parsedURL.Scheme))
+
+		return
 	}
 
 	config.URL = parsedURL.String()
