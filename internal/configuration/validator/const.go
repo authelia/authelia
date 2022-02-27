@@ -283,6 +283,7 @@ var ValidKeys = []string{
 	"server.disable_healthcheck",
 	"server.tls.key",
 	"server.tls.certificate",
+	"server.headers.csp_template",
 
 	// TOTP Keys.
 	"totp.issuer",

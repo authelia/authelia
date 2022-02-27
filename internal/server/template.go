@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -71,11 +72,13 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 
 		switch {
 		case publicDir == swaggerAssets:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self' ; default-src 'self' ; img-src 'self' https://validator.swagger.io data: ; object-src 'none' ; script-src 'self' 'unsafe-inline' 'nonce-%s' ; style-src 'self' 'nonce-%s'", nonce, nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self'; default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'", nonce, nonce))
+		case ctx.Configuration.Server.Headers.CSPTemplate != "":
+			ctx.Response.Header.Add("Content-Security-Policy", strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, cspNoncePlaceholder, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultDevTemplate, nonce))
 		default:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' ; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, nonce))
 		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
