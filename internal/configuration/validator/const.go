@@ -50,68 +50,108 @@ const (
 
 // Notifier Error constants.
 const (
-	errFmtNotifierMultipleConfigured = "notifier: you can't configure more than one notifier, please ensure " +
-		"only 'smtp' or 'filesystem' notifier is configured"
-	errFmtNotifierNotConfigured = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
+	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
+	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
-	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: 'filename' option must be configured"
-	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: '%s' option must be configured"
+	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required "
+	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
+)
+
+// Authentication Backend Error constants.
+const (
+	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
+		"authentication backend is configured"
+	errFmtAuthBackendMultipleConfigured = "authentication_backend: please ensure only one of the 'file' or 'ldap' " +
+		"backend is configured"
+	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
+		"it must be either a duration notation or one of 'disable', or 'always': %w"
+
+	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
+	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
+		"must be 2 or more but it is configured a '%d'"
+	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
+		"must be either 'argon2id' or 'sha512' but it is configured as '%s'"
+	errFmtFileAuthBackendPasswordInvalidIterations = "authentication_backend: file: password: option " +
+		"'iterations' must be 1 or more but it is configured as '%d'"
+	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = "authentication_backend: file: password: option " +
+		"'key_length' must be 16 or more when using algorithm 'argon2id' but it is configured as '%d'"
+	errFmtFileAuthBackendPasswordArgon2idInvalidParallelism = "authentication_backend: file: password: option " +
+		"'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '%d'"
+	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = "authentication_backend: file: password: option 'memory' " +
+		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
+		"with parallelism %d it should be at least %d but it is configured as '%d'"
+
+	errFmtLDAPAuthBackendMissingOption = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
+		"'minimum_tls_version' is invalid: %s: %w"
+	errFmtLDAPAuthBackendImplementation = "authentication_backend: ldap: option 'implementation' " +
+		"is configured as '%s' but must be one of the following values: '%s'"
+	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
+		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
+	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option" +
+		"'url' could not be parsed: %w"
+	errFmtLDAPAuthBackendURLInvalidScheme = "authentication_backend: ldap: option " +
+		"'url' must have either the 'ldap' or 'ldaps' scheme but it is configured as '%s'"
+	errFmtLDAPAuthBackendFilterEnclosingParenthesis = "authentication_backend: ldap: option " +
+		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
+	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
+		"'%s' must contain the placeholder '{%s}' but it is required"
 )
 
 // TOTP Error constants.
 const (
-	errFmtTOTPInvalidAlgorithm = "totp: 'algorithm' option '%s' is invalid: must be one of %s"
-	errFmtTOTPInvalidPeriod    = "totp: 'period' option '%d' is invalid: must be 15 or more"
-	errFmtTOTPInvalidDigits    = "totp: 'digits' option '%d' is invalid: must be 6 or 8"
+	errFmtTOTPInvalidAlgorithm = "totp: option 'algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtTOTPInvalidPeriod    = "totp: option 'period' option must be 15 or more but it is configured as '%d'"
+	errFmtTOTPInvalidDigits    = "totp: option 'digits' must be 6 or 8 but it is configured as '%d'"
 )
 
 // Storage Error constants.
 const (
 	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided = "storage: 'encryption_key' configuration option must be provided"
-	errStrStorageEncryptionKeyTooShort       = "storage: 'encryption_key' configuration option must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided      = "storage: %s: 'username' and 'password' configuration options must be provided" //nolint: gosec
-	errFmtStorageOptionMustBeProvided        = "storage: %s: '%s' configuration option must be provided"
-	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: 'mode' configuration option '%s' is invalid: must be one of '%s'"
+	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' must is required"
+	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint: gosec
+	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
+	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
 )
-
-var storagePostgreSQLValidSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
 
 // OpenID Error constants.
 const (
-	errFmtOIDCClientsDuplicateID        = "openid connect provider: one or more clients have the same ID"
-	errFmtOIDCClientsWithEmptyID        = "openid connect provider: one or more clients have been configured with an empty ID"
-	errFmtOIDCNoClientsConfigured       = "openid connect provider: no clients are configured"
-	errFmtOIDCNoPrivateKey              = "openid connect provider: issuer private key must be provided"
-	errFmtOIDCClientInvalidSecret       = "openid connect provider: client with ID '%s' has an empty secret"
-	errFmtOIDCClientPublicInvalidSecret = "openid connect provider: client with ID '%s' is public but does not have " +
-		"an empty secret"
-	errFmtOIDCClientRedirectURI = "openid connect provider: client with ID '%s' redirect URI %s has an " +
-		"invalid scheme %s, should be http or https"
-	errFmtOIDCClientRedirectURICantBeParsed = "openid connect provider: client with ID '%s' has an invalid redirect " +
-		"URI '%s' could not be parsed: %v"
-	errFmtOIDCClientRedirectURIPublic = "openid connect provider: client with ID '%s' redirect URI '%s' is " +
-		"only valid for the public client type, not the confidential client type"
-	errFmtOIDCClientRedirectURIAbsolute = "openid connect provider: client with ID '%s' redirect URI '%s' is invalid " +
-		"because it has no scheme when it should be http or https"
-	errFmtOIDCClientInvalidPolicy = "openid connect provider: client with ID '%s' has an invalid policy " +
-		"'%s', should be either 'one_factor' or 'two_factor'"
-	errFmtOIDCClientInvalidScope = "openid connect provider: client with ID '%s' has an invalid scope " +
-		"'%s', must be one of: '%s'"
-	errFmtOIDCClientInvalidGrantType = "openid connect provider: client with ID '%s' has an invalid grant type " +
-		"'%s', must be one of: '%s'"
-	errFmtOIDCClientInvalidResponseMode = "openid connect provider: client with ID '%s' has an invalid response mode " +
-		"'%s', must be one of: '%s'"
-	errFmtOIDCClientInvalidUserinfoAlgorithm = "openid connect provider: client with ID '%s' has an invalid userinfo signing " +
-		"algorithm '%s', must be one of: '%s'"
+	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
+		"more clients configured"
+	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
+
+	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
+		"id's must be unique"
+	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: one or more clients have been configured with " +
+		"an empty id"
+
+	errFmtOIDCClientInvalidSecret       = "identity_providers: oidc: client '%s': option 'secret' is required"
+	errFmtOIDCClientPublicInvalidSecret = "identity_providers: oidc: client '%s': option 'secret' is " +
+		"required to be empty when option 'public' is true"
+	errFmtOIDCClientRedirectURI = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
+		"invalid value: redirect uri '%s' must have a scheme of 'http' or 'https' but '%s' is configured"
+	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
+		"invalid value: redirect uri '%s' could not be parsed: %v"
+	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the" +
+		"redirect uri '%s' when option 'public' is false but this is invalid as this uri is not valid " +
+		"for the openid connect confidential client type"
+	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
+		"invalid value: redirect uri '%s' must have the scheme 'http' or 'https' but it has no scheme"
+	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
+		"or 'two_factor' but it is configured as '%s'"
+	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
+		"'%s' but one option is configured as '%s'"
+	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
+		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
 
 // Access Control error constants.
 const (
-	errFmtAccessControlDefaultPolicyValue = "access control: 'default_policy' option '%s' is invalid: must " +
-		"either be 'deny', 'two_factor', 'one_factor' or 'bypass'"
+	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of '%s' but it is " +
+		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access control: 'default_policy' option '%s' is invalid: when " +
 		"no rules are specified it must be 'two_factor' or 'one_factor'"
 	errFmtAccessControlNetworkGroupIPCIDRInvalid = "access control: networks: network group '%s' is invalid: the " +
@@ -135,6 +175,48 @@ const (
 		"invalid: must be one of '%s'"
 )
 
+// Theme Error constants.
+const (
+	errFmtThemeName = "option 'theme' must be one of '%s' but it is configured as '%s'"
+)
+
+// NTP Error constants.
+const (
+	errFmtNTPVersion   = "ntp: option 'version' must be either 3 or 4 but it is configured as '%d'"
+	errFmtNTPMaxDesync = "ntp: option 'max_desync' can't be parsed: %w"
+)
+
+// Session error constants.
+const (
+	errFmtSessionCouldNotParseDuration    = "session: option '%s' could not be parsed: %w"
+	errFmtSessionOptionRequired           = "session: option '%s' is required"
+	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
+	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
+	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
+	errFmtSessionRedisHostOrNodesRequired = "session: redis: option 'host' or the 'high_availability' option 'nodes' is required"
+
+	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
+	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+)
+
+// Regulation Error Consts.
+const (
+	errFmtRegulationParseDuration              = "regulation: option '%s' could not be parsed: %w"
+	errFmtRegulationFindTimeGreaterThanBanTime = "regulation: option 'find_time' must be less than or equal to option 'ban_time'"
+)
+
+// Server Error constants.
+const (
+	errFmtServerTLSCert = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey  = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+
+	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
+	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
+	errFmtServerBufferSize           = "server: option '%s_buffer_size' must be above 0 but it is configured as '%d'"
+)
+
 // Error constants.
 const (
 	/*
@@ -149,20 +231,23 @@ const (
 
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
-	errFmtLoggingLevelInvalid = "the log level '%s' is invalid, must be one of: %s"
-
-	errFmtSessionSecretRedisProvider      = "the session secret must be set when using the %s session provider"
-	errFmtSessionRedisPortRange           = "the port must be between 1 and 65535 for the %s session provider"
-	errFmtSessionRedisHostRequired        = "the host must be provided when using the %s session provider"
-	errFmtSessionRedisHostOrNodesRequired = "either the host or a node must be provided when using the %s session provider"
+	errFmtLoggingLevelInvalid = "log: option 'level' must be one of '%s' but it is configured as '%s'"
 
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
 
-var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
-var validHTTPRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
+
+var validThemeNames = []string{"light", "dark", "grey", "auto"}
+
+var validSessionSameSiteValues = []string{"none", "lax", "strict"}
+
+var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
+
+var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}

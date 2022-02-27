@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -11,260 +10,252 @@ import (
 )
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
-func ValidateAuthenticationBackend(configuration *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.LDAP == nil && configuration.File == nil {
-		validator.Push(errors.New("Please provide `ldap` or `file` object in `authentication_backend`"))
+func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if config.LDAP == nil && config.File == nil {
+		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
 	}
 
-	if configuration.LDAP != nil && configuration.File != nil {
-		validator.Push(errors.New("You cannot provide both `ldap` and `file` objects in `authentication_backend`"))
+	if config.LDAP != nil && config.File != nil {
+		validator.Push(fmt.Errorf(errFmtAuthBackendMultipleConfigured))
 	}
 
-	if configuration.File != nil {
-		validateFileAuthenticationBackend(configuration.File, validator)
-	} else if configuration.LDAP != nil {
-		validateLDAPAuthenticationBackend(configuration.LDAP, validator)
+	if config.File != nil {
+		validateFileAuthenticationBackend(config.File, validator)
+	} else if config.LDAP != nil {
+		validateLDAPAuthenticationBackend(config.LDAP, validator)
 	}
 
-	if configuration.RefreshInterval == "" {
-		configuration.RefreshInterval = schema.RefreshIntervalDefault
+	if config.RefreshInterval == "" {
+		config.RefreshInterval = schema.RefreshIntervalDefault
 	} else {
-		_, err := utils.ParseDurationString(configuration.RefreshInterval)
-		if err != nil && configuration.RefreshInterval != schema.ProfileRefreshDisabled && configuration.RefreshInterval != schema.ProfileRefreshAlways {
-			validator.Push(fmt.Errorf("Auth Backend `refresh_interval` is configured to '%s' but it must be either a duration notation or one of 'disable', or 'always'. Error from parser: %s", configuration.RefreshInterval, err))
+		_, err := utils.ParseDurationString(config.RefreshInterval)
+		if err != nil && config.RefreshInterval != schema.ProfileRefreshDisabled && config.RefreshInterval != schema.ProfileRefreshAlways {
+			validator.Push(fmt.Errorf(errFmtAuthBackendRefreshInterval, config.RefreshInterval, err))
 		}
 	}
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
-func validateFileAuthenticationBackend(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.Path == "" {
-		validator.Push(errors.New("Please provide a `path` for the users database in `authentication_backend`"))
+func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if config.Path == "" {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))
 	}
 
-	if configuration.Password == nil {
-		configuration.Password = &schema.DefaultPasswordConfiguration
+	if config.Password == nil {
+		config.Password = &schema.DefaultPasswordConfiguration
 	} else {
 		// Salt Length.
 		switch {
-		case configuration.Password.SaltLength == 0:
-			configuration.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
-		case configuration.Password.SaltLength < 8:
-			validator.Push(fmt.Errorf("The salt length must be 2 or more, you configured %d", configuration.Password.SaltLength))
+		case config.Password.SaltLength == 0:
+			config.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
+		case config.Password.SaltLength < 8:
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordSaltLength, config.Password.SaltLength))
 		}
 
-		switch configuration.Password.Algorithm {
+		switch config.Password.Algorithm {
 		case "":
-			configuration.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
+			config.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
 			fallthrough
 		case hashArgon2id:
-			validateFileAuthenticationBackendArgon2id(configuration, validator)
+			validateFileAuthenticationBackendArgon2id(config, validator)
 		case hashSHA512:
-			validateFileAuthenticationBackendSHA512(configuration)
+			validateFileAuthenticationBackendSHA512(config)
 		default:
-			validator.Push(fmt.Errorf("Unknown hashing algorithm supplied, valid values are argon2id and sha512, you configured '%s'", configuration.Password.Algorithm))
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Password.Algorithm))
 		}
 
-		if configuration.Password.Iterations < 1 {
-			validator.Push(fmt.Errorf("The number of iterations specified is invalid, must be 1 or more, you configured %d", configuration.Password.Iterations))
+		if config.Password.Iterations < 1 {
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidIterations, config.Password.Iterations))
 		}
 	}
 }
 
-func validateFileAuthenticationBackendSHA512(configuration *schema.FileAuthenticationBackendConfiguration) {
+func validateFileAuthenticationBackendSHA512(config *schema.FileAuthenticationBackendConfiguration) {
 	// Iterations (time).
-	if configuration.Password.Iterations == 0 {
-		configuration.Password.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
+	if config.Password.Iterations == 0 {
+		config.Password.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
 	}
 }
-func validateFileAuthenticationBackendArgon2id(configuration *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendArgon2id(config *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	// Iterations (time).
-	if configuration.Password.Iterations == 0 {
-		configuration.Password.Iterations = schema.DefaultPasswordConfiguration.Iterations
+	if config.Password.Iterations == 0 {
+		config.Password.Iterations = schema.DefaultPasswordConfiguration.Iterations
 	}
 
 	// Parallelism.
-	if configuration.Password.Parallelism == 0 {
-		configuration.Password.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
-	} else if configuration.Password.Parallelism < 1 {
-		validator.Push(fmt.Errorf("Parallelism for argon2id must be 1 or more, you configured %d", configuration.Password.Parallelism))
+	if config.Password.Parallelism == 0 {
+		config.Password.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
+	} else if config.Password.Parallelism < 1 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidParallelism, config.Password.Parallelism))
 	}
 
 	// Memory.
-	if configuration.Password.Memory == 0 {
-		configuration.Password.Memory = schema.DefaultPasswordConfiguration.Memory
-	} else if configuration.Password.Memory < configuration.Password.Parallelism*8 {
-		validator.Push(fmt.Errorf("Memory for argon2id must be %d or more (parallelism * 8), you configured memory as %d and parallelism as %d", configuration.Password.Parallelism*8, configuration.Password.Memory, configuration.Password.Parallelism))
+	if config.Password.Memory == 0 {
+		config.Password.Memory = schema.DefaultPasswordConfiguration.Memory
+	} else if config.Password.Memory < config.Password.Parallelism*8 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidMemory, config.Password.Parallelism, config.Password.Parallelism*8, config.Password.Memory))
 	}
 
 	// Key Length.
-	if configuration.Password.KeyLength == 0 {
-		configuration.Password.KeyLength = schema.DefaultPasswordConfiguration.KeyLength
-	} else if configuration.Password.KeyLength < 16 {
-		validator.Push(fmt.Errorf("Key length for argon2id must be 16, you configured %d", configuration.Password.KeyLength))
+	if config.Password.KeyLength == 0 {
+		config.Password.KeyLength = schema.DefaultPasswordConfiguration.KeyLength
+	} else if config.Password.KeyLength < 16 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength, config.Password.KeyLength))
 	}
 }
 
-func validateLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if configuration.Timeout == 0 {
-		configuration.Timeout = schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout
+func validateLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	if config.Timeout == 0 {
+		config.Timeout = schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout
 	}
 
-	if configuration.Implementation == "" {
-		configuration.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+	if config.Implementation == "" {
+		config.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	if configuration.TLS == nil {
-		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	if config.TLS == nil {
+		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
 
-	if configuration.TLS.MinimumVersion == "" {
-		configuration.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+	if config.TLS.MinimumVersion == "" {
+		config.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
 	}
 
-	if _, err := utils.TLSStringToTLSConfigVersion(configuration.TLS.MinimumVersion); err != nil {
-		validator.Push(fmt.Errorf("error occurred validating the LDAP minimum_tls_version key with value %s: %v", configuration.TLS.MinimumVersion, err))
+	if _, err := utils.TLSStringToTLSConfigVersion(config.TLS.MinimumVersion); err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSMinVersion, config.TLS.MinimumVersion, err))
 	}
 
-	switch configuration.Implementation {
+	switch config.Implementation {
 	case schema.LDAPImplementationCustom:
-		setDefaultImplementationCustomLDAPAuthenticationBackend(configuration)
+		setDefaultImplementationCustomLDAPAuthenticationBackend(config)
 	case schema.LDAPImplementationActiveDirectory:
-		setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(configuration)
+		setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(config)
 	default:
-		validator.Push(fmt.Errorf("authentication backend ldap implementation must be blank or one of the following values `%s`, `%s`", schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.Implementation, strings.Join([]string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory}, "', '")))
 	}
 
-	if strings.Contains(configuration.UsersFilter, "{0}") {
-		validator.Push(fmt.Errorf("authentication backend ldap users filter must not contain removed placeholders" +
-			", {0} has been replaced with {input}"))
+	if strings.Contains(config.UsersFilter, "{0}") {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "users_filter", "{0}", "{input}"))
 	}
 
-	if strings.Contains(configuration.GroupsFilter, "{0}") ||
-		strings.Contains(configuration.GroupsFilter, "{1}") {
-		validator.Push(fmt.Errorf("authentication backend ldap groups filter must not contain removed " +
-			"placeholders, {0} has been replaced with {input} and {1} has been replaced with {username}"))
+	if strings.Contains(config.GroupsFilter, "{0}") {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{0}", "{input}"))
 	}
 
-	if configuration.URL == "" {
-		validator.Push(errors.New("Please provide a URL to the LDAP server"))
+	if strings.Contains(config.GroupsFilter, "{1}") {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
+	}
+
+	if config.URL == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
 	} else {
-		ldapURL, serverName := validateLDAPURL(configuration.URL, validator)
-
-		configuration.URL = ldapURL
-
-		if configuration.TLS.ServerName == "" {
-			configuration.TLS.ServerName = serverName
-		}
+		validateLDAPURL(config, validator)
 	}
 
-	validateLDAPRequiredParameters(configuration, validator)
+	validateLDAPRequiredParameters(config, validator)
 }
 
-// Wrapper for test purposes to exclude the hostname from the return.
-func validateLDAPURLSimple(ldapURL string, validator *schema.StructValidator) (finalURL string) {
-	finalURL, _ = validateLDAPURL(ldapURL, validator)
+func validateLDAPURL(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+	var (
+		parsedURL *url.URL
+		err       error
+	)
 
-	return finalURL
-}
+	if parsedURL, err = url.Parse(config.URL); err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLNotParsable, err))
 
-func validateLDAPURL(ldapURL string, validator *schema.StructValidator) (finalURL string, hostname string) {
-	parsedURL, err := url.Parse(ldapURL)
-
-	if err != nil {
-		validator.Push(errors.New("Unable to parse URL to ldap server. The scheme is probably missing: ldap:// or ldaps://"))
-		return "", ""
+		return
 	}
 
-	if !(parsedURL.Scheme == schemeLDAP || parsedURL.Scheme == schemeLDAPS) {
-		validator.Push(errors.New("Unknown scheme for ldap url, should be ldap:// or ldaps://"))
-		return "", ""
+	if parsedURL.Scheme != schemeLDAP && parsedURL.Scheme != schemeLDAPS {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendURLInvalidScheme, parsedURL.Scheme))
 	}
 
-	return parsedURL.String(), parsedURL.Hostname()
+	config.URL = parsedURL.String()
+	if config.TLS.ServerName == "" {
+		config.TLS.ServerName = parsedURL.Hostname()
+	}
 }
 
-func validateLDAPRequiredParameters(configuration *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateLDAPRequiredParameters(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387).
-	if configuration.User == "" {
-		validator.Push(errors.New("Please provide a user name to connect to the LDAP server"))
+	if config.User == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "user"))
 	}
 
 	// TODO: see if it's possible to disable this check if disable_reset_password is set and when anonymous/user binding is supported (#101 and #387).
-	if configuration.Password == "" {
-		validator.Push(errors.New("Please provide a password to connect to the LDAP server"))
+	if config.Password == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "password"))
 	}
 
-	if configuration.BaseDN == "" {
-		validator.Push(errors.New("Please provide a base DN to connect to the LDAP server"))
+	if config.BaseDN == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "base_dn"))
 	}
 
-	if configuration.UsersFilter == "" {
-		validator.Push(errors.New("Please provide a users filter with `users_filter` attribute"))
+	if config.UsersFilter == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "users_filter"))
 	} else {
-		if !strings.HasPrefix(configuration.UsersFilter, "(") || !strings.HasSuffix(configuration.UsersFilter, ")") {
-			validator.Push(errors.New("The users filter should contain enclosing parenthesis. For instance {username_attribute}={input} should be ({username_attribute}={input})"))
+		if !strings.HasPrefix(config.UsersFilter, "(") || !strings.HasSuffix(config.UsersFilter, ")") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "users_filter", config.UsersFilter, config.UsersFilter))
 		}
 
-		if !strings.Contains(configuration.UsersFilter, "{username_attribute}") {
-			validator.Push(errors.New("Unable to detect {username_attribute} placeholder in users_filter, your configuration is broken. " +
-				"Please review configuration options listed at https://www.authelia.com/docs/configuration/authentication/ldap.html"))
+		if !strings.Contains(config.UsersFilter, "{username_attribute}") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "username_attribute"))
 		}
 
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
-		if !strings.Contains(configuration.UsersFilter, "{0}") && !strings.Contains(configuration.UsersFilter, "{input}") {
-			validator.Push(errors.New("Unable to detect {input} placeholder in users_filter, your configuration might be broken. " +
-				"Please review configuration options listed at https://www.authelia.com/docs/configuration/authentication/ldap.html"))
+		if !strings.Contains(config.UsersFilter, "{input}") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "input"))
 		}
 	}
 
-	if configuration.GroupsFilter == "" {
-		validator.Push(errors.New("Please provide a groups filter with `groups_filter` attribute"))
-	} else if !strings.HasPrefix(configuration.GroupsFilter, "(") || !strings.HasSuffix(configuration.GroupsFilter, ")") {
-		validator.Push(errors.New("The groups filter should contain enclosing parenthesis. For instance cn={input} should be (cn={input})"))
+	if config.GroupsFilter == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
+	} else if !strings.HasPrefix(config.GroupsFilter, "(") || !strings.HasSuffix(config.GroupsFilter, ")") {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.GroupsFilter, config.GroupsFilter))
 	}
 }
 
-func setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
-	if configuration.UsersFilter == "" {
-		configuration.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
+func setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendConfiguration) {
+	if config.UsersFilter == "" {
+		config.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
 	}
 
-	if configuration.UsernameAttribute == "" {
-		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
+	if config.UsernameAttribute == "" {
+		config.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
 	}
 
-	if configuration.DisplayNameAttribute == "" {
-		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
+	if config.DisplayNameAttribute == "" {
+		config.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
 	}
 
-	if configuration.MailAttribute == "" {
-		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
+	if config.MailAttribute == "" {
+		config.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
 	}
 
-	if configuration.GroupsFilter == "" {
-		configuration.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
+	if config.GroupsFilter == "" {
+		config.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
 	}
 
-	if configuration.GroupNameAttribute == "" {
-		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
+	if config.GroupNameAttribute == "" {
+		config.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
 	}
 }
 
-func setDefaultImplementationCustomLDAPAuthenticationBackend(configuration *schema.LDAPAuthenticationBackendConfiguration) {
-	if configuration.UsernameAttribute == "" {
-		configuration.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
+func setDefaultImplementationCustomLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendConfiguration) {
+	if config.UsernameAttribute == "" {
+		config.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
 	}
 
-	if configuration.GroupNameAttribute == "" {
-		configuration.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
+	if config.GroupNameAttribute == "" {
+		config.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
 	}
 
-	if configuration.MailAttribute == "" {
-		configuration.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
+	if config.MailAttribute == "" {
+		config.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
 	}
 
-	if configuration.DisplayNameAttribute == "" {
-		configuration.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.DisplayNameAttribute
+	if config.DisplayNameAttribute == "" {
+		config.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.DisplayNameAttribute
 	}
 }

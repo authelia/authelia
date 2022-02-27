@@ -52,7 +52,7 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "A notifier configuration must be provided")
+	assert.EqualError(t, validator.Errors()[0], "notifier: you must ensure either the 'smtp' or 'filesystem' notifier is configured")
 }
 
 func TestShouldAddDefaultAccessControl(t *testing.T) {
@@ -84,7 +84,7 @@ func TestShouldRaiseErrorWithUndefinedJWTSecretKey(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Provide a JWT secret using \"jwt_secret\" key")
+	assert.EqualError(t, validator.Errors()[0], "option 'jwt_secret' is required")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
@@ -97,7 +97,7 @@ func TestShouldRaiseErrorWithBadDefaultRedirectionURL(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "Value for \"default_redirection_url\" is invalid: the url 'bad_default_redirection_url' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'")
+	assert.EqualError(t, validator.Errors()[0], "option 'default_redirection_url' is invalid: the url 'bad_default_redirection_url' is not absolute because it doesn't start with a scheme like 'ldap://' or 'ldaps://'")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
@@ -126,9 +126,9 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	require.Len(t, validator.Warnings(), 1)
 
 	if runtime.GOOS == "windows" {
-		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: CreateFile not-a-real-file.go: The system cannot find the file specified.")
+		assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' could not be inspected: CreateFile not-a-real-file.go: The system cannot find the file specified.")
 	} else {
-		assert.EqualError(t, validator.Errors()[0], "Error checking certificate directory: stat not-a-real-file.go: no such file or directory")
+		assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' could not be inspected: stat not-a-real-file.go: no such file or directory")
 	}
 
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
@@ -141,7 +141,7 @@ func TestShouldRaiseErrorOnInvalidCertificatesDirectory(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "The path const.go specified for certificate_directory is not a directory")
+	assert.EqualError(t, validator.Errors()[0], "the location 'certificates_directory' refers to 'const.go' is not a directory")
 	assert.EqualError(t, validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 

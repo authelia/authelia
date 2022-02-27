@@ -260,7 +260,7 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "notifier: smtp: 'sender' option must be configured")
+	assert.EqualError(t, val.Errors()[0], "notifier: smtp: option 'sender' is required")
 }
 
 func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {

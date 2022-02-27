@@ -44,7 +44,7 @@ func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: local: 'path' configuration option must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: local: option 'path' is required")
 
 	suite.validator.Clear()
 	suite.configuration.Local.Path = "/myapth"
@@ -60,9 +60,9 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	ValidateStorage(suite.configuration, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 3)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: 'host' configuration option must be provided")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: mysql: 'username' and 'password' configuration options must be provided")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: 'database' configuration option must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: option 'host' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: mysql: option 'username' and 'password' are required")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: option 'database' is required")
 
 	suite.validator.Clear()
 	suite.configuration.MySQL = &schema.MySQLStorageConfiguration{
@@ -85,9 +85,9 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	ValidateStorage(suite.configuration, suite.validator)
 
 	suite.Require().Len(suite.validator.Errors(), 3)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: 'host' configuration option must be provided")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: postgres: 'username' and 'password' configuration options must be provided")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: postgres: 'database' configuration option must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: option 'host' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: postgres: option 'username' and 'password' are required")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: postgres: option 'database' is required")
 
 	suite.validator.Clear()
 	suite.configuration.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
@@ -163,7 +163,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: ssl: 'mode' configuration option 'unknown' is invalid: must be one of 'disable', 'require', 'verify-ca', 'verify-full'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', 'verify-full' but it is configured as 'unknown'")
 }
 
 // Deprecated. TODO: Remove in v4.36.0.
@@ -196,7 +196,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
 
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: 'encryption_key' configuration option must be provided")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: option 'encryption_key' must is required")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {
@@ -209,7 +209,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {
 
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: 'encryption_key' configuration option must be 20 characters or longer")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: option 'encryption_key' must be 20 characters or longer")
 }
 
 func TestShouldRunStorageSuite(t *testing.T) {
