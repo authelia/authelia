@@ -564,10 +564,10 @@ Authelia via https://auth.example.com, the discovery URL is https://auth.example
 |:-------------:|:--------------------------------:|
 |   Discovery   | .well-known/openid-configuration |
 |     JWKS      |          api/oidc/jwks           |
-| Authorization |        api/oidc/authorize        |
+| Authorization |      api/oidc/authorization      |
 |     Token     |          api/oidc/token          |
-| Introspection |       api/oidc/introspect        |
-|  Revocation   |         api/oidc/revoke          |
+| Introspection |      api/oidc/introspection      |
+|  Revocation   |       api/oidc/revocation        |
 |   Userinfo    |        api/oidc/userinfo         |
 
 [OpenID Connect]: https://openid.net/connect/

@@ -107,7 +107,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 				"fragment",
 			},
 			ScopesSupported: []string{
-				"offline_access",
+				ScopeOfflineAccess,
 				ScopeOpenID,
 				ScopeProfile,
 				ScopeGroups,
@@ -133,14 +133,17 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		},
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			RequestURIParameterSupported: false,
-		},
-		OpenIDConnectBackChannelLogoutDiscoveryOptions: OpenIDConnectBackChannelLogoutDiscoveryOptions{
-			BackChannelLogoutSupported:        false,
-			BackChannelLogoutSessionSupported: false,
-		},
-		OpenIDConnectFrontChannelLogoutDiscoveryOptions: OpenIDConnectFrontChannelLogoutDiscoveryOptions{
-			FrontChannelLogoutSupported:        false,
-			FrontChannelLogoutSessionSupported: false,
+			IDTokenSigningAlgValuesSupported: []string{
+				"RS256",
+			},
+			UserinfoSigningAlgValuesSupported: []string{
+				"none",
+				"RS256",
+			},
+			RequestObjectSigningAlgValuesSupported: []string{
+				"none",
+				"RS256",
+			},
 		},
 	}
 
@@ -191,7 +194,6 @@ func (p OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer str
 		OpenIDConnectDiscoveryOptions:                   p.discovery.OpenIDConnectDiscoveryOptions,
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: p.discovery.OpenIDConnectFrontChannelLogoutDiscoveryOptions,
 		OpenIDConnectBackChannelLogoutDiscoveryOptions:  p.discovery.OpenIDConnectBackChannelLogoutDiscoveryOptions,
-		OpenIDConnectSessionManagementDiscoveryOptions:  p.discovery.OpenIDConnectSessionManagementDiscoveryOptions,
 	}
 
 	options.Issuer = issuer

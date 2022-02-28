@@ -476,21 +476,6 @@ type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	BackChannelLogoutSessionSupported bool `json:"backchannel_logout_session_supported"`
 }
 
-// OpenIDConnectSessionManagementDiscoveryOptions  represents the discovery options specific to
-// OpenID Connect Session Management functionality.
-// See Also:
-// 		OpenID Connect Session Management: https://openid.net/specs/openid-connect-session-1_0.html#OPMetadata
-type OpenIDConnectSessionManagementDiscoveryOptions struct {
-	/*
-		REQUIRED. URL of an OP iframe that supports cross-origin communications for session state information with the
-		RP Client, using the HTML5 postMessage API. This URL MUST use the https scheme and MAY contain port, path, and
-		query parameter components. The page is loaded from an invisible iframe embedded in an RP page so that it can
-		run in the OP's security context. It accepts postMessage requests from the relevant RP iframe and uses
-		postMessage to post back the login status of the End-User at the OP.
-	*/
-	CheckSessionIFrame string `json:"check_session_iframe"`
-}
-
 // OAuth2WellKnownConfiguration represents the well known discovery document specific to OAuth 2.0.
 type OAuth2WellKnownConfiguration struct {
 	CommonDiscoveryOptions
@@ -504,5 +489,4 @@ type OpenIDConnectWellKnownConfiguration struct {
 	OpenIDConnectDiscoveryOptions
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions
-	OpenIDConnectSessionManagementDiscoveryOptions
 }

@@ -2,10 +2,11 @@ package oidc
 
 // Scope strings.
 const (
-	ScopeOpenID  = "openid"
-	ScopeProfile = "profile"
-	ScopeEmail   = "email"
-	ScopeGroups  = "groups"
+	ScopeOfflineAccess = "offline_access"
+	ScopeOpenID        = "openid"
+	ScopeProfile       = "profile"
+	ScopeEmail         = "email"
+	ScopeGroups        = "groups"
 )
 
 // Claim strings.
@@ -24,9 +25,9 @@ const (
 	WellKnownOAuthAuthorizationServerPath = "/.well-known/oauth-authorization-server"
 
 	JWKsPath          = "/api/oidc/jwks"
-	AuthorizationPath = "/api/oidc/authorize"
+	AuthorizationPath = "/api/oidc/authorization"
 	TokenPath         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
-	IntrospectionPath = "/api/oidc/introspect"
-	RevocationPath    = "/api/oidc/revoke"
+	IntrospectionPath = "/api/oidc/introspection"
+	RevocationPath    = "/api/oidc/revocation"
 	UserinfoPath      = "/api/oidc/userinfo"
 )
