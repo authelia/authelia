@@ -17,3 +17,16 @@ const (
 	ClaimEmailVerified     = "email_verified"
 	ClaimEmailAlts         = "alt_emails"
 )
+
+// Paths.
+const (
+	WellKnownOpenIDConfigurationPath      = "/.well-known/openid-configuration"
+	WellKnownOAuthAuthorizationServerPath = "/.well-known/oauth-authorization-server"
+
+	JWKsPath          = "/api/oidc/jwks"
+	AuthorizationPath = "/api/oidc/authorize"
+	TokenPath         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
+	IntrospectionPath = "/api/oidc/introspect"
+	RevocationPath    = "/api/oidc/revoke"
+	UserinfoPath      = "/api/oidc/userinfo"
+)

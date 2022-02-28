@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ory/fosite/compose"
@@ -85,6 +86,64 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		// compose.OAuth2PKCEFactory,.
 	)
 
+	provider.discovery = OpenIDConnectWellKnownConfiguration{
+		CommonDiscoveryOptions: CommonDiscoveryOptions{
+			SubjectTypesSupported: []string{
+				"public",
+			},
+			ResponseTypesSupported: []string{
+				"code",
+				"token",
+				"id_token",
+				"code token",
+				"code id_token",
+				"token id_token",
+				"code token id_token",
+				"none",
+			},
+			ResponseModesSupported: []string{
+				"form_post",
+				"query",
+				"fragment",
+			},
+			ScopesSupported: []string{
+				"offline_access",
+				ScopeOpenID,
+				ScopeProfile,
+				ScopeGroups,
+				ScopeEmail,
+			},
+			ClaimsSupported: []string{
+				"aud",
+				"exp",
+				"iat",
+				"iss",
+				"jti",
+				"rat",
+				"sub",
+				"auth_time",
+				"nonce",
+				ClaimEmail,
+				ClaimEmailVerified,
+				ClaimEmailAlts,
+				ClaimGroups,
+				ClaimPreferredUsername,
+				ClaimDisplayName,
+			},
+		},
+		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
+			RequestURIParameterSupported: false,
+		},
+		OpenIDConnectBackChannelLogoutDiscoveryOptions: OpenIDConnectBackChannelLogoutDiscoveryOptions{
+			BackChannelLogoutSupported:        false,
+			BackChannelLogoutSessionSupported: false,
+		},
+		OpenIDConnectFrontChannelLogoutDiscoveryOptions: OpenIDConnectFrontChannelLogoutDiscoveryOptions{
+			FrontChannelLogoutSupported:        false,
+			FrontChannelLogoutSessionSupported: false,
+		},
+	}
+
 	provider.herodot = herodot.NewJSONWriter(nil)
 
 	return provider, nil
@@ -103,4 +162,47 @@ func (p OpenIDConnectProvider) WriteError(w http.ResponseWriter, r *http.Request
 // WriteErrorCode writes an error with an error code with herodot.JSONWriter.
 func (p OpenIDConnectProvider) WriteErrorCode(w http.ResponseWriter, r *http.Request, code int, err error, opts ...herodot.Option) {
 	p.herodot.WriteErrorCode(w, r, code, err, opts...)
+}
+
+// GetOAuth2WellKnownConfiguration returns the discovery document for the OAuth Configuration.
+func (p OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) OAuth2WellKnownConfiguration {
+	options := OAuth2WellKnownConfiguration{
+		CommonDiscoveryOptions: p.discovery.CommonDiscoveryOptions,
+		OAuth2DiscoveryOptions: p.discovery.OAuth2DiscoveryOptions,
+	}
+
+	options.Issuer = issuer
+	options.JWKSURI = fmt.Sprintf("%s%s", issuer, JWKsPath)
+
+	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, IntrospectionPath)
+	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, TokenPath)
+
+	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, AuthorizationPath)
+	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, RevocationPath)
+
+	return options
+}
+
+// GetOpenIDConnectWellKnownConfiguration returns the discovery document for the OpenID Configuration.
+func (p OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer string) OpenIDConnectWellKnownConfiguration {
+	options := OpenIDConnectWellKnownConfiguration{
+		CommonDiscoveryOptions:                          p.discovery.CommonDiscoveryOptions,
+		OAuth2DiscoveryOptions:                          p.discovery.OAuth2DiscoveryOptions,
+		OpenIDConnectDiscoveryOptions:                   p.discovery.OpenIDConnectDiscoveryOptions,
+		OpenIDConnectFrontChannelLogoutDiscoveryOptions: p.discovery.OpenIDConnectFrontChannelLogoutDiscoveryOptions,
+		OpenIDConnectBackChannelLogoutDiscoveryOptions:  p.discovery.OpenIDConnectBackChannelLogoutDiscoveryOptions,
+		OpenIDConnectSessionManagementDiscoveryOptions:  p.discovery.OpenIDConnectSessionManagementDiscoveryOptions,
+	}
+
+	options.Issuer = issuer
+	options.JWKSURI = fmt.Sprintf("%s%s", issuer, JWKsPath)
+
+	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, IntrospectionPath)
+	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, TokenPath)
+
+	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, AuthorizationPath)
+	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, RevocationPath)
+	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, UserinfoPath)
+
+	return options
 }

@@ -4,29 +4,31 @@ import (
 	"github.com/fasthttp/router"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-// RegisterOIDC registers the handlers with the fasthttp *router.Router. TODO: Add paths for UserInfo, Flush, Logout.
+// RegisterOIDC registers the handlers with the fasthttp *router.Router. TODO: Add paths for Flush, Logout.
 func RegisterOIDC(router *router.Router, middleware middlewares.RequestHandlerBridge) {
 	// TODO: Add OPTIONS handler.
-	router.GET(pathOpenIDConnectWellKnown, middleware(oidcWellKnown))
+	router.GET(oidc.WellKnownOpenIDConfigurationPath, middleware(wellKnownOpenIDConnectConfigurationGET))
+	router.GET(oidc.WellKnownOAuthAuthorizationServerPath, middleware(wellKnownOAuthAuthorizationServerGET))
 
 	router.GET(pathOpenIDConnectConsent, middleware(oidcConsent))
 
 	router.POST(pathOpenIDConnectConsent, middleware(oidcConsentPOST))
 
-	router.GET(pathOpenIDConnectJWKs, middleware(oidcJWKs))
+	router.GET(oidc.JWKsPath, middleware(oidcJWKs))
 
-	router.GET(pathOpenIDConnectAuthorization, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcAuthorization)))
-
-	// TODO: Add OPTIONS handler.
-	router.POST(pathOpenIDConnectToken, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcToken)))
-
-	router.POST(pathOpenIDConnectIntrospection, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcIntrospection)))
-
-	router.GET(pathOpenIDConnectUserinfo, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
-	router.POST(pathOpenIDConnectUserinfo, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+	router.GET(oidc.AuthorizationPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcAuthorization)))
 
 	// TODO: Add OPTIONS handler.
-	router.POST(pathOpenIDConnectRevocation, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcRevocation)))
+	router.POST(oidc.TokenPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcToken)))
+
+	router.POST(oidc.IntrospectionPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcIntrospection)))
+
+	router.GET(oidc.UserinfoPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+	router.POST(oidc.UserinfoPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcUserinfo)))
+
+	// TODO: Add OPTIONS handler.
+	router.POST(oidc.RevocationPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(oidcRevocation)))
 }
