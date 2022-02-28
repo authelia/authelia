@@ -31,7 +31,7 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 	return user, nil
 }
 
-func getWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
+func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	var (
 		u       *url.URL
 		timeout time.Duration

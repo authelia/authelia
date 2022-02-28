@@ -21,7 +21,7 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 
-	if w, err = getWebauthn(ctx); err != nil {
+	if w, err = newWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to configure %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -97,7 +97,15 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 
-	if w, err = getWebauthn(ctx); err != nil {
+	if userSession.Webauthn == nil {
+		ctx.Logger.Errorf("Webauthn session data is not present in order to handle assertion for user '%s'. This could indicate a user trying to POST to the wrong endpoint, or the session data is not present for the browser they used.", userSession.Username)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	if w, err = newWebauthn(ctx); err != nil {
 		ctx.Logger.Errorf("Unable to configure %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
