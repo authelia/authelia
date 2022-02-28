@@ -32,7 +32,7 @@ type TimeBased struct {
 }
 
 // GenerateCustom generates a TOTP with custom options.
-func (p TimeBased) GenerateCustom(username string, algorithm string, digits, period, secretSize uint) (config *models.TOTPConfiguration, err error) {
+func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, secretSize uint) (config *models.TOTPConfiguration, err error) {
 	var key *otp.Key
 
 	opts := totp.GenerateOpts{
