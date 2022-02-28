@@ -8,23 +8,29 @@ import (
 )
 
 // ValidateNTP validates and update NTP configuration.
-func ValidateNTP(configuration *schema.NTPConfiguration, validator *schema.StructValidator) {
-	if configuration.Address == "" {
-		configuration.Address = schema.DefaultNTPConfiguration.Address
+func ValidateNTP(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.NTP == nil {
+		config.NTP = &schema.DefaultNTPConfiguration
+
+		return
 	}
 
-	if configuration.Version == 0 {
-		configuration.Version = schema.DefaultNTPConfiguration.Version
-	} else if configuration.Version < 3 || configuration.Version > 4 {
-		validator.Push(fmt.Errorf("ntp: version must be either 3 or 4"))
+	if config.NTP.Address == "" {
+		config.NTP.Address = schema.DefaultNTPConfiguration.Address
 	}
 
-	if configuration.MaximumDesync == "" {
-		configuration.MaximumDesync = schema.DefaultNTPConfiguration.MaximumDesync
+	if config.NTP.Version == 0 {
+		config.NTP.Version = schema.DefaultNTPConfiguration.Version
+	} else if config.NTP.Version < 3 || config.NTP.Version > 4 {
+		validator.Push(fmt.Errorf(errFmtNTPVersion, config.NTP.Version))
 	}
 
-	_, err := utils.ParseDurationString(configuration.MaximumDesync)
+	if config.NTP.MaximumDesync == "" {
+		config.NTP.MaximumDesync = schema.DefaultNTPConfiguration.MaximumDesync
+	}
+
+	_, err := utils.ParseDurationString(config.NTP.MaximumDesync)
 	if err != nil {
-		validator.Push(fmt.Errorf("ntp: error occurred parsing NTP max_desync string: %s", err))
+		validator.Push(fmt.Errorf(errFmtNTPMaxDesync, err))
 	}
 }

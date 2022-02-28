@@ -66,3 +66,28 @@ func (p Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
 
 	return p.defaultPolicy
 }
+
+// GetRuleMatchResults iterates through the rules and produces a list of RuleMatchResult provided a subject and object.
+func (p Authorizer) GetRuleMatchResults(subject Subject, object Object) (results []RuleMatchResult) {
+	skipped := false
+
+	results = make([]RuleMatchResult, len(p.rules))
+
+	for i, rule := range p.rules {
+		results[i] = RuleMatchResult{
+			Rule:    rule,
+			Skipped: skipped,
+
+			MatchDomain:        isMatchForDomains(subject, object, rule),
+			MatchResources:     isMatchForResources(object, rule),
+			MatchMethods:       isMatchForMethods(object, rule),
+			MatchNetworks:      isMatchForNetworks(subject, rule),
+			MatchSubjects:      isMatchForSubjects(subject, rule),
+			MatchSubjectsExact: isExactMatchForSubjects(subject, rule),
+		}
+
+		skipped = skipped || results[i].IsMatch()
+	}
+
+	return results
+}

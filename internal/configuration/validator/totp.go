@@ -9,40 +9,40 @@ import (
 )
 
 // ValidateTOTP validates and update TOTP configuration.
-func ValidateTOTP(configuration *schema.Configuration, validator *schema.StructValidator) {
-	if configuration.TOTP == nil {
-		configuration.TOTP = &schema.DefaultTOTPConfiguration
+func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.TOTP == nil {
+		config.TOTP = &schema.DefaultTOTPConfiguration
 
 		return
 	}
 
-	if configuration.TOTP.Issuer == "" {
-		configuration.TOTP.Issuer = schema.DefaultTOTPConfiguration.Issuer
+	if config.TOTP.Issuer == "" {
+		config.TOTP.Issuer = schema.DefaultTOTPConfiguration.Issuer
 	}
 
-	if configuration.TOTP.Algorithm == "" {
-		configuration.TOTP.Algorithm = schema.DefaultTOTPConfiguration.Algorithm
+	if config.TOTP.Algorithm == "" {
+		config.TOTP.Algorithm = schema.DefaultTOTPConfiguration.Algorithm
 	} else {
-		configuration.TOTP.Algorithm = strings.ToUpper(configuration.TOTP.Algorithm)
+		config.TOTP.Algorithm = strings.ToUpper(config.TOTP.Algorithm)
 
-		if !utils.IsStringInSlice(configuration.TOTP.Algorithm, schema.TOTPPossibleAlgorithms) {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, configuration.TOTP.Algorithm, strings.Join(schema.TOTPPossibleAlgorithms, ", ")))
+		if !utils.IsStringInSlice(config.TOTP.Algorithm, schema.TOTPPossibleAlgorithms) {
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strings.Join(schema.TOTPPossibleAlgorithms, "', '"), config.TOTP.Algorithm))
 		}
 	}
 
-	if configuration.TOTP.Period == 0 {
-		configuration.TOTP.Period = schema.DefaultTOTPConfiguration.Period
-	} else if configuration.TOTP.Period < 15 {
-		validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, configuration.TOTP.Period))
+	if config.TOTP.Period == 0 {
+		config.TOTP.Period = schema.DefaultTOTPConfiguration.Period
+	} else if config.TOTP.Period < 15 {
+		validator.Push(fmt.Errorf(errFmtTOTPInvalidPeriod, config.TOTP.Period))
 	}
 
-	if configuration.TOTP.Digits == 0 {
-		configuration.TOTP.Digits = schema.DefaultTOTPConfiguration.Digits
-	} else if configuration.TOTP.Digits != 6 && configuration.TOTP.Digits != 8 {
-		validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, configuration.TOTP.Digits))
+	if config.TOTP.Digits == 0 {
+		config.TOTP.Digits = schema.DefaultTOTPConfiguration.Digits
+	} else if config.TOTP.Digits != 6 && config.TOTP.Digits != 8 {
+		validator.Push(fmt.Errorf(errFmtTOTPInvalidDigits, config.TOTP.Digits))
 	}
 
-	if configuration.TOTP.Skew == nil {
-		configuration.TOTP.Skew = schema.DefaultTOTPConfiguration.Skew
+	if config.TOTP.Skew == nil {
+		config.TOTP.Skew = schema.DefaultTOTPConfiguration.Skew
 	}
 }

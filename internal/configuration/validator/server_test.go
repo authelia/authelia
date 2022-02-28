@@ -71,8 +71,8 @@ func TestShouldRaiseOnNegativeValues(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 2)
 
-	assert.EqualError(t, validator.Errors()[0], "server read buffer size must be above 0")
-	assert.EqualError(t, validator.Errors()[1], "server write buffer size must be above 0")
+	assert.EqualError(t, validator.Errors()[0], "server: option 'read_buffer_size' must be above 0 but it is configured as '-1'")
+	assert.EqualError(t, validator.Errors()[1], "server: option 'write_buffer_size' must be above 0 but it is configured as '-1'")
 }
 
 func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
@@ -123,7 +123,7 @@ func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: no TLS key provided to accompany the TLS certificate, please configure the 'server.tls.key' option")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'certificate' must also be accompanied by option 'key'")
 }
 
 func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
@@ -133,7 +133,7 @@ func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: no TLS certificate provided to accompany the TLS key, please configure the 'server.tls.certificate' option")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' must also be accompanied by option 'certificate'")
 }
 
 func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
