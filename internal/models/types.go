@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql/driver"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net"
 )
@@ -27,6 +26,11 @@ func NewNullIPFromString(value string) (ip NullIP) {
 	return NullIP{IP: net.ParseIP(value)}
 }
 
+// NewBase64 returns a new Base64.
+func NewBase64(data []byte) Base64 {
+	return Base64{data: data}
+}
+
 // IP is a type specific for storage of a net.IP in the database which can't be NULL.
 type IP struct {
 	IP net.IP
@@ -35,16 +39,16 @@ type IP struct {
 // Value is the IP implementation of the databases/sql driver.Valuer.
 func (ip IP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
-		return nil, errors.New("cannot value nil IP to driver.Value")
+		return nil, fmt.Errorf(errFmtValueNil, ip)
 	}
 
-	return driver.Value(ip.IP.String()), nil
+	return ip.IP.String(), nil
 }
 
 // Scan is the IP implementation of the sql.Scanner.
 func (ip *IP) Scan(src interface{}) (err error) {
 	if src == nil {
-		return errors.New("cannot scan nil to type IP")
+		return fmt.Errorf(errFmtScanNil, ip)
 	}
 
 	var value string
@@ -55,7 +59,7 @@ func (ip *IP) Scan(src interface{}) (err error) {
 	case []byte:
 		value = string(v)
 	default:
-		return fmt.Errorf("invalid type %T for IP %v", src, src)
+		return fmt.Errorf(errFmtScanInvalidType, ip, src, src)
 	}
 
 	ip.IP = net.ParseIP(value)
@@ -71,10 +75,10 @@ type NullIP struct {
 // Value is the NullIP implementation of the databases/sql driver.Valuer.
 func (ip NullIP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
-		return driver.Value(nil), nil
+		return nil, nil
 	}
 
-	return driver.Value(ip.IP.String()), nil
+	return ip.IP.String(), nil
 }
 
 // Scan is the NullIP implementation of the sql.Scanner.
@@ -92,17 +96,12 @@ func (ip *NullIP) Scan(src interface{}) (err error) {
 	case []byte:
 		value = string(v)
 	default:
-		return fmt.Errorf("invalid type %T for NullIP %v", src, src)
+		return fmt.Errorf(errFmtScanInvalidType, ip, src, src)
 	}
 
 	ip.IP = net.ParseIP(value)
 
 	return nil
-}
-
-// NewBase64 returns a new Base64.
-func NewBase64(data []byte) Base64 {
-	return Base64{data: data}
 }
 
 // Base64 saves bytes to the database as a base64 encoded string.
@@ -128,20 +127,20 @@ func (b Base64) Value() (value driver.Value, err error) {
 // Scan is the Base64 implementation of the sql.Scanner.
 func (b *Base64) Scan(src interface{}) (err error) {
 	if src == nil {
-		return errors.New("cannot scan nil to type Base64")
+		return fmt.Errorf(errFmtScanNil, b)
 	}
 
 	switch v := src.(type) {
 	case string:
 		if b.data, err = base64.StdEncoding.DecodeString(v); err != nil {
-			return fmt.Errorf("failed to decode sting as base64: %w", err)
+			return fmt.Errorf(errFmtScanInvalidTypeErr, b, src, src, err)
 		}
 	case []byte:
 		if b.data, err = base64.StdEncoding.DecodeString(string(v)); err != nil {
 			b.data = v
 		}
 	default:
-		return fmt.Errorf("invalid type %T for Base64 %v", src, src)
+		return fmt.Errorf(errFmtScanInvalidType, b, src, src)
 	}
 
 	return nil
