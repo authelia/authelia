@@ -23,12 +23,15 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 	provider.Store = NewOpenIDConnectStore(configuration)
 
 	composeConfiguration := &compose.Config{
-		AccessTokenLifespan:        configuration.AccessTokenLifespan,
-		AuthorizeCodeLifespan:      configuration.AuthorizeCodeLifespan,
-		IDTokenLifespan:            configuration.IDTokenLifespan,
-		RefreshTokenLifespan:       configuration.RefreshTokenLifespan,
-		SendDebugMessagesToClients: configuration.EnableClientDebugMessages,
-		MinParameterEntropy:        configuration.MinimumParameterEntropy,
+		AccessTokenLifespan:            configuration.AccessTokenLifespan,
+		AuthorizeCodeLifespan:          configuration.AuthorizeCodeLifespan,
+		IDTokenLifespan:                configuration.IDTokenLifespan,
+		RefreshTokenLifespan:           configuration.RefreshTokenLifespan,
+		SendDebugMessagesToClients:     configuration.EnableClientDebugMessages,
+		MinParameterEntropy:            configuration.MinimumParameterEntropy,
+		EnforcePKCE:                    configuration.EnforcePKCE == "always",
+		EnforcePKCEForPublicClients:    configuration.EnforcePKCE != "never",
+		EnablePKCEPlainChallengeMethod: configuration.EnablePKCEPlainChallenge,
 	}
 
 	keyManager, err := NewKeyManagerWithConfiguration(configuration)
@@ -82,7 +85,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		compose.OAuth2TokenIntrospectionFactory,
 		compose.OAuth2TokenRevocationFactory,
 
-		// compose.OAuth2PKCEFactory,.
+		compose.OAuth2PKCEFactory,
 	)
 
 	provider.herodot = herodot.NewJSONWriter(nil)
