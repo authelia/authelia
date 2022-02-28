@@ -31,7 +31,7 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
 		Webauthn: schema.WebauthnConfiguration{
@@ -59,7 +59,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Disable: true,
 		},
 		Webauthn: schema.WebauthnConfiguration{
@@ -87,7 +87,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
 		Webauthn: schema.WebauthnConfiguration{
@@ -115,7 +115,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvaila
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMethodsWhenNotConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: nil,
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
 		Webauthn: schema.WebauthnConfiguration{
@@ -143,7 +143,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTwoFactorACLRulesConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: &schema.DuoAPIConfiguration{},
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
 		Webauthn: schema.WebauthnConfiguration{
@@ -171,7 +171,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllDisabledOrNotConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: nil,
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Disable: true,
 		},
 		Webauthn: schema.WebauthnConfiguration{

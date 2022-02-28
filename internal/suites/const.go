@@ -60,7 +60,7 @@ const (
 
 var (
 	storageLocalTmpConfig = schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Issuer: "Authelia",
 			Period: 6,
 		},

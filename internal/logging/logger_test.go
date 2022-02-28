@@ -5,8 +5,10 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -80,4 +82,34 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Contains(t, string(b), "{\"level\":\"info\",\"msg\":\"This is a test\",")
+}
+
+func TestShouldRaiseErrorOnInvalidFile(t *testing.T) {
+	err := InitializeLogger(schema.LogConfiguration{FilePath: "/not/a/valid/path/to.log"}, false)
+
+	switch runtime.GOOS {
+	case "windows":
+		assert.EqualError(t, err, "open /not/a/valid/path/to.log: The system cannot find the path specified.")
+	default:
+		assert.EqualError(t, err, "open /not/a/valid/path/to.log: no such file or directory")
+	}
+}
+
+func TestSetLevels(t *testing.T) {
+	assert.Equal(t, logrus.InfoLevel, logrus.GetLevel())
+
+	setLevelStr("error", false)
+	assert.Equal(t, logrus.ErrorLevel, logrus.GetLevel())
+
+	setLevelStr("warn", false)
+	assert.Equal(t, logrus.WarnLevel, logrus.GetLevel())
+
+	setLevelStr("info", false)
+	assert.Equal(t, logrus.InfoLevel, logrus.GetLevel())
+
+	setLevelStr("debug", false)
+	assert.Equal(t, logrus.DebugLevel, logrus.GetLevel())
+
+	setLevelStr("trace", false)
+	assert.Equal(t, logrus.TraceLevel, logrus.GetLevel())
 }

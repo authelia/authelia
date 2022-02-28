@@ -8,11 +8,11 @@ import (
 // ConfigurationGet get the configuration accessible to authenticated users.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{
-		AvailableMethods: MethodList{},
+		AvailableMethods: make(MethodList, 0, 3),
 	}
 
 	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
-		if ctx.Configuration.TOTP == nil || !ctx.Configuration.TOTP.Disable {
+		if !ctx.Configuration.TOTP.Disable {
 			body.AvailableMethods = append(body.AvailableMethods, authentication.TOTP)
 		}
 
@@ -27,8 +27,7 @@ func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
 
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
 
-	err := ctx.SetJSONBody(body)
-	if err != nil {
+	if err := ctx.SetJSONBody(body); err != nil {
 		ctx.Logger.Errorf("Unable to set configuration response in body: %s", err)
 	}
 }
