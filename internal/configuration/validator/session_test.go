@@ -430,8 +430,8 @@ func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "session: option 'expiriation' could not be parsed: could not convert the input string of -1 into a duration")
-	assert.EqualError(t, validator.Errors()[1], "session: option 'inactivity' could not be parsed: could not convert the input string of -1 into a duration")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'expiriation' could not be parsed: could not parse '-1' as a duration")
+	assert.EqualError(t, validator.Errors()[1], "session: option 'inactivity' could not be parsed: could not parse '-1' as a duration")
 }
 
 func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
@@ -443,7 +443,7 @@ func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: option 'remember_me_duration' could not be parsed: could not convert the input string of 1 year into a duration")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'remember_me_duration' could not be parsed: could not parse '1 year' as a duration")
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {

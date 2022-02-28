@@ -149,13 +149,13 @@ func validateLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendC
 	if config.URL == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
 	} else {
-		validateLDAPURL(config, validator)
+		validateLDAPAuthenticationBackendURL(config, validator)
 	}
 
 	validateLDAPRequiredParameters(config, validator)
 }
 
-func validateLDAPURL(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	var (
 		parsedURL *url.URL
 		err       error

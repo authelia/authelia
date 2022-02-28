@@ -88,7 +88,7 @@ const (
 		"is configured as '%s' but must be one of the following values: '%s'"
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
-	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option" +
+	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
 		"'url' could not be parsed: %w"
 	errFmtLDAPAuthBackendURLInvalidScheme = "authentication_backend: ldap: option " +
 		"'url' must have either the 'ldap' or 'ldaps' scheme but it is configured as '%s'"

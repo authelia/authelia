@@ -10,28 +10,28 @@ import (
 
 type Theme struct {
 	suite.Suite
-	configuration *schema.Configuration
-	validator     *schema.StructValidator
+	config    *schema.Configuration
+	validator *schema.StructValidator
 }
 
 func (suite *Theme) SetupTest() {
 	suite.validator = schema.NewStructValidator()
-	suite.configuration = &schema.Configuration{
+	suite.config = &schema.Configuration{
 		Theme: "light",
 	}
 }
 
 func (suite *Theme) TestShouldValidateCompleteConfiguration() {
-	ValidateTheme(suite.configuration, suite.validator)
+	ValidateTheme(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 }
 
 func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
-	suite.configuration.Theme = "invalid"
+	suite.config.Theme = "invalid"
 
-	ValidateTheme(suite.configuration, suite.validator)
+	ValidateTheme(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)

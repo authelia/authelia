@@ -57,6 +57,6 @@ func TestShouldRaiseErrorOnBadDurationStrings(t *testing.T) {
 	ValidateRegulation(&config, validator)
 
 	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "regulation: option 'find_time' could not be parsed: could not convert the input string of a year into a duration")
-	assert.EqualError(t, validator.Errors()[1], "regulation: option 'ban_time' could not be parsed: could not convert the input string of forever into a duration")
+	assert.EqualError(t, validator.Errors()[0], "regulation: option 'find_time' could not be parsed: could not parse 'a year' as a duration")
+	assert.EqualError(t, validator.Errors()[1], "regulation: option 'ban_time' could not be parsed: could not parse 'forever' as a duration")
 }

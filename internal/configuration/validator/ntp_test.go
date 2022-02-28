@@ -64,7 +64,7 @@ func TestShouldRaiseErrorOnMaximumDesyncString(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "ntp: option 'max_desync' can't be parsed: could not convert the input string of a second into a duration")
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'max_desync' can't be parsed: could not parse 'a second' as a duration")
 }
 
 func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {
