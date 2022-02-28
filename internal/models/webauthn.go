@@ -76,15 +76,14 @@ func (w WebauthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 		}
 
 		transports := strings.Split(device.Transport, ",")
-		credential.Transport = make([]protocol.AuthenticatorTransport, len(transports))
+		credential.Transport = []protocol.AuthenticatorTransport{}
 
 		for _, t := range transports {
-			transport := protocol.AuthenticatorTransport(t)
-
-			switch transport {
-			case protocol.Internal, protocol.USB, protocol.NFC, protocol.BLE:
-				credential.Transport = append(credential.Transport, transport)
+			if t == "" {
+				continue
 			}
+
+			credential.Transport = append(credential.Transport, protocol.AuthenticatorTransport(t))
 		}
 
 		credentials[i] = credential
