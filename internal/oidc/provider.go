@@ -132,7 +132,6 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 			},
 		},
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
-			RequestURIParameterSupported: false,
 			IDTokenSigningAlgValuesSupported: []string{
 				"RS256",
 			},

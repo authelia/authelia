@@ -560,15 +560,16 @@ particularly those that don't use [discovery](https://openid.net/specs/openid-co
 appended to the end of the primary URL used to access Authelia. For example in the Discovery example provided you access
 Authelia via https://auth.example.com, the discovery URL is https://auth.example.com/.well-known/openid-configuration.
 
-|   Endpoint    |               Path               |
-|:-------------:|:--------------------------------:|
-|   Discovery   | .well-known/openid-configuration |
-|     JWKS      |          api/oidc/jwks           |
-| Authorization |      api/oidc/authorization      |
-|     Token     |          api/oidc/token          |
-| Introspection |      api/oidc/introspection      |
-|  Revocation   |       api/oidc/revocation        |
-|   Userinfo    |        api/oidc/userinfo         |
+|   Endpoint    |                     Path                      |
+|:-------------:|:---------------------------------------------:|
+|   Discovery   |    [root]/.well-known/openid-configuration    |
+|   Metadata    | [root]/.well-known/oauth-authorization-server |
+|     JWKS      |             [root]/api/oidc/jwks              |
+| Authorization |         [root]/api/oidc/authorization         |
+|     Token     |             [root]/api/oidc/token             |
+| Introspection |         [root]/api/oidc/introspection         |
+|  Revocation   |          [root]/api/oidc/revocation           |
+|   Userinfo    |           [root]/api/oidc/userinfo            |
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
