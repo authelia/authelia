@@ -94,5 +94,5 @@ func TestWebauthnShouldRaiseErrorsOnInvalidTimeout(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'timeout' could not be parsed: could not convert the input string of abc into a duration")
+	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'timeout' could not be parsed: could not parse 'abc' as a duration")
 }
