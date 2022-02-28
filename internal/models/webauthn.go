@@ -117,7 +117,7 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 	device = WebauthnDevice{
 		RPID:            rpid,
 		Username:        username,
-		Created:         time.Now(),
+		CreatedAt:       time.Now(),
 		Description:     description,
 		KID:             NewBase64(credential.ID),
 		PublicKey:       credential.PublicKey,
@@ -135,8 +135,8 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
 	ID              int        `db:"id"`
-	Created         time.Time  `db:"created"`
-	Used            *time.Time `db:"used"`
+	CreatedAt       time.Time  `db:"created_at"`
+	LastUsedAt      *time.Time `db:"last_used_at"`
 	RPID            string     `db:"rpid"`
 	Username        string     `db:"username"`
 	Description     string     `db:"description"`
@@ -151,7 +151,7 @@ type WebauthnDevice struct {
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.
 func (w *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
-	w.Used = &now
+	w.LastUsedAt = &now
 
 	w.SignCount = signCount
 

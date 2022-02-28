@@ -1,6 +1,10 @@
 package validator
 
-import "regexp"
+import (
+	"regexp"
+
+	"github.com/duo-labs/webauthn/protocol"
+)
 
 const (
 	loopback           = "127.0.0.1"
@@ -106,8 +110,9 @@ const (
 
 // Webauthn Error constants.
 const (
-	errFmtWebauthnConveyancePreference = "webauthn: 'conveyance_preference' configuration option '%s' is invalid: must be one of 'none', 'indirect', 'direct'"
-	errFmtWebauthnUserVerification     = "webauthn: 'user_verification' configuration option '%s' is invalid: must be one of 'discouraged', 'preferred', 'required'"
+	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
+	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
+	errFmtWebauthnParseTimeout         = "webauthn: option 'timeout' could not be parsed: %w"
 )
 
 // Error constants.
@@ -139,6 +144,9 @@ const (
 		"not supported to configure both policy bypass and subjects. For more information see: " +
 		"https://www.authelia.com/docs/configuration/access-control.html#combining-subjects-and-the-bypass-policy"
 )
+
+var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
 var validLoggingLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validHTTPRequestMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
@@ -189,9 +197,8 @@ var ValidKeys = []string{
 
 	// Webauthn Keys.
 	"webauthn.disable",
-	"webauthn.debug",
 	"webauthn.display_name",
-	"webauthn.conveyance_preference",
+	"webauthn.attestation_conveyance_preference",
 	"webauthn.user_verification",
 	"webauthn.timeout",
 

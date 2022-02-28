@@ -49,7 +49,7 @@ func (p TimeBased) GenerateCustom(username string, algorithm string, digits, per
 	}
 
 	config = &models.TOTPConfiguration{
-		Created:   time.Now(),
+		CreatedAt: time.Now(),
 		Username:  username,
 		Issuer:    p.config.Issuer,
 		Algorithm: algorithm,

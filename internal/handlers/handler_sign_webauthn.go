@@ -22,7 +22,7 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if w, err = getWebauthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to configire %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to configure %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -98,7 +98,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if w, err = getWebauthn(ctx); err != nil {
-		ctx.Logger.Errorf("Unable to configire %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+		ctx.Logger.Errorf("Unable to configure %s during assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 

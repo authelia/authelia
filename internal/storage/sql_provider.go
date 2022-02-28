@@ -279,7 +279,7 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertTOTPConfig,
-		config.Created, config.Used,
+		config.CreatedAt, config.LastUsedAt,
 		config.Username, config.Issuer,
 		config.Algorithm, config.Digits, config.Period, config.Secret); err != nil {
 		return fmt.Errorf("error upserting TOTP configuration for user '%s': %w", config.Username, err)
@@ -292,9 +292,9 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, config models.TOTPConfiguration) (err error) {
 	switch config.ID {
 	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignInByUsername, config.Used, config.Username)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignInByUsername, config.LastUsedAt, config.Username)
 	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, config.Used, config.ID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, config.LastUsedAt, config.ID)
 	}
 
 	if err != nil {
@@ -375,7 +375,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertWebauthnDevice,
-		device.Created, device.Used,
+		device.CreatedAt, device.LastUsedAt,
 		device.RPID, device.Username, device.Description,
 		device.KID, device.PublicKey,
 		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,
@@ -390,9 +390,9 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, device models.WebauthnDevice) (err error) {
 	switch device.ID {
 	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignInByUsername, device.RPID, device.Used, device.SignCount, device.CloneWarning, device.Username, device.KID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignInByUsername, device.RPID, device.LastUsedAt, device.SignCount, device.CloneWarning, device.Username, device.KID)
 	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, device.RPID, device.Used, device.SignCount, device.CloneWarning, device.ID)
+		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, device.RPID, device.LastUsedAt, device.SignCount, device.CloneWarning, device.ID)
 	}
 
 	if err != nil {

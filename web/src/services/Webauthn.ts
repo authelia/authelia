@@ -22,7 +22,7 @@ import {
     ServiceResponse,
     WebauthnAssertionPath,
     WebauthnAttestationPath,
-    WebauthnIdentityPathFinish,
+    WebauthnIdentityFinishPath,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 import { getBase64WebEncodingFromBytes, getBytesFromBase64 } from "@utils/Base64";
@@ -211,7 +211,7 @@ function getAssertionResultFromDOMException(
 async function getAttestationCreationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
 
-    response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityPathFinish, {
+    response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityFinishPath, {
         token: token,
     });
 

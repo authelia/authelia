@@ -132,18 +132,15 @@ webauthn:
   ## Disable Webauthn.
   disable: false
 
-  ## Enable debug messages.
-  debug: false
-
   ## Adjust the interaction timeout for Webauthn dialogues.
-  timeout: 60000
+  timeout: 60s
 
-  ## The display name shown to the user.
+  ## The display name the browser should show the user for when using Webauthn to login/register.
   display_name: Authelia
 
   ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
   ## Options are none, indirect, direct.
-  conveyance_preference: indirect
+  attestation_conveyance_preference: indirect
 
   ## User verification controls if the user must make a gesture or action to confirm they are present.
   ## Options are required, preferred, discouraged.

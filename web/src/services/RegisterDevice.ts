@@ -1,4 +1,4 @@
-import { InitiateTOTPRegistrationPath, CompleteTOTPRegistrationPath, WebauthnIdentityPathStart } from "@services/Api";
+import { InitiateTOTPRegistrationPath, CompleteTOTPRegistrationPath, WebauthnIdentityStartPath } from "@services/Api";
 import { Post, PostWithOptionalResponse } from "@services/Client";
 
 export async function initiateTOTPRegistrationProcess() {
@@ -15,5 +15,5 @@ export async function completeTOTPRegistrationProcess(processToken: string) {
 }
 
 export async function initiateWebauthnRegistrationProcess() {
-    return PostWithOptionalResponse(WebauthnIdentityPathStart);
+    return PostWithOptionalResponse(WebauthnIdentityStartPath);
 }
