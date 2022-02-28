@@ -22,13 +22,13 @@ type Provider interface {
 	FindIdentityVerification(ctx context.Context, jti string) (found bool, err error)
 
 	SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error)
-	UpdateTOTPConfigurationSignIn(ctx context.Context, config models.TOTPConfiguration) (err error)
+	UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt *time.Time) (err error)
 	DeleteTOTPConfiguration(ctx context.Context, username string) (err error)
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error)
 
 	SaveWebauthnDevice(ctx context.Context, device models.WebauthnDevice) (err error)
-	UpdateWebauthnDeviceSignIn(ctx context.Context, device models.WebauthnDevice) (err error)
+	UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt *time.Time, signCount uint32, cloneWarning bool) (err error)
 	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []models.WebauthnDevice, err error)
 	LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []models.WebauthnDevice, err error)
 

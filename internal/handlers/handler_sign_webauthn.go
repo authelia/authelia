@@ -151,8 +151,12 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 			found = true
 
-			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignIn(ctx, device); err != nil {
+			if err = ctx.Providers.StorageProvider.UpdateWebauthnDeviceSignIn(ctx, device.ID, device.RPID, device.LastUsedAt, device.SignCount, device.CloneWarning); err != nil {
 				ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+				respondUnauthorized(ctx, messageMFAValidationFailed)
+
+				return
 			}
 
 			break
@@ -161,6 +165,10 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	if !found {
 		ctx.Logger.Errorf("Unable to save %s device signin count for assertion challenge for user '%s' device '%x' count '%d': unable to find device", regulation.AuthTypeWebauthn, userSession.Username, credential.ID, credential.Authenticator.SignCount)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
 	}
 
 	if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {

@@ -60,8 +60,12 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 
 	config.UpdateSignInInfo(ctx.Clock.Now())
 
-	if err = ctx.Providers.StorageProvider.UpdateTOTPConfigurationSignIn(ctx, *config); err != nil {
+	if err = ctx.Providers.StorageProvider.UpdateTOTPConfigurationSignIn(ctx, config.ID, config.LastUsedAt); err != nil {
 		ctx.Logger.Errorf("Unable to save %s device sign in metadata for user '%s': %v", regulation.AuthTypeTOTP, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
 	}
 
 	userSession.SetTwoFactor(ctx.Clock.Now())

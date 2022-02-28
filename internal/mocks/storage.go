@@ -459,29 +459,29 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 }
 
 // UpdateTOTPConfigurationSignIn mocks base method.
-func (m *MockStorage) UpdateTOTPConfigurationSignIn(arg0 context.Context, arg1 models.TOTPConfiguration) error {
+func (m *MockStorage) UpdateTOTPConfigurationSignIn(arg0 context.Context, arg1 int, arg2 *time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTOTPConfigurationSignIn", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateTOTPConfigurationSignIn", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateTOTPConfigurationSignIn indicates an expected call of UpdateTOTPConfigurationSignIn.
-func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSignIn), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSignIn), arg0, arg1, arg2)
 }
 
 // UpdateWebauthnDeviceSignIn mocks base method.
-func (m *MockStorage) UpdateWebauthnDeviceSignIn(arg0 context.Context, arg1 models.WebauthnDevice) error {
+func (m *MockStorage) UpdateWebauthnDeviceSignIn(arg0 context.Context, arg1 int, arg2 string, arg3 *time.Time, arg4 uint32, arg5 bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceSignIn", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceSignIn", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateWebauthnDeviceSignIn indicates an expected call of UpdateWebauthnDeviceSignIn.
-func (mr *MockStorageMockRecorder) UpdateWebauthnDeviceSignIn(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) UpdateWebauthnDeviceSignIn(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebauthnDeviceSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebauthnDeviceSignIn), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebauthnDeviceSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebauthnDeviceSignIn), arg0, arg1, arg2, arg3, arg4, arg5)
 }

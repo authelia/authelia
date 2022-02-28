@@ -289,16 +289,9 @@ func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.T
 }
 
 // UpdateTOTPConfigurationSignIn updates a registered Webauthn devices sign in information.
-func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, config models.TOTPConfiguration) (err error) {
-	switch config.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignInByUsername, config.LastUsedAt, config.Username)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, config.LastUsedAt, config.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating TOTP configuration for user '%s': %w", config.Username, err)
+func (p *SQLProvider) UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt *time.Time) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigRecordSignIn, lastUsedAt, id); err != nil {
+		return fmt.Errorf("error updating TOTP configuration id %d: %w", id, err)
 	}
 
 	return nil
@@ -344,9 +337,9 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 		return nil, fmt.Errorf("error selecting TOTP configurations: %w", err)
 	}
 
-	for i, config := range configs {
-		if configs[i].Secret, err = p.decrypt(config.Secret); err != nil {
-			return nil, fmt.Errorf("error decrypting TOTP configuration for user '%s': %w", config.Username, err)
+	for i, c := range configs {
+		if configs[i].Secret, err = p.decrypt(c.Secret); err != nil {
+			return nil, fmt.Errorf("error decrypting TOTP configuration for user '%s': %w", c.Username, err)
 		}
 	}
 
@@ -387,16 +380,9 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.Weba
 }
 
 // UpdateWebauthnDeviceSignIn updates a registered Webauthn devices sign in information.
-func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, device models.WebauthnDevice) (err error) {
-	switch device.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignInByUsername, device.RPID, device.LastUsedAt, device.SignCount, device.CloneWarning, device.Username, device.KID)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, device.RPID, device.LastUsedAt, device.SignCount, device.CloneWarning, device.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating Webauthn signin metadata for kid '%x': %w", device.KID, err)
+func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt *time.Time, signCount uint32, cloneWarning bool) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceRecordSignIn, rpid, lastUsedAt, signCount, cloneWarning, id); err != nil {
+		return fmt.Errorf("error updating Webauthn signin metadata for id '%x': %w", id, err)
 	}
 
 	return nil
