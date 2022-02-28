@@ -23,3 +23,9 @@ X_AUTHELIA_HEALTHCHECK_HOST=%s
 X_AUTHELIA_HEALTHCHECK_PORT=%d
 X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
+
+const (
+	cspDefaultTemplate    = "default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'"
+	cspDefaultDevTemplate = "default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'"
+	cspNoncePlaceholder   = "${NONCE}"
+)

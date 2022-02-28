@@ -10,9 +10,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func newDefaultNTPConfig() schema.NTPConfiguration {
-	config := schema.NTPConfiguration{}
-	return config
+func newDefaultNTPConfig() schema.Configuration {
+	return schema.Configuration{
+		NTP: &schema.NTPConfiguration{},
+	}
 }
 
 func TestShouldSetDefaultNTPAddress(t *testing.T) {
@@ -22,7 +23,7 @@ func TestShouldSetDefaultNTPAddress(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.Address, config.Address)
+	assert.Equal(t, schema.DefaultNTPConfiguration.Address, config.NTP.Address)
 }
 
 func TestShouldSetDefaultNTPVersion(t *testing.T) {
@@ -32,19 +33,19 @@ func TestShouldSetDefaultNTPVersion(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.Version)
+	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.NTP.Version)
 }
 
 func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultNTPConfig()
 
-	config.Version = 1
+	config.NTP.Version = 1
 
 	ValidateNTP(&config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtNTPVersion, config.Version))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtNTPVersion, config.NTP.Version))
 }
 
 func TestShouldSetDefaultNTPMaximumDesync(t *testing.T) {
@@ -54,7 +55,7 @@ func TestShouldSetDefaultNTPMaximumDesync(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.MaximumDesync)
+	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.NTP.MaximumDesync)
 }
 
 func TestShouldSetDefaultNTPDisableStartupCheck(t *testing.T) {
@@ -64,5 +65,5 @@ func TestShouldSetDefaultNTPDisableStartupCheck(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.DisableStartupCheck)
+	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.NTP.DisableStartupCheck)
 }

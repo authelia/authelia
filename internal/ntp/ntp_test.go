@@ -11,16 +11,19 @@ import (
 )
 
 func TestShouldCheckNTP(t *testing.T) {
-	config := schema.NTPConfiguration{
-		Address:             "time.cloudflare.com:123",
-		Version:             4,
-		MaximumDesync:       time.Second * 3,
-		DisableStartupCheck: false,
+	config := &schema.Configuration{
+		NTP: &schema.NTPConfiguration{
+			Address:             "time.cloudflare.com:123",
+			Version:             4,
+			MaximumDesync:       time.Second * 3,
+			DisableStartupCheck: false,
+		},
 	}
-	sv := schema.NewStructValidator()
-	validator.ValidateNTP(&config, sv)
 
-	ntp := NewProvider(&config)
+	sv := schema.NewStructValidator()
+	validator.ValidateNTP(config, sv)
+
+	ntp := NewProvider(config.NTP)
 
 	assert.NoError(t, ntp.StartupCheck())
 }

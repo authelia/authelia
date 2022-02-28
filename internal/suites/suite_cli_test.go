@@ -66,15 +66,15 @@ func (s *CLISuite) TestShouldPrintVersion() {
 }
 
 func (s *CLISuite) TestShouldValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "/config/configuration.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config", "/config/configuration.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Configuration parsed successfully without errors")
+	s.Assert().Contains(output, "Configuration parsed and loaded successfully without errors.")
 }
 
 func (s *CLISuite) TestShouldFailValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "/config/invalid.yml"})
-	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Error Loading Configuration: stat /config/invalid.yml: no such file or directory")
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config", "/config/invalid.yml"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "failed to load configuration from yaml file(/config/invalid.yml) source: open /config/invalid.yml: no such file or directory")
 }
 
 func (s *CLISuite) TestShouldHashPasswordArgon2id() {
@@ -168,12 +168,12 @@ func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info"})
 	s.Assert().EqualError(err, "exit status 1")
 
-	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: 'encryption_key' configuration option must be provided\n")
+	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: option 'encryption_key' must is required\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "history"})
 	s.Assert().EqualError(err, "exit status 1")
 
-	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: 'encryption_key' configuration option must be provided\n")
+	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: option 'encryption_key' must is required\n")
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
@@ -380,6 +380,94 @@ func (s *CLISuite) TestStorage05ShouldMigrateDown() {
 
 	s.Regexp(pattern0, output)
 	s.Regexp(pattern1, output)
+}
+
+func (s *CLISuite) TestACLPolicyCheckVerbose() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://public.example.com", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://public.example.com --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://public.example.com' method 'GET'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "* 1\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\tmiss\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\tmiss\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "  9\tmiss\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "The policy 'bypass' from rule #1 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://admin.example.com", "--method=HEAD", "--username=tom", "--groups=basic,test", "--ip=192.168.2.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://admin.example.com --method=HEAD --username=tom --groups=basic,test --ip=192.168.2.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://admin.example.com' method 'HEAD' username 'tom' groups 'basic,test' from IP '192.168.2.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "* 2\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\tmiss\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\tmiss\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  9\tmiss\thit\t\thit\thit\tmiss\n")
+	s.Contains(output, "The policy 'two_factor' from rule #2 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://resources.example.com/resources/test", "--method=POST", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://resources.example.com/resources/test --method=POST --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://resources.example.com/resources/test' method 'POST' username 'john' groups 'admin,test' from IP '192.168.1.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "* 5\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmiss\n")
+	s.Contains(output, "  9\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "The policy 'one_factor' from rule #5 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com/resources/test", "--method=HEAD", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://user.example.com/resources/test' method 'HEAD' username 'john' groups 'admin,test' from IP '192.168.1.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmiss\n")
+	s.Contains(output, "* 9\thit\thit\t\thit\thit\thit\n")
+	s.Contains(output, "The policy 'one_factor' from rule #9 will be applied to this request.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com", "--method=HEAD", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	s.Assert().NoError(err)
+
+	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --ip=192.168.1.3 --verbose`.
+	s.Contains(output, "Performing policy check for request to 'https://user.example.com' method 'HEAD' from IP '192.168.1.3'.\n\n")
+	s.Contains(output, "  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	s.Contains(output, "  1\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  2\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  3\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  4\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  5\tmiss\tmiss\t\thit\thit\thit\n")
+	s.Contains(output, "  6\tmiss\thit\t\tmiss\thit\thit\n")
+	s.Contains(output, "  7\tmiss\thit\t\thit\thit\thit\n")
+	s.Contains(output, "  8\tmiss\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "~ 9\thit\thit\t\thit\thit\tmay\n")
+	s.Contains(output, "The policy 'one_factor' from rule #9 will potentially be applied to this request. Otherwise the policy 'bypass' from the default policy will be.")
 }
 
 func TestCLISuite(t *testing.T) {

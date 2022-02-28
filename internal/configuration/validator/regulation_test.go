@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -10,8 +9,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func newDefaultRegulationConfig() schema.RegulationConfiguration {
-	config := schema.RegulationConfiguration{}
+func newDefaultRegulationConfig() schema.Configuration {
+	config := schema.Configuration{
+		Regulation: &schema.RegulationConfiguration{},
+	}
+
 	return config
 }
 
@@ -22,7 +24,7 @@ func TestShouldSetDefaultRegulationBanTime(t *testing.T) {
 	ValidateRegulation(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultRegulationConfiguration.BanTime, config.BanTime)
+	assert.Equal(t, schema.DefaultRegulationConfiguration.BanTime, config.Regulation.BanTime)
 }
 
 func TestShouldSetDefaultRegulationFindTime(t *testing.T) {
@@ -32,17 +34,17 @@ func TestShouldSetDefaultRegulationFindTime(t *testing.T) {
 	ValidateRegulation(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultRegulationConfiguration.FindTime, config.FindTime)
+	assert.Equal(t, schema.DefaultRegulationConfiguration.FindTime, config.Regulation.FindTime)
 }
 
 func TestShouldRaiseErrorWhenFindTimeLessThanBanTime(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultRegulationConfig()
-	config.FindTime = time.Minute
-	config.BanTime = time.Second * 10
+	config.Regulation.FindTime = time.Minute
+	config.Regulation.BanTime = time.Second * 10
 
 	ValidateRegulation(&config, validator)
 
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("regulation: invalid find_time '%s' and ban_time '%s': find_time cannot be greater than ban_time", config.FindTime.String(), config.BanTime.String()))
+	assert.EqualError(t, validator.Errors()[0], "regulation: option 'find_time' must be less than or equal to option 'ban_time'")
 }

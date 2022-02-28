@@ -95,7 +95,7 @@ upgrading to prevent configuration changes from impacting downtime in an upgrade
 integrations, it only checks that your configuration syntax is valid.
 
 ```console
-$ authelia validate-config configuration.yml
+$ authelia validate-config --config configuration.yml
 ```
 
 # Duration Notation Format
