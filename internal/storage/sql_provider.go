@@ -255,8 +255,10 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 	}
 
 	switch {
-	case verification.Consumed != nil, verification.ExpiresAt.Before(time.Now()):
-		return false, nil
+	case verification.Consumed != nil:
+		return false, fmt.Errorf("the token has already been consumed")
+	case verification.ExpiresAt.Before(time.Now()):
+		return false, fmt.Errorf("the token expired %s ago", time.Since(verification.ExpiresAt))
 	default:
 		return true, nil
 	}
