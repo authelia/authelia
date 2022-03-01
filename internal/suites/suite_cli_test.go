@@ -344,10 +344,10 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			s.Assert().NoError(err)
 		}
 
-		s.Assert().Contains(output, config.URI())
-
 		config, err = storageProvider.LoadTOTPConfiguration(ctx, testCase.config.Username)
 		s.Assert().NoError(err)
+
+		s.Assert().Contains(output, config.URI())
 
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
 		expectedLines = append(expectedLines, config.URI())
