@@ -68,12 +68,12 @@ func TestShouldReturnZeroAndErrorOnInvalidTLSVersions(t *testing.T) {
 	version, err := TLSStringToTLSConfigVersion("TLS1.4")
 	assert.Error(t, err)
 	assert.Equal(t, uint16(0), version)
-	assert.EqualError(t, err, "supplied TLS version isn't supported")
+	assert.EqualError(t, err, "supplied tls version isn't supported")
 
 	version, err = TLSStringToTLSConfigVersion("SSL3.0")
 	assert.Error(t, err)
 	assert.Equal(t, uint16(0), version)
-	assert.EqualError(t, err, "supplied TLS version isn't supported")
+	assert.EqualError(t, err, "supplied tls version isn't supported")
 }
 
 func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {

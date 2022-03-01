@@ -31,7 +31,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Run:     cmdRootRun,
 	}
 
-	cmdWithConfigFlags(cmd)
+	cmdWithConfigFlags(cmd, false, []string{})
 
 	cmd.AddCommand(
 		newBuildInfoCmd(),
@@ -41,6 +41,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		NewRSACmd(),
 		NewStorageCmd(),
 		newValidateConfigCmd(),
+		newAccessControlCommand(),
 	)
 
 	return cmd
@@ -120,7 +121,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 }
 
-func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) (err error) {
+func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) error {
 	if disabled {
 		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
 		return nil
@@ -130,9 +131,5 @@ func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupC
 		return fmt.Errorf("unrecognized provider or it is not configured properly")
 	}
 
-	if err = provider.StartupCheck(); err != nil {
-		return err
-	}
-
-	return nil
+	return provider.StartupCheck()
 }

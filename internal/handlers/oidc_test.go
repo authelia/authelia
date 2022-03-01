@@ -79,9 +79,9 @@ func TestShouldGrantAppropriateClaimsForScopeOpenIDAndEmail(t *testing.T) {
 	require.Contains(t, extraClaims, oidc.ClaimEmail)
 	assert.Equal(t, "j.smith@authelia.com", extraClaims[oidc.ClaimEmail])
 
-	require.Contains(t, extraClaims, oidc.ClaimAltEmails)
-	assert.Len(t, extraClaims[oidc.ClaimAltEmails], 1)
-	assert.Contains(t, extraClaims[oidc.ClaimAltEmails], "admin@authelia.com")
+	require.Contains(t, extraClaims, oidc.ClaimEmailAlts)
+	assert.Len(t, extraClaims[oidc.ClaimEmailAlts], 1)
+	assert.Contains(t, extraClaims[oidc.ClaimEmailAlts], "admin@authelia.com")
 
 	require.Contains(t, extraClaims, oidc.ClaimEmailVerified)
 	assert.Equal(t, true, extraClaims[oidc.ClaimEmailVerified])

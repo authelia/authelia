@@ -3,6 +3,7 @@ package commands
 import (
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -12,18 +13,27 @@ import (
 )
 
 // cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
-func cmdWithConfigFlags(cmd *cobra.Command) {
-	cmd.Flags().StringSliceP("config", "c", []string{}, "Configuration files")
+func cmdWithConfigFlags(cmd *cobra.Command, persistent bool, configs []string) {
+	if persistent {
+		cmd.PersistentFlags().StringSliceP("config", "c", configs, "configuration files to load")
+	} else {
+		cmd.Flags().StringSliceP("config", "c", configs, "configuration files to load")
+	}
 }
 
 var config *schema.Configuration
 
 func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfiguration bool) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, _ []string) {
-		logger := logging.Logger()
+		var (
+			logger  *logrus.Logger
+			configs []string
+			err     error
+		)
 
-		configs, err := cmd.Root().Flags().GetStringSlice("config")
-		if err != nil {
+		logger = logging.Logger()
+
+		if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
 			logger.Fatalf("Error reading flags: %v", err)
 		}
 
@@ -39,21 +49,13 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			}
 		}
 
-		var keys []string
+		var (
+			val *schema.StructValidator
+		)
 
-		val := schema.NewStructValidator()
-
-		keys, config, err = configuration.Load(val, configuration.NewDefaultSources(configs, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
+		config, val, err = loadConfig(configs, validateKeys, validateConfiguration)
 		if err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
-		}
-
-		if validateKeys {
-			validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
-		}
-
-		if validateConfiguration {
-			validator.ValidateConfiguration(config, val)
 		}
 
 		warnings := val.Warnings()
@@ -72,4 +74,28 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			logger.Fatalf("Can't continue due to the errors loading the configuration")
 		}
 	}
+}
+
+func loadConfig(configs []string, validateKeys, validateConfiguration bool) (c *schema.Configuration, val *schema.StructValidator, err error) {
+	var keys []string
+
+	val = schema.NewStructValidator()
+
+	if keys, c, err = configuration.Load(val,
+		configuration.NewDefaultSources(
+			configs,
+			configuration.DefaultEnvPrefix,
+			configuration.DefaultEnvDelimiter)...); err != nil {
+		return nil, nil, err
+	}
+
+	if validateKeys {
+		validator.ValidateKeys(keys, configuration.DefaultEnvPrefix, val)
+	}
+
+	if validateConfiguration {
+		validator.ValidateConfiguration(c, val)
+	}
+
+	return c, val, nil
 }

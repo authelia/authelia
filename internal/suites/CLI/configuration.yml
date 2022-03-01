@@ -41,6 +41,21 @@ access_control:
       policy: two_factor
     - domain: "singlefactor.example.com"
       policy: one_factor
+    - domain: "resources.example.com"
+      policy: one_factor
+      resources: ["^/resources"]
+    - domain: "method.example.com"
+      policy: one_factor
+      methods: ["POST"]
+    - domain: "network.example.com"
+      policy: one_factor
+      networks: ["192.168.1.0/24"]
+    - domain: "group.example.com"
+      policy: one_factor
+      subject: ["group:basic"]
+    - domain: "user.example.com"
+      policy: one_factor
+      subject: ["user:john"]
 
 notifier:
   filesystem:
