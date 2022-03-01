@@ -284,40 +284,70 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
-	configs := []*models.TOTPConfiguration{
+	testCases := []struct {
+		config models.TOTPConfiguration
+		png    bool
+	}{
 		{
-			Username:  "john",
-			Period:    30,
-			Digits:    6,
-			Algorithm: "SHA1",
+			config: models.TOTPConfiguration{
+				Username:  "john",
+				Period:    30,
+				Digits:    6,
+				Algorithm: "SHA1",
+			},
 		},
 		{
-			Username:  "mary",
-			Period:    45,
-			Digits:    6,
-			Algorithm: "SHA1",
+			config: models.TOTPConfiguration{
+				Username:  "mary",
+				Period:    45,
+				Digits:    6,
+				Algorithm: "SHA1",
+			},
 		},
 		{
-			Username:  "fred",
-			Period:    30,
-			Digits:    8,
-			Algorithm: "SHA1",
+			config: models.TOTPConfiguration{
+				Username:  "fred",
+				Period:    30,
+				Digits:    8,
+				Algorithm: "SHA1",
+			},
 		},
 		{
-			Username:  "jone",
-			Period:    30,
-			Digits:    6,
-			Algorithm: "SHA512",
+			config: models.TOTPConfiguration{
+				Username:  "jone",
+				Period:    30,
+				Digits:    6,
+				Algorithm: "SHA512",
+			},
+			png: true,
 		},
 	}
 
-	for _, config := range configs {
-		output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", config.Username, "--period", strconv.Itoa(int(config.Period)), "--algorithm", config.Algorithm, "--digits", strconv.Itoa(int(config.Digits)), "--config=/config/configuration.storage.yml"})
-		s.Assert().NoError(err)
+	var (
+		config   *models.TOTPConfiguration
+		fileInfo os.FileInfo
+	)
 
-		config, err = storageProvider.LoadTOTPConfiguration(ctx, config.Username)
-		s.Assert().NoError(err)
+	for _, testCase := range testCases {
+		if testCase.png {
+			output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path=/tmp/qr.png", "--config=/config/configuration.storage.yml"})
+			s.Assert().NoError(err)
+			s.Assert().Contains(output, "  and saved it as a PNG image at the path '/tmp/qr.png'")
+
+			fileInfo, err = os.Stat("/tmp/qr.png")
+			s.Assert().NoError(err)
+			s.Require().NotNil(fileInfo)
+			s.Assert().False(fileInfo.IsDir())
+			s.Assert().Greater(fileInfo.Size(), int64(1900))
+		} else {
+			output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
+			s.Assert().NoError(err)
+		}
+
 		s.Assert().Contains(output, config.URI())
+
+		config, err = storageProvider.LoadTOTPConfiguration(ctx, testCase.config.Username)
+		s.Assert().NoError(err)
 
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
 		expectedLines = append(expectedLines, config.URI())
@@ -339,18 +369,16 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=png", "--dir=/tmp/qr", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Exported TOTP QR codes in PNG format in the 'test' directory")
+	s.Assert().Contains(output, "Exported TOTP QR codes in PNG format in the '/tmp/qr' directory")
 
-	var fileInfo os.FileInfo
-
-	for _, c := range configs {
-		fileInfo, err = os.Stat(fmt.Sprintf("/tmp/qr/%s.png", c.Username))
+	for _, testCase := range testCases {
+		fileInfo, err = os.Stat(fmt.Sprintf("/tmp/qr/%s.png", testCase.config.Username))
 
 		s.Assert().NoError(err)
 		s.Require().NotNil(fileInfo)
 
 		s.Assert().False(fileInfo.IsDir())
-		s.Assert().Greater(fileInfo.Size(), 1900)
+		s.Assert().Greater(fileInfo.Size(), int64(1900))
 	}
 }
 

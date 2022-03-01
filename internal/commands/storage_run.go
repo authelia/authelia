@@ -238,11 +238,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
-		return err
-	}
-
-	fmt.Printf("Generated TOTP configuration for user '%s': %s\n", args[0], c.URI())
+	extraInfo := ""
 
 	if filename != "" {
 		if _, err = os.Stat(filename); !os.IsNotExist(err) {
@@ -263,8 +259,14 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 
-		fmt.Printf("Generated TOTP QR code in PNG format for user '%s' at path: %s\n", args[0], filename)
+		extraInfo = fmt.Sprintf(" and saved it as a PNG image at the path '%s'", filename)
 	}
+
+	if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
+		return err
+	}
+
+	fmt.Printf("Generated TOTP configuration for user '%s' with URI '%s'%s\n", args[0], c.URI(), extraInfo)
 
 	return nil
 }
