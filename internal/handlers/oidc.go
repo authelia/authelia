@@ -33,9 +33,7 @@ func newOpenIDSession(subject string) *oidc.OpenIDSession {
 }
 
 func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
-	extraClaims = map[string]interface{}{
-		oidc.ClaimPreferredUsername: userSession.Username,
-	}
+	extraClaims = map[string]interface{}{}
 
 	for _, scope := range scopes {
 		if ar != nil {
@@ -46,6 +44,7 @@ func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string,
 		case oidc.ScopeGroups:
 			extraClaims[oidc.ClaimGroups] = userSession.Groups
 		case oidc.ScopeProfile:
+			extraClaims[oidc.ClaimPreferredUsername] = userSession.Username
 			extraClaims[oidc.ClaimDisplayName] = userSession.DisplayName
 		case oidc.ScopeEmail:
 			if len(userSession.Emails) != 0 {
