@@ -514,7 +514,7 @@ individual user. Please use the claim `preferred_username` instead._
 
 |       Claim        |   JWT Type    | Authelia Attribute |                  Description                  |
 |:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
-|        sub         |    string     |      Username      |   The username the user used to login with    |
+|        sub         |    string     |      username      |   The username the user used to login with    |
 |       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
 |        scp         | array[string] |       scopes       |                Granted scopes                 |
 |        iss         |    string     |      hostname      |      The issuer name, determined by URL       |
@@ -525,7 +525,6 @@ individual user. Please use the claim `preferred_username` instead._
 |        rat         |    number     |       _N/A_        |     The time when the token was requested     |
 |        iat         |    number     |       _N/A_        |      The time when the token was issued       |
 |        jti         | string(uuid)  |       _N/A_        |                JWT Identifier                 |
-| preferred_username |    string     |      Username      |   The username the user used to login with    |
 
 ### groups
 
@@ -533,7 +532,7 @@ This scope includes the groups the authentication backend reports the user is a 
 
 | Claim  |   JWT Type    | Authelia Attribute |      Description       |
 |:------:|:-------------:|:------------------:|:----------------------:|
-| groups | array[string] |       Groups       | The users display name |
+| groups | array[string] |       groups       | The users display name |
 
 ### email
 
@@ -549,9 +548,10 @@ This scope includes the email information the authentication backend reports abo
 
 This scope includes the profile information the authentication backend reports about the user in the token.
 
-| Claim | JWT Type | Authelia Attribute |      Description       |
-|:-----:|:--------:|:------------------:|:----------------------:|
-| name  |  string  |    display_name    | The users display name |
+|       Claim        | JWT Type | Authelia Attribute |               Description                |
+|:------------------:|:--------:|:------------------:|:----------------------------------------:|
+| preferred_username |  string  |      username      | The username the user used to login with |
+|        name        |  string  |    display_name    |          The users display name          |
 
 ## Endpoint Implementations
 
