@@ -80,6 +80,23 @@ PowerShell:
   # and source this file from your PowerShell profile.
 `
 
+const accessControlPolicyCheckLong = `
+Checks a request against the access control rules to determine what policy would be applied.
+
+Legend:
+
+	#		The rule position in the configuration.
+	*		The first fully matched rule.
+	~		Potential match i.e. if the user was authenticated they may match this rule.
+	hit     The criteria in this column is a match to the request.
+	miss    The criteria in this column is not match to the request.
+	may     The criteria in this column is potentially a match to the request.
+
+Notes:
+
+	A rule that potentially matches a request will cause a redirection to occur in order to perform one-factor
+	authentication. This is so Authelia can adequately determine if the rule actually matches.
+`
 const (
 	storageMigrateDirectionUp   = "up"
 	storageMigrateDirectionDown = "down"

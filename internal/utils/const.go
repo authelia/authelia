@@ -73,4 +73,4 @@ var htmlEscaper = strings.NewReplacer(
 var ErrTimeoutReached = errors.New("timeout reached")
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
-var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")
+var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")

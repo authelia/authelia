@@ -2,20 +2,19 @@ package validator
 
 import (
 	"fmt"
-	"regexp"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateTheme validates and update Theme configuration.
-func ValidateTheme(configuration *schema.Configuration, validator *schema.StructValidator) {
-	if configuration.Theme == "" {
-		configuration.Theme = "light"
+func ValidateTheme(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Theme == "" {
+		config.Theme = "light"
 	}
 
-	validThemes := regexp.MustCompile("light|dark|grey|auto")
-
-	if !validThemes.MatchString(configuration.Theme) {
-		validator.Push(fmt.Errorf("Theme: %s is not valid, valid themes are: \"light\", \"dark\", \"grey\" or \"auto\"", configuration.Theme))
+	if !utils.IsStringInSlice(config.Theme, validThemeNames) {
+		validator.Push(fmt.Errorf(errFmtThemeName, strings.Join(validThemeNames, "', '"), config.Theme))
 	}
 }

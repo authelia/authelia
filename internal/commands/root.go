@@ -31,7 +31,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Run:     cmdRootRun,
 	}
 
-	cmdWithConfigFlags(cmd)
+	cmdWithConfigFlags(cmd, false, []string{})
 
 	cmd.AddCommand(
 		newBuildInfoCmd(),
@@ -41,6 +41,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		NewRSACmd(),
 		NewStorageCmd(),
 		newValidateConfigCmd(),
+		newAccessControlCommand(),
 	)
 
 	return cmd
