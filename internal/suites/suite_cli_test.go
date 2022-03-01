@@ -426,6 +426,11 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	s.Assert().EqualError(err, "exit status 1")
 
 	s.Assert().Contains(output, "Error: you must set the --new-encryption-key flag\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--new-encryption-key=abc", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+
+	s.Assert().Contains(output, "Error: the new encryption key must be at least 20 characters\n")
 }
 
 func (s *CLISuite) TestStorage05ShouldMigrateDown() {

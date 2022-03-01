@@ -187,7 +187,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	case key == "":
 		return errors.New("you must set the --new-encryption-key flag")
 	case len(key) < 20:
-		return errors.New("the encryption key must be at least 20 characters")
+		return errors.New("the new encryption key must be at least 20 characters")
 	}
 
 	if err = provider.SchemaEncryptionChangeKey(ctx, key); err != nil {
