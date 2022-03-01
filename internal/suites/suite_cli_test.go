@@ -380,6 +380,10 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		s.Assert().False(fileInfo.IsDir())
 		s.Assert().Greater(fileInfo.Size(), int64(1000))
 	}
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", "test", "--period=30", "--algorithm=SHA1", "--digits=6", "--path=/tmp/qr.png", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+	s.Assert().Contains(output, "image output filepath already exists")
 }
 
 func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
