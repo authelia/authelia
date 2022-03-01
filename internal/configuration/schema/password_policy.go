@@ -10,7 +10,7 @@ type PasswordPolicyConfiguration struct {
 	Mode      string `koanf:"mode"`
 	MinLength int    `koanf:"min_length"`
 	MaxLength int    `koanf:"max_length"`
-	// MinScore set the minimal acceptable score for mode 'zxcvbn'
+	// MinScore set the minimal acceptable score for mode 'zxcvbn'.
 	MinScore         int  `koanf:"min_score"`
 	RequireUppercase bool `koanf:"require_uppercase"`
 	RequireLowercase bool `koanf:"require_lowercase"`
