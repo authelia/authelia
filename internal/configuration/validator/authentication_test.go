@@ -42,8 +42,8 @@ func TestShouldSetCachedProviderDefaultsWhenNotDisabled(t *testing.T) {
 
 	ValidateAuthenticationBackend(config, validator)
 
-	require.NotNil(t, config.Cached.Duration)
-	assert.Equal(t, time.Duration(5)*time.Minute, *config.Cached.Duration)
+	require.NotNil(t, config.Cache.TTL)
+	assert.Equal(t, time.Duration(5)*time.Minute, *config.Cache.TTL)
 }
 
 func TestShouldSetCachedProviderValueFromRefreshIntervalAlways(t *testing.T) {
@@ -54,10 +54,10 @@ func TestShouldSetCachedProviderValueFromRefreshIntervalAlways(t *testing.T) {
 
 	ValidateAuthenticationBackend(config, validator)
 
-	assert.True(t, config.Cached.Disable)
+	assert.False(t, config.Cache.Enable)
 
-	require.NotNil(t, config.Cached.Duration)
-	assert.Equal(t, time.Duration(5)*time.Minute, *config.Cached.Duration)
+	require.NotNil(t, config.Cache.TTL)
+	assert.Equal(t, time.Duration(5)*time.Minute, *config.Cache.TTL)
 }
 
 func TestShouldSetCachedProviderValueFromRefreshIntervalDisable(t *testing.T) {
@@ -68,10 +68,10 @@ func TestShouldSetCachedProviderValueFromRefreshIntervalDisable(t *testing.T) {
 
 	ValidateAuthenticationBackend(config, validator)
 
-	assert.False(t, config.Cached.Disable)
+	assert.True(t, config.Cache.Enable)
 
-	require.NotNil(t, config.Cached.Duration)
-	assert.Equal(t, time.Duration(24)*time.Hour, *config.Cached.Duration)
+	require.NotNil(t, config.Cache.TTL)
+	assert.Equal(t, time.Duration(24)*time.Hour, *config.Cache.TTL)
 }
 
 type FileBasedAuthenticationBackend struct {

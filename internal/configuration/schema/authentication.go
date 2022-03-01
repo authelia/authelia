@@ -27,10 +27,10 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password string `koanf:"password"`
 }
 
-// CachedAuthenticationBackendConfiguration represents the configuration related to backend cache provider.
-type CachedAuthenticationBackendConfiguration struct {
-	Disable  bool           `koanf:"disable"`
-	Duration *time.Duration `koanf:"duration"`
+// CacheAuthenticationBackendConfiguration represents the configuration related to backend cache provider.
+type CacheAuthenticationBackendConfiguration struct {
+	Enable bool           `koanf:"enable"`
+	TTL    *time.Duration `koanf:"ttl"`
 }
 
 // FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
@@ -51,11 +51,12 @@ type PasswordConfiguration struct {
 
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
-	DisableResetPassword bool                                     `koanf:"disable_reset_password"`
-	RefreshInterval      string                                   `koanf:"refresh_interval"`
-	LDAP                 *LDAPAuthenticationBackendConfiguration  `koanf:"ldap"`
-	File                 *FileAuthenticationBackendConfiguration  `koanf:"file"`
-	Cached               CachedAuthenticationBackendConfiguration `koanf:"cached"`
+	DisableResetPassword bool                                    `koanf:"disable_reset_password"`
+	RefreshInterval      string                                  `koanf:"refresh_interval"`
+	Cache                CacheAuthenticationBackendConfiguration `koanf:"cache"`
+
+	LDAP *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
+	File *FileAuthenticationBackendConfiguration `koanf:"file"`
 }
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
@@ -87,9 +88,9 @@ var DefaultPasswordSHA512Configuration = PasswordConfiguration{
 
 var minutesFive = time.Duration(5) * time.Minute
 
-// DefaultCachedAuthenticationBackendConfiguration represents the default Cached config.
-var DefaultCachedAuthenticationBackendConfiguration = CachedAuthenticationBackendConfiguration{
-	Duration: &minutesFive,
+// DefaultCacheAuthenticationBackendConfiguration represents the default Cache config.
+var DefaultCacheAuthenticationBackendConfiguration = CacheAuthenticationBackendConfiguration{
+	TTL: &minutesFive,
 }
 
 // DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.

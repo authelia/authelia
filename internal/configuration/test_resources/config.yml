@@ -16,8 +16,9 @@ duo_api:
   integration_key: ABCDEF
 
 authentication_backend:
-  cached:
-    duration: 1h
+  cache:
+    enable: true
+    ttl: 1h
   ldap:
     url: ldap://127.0.0.1
     base_dn: dc=example,dc=com

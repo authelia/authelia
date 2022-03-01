@@ -6,6 +6,7 @@ import "time"
 type Clock interface {
 	Now() time.Time
 	After(d time.Duration) <-chan time.Time
+	Since(t time.Time) time.Duration
 }
 
 // RealClock is the implementation of a clock for production code.
@@ -19,4 +20,9 @@ func (RealClock) Now() time.Time {
 // After return a channel receiving the time after the defined duration.
 func (RealClock) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
+}
+
+// Since returns the time since a given time.
+func (RealClock) Since(t time.Time) time.Duration {
+	return time.Since(t)
 }

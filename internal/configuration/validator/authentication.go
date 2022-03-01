@@ -32,25 +32,27 @@ func validateCachedAuthenticationBackend(config *schema.AuthenticationBackendCon
 	if config.RefreshInterval != "" {
 		validator.PushWarning(fmt.Errorf(errFmtAuthBackendRefreshIntervalDeprecated))
 
-		if !config.Cached.Disable {
+		if config.Cache.TTL == nil {
 			switch config.RefreshInterval {
 			case "disable":
-				config.Cached.Duration = &refreshDurationDisable
+				config.Cache.Enable = true
+				config.Cache.TTL = &refreshDurationDisable
 			case "always":
-				config.Cached.Disable = true
+				config.Cache.Enable = false
 			default:
 				duration, err := utils.ParseDurationString(config.RefreshInterval)
 				if err != nil {
 					validator.Push(fmt.Errorf(errFmtAuthBackendRefreshIntervalInvalid, config.RefreshInterval, err))
 				}
 
-				config.Cached.Duration = &duration
+				config.Cache.Enable = true
+				config.Cache.TTL = &duration
 			}
 		}
 	}
 
-	if config.Cached.Duration == nil {
-		config.Cached.Duration = schema.DefaultCachedAuthenticationBackendConfiguration.Duration
+	if config.Cache.TTL == nil {
+		config.Cache.TTL = schema.DefaultCacheAuthenticationBackendConfiguration.TTL
 	}
 }
 

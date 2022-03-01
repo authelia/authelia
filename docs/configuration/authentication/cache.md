@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Cached
+title: Cache
 parent: Authentication Backends
 grand_parent: Configuration
 nav_order: 1
@@ -18,9 +18,9 @@ anytime a user performs 1FA.
 ```yaml
 authentication_backend:
   disable_reset_password: false
-  cached:
+  cache:
     disable: false
-    duration: 5m
+    ttl: 5m
 ```
 
 ## Options
@@ -38,7 +38,7 @@ required: no
 This disables the cached provider entirely if set to `true`.
 
 
-### duration
+### ttl
 <div markdown="1">
 type: string/integer (duration)
 {: .label .label-config .label-purple }
@@ -48,6 +48,6 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The time in [duration notation format](../index.md#duration-notation-format) before the authentication backend will be
-be checked for new profile information.
+The time in [duration notation format](../index.md#duration-notation-format) before the cache will consider the 
+information stale and will refresh the data from the backend.
 

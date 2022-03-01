@@ -396,9 +396,9 @@ var ValidKeys = []string{
 	"authentication_backend.disable_reset_password",
 	"authentication_backend.refresh_interval",
 
-	// Cached Authentication Backend Keys.
-	"authentication_backend.cached.disable",
-	"authentication_backend.cached.duration",
+	// Cache Authentication Backend Keys.
+	"authentication_backend.cache.disable",
+	"authentication_backend.cache.ttl",
 
 	// LDAP Authentication Backend Keys.
 	"authentication_backend.ldap.implementation",

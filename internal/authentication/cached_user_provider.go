@@ -15,21 +15,28 @@ import (
 type MemoryCachedUserProvider struct {
 	provider UserProvider
 	cache    map[string]CachedUserDetails
-	config   schema.CachedAuthenticationBackendConfiguration
+	ttl      time.Duration
 	log      *logrus.Logger
 
 	mutex *sync.RWMutex
 }
 
 // NewMemoryCachedUserProvider returns a new MemoryCachedUserProvider.
-func NewMemoryCachedUserProvider(config schema.CachedAuthenticationBackendConfiguration, p UserProvider) (provider *MemoryCachedUserProvider) {
-	return &MemoryCachedUserProvider{
+func NewMemoryCachedUserProvider(config schema.CacheAuthenticationBackendConfiguration, p UserProvider) (provider *MemoryCachedUserProvider) {
+	provider = &MemoryCachedUserProvider{
 		provider: p,
 		cache:    map[string]CachedUserDetails{},
-		config:   config,
 		log:      logging.Logger(),
 		mutex:    &sync.RWMutex{},
 	}
+
+	if config.TTL != nil {
+		provider.ttl = *config.TTL
+	} else {
+		provider.ttl = time.Minute * 5
+	}
+
+	return provider
 }
 
 // CheckUserPassword returns the underlying UserProvider's CheckUserPassword method.
@@ -46,8 +53,8 @@ func (p *MemoryCachedUserProvider) GetCurrentDetails(username string) (details *
 	p.mutex.Lock()
 
 	p.cache[username] = CachedUserDetails{
-		validUtil: time.Now().Add(*p.config.Duration),
-		details:   details,
+		updated: time.Now(),
+		details: details,
 	}
 
 	p.mutex.Unlock()
@@ -69,7 +76,7 @@ func (p *MemoryCachedUserProvider) GetDetails(username string) (details *model.U
 
 	p.mutex.RUnlock()
 
-	if ok && cache.validUtil.After(time.Now()) {
+	if ok && time.Since(cache.updated) > p.ttl {
 		return cache.details, nil
 	}
 
@@ -87,8 +94,8 @@ func (p *MemoryCachedUserProvider) GetDetails(username string) (details *model.U
 	p.mutex.Lock()
 
 	p.cache[username] = CachedUserDetails{
-		validUtil: time.Now().Add(*p.config.Duration),
-		details:   details,
+		updated: time.Now(),
+		details: details,
 	}
 
 	p.mutex.Unlock()

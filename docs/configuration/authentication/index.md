@@ -46,8 +46,8 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-This option is deprecated in favor of [cached](cached.md) configurations. For backwards compatability if you have not
-configured the cached duration we utilize this value to configure the cached duration setting.
+This option is deprecated in favor of [cache](cache.md) configurations. For backwards compatability if you have not
+configured the cache ttl we utilize this value to configure the cache ttl setting.
 
 ### file
 

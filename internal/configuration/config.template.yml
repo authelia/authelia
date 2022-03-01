@@ -167,19 +167,19 @@ authentication_backend:
   disable_reset_password: false
 
   ##
-  ## Cached Authentication Providers
+  ## Authentication Backend Cache
   ##
   ## This is a special provider which provides an in-memory cache for user providers. The information cached is just
   ## the user details. All new authentication attempts bypass this cache, and all attempts to verify passwords also
   ## completely bypass it. The existence of a user and user profile information such as groups, emails, and display name
   ## are cached.
-  cached:
+  cache:
 
-    ## By default the cached mode is enabled. To disable it change this to true.
-    disable: false
+    ## The default configuration enables the cache, however the default if not specified is false.
+    enable: true
 
-    ## The default time between refreshing from the backend is 5 minutes.
-    duration: 5m
+    ## The time in duration notation until the cache considers the information stale. Default is 5 minutes.
+    ttl: 5m
 
   ##
   ## LDAP (Authentication Provider)

@@ -44,18 +44,23 @@ type TestingClock struct {
 }
 
 // Now return the stored clock.
-func (dc *TestingClock) Now() time.Time {
-	return dc.now
+func (c *TestingClock) Now() time.Time {
+	return c.now
 }
 
 // After return a channel receiving the time after duration has elapsed.
-func (dc *TestingClock) After(d time.Duration) <-chan time.Time {
+func (c *TestingClock) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
 }
 
+// Since returns the time duration between the clocks time and the given time.
+func (c *TestingClock) Since(t time.Time) time.Duration {
+	return c.now.Sub(t)
+}
+
 // Set set the time of the clock.
-func (dc *TestingClock) Set(now time.Time) {
-	dc.now = now
+func (c *TestingClock) Set(now time.Time) {
+	c.now = now
 }
 
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock.

@@ -8,6 +8,6 @@ import (
 
 // CachedUserDetails represent the cached details retrieved for a given user.
 type CachedUserDetails struct {
-	validUtil time.Time
-	details   *model.UserDetails
+	updated time.Time
+	details *model.UserDetails
 }
