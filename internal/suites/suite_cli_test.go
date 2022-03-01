@@ -332,7 +332,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		if testCase.png {
 			output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path=/tmp/qr.png", "--config=/config/configuration.storage.yml"})
 			s.Assert().NoError(err)
-			s.Assert().Contains(output, "  and saved it as a PNG image at the path '/tmp/qr.png'")
+			s.Assert().Contains(output, " and saved it as a PNG image at the path '/tmp/qr.png'")
 
 			fileInfo, err = os.Stat("/tmp/qr.png")
 			s.Assert().NoError(err)
