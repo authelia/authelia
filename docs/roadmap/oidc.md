@@ -136,3 +136,4 @@ for which stage will have each feature, and may evolve over time:
 
 ² _This individual feature has not been implemented as of yet_.
 
+[OpenID Connect]: https://openid.net/connect/
