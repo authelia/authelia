@@ -338,7 +338,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			s.Assert().NoError(err)
 			s.Require().NotNil(fileInfo)
 			s.Assert().False(fileInfo.IsDir())
-			s.Assert().Greater(fileInfo.Size(), int64(1900))
+			s.Assert().Greater(fileInfo.Size(), int64(1000))
 		} else {
 			output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
 			s.Assert().NoError(err)
@@ -378,7 +378,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		s.Require().NotNil(fileInfo)
 
 		s.Assert().False(fileInfo.IsDir())
-		s.Assert().Greater(fileInfo.Size(), int64(1900))
+		s.Assert().Greater(fileInfo.Size(), int64(1000))
 	}
 }
 
