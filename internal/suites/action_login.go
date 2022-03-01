@@ -39,7 +39,7 @@ func (rs *RodSession) doLoginTwoFactor(t *testing.T, page *rod.Page, username, p
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, targetURL)
 	rs.verifyIsSecondFactorPage(t, page)
 	rs.doValidateTOTP(t, page, otpSecret)
-	// timeout when targetURL is not defined to prevent a show stopping redirect when visiting a protected domain
+	// timeout when targetURL is not defined to prevent a show stopping redirect when visiting a protected domain.
 	if targetURL == "" {
 		time.Sleep(1 * time.Second)
 	}

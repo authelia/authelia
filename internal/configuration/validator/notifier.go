@@ -10,28 +10,28 @@ import (
 )
 
 // ValidateNotifier validates and update notifier configuration.
-func ValidateNotifier(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
-	if configuration.SMTP == nil && configuration.FileSystem == nil {
+func ValidateNotifier(config *schema.NotifierConfiguration, validator *schema.StructValidator) {
+	if config == nil || (config.SMTP == nil && config.FileSystem == nil) {
 		validator.Push(fmt.Errorf(errFmtNotifierNotConfigured))
 
 		return
-	} else if configuration.SMTP != nil && configuration.FileSystem != nil {
+	} else if config.SMTP != nil && config.FileSystem != nil {
 		validator.Push(fmt.Errorf(errFmtNotifierMultipleConfigured))
 
 		return
 	}
 
-	if configuration.FileSystem != nil {
-		if configuration.FileSystem.Filename == "" {
+	if config.FileSystem != nil {
+		if config.FileSystem.Filename == "" {
 			validator.Push(fmt.Errorf(errFmtNotifierFileSystemFileNameNotConfigured))
 		}
 
 		return
 	}
 
-	validateSMTPNotifier(configuration.SMTP, validator)
+	validateSMTPNotifier(config.SMTP, validator)
 
-	validateNotifierTemplates(configuration, validator)
+	validateNotifierTemplates(config, validator)
 }
 
 func validateNotifierTemplates(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
@@ -68,40 +68,40 @@ func validateNotifierTemplates(configuration *schema.NotifierConfiguration, vali
 	}
 }
 
-func validateSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {
-	if configuration.StartupCheckAddress == "" {
-		configuration.StartupCheckAddress = schema.DefaultSMTPNotifierConfiguration.StartupCheckAddress
+func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {
+	if config.StartupCheckAddress == "" {
+		config.StartupCheckAddress = schema.DefaultSMTPNotifierConfiguration.StartupCheckAddress
 	}
 
-	if configuration.Host == "" {
+	if config.Host == "" {
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "host"))
 	}
 
-	if configuration.Port == 0 {
+	if config.Port == 0 {
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "port"))
 	}
 
-	if configuration.Timeout == 0 {
-		configuration.Timeout = schema.DefaultSMTPNotifierConfiguration.Timeout
+	if config.Timeout == 0 {
+		config.Timeout = schema.DefaultSMTPNotifierConfiguration.Timeout
 	}
 
-	if configuration.Sender.Address == "" {
+	if config.Sender.Address == "" {
 		validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "sender"))
 	}
 
-	if configuration.Subject == "" {
-		configuration.Subject = schema.DefaultSMTPNotifierConfiguration.Subject
+	if config.Subject == "" {
+		config.Subject = schema.DefaultSMTPNotifierConfiguration.Subject
 	}
 
-	if configuration.Identifier == "" {
-		configuration.Identifier = schema.DefaultSMTPNotifierConfiguration.Identifier
+	if config.Identifier == "" {
+		config.Identifier = schema.DefaultSMTPNotifierConfiguration.Identifier
 	}
 
-	if configuration.TLS == nil {
-		configuration.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
+	if config.TLS == nil {
+		config.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
 	}
 
-	if configuration.TLS.ServerName == "" {
-		configuration.TLS.ServerName = configuration.Host
+	if config.TLS.ServerName == "" {
+		config.TLS.ServerName = config.Host
 	}
 }

@@ -12,7 +12,7 @@ func StripPathMiddleware(path string, next fasthttp.RequestHandler) fasthttp.Req
 		uri := ctx.RequestURI()
 
 		if strings.HasPrefix(string(uri), path) {
-			ctx.SetUserValue("base_url", path)
+			ctx.SetUserValueBytes(UserValueKeyBaseURL, path)
 
 			newURI := strings.TrimPrefix(string(uri), path)
 			ctx.Request.SetRequestURI(newURI)

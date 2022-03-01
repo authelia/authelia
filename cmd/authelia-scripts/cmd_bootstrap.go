@@ -46,19 +46,19 @@ var hostEntries = []HostEntry{
 	{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
 	{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
 
-	// Redis Replicas
+	// Redis Replicas.
 	{Domain: "redis-node-0.example.com", IP: "192.168.240.110"},
 	{Domain: "redis-node-1.example.com", IP: "192.168.240.111"},
 	{Domain: "redis-node-2.example.com", IP: "192.168.240.112"},
 
-	// Redis Sentinel Replicas
+	// Redis Sentinel Replicas.
 	{Domain: "redis-sentinel-0.example.com", IP: "192.168.240.120"},
 	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
 	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
 
 	// Kubernetes dashboard.
 	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
-	// OIDC tester app
+	// OIDC tester app.
 	{Domain: "oidc.example.com", IP: "192.168.240.100"},
 	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
 }

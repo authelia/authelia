@@ -8,26 +8,32 @@ import (
 )
 
 // ValidateRegulation validates and update regulator configuration.
-func ValidateRegulation(configuration *schema.RegulationConfiguration, validator *schema.StructValidator) {
-	if configuration.FindTime == "" {
-		configuration.FindTime = schema.DefaultRegulationConfiguration.FindTime // 2 min
+func ValidateRegulation(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Regulation == nil {
+		config.Regulation = &schema.DefaultRegulationConfiguration
+
+		return
 	}
 
-	if configuration.BanTime == "" {
-		configuration.BanTime = schema.DefaultRegulationConfiguration.BanTime // 5 min
+	if config.Regulation.FindTime == "" {
+		config.Regulation.FindTime = schema.DefaultRegulationConfiguration.FindTime // 2 min.
 	}
 
-	findTime, err := utils.ParseDurationString(configuration.FindTime)
+	if config.Regulation.BanTime == "" {
+		config.Regulation.BanTime = schema.DefaultRegulationConfiguration.BanTime // 5 min.
+	}
+
+	findTime, err := utils.ParseDurationString(config.Regulation.FindTime)
 	if err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing regulation find_time string: %s", err))
+		validator.Push(fmt.Errorf(errFmtRegulationParseDuration, "find_time", err))
 	}
 
-	banTime, err := utils.ParseDurationString(configuration.BanTime)
+	banTime, err := utils.ParseDurationString(config.Regulation.BanTime)
 	if err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing regulation ban_time string: %s", err))
+		validator.Push(fmt.Errorf(errFmtRegulationParseDuration, "ban_time", err))
 	}
 
 	if findTime > banTime {
-		validator.Push(fmt.Errorf("find_time cannot be greater than ban_time"))
+		validator.Push(fmt.Errorf(errFmtRegulationFindTimeGreaterThanBanTime))
 	}
 }

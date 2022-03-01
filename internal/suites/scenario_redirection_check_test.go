@@ -48,13 +48,13 @@ func (s *RedirectionCheckScenario) TearDownTest() {
 }
 
 var redirectionAuthorizations = map[string]bool{
-	// external website
+	// external website.
 	"https://www.google.fr": false,
-	// Not the right domain
+	// Not the right domain.
 	"https://public.example.com.a:8080/secret.html": false,
-	// Not https
+	// Not https.
 	"http://secure.example.com:8080/secret.html": false,
-	// Domain handled by Authelia
+	// Domain handled by Authelia.
 	"https://secure.example.com:8080/secret.html": true,
 }
 
@@ -83,13 +83,13 @@ func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe
 }
 
 var logoutRedirectionURLs = map[string]bool{
-	// external website
+	// external website.
 	"https://www.google.fr": false,
-	// Not the right domain
+	// Not the right domain.
 	"https://public.example-not-right.com:8080/index.html": false,
-	// Not https
+	// Not https.
 	"http://public.example.com:8080/index.html": false,
-	// Domain handled by Authelia
+	// Domain handled by Authelia.
 	"https://public.example.com:8080/index.html": true,
 }
 

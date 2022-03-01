@@ -45,7 +45,7 @@ func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	defer mock.Close()
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Missing header X-Forwarded-Proto", err.Error())
+	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
 }
 
 func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testing.T) {
@@ -67,7 +67,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local: parse \"!:;;:,://myhost.local\": invalid URI for request", err.Error())
+	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local/: parse \"!:;;:,://myhost.local/\": invalid URI for request", err.Error())
 }
 
 func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
@@ -1023,7 +1023,7 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 	userSession = mock.Ctx.GetSession()
 	assert.Equal(t, clock.Now().Add(5*time.Minute).Unix(), userSession.RefreshTTL.Unix())
 
-	// Simulate a Deleted User
+	// Simulate a Deleted User.
 	userSession.RefreshTTL = clock.Now().Add(-1 * time.Minute)
 	err = mock.Ctx.SaveSession(userSession)
 

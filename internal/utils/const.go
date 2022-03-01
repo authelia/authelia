@@ -33,7 +33,7 @@ const (
 
 const (
 	// Hour is an int based representation of the time unit.
-	Hour = time.Minute * 60 //nolint: revive
+	Hour = time.Minute * 60 //nolint:revive
 
 	// Day is an int based representation of the time unit.
 	Day = Hour * 24
@@ -73,4 +73,4 @@ var htmlEscaper = strings.NewReplacer(
 var ErrTimeoutReached = errors.New("timeout reached")
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
-var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")
+var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")

@@ -139,7 +139,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	// Login one factor again.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, "")
 
-	// now the user should be asked to perform 2FA
+	// now the user should be asked to perform 2FA.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 

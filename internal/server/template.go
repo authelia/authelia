@@ -5,18 +5,18 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
-	"github.com/valyala/fasthttp"
-
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, session, theme string, https bool) fasthttp.RequestHandler {
+func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, session, theme string, https bool) middlewares.RequestHandler {
 	logger := logging.Logger()
 
 	a, err := assets.Open(publicDir + file)
@@ -34,9 +34,9 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		logger.Fatalf("Unable to parse %s template: %s", file, err)
 	}
 
-	return func(ctx *fasthttp.RequestCtx) {
+	return func(ctx *middlewares.AutheliaCtx) {
 		base := ""
-		if baseURL := ctx.UserValue("base_url"); baseURL != nil {
+		if baseURL := ctx.UserValueBytes(middlewares.UserValueKeyBaseURL); baseURL != nil {
 			base = baseURL.(string)
 		}
 
@@ -51,16 +51,16 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		var scheme = "https"
 
 		if !https {
-			proto := string(ctx.Request.Header.Peek(fasthttp.HeaderXForwardedProto))
+			proto := string(ctx.XForwardedProto())
 			switch proto {
 			case "":
-				scheme = "http"
-			default:
+				break
+			case "http", "https":
 				scheme = proto
 			}
 		}
 
-		baseURL := scheme + "://" + string(ctx.Request.Host()) + base + "/"
+		baseURL := scheme + "://" + string(ctx.XForwardedHost()) + base + "/"
 		nonce := utils.RandomString(32, utils.AlphaNumericCharacters, true)
 
 		switch extension := filepath.Ext(file); extension {
@@ -72,16 +72,18 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 
 		switch {
 		case publicDir == swaggerAssets:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self' ; default-src 'self' ; img-src 'self' https://validator.swagger.io data: ; object-src 'none' ; script-src 'self' 'unsafe-inline' 'nonce-%s' ; style-src 'self' 'nonce-%s'", nonce, nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self'; default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'", nonce, nonce))
+		case ctx.Configuration.Server.Headers.CSPTemplate != "":
+			ctx.Response.Header.Add("Content-Security-Policy", strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, cspNoncePlaceholder, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultDevTemplate, nonce))
 		default:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("default-src 'self' ; object-src 'none'; style-src 'self' 'nonce-%s'", nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, nonce))
 		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
 		if err != nil {
-			ctx.Error("an error occurred", 503)
+			ctx.RequestCtx.Error("an error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)
 
 			return

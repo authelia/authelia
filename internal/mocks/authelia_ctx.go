@@ -117,7 +117,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	request := &fasthttp.RequestCtx{}
 	// Set a cookie to identify this client throughout the test.
-	// request.Request.Header.SetCookie("authelia_session", "client_cookie")
+	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
 	autheliaCtx, _ := middlewares.NewAutheliaCtx(request, configuration, providers)
 	mockAuthelia.Ctx = autheliaCtx
