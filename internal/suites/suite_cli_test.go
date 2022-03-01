@@ -312,7 +312,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	for _, config := range configs {
-		output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", config.Username, "--period", strconv.Itoa(int(config.Period)), "--algorithm", config.Algorithm, "--digits", strconv.Itoa(int(config.Digits)), "--config", "/config/configuration.storage.yml"})
+		output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", config.Username, "--period", strconv.Itoa(int(config.Period)), "--algorithm", config.Algorithm, "--digits", strconv.Itoa(int(config.Digits)), "--config=/config/configuration.storage.yml"})
 		s.Assert().NoError(err)
 
 		config, err = storageProvider.LoadTOTPConfiguration(ctx, config.Username)
@@ -323,18 +323,34 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "uri", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=uri", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLines {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "csv", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=csv", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
 		s.Assert().Contains(output, expectedLine)
+	}
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=png", "--dir=/tmp/qr", "--config=/config/configuration.storage.yml"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Exported TOTP QR codes in PNG format in the 'test' directory")
+
+	var fileInfo os.FileInfo
+
+	for _, c := range configs {
+		fileInfo, err = os.Stat(fmt.Sprintf("/tmp/qr/%s.png", c.Username))
+
+		s.Assert().NoError(err)
+		s.Require().NotNil(fileInfo)
+
+		s.Assert().False(fileInfo.IsDir())
+		s.Assert().Greater(fileInfo.Size(), 1900)
 	}
 }
 

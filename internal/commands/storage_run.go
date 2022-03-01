@@ -357,7 +357,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if format == storageExportFormatPNG {
-		fmt.Printf("Generated TOTP QR codes in PNG format in the '%s' directory\n", dir)
+		fmt.Printf("Exported TOTP QR codes in PNG format in the '%s' directory\n", dir)
 	}
 
 	return nil
