@@ -12,34 +12,34 @@ import (
 
 type NotifierSuite struct {
 	suite.Suite
-	configuration schema.NotifierConfiguration
-	validator     *schema.StructValidator
+	config    schema.NotifierConfiguration
+	validator *schema.StructValidator
 }
 
 func (suite *NotifierSuite) SetupTest() {
 	suite.validator = schema.NewStructValidator()
-	suite.configuration.SMTP = &schema.SMTPNotifierConfiguration{
+	suite.config.SMTP = &schema.SMTPNotifierConfiguration{
 		Username: "john",
 		Password: "password",
 		Sender:   mail.Address{Name: "Authelia", Address: "authelia@example.com"},
 		Host:     "example.com",
 		Port:     25,
 	}
-	suite.configuration.FileSystem = nil
+	suite.config.FileSystem = nil
 }
 
 /*
 	Common Tests.
 */
 func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() {
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.configuration.SMTP = nil
+	suite.config.SMTP = nil
 
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().True(suite.validator.HasErrors())
@@ -50,15 +50,15 @@ func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() 
 }
 
 func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.configuration.FileSystem = &schema.FileSystemNotifierConfiguration{
+	suite.config.FileSystem = &schema.FileSystemNotifierConfiguration{
 		Filename: "test",
 	}
 
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().True(suite.validator.HasErrors())
@@ -72,43 +72,43 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 	SMTP Tests.
 */
 func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal("example.com", suite.configuration.SMTP.TLS.ServerName)
-	suite.Assert().Equal("TLS1.2", suite.configuration.SMTP.TLS.MinimumVersion)
-	suite.Assert().False(suite.configuration.SMTP.TLS.SkipVerify)
+	suite.Assert().Equal("example.com", suite.config.SMTP.TLS.ServerName)
+	suite.Assert().Equal("TLS1.2", suite.config.SMTP.TLS.MinimumVersion)
+	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
 
 func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
-	suite.configuration.SMTP.Host = "google.com"
-	suite.configuration.SMTP.TLS = &schema.TLSConfig{
+	suite.config.SMTP.Host = "google.com"
+	suite.config.SMTP.TLS = &schema.TLSConfig{
 		MinimumVersion: "TLS1.1",
 	}
 
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.Assert().Equal("google.com", suite.configuration.SMTP.TLS.ServerName)
-	suite.Assert().Equal("TLS1.1", suite.configuration.SMTP.TLS.MinimumVersion)
-	suite.Assert().False(suite.configuration.SMTP.TLS.SkipVerify)
+	suite.Assert().Equal("google.com", suite.config.SMTP.TLS.ServerName)
+	suite.Assert().Equal("TLS1.1", suite.config.SMTP.TLS.MinimumVersion)
+	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
 
 func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
-	suite.configuration.FileSystem = nil
-	ValidateNotifier(&suite.configuration, suite.validator)
+	suite.config.FileSystem = nil
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.configuration.SMTP.Host = ""
-	suite.configuration.SMTP.Port = 0
+	suite.config.SMTP.Host = ""
+	suite.config.SMTP.Port = 0
 
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().True(suite.validator.HasErrors())
@@ -122,9 +122,9 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
-	suite.configuration.SMTP.Sender = mail.Address{}
+	suite.config.SMTP.Sender = mail.Address{}
 
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().True(suite.validator.HasErrors())
@@ -138,18 +138,18 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
 	File Tests.
 */
 func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
-	suite.configuration.SMTP = nil
-	suite.configuration.FileSystem = &schema.FileSystemNotifierConfiguration{
+	suite.config.SMTP = nil
+	suite.config.FileSystem = &schema.FileSystemNotifierConfiguration{
 		Filename: "test",
 	}
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 
-	suite.configuration.FileSystem.Filename = ""
+	suite.config.FileSystem.Filename = ""
 
-	ValidateNotifier(&suite.configuration, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().True(suite.validator.HasErrors())

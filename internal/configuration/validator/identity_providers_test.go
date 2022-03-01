@@ -173,8 +173,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "openid connect provider: client with ID 'good_id' has an invalid scope "+
-		"'bad_scope', must be one of: 'openid', 'email', 'profile', 'groups', 'offline_access'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'scopes' must only have the values 'openid', 'email', 'profile', 'groups', 'offline_access' but one option is configured as 'bad_scope'")
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
@@ -200,9 +199,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "openid connect provider: client with ID 'good_id' has an invalid grant type "+
-		"'bad_grant_type', must be one of: 'implicit', 'refresh_token', 'authorization_code', "+
-		"'password', 'client_credentials'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'grant_types' must only have the values 'implicit', 'refresh_token', 'authorization_code', 'password', 'client_credentials' but one option is configured as 'bad_grant_type'")
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
@@ -228,8 +225,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "openid connect provider: client with ID 'good_id' has an invalid response mode "+
-		"'bad_responsemode', must be one of: 'form_post', 'query', 'fragment'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'response_modes' must only have the values 'form_post', 'query', 'fragment' but one option is configured as 'bad_responsemode'")
 }
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T) {
@@ -255,8 +251,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 	ValidateIdentityProviders(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "openid connect provider: client with ID 'good_id' has an invalid userinfo "+
-		"signing algorithm 'rs256', must be one of: 'none, RS256'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'userinfo_signing_algorithm' must be one of 'none, RS256' but it is configured as 'rs256'")
 }
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T) {
@@ -502,8 +497,8 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 		assert.Len(t, validator.Warnings(), 0)
 		assert.Len(t, validator.Errors(), 2)
 		assert.ElementsMatch(t, validator.Errors(), []error{
-			errors.New("openid connect provider: client with ID 'owncloud' redirect URI oc://ios.owncloud.com has an invalid scheme oc, should be http or https"),
-			errors.New("openid connect provider: client with ID 'owncloud' redirect URI com.example.app:/oauth2redirect/example-provider has an invalid scheme com.example.app, should be http or https"),
+			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has an invalid value: redirect uri 'oc://ios.owncloud.com' must have a scheme of 'http' or 'https' but 'oc' is configured"),
+			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has an invalid value: redirect uri 'com.example.app:/oauth2redirect/example-provider' must have a scheme of 'http' or 'https' but 'com.example.app' is configured"),
 		})
 	})
 }

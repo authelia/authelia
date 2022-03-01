@@ -4,13 +4,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func newDefaultNTPConfig() schema.NTPConfiguration {
-	config := schema.NTPConfiguration{}
-	return config
+func newDefaultNTPConfig() schema.Configuration {
+	return schema.Configuration{
+		NTP: &schema.NTPConfiguration{},
+	}
 }
 
 func TestShouldSetDefaultNtpAddress(t *testing.T) {
@@ -20,7 +22,7 @@ func TestShouldSetDefaultNtpAddress(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.Address, config.Address)
+	assert.Equal(t, schema.DefaultNTPConfiguration.Address, config.NTP.Address)
 }
 
 func TestShouldSetDefaultNtpVersion(t *testing.T) {
@@ -30,7 +32,7 @@ func TestShouldSetDefaultNtpVersion(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.Version)
+	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.NTP.Version)
 }
 
 func TestShouldSetDefaultNtpMaximumDesync(t *testing.T) {
@@ -40,7 +42,7 @@ func TestShouldSetDefaultNtpMaximumDesync(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.MaximumDesync)
+	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.NTP.MaximumDesync)
 }
 
 func TestShouldSetDefaultNtpDisableStartupCheck(t *testing.T) {
@@ -50,16 +52,29 @@ func TestShouldSetDefaultNtpDisableStartupCheck(t *testing.T) {
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.DisableStartupCheck)
+	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.NTP.DisableStartupCheck)
 }
 
 func TestShouldRaiseErrorOnMaximumDesyncString(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultNTPConfig()
-	config.MaximumDesync = "a second"
+	config.NTP.MaximumDesync = "a second"
 
 	ValidateNTP(&config, validator)
 
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "ntp: error occurred parsing NTP max_desync string: could not convert the input string of a second into a duration")
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'max_desync' can't be parsed: could not parse 'a second' as a duration")
+}
+
+func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultNTPConfig()
+	config.NTP.Version = 1
+
+	ValidateNTP(&config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "ntp: option 'version' must be either 3 or 4 but it is configured as '1'")
 }
