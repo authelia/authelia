@@ -4,27 +4,21 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateNTP validates and update NTP configuration.
-func ValidateNTP(configuration *schema.NTPConfiguration, validator *schema.StructValidator) {
-	if configuration.Address == "" {
-		configuration.Address = schema.DefaultNTPConfiguration.Address
+func ValidateNTP(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.NTP.Address == "" {
+		config.NTP.Address = schema.DefaultNTPConfiguration.Address
 	}
 
-	if configuration.Version == 0 {
-		configuration.Version = schema.DefaultNTPConfiguration.Version
-	} else if configuration.Version < 3 || configuration.Version > 4 {
-		validator.Push(fmt.Errorf("ntp: version must be either 3 or 4"))
+	if config.NTP.Version == 0 {
+		config.NTP.Version = schema.DefaultNTPConfiguration.Version
+	} else if config.NTP.Version < 3 || config.NTP.Version > 4 {
+		validator.Push(fmt.Errorf(errFmtNTPVersion, config.NTP.Version))
 	}
 
-	if configuration.MaximumDesync == "" {
-		configuration.MaximumDesync = schema.DefaultNTPConfiguration.MaximumDesync
-	}
-
-	_, err := utils.ParseDurationString(configuration.MaximumDesync)
-	if err != nil {
-		validator.Push(fmt.Errorf("ntp: error occurred parsing NTP max_desync string: %s", err))
+	if config.NTP.MaximumDesync == 0 {
+		config.NTP.MaximumDesync = schema.DefaultNTPConfiguration.MaximumDesync
 	}
 }

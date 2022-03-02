@@ -53,7 +53,7 @@ func TestShouldRaiseErrorWhenInvalidTOTPAlgorithm(t *testing.T) {
 	ValidateTOTP(config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidAlgorithm, "SHA3", strings.Join(schema.TOTPPossibleAlgorithms, ", ")))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtTOTPInvalidAlgorithm, strings.Join(schema.TOTPPossibleAlgorithms, "', '"), "SHA3"))
 }
 
 func TestShouldRaiseErrorWhenInvalidTOTPValues(t *testing.T) {

@@ -14,7 +14,7 @@ func TestShouldSetDefaultLoggingValues(t *testing.T) {
 
 	validator := schema.NewStructValidator()
 
-	ValidateLogging(config, validator)
+	ValidateLog(config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
 	assert.Len(t, validator.Errors(), 0)
@@ -35,10 +35,10 @@ func TestShouldRaiseErrorOnInvalidLoggingLevel(t *testing.T) {
 
 	validator := schema.NewStructValidator()
 
-	ValidateLogging(config, validator)
+	ValidateLog(config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "the log level 'TRACE' is invalid, must be one of: trace, debug, info, warn, error")
+	assert.EqualError(t, validator.Errors()[0], "log: option 'level' must be one of 'trace', 'debug', 'info', 'warn', 'error' but it is configured as 'TRACE'")
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -56,7 +58,7 @@ const (
 )
 
 const (
-	testInactivity     = "10"
+	testInactivity     = time.Second * 10
 	testRedirectionURL = "http://redirection.local"
 	testUsername       = "john"
 )

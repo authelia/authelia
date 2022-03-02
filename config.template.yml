@@ -71,6 +71,12 @@ server:
     ## The path to the DER base64/PEM format public certificate.
     certificate: ""
 
+  ## Server headers configuration/customization.
+  headers:
+
+    ## The CSP Template. Read the docs.
+    csp_template: ""
+
 ##
 ## Log Configuration
 ##
@@ -677,6 +683,10 @@ notifier:
     ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
     ## security reasons.
     # minimum_parameter_entropy: 8
+
+    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'
+    ## for security reasons.
+    # enforce_pkce: public_clients_only
 
     ## Clients is a list of known clients and their configuration.
     # clients:

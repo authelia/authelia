@@ -38,6 +38,8 @@ func init() {
 		err := dockerEnvironment.Down()
 		_ = os.Remove("/tmp/db.sqlite3")
 		_ = os.Remove("/tmp/db.sqlite")
+		_ = os.RemoveAll("/tmp/qr/")
+		_ = os.Remove("/tmp/qr.png")
 
 		return err
 	}
