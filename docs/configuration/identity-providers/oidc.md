@@ -189,7 +189,7 @@ or sends parameters with a lower length than the default that they implement a c
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
-default: public_only
+default: public_clients_only
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
