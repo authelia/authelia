@@ -15,7 +15,7 @@ specifiers:
   '@types/node': 16.11.26
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.39
-  '@types/react-dom': 17.0.11
+  '@types/react-dom': 17.0.12
   '@typescript-eslint/eslint-plugin': 5.13.0
   '@typescript-eslint/parser': 5.13.0
   '@vitejs/plugin-react': 1.2.0
@@ -48,7 +48,7 @@ specifiers:
   react-i18next: 11.15.5
   react-loading: 2.0.3
   react-otp-input: 2.4.0
-  react-router-dom: 6.2.1
+  react-router-dom: 6.2.2
   react-test-renderer: 17.0.2
   typescript: 4.6.2
   vite: 2.8.6
@@ -78,7 +78,7 @@ dependencies:
   react-i18next: 11.15.5_2c37a602a29bb6bd53f3de707a8cfcc5
   react-loading: 2.0.3_react@17.0.2
   react-otp-input: 2.4.0_react-dom@17.0.2+react@17.0.2
-  react-router-dom: 6.2.1_react-dom@17.0.2+react@17.0.2
+  react-router-dom: 6.2.2_react-dom@17.0.2+react@17.0.2
 
 devDependencies:
   '@commitlint/cli': 16.2.1
@@ -88,7 +88,7 @@ devDependencies:
   '@types/node': 16.11.26
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.39
-  '@types/react-dom': 17.0.11
+  '@types/react-dom': 17.0.12
   '@typescript-eslint/eslint-plugin': 5.13.0_99f1c7fa3ada23abf5c494bf723a63d8
   '@typescript-eslint/parser': 5.13.0_typescript@4.6.2
   '@vitejs/plugin-react': 1.2.0
@@ -2348,7 +2348,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.17.2
       '@testing-library/dom': 8.11.3
-      '@types/react-dom': 17.0.11
+      '@types/react-dom': 17.0.12
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: true
@@ -2473,8 +2473,8 @@ packages:
       '@types/react': 17.0.39
     dev: true
 
-  /@types/react-dom/17.0.11:
-    resolution: {integrity: sha512-f96K3k+24RaLGVu/Y2Ng3e1EbZ8/cVJvypZWd7cy0ofCBaf2lcM46xNhycMZ2xGwbBjRql7hOlZ+e2WlJ5MH3Q==}
+  /@types/react-dom/17.0.12:
+    resolution: {integrity: sha512-SeJ430ndLI15JtRSHuzotn7AIdUtr8bdk6XW8mMfzjZo3vahRgJGHZqHiI4nAzCHTVG4qC21ObfsHBVUEHcDhg==}
     dependencies:
       '@types/react': 17.0.39
     dev: true
@@ -6894,8 +6894,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router-dom/6.2.1_react-dom@17.0.2+react@17.0.2:
-    resolution: {integrity: sha512-I6Zax+/TH/cZMDpj3/4Fl2eaNdcvoxxHoH1tYOREsQ22OKDYofGebrNm6CTPUcvLvZm63NL/vzCYdjf9CUhqmA==}
+  /react-router-dom/6.2.2_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-AtYEsAST7bDD4dLSQHDnk/qxWLJdad5t1HFa1qJyUrCeGgEuCSw0VB/27ARbF9Fi/W5598ujvJOm3ujUCVzuYQ==}
     peerDependencies:
       react: '>=16.8'
       react-dom: '>=16.8'
@@ -6903,11 +6903,11 @@ packages:
       history: 5.3.0
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
-      react-router: 6.2.1_react@17.0.2
+      react-router: 6.2.2_react@17.0.2
     dev: false
 
-  /react-router/6.2.1_react@17.0.2:
-    resolution: {integrity: sha512-2fG0udBtxou9lXtK97eJeET2ki5//UWfQSl1rlJ7quwe6jrktK9FCCc8dQb5QY6jAv3jua8bBQRhhDOM/kVRsg==}
+  /react-router/6.2.2_react@17.0.2:
+    resolution: {integrity: sha512-/MbxyLzd7Q7amp4gDOGaYvXwhEojkJD5BtExkuKmj39VEE0m3l/zipf6h2WIB2jyAO0lI6NGETh4RDcktRm4AQ==}
     peerDependencies:
       react: '>=16.8'
     dependencies:
