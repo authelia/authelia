@@ -1,0 +1,10 @@
+[Unit]
+Description=Authelia authentication and authorization server
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/authelia --config /etc/authelia/%i.yml
+SyslogIdentifier=authelia-%i
+
+[Install]
+WantedBy=multi-user.target

@@ -17,10 +17,10 @@ import (
 )
 
 // NewProviderConfig creates a configuration for creating the session provider.
-func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509.CertPool) ProviderConfig {
-	config := session.NewDefaultConfig()
+func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPool) ProviderConfig {
+	c := session.NewDefaultConfig()
 
-	config.SessionIDGeneratorFunc = func() []byte {
+	c.SessionIDGeneratorFunc = func() []byte {
 		bytes := make([]byte, 32)
 
 		_, _ = rand.Read(bytes)
@@ -33,30 +33,30 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 	}
 
 	// Override the cookie name.
-	config.CookieName = configuration.Name
+	c.CookieName = config.Name
 
 	// Set the cookie to the given domain.
-	config.Domain = configuration.Domain
+	c.Domain = config.Domain
 
 	// Set the cookie SameSite option.
-	switch configuration.SameSite {
+	switch config.SameSite {
 	case "strict":
-		config.CookieSameSite = fasthttp.CookieSameSiteStrictMode
+		c.CookieSameSite = fasthttp.CookieSameSiteStrictMode
 	case "none":
-		config.CookieSameSite = fasthttp.CookieSameSiteNoneMode
+		c.CookieSameSite = fasthttp.CookieSameSiteNoneMode
 	case "lax":
-		config.CookieSameSite = fasthttp.CookieSameSiteLaxMode
+		c.CookieSameSite = fasthttp.CookieSameSiteLaxMode
 	default:
-		config.CookieSameSite = fasthttp.CookieSameSiteLaxMode
+		c.CookieSameSite = fasthttp.CookieSameSiteLaxMode
 	}
 
 	// Only serve the header over HTTPS.
-	config.Secure = true
+	c.Secure = true
 
 	// Ignore the error as it will be handled by validator.
-	config.Expiration, _ = utils.ParseDurationString(configuration.Expiration)
+	c.Expiration = config.Expiration
 
-	config.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
+	c.IsSecureFunc = func(*fasthttp.RequestCtx) bool {
 		return true
 	}
 
@@ -68,23 +68,23 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 
 	// If redis configuration is provided, then use the redis provider.
 	switch {
-	case configuration.Redis != nil:
-		serializer := NewEncryptingSerializer(configuration.Secret)
+	case config.Redis != nil:
+		serializer := NewEncryptingSerializer(config.Secret)
 
 		var tlsConfig *tls.Config
 
-		if configuration.Redis.TLS != nil {
-			tlsConfig = utils.NewTLSConfig(configuration.Redis.TLS, tls.VersionTLS12, certPool)
+		if config.Redis.TLS != nil {
+			tlsConfig = utils.NewTLSConfig(config.Redis.TLS, tls.VersionTLS12, certPool)
 		}
 
-		if configuration.Redis.HighAvailability != nil && configuration.Redis.HighAvailability.SentinelName != "" {
+		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
 			addrs := make([]string, 0)
 
-			if configuration.Redis.Host != "" {
-				addrs = append(addrs, fmt.Sprintf("%s:%d", strings.ToLower(configuration.Redis.Host), configuration.Redis.Port))
+			if config.Redis.Host != "" {
+				addrs = append(addrs, fmt.Sprintf("%s:%d", strings.ToLower(config.Redis.Host), config.Redis.Port))
 			}
 
-			for _, node := range configuration.Redis.HighAvailability.Nodes {
+			for _, node := range config.Redis.HighAvailability.Nodes {
 				addr := fmt.Sprintf("%s:%d", strings.ToLower(node.Host), node.Port)
 				if !utils.IsStringInSlice(addr, addrs) {
 					addrs = append(addrs, addr)
@@ -94,17 +94,17 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 			providerName = "redis-sentinel"
 			redisSentinelConfig = &redis.FailoverConfig{
 				Logger:           &redisLogger{logger: logging.Logger()},
-				MasterName:       configuration.Redis.HighAvailability.SentinelName,
+				MasterName:       config.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
-				SentinelUsername: configuration.Redis.HighAvailability.SentinelUsername,
-				SentinelPassword: configuration.Redis.HighAvailability.SentinelPassword,
-				RouteByLatency:   configuration.Redis.HighAvailability.RouteByLatency,
-				RouteRandomly:    configuration.Redis.HighAvailability.RouteRandomly,
-				Username:         configuration.Redis.Username,
-				Password:         configuration.Redis.Password,
-				DB:               configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
-				PoolSize:         configuration.Redis.MaximumActiveConnections,
-				MinIdleConns:     configuration.Redis.MinimumIdleConnections,
+				SentinelUsername: config.Redis.HighAvailability.SentinelUsername,
+				SentinelPassword: config.Redis.HighAvailability.SentinelPassword,
+				RouteByLatency:   config.Redis.HighAvailability.RouteByLatency,
+				RouteRandomly:    config.Redis.HighAvailability.RouteRandomly,
+				Username:         config.Redis.Username,
+				Password:         config.Redis.Password,
+				DB:               config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				PoolSize:         config.Redis.MaximumActiveConnections,
+				MinIdleConns:     config.Redis.MinimumIdleConnections,
 				IdleTimeout:      300,
 				TLSConfig:        tlsConfig,
 				KeyPrefix:        "authelia-session",
@@ -115,36 +115,36 @@ func NewProviderConfig(configuration schema.SessionConfiguration, certPool *x509
 
 			var addr string
 
-			if configuration.Redis.Port == 0 {
+			if config.Redis.Port == 0 {
 				network = "unix"
-				addr = configuration.Redis.Host
+				addr = config.Redis.Host
 			} else {
-				addr = fmt.Sprintf("%s:%d", configuration.Redis.Host, configuration.Redis.Port)
+				addr = fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port)
 			}
 
 			redisConfig = &redis.Config{
 				Logger:       newRedisLogger(),
 				Network:      network,
 				Addr:         addr,
-				Username:     configuration.Redis.Username,
-				Password:     configuration.Redis.Password,
-				DB:           configuration.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
-				PoolSize:     configuration.Redis.MaximumActiveConnections,
-				MinIdleConns: configuration.Redis.MinimumIdleConnections,
+				Username:     config.Redis.Username,
+				Password:     config.Redis.Password,
+				DB:           config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				PoolSize:     config.Redis.MaximumActiveConnections,
+				MinIdleConns: config.Redis.MinimumIdleConnections,
 				IdleTimeout:  300,
 				TLSConfig:    tlsConfig,
 				KeyPrefix:    "authelia-session",
 			}
 		}
 
-		config.EncodeFunc = serializer.Encode
-		config.DecodeFunc = serializer.Decode
+		c.EncodeFunc = serializer.Encode
+		c.DecodeFunc = serializer.Decode
 	default:
 		providerName = "memory"
 	}
 
 	return ProviderConfig{
-		config,
+		c,
 		redisConfig,
 		redisSentinelConfig,
 		providerName,

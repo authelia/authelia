@@ -14,8 +14,8 @@ type Configuration struct {
 	TOTP                  TOTPConfiguration                  `koanf:"totp"`
 	DuoAPI                *DuoAPIConfiguration               `koanf:"duo_api"`
 	AccessControl         AccessControlConfiguration         `koanf:"access_control"`
-	NTP                   *NTPConfiguration                  `koanf:"ntp"`
-	Regulation            *RegulationConfiguration           `koanf:"regulation"`
+	NTP                   NTPConfiguration                   `koanf:"ntp"`
+	Regulation            RegulationConfiguration            `koanf:"regulation"`
 	Storage               StorageConfiguration               `koanf:"storage"`
 	Notifier              *NotifierConfiguration             `koanf:"notifier"`
 	Server                ServerConfiguration                `koanf:"server"`

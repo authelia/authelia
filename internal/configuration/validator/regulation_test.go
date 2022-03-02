@@ -2,6 +2,7 @@ package validator
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -10,7 +11,7 @@ import (
 
 func newDefaultRegulationConfig() schema.Configuration {
 	config := schema.Configuration{
-		Regulation: &schema.RegulationConfiguration{},
+		Regulation: schema.RegulationConfiguration{},
 	}
 
 	return config
@@ -39,24 +40,11 @@ func TestShouldSetDefaultRegulationFindTime(t *testing.T) {
 func TestShouldRaiseErrorWhenFindTimeLessThanBanTime(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultRegulationConfig()
-	config.Regulation.FindTime = "1m"
-	config.Regulation.BanTime = "10s"
+	config.Regulation.FindTime = time.Minute
+	config.Regulation.BanTime = time.Second * 10
 
 	ValidateRegulation(&config, validator)
 
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "regulation: option 'find_time' must be less than or equal to option 'ban_time'")
-}
-
-func TestShouldRaiseErrorOnBadDurationStrings(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultRegulationConfig()
-	config.Regulation.FindTime = "a year"
-	config.Regulation.BanTime = "forever"
-
-	ValidateRegulation(&config, validator)
-
-	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "regulation: option 'find_time' could not be parsed: could not parse 'a year' as a duration")
-	assert.EqualError(t, validator.Errors()[1], "regulation: option 'ban_time' could not be parsed: could not parse 'forever' as a duration")
 }

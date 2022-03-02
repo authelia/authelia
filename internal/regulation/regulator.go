@@ -2,7 +2,6 @@ package regulation
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 
@@ -13,33 +12,13 @@ import (
 )
 
 // NewRegulator create a regulator instance.
-func NewRegulator(configuration *schema.RegulationConfiguration, provider storage.RegulatorProvider, clock utils.Clock) *Regulator {
-	regulator := &Regulator{storageProvider: provider}
-	regulator.clock = clock
-
-	if configuration != nil {
-		findTime, err := utils.ParseDurationString(configuration.FindTime)
-		if err != nil {
-			panic(err)
-		}
-
-		banTime, err := utils.ParseDurationString(configuration.BanTime)
-		if err != nil {
-			panic(err)
-		}
-
-		if findTime > banTime {
-			panic(fmt.Errorf("find_time cannot be greater than ban_time"))
-		}
-
-		// Set regulator enabled only if MaxRetries is not 0.
-		regulator.enabled = configuration.MaxRetries > 0
-		regulator.maxRetries = configuration.MaxRetries
-		regulator.findTime = findTime
-		regulator.banTime = banTime
+func NewRegulator(config schema.RegulationConfiguration, provider storage.RegulatorProvider, clock utils.Clock) *Regulator {
+	return &Regulator{
+		enabled:         config.MaxRetries > 0,
+		storageProvider: provider,
+		clock:           clock,
+		config:          config,
 	}
-
-	return regulator
 }
 
 // Mark an authentication attempt.
@@ -65,15 +44,15 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 		return time.Time{}, nil
 	}
 
-	attempts, err := r.storageProvider.LoadAuthenticationLogs(ctx, username, r.clock.Now().Add(-r.banTime), 10, 0)
+	attempts, err := r.storageProvider.LoadAuthenticationLogs(ctx, username, r.clock.Now().Add(-r.config.BanTime), 10, 0)
 	if err != nil {
 		return time.Time{}, nil
 	}
 
-	latestFailedAttempts := make([]models.AuthenticationAttempt, 0, r.maxRetries)
+	latestFailedAttempts := make([]models.AuthenticationAttempt, 0, r.config.MaxRetries)
 
 	for _, attempt := range attempts {
-		if attempt.Successful || len(latestFailedAttempts) >= r.maxRetries {
+		if attempt.Successful || len(latestFailedAttempts) >= r.config.MaxRetries {
 			// We stop appending failed attempts once we find the first successful attempts or we reach
 			// the configured number of retries, meaning the user is already banned.
 			break
@@ -84,17 +63,17 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 
 	// If the number of failed attempts within the ban time is less than the max number of retries
 	// then the user is not banned.
-	if len(latestFailedAttempts) < r.maxRetries {
+	if len(latestFailedAttempts) < r.config.MaxRetries {
 		return time.Time{}, nil
 	}
 
 	// Now we compute the time between the latest attempt and the MaxRetry-th one. If it's
 	// within the FindTime then it means that the user has been banned.
 	durationBetweenLatestAttempts := latestFailedAttempts[0].Time.Sub(
-		latestFailedAttempts[r.maxRetries-1].Time)
+		latestFailedAttempts[r.config.MaxRetries-1].Time)
 
-	if durationBetweenLatestAttempts < r.findTime {
-		bannedUntil := latestFailedAttempts[0].Time.Add(r.banTime)
+	if durationBetweenLatestAttempts < r.config.FindTime {
+		bannedUntil := latestFailedAttempts[0].Time.Add(r.config.BanTime)
 		return bannedUntil, ErrUserIsBanned
 	}
 

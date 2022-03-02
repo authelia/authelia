@@ -37,7 +37,6 @@ const (
 
 // Test constants.
 const (
-	testBadTimer      = "-1"
 	testInvalidPolicy = "invalid"
 	testJWTSecret     = "a_secret"
 	testLDAPBaseDN    = "base_dn"
@@ -123,6 +122,9 @@ const (
 		"more clients configured"
 	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
 
+	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+		"'public_clients_only' or 'always', but it is configured as '%s'"
+
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: one or more clients have been configured with " +
@@ -191,13 +193,11 @@ const (
 
 // NTP Error constants.
 const (
-	errFmtNTPVersion   = "ntp: option 'version' must be either 3 or 4 but it is configured as '%d'"
-	errFmtNTPMaxDesync = "ntp: option 'max_desync' can't be parsed: %w"
+	errFmtNTPVersion = "ntp: option 'version' must be either 3 or 4 but it is configured as '%d'"
 )
 
 // Session error constants.
 const (
-	errFmtSessionCouldNotParseDuration    = "session: option '%s' could not be parsed: %w"
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
 	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
@@ -212,7 +212,6 @@ const (
 
 // Regulation Error Consts.
 const (
-	errFmtRegulationParseDuration              = "regulation: option '%s' could not be parsed: %w"
 	errFmtRegulationFindTimeGreaterThanBanTime = "regulation: option 'find_time' must be less than or equal to option 'ban_time'"
 )
 
