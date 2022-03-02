@@ -30,6 +30,94 @@ func TestToTimeDurationFunc_ShouldParse_String(t *testing.T) {
 	assert.Equal(t, &expected, result)
 }
 
+func TestToTimeDurationFunc_ShouldParse_String_Years(t *testing.T) {
+	hook := ToTimeDurationFunc()
+
+	var (
+		from     = "1y"
+		expected = time.Hour * 24 * 365
+
+		to     time.Duration
+		ptrTo  *time.Duration
+		result interface{}
+		err    error
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
+	assert.NoError(t, err)
+	assert.Equal(t, &expected, result)
+}
+
+func TestToTimeDurationFunc_ShouldParse_String_Months(t *testing.T) {
+	hook := ToTimeDurationFunc()
+
+	var (
+		from     = "1M"
+		expected = time.Hour * 24 * 30
+
+		to     time.Duration
+		ptrTo  *time.Duration
+		result interface{}
+		err    error
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
+	assert.NoError(t, err)
+	assert.Equal(t, &expected, result)
+}
+
+func TestToTimeDurationFunc_ShouldParse_String_Weeks(t *testing.T) {
+	hook := ToTimeDurationFunc()
+
+	var (
+		from     = "1w"
+		expected = time.Hour * 24 * 7
+
+		to     time.Duration
+		ptrTo  *time.Duration
+		result interface{}
+		err    error
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
+	assert.NoError(t, err)
+	assert.Equal(t, &expected, result)
+}
+
+func TestToTimeDurationFunc_ShouldParse_String_Days(t *testing.T) {
+	hook := ToTimeDurationFunc()
+
+	var (
+		from     = "1d"
+		expected = time.Hour * 24
+
+		to     time.Duration
+		ptrTo  *time.Duration
+		result interface{}
+		err    error
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
+	assert.NoError(t, err)
+	assert.Equal(t, &expected, result)
+}
+
 func TestToTimeDurationFunc_ShouldNotParseAndRaiseErr_InvalidString(t *testing.T) {
 	hook := ToTimeDurationFunc()
 
