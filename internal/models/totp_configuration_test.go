@@ -38,3 +38,40 @@ func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) 
 	require.NotContains(t, string(data), "secret")
 	require.NotContains(t, string(data), "ABC123")
 }
+
+func TestShouldReturnErrWhenImageTooSmall(t *testing.T) {
+	object := TOTPConfiguration{
+		ID:        1,
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("ABC123"),
+	}
+
+	img, err := object.Image(10, 10)
+
+	assert.EqualError(t, err, "can not scale barcode to an image smaller than 41x41")
+	assert.Nil(t, img)
+}
+
+func TestShouldReturnImage(t *testing.T) {
+	object := TOTPConfiguration{
+		ID:        1,
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("ABC123"),
+	}
+
+	img, err := object.Image(41, 41)
+
+	assert.NoError(t, err)
+	require.NotNil(t, img)
+
+	assert.Equal(t, 41, img.Bounds().Dx())
+	assert.Equal(t, 41, img.Bounds().Dy())
+}
