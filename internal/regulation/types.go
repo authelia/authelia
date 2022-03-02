@@ -1,8 +1,7 @@
 package regulation
 
 import (
-	"time"
-
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -11,12 +10,15 @@ import (
 type Regulator struct {
 	// Is the regulation enabled.
 	enabled bool
+
+	config schema.RegulationConfiguration
+
 	// The number of failed authentication attempt before banning the user.
-	maxRetries int
+	// maxRetries int
 	// If a user does the max number of retries within that duration, she will be banned.
-	findTime time.Duration
+	//findTime time.Duration
 	// If a user has been banned, this duration is the timelapse during which the user is banned.
-	banTime time.Duration
+	//banTime time.Duration.
 
 	storageProvider storage.RegulatorProvider
 

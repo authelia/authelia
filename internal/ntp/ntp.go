@@ -8,7 +8,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewProvider instantiate a ntp provider given a configuration.
@@ -59,11 +58,9 @@ func (p *Provider) StartupCheck() (err error) {
 		return nil
 	}
 
-	maxOffset, _ := utils.ParseDurationString(p.config.MaximumDesync)
-
 	ntpTime := ntpPacketToTime(resp)
 
-	if result := ntpIsOffsetTooLarge(maxOffset, now, ntpTime); result {
+	if result := ntpIsOffsetTooLarge(p.config.MaximumDesync, now, ntpTime); result {
 		return errors.New("the system clock is not synchronized accurately enough with the configured NTP server")
 	}
 
