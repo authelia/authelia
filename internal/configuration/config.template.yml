@@ -684,6 +684,10 @@ notifier:
     ## security reasons.
     # minimum_parameter_entropy: 8
 
+    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'
+    ## for security reasons.
+    # enforce_pkce: public_clients_only
+
     ## Clients is a list of known clients and their configuration.
     # clients:
       # -
