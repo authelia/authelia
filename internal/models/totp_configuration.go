@@ -1,9 +1,12 @@
 package models
 
 import (
+	"image"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/pquerna/otp"
 )
 
 // TOTPConfiguration represents a users TOTP configuration row in the database.
@@ -41,4 +44,20 @@ func (c TOTPConfiguration) URI() (uri string) {
 // UpdateSignInInfo adjusts the values of the TOTPConfiguration after a sign in.
 func (c *TOTPConfiguration) UpdateSignInInfo(now time.Time) {
 	c.LastUsedAt = &now
+}
+
+// Key returns the *otp.Key using TOTPConfiguration.URI with otp.NewKeyFromURL.
+func (c TOTPConfiguration) Key() (key *otp.Key, err error) {
+	return otp.NewKeyFromURL(c.URI())
+}
+
+// Image returns the image.Image of the TOTPConfiguration using the Image func from the return of TOTPConfiguration.Key.
+func (c TOTPConfiguration) Image(width, height int) (img image.Image, err error) {
+	var key *otp.Key
+
+	if key, err = c.Key(); err != nil {
+		return nil, err
+	}
+
+	return key.Image(width, height)
 }

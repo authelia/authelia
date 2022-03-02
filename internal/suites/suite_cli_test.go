@@ -66,13 +66,13 @@ func (s *CLISuite) TestShouldPrintVersion() {
 }
 
 func (s *CLISuite) TestShouldValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config", "/config/configuration.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config=/config/configuration.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Configuration parsed and loaded successfully without errors.")
 }
 
 func (s *CLISuite) TestShouldFailValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config", "/config/invalid.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config=/config/invalid.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "failed to load configuration from yaml file(/config/invalid.yml) source: open /config/invalid.yml: no such file or directory")
 }
@@ -90,75 +90,75 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "127.0.0.1", "--dir", "/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=127.0.0.1", "--dir=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithStartDate() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--start-date", "'Jan 1 15:04:05 2011'"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--start-date='Jan 1 15:04:05 2011'"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithStartDate() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--start-date", "Jan"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--start-date=Jan"})
 	s.Assert().NotNil(err)
 	s.Assert().Contains(output, "Failed to parse start date: parsing time \"Jan\" as \"Jan 2 15:04:05 2006\": cannot parse \"\" as \"2\"")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ca"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ca"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ed25519"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ed25519"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "invalid"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=invalid"})
 	s.Assert().NotNil(err)
 	s.Assert().Contains(output, "Failed to generate private key: unrecognized elliptic curve: \"invalid\"")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P224"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P224"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P256"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P256"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P384"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P384"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host", "*.example.com", "--dir", "/tmp/", "--ecdsa-curve", "P521"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P521"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
 	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
@@ -179,7 +179,7 @@ func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	_ = os.Remove("/tmp/db.sqlite3")
 
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern := regexp.MustCompile(`^Schema Version: N/A\nSchema Upgrade Available: yes - version \d+\nSchema Tables: N/A\nSchema Encryption Key: unsupported \(schema version\)`)
@@ -188,45 +188,45 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	patternOutdated := regexp.MustCompile(`Error: schema is version \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Could not check encryption key for validity. The schema version doesn't support encryption.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target=0", "--destroy-data", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema migration target version 0 is the same current version 0")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--target", "2147483640", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--target=2147483640", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: schema up migration target version 2147483640 is greater then the latest version ")
 	s.Assert().Contains(output, " which indicates it doesn't exist")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "history"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "history", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "No migration history is available for schemas that not version 1 or above.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-up"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "list-up", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nVersion\t\tDescription\n1\t\tInitial Schema\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-down"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "list-down", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nNo Migrations Available\n")
 }
 
 func (s *CLISuite) TestStorage01ShouldMigrateUp() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "up"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--config=/config/configuration.storage.yml"})
 	s.Require().NoError(err)
 
 	pattern0 := regexp.MustCompile(`"Storage schema migration from \d+ to \d+ is being attempted"`)
@@ -235,23 +235,23 @@ func (s *CLISuite) TestStorage01ShouldMigrateUp() {
 	s.Regexp(pattern0, output)
 	s.Regexp(pattern1, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "up"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "up", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 
 	s.Assert().Contains(output, "Error: schema already up to date\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "history"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "history", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Migration History:\n\nID\tDate\t\t\t\tBefore\tAfter\tAuthelia Version\n")
 	s.Assert().Contains(output, "0\t1")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-up"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "list-up", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Up)\n\nNo Migrations Available")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "--config", "/config/configuration.storage.yml", "migrate", "list-down"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "list-down", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Storage Schema Migration List (Down)\n\nVersion\t\tDescription\n")
@@ -259,7 +259,7 @@ func (s *CLISuite) TestStorage01ShouldMigrateUp() {
 }
 
 func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, duo_devices, user_preferences, migrations, encryption, webauthn_devices, totp_configurations\nSchema Encryption Key: valid`)
@@ -284,95 +284,157 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
-	configs := []*models.TOTPConfiguration{
+	testCases := []struct {
+		config models.TOTPConfiguration
+		png    bool
+	}{
 		{
-			Username:  "john",
-			Period:    30,
-			Digits:    6,
-			Algorithm: "SHA1",
+			config: models.TOTPConfiguration{
+				Username:  "john",
+				Period:    30,
+				Digits:    6,
+				Algorithm: "SHA1",
+			},
 		},
 		{
-			Username:  "mary",
-			Period:    45,
-			Digits:    6,
-			Algorithm: "SHA1",
+			config: models.TOTPConfiguration{
+				Username:  "mary",
+				Period:    45,
+				Digits:    6,
+				Algorithm: "SHA1",
+			},
 		},
 		{
-			Username:  "fred",
-			Period:    30,
-			Digits:    8,
-			Algorithm: "SHA1",
+			config: models.TOTPConfiguration{
+				Username:  "fred",
+				Period:    30,
+				Digits:    8,
+				Algorithm: "SHA1",
+			},
 		},
 		{
-			Username:  "jone",
-			Period:    30,
-			Digits:    6,
-			Algorithm: "SHA512",
+			config: models.TOTPConfiguration{
+				Username:  "jone",
+				Period:    30,
+				Digits:    6,
+				Algorithm: "SHA512",
+			},
+			png: true,
 		},
 	}
 
-	for _, config := range configs {
-		output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", config.Username, "--period", strconv.Itoa(int(config.Period)), "--algorithm", config.Algorithm, "--digits", strconv.Itoa(int(config.Digits)), "--config", "/config/configuration.storage.yml"})
+	var (
+		config   *models.TOTPConfiguration
+		fileInfo os.FileInfo
+	)
+
+	for _, testCase := range testCases {
+		if testCase.png {
+			output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path=/tmp/qr.png", "--config=/config/configuration.storage.yml"})
+			s.Assert().NoError(err)
+			s.Assert().Contains(output, " and saved it as a PNG image at the path '/tmp/qr.png'")
+
+			fileInfo, err = os.Stat("/tmp/qr.png")
+			s.Assert().NoError(err)
+			s.Require().NotNil(fileInfo)
+			s.Assert().False(fileInfo.IsDir())
+			s.Assert().Greater(fileInfo.Size(), int64(1000))
+		} else {
+			output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
+			s.Assert().NoError(err)
+		}
+
+		config, err = storageProvider.LoadTOTPConfiguration(ctx, testCase.config.Username)
 		s.Assert().NoError(err)
 
-		config, err = storageProvider.LoadTOTPConfiguration(ctx, config.Username)
-		s.Assert().NoError(err)
 		s.Assert().Contains(output, config.URI())
 
 		expectedLinesCSV = append(expectedLinesCSV, fmt.Sprintf("%s,%s,%s,%d,%d,%s", "Authelia", config.Username, config.Algorithm, config.Digits, config.Period, string(config.Secret)))
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "uri", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=uri", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLines {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format", "csv", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=csv", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
 		s.Assert().Contains(output, expectedLine)
 	}
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=wrong", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+	s.Assert().Contains(output, "Error: format must be csv, uri, or png")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "export", "--format=png", "--dir=/tmp/qr", "--config=/config/configuration.storage.yml"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Exported TOTP QR codes in PNG format in the '/tmp/qr' directory")
+
+	for _, testCase := range testCases {
+		fileInfo, err = os.Stat(fmt.Sprintf("/tmp/qr/%s.png", testCase.config.Username))
+
+		s.Assert().NoError(err)
+		s.Require().NotNil(fileInfo)
+
+		s.Assert().False(fileInfo.IsDir())
+		s.Assert().Greater(fileInfo.Size(), int64(1000))
+	}
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "totp", "generate", "test", "--period=30", "--algorithm=SHA1", "--digits=6", "--path=/tmp/qr.png", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+	s.Assert().Contains(output, "Error: image output filepath already exists")
 }
 
 func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--new-encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--new-encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Completed the encryption key change. Please adjust your configuration to use the new key.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, duo_devices, user_preferences, migrations, encryption, webauthn_devices, totp_configurations\nSchema Encryption Key: invalid`)
 	s.Assert().Regexp(pattern, output)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: failed.\n\nError: the encryption key is not valid against the schema check value, 4 of 4 total TOTP secrets were invalid.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: success.\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--encryption-key", "apple-apple-apple-apple", "--config", "/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(output, "Encryption key validation: success.\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+
+	s.Assert().Contains(output, "Error: you must set the --new-encryption-key flag\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--new-encryption-key=abc", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+
+	s.Assert().Contains(output, "Error: the new encryption key must be at least 20 characters\n")
 }
 
 func (s *CLISuite) TestStorage05ShouldMigrateDown() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target", "0", "--destroy-data", "--config", "/config/configuration.storage.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target=0", "--destroy-data", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	pattern0 := regexp.MustCompile(`"Storage schema migration from \d+ to \d+ is being attempted"`)
@@ -383,7 +445,7 @@ func (s *CLISuite) TestStorage05ShouldMigrateDown() {
 }
 
 func (s *CLISuite) TestACLPolicyCheckVerbose() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://public.example.com", "--verbose", "--config", "/config/configuration.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://public.example.com", "--verbose", "--config=/config/configuration.yml"})
 	s.Assert().NoError(err)
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://public.example.com --verbose`.
@@ -400,7 +462,7 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 	s.Contains(output, "  9\tmiss\thit\t\thit\thit\tmay\n")
 	s.Contains(output, "The policy 'bypass' from rule #1 will be applied to this request.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://admin.example.com", "--method=HEAD", "--username=tom", "--groups=basic,test", "--ip=192.168.2.3", "--verbose", "--config", "/config/configuration.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://admin.example.com", "--method=HEAD", "--username=tom", "--groups=basic,test", "--ip=192.168.2.3", "--verbose", "--config=/config/configuration.yml"})
 	s.Assert().NoError(err)
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://admin.example.com --method=HEAD --username=tom --groups=basic,test --ip=192.168.2.3 --verbose`.
@@ -418,7 +480,7 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 	s.Contains(output, "  9\tmiss\thit\t\thit\thit\tmiss\n")
 	s.Contains(output, "The policy 'two_factor' from rule #2 will be applied to this request.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://resources.example.com/resources/test", "--method=POST", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://resources.example.com/resources/test", "--method=POST", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config=/config/configuration.yml"})
 	s.Assert().NoError(err)
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://resources.example.com/resources/test --method=POST --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
@@ -435,7 +497,7 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 	s.Contains(output, "  9\tmiss\thit\t\thit\thit\thit\n")
 	s.Contains(output, "The policy 'one_factor' from rule #5 will be applied to this request.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com/resources/test", "--method=HEAD", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com/resources/test", "--method=HEAD", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config=/config/configuration.yml"})
 	s.Assert().NoError(err)
 
 	// This is an example of `access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
@@ -452,7 +514,7 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 	s.Contains(output, "* 9\thit\thit\t\thit\thit\thit\n")
 	s.Contains(output, "The policy 'one_factor' from rule #9 will be applied to this request.")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com", "--method=HEAD", "--ip=192.168.1.3", "--verbose", "--config", "/config/configuration.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "access-control", "check-policy", "--url=https://user.example.com", "--method=HEAD", "--ip=192.168.1.3", "--verbose", "--config=/config/configuration.yml"})
 	s.Assert().NoError(err)
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --ip=192.168.1.3 --verbose`.
