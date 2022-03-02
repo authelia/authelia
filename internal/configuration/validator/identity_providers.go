@@ -41,6 +41,14 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 			validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
 		}
 
+		if config.EnforcePKCE == "" {
+			config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
+		}
+
+		if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
+			validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
+		}
+
 		validateOIDCClients(config, validator)
 
 		if len(config.Clients) == 0 {

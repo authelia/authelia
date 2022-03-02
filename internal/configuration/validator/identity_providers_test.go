@@ -29,6 +29,24 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[1], errFmtOIDCNoClientsConfigured)
 }
 
+func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
+			EnforcePKCE:      "invalid",
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 2)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'enforce_pkce' must be 'never', 'public_clients_only' or 'always', but it is configured as 'invalid'")
+	assert.EqualError(t, validator.Errors()[1], errFmtOIDCNoClientsConfigured)
+}
+
 func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
