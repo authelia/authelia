@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"time"
+
 	"github.com/duo-labs/webauthn/protocol"
 )
 
@@ -12,13 +14,13 @@ type WebauthnConfiguration struct {
 	ConveyancePreference protocol.ConveyancePreference        `koanf:"attestation_conveyance_preference"`
 	UserVerification     protocol.UserVerificationRequirement `koanf:"user_verification"`
 
-	Timeout string `koanf:"timeout"`
+	Timeout time.Duration `koanf:"timeout"`
 }
 
 // DefaultWebauthnConfiguration describes the default values for the WebauthnConfiguration.
 var DefaultWebauthnConfiguration = WebauthnConfiguration{
 	DisplayName: "Authelia",
-	Timeout:     "60s",
+	Timeout:     time.Second * 60,
 
 	ConveyancePreference: protocol.PreferIndirectAttestation,
 	UserVerification:     protocol.VerificationPreferred,

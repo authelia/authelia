@@ -156,7 +156,6 @@ const (
 const (
 	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
 	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
-	errFmtWebauthnParseTimeout         = "webauthn: option 'timeout' could not be parsed: %w"
 )
 
 // Access Control error constants.

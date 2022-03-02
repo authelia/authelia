@@ -165,21 +165,3 @@ func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "Configuration error: Missing RPDisplayName")
 }
-
-func TestWebauthnNewWebauthnShouldNotReturnErrWhenTimeoutInvalid(t *testing.T) {
-	ctx := mocks.NewMockAutheliaCtx(t)
-
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Host", "example.com")
-	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-
-	ctx.Ctx.Configuration.Webauthn.DisplayName = "Authelia"
-	ctx.Ctx.Configuration.Webauthn.Timeout = "abc"
-
-	w, err := newWebauthn(ctx.Ctx)
-
-	assert.NoError(t, err)
-	require.NotNil(t, w)
-
-	assert.Equal(t, 60000, w.Config.Timeout)
-}

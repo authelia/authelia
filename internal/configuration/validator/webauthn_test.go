@@ -2,6 +2,7 @@ package validator
 
 import (
 	"testing"
+	"time"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/stretchr/testify/assert"
@@ -25,12 +26,26 @@ func TestWebauthnShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultWebauthnConfiguration.UserVerification, config.Webauthn.UserVerification)
 }
 
+func TestWebauthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		Webauthn: schema.WebauthnConfiguration{
+			Timeout: -1,
+		},
+	}
+
+	ValidateWebauthn(config, validator)
+
+	require.Len(t, validator.Errors(), 0)
+	assert.Equal(t, schema.DefaultWebauthnConfiguration.Timeout, config.Webauthn.Timeout)
+}
+
 func TestWebauthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		Webauthn: schema.WebauthnConfiguration{
 			DisplayName:          "Test",
-			Timeout:              "50s",
+			Timeout:              time.Second * 50,
 			ConveyancePreference: protocol.PreferNoAttestation,
 			UserVerification:     protocol.VerificationDiscouraged,
 		},
@@ -40,7 +55,7 @@ func TestWebauthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "Test", config.Webauthn.DisplayName)
-	assert.Equal(t, "50s", config.Webauthn.Timeout)
+	assert.Equal(t, time.Second*50, config.Webauthn.Timeout)
 	assert.Equal(t, protocol.PreferNoAttestation, config.Webauthn.ConveyancePreference)
 	assert.Equal(t, protocol.VerificationDiscouraged, config.Webauthn.UserVerification)
 
@@ -68,7 +83,7 @@ func TestWebauthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 	config := &schema.Configuration{
 		Webauthn: schema.WebauthnConfiguration{
 			DisplayName:          "Test",
-			Timeout:              "50s",
+			Timeout:              time.Second * 50,
 			ConveyancePreference: "no",
 			UserVerification:     "yes",
 		},
@@ -80,19 +95,4 @@ func TestWebauthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 
 	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', 'direct' but it is configured as 'no'")
 	assert.EqualError(t, validator.Errors()[1], "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as 'yes'")
-}
-
-func TestWebauthnShouldRaiseErrorsOnInvalidTimeout(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := &schema.Configuration{
-		Webauthn: schema.WebauthnConfiguration{
-			Timeout: "abc",
-		},
-	}
-
-	ValidateWebauthn(config, validator)
-
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'timeout' could not be parsed: could not parse 'abc' as a duration")
 }

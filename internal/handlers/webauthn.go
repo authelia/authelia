@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
@@ -11,7 +10,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSession) (user *models.WebauthnUser, err error) {
@@ -33,16 +31,11 @@ func getWebAuthnUser(ctx *middlewares.AutheliaCtx, userSession session.UserSessi
 
 func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
 	var (
-		u       *url.URL
-		timeout time.Duration
+		u *url.URL
 	)
 
 	if u, err = ctx.GetOriginalURL(); err != nil {
 		return nil, err
-	}
-
-	if timeout, err = utils.ParseDurationString(ctx.Configuration.Webauthn.Timeout); err != nil {
-		timeout = time.Second * 60
 	}
 
 	rpID := u.Hostname()
@@ -61,7 +54,7 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 			RequireResidentKey:      protocol.ResidentKeyUnrequired(),
 		},
 
-		Timeout: int(timeout.Milliseconds()),
+		Timeout: int(ctx.Configuration.Webauthn.Timeout.Milliseconds()),
 	}
 
 	ctx.Logger.Tracef("Creating new Webauthn RP instance with ID %s and Origin %s", config.RPID, config.RPOrigin)

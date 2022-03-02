@@ -18,7 +18,7 @@ func ValidateNTP(config *schema.Configuration, validator *schema.StructValidator
 		validator.Push(fmt.Errorf(errFmtNTPVersion, config.NTP.Version))
 	}
 
-	if config.NTP.MaximumDesync == 0 {
+	if config.NTP.MaximumDesync <= 0 {
 		config.NTP.MaximumDesync = schema.DefaultNTPConfiguration.MaximumDesync
 	}
 }

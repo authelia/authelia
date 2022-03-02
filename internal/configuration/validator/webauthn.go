@@ -14,10 +14,8 @@ func ValidateWebauthn(config *schema.Configuration, validator *schema.StructVali
 		config.Webauthn.DisplayName = schema.DefaultWebauthnConfiguration.DisplayName
 	}
 
-	if config.Webauthn.Timeout == "" {
+	if config.Webauthn.Timeout <= 0 {
 		config.Webauthn.Timeout = schema.DefaultWebauthnConfiguration.Timeout
-	} else if _, err := utils.ParseDurationString(config.Webauthn.Timeout); err != nil {
-		validator.Push(fmt.Errorf(errFmtWebauthnParseTimeout, err))
 	}
 
 	switch {
