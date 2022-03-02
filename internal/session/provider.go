@@ -12,7 +12,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Provider a session provider.
@@ -23,38 +22,29 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(configuration schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
-	providerConfig := NewProviderConfig(configuration, certPool)
+func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
+	c := NewProviderConfig(config, certPool)
 
 	provider := new(Provider)
-	provider.sessionHolder = fasthttpsession.New(providerConfig.config)
+	provider.sessionHolder = fasthttpsession.New(c.config)
 
 	logger := logging.Logger()
 
-	duration, err := utils.ParseDurationString(configuration.RememberMeDuration)
-	if err != nil {
-		logger.Fatal(err)
-	}
+	provider.Inactivity, provider.RememberMe = config.Inactivity, config.RememberMeDuration
 
-	provider.RememberMe = duration
-
-	duration, err = utils.ParseDurationString(configuration.Inactivity)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	provider.Inactivity = duration
-
-	var providerImpl fasthttpsession.Provider
+	var (
+		providerImpl fasthttpsession.Provider
+		err          error
+	)
 
 	switch {
-	case providerConfig.redisConfig != nil:
-		providerImpl, err = redis.New(*providerConfig.redisConfig)
+	case c.redisConfig != nil:
+		providerImpl, err = redis.New(*c.redisConfig)
 		if err != nil {
 			logger.Fatal(err)
 		}
-	case providerConfig.redisSentinelConfig != nil:
-		providerImpl, err = redis.NewFailoverCluster(*providerConfig.redisSentinelConfig)
+	case c.redisSentinelConfig != nil:
+		providerImpl, err = redis.NewFailoverCluster(*c.redisSentinelConfig)
 		if err != nil {
 			logger.Fatal(err)
 		}
