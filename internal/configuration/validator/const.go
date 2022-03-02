@@ -121,6 +121,9 @@ const (
 		"more clients configured"
 	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
 
+	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+		"'public_clients_only' or 'always', but it is configured as '%s'"
+
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: one or more clients have been configured with " +

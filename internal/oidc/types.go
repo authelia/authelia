@@ -86,11 +86,12 @@ type WellKnownConfiguration struct {
 	Algorithms         []string `json:"id_token_signing_alg_values_supported"`
 	UserinfoAlgorithms []string `json:"userinfo_signing_alg_values_supported"`
 
-	SubjectTypesSupported  []string `json:"subject_types_supported"`
-	ResponseTypesSupported []string `json:"response_types_supported"`
-	ResponseModesSupported []string `json:"response_modes_supported"`
-	ScopesSupported        []string `json:"scopes_supported"`
-	ClaimsSupported        []string `json:"claims_supported"`
+	SubjectTypesSupported         []string `json:"subject_types_supported"`
+	ResponseTypesSupported        []string `json:"response_types_supported"`
+	ResponseModesSupported        []string `json:"response_modes_supported"`
+	ScopesSupported               []string `json:"scopes_supported"`
+	ClaimsSupported               []string `json:"claims_supported"`
+	CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported"`
 
 	RequestURIParameterSupported       bool `json:"request_uri_parameter_supported"`
 	BackChannelLogoutSupported         bool `json:"backchannel_logout_supported"`

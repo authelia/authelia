@@ -74,12 +74,17 @@ func oidcWellKnown(ctx *middlewares.AutheliaCtx) {
 			oidc.ClaimPreferredUsername,
 			oidc.ClaimDisplayName,
 		},
+		CodeChallengeMethodsSupported: []string{"S256"},
 
 		RequestURIParameterSupported:       false,
 		BackChannelLogoutSupported:         false,
 		FrontChannelLogoutSupported:        false,
 		BackChannelLogoutSessionSupported:  false,
 		FrontChannelLogoutSessionSupported: false,
+	}
+
+	if ctx.Configuration.IdentityProviders.OIDC.EnablePKCEPlainChallenge {
+		wellKnown.CodeChallengeMethodsSupported = append(wellKnown.CodeChallengeMethodsSupported, "plain")
 	}
 
 	ctx.SetContentType("application/json")
