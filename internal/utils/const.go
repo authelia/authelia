@@ -53,7 +53,25 @@ const (
 )
 
 var (
-	reDuration = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
+	standardDurationUnits = []string{"ns", "us", "µs", "μs", "ms", "s", "m", "h"}
+	reDurationSeconds     = regexp.MustCompile(`^\d+$`)
+	reDurationStandard    = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
+)
+
+// Duration unit types.
+const (
+	DurationUnitDays   = "d"
+	DurationUnitWeeks  = "w"
+	DurationUnitMonths = "M"
+	DurationUnitYears  = "y"
+)
+
+// Number of hours in particular measurements of time.
+const (
+	HoursInDay   = 24
+	HoursInWeek  = HoursInDay * 7
+	HoursInMonth = HoursInDay * 30
+	HoursInYear  = HoursInDay * 365
 )
 
 var (
