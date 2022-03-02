@@ -14,6 +14,13 @@ func TestParseDurationString_ShouldParseDurationString(t *testing.T) {
 	assert.Equal(t, 60*time.Minute, duration)
 }
 
+func TestParseDurationString_ShouldParseBlankString(t *testing.T) {
+	duration, err := ParseDurationString("")
+
+	assert.NoError(t, err)
+	assert.Equal(t, time.Second*0, duration)
+}
+
 func TestParseDurationString_ShouldParseDurationStringAllUnits(t *testing.T) {
 	duration, err := ParseDurationString("1y")
 

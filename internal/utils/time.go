@@ -50,16 +50,18 @@ func StandardizeDurationString(input string) (output string, err error) {
 // convert it into a time.Duration.
 func ParseDurationString(input string) (duration time.Duration, err error) {
 	if reDurationSeconds.MatchString(input) {
-		seconds, err := strconv.Atoi(input)
-		if err != nil {
+		var seconds int
+
+		if seconds, err = strconv.Atoi(input); err != nil {
 			return 0, nil
 		}
 
 		return time.Second * time.Duration(seconds), nil
 	}
 
-	out, err := StandardizeDurationString(input)
-	if err != nil {
+	var out string
+
+	if out, err = StandardizeDurationString(input); err != nil {
 		return 0, err
 	}
 
