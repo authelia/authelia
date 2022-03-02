@@ -13,13 +13,6 @@ type Regulator struct {
 
 	config schema.RegulationConfiguration
 
-	// The number of failed authentication attempt before banning the user.
-	// maxRetries int
-	// If a user does the max number of retries within that duration, she will be banned.
-	//findTime time.Duration
-	// If a user has been banned, this duration is the timelapse during which the user is banned.
-	//banTime time.Duration.
-
 	storageProvider storage.RegulatorProvider
 
 	clock utils.Clock
