@@ -23,8 +23,7 @@
     "react-i18next": "11.15.5",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.2.2",
-    "u2f-api": "1.2.1"
+    "react-router-dom": "6.2.2"
   },
   "scripts": {
     "prepare": "cd .. && husky install .github",

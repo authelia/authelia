@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import { GoogleAuthenticator } from "@constants/constants";
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
@@ -34,7 +34,7 @@ const RegisterOneTimePassword = function () {
     const processToken = extractIdentityToken(location.search);
 
     const handleDoneClick = () => {
-        navigate(FirstFactorRoute);
+        navigate(IndexRoute);
     };
 
     const completeRegistrationProcess = useCallback(async () => {

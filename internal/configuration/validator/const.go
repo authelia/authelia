@@ -3,6 +3,8 @@ package validator
 import (
 	"regexp"
 
+	"github.com/duo-labs/webauthn/protocol"
+
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -150,6 +152,12 @@ const (
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
 
+// Webauthn Error constants.
+const (
+	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
+	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
+)
+
 // Access Control error constants.
 const (
 	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of '%s' but it is " +
@@ -245,6 +253,9 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 
 var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 
+var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+
 var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
@@ -285,11 +296,19 @@ var ValidKeys = []string{
 	"server.headers.csp_template",
 
 	// TOTP Keys.
+	"totp.disable",
 	"totp.issuer",
 	"totp.algorithm",
 	"totp.digits",
 	"totp.period",
 	"totp.skew",
+
+	// Webauthn Keys.
+	"webauthn.disable",
+	"webauthn.display_name",
+	"webauthn.attestation_conveyance_preference",
+	"webauthn.user_verification",
+	"webauthn.timeout",
 
 	// DUO API Keys.
 	"duo_api.hostname",

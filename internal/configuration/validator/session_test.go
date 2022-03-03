@@ -18,7 +18,7 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	return config
 }
 
-func TestShouldSetDefaultSessionName(t *testing.T) {
+func TestShouldSetDefaultSessionValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
@@ -27,39 +27,25 @@ func TestShouldSetDefaultSessionName(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Name, config.Name)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
 }
 
-func TestShouldSetDefaultSessionInactivity(t *testing.T) {
+func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
+
+	config.Expiration, config.Inactivity, config.RememberMeDuration = -1, -1, -1
 
 	ValidateSession(&config, validator)
 
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
-}
-
-func TestShouldSetDefaultSessionExpiration(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-}
-
-func TestShouldSetDefaultSessionSameSite(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 }
 
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {

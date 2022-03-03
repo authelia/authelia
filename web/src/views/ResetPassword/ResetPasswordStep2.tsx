@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
@@ -71,7 +71,7 @@ const ResetPasswordStep2 = function () {
         try {
             await resetPassword(password1);
             createSuccessNotification(translate("Password has been reset"));
-            setTimeout(() => navigate(FirstFactorRoute), 1500);
+            setTimeout(() => navigate(IndexRoute), 1500);
             setFormDisabled(true);
         } catch (err) {
             console.error(err);
@@ -87,7 +87,7 @@ const ResetPasswordStep2 = function () {
 
     const handleResetClick = () => doResetPassword();
 
-    const handleCancelClick = () => navigate(FirstFactorRoute);
+    const handleCancelClick = () => navigate(IndexRoute);
 
     return (
         <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">

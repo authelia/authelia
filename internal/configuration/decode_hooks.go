@@ -25,15 +25,14 @@ func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
 		}
 
 		var (
-			mailAddress *mail.Address
+			parsedAddress *mail.Address
 		)
 
-		mailAddress, err = mail.ParseAddress(dataStr)
-		if err != nil {
+		if parsedAddress, err = mail.ParseAddress(dataStr); err != nil {
 			return nil, fmt.Errorf("could not parse '%s' as a RFC5322 address: %w", dataStr, err)
 		}
 
-		return *mailAddress, nil
+		return *parsedAddress, nil
 	}
 }
 

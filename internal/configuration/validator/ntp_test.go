@@ -15,7 +15,7 @@ func newDefaultNTPConfig() schema.Configuration {
 	}
 }
 
-func TestShouldSetDefaultNtpAddress(t *testing.T) {
+func TestShouldSetDefaultNTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultNTPConfig()
 
@@ -23,36 +23,21 @@ func TestShouldSetDefaultNtpAddress(t *testing.T) {
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultNTPConfiguration.Address, config.NTP.Address)
+	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.NTP.Version)
+	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.NTP.MaximumDesync)
+	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.NTP.DisableStartupCheck)
 }
 
 func TestShouldSetDefaultNtpVersion(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultNTPConfig()
 
-	ValidateNTP(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.NTP.Version)
-}
-
-func TestShouldSetDefaultNtpMaximumDesync(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultNTPConfig()
+	config.NTP.MaximumDesync = -1
 
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.NTP.MaximumDesync)
-}
-
-func TestShouldSetDefaultNtpDisableStartupCheck(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultNTPConfig()
-
-	ValidateNTP(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.NTP.DisableStartupCheck)
 }
 
 func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {

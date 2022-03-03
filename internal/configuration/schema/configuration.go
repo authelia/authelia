@@ -11,7 +11,7 @@ type Configuration struct {
 	IdentityProviders     IdentityProvidersConfiguration     `koanf:"identity_providers"`
 	AuthenticationBackend AuthenticationBackendConfiguration `koanf:"authentication_backend"`
 	Session               SessionConfiguration               `koanf:"session"`
-	TOTP                  *TOTPConfiguration                 `koanf:"totp"`
+	TOTP                  TOTPConfiguration                  `koanf:"totp"`
 	DuoAPI                *DuoAPIConfiguration               `koanf:"duo_api"`
 	AccessControl         AccessControlConfiguration         `koanf:"access_control"`
 	NTP                   NTPConfiguration                   `koanf:"ntp"`
@@ -19,4 +19,5 @@ type Configuration struct {
 	Storage               StorageConfiguration               `koanf:"storage"`
 	Notifier              *NotifierConfiguration             `koanf:"notifier"`
 	Server                ServerConfiguration                `koanf:"server"`
+	Webauthn              WebauthnConfiguration              `koanf:"webauthn"`
 }

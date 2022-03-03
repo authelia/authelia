@@ -11,9 +11,9 @@ import (
 )
 
 // NewTimeBasedProvider creates a new totp.TimeBased which implements the totp.Provider.
-func NewTimeBasedProvider(config *schema.TOTPConfiguration) (provider *TimeBased) {
+func NewTimeBasedProvider(config schema.TOTPConfiguration) (provider *TimeBased) {
 	provider = &TimeBased{
-		config: config,
+		config: &config,
 	}
 
 	if config.Skew != nil {
@@ -49,6 +49,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 	}
 
 	config = &models.TOTPConfiguration{
+		CreatedAt: time.Now(),
 		Username:  username,
 		Issuer:    p.config.Issuer,
 		Algorithm: algorithm,
