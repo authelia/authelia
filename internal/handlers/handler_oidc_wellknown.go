@@ -21,7 +21,7 @@ func wellKnownOpenIDConnectConfigurationGET(ctx *middlewares.AutheliaCtx) {
 
 	ctx.SetContentType("application/json")
 
-	if err := json.NewEncoder(ctx).Encode(wellKnown); err != nil {
+	if err = json.NewEncoder(ctx).Encode(wellKnown); err != nil {
 		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
 		// TODO: Determine if this is the appropriate error code here.
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
@@ -43,7 +43,7 @@ func wellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 
 	ctx.SetContentType("application/json")
 
-	if err := json.NewEncoder(ctx).Encode(wellKnown); err != nil {
+	if err = json.NewEncoder(ctx).Encode(wellKnown); err != nil {
 		ctx.Logger.Errorf("Error occurred in JSON encode: %+v", err)
 		// TODO: Determine if this is the appropriate error code here.
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)

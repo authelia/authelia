@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -63,4 +64,190 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
+}
+
+func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
+	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerPrivateKey: exampleIssuerPrivateKey,
+		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
+		Clients: []schema.OpenIDConnectClientConfiguration{
+			{
+				ID:     "a-client",
+				Secret: "a-client-secret",
+				Policy: "one_factor",
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+
+	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
+
+	assert.Equal(t, "https://example.com", disco.Issuer)
+	assert.Equal(t, "https://example.com/api/oidc/jwks", disco.JWKSURI)
+	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/userinfo", disco.UserinfoEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/introspection", disco.IntrospectionEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/revocation", disco.RevocationEndpoint)
+	assert.Equal(t, "", disco.RegistrationEndpoint)
+
+	require.Len(t, disco.CodeChallengeMethodsSupported, 1)
+	assert.Equal(t, "S256", disco.CodeChallengeMethodsSupported[0])
+
+	assert.Len(t, disco.ScopesSupported, 5)
+	assert.Contains(t, disco.ScopesSupported, ScopeOpenID)
+	assert.Contains(t, disco.ScopesSupported, ScopeOfflineAccess)
+	assert.Contains(t, disco.ScopesSupported, ScopeProfile)
+	assert.Contains(t, disco.ScopesSupported, ScopeGroups)
+	assert.Contains(t, disco.ScopesSupported, ScopeEmail)
+
+	assert.Len(t, disco.ResponseModesSupported, 3)
+	assert.Contains(t, disco.ResponseModesSupported, "form_post")
+	assert.Contains(t, disco.ResponseModesSupported, "query")
+	assert.Contains(t, disco.ResponseModesSupported, "fragment")
+
+	assert.Len(t, disco.SubjectTypesSupported, 1)
+	assert.Contains(t, disco.SubjectTypesSupported, "public")
+
+	assert.Len(t, disco.ResponseTypesSupported, 8)
+	assert.Contains(t, disco.ResponseTypesSupported, "code")
+	assert.Contains(t, disco.ResponseTypesSupported, "token")
+	assert.Contains(t, disco.ResponseTypesSupported, "id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "code token")
+	assert.Contains(t, disco.ResponseTypesSupported, "code id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "token id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "code token id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "none")
+
+	assert.Len(t, disco.IDTokenSigningAlgValuesSupported, 1)
+	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, "RS256")
+
+	assert.Len(t, disco.UserinfoSigningAlgValuesSupported, 2)
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, "RS256")
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, "none")
+
+	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 2)
+	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, "RS256")
+	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, "none")
+
+	assert.Len(t, disco.ClaimsSupported, 15)
+	assert.Contains(t, disco.ClaimsSupported, "aud")
+	assert.Contains(t, disco.ClaimsSupported, "exp")
+	assert.Contains(t, disco.ClaimsSupported, "iat")
+	assert.Contains(t, disco.ClaimsSupported, "iss")
+	assert.Contains(t, disco.ClaimsSupported, "jti")
+	assert.Contains(t, disco.ClaimsSupported, "rat")
+	assert.Contains(t, disco.ClaimsSupported, "sub")
+	assert.Contains(t, disco.ClaimsSupported, "auth_time")
+	assert.Contains(t, disco.ClaimsSupported, "nonce")
+	assert.Contains(t, disco.ClaimsSupported, ClaimEmail)
+	assert.Contains(t, disco.ClaimsSupported, ClaimEmailVerified)
+	assert.Contains(t, disco.ClaimsSupported, ClaimEmailAlts)
+	assert.Contains(t, disco.ClaimsSupported, ClaimGroups)
+	assert.Contains(t, disco.ClaimsSupported, ClaimPreferredUsername)
+	assert.Contains(t, disco.ClaimsSupported, ClaimDisplayName)
+}
+
+func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
+	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerPrivateKey: exampleIssuerPrivateKey,
+		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
+		Clients: []schema.OpenIDConnectClientConfiguration{
+			{
+				ID:     "a-client",
+				Secret: "a-client-secret",
+				Policy: "one_factor",
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+
+	disco := provider.GetOAuth2WellKnownConfiguration("https://example.com")
+
+	assert.Equal(t, "https://example.com", disco.Issuer)
+	assert.Equal(t, "https://example.com/api/oidc/jwks", disco.JWKSURI)
+	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/introspection", disco.IntrospectionEndpoint)
+	assert.Equal(t, "https://example.com/api/oidc/revocation", disco.RevocationEndpoint)
+	assert.Equal(t, "", disco.RegistrationEndpoint)
+
+	require.Len(t, disco.CodeChallengeMethodsSupported, 1)
+	assert.Equal(t, "S256", disco.CodeChallengeMethodsSupported[0])
+
+	assert.Len(t, disco.ScopesSupported, 5)
+	assert.Contains(t, disco.ScopesSupported, ScopeOpenID)
+	assert.Contains(t, disco.ScopesSupported, ScopeOfflineAccess)
+	assert.Contains(t, disco.ScopesSupported, ScopeProfile)
+	assert.Contains(t, disco.ScopesSupported, ScopeGroups)
+	assert.Contains(t, disco.ScopesSupported, ScopeEmail)
+
+	assert.Len(t, disco.ResponseModesSupported, 3)
+	assert.Contains(t, disco.ResponseModesSupported, "form_post")
+	assert.Contains(t, disco.ResponseModesSupported, "query")
+	assert.Contains(t, disco.ResponseModesSupported, "fragment")
+
+	assert.Len(t, disco.SubjectTypesSupported, 1)
+	assert.Contains(t, disco.SubjectTypesSupported, "public")
+
+	assert.Len(t, disco.ResponseTypesSupported, 8)
+	assert.Contains(t, disco.ResponseTypesSupported, "code")
+	assert.Contains(t, disco.ResponseTypesSupported, "token")
+	assert.Contains(t, disco.ResponseTypesSupported, "id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "code token")
+	assert.Contains(t, disco.ResponseTypesSupported, "code id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "token id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "code token id_token")
+	assert.Contains(t, disco.ResponseTypesSupported, "none")
+
+	assert.Len(t, disco.ClaimsSupported, 15)
+	assert.Contains(t, disco.ClaimsSupported, "aud")
+	assert.Contains(t, disco.ClaimsSupported, "exp")
+	assert.Contains(t, disco.ClaimsSupported, "iat")
+	assert.Contains(t, disco.ClaimsSupported, "iss")
+	assert.Contains(t, disco.ClaimsSupported, "jti")
+	assert.Contains(t, disco.ClaimsSupported, "rat")
+	assert.Contains(t, disco.ClaimsSupported, "sub")
+	assert.Contains(t, disco.ClaimsSupported, "auth_time")
+	assert.Contains(t, disco.ClaimsSupported, "nonce")
+	assert.Contains(t, disco.ClaimsSupported, ClaimEmail)
+	assert.Contains(t, disco.ClaimsSupported, ClaimEmailVerified)
+	assert.Contains(t, disco.ClaimsSupported, ClaimEmailAlts)
+	assert.Contains(t, disco.ClaimsSupported, ClaimGroups)
+	assert.Contains(t, disco.ClaimsSupported, ClaimPreferredUsername)
+	assert.Contains(t, disco.ClaimsSupported, ClaimDisplayName)
+}
+
+func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
+	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerPrivateKey:         exampleIssuerPrivateKey,
+		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
+		EnablePKCEPlainChallenge: true,
+		Clients: []schema.OpenIDConnectClientConfiguration{
+			{
+				ID:     "a-client",
+				Secret: "a-client-secret",
+				Policy: "one_factor",
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+
+	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
+
+	require.Len(t, disco.CodeChallengeMethodsSupported, 2)
+	assert.Equal(t, "S256", disco.CodeChallengeMethodsSupported[0])
+	assert.Equal(t, "plain", disco.CodeChallengeMethodsSupported[1])
 }
