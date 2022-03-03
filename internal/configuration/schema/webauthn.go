@@ -3,7 +3,7 @@ package schema
 import (
 	"time"
 
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 )
 
 // WebauthnConfiguration represents the webauthn config.

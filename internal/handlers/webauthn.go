@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/duo-labs/webauthn/protocol"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/models"
@@ -51,7 +51,7 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: protocol.CrossPlatform,
 			UserVerification:        ctx.Configuration.Webauthn.UserVerification,
-			RequireResidentKey:      protocol.ResidentKeyUnrequired(),
+			RequireResidentKey:      protocol.ResidentKeyNotRequired(),
 		},
 
 		Timeout: int(ctx.Configuration.Webauthn.Timeout.Milliseconds()),
