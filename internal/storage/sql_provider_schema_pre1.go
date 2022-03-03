@@ -29,7 +29,7 @@ func (p *SQLProvider) schemaMigratePre1To1(ctx context.Context) (err error) {
 		tablePre1Config,
 		tablePre1TOTPSecrets,
 		tablePre1IdentityVerificationTokens,
-		tableU2FDevices,
+		tablePre1U2FDevices,
 		tableUserPreferences,
 		tableAuthenticationLogs,
 		tableAlphaPreferences,
@@ -93,7 +93,7 @@ func (p *SQLProvider) schemaMigratePre1Rename(ctx context.Context, tables, table
 		}
 
 		if p.name == providerPostgres {
-			if table == tableU2FDevices || table == tableUserPreferences {
+			if table == tablePre1U2FDevices || table == tableUserPreferences {
 				if _, err = p.db.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 					tableNew, table, tableNew)); err != nil {
 					continue
@@ -132,7 +132,7 @@ func (p *SQLProvider) schemaMigratePre1To1Rollback(ctx context.Context, up bool)
 			return err
 		}
 
-		if p.name == providerPostgres && (tableNew == tableU2FDevices || tableNew == tableUserPreferences) {
+		if p.name == providerPostgres && (tableNew == tablePre1U2FDevices || tableNew == tableUserPreferences) {
 			if _, err = p.db.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s RENAME CONSTRAINT %s_pkey TO %s_pkey;`,
 				tableNew, table, tableNew)); err != nil {
 				continue
@@ -236,7 +236,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 }
 
 func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
-	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1To1SelectU2FDevices), tablePrefixBackup+tableU2FDevices))
+	rows, err := p.db.Queryx(fmt.Sprintf(p.db.Rebind(queryFmtPre1To1SelectU2FDevices), tablePrefixBackup+tablePre1U2FDevices))
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 	}
 
 	for _, device := range devices {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertU2FDevice), tableU2FDevices), device.Username, device.KeyHandle, device.PublicKey)
+		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1InsertU2FDevice), tablePre1U2FDevices), device.Username, device.KeyHandle, device.PublicKey)
 		if err != nil {
 			return err
 		}
@@ -295,7 +295,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1(ctx context.Context) (err error) {
 		tableMigrations,
 		tableTOTPConfigurations,
 		tableIdentityVerification,
-		tableU2FDevices,
+		tablePre1U2FDevices,
 		tableDuoDevices,
 		tableUserPreferences,
 		tableAuthenticationLogs,
@@ -429,7 +429,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 }
 
 func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
-	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1SelectU2FDevices), tablePrefixBackup+tableU2FDevices))
+	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1SelectU2FDevices), tablePrefixBackup+tablePre1U2FDevices))
 	if err != nil {
 		return err
 	}
@@ -460,7 +460,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
 	}
 
 	for _, device := range devices {
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertU2FDevice), tableU2FDevices), device.Username, base64.StdEncoding.EncodeToString(device.KeyHandle), base64.StdEncoding.EncodeToString(device.PublicKey))
+		_, err = p.db.ExecContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1InsertU2FDevice), tablePre1U2FDevices), device.Username, base64.StdEncoding.EncodeToString(device.KeyHandle), base64.StdEncoding.EncodeToString(device.PublicKey))
 		if err != nil {
 			return err
 		}

@@ -10,8 +10,8 @@ const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
 
-	// ActionU2FRegistration is the string representation of the action for which the token has been produced.
-	ActionU2FRegistration = "RegisterU2FDevice"
+	// ActionWebauthnRegistration is the string representation of the action for which the token has been produced.
+	ActionWebauthnRegistration = "RegisterWebauthnDevice"
 
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"

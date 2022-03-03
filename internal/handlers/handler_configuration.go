@@ -7,20 +7,27 @@ import (
 
 // ConfigurationGet get the configuration accessible to authenticated users.
 func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
-	body := configurationBody{}
-	body.AvailableMethods = MethodList{authentication.TOTP, authentication.U2F}
-
-	if ctx.Configuration.DuoAPI != nil {
-		body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
+	body := configurationBody{
+		AvailableMethods: make(MethodList, 0, 3),
 	}
 
-	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
+	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
+		if !ctx.Configuration.TOTP.Disable {
+			body.AvailableMethods = append(body.AvailableMethods, authentication.TOTP)
+		}
 
-	ctx.Logger.Tracef("Second factor enabled: %v", body.SecondFactorEnabled)
+		if !ctx.Configuration.Webauthn.Disable {
+			body.AvailableMethods = append(body.AvailableMethods, authentication.Webauthn)
+		}
+
+		if ctx.Configuration.DuoAPI != nil {
+			body.AvailableMethods = append(body.AvailableMethods, authentication.Push)
+		}
+	}
+
 	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
 
-	err := ctx.SetJSONBody(body)
-	if err != nil {
+	if err := ctx.SetJSONBody(body); err != nil {
 		ctx.Logger.Errorf("Unable to set configuration response in body: %s", err)
 	}
 }
