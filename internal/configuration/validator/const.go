@@ -3,7 +3,7 @@ package validator
 import (
 	"regexp"
 
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
