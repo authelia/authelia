@@ -11,7 +11,7 @@ require (
 	github.com/fasthttp/router v1.4.6
 	github.com/fasthttp/session/v2 v2.4.7
 	github.com/go-ldap/ldap/v3 v3.4.2
-	github.com/go-rod/rod v0.102.1
+	github.com/go-rod/rod v0.103.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-jwt/jwt/v4 v4.3.0
 	github.com/golang/mock v1.6.0
