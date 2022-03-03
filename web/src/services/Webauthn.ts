@@ -173,8 +173,8 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
         case "NotAllowedError":
             // § 6.3.2 Step 3 and Step 6.
             return AttestationResult.FailureUserConsent;
-        // § 6.3.2 Step 4.
         case "ConstraintError":
+            // § 6.3.2 Step 4.
             return AttestationResult.FailureUserVerificationOrResidentKey;
         default:
             console.error(`Unhandled DOMException occurred during WebAuthN attestation: ${exception}`);
@@ -196,8 +196,8 @@ function getAssertionResultFromDOMException(
             // § 6.3.3 Step 6 and Step 7.
             return AssertionResult.FailureUserConsent;
         case "SecurityError":
-            // § 10.1 and 10.2 Step 3.
             if (requestOptions.extensions?.appid !== undefined) {
+                // § 10.1 and 10.2 Step 3.
                 return AssertionResult.FailureU2FFacetID;
             } else {
                 return AssertionResult.FailureUnknownSecurity;

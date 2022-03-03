@@ -262,9 +262,17 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, duo_devices, user_preferences, migrations, encryption, webauthn_devices, totp_configurations\nSchema Encryption Key: valid`)
-
-	s.Assert().Regexp(pattern, output)
+	s.Assert().Contains(output, "Schema Version: ")
+	s.Assert().Contains(output, "authentication_logs")
+	s.Assert().Contains(output, "identity_verification")
+	s.Assert().Contains(output, "duo_devices")
+	s.Assert().Contains(output, "user_preferences")
+	s.Assert().Contains(output, "migrations")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "totp_configurations")
+	s.Assert().Contains(output, "Schema Encryption Key: valid")
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
@@ -399,8 +407,17 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, duo_devices, user_preferences, migrations, encryption, webauthn_devices, totp_configurations\nSchema Encryption Key: invalid`)
-	s.Assert().Regexp(pattern, output)
+	s.Assert().Contains(output, "Schema Version: ")
+	s.Assert().Contains(output, "authentication_logs")
+	s.Assert().Contains(output, "identity_verification")
+	s.Assert().Contains(output, "duo_devices")
+	s.Assert().Contains(output, "user_preferences")
+	s.Assert().Contains(output, "migrations")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "totp_configurations")
+	s.Assert().Contains(output, "Schema Encryption Key: invalid")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
