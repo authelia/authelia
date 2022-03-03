@@ -15,14 +15,14 @@ specifiers:
   '@types/node': 16.11.26
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.39
-  '@types/react-dom': 17.0.12
+  '@types/react-dom': 17.0.13
   '@typescript-eslint/eslint-plugin': 5.13.0
   '@typescript-eslint/parser': 5.13.0
   '@vitejs/plugin-react': 1.2.0
   axios: 0.26.0
   classnames: 2.3.1
   esbuild-jest: 0.5.0
-  eslint-config-prettier: 8.4.0
+  eslint-config-prettier: 8.5.0
   eslint-config-react-app: 7.0.0
   eslint-formatter-rdjson: 1.0.5
   eslint-import-resolver-typescript: 2.5.0
@@ -88,19 +88,19 @@ devDependencies:
   '@types/node': 16.11.26
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.39
-  '@types/react-dom': 17.0.12
+  '@types/react-dom': 17.0.13
   '@typescript-eslint/eslint-plugin': 5.13.0_99f1c7fa3ada23abf5c494bf723a63d8
   '@typescript-eslint/parser': 5.13.0_typescript@4.6.2
   '@vitejs/plugin-react': 1.2.0
   esbuild-jest: 0.5.0
-  eslint-config-prettier: 8.4.0
+  eslint-config-prettier: 8.5.0
   eslint-config-react-app: 7.0.0_jest@27.5.1+typescript@4.6.2
   eslint-formatter-rdjson: 1.0.5
   eslint-import-resolver-typescript: 2.5.0_eslint-plugin-import@2.25.4
   eslint-plugin-flowtype: 8.0.3
   eslint-plugin-import: 2.25.4
   eslint-plugin-jsx-a11y: 6.5.1
-  eslint-plugin-prettier: 4.0.0_2d2b5ca7c15e09d7b95a5f1b395d8e4f
+  eslint-plugin-prettier: 4.0.0_cb05065b7a8cf84ecf278011c7e6d45f
   eslint-plugin-react: 7.29.2
   eslint-plugin-react-hooks: 4.3.0
   husky: 7.0.4
@@ -2348,7 +2348,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.17.2
       '@testing-library/dom': 8.11.3
-      '@types/react-dom': 17.0.12
+      '@types/react-dom': 17.0.13
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: true
@@ -2473,8 +2473,8 @@ packages:
       '@types/react': 17.0.39
     dev: true
 
-  /@types/react-dom/17.0.12:
-    resolution: {integrity: sha512-SeJ430ndLI15JtRSHuzotn7AIdUtr8bdk6XW8mMfzjZo3vahRgJGHZqHiI4nAzCHTVG4qC21ObfsHBVUEHcDhg==}
+  /@types/react-dom/17.0.13:
+    resolution: {integrity: sha512-wEP+B8hzvy6ORDv1QBhcQia4j6ea4SFIBttHYpXKPFZRviBvknq0FRh3VrIxeXUmsPkwuXVZrVGG7KUVONmXCQ==}
     dependencies:
       '@types/react': 17.0.39
     dev: true
@@ -4096,8 +4096,8 @@ packages:
       source-map: 0.6.1
     dev: true
 
-  /eslint-config-prettier/8.4.0:
-    resolution: {integrity: sha512-CFotdUcMY18nGRo5KGsnNxpznzhkopOcOo0InID+sgQssPrzjvsyKZPvOgymTFeHrFuC3Tzdf2YndhXtULK9Iw==}
+  /eslint-config-prettier/8.5.0:
+    resolution: {integrity: sha512-obmWKLUNCnhtQRKc+tmnYuQl0pFU1ibYJQ5BGhTVB08bHe9wC8qUeG7c08dj9XX+AuPj1YSGSQIHl1pnDHZR0Q==}
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
@@ -4241,7 +4241,7 @@ packages:
       minimatch: 3.1.2
     dev: true
 
-  /eslint-plugin-prettier/4.0.0_2d2b5ca7c15e09d7b95a5f1b395d8e4f:
+  /eslint-plugin-prettier/4.0.0_cb05065b7a8cf84ecf278011c7e6d45f:
     resolution: {integrity: sha512-98MqmCJ7vJodoQK359bqQWaxOE0CS8paAz/GgjaZLyex4TTk3g9HugoO89EqWCrFiOqn9EVvcoo7gZzONCWVwQ==}
     engines: {node: '>=6.0.0'}
     peerDependencies:
@@ -4252,7 +4252,7 @@ packages:
       eslint-config-prettier:
         optional: true
     dependencies:
-      eslint-config-prettier: 8.4.0
+      eslint-config-prettier: 8.5.0
       prettier: 2.5.1
       prettier-linter-helpers: 1.0.0
     dev: true
