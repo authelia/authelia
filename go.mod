@@ -6,13 +6,13 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duo-labs/webauthn v0.0.0-20210727191636-9f1b88ef44cc
 	github.com/duosecurity/duo_api_golang v0.0.0-20220201180708-96a8851a8448
 	github.com/fasthttp/router v1.4.6
 	github.com/fasthttp/session/v2 v2.4.7
 	github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/go-rod/rod v0.103.0
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/go-webauthn/webauthn v0.2.1
 	github.com/golang-jwt/jwt/v4 v4.3.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
@@ -100,7 +100,7 @@ require (
 	go.opentelemetry.io/otel v0.20.0 // indirect
 	go.opentelemetry.io/otel/metric v0.20.0 // indirect
 	go.opentelemetry.io/otel/trace v0.20.0 // indirect
-	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/net v0.0.0-20220111093109-d55c255bac03 // indirect
 	golang.org/x/sys v0.0.0-20220111092808-5a964db01320 // indirect
@@ -114,7 +114,6 @@ require (
 )
 
 replace (
-	github.com/duo-labs/webauthn => github.com/authelia/webauthn v0.0.0-20220220015615-e607391e7e09
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.11
 	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
 )

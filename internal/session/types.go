@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
