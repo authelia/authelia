@@ -3,6 +3,8 @@ package validator
 import (
 	"regexp"
 
+	"github.com/duo-labs/webauthn/protocol"
+
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -35,7 +37,6 @@ const (
 
 // Test constants.
 const (
-	testBadTimer      = "-1"
 	testInvalidPolicy = "invalid"
 	testJWTSecret     = "a_secret"
 	testLDAPBaseDN    = "base_dn"
@@ -121,6 +122,9 @@ const (
 		"more clients configured"
 	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
 
+	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+		"'public_clients_only' or 'always', but it is configured as '%s'"
+
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
 	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: one or more clients have been configured with " +
@@ -146,6 +150,12 @@ const (
 		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+)
+
+// Webauthn Error constants.
+const (
+	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
+	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
 )
 
 // Access Control error constants.
@@ -182,13 +192,11 @@ const (
 
 // NTP Error constants.
 const (
-	errFmtNTPVersion   = "ntp: option 'version' must be either 3 or 4 but it is configured as '%d'"
-	errFmtNTPMaxDesync = "ntp: option 'max_desync' can't be parsed: %w"
+	errFmtNTPVersion = "ntp: option 'version' must be either 3 or 4 but it is configured as '%d'"
 )
 
 // Session error constants.
 const (
-	errFmtSessionCouldNotParseDuration    = "session: option '%s' could not be parsed: %w"
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
 	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
@@ -203,7 +211,6 @@ const (
 
 // Regulation Error Consts.
 const (
-	errFmtRegulationParseDuration              = "regulation: option '%s' could not be parsed: %w"
 	errFmtRegulationFindTimeGreaterThanBanTime = "regulation: option 'find_time' must be less than or equal to option 'ban_time'"
 )
 
@@ -246,6 +253,9 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 
 var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 
+var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+
 var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
@@ -286,11 +296,19 @@ var ValidKeys = []string{
 	"server.headers.csp_template",
 
 	// TOTP Keys.
+	"totp.disable",
 	"totp.issuer",
 	"totp.algorithm",
 	"totp.digits",
 	"totp.period",
 	"totp.skew",
+
+	// Webauthn Keys.
+	"webauthn.disable",
+	"webauthn.display_name",
+	"webauthn.attestation_conveyance_preference",
+	"webauthn.user_verification",
+	"webauthn.timeout",
 
 	// DUO API Keys.
 	"duo_api.hostname",

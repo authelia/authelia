@@ -89,10 +89,10 @@ that users who have access to the database do not also have access to this key.
 
 The encrypted data in the database is as follows:
 
-|Table              |Column    |Rational                                                                                              |
-|:-----------------:|:--------:|:----------------------------------------------------------------------------------------------------:|
-|totp_configurations|secret    |Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security|
-|u2f_devices        |public_key|Prevents [Bad Actors](#bad-actors) from compromising security                                         |
+|        Table        |   Column   |                                                Rational                                                |
+|:-------------------:|:----------:|:------------------------------------------------------------------------------------------------------:|
+| totp_configurations |   secret   | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|  webauthn_devices   | public_key |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
 
 ### Leaked Database
 

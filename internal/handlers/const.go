@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -8,8 +10,8 @@ const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
 
-	// ActionU2FRegistration is the string representation of the action for which the token has been produced.
-	ActionU2FRegistration = "RegisterU2FDevice"
+	// ActionWebauthnRegistration is the string representation of the action for which the token has been produced.
+	ActionWebauthnRegistration = "RegisterWebauthnDevice"
 
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
@@ -56,7 +58,7 @@ const (
 )
 
 const (
-	testInactivity     = "10"
+	testInactivity     = time.Second * 10
 	testRedirectionURL = "http://redirection.local"
 	testUsername       = "john"
 )

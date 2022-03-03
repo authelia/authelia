@@ -100,27 +100,46 @@ $ authelia validate-config --config configuration.yml
 
 # Duration Notation Format
 
-We have implemented a string based notation for configuration options that take a duration. This section describes its
-usage. You can use this implementation in: session for expiration, inactivity, and remember_me_duration; and regulation
-for ban_time, and find_time. This notation also supports just providing the number of seconds instead.
+We have implemented a string/integer based notation for configuration options that take a duration of time. This section 
+describes the implementation of this. You can use this implementation in various areas of configuration such as:
 
-The notation is comprised of a number which must be positive and not have leading zeros, followed by a letter
-denoting the unit of time measurement. The table below describes the units of time and the associated letter.
+- session:
+  - expiration
+  - inactivity
+  - remember_me_duration
+- regulation:
+  - ban_time
+  - find_time
+- ntp:
+  - max_desync
+- webauthn:
+  - timeout
 
-|Unit   |Associated Letter|
-|:-----:|:---------------:|
-|Years  |y                |
-|Months |M                |
-|Weeks  |w                |
-|Days   |d                |
-|Hours  |h                |
-|Minutes|m                |
-|Seconds|s                |
+The way this format works is you can either configure an integer or a string in the specific configuration areas. If you
+supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in blocks
+of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units of `h`.
 
-Examples:
-* 1 hour and 30 minutes: 90m
-* 1 day: 1d
-* 10 hours: 10h
+While you can use multiple of these blocks in combination, ee suggest keeping it simple and use a single value.
+
+## Duration Notation Format Unit Legend
+
+|  Unit   | Associated Letter |
+|:-------:|:-----------------:|
+|  Years  |         y         |
+| Months  |         M         |
+|  Weeks  |         w         |
+|  Days   |         d         |
+|  Hours  |         h         |
+| Minutes |         m         |
+| Seconds |         s         |
+
+## Duration Notation Format Examples
+
+|     Desired Value     |        Configuration Examples         |
+|:---------------------:|:-------------------------------------:|
+| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |
+|         1 day         | `1d` or `24h` or `86400` or `86400s`  |
+|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |
 
 # TLS Configuration
 

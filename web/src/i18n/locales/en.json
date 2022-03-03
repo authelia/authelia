@@ -34,7 +34,7 @@
         "Reset": "Reset",
         "Scan QR Code": "Scan QR Code",
         "Secret": "Secret",
-        "Security Key - U2F": "Security Key - U2F",
+        "Security Key - WebAuthN": "Security Key - WebAuthN",
         "Select a Device": "Select a Device",
         "Sign in": "Sign in",
         "Sign out": "Sign out",

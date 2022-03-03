@@ -462,6 +462,7 @@ func (s *DuoPushSuite) TestDuoPushRedirectionURLSuite() {
 func (s *DuoPushSuite) TestAvailableMethodsScenario() {
 	suite.Run(s.T(), NewAvailableMethodsScenario([]string{
 		"TIME-BASED ONE-TIME PASSWORD",
+		"SECURITY KEY - WEBAUTHN",
 		"PUSH NOTIFICATION",
 	}))
 }

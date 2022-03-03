@@ -26,7 +26,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 		return err
 	}
 
-	if err = p.schemaEncryptionChangeKeyU2F(ctx, tx, key); err != nil {
+	if err = p.schemaEncryptionChangeKeyWebauthn(ctx, tx, key); err != nil {
 		return err
 	}
 
@@ -79,11 +79,11 @@ func (p *SQLProvider) schemaEncryptionChangeKeyTOTP(ctx context.Context, tx *sql
 	return nil
 }
 
-func (p *SQLProvider) schemaEncryptionChangeKeyU2F(ctx context.Context, tx *sqlx.Tx, key [32]byte) (err error) {
-	var devices []models.U2FDevice
+func (p *SQLProvider) schemaEncryptionChangeKeyWebauthn(ctx context.Context, tx *sqlx.Tx, key [32]byte) (err error) {
+	var devices []models.WebauthnDevice
 
 	for page := 0; true; page++ {
-		if devices, err = p.LoadU2FDevices(ctx, 10, page); err != nil {
+		if devices, err = p.LoadWebauthnDevices(ctx, 10, page); err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 			}
@@ -100,7 +100,7 @@ func (p *SQLProvider) schemaEncryptionChangeKeyU2F(ctx context.Context, tx *sqlx
 				return fmt.Errorf("rollback due to error: %w", err)
 			}
 
-			if err = p.updateU2FDevicePublicKey(ctx, device); err != nil {
+			if err = p.updateWebauthnDevicePublicKey(ctx, device); err != nil {
 				if rollbackErr := tx.Rollback(); rollbackErr != nil {
 					return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 				}
@@ -223,7 +223,7 @@ func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) 
 	var rows *sqlx.Rows
 
 	for page := 0; true; page++ {
-		if rows, err = p.db.QueryxContext(ctx, p.sqlSelectU2FDevices, pageSize, pageSize*page); err != nil {
+		if rows, err = p.db.QueryxContext(ctx, p.sqlSelectWebauthnDevices, pageSize, pageSize*page); err != nil {
 			_ = rows.Close()
 
 			return fmt.Errorf("error selecting U2F devices: %w", err)

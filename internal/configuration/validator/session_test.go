@@ -18,7 +18,7 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	return config
 }
 
-func TestShouldSetDefaultSessionName(t *testing.T) {
+func TestShouldSetDefaultSessionValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
@@ -27,39 +27,25 @@ func TestShouldSetDefaultSessionName(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Name, config.Name)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
 }
 
-func TestShouldSetDefaultSessionInactivity(t *testing.T) {
+func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
+
+	config.Expiration, config.Inactivity, config.RememberMeDuration = -1, -1, -1
 
 	ValidateSession(&config, validator)
 
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
-}
-
-func TestShouldSetDefaultSessionExpiration(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-}
-
-func TestShouldSetDefaultSessionSameSite(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 }
 
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
@@ -420,30 +406,21 @@ func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	}
 }
 
-func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
+func TestShouldSetDefaultWhenNegativeInactivityAndExpirationSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Inactivity = testBadTimer
-	config.Expiration = testBadTimer
+	config.Inactivity = -1
+	config.Expiration = -1
+	config.RememberMeDuration = -1
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "session: option 'expiriation' could not be parsed: could not parse '-1' as a duration")
-	assert.EqualError(t, validator.Errors()[1], "session: option 'inactivity' could not be parsed: could not parse '-1' as a duration")
-}
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
 
-func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.RememberMeDuration = "1 year"
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: option 'remember_me_duration' could not be parsed: could not parse '1 year' as a duration")
+	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {

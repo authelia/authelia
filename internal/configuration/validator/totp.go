@@ -10,12 +10,6 @@ import (
 
 // ValidateTOTP validates and update TOTP configuration.
 func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.TOTP == nil {
-		config.TOTP = &schema.DefaultTOTPConfiguration
-
-		return
-	}
-
 	if config.TOTP.Issuer == "" {
 		config.TOTP.Issuer = schema.DefaultTOTPConfiguration.Issuer
 	}

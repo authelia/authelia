@@ -24,12 +24,15 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 	provider.Store = NewOpenIDConnectStore(configuration)
 
 	composeConfiguration := &compose.Config{
-		AccessTokenLifespan:        configuration.AccessTokenLifespan,
-		AuthorizeCodeLifespan:      configuration.AuthorizeCodeLifespan,
-		IDTokenLifespan:            configuration.IDTokenLifespan,
-		RefreshTokenLifespan:       configuration.RefreshTokenLifespan,
-		SendDebugMessagesToClients: configuration.EnableClientDebugMessages,
-		MinParameterEntropy:        configuration.MinimumParameterEntropy,
+		AccessTokenLifespan:            configuration.AccessTokenLifespan,
+		AuthorizeCodeLifespan:          configuration.AuthorizeCodeLifespan,
+		IDTokenLifespan:                configuration.IDTokenLifespan,
+		RefreshTokenLifespan:           configuration.RefreshTokenLifespan,
+		SendDebugMessagesToClients:     configuration.EnableClientDebugMessages,
+		MinParameterEntropy:            configuration.MinimumParameterEntropy,
+		EnforcePKCE:                    configuration.EnforcePKCE == "always",
+		EnforcePKCEForPublicClients:    configuration.EnforcePKCE != "never",
+		EnablePKCEPlainChallengeMethod: configuration.EnablePKCEPlainChallenge,
 	}
 
 	keyManager, err := NewKeyManagerWithConfiguration(configuration)
@@ -83,7 +86,7 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 		compose.OAuth2TokenIntrospectionFactory,
 		compose.OAuth2TokenRevocationFactory,
 
-		// compose.OAuth2PKCEFactory,.
+		compose.OAuth2PKCEFactory,
 	)
 
 	provider.discovery = OpenIDConnectWellKnownConfiguration{
@@ -131,6 +134,11 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 				ClaimDisplayName,
 			},
 		},
+		OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
+			CodeChallengeMethodsSupported: []string{
+				"S256",
+			},
+		},
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
 				"RS256",
@@ -144,6 +152,10 @@ func NewOpenIDConnectProvider(configuration *schema.OpenIDConnectConfiguration) 
 				"RS256",
 			},
 		},
+	}
+
+	if configuration.EnablePKCEPlainChallenge {
+		provider.discovery.CodeChallengeMethodsSupported = append(provider.discovery.CodeChallengeMethodsSupported, "plain")
 	}
 
 	provider.herodot = herodot.NewJSONWriter(nil)

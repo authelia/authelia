@@ -5,7 +5,6 @@ import { toEnum, Method2FA } from "@services/UserInfo";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];
-    second_factor_enabled: boolean;
 }
 
 export async function getConfiguration(): Promise<Configuration> {
