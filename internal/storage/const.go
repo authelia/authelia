@@ -56,7 +56,7 @@ const (
 
 const (
 	// This is the latest schema version for the purpose of tests.
-	testLatestVersion = 2
+	testLatestVersion = 3
 )
 
 const (
