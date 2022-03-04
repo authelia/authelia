@@ -4,12 +4,14 @@ import (
 	"crypto/rsa"
 
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/storage"
+	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	istore "github.com/authelia/authelia/v4/internal/storage"
 )
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -23,33 +25,43 @@ type OpenIDConnectProvider struct {
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
+/*
 // OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
 //
-//	Currently it is mostly just implementing a decorator pattern other then GetInternalClient.
+//	Currently it is mostly just implementing a decorator pattern other then GetFullClient.
 //	The long term plan is to have these methods interact with the Authelia storage and
 //	session providers where applicable.
 type OpenIDConnectStore struct {
-	clients map[string]*InternalClient
+	clients map[string]*Client
 	memory  *storage.MemoryStore
+}.
+
+
+*/
+
+type OpenIDConnectStore struct {
+	provider istore.Provider
+	clients  map[string]*Client
 }
 
-// InternalClient represents the client internally.
-type InternalClient struct {
-	ID          string `json:"id"`
-	Description string `json:"-"`
-	Secret      []byte `json:"client_secret,omitempty"`
-	Public      bool   `json:"public"`
+// Client represents the client internally.
+type Client struct {
+	ID          string
+	SectorID    string
+	Description string
+	Secret      []byte
+	Public      bool
 
-	Policy authorization.Level `json:"-"`
+	Policy authorization.Level
 
-	Audience      []string                  `json:"audience"`
-	Scopes        []string                  `json:"scopes"`
-	RedirectURIs  []string                  `json:"redirect_uris"`
-	GrantTypes    []string                  `json:"grant_types"`
-	ResponseTypes []string                  `json:"response_types"`
-	ResponseModes []fosite.ResponseModeType `json:"response_modes"`
+	Audience      []string
+	Scopes        []string
+	RedirectURIs  []string
+	GrantTypes    []string
+	ResponseTypes []string
+	ResponseModes []fosite.ResponseModeType
 
-	UserinfoSigningAlgorithm string `json:"userinfo_signed_response_alg,omitempty"`
+	UserinfoSigningAlgorithm string
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
@@ -64,20 +76,19 @@ type KeyManager struct {
 // AutheliaHasher implements the fosite.Hasher interface without an actual hashing algo.
 type AutheliaHasher struct{}
 
+type OpenIDConnectStorage interface {
+	oauth2.AuthorizeCodeStorage
+	oauth2.TokenRevocationStorage
+	pkce.PKCERequestStorage
+	openid.OpenIDConnectRequestStorage
+}
+
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
 	ClientID          string   `json:"client_id"`
 	ClientDescription string   `json:"client_description"`
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
-}
-
-// OpenIDSession holds OIDC Session information.
-type OpenIDSession struct {
-	*openid.DefaultSession `json:"idToken"`
-
-	Extra    map[string]interface{} `json:"extra"`
-	ClientID string
 }
 
 /*

@@ -18,7 +18,7 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 	}
 
 	clientID := userSession.OIDCWorkflowSession.ClientID
-	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID)
+	client, err := ctx.Providers.OpenIDConnect.Store.GetFullClient(clientID)
 
 	if err != nil {
 		ctx.Logger.Debugf("Unable to find related client configuration with name '%s': %v", clientID, err)
@@ -49,7 +49,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(userSession.OIDCWorkflowSession.ClientID)
+	client, err := ctx.Providers.OpenIDConnect.Store.GetFullClient(userSession.OIDCWorkflowSession.ClientID)
 
 	if err != nil {
 		ctx.Logger.Debugf("Unable to find related client configuration with name '%s': %v", userSession.OIDCWorkflowSession.ClientID, err)

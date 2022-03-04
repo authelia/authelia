@@ -1,10 +1,13 @@
 package models
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
 	"fmt"
 	"net"
+
+	"github.com/ory/fosite"
 )
 
 // NewIP easily constructs a new IP.
@@ -149,4 +152,34 @@ func (b *Base64) Scan(src interface{}) (err error) {
 // StartupCheck represents a provider that has a startup check.
 type StartupCheck interface {
 	StartupCheck() (err error)
+}
+
+func NewStringSlicePipeDelimiterFromFositeArguments(arguments fosite.Arguments) (s StringSlicePipeDelimited) {
+	slc := make([]string, len(arguments))
+
+	for i, argument := range arguments {
+		slc[i] = argument
+	}
+
+	return slc
+}
+
+type StringSlicePipeDelimited []string
+
+func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
+	var nullStr sql.NullString
+
+	if err = nullStr.Scan(value); err != nil {
+		return err
+	}
+
+	if nullStr.Valid {
+		*s = scanStringSlice('|', nullStr.String)
+	}
+
+	return nil
+}
+
+func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
+	return valueStringSlice('|', s), nil
 }

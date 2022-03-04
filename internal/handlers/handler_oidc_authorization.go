@@ -10,26 +10,31 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
-	ar, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r)
-	if err != nil {
-		logging.Logger().Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
+	var (
+		ar     fosite.AuthorizeRequester
+		client *oidc.Client
+		err    error
+	)
+
+	if ar, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r); err != nil {
+		ctx.Logger.Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
 	}
 
 	clientID := ar.GetClient().GetID()
-	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID)
 
-	if err != nil {
-		err := fmt.Errorf("unable to find related client configuration with name '%s': %v", ar.GetID(), err)
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(clientID); err != nil {
+		err = fmt.Errorf("unable to find related client configuration with name '%s': %v", ar.GetID(), err)
+
 		ctx.Logger.Error(err)
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
@@ -38,18 +43,17 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	userSession := ctx.GetSession()
 
-	requestedScopes := ar.GetRequestedScopes()
-	requestedAudience := ar.GetRequestedAudience()
-
 	isAuthInsufficient := !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
 
-	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, requestedScopes, requestedAudience)) {
+	scopes, audience := ar.GetRequestedScopes(), ar.GetRequestedAudience()
+
+	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, scopes, audience)) {
 		oidcAuthorizeHandleAuthorizationOrConsentInsufficient(ctx, userSession, client, isAuthInsufficient, rw, r, ar)
 
 		return
 	}
 
-	extraClaims := oidcGrantRequests(ar, requestedScopes, requestedAudience, &userSession)
+	extraClaims := oidcGrantRequests(ar, scopes, audience, &userSession)
 
 	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 
@@ -77,7 +81,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
-	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
+	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &models.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Subject:     userSession.Username,
@@ -108,7 +112,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 }
 
 func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
-	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.InternalClient, isAuthInsufficient bool,
+	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.Client, isAuthInsufficient bool,
 	rw http.ResponseWriter, r *http.Request,
 	ar fosite.AuthorizeRequester) {
 	issuer, err := ctx.ExternalRootURL()

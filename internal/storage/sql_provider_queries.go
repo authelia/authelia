@@ -48,7 +48,7 @@ const (
 		REPLACE INTO %s (username, second_factor_method)
 		VALUES (?, ?);`
 
-	queryFmtPostgresUpsertPreferred2FAMethod = `
+	queryFmtUpsertPreferred2FAMethodPostgreSQL = `
 		INSERT INTO %s (username, second_factor_method)
 		VALUES ($1, $2)
 			ON CONFLICT (username)
@@ -99,7 +99,7 @@ const (
 		REPLACE INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtPostgresUpsertTOTPConfiguration = `
+	queryFmtUpsertTOTPConfigurationPostgreSQL = `
 		INSERT INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username)
@@ -160,7 +160,7 @@ const (
 		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtPostgresUpsertWebauthnDevice = `
+	queryFmtUpsertWebauthnDevicePostgreSQL = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
@@ -172,7 +172,7 @@ const (
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
 
-	queryFmtPostgresUpsertDuoDevice = `
+	queryFmtUpsertDuoDevicePostgreSQL = `
 		INSERT INTO %s (username, device, method)
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
@@ -214,9 +214,49 @@ const (
 		REPLACE INTO %s (name, value)
 		VALUES (?, ?);`
 
-	queryFmtPostgresUpsertEncryptionValue = `
+	queryFmtUpsertEncryptionValuePostgreSQL = `
 		INSERT INTO %s (name, value)
 		VALUES ($1, $2)
 			ON CONFLICT (name)
 			DO UPDATE SET value = $2;`
+)
+
+const (
+	queryFmtSelectOAuth2Session = `
+		SELECT id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ? AND revoked = FALSE`
+
+	queryFmtInsertOAuth2Session = `
+		INSERT INTO %s (request_id, client_id, signature, subject, requested_at, 
+		requested_scopes, granted_scopes, requested_audience, granted_audience, 
+		form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtRevokeOAuth2Session = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE signature = ?;`
+
+	queryFmtRevokeOAuth2SessionByRequestID = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE request_id = ?;"`
+
+	queryFmtSelectOAuth2BlacklistedJTI = `
+		SELECT id, signature, expires_at
+		FROM %s
+		WHERE signature = ?;`
+
+	queryFmtUpsertOAuth2BlacklistedJTI = `
+		REPLACE INTO %s (signature, expires_at)
+		VALUES(?, ?)`
+
+	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
+		INSERT INTO %s (signature, expires_at)
+		VALUES ($1, $2)
+			ON CONFLICT (signature)
+			DO UPDATE SET expires_at = $2;`
 )

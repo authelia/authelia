@@ -12,6 +12,7 @@ type Provider interface {
 	models.StartupCheck
 
 	RegulatorProvider
+	TransactionalProvider
 
 	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
@@ -36,6 +37,14 @@ type Provider interface {
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error)
 
+	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *models.OAuth2Session) (err error)
+	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
+	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
+	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *models.OAuth2Session, err error)
+
+	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *models.OAuth2BlacklistedJTI) (err error)
+	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *models.OAuth2BlacklistedJTI, err error)
+
 	SchemaTables(ctx context.Context) (tables []string, err error)
 	SchemaVersion(ctx context.Context) (version int, err error)
 	SchemaLatestVersion() (version int, err error)
@@ -49,6 +58,13 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)
 
 	Close() (err error)
+}
+
+// TransactionalProvider represents a storage.Provider that can perform transactions.
+type TransactionalProvider interface {
+	BeginTX(ctx context.Context) (context.Context, error)
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

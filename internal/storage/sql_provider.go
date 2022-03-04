@@ -64,6 +64,40 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
 		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebauthnDevices, tableDuoDevices, tableUserPreferences),
 
+		// Table: oauth2_authorize_code_sessions.
+		sqlInsertOAuth2AuthorizeCodeSession:            fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AuthorizeCodeSessions),
+		sqlSelectOAuth2AuthorizeCodeSession:            fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AuthorizeCodeSessions),
+		sqlRevokeOAuth2AuthorizeCodeSession:            fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2AuthorizeCodeSessions),
+		sqlRevokeOAuth2AuthorizeCodeSessionByRequestID: fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2AuthorizeCodeSessions),
+
+		// Table: oauth2_access_token_sessions.
+		sqlInsertOAuth2AccessTokenSession:            fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AccessTokenSessions),
+		sqlSelectOAuth2AccessTokenSession:            fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AccessTokenSessions),
+		sqlRevokeOAuth2AccessTokenSession:            fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2AccessTokenSessions),
+		sqlRevokeOAuth2AccessTokenSessionByRequestID: fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2AccessTokenSessions),
+
+		// Table: oauth2_refresh_token_sessions.
+		sqlInsertOAuth2RefreshTokenSession:            fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2RefreshTokenSessions),
+		sqlSelectOAuth2RefreshTokenSession:            fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2RefreshTokenSessions),
+		sqlRevokeOAuth2RefreshTokenSession:            fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2RefreshTokenSessions),
+		sqlRevokeOAuth2RefreshTokenSessionByRequestID: fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2RefreshTokenSessions),
+
+		// Table: oauth2_pkce_request_sessions.
+		sqlInsertOAuth2PKCERequestSession:            fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2PKCERequestSessions),
+		sqlSelectOAuth2PKCERequestSession:            fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2PKCERequestSessions),
+		sqlRevokeOAuth2PKCERequestSession:            fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2PKCERequestSessions),
+		sqlRevokeOAuth2PKCERequestSessionByRequestID: fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2PKCERequestSessions),
+
+		// Table: oauth2_openid_connect_sessions.
+		sqlInsertOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2OpenIDConnectSessions),
+		sqlSelectOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2OpenIDConnectSessions),
+		sqlRevokeOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2OpenIDConnectSessions),
+		sqlRevokeOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtRevokeOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSessions),
+
+		// Table: oauth2_blacklisted_jti.
+		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
+
 		sqlInsertMigration:       fmt.Sprintf(queryFmtInsertMigration, tableMigrations),
 		sqlSelectMigrations:      fmt.Sprintf(queryFmtSelectMigrations, tableMigrations),
 		sqlSelectLatestMigration: fmt.Sprintf(queryFmtSelectLatestMigration, tableMigrations),
@@ -138,6 +172,39 @@ type SQLProvider struct {
 	sqlUpsertEncryptionValue string
 	sqlSelectEncryptionValue string
 
+	// Table: oauth2_authorize_code_sessions.
+	sqlInsertOAuth2AuthorizeCodeSession            string
+	sqlSelectOAuth2AuthorizeCodeSession            string
+	sqlRevokeOAuth2AuthorizeCodeSession            string
+	sqlRevokeOAuth2AuthorizeCodeSessionByRequestID string
+
+	// Table: oauth2_access_token_sessions.
+	sqlInsertOAuth2AccessTokenSession            string
+	sqlSelectOAuth2AccessTokenSession            string
+	sqlRevokeOAuth2AccessTokenSession            string
+	sqlRevokeOAuth2AccessTokenSessionByRequestID string
+
+	// Table: oauth2_refresh_token_sessions.
+	sqlInsertOAuth2RefreshTokenSession            string
+	sqlSelectOAuth2RefreshTokenSession            string
+	sqlRevokeOAuth2RefreshTokenSession            string
+	sqlRevokeOAuth2RefreshTokenSessionByRequestID string
+
+	// Table: oauth2_pkce_request_sessions.
+	sqlInsertOAuth2PKCERequestSession            string
+	sqlSelectOAuth2PKCERequestSession            string
+	sqlRevokeOAuth2PKCERequestSession            string
+	sqlRevokeOAuth2PKCERequestSessionByRequestID string
+
+	// Table: oauth2_openid_connect_sessions.
+	sqlInsertOAuth2OpenIDConnectSession            string
+	sqlSelectOAuth2OpenIDConnectSession            string
+	sqlRevokeOAuth2OpenIDConnectSession            string
+	sqlRevokeOAuth2OpenIDConnectSessionByRequestID string
+
+	sqlUpsertOAuth2BlacklistedJTI string
+	sqlSelectOAuth2BlacklistedJTI string
+
 	// Utility.
 	sqlSelectExistingTables string
 	sqlFmtRenameTable       string
@@ -186,6 +253,174 @@ func (p *SQLProvider) StartupCheck() (err error) {
 	default:
 		return fmt.Errorf("error during schema migrate: %w", err)
 	}
+}
+
+// BeginTX begins a transaction.
+func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error) {
+	var tx *sql.Tx
+
+	if tx, err = p.db.Begin(); err != nil {
+		return nil, err
+	}
+
+	return context.WithValue(ctx, TransactionCTXKey, tx), nil
+}
+
+// Commit performs a database commit.
+func (p *SQLProvider) Commit(ctx context.Context) (err error) {
+	tx, ok := ctx.Value(TransactionCTXKey).(*sql.Tx)
+
+	if !ok {
+		return errors.New("could not retrieve tx")
+	}
+
+	return tx.Commit()
+}
+
+// Rollback performs a database rollback.
+func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
+	tx, ok := ctx.Value(TransactionCTXKey).(*sql.Tx)
+
+	if !ok {
+		return errors.New("could not retrieve tx")
+	}
+
+	return tx.Rollback()
+}
+
+// SaveOAuth2Session saves a OAuth2Session to the database.
+func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *models.OAuth2Session) (err error) {
+	var query string
+
+	switch sessionType {
+	case OAuth2SessionTypeAuthorizeCode:
+		query = p.sqlInsertOAuth2AuthorizeCodeSession
+	case OAuth2SessionTypeAccessToken:
+		query = p.sqlInsertOAuth2AccessTokenSession
+	case OAuth2SessionTypeRefreshToken:
+		query = p.sqlInsertOAuth2RefreshTokenSession
+	case OAuth2SessionTypePKCEChallenge:
+		query = p.sqlInsertOAuth2PKCERequestSession
+	case OAuth2SessionTypeOpenIDConnect:
+		query = p.sqlInsertOAuth2OpenIDConnectSession
+	default:
+		return fmt.Errorf("error inserting oauth2 session for subject '%s' and request id '%s': unknown oauth2 session type '%s'", session.Subject, session.RequestID, sessionType)
+	}
+
+	if session.Session, err = p.encrypt(session.Session); err != nil {
+		return fmt.Errorf("error encrypting the oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
+	}
+
+	_, err = p.db.ExecContext(ctx, query,
+		session.RequestID, session.ClientID, session.Signature,
+		session.Subject, session.RequestedAt, session.RequestedScopes, session.GrantedScopes,
+		session.RequestedAudience, session.GrantedAudience, session.Form, session.Session)
+
+	if err != nil {
+		return fmt.Errorf("error inserting oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
+	}
+
+	return nil
+}
+
+// RevokeOAuth2Session marks a OAuth2Session as revoked in the database.
+func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error) {
+	var query string
+
+	switch sessionType {
+	case OAuth2SessionTypeAuthorizeCode:
+		query = p.sqlRevokeOAuth2AuthorizeCodeSession
+	case OAuth2SessionTypeAccessToken:
+		query = p.sqlRevokeOAuth2AccessTokenSession
+	case OAuth2SessionTypeRefreshToken:
+		query = p.sqlRevokeOAuth2RefreshTokenSession
+	case OAuth2SessionTypePKCEChallenge:
+		query = p.sqlRevokeOAuth2PKCERequestSession
+	case OAuth2SessionTypeOpenIDConnect:
+		query = p.sqlRevokeOAuth2OpenIDConnectSession
+	default:
+		return fmt.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
+	}
+
+	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
+		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+	}
+
+	return nil
+}
+
+// RevokeOAuth2SessionByRequestID marks a OAuth2Session as revoked in the database.
+func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error) {
+	var query string
+
+	switch sessionType {
+	case OAuth2SessionTypeAuthorizeCode:
+		query = p.sqlRevokeOAuth2AuthorizeCodeSessionByRequestID
+	case OAuth2SessionTypeAccessToken:
+		query = p.sqlRevokeOAuth2AccessTokenSessionByRequestID
+	case OAuth2SessionTypeRefreshToken:
+		query = p.sqlRevokeOAuth2RefreshTokenSessionByRequestID
+	case OAuth2SessionTypePKCEChallenge:
+		query = p.sqlRevokeOAuth2PKCERequestSessionByRequestID
+	case OAuth2SessionTypeOpenIDConnect:
+		query = p.sqlRevokeOAuth2OpenIDConnectSessionByRequestID
+	default:
+		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
+	}
+
+	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
+		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
+	}
+
+	return nil
+}
+
+// LoadOAuth2Session saves a OAuth2Session from the database.
+func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *models.OAuth2Session, err error) {
+	var query string
+
+	switch sessionType {
+	case OAuth2SessionTypeAuthorizeCode:
+		query = p.sqlSelectOAuth2AuthorizeCodeSession
+	case OAuth2SessionTypeAccessToken:
+		query = p.sqlSelectOAuth2AccessTokenSession
+	case OAuth2SessionTypeRefreshToken:
+		query = p.sqlSelectOAuth2RefreshTokenSession
+	case OAuth2SessionTypePKCEChallenge:
+		query = p.sqlSelectOAuth2PKCERequestSession
+	case OAuth2SessionTypeOpenIDConnect:
+		query = p.sqlSelectOAuth2OpenIDConnectSession
+	default:
+		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType)
+	}
+
+	session = &models.OAuth2Session{}
+
+	if err = p.db.GetContext(ctx, &session, query, signature); err != nil {
+		return nil, fmt.Errorf("error selecting oauth2 %s session: %w", sessionType, err)
+	}
+
+	return session, nil
+}
+
+// SaveOAuth2BlacklistedJTI saves a OAuth2BlacklistedJTI to the database.
+func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *models.OAuth2BlacklistedJTI) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
+		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
+	}
+
+	return nil
+}
+
+// LoadOAuth2BlacklistedJTI loads a OAuth2BlacklistedJTI from the database.
+func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *models.OAuth2BlacklistedJTI, err error) {
+	blacklistedJTI = &models.OAuth2BlacklistedJTI{}
+
+	if err = p.db.GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, signature); err != nil {
+		return nil, err
+	}
+
+	return blacklistedJTI, nil
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.

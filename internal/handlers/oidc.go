@@ -5,6 +5,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -21,8 +22,8 @@ func isConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, re
 		len(requestedAudience) > 0 && utils.IsStringSlicesDifferentFold(requestedAudience, workflow.GrantedAudience)
 }
 
-func newOpenIDSession(subject string) *oidc.OpenIDSession {
-	return &oidc.OpenIDSession{
+func newOpenIDSession(subject string) *models.OpenIDSession {
+	return &models.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims:  new(jwt.IDTokenClaims),
 			Headers: new(jwt.Headers),

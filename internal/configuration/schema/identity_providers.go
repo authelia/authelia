@@ -9,7 +9,6 @@ type IdentityProvidersConfiguration struct {
 
 // OpenIDConnectConfiguration configuration for OpenID Connect.
 type OpenIDConnectConfiguration struct {
-	// This secret must be 32 bytes long.
 	HMACSecret       string `koanf:"hmac_secret"`
 	IssuerPrivateKey string `koanf:"issuer_private_key"`
 
@@ -36,9 +35,10 @@ type OpenIDConnectClientConfiguration struct {
 
 	Policy string `koanf:"authorization_policy"`
 
+	RedirectURIs []string `koanf:"redirect_uris"`
+
 	Audience      []string `koanf:"audience"`
 	Scopes        []string `koanf:"scopes"`
-	RedirectURIs  []string `koanf:"redirect_uris"`
 	GrantTypes    []string `koanf:"grant_types"`
 	ResponseTypes []string `koanf:"response_types"`
 	ResponseModes []string `koanf:"response_modes"`

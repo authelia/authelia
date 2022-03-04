@@ -14,7 +14,24 @@ const (
 	tableMigrations           = "migrations"
 	tableEncryption           = "encryption"
 
+	tableOAuth2AuthorizeCodeSessions = "oauth2_authorize_code_sessions"
+	tableOAuth2AccessTokenSessions   = "oauth2_access_token_sessions"
+	tableOAuth2RefreshTokenSessions  = "oauth2_refresh_token_sessions"
+	tableOAuth2PKCERequestSessions   = "oauth2_pkce_request_sessions"
+	tableOAuth2OpenIDConnectSessions = "oauth2_openid_connect_sessions"
+	tableOAuth2BlacklistedJTI        = "oauth2_blacklisted_jti"
+
 	tablePrefixBackup = "_bkp_"
+)
+
+type OAuth2SessionType string
+
+const (
+	OAuth2SessionTypeAuthorizeCode OAuth2SessionType = "authorize code"
+	OAuth2SessionTypeAccessToken   OAuth2SessionType = "access token"
+	OAuth2SessionTypeRefreshToken  OAuth2SessionType = "refresh token"
+	OAuth2SessionTypePKCEChallenge OAuth2SessionType = "pkce challenge"
+	OAuth2SessionTypeOpenIDConnect OAuth2SessionType = "openid connect"
 )
 
 const (
@@ -56,7 +73,7 @@ const (
 
 const (
 	// This is the latest schema version for the purpose of tests.
-	testLatestVersion = 3
+	testLatestVersion = 4
 )
 
 const (
@@ -64,6 +81,14 @@ const (
 	SchemaLatest = 2147483647
 )
 
+type CTXKey int
+
+const (
+	TransactionCTXKey CTXKey = iota
+)
+
 var (
+	ctxTX = "tx"
+
 	reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
 )

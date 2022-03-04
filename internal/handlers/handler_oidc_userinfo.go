@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/models"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -37,14 +38,14 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		return
 	}
 
-	client, ok := ar.GetClient().(*oidc.InternalClient)
+	client, ok := ar.GetClient().(*oidc.Client)
 	if !ok {
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHint("Unable to assert type of client")))
 
 		return
 	}
 
-	claims := ar.GetSession().(*oidc.OpenIDSession).IDTokenClaims().ToMap()
+	claims := ar.GetSession().(*models.OpenIDSession).IDTokenClaims().ToMap()
 	delete(claims, "jti")
 	delete(claims, "sid")
 	delete(claims, "at_hash")
