@@ -268,3 +268,25 @@ func TestToTimeDurationFunc_ShouldNotParse_FromBool(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, from, result)
 }
+
+func TestToTimeDurationFunc_ShouldParse_FromZero(t *testing.T) {
+	hook := ToTimeDurationFunc()
+
+	var (
+		from     = 0
+		expected = time.Duration(0)
+
+		to     time.Duration
+		ptrTo  *time.Duration
+		result interface{}
+		err    error
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
+	assert.NoError(t, err)
+	assert.Equal(t, &expected, result)
+}
