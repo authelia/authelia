@@ -23,4 +23,4 @@ INSERT INTO webauthn_devices (id, created_at, last_used_at, rpid, username, desc
 SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 FROM _bkp_UP_V0003_webauthn_devices;
 
-DROP TABLE IF EXISTS bkp_UP_V0003_webauthn_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0003_webauthn_devices;
