@@ -23,13 +23,13 @@ var (
 	headerAccessControlAllowOrigin      = []byte(fasthttp.HeaderAccessControlAllowOrigin)
 	headerAccessControlMaxAge           = []byte(fasthttp.HeaderAccessControlMaxAge)
 	headerAccessControlRequestHeaders   = []byte(fasthttp.HeaderAccessControlRequestHeaders)
+	headerAccessControlRequestMethod    = []byte(fasthttp.HeaderAccessControlRequestMethod)
 )
 
 var (
-	headerValueFalse     = []byte("false")
-	headerValueMaxAge    = []byte("100")
-	headerValueVary      = []byte("Accept-Encoding, Origin")
-	headerValueMethodGET = []byte("GET")
+	headerValueFalse  = []byte("false")
+	headerValueMaxAge = []byte("100")
+	headerValueVary   = []byte("Accept-Encoding, Origin")
 )
 
 var (

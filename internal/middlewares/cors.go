@@ -3,6 +3,8 @@ package middlewares
 import (
 	"net/url"
 	"strings"
+
+	"github.com/valyala/fasthttp"
 )
 
 // CORSApplyAutomaticAllowAllPolicy applies a CORS policy that automatically grants all Origins as well
@@ -11,39 +13,41 @@ import (
 func CORSApplyAutomaticAllowAllPolicy(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		if origin := ctx.Request.Header.PeekBytes(headerOrigin); origin != nil {
-			corsApplyAutomaticAllowAllPolicy(ctx, origin)
+			corsApplyAutomaticAllowAllPolicy(&ctx.Request, &ctx.Response, origin)
 		}
 
 		next(ctx)
 	}
 }
 
-func corsApplyAutomaticAllowAllPolicy(ctx *AutheliaCtx, origin []byte) {
+func corsApplyAutomaticAllowAllPolicy(req *fasthttp.Request, resp *fasthttp.Response, origin []byte) {
 	originURL, err := url.Parse(string(origin))
 	if err != nil || originURL.Scheme != "https" {
 		return
 	}
 
-	ctx.Response.Header.SetBytesKV(headerVary, headerValueVary)
-	ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, origin)
-	ctx.Response.Header.SetBytesKV(headerAccessControlAllowCredentials, headerValueFalse)
-	ctx.Response.Header.SetBytesKV(headerAccessControlMaxAge, headerValueMaxAge)
+	resp.Header.SetBytesKV(headerVary, headerValueVary)
+	resp.Header.SetBytesKV(headerAccessControlAllowOrigin, origin)
+	resp.Header.SetBytesKV(headerAccessControlAllowCredentials, headerValueFalse)
+	resp.Header.SetBytesKV(headerAccessControlMaxAge, headerValueMaxAge)
 
-	if headers := ctx.Request.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
+	if headers := req.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
 		requestedHeaders := strings.Split(string(headers), ",")
-		finalHeaders := make([]string, len(requestedHeaders))
+		allowHeaders := make([]string, len(requestedHeaders))
 
-		for _, header := range requestedHeaders {
+		for i, header := range requestedHeaders {
 			headerTrimmed := strings.Trim(header, " ")
 			if !strings.EqualFold("*", headerTrimmed) && !strings.EqualFold("Cookie", headerTrimmed) {
-				finalHeaders = append(finalHeaders, headerTrimmed)
+				allowHeaders[i] = headerTrimmed
 			}
 		}
 
-		if len(finalHeaders) != 0 {
-			ctx.Response.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(finalHeaders, ", ")))
+		if len(allowHeaders) != 0 {
+			resp.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(allowHeaders, ", ")))
 		}
 	}
 
-	ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, headerValueMethodGET)
+	if requestMethods := req.Header.PeekBytes(headerAccessControlRequestMethod); requestMethods != nil {
+		resp.Header.SetBytesKV(headerAccessControlAllowMethods, requestMethods)
+	}
 }
