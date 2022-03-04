@@ -73,14 +73,9 @@ const (
 
 // OIDC constants.
 const (
-	pathOpenIDConnectWellKnown = "/.well-known/openid-configuration"
-
-	pathOpenIDConnectJWKs          = "/api/oidc/jwks"
-	pathOpenIDConnectAuthorization = "/api/oidc/authorize"
-	pathOpenIDConnectToken         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
-	pathOpenIDConnectIntrospection = "/api/oidc/introspect"
-	pathOpenIDConnectRevocation    = "/api/oidc/revoke"
-	pathOpenIDConnectUserinfo      = "/api/oidc/userinfo"
+	pathLegacyOpenIDConnectAuthorization = "/api/oidc/authorize"
+	pathLegacyOpenIDConnectIntrospection = "/api/oidc/introspect"
+	pathLegacyOpenIDConnectRevocation    = "/api/oidc/revoke"
 
 	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
 	pathOpenIDConnectConsent = "/api/oidc/consent"
