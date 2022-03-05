@@ -62,10 +62,6 @@ func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
 	return err == nil
 }
 
-func (s *OpenIDConnectStore) GetClient(_ context.Context, id string) (client fosite.Client, err error) {
-	return s.GetFullClient(id)
-}
-
 func (s *OpenIDConnectStore) BeginTX(ctx context.Context) (c context.Context, err error) {
 	return s.provider.BeginTX(ctx)
 }
@@ -78,6 +74,14 @@ func (s *OpenIDConnectStore) Rollback(ctx context.Context) (err error) {
 	return s.provider.Rollback(ctx)
 }
 
+// GetClient loads the client by its ID or returns an error if the client does not exist or another error occurred.
+// This implements a portion of fosite.ClientManager.
+func (s *OpenIDConnectStore) GetClient(_ context.Context, id string) (client fosite.Client, err error) {
+	return s.GetFullClient(id)
+}
+
+// ClientAssertionJWTValid returns an error if the JTI is known or the DB check failed and nil if the JTI is not known.
+// This implements a portion of fosite.ClientManager.
 func (s *OpenIDConnectStore) ClientAssertionJWTValid(ctx context.Context, jti string) (err error) {
 	signature := fmt.Sprintf("%x", sha256.Sum256([]byte(jti)))
 
@@ -95,12 +99,17 @@ func (s *OpenIDConnectStore) ClientAssertionJWTValid(ctx context.Context, jti st
 	}
 }
 
+// SetClientAssertionJWT marks a JTI as known for the given expiry time. Before inserting the new JTI, it will clean
+// up any existing JTIs that have expired as those tokens can not be replayed due to the expiry.
+// This implements a portion of fosite.ClientManager.
 func (s *OpenIDConnectStore) SetClientAssertionJWT(ctx context.Context, jti string, exp time.Time) (err error) {
 	blacklistedJTI := model.NewOAuth2BlacklistedJTI(jti, exp)
 
 	return s.provider.SaveOAuth2BlacklistedJTI(ctx, blacklistedJTI)
 }
 
+// CreateAuthorizeCodeSession stores the authorization request for a given authorization code.
+// This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) CreateAuthorizeCodeSession(ctx context.Context, code string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, request)
 }
@@ -109,6 +118,11 @@ func (s *OpenIDConnectStore) InvalidateAuthorizeCodeSession(ctx context.Context,
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
 }
 
+// GetAuthorizeCodeSession hydrates the session based on the given code and returns the authorization request.
+// If the authorization code has been invalidated with `InvalidateAuthorizeCodeSession`, this
+// method should return the ErrInvalidatedAuthorizeCode error.
+// Make sure to also return the fosite.Requester value when returning the fosite.ErrInvalidatedAuthorizeCode error!
+// This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
 }

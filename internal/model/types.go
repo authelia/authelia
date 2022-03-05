@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
-
-	"github.com/ory/fosite"
 )
 
 // NewIP easily constructs a new IP.
@@ -154,18 +152,10 @@ type StartupCheck interface {
 	StartupCheck() (err error)
 }
 
-func NewStringSlicePipeDelimiterFromFositeArguments(arguments fosite.Arguments) (s StringSlicePipeDelimited) {
-	slc := make([]string, len(arguments))
-
-	for i, argument := range arguments {
-		slc[i] = argument
-	}
-
-	return slc
-}
-
+// StringSlicePipeDelimited is a string slice that is stored in the database delimited by pipes.
 type StringSlicePipeDelimited []string
 
+// Scan is the StringSlicePipeDelimited implementation of the sql.Scanner.
 func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
 	var nullStr sql.NullString
 
@@ -180,6 +170,7 @@ func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
 	return nil
 }
 
+// Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
 func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
 	return valueStringSlice('|', s), nil
 }

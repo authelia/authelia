@@ -12,6 +12,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 )
 
+// NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and fosite.Requester.
 func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
 	var (
 		subject  string
@@ -45,6 +46,7 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 	}, nil
 }
 
+// NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI.
 func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist *OAuth2BlacklistedJTI) {
 	return &OAuth2BlacklistedJTI{
 		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(jti))),
@@ -52,6 +54,7 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist *OAuth2Bla
 	}
 }
 
+// OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
 	ID        int       `db:"id"`
 	Signature string    `db:"signature"`
@@ -68,6 +71,7 @@ type OpenIDSession struct {
 	Extra map[string]interface{} `json:"extra"`
 }
 
+// OAuth2Session represents a OAuth2.0 session.
 type OAuth2Session struct {
 	ID                int                      `db:"id"`
 	RequestID         string                   `db:"request_id"`
@@ -84,6 +88,7 @@ type OAuth2Session struct {
 	Session           []byte                   `db:"session_data"`
 }
 
+// ToRequest converts an OAuth2Session into a fosite.Request given a fosite.Session and fosite.Storage.
 func (s OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
 	sessionData := s.Session
 
