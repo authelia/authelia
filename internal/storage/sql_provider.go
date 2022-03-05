@@ -418,6 +418,12 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 		return nil, fmt.Errorf("error selecting oauth2 %s session: %w", sessionType, err)
 	}
 
+	if session.Session, err = p.decrypt(session.Session); err != nil {
+		p.log.Errorf("error decrypting the oauth2 %s session data for subject '%s' and request id '%s': %v", session.Subject, session.RequestID, sessionType, err)
+
+		return nil, fmt.Errorf("error decrypting the oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
+	}
+
 	return session, nil
 }
 
