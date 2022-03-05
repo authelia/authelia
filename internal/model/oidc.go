@@ -81,8 +81,8 @@ type OAuth2Session struct {
 	Subject           string                   `db:"subject"`
 	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
-	RequestedAudience StringSlicePipeDelimited `db:"requested_scopes"`
-	GrantedAudience   StringSlicePipeDelimited `db:"granted_scopes"`
+	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
+	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
 	Session           []byte                   `db:"session_data"`
