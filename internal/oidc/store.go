@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -96,7 +96,7 @@ func (s *OpenIDConnectStore) ClientAssertionJWTValid(ctx context.Context, jti st
 }
 
 func (s *OpenIDConnectStore) SetClientAssertionJWT(ctx context.Context, jti string, exp time.Time) (err error) {
-	blacklistedJTI := models.NewOAuth2BlacklistedJTI(jti, exp)
+	blacklistedJTI := model.NewOAuth2BlacklistedJTI(jti, exp)
 
 	return s.provider.SaveOAuth2BlacklistedJTI(ctx, blacklistedJTI)
 }
@@ -175,7 +175,7 @@ func (s *OpenIDConnectStore) GetOpenIDConnectSession(ctx context.Context, author
 
 func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
 	var (
-		sessionModel *models.OAuth2Session
+		sessionModel *model.OAuth2Session
 	)
 
 	if sessionModel, err = s.provider.LoadOAuth2Session(ctx, sessionType, signature); err != nil {
@@ -186,9 +186,9 @@ func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, session
 }
 
 func (s *OpenIDConnectStore) saveSession(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, r fosite.Requester) (err error) {
-	var session *models.OAuth2Session
+	var session *model.OAuth2Session
 
-	if session, err = models.NewOAuth2SessionFromRequest(signature, r); err != nil {
+	if session, err = model.NewOAuth2SessionFromRequest(signature, r); err != nil {
 		return err
 	}
 

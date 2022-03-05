@@ -1,4 +1,4 @@
-package models
+package model
 
 const (
 	errFmtValueNil           = "cannot value model type '%T' with value nil to driver.Value"

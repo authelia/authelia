@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -45,7 +45,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		return
 	}
 
-	claims := ar.GetSession().(*models.OpenIDSession).IDTokenClaims().ToMap()
+	claims := ar.GetSession().(*model.OpenIDSession).IDTokenClaims().ToMap()
 	delete(claims, "jti")
 	delete(claims, "sid")
 	delete(claims, "at_hash")

@@ -84,11 +84,9 @@ const (
 type CTXKey int
 
 const (
-	TransactionCTXKey CTXKey = iota
+	ctxKeyTransaction CTXKey = iota
 )
 
 var (
-	ctxTX = "tx"
-
 	reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
 )

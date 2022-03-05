@@ -14,7 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
@@ -263,12 +263,12 @@ func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error
 		return nil, err
 	}
 
-	return context.WithValue(ctx, TransactionCTXKey, tx), nil
+	return context.WithValue(ctx, ctxKeyTransaction, tx), nil
 }
 
 // Commit performs a database commit.
 func (p *SQLProvider) Commit(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(TransactionCTXKey).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -279,7 +279,7 @@ func (p *SQLProvider) Commit(ctx context.Context) (err error) {
 
 // Rollback performs a database rollback.
 func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(TransactionCTXKey).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -289,7 +289,7 @@ func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
 }
 
 // SaveOAuth2Session saves a OAuth2Session to the database.
-func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *models.OAuth2Session) (err error) {
+func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *model.OAuth2Session) (err error) {
 	var query string
 
 	switch sessionType {
@@ -376,7 +376,7 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 }
 
 // LoadOAuth2Session saves a OAuth2Session from the database.
-func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *models.OAuth2Session, err error) {
+func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error) {
 	var query string
 
 	switch sessionType {
@@ -394,7 +394,7 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType)
 	}
 
-	session = &models.OAuth2Session{}
+	session = &model.OAuth2Session{}
 
 	if err = p.db.GetContext(ctx, &session, query, signature); err != nil {
 		return nil, fmt.Errorf("error selecting oauth2 %s session: %w", sessionType, err)
@@ -404,7 +404,7 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 }
 
 // SaveOAuth2BlacklistedJTI saves a OAuth2BlacklistedJTI to the database.
-func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *models.OAuth2BlacklistedJTI) (err error) {
+func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
 		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}
@@ -413,8 +413,8 @@ func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJ
 }
 
 // LoadOAuth2BlacklistedJTI loads a OAuth2BlacklistedJTI from the database.
-func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *models.OAuth2BlacklistedJTI, err error) {
-	blacklistedJTI = &models.OAuth2BlacklistedJTI{}
+func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error) {
+	blacklistedJTI = &model.OAuth2BlacklistedJTI{}
 
 	if err = p.db.GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, signature); err != nil {
 		return nil, err
@@ -446,8 +446,8 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	}
 }
 
-// LoadUserInfo loads the models.UserInfo from the database.
-func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info models.UserInfo, err error) {
+// LoadUserInfo loads the model.UserInfo from the database.
+func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error) {
 	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
 	switch {
@@ -455,21 +455,21 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 		return info, nil
 	case errors.Is(err, sql.ErrNoRows):
 		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, authentication.PossibleMethods[0]); err != nil {
-			return models.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
+			return model.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
 		}
 
 		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username); err != nil {
-			return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
+			return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 		}
 
 		return info, nil
 	default:
-		return models.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
+		return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 	}
 }
 
 // SaveIdentityVerification save an identity verification record to the database.
-func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification models.IdentityVerification) (err error) {
+func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification model.IdentityVerification) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertIdentityVerification,
 		verification.JTI, verification.IssuedAt, verification.IssuedIP, verification.ExpiresAt,
 		verification.Username, verification.Action); err != nil {
@@ -480,7 +480,7 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 }
 
 // ConsumeIdentityVerification marks an identity verification record in the database as consumed.
-func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip models.NullIP) (err error) {
+func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlConsumeIdentityVerification, ip, jti); err != nil {
 		return fmt.Errorf("error updating identity verification: %w", err)
 	}
@@ -490,7 +490,7 @@ func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti strin
 
 // FindIdentityVerification checks if an identity verification record is in the database and active.
 func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) (found bool, err error) {
-	verification := models.IdentityVerification{}
+	verification := model.IdentityVerification{}
 	if err = p.db.GetContext(ctx, &verification, p.sqlSelectIdentityVerification, jti); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -510,7 +510,7 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 }
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the database.
-func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config models.TOTPConfiguration) (err error) {
+func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config model.TOTPConfiguration) (err error) {
 	if config.Secret, err = p.encrypt(config.Secret); err != nil {
 		return fmt.Errorf("error encrypting the TOTP configuration secret for user '%s': %w", config.Username, err)
 	}
@@ -544,8 +544,8 @@ func (p *SQLProvider) DeleteTOTPConfiguration(ctx context.Context, username stri
 }
 
 // LoadTOTPConfiguration load a TOTP configuration given a username from the database.
-func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *models.TOTPConfiguration, err error) {
-	config = &models.TOTPConfiguration{}
+func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error) {
+	config = &model.TOTPConfiguration{}
 
 	if err = p.db.QueryRowxContext(ctx, p.sqlSelectTOTPConfig, username).StructScan(config); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -563,8 +563,8 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 }
 
 // LoadTOTPConfigurations load a set of TOTP configurations.
-func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []models.TOTPConfiguration, err error) {
-	configs = make([]models.TOTPConfiguration, 0, limit)
+func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error) {
+	configs = make([]model.TOTPConfiguration, 0, limit)
 
 	if err = p.db.SelectContext(ctx, &configs, p.sqlSelectTOTPConfigs, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -583,7 +583,7 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
-func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config models.TOTPConfiguration) (err error) {
+func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config model.TOTPConfiguration) (err error) {
 	switch config.ID {
 	case 0:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
@@ -599,7 +599,7 @@ func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config 
 }
 
 // SaveWebauthnDevice saves a registered Webauthn device.
-func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device models.WebauthnDevice) (err error) {
+func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
 		return fmt.Errorf("error encrypting the Webauthn device public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
 	}
@@ -626,8 +626,8 @@ func (p *SQLProvider) UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rp
 }
 
 // LoadWebauthnDevices loads Webauthn device registrations.
-func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []models.WebauthnDevice, err error) {
-	devices = make([]models.WebauthnDevice, 0, limit)
+func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebauthnDevice, err error) {
+	devices = make([]model.WebauthnDevice, 0, limit)
 
 	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevices, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -647,7 +647,7 @@ func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) 
 }
 
 // LoadWebauthnDevicesByUsername loads all webauthn devices registration for a given username.
-func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []models.WebauthnDevice, err error) {
+func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error) {
 	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByUsername, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoWebauthnDevice
@@ -665,7 +665,7 @@ func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, usernam
 	return devices, nil
 }
 
-func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device models.WebauthnDevice) (err error) {
+func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device model.WebauthnDevice) (err error) {
 	switch device.ID {
 	case 0:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKeyByUsername, device.PublicKey, device.Username, device.KID)
@@ -681,7 +681,7 @@ func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device 
 }
 
 // SavePreferredDuoDevice saves a Duo device.
-func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device models.DuoDevice) (err error) {
+func (p *SQLProvider) SavePreferredDuoDevice(ctx context.Context, device model.DuoDevice) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertDuoDevice, device.Username, device.Device, device.Method); err != nil {
 		return fmt.Errorf("error upserting preferred duo device for user '%s': %w", device.Username, err)
 	}
@@ -699,8 +699,8 @@ func (p *SQLProvider) DeletePreferredDuoDevice(ctx context.Context, username str
 }
 
 // LoadPreferredDuoDevice loads a Duo device of a given user.
-func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *models.DuoDevice, err error) {
-	device = &models.DuoDevice{}
+func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error) {
+	device = &model.DuoDevice{}
 
 	if err = p.db.QueryRowxContext(ctx, p.sqlSelectDuoDevice, username).StructScan(device); err != nil {
 		if err == sql.ErrNoRows {
@@ -714,7 +714,7 @@ func (p *SQLProvider) LoadPreferredDuoDevice(ctx context.Context, username strin
 }
 
 // AppendAuthenticationLog append a mark to the authentication log.
-func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt models.AuthenticationAttempt) (err error) {
+func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model.AuthenticationAttempt) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertAuthenticationAttempt,
 		attempt.Time, attempt.Successful, attempt.Banned, attempt.Username,
 		attempt.Type, attempt.RemoteIP, attempt.RequestURI, attempt.RequestMethod); err != nil {
@@ -725,8 +725,8 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 }
 
 // LoadAuthenticationLogs retrieve the latest failed authentications from the authentication log.
-func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []models.AuthenticationAttempt, err error) {
-	attempts = make([]models.AuthenticationAttempt, 0, limit)
+func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error) {
+	attempts = make([]model.AuthenticationAttempt, 0, limit)
 
 	if err = p.db.SelectContext(ctx, &attempts, p.sqlSelectAuthenticationAttemptsByUsername, fromDate, username, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

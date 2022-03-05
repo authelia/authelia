@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -293,11 +293,11 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
 	testCases := []struct {
-		config models.TOTPConfiguration
+		config model.TOTPConfiguration
 		png    bool
 	}{
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "john",
 				Period:    30,
 				Digits:    6,
@@ -305,7 +305,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			},
 		},
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "mary",
 				Period:    45,
 				Digits:    6,
@@ -313,7 +313,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			},
 		},
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "fred",
 				Period:    30,
 				Digits:    8,
@@ -321,7 +321,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			},
 		},
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "jone",
 				Period:    30,
 				Digits:    6,
@@ -332,7 +332,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	var (
-		config   *models.TOTPConfiguration
+		config   *model.TOTPConfiguration
 		fileInfo os.FileInfo
 	)
 
