@@ -67,7 +67,11 @@ func ToTimeDurationFunc() mapstructure.DecodeHookFuncType {
 
 		switch {
 		case f.Kind() == reflect.String:
-			break
+			dataStr := data.(string)
+
+			if duration, err = utils.ParseDurationString(dataStr); err != nil {
+				return nil, err
+			}
 		case f.Kind() == reflect.Int:
 			seconds := data.(int)
 
@@ -82,14 +86,6 @@ func ToTimeDurationFunc() mapstructure.DecodeHookFuncType {
 			seconds := data.(int64)
 
 			duration = time.Second * time.Duration(seconds)
-		}
-
-		if duration == 0 {
-			dataStr := data.(string)
-
-			if duration, err = utils.ParseDurationString(dataStr); err != nil {
-				return nil, err
-			}
 		}
 
 		if ptr {
