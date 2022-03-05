@@ -196,7 +196,12 @@ func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, session
 		return nil, err
 	}
 
-	return sessionModel.ToRequest(ctx, session, s)
+	r, err = sessionModel.ToRequest(ctx, session, s)
+	if err != nil {
+		logging.Logger().Error(err)
+	}
+
+	return r, err
 }
 
 func (s *OpenIDConnectStore) saveSession(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, r fosite.Requester) (err error) {
