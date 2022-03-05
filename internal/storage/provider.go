@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/ory/fosite/storage"
+
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
@@ -12,7 +14,8 @@ type Provider interface {
 	model.StartupCheck
 
 	RegulatorProvider
-	TransactionalProvider
+
+	storage.Transactional
 
 	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
@@ -58,13 +61,6 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error)
 
 	Close() (err error)
-}
-
-// TransactionalProvider represents a storage.Provider that can perform transactions.
-type TransactionalProvider interface {
-	BeginTX(ctx context.Context) (context.Context, error)
-	Commit(ctx context.Context) error
-	Rollback(ctx context.Context) error
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

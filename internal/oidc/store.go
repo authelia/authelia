@@ -17,6 +17,17 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
+/*
+type EffectiveStore interface {
+	fosite.ClientManager
+	oauth2.AuthorizeCodeStorage
+	oauth2.TokenRevocationStorage
+	pkce.PKCERequestStorage
+	openid.OpenIDConnectRequestStorage
+}.
+
+*/
+
 func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider storage.Provider) (store *OpenIDConnectStore) {
 	logger := logging.Logger()
 
@@ -62,14 +73,20 @@ func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
 	return err == nil
 }
 
+// BeginTX starts a transaction.
+// This implements a portion of fosite storage.Transactional interface.
 func (s *OpenIDConnectStore) BeginTX(ctx context.Context) (c context.Context, err error) {
 	return s.provider.BeginTX(ctx)
 }
 
+// Commit completes a transaction.
+// This implements a portion of fosite storage.Transactional interface.
 func (s *OpenIDConnectStore) Commit(ctx context.Context) (err error) {
 	return s.provider.Commit(ctx)
 }
 
+// Rollback rolls a transaction back.
+// This implements a portion of fosite storage.Transactional interface.
 func (s *OpenIDConnectStore) Rollback(ctx context.Context) (err error) {
 	return s.provider.Rollback(ctx)
 }
@@ -114,6 +131,10 @@ func (s *OpenIDConnectStore) CreateAuthorizeCodeSession(ctx context.Context, cod
 	return s.saveSession(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, request)
 }
 
+// InvalidateAuthorizeCodeSession is called when an authorize code is being used. The state of the authorization
+// code should be set to invalid and consecutive requests to GetAuthorizeCodeSession should return the
+// ErrInvalidatedAuthorizeCode error.
+// This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
 }
@@ -124,65 +145,104 @@ func (s *OpenIDConnectStore) InvalidateAuthorizeCodeSession(ctx context.Context,
 // Make sure to also return the fosite.Requester value when returning the fosite.ErrInvalidatedAuthorizeCode error!
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
+	// TODO: Implement the  fosite.ErrInvalidatedAuthorizeCode error above. This requires splitting the invalidated sessions and deleted sessions.
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
 }
 
+// CreateAccessTokenSession stores the authorization request for a given access token.
+// This implements a portion of oauth2.AccessTokenStorage.
 func (s *OpenIDConnectStore) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeAccessToken, signature, request)
 }
 
+// DeleteAccessTokenSession marks an access token session as deleted.
+// This implements a portion of oauth2.AccessTokenStorage.
 func (s *OpenIDConnectStore) DeleteAccessTokenSession(ctx context.Context, signature string) (err error) {
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature)
 }
 
+// RevokeAccessToken revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
+// This implements a portion of oauth2.TokenRevocationStorage.
 func (s *OpenIDConnectStore) RevokeAccessToken(ctx context.Context, requestID string) (err error) {
 	return s.revokeSessionByRequestID(ctx, storage.OAuth2SessionTypeAccessToken, requestID)
 }
 
+// GetAccessTokenSession gets the authorization request for a given access token.
+// This implements a portion of oauth2.AccessTokenStorage.
 func (s *OpenIDConnectStore) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature, session)
 }
 
+// CreateRefreshTokenSession stores the authorization request for a given refresh token.
+// This implements a portion of oauth2.RefreshTokenStorage.
 func (s *OpenIDConnectStore) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeRefreshToken, signature, request)
 }
 
+// DeleteRefreshTokenSession marks the authorization request for a given refresh token as deleted.
+// This implements a portion of oauth2.RefreshTokenStorage.
 func (s *OpenIDConnectStore) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature)
 }
 
+// RevokeRefreshToken revokes a refresh token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// If the particular token is a refresh token and the authorization server supports the revocation of access tokens,
+// then the authorization server SHOULD also invalidate all access tokens based on the same authorization grant (see Implementation Note).
+// This implements a portion of oauth2.TokenRevocationStorage.
 func (s *OpenIDConnectStore) RevokeRefreshToken(ctx context.Context, requestID string) (err error) {
 	return s.revokeSessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
+// RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
+// If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
+// This implements a portion of oauth2.TokenRevocationStorage.
 func (s *OpenIDConnectStore) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) (err error) {
 	return s.RevokeRefreshToken(ctx, requestID)
 }
 
+// GetRefreshTokenSession gets the authorization request for a given refresh token.
+// This implements a portion of oauth2.RefreshTokenStorage.
 func (s *OpenIDConnectStore) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeRefreshToken, signature, session)
 }
 
+// CreatePKCERequestSession stores the authorization request for a given PKCE request.
+// This implements a portion of pkce.PKCERequestStorage.
 func (s *OpenIDConnectStore) CreatePKCERequestSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, request)
 }
 
+// DeletePKCERequestSession marks the authorization request for a given PKCE request as deleted.
+// This implements a portion of pkce.PKCERequestStorage.
 func (s *OpenIDConnectStore) DeletePKCERequestSession(ctx context.Context, signature string) (err error) {
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature)
 }
 
+// GetPKCERequestSession gets the authorization request for a given PKCE request.
+// This implements a portion of pkce.PKCERequestStorage.
 func (s *OpenIDConnectStore) GetPKCERequestSession(ctx context.Context, signature string, session fosite.Session) (requester fosite.Requester, err error) {
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypePKCEChallenge, signature, session)
 }
 
+// CreateOpenIDConnectSession creates an open id connect session for a given authorize code.
+// This is relevant for explicit open id connect flow.
+// This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *OpenIDConnectStore) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request)
 }
 
+// Deprecated: DeleteOpenIDConnectSession is not called from anywhere. Originally, it should remove an open id connect session from the store.
+// This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *OpenIDConnectStore) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) (err error) {
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, authorizeCode)
 }
 
+// GetOpenIDConnectSession returns error:
+// - nil if a session was found,
+// - ErrNoSessionFound if no session was found
+// - or an arbitrary error if an error occurred.
+// This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *OpenIDConnectStore) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (r fosite.Requester, err error) {
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
 }
@@ -196,12 +256,7 @@ func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, session
 		return nil, err
 	}
 
-	r, err = sessionModel.ToRequest(ctx, session, s)
-	if err != nil {
-		logging.Logger().Error(err)
-	}
-
-	return r, err
+	return sessionModel.ToRequest(ctx, session, s)
 }
 
 func (s *OpenIDConnectStore) saveSession(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, r fosite.Requester) (err error) {

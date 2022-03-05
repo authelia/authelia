@@ -304,14 +304,10 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlInsertOAuth2OpenIDConnectSession
 	default:
-		p.log.Errorf("error inserting oauth2 session for subject '%s' and request id '%s': unknown oauth2 session type '%s'", session.Subject, session.RequestID, sessionType)
-
 		return fmt.Errorf("error inserting oauth2 session for subject '%s' and request id '%s': unknown oauth2 session type '%s'", session.Subject, session.RequestID, sessionType)
 	}
 
 	if session.Session, err = p.encrypt(session.Session); err != nil {
-		p.log.Errorf("error encrypting the oauth2 %s session data for subject '%s' and request id '%s': %v", session.Subject, session.RequestID, sessionType, err)
-
 		return fmt.Errorf("error encrypting the oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
 	}
 
@@ -321,8 +317,6 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 		session.RequestedAudience, session.GrantedAudience, session.Form, session.Session)
 
 	if err != nil {
-		p.log.Errorf("error inserting oauth2 %s session data for subject '%s' and request id '%s': %v", session.Subject, session.RequestID, sessionType, err)
-
 		return fmt.Errorf("error inserting oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
 	}
 
@@ -345,14 +339,10 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlRevokeOAuth2OpenIDConnectSession
 	default:
-		p.log.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
-
 		return fmt.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
-		p.log.Errorf("error revoking oauth2 %s session with signature '%s': %v", sessionType, signature, err)
-
 		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType, signature, err)
 	}
 
@@ -375,14 +365,10 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlRevokeOAuth2OpenIDConnectSessionByRequestID
 	default:
-		p.log.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
-
 		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
-		p.log.Errorf("error revoking oauth2 %s session with request id '%s': %v", sessionType, requestID, err)
-
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
@@ -405,22 +391,16 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlSelectOAuth2OpenIDConnectSession
 	default:
-		p.log.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType)
-
 		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType)
 	}
 
 	session = &model.OAuth2Session{}
 
 	if err = p.db.GetContext(ctx, session, query, signature); err != nil {
-		p.log.Errorf("error selecting oauth2 %s session: %v", sessionType, err)
-
 		return nil, fmt.Errorf("error selecting oauth2 %s session: %w", sessionType, err)
 	}
 
 	if session.Session, err = p.decrypt(session.Session); err != nil {
-		p.log.Errorf("error decrypting the oauth2 %s session data for subject '%s' and request id '%s': %v", session.Subject, session.RequestID, sessionType, err)
-
 		return nil, fmt.Errorf("error decrypting the oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
 	}
 
@@ -430,8 +410,6 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 // SaveOAuth2BlacklistedJTI saves a OAuth2BlacklistedJTI to the database.
 func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
-		p.log.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
-
 		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}
 
@@ -443,8 +421,6 @@ func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature st
 	blacklistedJTI = &model.OAuth2BlacklistedJTI{}
 
 	if err = p.db.GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, signature); err != nil {
-		p.log.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %v", blacklistedJTI.Signature, err)
-
 		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}
 
