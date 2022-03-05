@@ -412,7 +412,7 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 
 	session = &model.OAuth2Session{}
 
-	if err = p.db.GetContext(ctx, &session, query, signature); err != nil {
+	if err = p.db.GetContext(ctx, session, query, signature); err != nil {
 		p.log.Errorf("error selecting oauth2 %s session: %v", sessionType, err)
 
 		return nil, fmt.Errorf("error selecting oauth2 %s session: %w", sessionType, err)
