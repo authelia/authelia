@@ -25,7 +25,7 @@ export enum State {
     WaitTouch = 2,
     InProgress = 3,
     Failure = 4,
-    Gesture = 5,
+    UserGestureRequired = 5,
 }
 
 export interface Props {
@@ -40,10 +40,9 @@ export interface Props {
 
 const WebauthnMethod = function (props: Props) {
     const md = new MobileDetect(window.navigator.userAgent);
-    const gesture = md.is("iOS") || md.is("Safari");
 
     const signInTimeout = 30;
-    const [state, setState] = useState(!gesture ? State.Gesture : State.Starting);
+    const [state, setState] = useState(md.is("iOS") || md.is("Safari") ? State.UserGestureRequired : State.Starting);
     const [explanation, setExplanation] = useState("");
 
     const style = useStyles();
@@ -158,7 +157,7 @@ const WebauthnMethod = function (props: Props) {
 
     useEffect(() => {
         switch (state) {
-            case State.Gesture:
+            case State.UserGestureRequired:
                 setExplanation("Click start to initiate the authentication process");
                 break;
             case State.Starting:
@@ -234,7 +233,7 @@ function Icon(props: IconProps) {
     const waitGesture = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
-            className={state === State.Gesture ? undefined : "hidden"}
+            className={state === State.UserGestureRequired ? undefined : "hidden"}
         >
             <Button color="primary" onClick={props.onRetryClick}>
                 Start
