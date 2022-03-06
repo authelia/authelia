@@ -44,6 +44,7 @@ const WebauthnMethod = function (props: Props) {
 
     const signInTimeout = 30;
     const [state, setState] = useState(!gesture ? State.Gesture : State.Starting);
+    const [explanation, setExplanation] = useState("");
 
     const style = useStyles();
     const redirectionURL = useRedirectionURL();
@@ -155,6 +156,20 @@ const WebauthnMethod = function (props: Props) {
         }
     }, [doInitiateSignIn, state, setState]);
 
+    useEffect(() => {
+        switch (state) {
+            case State.Gesture:
+                setExplanation("Click start to initiate the authentication process");
+                break;
+            case State.Starting:
+            case State.WaitTouch:
+                setExplanation("Touch the token of your security key");
+                break;
+            default:
+                setExplanation("Something went wrong, click retry to try again");
+        }
+    }, [state, setExplanation]);
+
     let methodState = MethodContainerState.METHOD;
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
         methodState = MethodContainerState.ALREADY_AUTHENTICATED;
@@ -166,7 +181,7 @@ const WebauthnMethod = function (props: Props) {
         <MethodContainer
             id={props.id}
             title="Security Key"
-            explanation="Touch the token of your security key"
+            explanation={explanation}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}
