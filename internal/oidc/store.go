@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ory/fosite"
@@ -25,6 +26,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 			AccessTokens:           map[string]fosite.Requester{},
 			RefreshTokens:          map[string]storage.StoreRefreshToken{},
 			PKCES:                  map[string]fosite.Requester{},
+			BlacklistedJTIs:        map[string]time.Time{},
 			AccessTokenRequestIDs:  map[string]string{},
 			RefreshTokenRequestIDs: map[string]string{},
 		},
@@ -101,11 +103,13 @@ func (s *OpenIDConnectStore) SetClientAssertionJWT(ctx context.Context, jti stri
 
 // CreateAuthorizeCodeSession decorates fosite's storage.MemoryStore CreateAuthorizeCodeSession method.
 func (s *OpenIDConnectStore) CreateAuthorizeCodeSession(ctx context.Context, code string, req fosite.Requester) error {
+	fmt.Printf("Create Authorize Code '%s': %+v\n", code, s.memory.AuthorizeCodes)
 	return s.memory.CreateAuthorizeCodeSession(ctx, code, req)
 }
 
 // GetAuthorizeCodeSession decorates fosite's storage.MemoryStore GetAuthorizeCodeSession method.
 func (s *OpenIDConnectStore) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (fosite.Requester, error) {
+	fmt.Printf("Authorize Codes: %+v\n", s.memory.AuthorizeCodes)
 	return s.memory.GetAuthorizeCodeSession(ctx, code, session)
 }
 

@@ -421,19 +421,20 @@ does.
 _**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
 individual user. Please use the claim `preferred_username` instead._
 
-|       Claim        |   JWT Type    | Authelia Attribute |                  Description                  |
-|:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
-|        sub         |    string     |      username      |   The username the user used to login with    |
-|       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
-|        scp         | array[string] |       scopes       |                Granted scopes                 |
-|        iss         |    string     |      hostname      |      The issuer name, determined by URL       |
-|      at_hash       |    string     |       _N/A_        |               Access Token Hash               |
-|        aud         | array[string] |       _N/A_        |                   Audience                    |
-|        exp         |    number     |       _N/A_        |                    Expires                    |
-|     auth_time      |    number     |       _N/A_        | The time the user authenticated with Authelia |
-|        rat         |    number     |       _N/A_        |     The time when the token was requested     |
-|        iat         |    number     |       _N/A_        |      The time when the token was issued       |
-|        jti         | string(uuid)  |       _N/A_        |                JWT Identifier                 |
+|   Claim   |   JWT Type    | Authelia Attribute |                         Description                         |
+|:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
+|    sub    |    string     |      username      |       A unique value linked to the user who logged in       |
+|   scope   |    string     |       scopes       |              Granted scopes (space delimited)               |
+|    scp    | array[string] |       scopes       |                       Granted scopes                        |
+|    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
+|  at_hash  |    string     |       _N/A_        |                      Access Token Hash                      |
+|    aud    | array[string] |       _N/A_        |                          Audience                           |
+|    exp    |    number     |       _N/A_        |                           Expires                           |
+| auth_time |    number     |       _N/A_        |        The time the user authenticated with Authelia        |
+|    rat    |    number     |       _N/A_        |            The time when the token was requested            |
+|    iat    |    number     |       _N/A_        |             The time when the token was issued              |
+|    jti    | string(uuid)  |       _N/A_        |                       JWT Identifier                        |
+|    amr    | array[string] |       _N/A_        | An [RFC8176] list of authentication method reference values |
 
 ### groups
 
@@ -482,3 +483,4 @@ Authelia via https://auth.example.com, the discovery URL is https://auth.example
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
+[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176

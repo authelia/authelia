@@ -10,8 +10,10 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -80,18 +82,21 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &oidc.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     userSession.Username,
-				Issuer:      issuer,
-				AuthTime:    authTime,
-				RequestedAt: workflowCreated,
-				IssuedAt:    time.Now(),
-				Nonce:       ar.GetRequestForm().Get("nonce"),
-				Audience:    ar.GetGrantedAudience(),
-				Extra:       extraClaims,
+				Subject:                         userSession.Username,
+				Issuer:                          issuer,
+				AuthTime:                        authTime,
+				RequestedAt:                     workflowCreated,
+				IssuedAt:                        time.Now(),
+				Nonce:                           ar.GetRequestForm().Get("nonce"),
+				Audience:                        ar.GetGrantedAudience(),
+				AuthenticationMethodsReferences: userSession.AuthenticationMethodReferences,
+				Extra:                           extraClaims,
 			},
-			Headers: &jwt.Headers{Extra: map[string]interface{}{
-				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
-			}},
+			Headers: &jwt.Headers{
+				Extra: map[string]interface{}{
+					"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+				},
+			},
 			Subject:  userSession.Username,
 			Username: userSession.Username,
 		},
@@ -124,14 +129,14 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx.Logger.Debugf("User %s must consent with scopes %s",
 		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
 
-	userSession.OIDCWorkflowSession = &session.OIDCWorkflowSession{
-		ClientID:                   client.ID,
-		RequestedScopes:            ar.GetRequestedScopes(),
-		RequestedAudience:          ar.GetRequestedAudience(),
-		AuthURI:                    redirectURL,
-		TargetURI:                  ar.GetRedirectURI().String(),
-		RequiredAuthorizationLevel: client.Policy,
-		CreatedTimestamp:           time.Now().Unix(),
+	userSession.OIDCWorkflowSession = &model.OIDCWorkflowSession{
+		ClientID:          client.ID,
+		RequestedScopes:   ar.GetRequestedScopes(),
+		RequestedAudience: ar.GetRequestedAudience(),
+		AuthURI:           redirectURL,
+		TargetURI:         ar.GetRedirectURI().String(),
+		Require2FA:        client.Policy == authorization.TwoFactor,
+		CreatedTimestamp:  time.Now().Unix(),
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {

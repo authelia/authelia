@@ -6,6 +6,8 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewDefaultUserSession create a default user session.
@@ -29,6 +31,8 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	s.DisplayName = details.DisplayName
 	s.Groups = details.Groups
 	s.Emails = details.Emails
+
+	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRPasswordBasedAuthentication)
 }
 
 // SetTwoFactor sets the expected property values for two factor authentication.
@@ -36,6 +40,36 @@ func (s *UserSession) SetTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.TwoFactor
+}
+
+func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
+	s.SetTwoFactor(now)
+
+	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMROneTimePassword)
+}
+
+func (s *UserSession) SetTwoFactorDuo(now time.Time) {
+	s.SetTwoFactor(now)
+
+	if utils.IsStringSliceContainsAny(
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMROneTimePassword},
+		s.AuthenticationMethodReferences) {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRMultiChannelAuthentication)
+	}
+}
+
+func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
+	s.SetTwoFactor(now)
+
+	if userPresence {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRUserPresence)
+	}
+
+	if userVerified {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRPersonalIdentificationNumber)
+	}
+
+	s.Webauthn = nil
 }
 
 // AuthenticatedTime returns the unix timestamp this session authenticated successfully at the given level.

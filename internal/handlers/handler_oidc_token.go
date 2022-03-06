@@ -13,7 +13,13 @@ func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.R
 
 	accessRequest, err := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)
 	if err != nil {
-		ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", err)
+		switch e := err.(type) {
+		case *fosite.RFC6749Error:
+			ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", e)
+		default:
+			ctx.Logger.Errorf("Error occurred in NewAccessRequest: %+v", err)
+		}
+
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, accessRequest, err)
 
 		return

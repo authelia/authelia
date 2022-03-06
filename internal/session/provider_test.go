@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestShouldInitializerSession(t *testing.T) {
@@ -89,10 +90,11 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.Equal(t, timeZeroFactor, authAt)
 
 	assert.Equal(t, UserSession{
-		Username:                  testUsername,
-		AuthenticationLevel:       authentication.OneFactor,
-		LastActivity:              timeOneFactor.Unix(),
-		FirstFactorAuthnTimestamp: timeOneFactor.Unix(),
+		Username:                       testUsername,
+		AuthenticationLevel:            authentication.OneFactor,
+		LastActivity:                   timeOneFactor.Unix(),
+		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
+		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
 	}, session)
 
 	session.SetTwoFactor(timeTwoFactor)
@@ -104,11 +106,12 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, UserSession{
-		Username:                   testUsername,
-		AuthenticationLevel:        authentication.TwoFactor,
-		LastActivity:               timeTwoFactor.Unix(),
-		FirstFactorAuthnTimestamp:  timeOneFactor.Unix(),
-		SecondFactorAuthnTimestamp: timeTwoFactor.Unix(),
+		Username:                       testUsername,
+		AuthenticationLevel:            authentication.TwoFactor,
+		LastActivity:                   timeTwoFactor.Unix(),
+		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
+		SecondFactorAuthnTimestamp:     timeTwoFactor.Unix(),
+		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
 	}, session)
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
