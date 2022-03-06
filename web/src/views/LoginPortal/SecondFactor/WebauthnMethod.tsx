@@ -2,6 +2,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from "react
 
 import { Button, makeStyles, useTheme } from "@material-ui/core";
 import { CSSProperties } from "@material-ui/styles";
+import MobileDetect from "mobile-detect";
 
 import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -20,9 +21,11 @@ import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export enum State {
-    WaitTouch = 1,
-    InProgress = 2,
-    Failure = 3,
+    Starting = 1,
+    WaitTouch = 2,
+    InProgress = 3,
+    Failure = 4,
+    Gesture = 5,
 }
 
 export interface Props {
@@ -36,8 +39,12 @@ export interface Props {
 }
 
 const WebauthnMethod = function (props: Props) {
+    const md = new MobileDetect(window.navigator.userAgent);
+    const gesture = md.is("iOS") || md.is("Safari");
+
     const signInTimeout = 30;
-    const [state, setState] = useState(State.WaitTouch);
+    const [state, setState] = useState(!gesture ? State.Gesture : State.Starting);
+
     const style = useStyles();
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
@@ -142,8 +149,11 @@ const WebauthnMethod = function (props: Props) {
     ]);
 
     useEffect(() => {
-        doInitiateSignIn();
-    }, [doInitiateSignIn]);
+        if (state === State.Starting) {
+            setState(State.WaitTouch);
+            doInitiateSignIn();
+        }
+    }, [doInitiateSignIn, state, setState]);
 
     let methodState = MethodContainerState.METHOD;
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -195,9 +205,25 @@ function Icon(props: IconProps) {
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
-            className={state === State.WaitTouch ? undefined : "hidden"}
+            className={state === State.WaitTouch || state === State.Starting ? undefined : "hidden"}
         >
-            <LinearProgressBar value={props.timer} style={progressBarStyle} height={theme.spacing(2)} />
+            <LinearProgressBar
+                value={props.timer}
+                style={progressBarStyle}
+                className={state === State.WaitTouch ? undefined : "hidden"}
+                height={theme.spacing(2)}
+            />
+        </IconWithContext>
+    );
+
+    const waitGesture = (
+        <IconWithContext
+            icon={<FingerTouchIcon size={64} animated strong />}
+            className={state === State.Gesture ? undefined : "hidden"}
+        >
+            <Button color="primary" onClick={props.onRetryClick}>
+                Start
+            </Button>
         </IconWithContext>
     );
 
@@ -211,6 +237,7 @@ function Icon(props: IconProps) {
 
     return (
         <Fragment>
+            {waitGesture}
             {touch}
             {failure}
         </Fragment>
