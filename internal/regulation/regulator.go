@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -24,13 +24,13 @@ func NewRegulator(config schema.RegulationConfiguration, provider storage.Regula
 // Mark an authentication attempt.
 // We split Mark and Regulate in order to avoid timing attacks.
 func (r *Regulator) Mark(ctx context.Context, successful, banned bool, username, requestURI, requestMethod, authType string, remoteIP net.IP) error {
-	return r.storageProvider.AppendAuthenticationLog(ctx, models.AuthenticationAttempt{
+	return r.storageProvider.AppendAuthenticationLog(ctx, model.AuthenticationAttempt{
 		Time:          r.clock.Now(),
 		Successful:    successful,
 		Banned:        banned,
 		Username:      username,
 		Type:          authType,
-		RemoteIP:      models.NewNullIP(remoteIP),
+		RemoteIP:      model.NewNullIP(remoteIP),
 		RequestURI:    requestURI,
 		RequestMethod: requestMethod,
 	})
@@ -49,7 +49,7 @@ func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, e
 		return time.Time{}, nil
 	}
 
-	latestFailedAttempts := make([]models.AuthenticationAttempt, 0, r.config.MaxRetries)
+	latestFailedAttempts := make([]model.AuthenticationAttempt, 0, r.config.MaxRetries)
 
 	for _, attempt := range attempts {
 		if attempt.Successful || len(latestFailedAttempts) >= r.config.MaxRetries {

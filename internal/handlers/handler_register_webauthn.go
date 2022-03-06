@@ -8,7 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -32,7 +32,7 @@ var SecondFactorWebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) {
 	var (
 		w    *webauthn.WebAuthn
-		user *models.WebauthnUser
+		user *model.WebauthnUser
 		err  error
 	)
 
@@ -86,7 +86,7 @@ func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err  error
 		w    *webauthn.WebAuthn
-		user *models.WebauthnUser
+		user *model.WebauthnUser
 
 		attestationResponse *protocol.ParsedCredentialCreationData
 		credential          *webauthn.Credential
@@ -134,7 +134,7 @@ func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := models.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", credential)
+	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)

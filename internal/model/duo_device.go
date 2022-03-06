@@ -1,4 +1,4 @@
-package models
+package model
 
 // DuoDevice represents a DUO Device.
 type DuoDevice struct {

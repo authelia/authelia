@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -169,13 +169,13 @@ func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogs(ctx context.Context
 	return nil
 }
 
-func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(ctx context.Context, page int) (attempts []models.AuthenticationAttempt, err error) {
+func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(ctx context.Context, page int) (attempts []model.AuthenticationAttempt, err error) {
 	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmtPre1To1SelectAuthenticationLogs), tablePrefixBackup+tableAuthenticationLogs), page*100)
 	if err != nil {
 		return nil, err
 	}
 
-	attempts = make([]models.AuthenticationAttempt, 0, 100)
+	attempts = make([]model.AuthenticationAttempt, 0, 100)
 
 	for rows.Next() {
 		var (
@@ -189,7 +189,7 @@ func (p *SQLProvider) schemaMigratePre1To1AuthenticationLogsGetRows(ctx context.
 			return nil, err
 		}
 
-		attempts = append(attempts, models.AuthenticationAttempt{Username: username, Successful: successful, Time: time.Unix(timestamp, 0)})
+		attempts = append(attempts, model.AuthenticationAttempt{Username: username, Successful: successful, Time: time.Unix(timestamp, 0)})
 	}
 
 	return attempts, nil
@@ -201,7 +201,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 		return err
 	}
 
-	var totpConfigs []models.TOTPConfiguration
+	var totpConfigs []model.TOTPConfiguration
 
 	defer func() {
 		if err := rows.Close(); err != nil {
@@ -222,7 +222,7 @@ func (p *SQLProvider) schemaMigratePre1To1TOTP(ctx context.Context) (err error) 
 			return err
 		}
 
-		totpConfigs = append(totpConfigs, models.TOTPConfiguration{Username: username, Secret: encryptedSecret})
+		totpConfigs = append(totpConfigs, model.TOTPConfiguration{Username: username, Secret: encryptedSecret})
 	}
 
 	for _, config := range totpConfigs {
@@ -247,7 +247,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 		}
 	}()
 
-	var devices []models.U2FDevice
+	var devices []model.U2FDevice
 
 	for rows.Next() {
 		var username, keyHandleBase64, publicKeyBase64 string
@@ -272,7 +272,7 @@ func (p *SQLProvider) schemaMigratePre1To1U2F(ctx context.Context) (err error) {
 			return err
 		}
 
-		devices = append(devices, models.U2FDevice{Username: username, KeyHandle: keyHandle, PublicKey: encryptedPublicKey})
+		devices = append(devices, model.U2FDevice{Username: username, KeyHandle: keyHandle, PublicKey: encryptedPublicKey})
 	}
 
 	for _, device := range devices {
@@ -364,15 +364,15 @@ func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogs(ctx context.Context
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx context.Context, page int) (attempts []models.AuthenticationAttempt, err error) {
+func (p *SQLProvider) schemaMigrate1ToPre1AuthenticationLogsGetRows(ctx context.Context, page int) (attempts []model.AuthenticationAttempt, err error) {
 	rows, err := p.db.QueryxContext(ctx, fmt.Sprintf(p.db.Rebind(queryFmt1ToPre1SelectAuthenticationLogs), tablePrefixBackup+tableAuthenticationLogs), page*100)
 	if err != nil {
 		return nil, err
 	}
 
-	attempts = make([]models.AuthenticationAttempt, 0, 100)
+	attempts = make([]model.AuthenticationAttempt, 0, 100)
 
-	var attempt models.AuthenticationAttempt
+	var attempt model.AuthenticationAttempt
 	for rows.Next() {
 		err = rows.StructScan(&attempt)
 		if err != nil {
@@ -391,7 +391,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 		return err
 	}
 
-	var totpConfigs []models.TOTPConfiguration
+	var totpConfigs []model.TOTPConfiguration
 
 	defer func() {
 		if err := rows.Close(); err != nil {
@@ -415,7 +415,7 @@ func (p *SQLProvider) schemaMigrate1ToPre1TOTP(ctx context.Context) (err error) 
 			return err
 		}
 
-		totpConfigs = append(totpConfigs, models.TOTPConfiguration{Username: username, Secret: secretClearText})
+		totpConfigs = append(totpConfigs, model.TOTPConfiguration{Username: username, Secret: secretClearText})
 	}
 
 	for _, config := range totpConfigs {
@@ -441,8 +441,8 @@ func (p *SQLProvider) schemaMigrate1ToPre1U2F(ctx context.Context) (err error) {
 	}()
 
 	var (
-		devices []models.U2FDevice
-		device  models.U2FDevice
+		devices []model.U2FDevice
+		device  model.U2FDevice
 	)
 
 	for rows.Next() {

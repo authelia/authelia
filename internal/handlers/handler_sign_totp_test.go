@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -34,7 +34,7 @@ func (s *HandlerSignTOTPSuite) TearDownTest() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -42,13 +42,13 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -72,7 +72,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToDefaultURL() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -80,13 +80,13 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -108,7 +108,7 @@ func (s *HandlerSignTOTPSuite) TestShouldFailWhenTOTPSignInInfoFailsToUpdate() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -116,13 +116,13 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -142,7 +142,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotReturnRedirectURL() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -150,13 +150,13 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().Validate(gomock.Eq("abc"), gomock.Eq(&config)).Return(true, nil)
@@ -182,17 +182,17 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, "john").
-		Return(&models.TOTPConfiguration{Secret: []byte("secret")}, nil)
+		Return(&model.TOTPConfiguration{Secret: []byte("secret")}, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.StorageMock.
@@ -200,7 +200,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 		UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any())
 
 	s.mock.TOTPMock.EXPECT().
-		Validate(gomock.Eq("abc"), gomock.Eq(&models.TOTPConfiguration{Secret: []byte("secret")})).
+		Validate(gomock.Eq("abc"), gomock.Eq(&model.TOTPConfiguration{Secret: []byte("secret")})).
 		Return(true, nil)
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
@@ -216,7 +216,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
-	config := models.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+	config := model.TOTPConfiguration{ID: 1, Username: "john", Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	s.mock.StorageMock.EXPECT().
 		LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
@@ -224,13 +224,13 @@ func (s *HandlerSignTOTPSuite) TestShouldRegenerateSessionForPreventingSessionFi
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "john",
 			Successful: true,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthTypeTOTP,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.TOTPMock.EXPECT().
