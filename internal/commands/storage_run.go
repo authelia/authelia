@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -203,7 +203,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
 		ctx      = context.Background()
-		c        *models.TOTPConfiguration
+		c        *model.TOTPConfiguration
 		force    bool
 		filename string
 		file     *os.File
@@ -302,7 +302,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider       storage.Provider
 		format, dir    string
-		configurations []models.TOTPConfiguration
+		configurations []model.TOTPConfiguration
 		img            image.Image
 
 		ctx = context.Background()
@@ -400,7 +400,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		provider   storage.Provider
 		version    int
-		migrations []models.Migration
+		migrations []model.Migration
 
 		ctx = context.Background()
 	)
@@ -445,7 +445,7 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 		var (
 			provider     storage.Provider
 			ctx          = context.Background()
-			migrations   []models.SchemaMigration
+			migrations   []model.SchemaMigration
 			directionStr string
 		)
 

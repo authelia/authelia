@@ -13,7 +13,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -148,8 +148,8 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 	s.mock.Close()
 }
 
-func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification models.IdentityVerification) {
-	verification = models.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
+func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
+	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP())
 
 	verification.ExpiresAt = expiresAt
 
@@ -264,7 +264,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(fmt.Errorf("cannot remove"))
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
@@ -283,7 +283,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 		Return(true, nil)
 
 	s.mock.StorageMock.EXPECT().
-		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(models.NewNullIP(s.mock.Ctx.RemoteIP()))).
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)

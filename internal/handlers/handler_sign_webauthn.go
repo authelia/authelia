@@ -7,7 +7,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -15,7 +15,7 @@ import (
 func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w    *webauthn.WebAuthn
-		user *models.WebauthnUser
+		user *model.WebauthnUser
 		err  error
 	)
 
@@ -116,7 +116,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		assertionResponse *protocol.ParsedCredentialAssertionData
 		credential        *webauthn.Credential
-		user              *models.WebauthnUser
+		user              *model.WebauthnUser
 	)
 
 	if assertionResponse, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {

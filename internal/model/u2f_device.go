@@ -1,4 +1,4 @@
-package models
+package model
 
 // U2FDevice represents a users U2F device row in the database.
 type U2FDevice struct {

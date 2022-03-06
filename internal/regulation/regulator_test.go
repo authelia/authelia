@@ -11,7 +11,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -43,7 +43,7 @@ func (s *RegulatorSuite) TearDownTest() {
 }
 
 func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: true,
@@ -64,7 +64,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
 // This test checks the case in which a user failed to authenticate many times but always
 // with a certain amount of time larger than FindTime. Meaning the user should not be banned.
 func (s *RegulatorSuite) TestShouldNotThrowWhenFailedAuthenticationNotInFindTime() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -95,7 +95,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenFailedAuthenticationNotInFindTime
 // This test checks the case in which a user failed to authenticate many times only a few
 // seconds ago (meaning we are checking from now back to now-FindTime).
 func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFinTime() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -133,7 +133,7 @@ func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFinTime() {
 // we are within now and now-BanTime). It means the user has been banned some time ago and is still
 // banned right now.
 func (s *RegulatorSuite) TestShouldCheckUserIsStillBanned() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -162,7 +162,7 @@ func (s *RegulatorSuite) TestShouldCheckUserIsStillBanned() {
 }
 
 func (s *RegulatorSuite) TestShouldCheckUserIsNotYetBanned() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -186,7 +186,7 @@ func (s *RegulatorSuite) TestShouldCheckUserIsNotYetBanned() {
 }
 
 func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -218,7 +218,7 @@ func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
 }
 
 func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttempt() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -260,7 +260,7 @@ func TestRunRegulatorSuite(t *testing.T) {
 
 // This test checks that the regulator is disabled when configuration is set to 0.
 func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,

@@ -1,4 +1,4 @@
-package models
+package model
 
 // UserInfo represents the user information required by the web UI.
 type UserInfo struct {

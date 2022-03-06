@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -21,13 +21,13 @@ func TestWebauthnGetUser(t *testing.T) {
 		DisplayName: "John Smith",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]models.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebauthnDevice{
 		{
 			ID:              1,
 			RPID:            "https://example.com",
 			Username:        "john",
 			Description:     "Primary",
-			KID:             models.NewBase64([]byte("abc123")),
+			KID:             model.NewBase64([]byte("abc123")),
 			AttestationType: "fido-u2f",
 			PublicKey:       []byte("data"),
 			SignCount:       0,
@@ -38,7 +38,7 @@ func TestWebauthnGetUser(t *testing.T) {
 			RPID:            "example.com",
 			Username:        "john",
 			Description:     "Secondary",
-			KID:             models.NewBase64([]byte("123abc")),
+			KID:             model.NewBase64([]byte("123abc")),
 			AttestationType: "packed",
 			Transport:       "usb,nfc",
 			PublicKey:       []byte("data"),
@@ -106,13 +106,13 @@ func TestWebauthnGetUserWithoutDisplayName(t *testing.T) {
 		Username: "john",
 	}
 
-	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]models.WebauthnDevice{
+	ctx.StorageMock.EXPECT().LoadWebauthnDevicesByUsername(ctx.Ctx, "john").Return([]model.WebauthnDevice{
 		{
 			ID:              1,
 			RPID:            "https://example.com",
 			Username:        "john",
 			Description:     "Primary",
-			KID:             models.NewBase64([]byte("abc123")),
+			KID:             model.NewBase64([]byte("abc123")),
 			AttestationType: "fido-u2f",
 			PublicKey:       []byte("data"),
 			SignCount:       0,

@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestDatabaseModelTypeIP(t *testing.T) {
 
 	value, err := ip.Value()
 	assert.Nil(t, value)
-	assert.EqualError(t, err, "cannot value model type 'models.IP' with value nil to driver.Value")
+	assert.EqualError(t, err, "cannot value model type 'model.IP' with value nil to driver.Value")
 
 	err = ip.Scan("192.168.2.0")
 	assert.NoError(t, err)
@@ -33,10 +33,10 @@ func TestDatabaseModelTypeIP(t *testing.T) {
 
 	err = ip.Scan(1)
 
-	assert.EqualError(t, err, "cannot scan model type '*models.IP' from type 'int' with value '1'")
+	assert.EqualError(t, err, "cannot scan model type '*model.IP' from type 'int' with value '1'")
 
 	err = ip.Scan(nil)
-	assert.EqualError(t, err, "cannot scan model type '*models.IP' from value nil: type doesn't support nil values")
+	assert.EqualError(t, err, "cannot scan model type '*model.IP' from value nil: type doesn't support nil values")
 }
 
 func TestDatabaseModelTypeNullIP(t *testing.T) {
@@ -66,7 +66,7 @@ func TestDatabaseModelTypeNullIP(t *testing.T) {
 
 	err = ip.Scan(1)
 
-	assert.EqualError(t, err, "cannot scan model type '*models.NullIP' from type 'int' with value '1'")
+	assert.EqualError(t, err, "cannot scan model type '*model.NullIP' from type 'int' with value '1'")
 
 	err = ip.Scan(nil)
 	assert.NoError(t, err)
@@ -81,13 +81,13 @@ func TestDatabaseModelTypeBase64(t *testing.T) {
 	assert.Nil(t, b64.Bytes())
 
 	err = b64.Scan(nil)
-	assert.EqualError(t, err, "cannot scan model type '*models.Base64' from value nil: type doesn't support nil values")
+	assert.EqualError(t, err, "cannot scan model type '*model.Base64' from value nil: type doesn't support nil values")
 
 	err = b64.Scan("###")
-	assert.EqualError(t, err, "cannot scan model type '*models.Base64' from type 'string' with value '###': illegal base64 data at input byte 0")
+	assert.EqualError(t, err, "cannot scan model type '*model.Base64' from type 'string' with value '###': illegal base64 data at input byte 0")
 
 	err = b64.Scan(1)
-	assert.EqualError(t, err, "cannot scan model type '*models.Base64' from type 'int' with value '1'")
+	assert.EqualError(t, err, "cannot scan model type '*model.Base64' from type 'int' with value '1'")
 
 	err = b64.Scan("YXV0aGVsaWE=")
 	assert.NoError(t, err)

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 type FetchSuite struct {
@@ -36,21 +36,21 @@ func (s *FetchSuite) TearDownTest() {
 }
 
 type expectedResponse struct {
-	db  models.UserInfo
-	api *models.UserInfo
+	db  model.UserInfo
+	api *model.UserInfo
 	err error
 }
 
 func TestMethodSetToU2F(t *testing.T) {
 	expectedResponses := []expectedResponse{
 		{
-			db: models.UserInfo{
+			db: model.UserInfo{
 				Method: "totp",
 			},
 			err: nil,
 		},
 		{
-			db: models.UserInfo{
+			db: model.UserInfo{
 				Method:      "webauthn",
 				HasWebauthn: true,
 				HasTOTP:     true,
@@ -58,7 +58,7 @@ func TestMethodSetToU2F(t *testing.T) {
 			err: nil,
 		},
 		{
-			db: models.UserInfo{
+			db: model.UserInfo{
 				Method:      "webauthn",
 				HasWebauthn: true,
 				HasTOTP:     false,
@@ -66,7 +66,7 @@ func TestMethodSetToU2F(t *testing.T) {
 			err: nil,
 		},
 		{
-			db: models.UserInfo{
+			db: model.UserInfo{
 				Method:      "mobile_push",
 				HasWebauthn: false,
 				HasTOTP:     false,
@@ -74,11 +74,11 @@ func TestMethodSetToU2F(t *testing.T) {
 			err: nil,
 		},
 		{
-			db:  models.UserInfo{},
+			db:  model.UserInfo{},
 			err: sql.ErrNoRows,
 		},
 		{
-			db:  models.UserInfo{},
+			db:  model.UserInfo{},
 			err: errors.New("invalid thing"),
 		},
 	}
@@ -108,7 +108,7 @@ func TestMethodSetToU2F(t *testing.T) {
 				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 			})
 
-			actualPreferences := models.UserInfo{}
+			actualPreferences := model.UserInfo{}
 
 			mock.GetResponseData(t, &actualPreferences)
 
@@ -141,7 +141,7 @@ func TestMethodSetToU2F(t *testing.T) {
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageMock.EXPECT().
 		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
-		Return(models.UserInfo{}, fmt.Errorf("failure"))
+		Return(model.UserInfo{}, fmt.Errorf("failure"))
 
 	UserInfoGet(s.mock.Ctx)
 
