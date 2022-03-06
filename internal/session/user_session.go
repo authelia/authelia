@@ -33,6 +33,10 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	s.Emails = details.Emails
 
 	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRPasswordBasedAuthentication)
+
+	if utils.IsStringSliceContainsAny([]string{oidc.AMROneTimePassword, oidc.AMRHardwareSecuredKey}, s.AuthenticationMethodReferences) {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRMultiFactorAuthentication)
+	}
 }
 
 // SetTwoFactor sets the expected property values for two factor authentication.
@@ -40,6 +44,10 @@ func (s *UserSession) SetTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.TwoFactor
+
+	if utils.IsStringInSlice(oidc.AMRPasswordBasedAuthentication, s.AuthenticationMethodReferences) {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRMultiFactorAuthentication)
+	}
 }
 
 func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
@@ -60,6 +68,8 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 
 func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
 	s.SetTwoFactor(now)
+
+	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRHardwareSecuredKey)
 
 	if userPresence {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRUserPresence)
