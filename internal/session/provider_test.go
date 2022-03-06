@@ -97,7 +97,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
 	}, session)
 
-	session.SetTwoFactor(timeTwoFactor)
+	session.SetTwoFactorDuo(timeTwoFactor)
 
 	err = provider.SaveSession(ctx, session)
 	require.NoError(t, err)
@@ -111,7 +111,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 		LastActivity:                   timeTwoFactor.Unix(),
 		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
 		SecondFactorAuthnTimestamp:     timeTwoFactor.Unix(),
-		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
+		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRMultiChannelAuthentication},
 	}, session)
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
@@ -125,6 +125,170 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	authAt, err = session.AuthenticatedTime(authorization.Denied)
 	assert.EqualError(t, err, "invalid authorization level")
 	assert.Equal(t, timeZeroFactor, authAt)
+}
+
+func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
+	ctx := &fasthttp.RequestCtx{}
+	configuration := schema.SessionConfiguration{}
+
+	timeOneFactor := time.Unix(1625048140, 0)
+	timeTwoFactor := time.Unix(1625048150, 0)
+	timeZeroFactor := time.Unix(0, 0)
+
+	configuration.Domain = testDomain
+	configuration.Name = testName
+	configuration.Expiration = testExpiration
+
+	provider := NewProvider(configuration, nil)
+	session, _ := provider.GetSession(ctx)
+
+	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
+
+	err := provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	authAt, err := session.AuthenticatedTime(authorization.OneFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeOneFactor, authAt)
+
+	authAt, err = session.AuthenticatedTime(authorization.TwoFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeZeroFactor, authAt)
+
+	authAt, err = session.AuthenticatedTime(authorization.Denied)
+	assert.EqualError(t, err, "invalid authorization level")
+	assert.Equal(t, timeZeroFactor, authAt)
+
+	assert.Equal(t, UserSession{
+		Username:                       testUsername,
+		AuthenticationLevel:            authentication.OneFactor,
+		LastActivity:                   timeOneFactor.Unix(),
+		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
+		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
+	}, session)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey},
+		session.AuthenticationMethodReferences)
+
+	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeOneFactor, authAt)
+
+	authAt, err = session.AuthenticatedTime(authorization.TwoFactor)
+	assert.NoError(t, err)
+	assert.Equal(t, timeTwoFactor, authAt)
+
+	authAt, err = session.AuthenticatedTime(authorization.Denied)
+	assert.EqualError(t, err, "invalid authorization level")
+	assert.Equal(t, timeZeroFactor, authAt)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorTOTP(timeTwoFactor)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber, oidc.AMROneTimePassword},
+		session.AuthenticationMethodReferences)
+
+	session.SetTwoFactorTOTP(timeTwoFactor)
+
+	err = provider.SaveSession(ctx, session)
+	require.NoError(t, err)
+
+	session, err = provider.GetSession(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber, oidc.AMROneTimePassword},
+		session.AuthenticationMethodReferences)
 }
 
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {

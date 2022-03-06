@@ -32,9 +32,12 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	s.Groups = details.Groups
 	s.Emails = details.Emails
 
-	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRPasswordBasedAuthentication)
+	if !utils.IsStringInSlice(oidc.AMRPasswordBasedAuthentication, s.AuthenticationMethodReferences) {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRPasswordBasedAuthentication)
+	}
 
-	if utils.IsStringSliceContainsAny([]string{oidc.AMROneTimePassword, oidc.AMRHardwareSecuredKey}, s.AuthenticationMethodReferences) {
+	if !utils.IsStringInSlice(oidc.AMRMultiFactorAuthentication, s.AuthenticationMethodReferences) &&
+		utils.IsStringSliceContainsAny(amrFactorSomethingHave, s.AuthenticationMethodReferences) {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRMultiFactorAuthentication)
 	}
 }
@@ -45,7 +48,8 @@ func (s *UserSession) SetTwoFactor(now time.Time) {
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.TwoFactor
 
-	if utils.IsStringInSlice(oidc.AMRPasswordBasedAuthentication, s.AuthenticationMethodReferences) {
+	if !utils.IsStringInSlice(oidc.AMRMultiFactorAuthentication, s.AuthenticationMethodReferences) &&
+		utils.IsStringSliceContainsAny(amrFactorSomethingKnown, s.AuthenticationMethodReferences) {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRMultiFactorAuthentication)
 	}
 }
@@ -53,15 +57,16 @@ func (s *UserSession) SetTwoFactor(now time.Time) {
 func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
 	s.SetTwoFactor(now)
 
-	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMROneTimePassword)
+	if !utils.IsStringInSlice(oidc.AMROneTimePassword, s.AuthenticationMethodReferences) {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMROneTimePassword)
+	}
 }
 
 func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 	s.SetTwoFactor(now)
 
-	if utils.IsStringSliceContainsAny(
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMROneTimePassword},
-		s.AuthenticationMethodReferences) {
+	if !utils.IsStringInSlice(oidc.AMRMultiChannelAuthentication, s.AuthenticationMethodReferences) &&
+		utils.IsStringSliceContainsAny(amrChannelBrowser, s.AuthenticationMethodReferences) {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRMultiChannelAuthentication)
 	}
 }
@@ -69,13 +74,15 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
 	s.SetTwoFactor(now)
 
-	s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRHardwareSecuredKey)
+	if !utils.IsStringInSlice(oidc.AMRHardwareSecuredKey, s.AuthenticationMethodReferences) {
+		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRHardwareSecuredKey)
+	}
 
-	if userPresence {
+	if userPresence && !utils.IsStringInSlice(oidc.AMRUserPresence, s.AuthenticationMethodReferences) {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRUserPresence)
 	}
 
-	if userVerified {
+	if userVerified && !utils.IsStringInSlice(oidc.AMRPersonalIdentificationNumber, s.AuthenticationMethodReferences) {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRPersonalIdentificationNumber)
 	}
 
