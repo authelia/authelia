@@ -43,6 +43,8 @@ type Provider interface {
 	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *model.OAuth2Session) (err error)
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
+	DeactivateOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
+	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
 
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error)

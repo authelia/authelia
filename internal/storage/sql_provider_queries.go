@@ -225,15 +225,15 @@ const (
 	queryFmtSelectOAuth2Session = `
 		SELECT id, request_id, client_id, signature, subject, requested_at,
 		requested_scopes, granted_scopes, requested_audience, granted_audience,
-		revoked, form_data, session_data
+		active, revoked, form_data, session_data
 		FROM %s
 		WHERE signature = ? AND revoked = FALSE`
 
 	queryFmtInsertOAuth2Session = `
 		INSERT INTO %s (request_id, client_id, signature, subject, requested_at, 
 		requested_scopes, granted_scopes, requested_audience, granted_audience, 
-		form_data, session_data)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		active, revoked, form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s
@@ -243,6 +243,16 @@ const (
 	queryFmtRevokeOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET revoked = TRUE
+		WHERE request_id = ?;"`
+
+	queryFmtDeactivateOAuth2Session = `
+		UPDATE %s
+		SET active = FALSE
+		WHERE signature = ?;`
+
+	queryFmtDeactivateOAuth2SessionByRequestID = `
+		UPDATE %s
+		SET active = FALSE
 		WHERE request_id = ?;"`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `

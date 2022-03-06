@@ -40,6 +40,7 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 		GrantedScopes:     StringSlicePipeDelimited(r.GetGrantedScopes()),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		Active:            true,
 		Revoked:           false,
 		Form:              r.GetRequestForm().Encode(),
 		Session:           sessData,
@@ -83,6 +84,7 @@ type OAuth2Session struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	Active            bool                     `db:"active"`
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
 	Session           []byte                   `db:"session_data"`

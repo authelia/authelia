@@ -17,17 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-/*
-type EffectiveStore interface {
-	fosite.ClientManager
-	oauth2.AuthorizeCodeStorage
-	oauth2.TokenRevocationStorage
-	pkce.PKCERequestStorage
-	openid.OpenIDConnectRequestStorage
-}.
-
-*/
-
+// NewOpenIDConnectStore returns a OpenIDConnectStore when provided with a schema.OpenIDConnectConfiguration and storage.Provider.
 func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider storage.Provider) (store *OpenIDConnectStore) {
 	logger := logging.Logger()
 
@@ -136,7 +126,7 @@ func (s *OpenIDConnectStore) CreateAuthorizeCodeSession(ctx context.Context, cod
 // ErrInvalidatedAuthorizeCode error.
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
+	return s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
 }
 
 // GetAuthorizeCodeSession hydrates the session based on the given code and returns the authorization request.
@@ -191,7 +181,7 @@ func (s *OpenIDConnectStore) DeleteRefreshTokenSession(ctx context.Context, sign
 // then the authorization server SHOULD also invalidate all access tokens based on the same authorization grant (see Implementation Note).
 // This implements a portion of oauth2.TokenRevocationStorage.
 func (s *OpenIDConnectStore) RevokeRefreshToken(ctx context.Context, requestID string) (err error) {
-	return s.revokeSessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
+	return s.provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
 // RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
@@ -252,11 +242,25 @@ func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, session
 		sessionModel *model.OAuth2Session
 	)
 
-	if sessionModel, err = s.provider.LoadOAuth2Session(ctx, sessionType, signature); err != nil {
+	sessionModel, err = s.provider.LoadOAuth2Session(ctx, sessionType, signature)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, fosite.ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	if r, err = sessionModel.ToRequest(ctx, session, s); err != nil {
 		return nil, err
 	}
 
-	return sessionModel.ToRequest(ctx, session, s)
+	if !sessionModel.Active && sessionType == storage.OAuth2SessionTypeAuthorizeCode {
+		return r, fosite.ErrInvalidatedAuthorizeCode
+	}
+
+	return r, nil
 }
 
 func (s *OpenIDConnectStore) saveSession(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, r fosite.Requester) (err error) {
@@ -274,7 +278,16 @@ func (s *OpenIDConnectStore) revokeSessionBySignature(ctx context.Context, sessi
 }
 
 func (s *OpenIDConnectStore) revokeSessionByRequestID(ctx context.Context, sessionType storage.OAuth2SessionType, requestID string) (err error) {
-	return s.provider.RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID)
+	if err = s.provider.RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return fosite.ErrNotFound
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 /*
