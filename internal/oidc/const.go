@@ -34,21 +34,12 @@ const (
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176
 const (
-	// AMRPasswordBasedAuthentication is an RFC8176 Authentication Method Reference Value that represents password-based
-	// authentication as per RFC4949.
-	//
-	// Authelia utilizes this when a user has performed 1FA.
-	//
-	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
-	//
-	// RFC4949: https://datatracker.ietf.org/doc/html/rfc4949
-	AMRPasswordBasedAuthentication = "pwd"
-
 	// AMRMultiFactorAuthentication is an RFC8176 Authentication Method Reference Value that represents multiple-factor
 	// authentication as per NIST.800-63-2 and ISO29115. When this is present, specific authentication methods used may
 	// also be included.
 	//
-	// Authelia utilizes this when a user has performed any 2FA while AMRPasswordBasedAuthentication is present.
+	// Authelia utilizes this when a user has performed any 2 AMR's with different factor values (excluding meta).
+	// Factor: Meta, Channel: Meta.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	//
@@ -62,17 +53,52 @@ const (
 	// communication channel. For instance, a multiple-channel authentication might involve both entering information
 	// into a workstation's browser and providing information on a telephone call to a pre-registered number.
 	//
-	// Authelia utilizes this when a user has performed 2FA via Duo while AMRPasswordBasedAuthentication,
-	// AMRHardwareSecuredKey, or AMROneTimePassword are also present.
+	// Authelia utilizes this when a user has performed any 2 AMR's with different channel values (excluding meta).
+	// Factor: Meta, Channel: Meta.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRMultiChannelAuthentication = "mca"
+
+	// AMRUserPresence is an RFC8176 Authentication Method Reference Value that represents authentication that included
+	// a user presence test. Evidence that the end user is present and interacting with the device. This is sometimes
+	// also referred to as "test of user presence" as per W3C.WD-webauthn-20170216.
+	//
+	// Authelia utilizes this when a user has used Webauthn to authenticate and the user presence flag was set.
+	// Factor: Meta, Channel: Meta.
+	//
+	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
+	//
+	// W3C.WD-webauthn-20170216: https://datatracker.ietf.org/doc/html/rfc8176#ref-W3C.WD-webauthn-20170216
+	AMRUserPresence = "user"
+
+	// AMRPersonalIdentificationNumber is an RFC8176 Authentication Method Reference Value that represents
+	// authentication that included a personal Identification Number (PIN) as per RFC4949 or pattern (not restricted to
+	// containing only numbers) that a user enters to unlock a key on the device. This mechanism should have a way to
+	// deter an attacker from obtaining the PIN by trying repeated guesses.
+	//
+	// Authelia utilizes this when a user has used Webauthn to authenticate and the user verified flag was set.
+	//	Factor: Meta, Channel: Meta.
+	//
+	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
+	//
+	// RFC4949: https://datatracker.ietf.org/doc/html/rfc4949
+	AMRPersonalIdentificationNumber = "pin"
+
+	// AMRPasswordBasedAuthentication is an RFC8176 Authentication Method Reference Value that represents password-based
+	// authentication as per RFC4949.
+	//
+	// Authelia utilizes this when a user has performed 1FA. Factor: Know, Channel: Browser.
+	//
+	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
+	//
+	// RFC4949: https://datatracker.ietf.org/doc/html/rfc4949
+	AMRPasswordBasedAuthentication = "pwd"
 
 	// AMROneTimePassword is an RFC8176 Authentication Method Reference Value that represents authentication via a
 	// one-time password as per RFC4949. One-time password specifications that this authentication method applies to
 	// include RFC4226 and RFC6238.
 	//
-	// Authelia utilizes this when a user has used TOTP to authenticate.
+	// Authelia utilizes this when a user has used TOTP to authenticate. Factor: Have, Channel: Browser.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	//
@@ -86,31 +112,16 @@ const (
 	// AMRHardwareSecuredKey is an RFC8176 Authentication Method Reference Value that
 	// represents authentication via a proof-of-Possession (PoP) of a hardware-secured key.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate.
+	// Authelia utilizes this when a user has used Webauthn to authenticate. Factor: Have, Channel: Browser.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRHardwareSecuredKey = "hwk"
 
-	// AMRUserPresence is an RFC8176 Authentication Method Reference Value that represents authentication that included
-	// a user presence test. Evidence that the end user is present and interacting with the device. This is sometimes
-	// also referred to as "test of user presence" as per W3C.WD-webauthn-20170216.
+	// AMRShortMessageService is an RFC8176 Authentication Method Reference Value that
+	// represents authentication via confirmation using SMS text message to the user at a registered number.
 	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate and the user presence flag was set.
-	//
-	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
-	//
-	// W3C.WD-webauthn-20170216: https://datatracker.ietf.org/doc/html/rfc8176#ref-W3C.WD-webauthn-20170216
-	AMRUserPresence = "user"
-
-	// AMRPersonalIdentificationNumber is an RFC8176 Authentication Method Reference Value that represents
-	// authentication that included a personal Identification Number (PIN) as per RFC4949 or pattern (not restricted to
-	// containing only numbers) that a user enters to unlock a key on the device. This mechanism should have a way to
-	// deter an attacker from obtaining the PIN by trying repeated guesses.
-	//
-	// Authelia utilizes this when a user has used Webauthn to authenticate and the user verified flag was set.
+	// Authelia utilizes this when a user has used Duo to authenticate. Factor: Have, Channel: Browser.
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
-	//
-	// RFC4949: https://datatracker.ietf.org/doc/html/rfc4949
-	AMRPersonalIdentificationNumber = "pin"
+	AMRShortMessageService = "sms"
 )

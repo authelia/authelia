@@ -111,7 +111,7 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 		LastActivity:                   timeTwoFactor.Unix(),
 		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
 		SecondFactorAuthnTimestamp:     timeTwoFactor.Unix(),
-		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRMultiChannelAuthentication},
+		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRShortMessageService, oidc.AMRMultiChannelAuthentication},
 	}, session)
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)

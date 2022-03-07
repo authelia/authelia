@@ -463,6 +463,28 @@ This scope includes the profile information the authentication backend reports a
 | preferred_username |  string  |      username      | The username the user used to login with |
 |        name        |  string  |    display_name    |          The users display name          |
 
+## Authentication Method References
+
+Authelia currently supports adding the `amr` claim to the [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
+utilizing the [RFC8176] Authentication Method Reference values. 
+
+The values this claim has are not strictly defined by the [OpenID Connect] specification. As such, some backends may
+expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
+it then you're encouraged to create an issue.
+
+Below is a list of the potential values we place in the claim and their meaning:
+
+| Value |                           Description                            | Factor | Channel  |
+|:-----:|:----------------------------------------------------------------:|:------:|:--------:|
+|  mfa  |     User used multiple factors to login (see factor column)      |  N/A   |   N/A    |
+|  mca  |    User used multiple channels to login (see channel column)     |  N/A   |   N/A    |
+| user  |  User confirmed they were present when using their hardware key  |  N/A   |   N/A    |
+|  pin  | User confirmed they are the owner of the hardware key with a pin |  N/A   |   N/A    |
+|  pwd  |            User used a username and password to login            |  Know  | Browser  |
+|  otp  |                     User used TOTP to login                      |  Have  | Browser  |
+|  hwk  |                User used a hardware key to login                 |  Have  | Browser  |
+|  sms  |                      User used Duo to login                      |  Have  | External |
+
 ## Endpoint Implementations
 
 This is a table of the endpoints we currently support and their paths. This can be requrired information for some RP's,

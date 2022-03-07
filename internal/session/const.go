@@ -20,6 +20,7 @@ const (
 
 var (
 	amrFactorSomethingKnown = []string{oidc.AMRPasswordBasedAuthentication}
-	amrFactorSomethingHave  = []string{oidc.AMROneTimePassword, oidc.AMRHardwareSecuredKey}
+	amrFactorSomethingHave  = []string{oidc.AMROneTimePassword, oidc.AMRHardwareSecuredKey, oidc.AMRShortMessageService}
 	amrChannelBrowser       = []string{oidc.AMRPasswordBasedAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMROneTimePassword}
+	amrChannelService       = []string{oidc.AMRShortMessageService}
 )
