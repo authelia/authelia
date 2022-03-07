@@ -19,7 +19,7 @@ func NewDefaultUserSession() UserSession {
 	}
 }
 
-// SetOneFactor sets the expected property values for one factor authentication.
+// SetOneFactor sets the 1FA AMR's and expected property values for one factor authentication.
 func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
@@ -47,8 +47,7 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	}
 }
 
-// SetTwoFactor sets the expected property values for two factor authentication.
-func (s *UserSession) SetTwoFactor(now time.Time) {
+func (s *UserSession) setTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.TwoFactor
@@ -59,8 +58,9 @@ func (s *UserSession) SetTwoFactor(now time.Time) {
 	}
 }
 
+// SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
-	s.SetTwoFactor(now)
+	s.setTwoFactor(now)
 
 	if !utils.IsStringInSlice(oidc.AMRMultiChannelAuthentication, s.AuthenticationMethodReferences) &&
 		utils.IsStringSliceContainsAny(amrChannelService, s.AuthenticationMethodReferences) {
@@ -72,8 +72,9 @@ func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
 	}
 }
 
+// SetTwoFactorDuo sets the relevant Duo AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorDuo(now time.Time) {
-	s.SetTwoFactor(now)
+	s.setTwoFactor(now)
 
 	if !utils.IsStringInSlice(oidc.AMRShortMessageService, s.AuthenticationMethodReferences) {
 		s.AuthenticationMethodReferences = append(s.AuthenticationMethodReferences, oidc.AMRShortMessageService)
@@ -85,8 +86,9 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 	}
 }
 
+// SetTwoFactorWebauthn sets the relevant Webauthn AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
-	s.SetTwoFactor(now)
+	s.setTwoFactor(now)
 
 	if !utils.IsStringInSlice(oidc.AMRMultiChannelAuthentication, s.AuthenticationMethodReferences) &&
 		utils.IsStringSliceContainsAny(amrChannelService, s.AuthenticationMethodReferences) {
