@@ -53,7 +53,7 @@ specifiers:
   typescript: 4.6.2
   vite: 2.8.6
   vite-plugin-eslint: 1.3.0
-  vite-plugin-istanbul: 2.5.0
+  vite-plugin-istanbul: 2.5.1
   vite-plugin-svgr: 1.0.1
   vite-tsconfig-paths: 3.4.1
 
@@ -112,7 +112,7 @@ devDependencies:
   typescript: 4.6.2
   vite: 2.8.6
   vite-plugin-eslint: 1.3.0_vite@2.8.6
-  vite-plugin-istanbul: 2.5.0
+  vite-plugin-istanbul: 2.5.1
   vite-plugin-svgr: 1.0.1_vite@2.8.6
   vite-tsconfig-paths: 3.4.1_vite@2.8.6
 
@@ -7955,8 +7955,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-istanbul/2.5.0:
-    resolution: {integrity: sha512-RqDYGbTo0mY7Ak/8K/GMG3reI2lPcNtKAf2Fzqa72EkGZ6nI3xYpXxCnyObCicK0vJOESNvr/CwOmZn3XHifsQ==}
+  /vite-plugin-istanbul/2.5.1:
+    resolution: {integrity: sha512-5ZR2/haQalUXVqHrjatZ0QKxzF3e0hBiJe6VhjGYxE7Yc4WFs7ZE56oazYB4jnPXvlirOvgLxG0LJQoHFdMxMg==}
     dependencies:
       chalk: 4.1.2
       istanbul-lib-instrument: 4.0.3
