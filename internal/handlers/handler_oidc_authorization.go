@@ -88,7 +88,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 				Issuer:      issuer,
 				AuthTime:    authTime,
 				RequestedAt: workflowCreated,
-				IssuedAt:    time.Now(),
+				IssuedAt:    ctx.Clock.Now(),
 				Nonce:       ar.GetRequestForm().Get("nonce"),
 				Audience:    ar.GetGrantedAudience(),
 				Extra:       extraClaims,

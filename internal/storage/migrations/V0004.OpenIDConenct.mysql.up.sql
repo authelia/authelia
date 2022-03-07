@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS oauth2_subjects (
     subject_id VARCHAR(255) NOT NULL,
     salt CHAR(32) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY oauth2_subjects_sector_id_subject_id_idx (sector_id, subject_id)
+    UNIQUE KEY (sector_id, subject_id)
 );
 
 CREATE TABLE IF NOT EXISTS oauth2_authorize_code_sessions (
