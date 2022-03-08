@@ -15,7 +15,6 @@
     "i18next": "21.6.13",
     "i18next-browser-languagedetector": "6.1.3",
     "i18next-http-backend": "1.3.2",
-    "mobile-detect": "^1.4.5",
     "qrcode.react": "1.0.1",
     "query-string": "7.1.1",
     "react": "17.0.2",
@@ -24,7 +23,8 @@
     "react-i18next": "11.15.5",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.2.2"
+    "react-router-dom": "6.2.2",
+    "ua-parser-js": "^1.0.2"
   },
   "scripts": {
     "prepare": "cd .. && husky install .github",
@@ -133,6 +133,7 @@
     "@types/qrcode.react": "1.0.2",
     "@types/react": "17.0.39",
     "@types/react-dom": "17.0.13",
+    "@types/ua-parser-js": "^0.7.36",
     "@typescript-eslint/eslint-plugin": "5.13.0",
     "@typescript-eslint/parser": "5.13.0",
     "@vitejs/plugin-react": "1.2.0",

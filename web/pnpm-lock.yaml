@@ -16,6 +16,7 @@ specifiers:
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.39
   '@types/react-dom': 17.0.13
+  '@types/ua-parser-js': ^0.7.36
   '@typescript-eslint/eslint-plugin': 5.13.0
   '@typescript-eslint/parser': 5.13.0
   '@vitejs/plugin-react': 1.2.0
@@ -39,7 +40,6 @@ specifiers:
   jest: 27.5.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0
-  mobile-detect: ^1.4.5
   prettier: 2.5.1
   qrcode.react: 1.0.1
   query-string: 7.1.1
@@ -52,6 +52,7 @@ specifiers:
   react-router-dom: 6.2.2
   react-test-renderer: 17.0.2
   typescript: 4.6.2
+  ua-parser-js: ^1.0.2
   vite: 2.8.6
   vite-plugin-eslint: 1.3.0
   vite-plugin-istanbul: 2.5.0
@@ -71,7 +72,6 @@ dependencies:
   i18next: 21.6.13
   i18next-browser-languagedetector: 6.1.3
   i18next-http-backend: 1.3.2
-  mobile-detect: 1.4.5
   qrcode.react: 1.0.1_react@17.0.2
   query-string: 7.1.1
   react: 17.0.2
@@ -81,6 +81,7 @@ dependencies:
   react-loading: 2.0.3_react@17.0.2
   react-otp-input: 2.4.0_react-dom@17.0.2+react@17.0.2
   react-router-dom: 6.2.2_react-dom@17.0.2+react@17.0.2
+  ua-parser-js: 1.0.2
 
 devDependencies:
   '@commitlint/cli': 16.2.1
@@ -91,6 +92,7 @@ devDependencies:
   '@types/qrcode.react': 1.0.2
   '@types/react': 17.0.39
   '@types/react-dom': 17.0.13
+  '@types/ua-parser-js': 0.7.36
   '@typescript-eslint/eslint-plugin': 5.13.0_99f1c7fa3ada23abf5c494bf723a63d8
   '@typescript-eslint/parser': 5.13.0_typescript@4.6.2
   '@vitejs/plugin-react': 1.2.0
@@ -2499,6 +2501,10 @@ packages:
     resolution: {integrity: sha512-vehbtyHUShPxIa9SioxDwCvgxukDMH//icJG90sXQBUm5lJOHLT5kNeU9tnivhnA/TkOFMzGIXN2cTc4hY8/kg==}
     dependencies:
       '@types/jest': 27.4.1
+    dev: true
+
+  /@types/ua-parser-js/0.7.36:
+    resolution: {integrity: sha512-N1rW+njavs70y2cApeIw1vLMYXRwfBy+7trgavGuuTfOd7j1Yh7QTRc/yqsPl6ncokt72ZXuxEU0PiCp9bSwNQ==}
     dev: true
 
   /@types/yargs-parser/20.2.1:
@@ -6327,10 +6333,6 @@ packages:
       is-extendable: 1.0.1
     dev: true
 
-  /mobile-detect/1.4.5:
-    resolution: {integrity: sha512-yc0LhH6tItlvfLBugVUEtgawwFU2sIe+cSdmRJJCTMZ5GEJyLxNyC/NIOAOGk67Fa8GNpOttO3Xz/1bHpXFD/g==}
-    dev: false
-
   /ms/2.0.0:
     resolution: {integrity: sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=}
     dev: true
@@ -7843,6 +7845,10 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
+
+  /ua-parser-js/1.0.2:
+    resolution: {integrity: sha512-00y/AXhx0/SsnI51fTc0rLRmafiGOM4/O+ny10Ps7f+j/b8p/ZY11ytMgznXkOVo4GQ+KwQG5UQLkLGirsACRg==}
+    dev: false
 
   /unbox-primitive/1.0.1:
     resolution: {integrity: sha512-tZU/3NqK3dA5gpE1KtyiJUrEB0lxnGkMFHptJ7q6ewdZ8s12QrODwNbhIJStmJkd1QDXa1NRA8aF2A1zk/Ypyw==}

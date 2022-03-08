@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from "react
 
 import { Button, makeStyles, useTheme } from "@material-ui/core";
 import { CSSProperties } from "@material-ui/styles";
-import MobileDetect from "mobile-detect";
+import UAParser from "ua-parser-js";
 
 import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -39,10 +39,19 @@ export interface Props {
 }
 
 const WebauthnMethod = function (props: Props) {
-    const md = new MobileDetect(window.navigator.userAgent);
+    const uaParser = new UAParser();
+
+    const uaResult = uaParser.getResult();
+
+    const apple =
+        uaResult.device.vendor === "Apple" ||
+        uaResult.os.name === "iOS" ||
+        uaResult.os.name === "Mac OS" ||
+        uaResult.browser.name === "Safari";
 
     const signInTimeout = 30;
-    const [state, setState] = useState(md.is("iOS") || md.is("Safari") ? State.UserGestureRequired : State.Starting);
+
+    const [state, setState] = useState(apple ? State.UserGestureRequired : State.Starting);
     const [explanation, setExplanation] = useState("");
 
     const style = useStyles();
@@ -188,6 +197,10 @@ const WebauthnMethod = function (props: Props) {
         >
             <div className={style.icon}>
                 <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
+            </div>
+            <div>
+                OS: {uaResult.os.name}, Engine: {uaResult.engine.name}, Vnedor: {uaResult.device.vendor}, Model:{" "}
+                {uaResult.device.model}, Browser: {uaResult.browser.name}
             </div>
         </MethodContainer>
     );
