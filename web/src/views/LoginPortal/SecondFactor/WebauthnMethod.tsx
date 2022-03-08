@@ -70,8 +70,9 @@ const WebauthnMethod = function (props: Props) {
         }
 
         try {
-            triggerTimer();
             setState(State.WaitTouch);
+
+            triggerTimer();
             const assertionRequestResponse = await getAssertionRequestOptions();
 
             if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
@@ -197,10 +198,6 @@ const WebauthnMethod = function (props: Props) {
         >
             <div className={style.icon}>
                 <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
-            </div>
-            <div>
-                OS: {uaResult.os.name}, Engine: {uaResult.engine.name}, Vnedor: {uaResult.device.vendor}, Model:{" "}
-                {uaResult.device.model}, Browser: {uaResult.browser.name}
             </div>
         </MethodContainer>
     );

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Button, makeStyles, Typography } from "@material-ui/core";
 import { useLocation, useNavigate } from "react-router-dom";
+import UAParser from "ua-parser-js";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -11,7 +12,24 @@ import { FirstFactorPath } from "@services/Api";
 import { performAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
+export enum State {
+    InProgress = 1,
+    UserGestureRequired = 2,
+}
+
 const RegisterWebauthn = function () {
+    const uaParser = new UAParser();
+
+    const uaResult = uaParser.getResult();
+
+    const apple =
+        uaResult.device.vendor === "Apple" ||
+        uaResult.os.name === "iOS" ||
+        uaResult.os.name === "Mac OS" ||
+        uaResult.browser.name === "Safari";
+
+    const [state, setState] = useState(apple ? State.UserGestureRequired : State.InProgress);
+
     const style = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -22,6 +40,12 @@ const RegisterWebauthn = function () {
 
     const handleBackClick = () => {
         navigate(FirstFactorPath);
+    };
+
+    const handleStartClick = () => {
+        setState(State.InProgress);
+
+        attestation();
     };
 
     const attestation = useCallback(async () => {
@@ -79,21 +103,39 @@ const RegisterWebauthn = function () {
     }, [processToken, createErrorNotification, navigate]);
 
     useEffect(() => {
-        attestation();
-    }, [attestation]);
+        if (state === State.InProgress) {
+            attestation();
+        }
+    }, [attestation, state]);
 
     return (
         <LoginLayout title="Touch Security Key">
             <div className={style.icon}>
                 <FingerTouchIcon size={64} animated />
             </div>
-            <Typography className={style.instruction}>Touch the token on your security key</Typography>
-            <Button color="primary" onClick={handleBackClick}>
-                Retry
-            </Button>
-            <Button color="primary" onClick={handleBackClick}>
-                Cancel
-            </Button>
+            {state === State.InProgress ? (
+                <div>
+                    <Typography className={style.instruction}>Touch the token on your security key</Typography>
+
+                    <Button color="primary" onClick={handleBackClick}>
+                        Retry
+                    </Button>
+                    <Button color="primary" onClick={handleBackClick}>
+                        Cancel
+                    </Button>
+                </div>
+            ) : (
+                <div>
+                    <Typography className={style.instruction}>Click start to begin</Typography>
+
+                    <Button color="primary" onClick={handleStartClick}>
+                        Start
+                    </Button>
+                    <Button color="primary" onClick={handleBackClick}>
+                        Cancel
+                    </Button>
+                </div>
+            )}
         </LoginLayout>
     );
 };
