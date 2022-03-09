@@ -45,7 +45,7 @@ specifiers:
   react: 17.0.2
   react-dom: 17.0.2
   react-ga: 3.3.0
-  react-i18next: 11.15.5
+  react-i18next: 11.15.6
   react-loading: 2.0.3
   react-otp-input: 2.4.0
   react-router-dom: 6.2.2
@@ -75,7 +75,7 @@ dependencies:
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
   react-ga: 3.3.0_react@17.0.2
-  react-i18next: 11.15.5_8fd568e9c91be135c90675cf637af7c7
+  react-i18next: 11.15.6_8fd568e9c91be135c90675cf637af7c7
   react-loading: 2.0.3_react@17.0.2
   react-otp-input: 2.4.0_react-dom@17.0.2+react@17.0.2
   react-router-dom: 6.2.2_react-dom@17.0.2+react@17.0.2
@@ -6837,8 +6837,8 @@ packages:
       react: 17.0.2
     dev: false
 
-  /react-i18next/11.15.5_8fd568e9c91be135c90675cf637af7c7:
-    resolution: {integrity: sha512-vBWuVEQgrhZrGKpyv8FmJ7Zs5jRQWl794Tte7yzJ0okZqqi3jd6j2pLYNg441WcREsbIOvWdiDXbY7W6E93p1A==}
+  /react-i18next/11.15.6_8fd568e9c91be135c90675cf637af7c7:
+    resolution: {integrity: sha512-OUWcFdNgIA9swVx3JGIreuquglAinpRwB/HYrCprTN+s9BQDt9LSiY7x5DGc2JzVpwqtpoTV7oRUTOxEPNyUPw==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0'
