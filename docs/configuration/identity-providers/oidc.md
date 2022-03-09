@@ -34,6 +34,7 @@ identity_providers:
     id_token_lifespan: 1h
     refresh_token_lifespan: 90m
     enable_client_debug_messages: false
+    enforce_pkce: public_clients_only
     clients:
       - id: myapp
         description: My Application
@@ -183,6 +184,39 @@ This controls the minimum length of the `nonce` and `state` parameters.
 ***Security Notice:*** Changing this value is generally discouraged, reducing it from the default can theoretically
 make certain scenarios less secure. It is highly encouraged that if your OpenID Connect RP does not send these parameters
 or sends parameters with a lower length than the default that they implement a change rather than changing this value.
+
+### enforce_pkce
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+default: public_clients_only
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+[Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) enforcement policy: if specified, must be either `never`, `public_clients_only` or `always`.
+
+If set to `public_clients_only` (default), PKCE will be required for public clients using the Authorization Code flow.
+
+When set to `always`, PKCE will be required for all clients using the Authorization Code flow.
+
+***Security Notice:*** Changing this value to `never` is generally discouraged, reducing it from the default can theoretically
+make certain client-side applications (mobile applications, SPA) vulnerable to CSRF and authorization code interception attacks.
+
+### enable_pkce_plain_challenge
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Allows PKCE `plain` challenges when set to `true`.
+
+***Security Notice:*** Changing this value is generally discouraged. Applications should use the `S256` PKCE challenge method instead.
 
 ### clients
 
@@ -435,15 +469,16 @@ particularly those that don't use [discovery](https://openid.net/specs/openid-co
 appended to the end of the primary URL used to access Authelia. For example in the Discovery example provided you access
 Authelia via https://auth.example.com, the discovery URL is https://auth.example.com/.well-known/openid-configuration.
 
-|   Endpoint    |               Path               |
-|:-------------:|:--------------------------------:|
-|   Discovery   | .well-known/openid-configuration |
-|     JWKS      |          api/oidc/jwks           |
-| Authorization |        api/oidc/authorize        |
-|     Token     |          api/oidc/token          |
-| Introspection |       api/oidc/introspect        |
-|  Revocation   |         api/oidc/revoke          |
-|   Userinfo    |        api/oidc/userinfo         |
+|   Endpoint    |                     Path                      |
+|:-------------:|:---------------------------------------------:|
+|   Discovery   |    [root]/.well-known/openid-configuration    |
+|   Metadata    | [root]/.well-known/oauth-authorization-server |
+|     JWKS      |             [root]/api/oidc/jwks              |
+| Authorization |         [root]/api/oidc/authorization         |
+|     Token     |             [root]/api/oidc/token             |
+| Introspection |         [root]/api/oidc/introspection         |
+|  Revocation   |          [root]/api/oidc/revocation           |
+|   Userinfo    |           [root]/api/oidc/userinfo            |
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration

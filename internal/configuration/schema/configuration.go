@@ -10,14 +10,16 @@ type Configuration struct {
 	Log                   LogConfiguration                   `koanf:"log"`
 	IdentityProviders     IdentityProvidersConfiguration     `koanf:"identity_providers"`
 	AuthenticationBackend AuthenticationBackendConfiguration `koanf:"authentication_backend"`
-	Session               SessionConfiguration               `koanf:"session"`
-	TOTP                  *TOTPConfiguration                 `koanf:"totp"`
+	TOTP                  TOTPConfiguration                  `koanf:"totp"`
+	Webauthn              WebauthnConfiguration              `koanf:"webauthn"`
 	DuoAPI                *DuoAPIConfiguration               `koanf:"duo_api"`
 	AccessControl         AccessControlConfiguration         `koanf:"access_control"`
-	NTP                   *NTPConfiguration                  `koanf:"ntp"`
-	Regulation            *RegulationConfiguration           `koanf:"regulation"`
-	Storage               StorageConfiguration               `koanf:"storage"`
-	Notifier              *NotifierConfiguration             `koanf:"notifier"`
-	Server                ServerConfiguration                `koanf:"server"`
-	PasswordPolicy        *PasswordPolicyConfiguration       `koanf:"password_policy"`
+	Regulation            RegulationConfiguration            `koanf:"regulation"`
+
+	Server         ServerConfiguration          `koanf:"server"`
+	Session        SessionConfiguration         `koanf:"session"`
+	NTP            NTPConfiguration             `koanf:"ntp"`
+	Storage        StorageConfiguration         `koanf:"storage"`
+	Notifier       *NotifierConfiguration       `koanf:"notifier"`
+	PasswordPolicy *PasswordPolicyConfiguration `koanf:"password_policy"`
 }

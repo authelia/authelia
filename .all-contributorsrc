@@ -602,6 +602,17 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "FineWolf",
+      "name": "Andrew Moore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/203591?v=4",
+      "profile": "https://github.com/FineWolf",
+      "contributions": [
+        "code",
+        "doc",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7

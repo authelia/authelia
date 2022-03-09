@@ -1,4 +1,10 @@
 #!/bin/sh
+
+if [[ ! -z "$NO_HOOK" ]]
+then
+  exit 0
+fi
+
 . "$(dirname "$0")/_/husky.sh"
 . "$(dirname "$0")/required-apps"
 

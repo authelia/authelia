@@ -7,7 +7,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -95,7 +95,7 @@ func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
 
 	userSession := ctx.GetSession()
 	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, device.Device, device.Method)
-	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: userSession.Username, Device: device.Device, Method: device.Method})
+	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: device.Device, Method: device.Method})
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %s", err), messageMFAValidationFailed)

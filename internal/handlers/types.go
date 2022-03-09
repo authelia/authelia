@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"github.com/tstranex/u2f"
-
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
@@ -13,8 +11,7 @@ type authorizationMatching int
 
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
-	AvailableMethods    MethodList `json:"available_methods"`
-	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
+	AvailableMethods MethodList `json:"available_methods"`
 }
 
 // signTOTPRequestBody model of the request body received by TOTP authentication endpoint.
@@ -23,10 +20,9 @@ type signTOTPRequestBody struct {
 	TargetURL string `json:"targetURL"`
 }
 
-// signU2FRequestBody model of the request body of U2F authentication endpoint.
-type signU2FRequestBody struct {
-	SignResponse u2f.SignResponse `json:"signResponse"`
-	TargetURL    string           `json:"targetURL"`
+// signWebauthnRequestBody model of the request body of Webauthn authentication endpoint.
+type signWebauthnRequestBody struct {
+	TargetURL string `json:"targetURL"`
 }
 
 type signDuoRequestBody struct {

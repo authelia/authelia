@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 type FetchSuite struct {
@@ -36,49 +36,49 @@ func (s *FetchSuite) TearDownTest() {
 }
 
 type expectedResponse struct {
-	db  models.UserInfo
-	api *models.UserInfo
+	db  model.UserInfo
+	api *model.UserInfo
 	err error
 }
 
 func TestMethodSetToU2F(t *testing.T) {
 	expectedResponses := []expectedResponse{
 		{
-			db: models.UserInfo{
+			db: model.UserInfo{
 				Method: "totp",
 			},
 			err: nil,
 		},
 		{
-			db: models.UserInfo{
-				Method:  "u2f",
-				HasU2F:  true,
-				HasTOTP: true,
+			db: model.UserInfo{
+				Method:      "webauthn",
+				HasWebauthn: true,
+				HasTOTP:     true,
 			},
 			err: nil,
 		},
 		{
-			db: models.UserInfo{
-				Method:  "u2f",
-				HasU2F:  true,
-				HasTOTP: false,
+			db: model.UserInfo{
+				Method:      "webauthn",
+				HasWebauthn: true,
+				HasTOTP:     false,
 			},
 			err: nil,
 		},
 		{
-			db: models.UserInfo{
-				Method:  "mobile_push",
-				HasU2F:  false,
-				HasTOTP: false,
+			db: model.UserInfo{
+				Method:      "mobile_push",
+				HasWebauthn: false,
+				HasTOTP:     false,
 			},
 			err: nil,
 		},
 		{
-			db:  models.UserInfo{},
+			db:  model.UserInfo{},
 			err: sql.ErrNoRows,
 		},
 		{
-			db:  models.UserInfo{},
+			db:  model.UserInfo{},
 			err: errors.New("invalid thing"),
 		},
 	}
@@ -108,7 +108,7 @@ func TestMethodSetToU2F(t *testing.T) {
 				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 			})
 
-			actualPreferences := models.UserInfo{}
+			actualPreferences := model.UserInfo{}
 
 			mock.GetResponseData(t, &actualPreferences)
 
@@ -116,8 +116,8 @@ func TestMethodSetToU2F(t *testing.T) {
 				assert.Equal(t, resp.api.Method, actualPreferences.Method)
 			})
 
-			t.Run("registered u2f", func(t *testing.T) {
-				assert.Equal(t, resp.api.HasU2F, actualPreferences.HasU2F)
+			t.Run("registered webauthn", func(t *testing.T) {
+				assert.Equal(t, resp.api.HasWebauthn, actualPreferences.HasWebauthn)
 			})
 
 			t.Run("registered totp", func(t *testing.T) {
@@ -141,7 +141,7 @@ func TestMethodSetToU2F(t *testing.T) {
 func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	s.mock.StorageMock.EXPECT().
 		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
-		Return(models.UserInfo{}, fmt.Errorf("failure"))
+		Return(model.UserInfo{}, fmt.Errorf("failure"))
 
 	UserInfoGet(s.mock.Ctx)
 
@@ -205,14 +205,14 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unknown method 'abc', it should be one of totp, u2f, mobile_push", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unknown method 'abc', it should be one of totp, webauthn, mobile_push", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
 func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
-	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"webauthn\"}"))
 	s.mock.StorageMock.EXPECT().
-		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(fmt.Errorf("Failure"))
 
 	MethodPreferencePost(s.mock.Ctx)
@@ -223,9 +223,9 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 }
 
 func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
-	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"u2f\"}"))
+	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"webauthn\"}"))
 	s.mock.StorageMock.EXPECT().
-		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("u2f")).
+		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(nil)
 
 	MethodPreferencePost(s.mock.Ctx)

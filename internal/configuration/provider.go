@@ -43,9 +43,9 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 	c := koanf.UnmarshalConf{
 		DecoderConfig: &mapstructure.DecoderConfig{
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				mapstructure.StringToTimeDurationHookFunc(),
 				mapstructure.StringToSliceHookFunc(","),
 				StringToMailAddressFunc(),
+				ToTimeDurationFunc(),
 			),
 			Metadata:         nil,
 			Result:           o,

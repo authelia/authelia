@@ -15,6 +15,24 @@ var (
 	headerXOriginalURL     = []byte("X-Original-URL")
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
 
+	headerVary                          = []byte(fasthttp.HeaderVary)
+	headerOrigin                        = []byte(fasthttp.HeaderOrigin)
+	headerAccessControlAllowCredentials = []byte(fasthttp.HeaderAccessControlAllowCredentials)
+	headerAccessControlAllowHeaders     = []byte(fasthttp.HeaderAccessControlAllowHeaders)
+	headerAccessControlAllowMethods     = []byte(fasthttp.HeaderAccessControlAllowMethods)
+	headerAccessControlAllowOrigin      = []byte(fasthttp.HeaderAccessControlAllowOrigin)
+	headerAccessControlMaxAge           = []byte(fasthttp.HeaderAccessControlMaxAge)
+	headerAccessControlRequestHeaders   = []byte(fasthttp.HeaderAccessControlRequestHeaders)
+	headerAccessControlRequestMethod    = []byte(fasthttp.HeaderAccessControlRequestMethod)
+)
+
+var (
+	headerValueFalse  = []byte("false")
+	headerValueMaxAge = []byte("100")
+	headerValueVary   = []byte("Accept-Encoding, Origin")
+)
+
+var (
 	protoHTTPS = []byte("https")
 	protoHTTP  = []byte("http")
 

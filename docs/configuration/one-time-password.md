@@ -14,6 +14,7 @@ full example of TOTP configuration below, as well as sections describing them.
 ## Configuration
 ```yaml
 totp:
+  disable: false
   issuer: authelia.com
   algorithm: sha1
   digits: 6
@@ -22,6 +23,18 @@ totp:
 ```
 
 ## Options
+
+### disable
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+This disables One-Time Password (TOTP) if set to true.
 
 ### issuer
 <div markdown="1">
