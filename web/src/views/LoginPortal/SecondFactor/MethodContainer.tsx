@@ -1,6 +1,7 @@
 import React, { ReactNode, Fragment } from "react";
 
-import { makeStyles, Typography, Link, useTheme } from "@material-ui/core";
+import { Typography, Link, useTheme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 
@@ -60,13 +61,13 @@ const DefaultMethodContainer = function (props: Props) {
                 <div className={style.containerFlex}>{container}</div>
             </div>
             {props.onSelectClick && props.registered ? (
-                <Link component="button" id="selection-link" onClick={props.onSelectClick}>
+                <Link component="button" id="selection-link" onClick={props.onSelectClick} underline="hover">
                     {selectMessage}
                 </Link>
             ) : null}
             {(props.onRegisterClick && props.title !== "Push Notification") ||
             (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
-                <Link component="button" id="register-link" onClick={props.onRegisterClick}>
+                <Link component="button" id="register-link" onClick={props.onRegisterClick} underline="hover">
                     {registerMessage}
                 </Link>
             ) : null}

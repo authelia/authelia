@@ -1,7 +1,8 @@
 import React, { ReactNode } from "react";
 
-import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core";
-import { grey } from "@material-ui/core/colors";
+import { Grid, Container, Typography, Link } from "@mui/material";
+import { grey } from "@mui/material/colors";
+import makeStyles from "@mui/styles/makeStyles";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import { getLogoOverride } from "@utils/Configuration";
@@ -43,6 +44,7 @@ const LoginLayout = function (props: Props) {
                                 href="https://github.com/authelia/authelia"
                                 target="_blank"
                                 className={style.poweredBy}
+                                underline="hover"
                             >
                                 Powered by Authelia
                             </Link>

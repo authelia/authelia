@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useTheme, Typography, Grid } from "@material-ui/core";
+import { useTheme, Typography, Grid } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import ReactLoading from "react-loading";
 

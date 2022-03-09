@@ -1,19 +1,21 @@
-import { createTheme } from "@material-ui/core/styles";
+import { createTheme, adaptV4Theme } from "@mui/material/styles";
 
-const Light = createTheme({
-    custom: {
-        icon: "#000",
-        loadingBar: "#000",
-    },
-    palette: {
-        primary: {
-            main: "#1976d2",
+const Light = createTheme(
+    adaptV4Theme({
+        custom: {
+            icon: "#000",
+            loadingBar: "#000",
         },
-        background: {
-            default: "#fff",
-            paper: "#fff",
+        palette: {
+            primary: {
+                main: "#1976d2",
+            },
+            background: {
+                default: "#fff",
+                paper: "#fff",
+            },
         },
-    },
-});
+    }),
+);
 
 export default Light;

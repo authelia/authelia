@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from "react";
 
-import { makeStyles, Typography, Grid, Button, Container } from "@material-ui/core";
+import { Typography, Grid, Button, Container } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
 
@@ -27,6 +28,7 @@ export interface Props {
     onBack: () => void;
     onSelect: (device: SelectedDevice) => void;
 }
+
 const DefaultDeviceSelectionContainer = function (props: Props) {
     const [state, setState] = useState(State.DEVICE);
     const [device, setDevice] = useState([] as unknown as SelectableDevice);

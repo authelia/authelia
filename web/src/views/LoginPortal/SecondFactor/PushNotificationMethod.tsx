@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useRef, useState, ReactNode } from "react";
 
-import { Button, makeStyles } from "@material-ui/core";
+import { Button } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";

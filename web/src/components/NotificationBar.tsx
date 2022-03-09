@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { Snackbar } from "@material-ui/core";
+import { Snackbar } from "@mui/material";
 
 import ColoredSnackbarContent from "@components/ColoredSnackbarContent";
 import { useNotifications } from "@hooks/NotificationsContext";

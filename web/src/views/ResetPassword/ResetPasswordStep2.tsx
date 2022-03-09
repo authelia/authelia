@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 
-import { Grid, Button, makeStyles } from "@material-ui/core";
+import { Grid, Button } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";

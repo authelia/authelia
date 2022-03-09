@@ -1,7 +1,8 @@
 import React from "react";
 
-import { makeStyles, LinearProgress } from "@material-ui/core";
-import { CSSProperties } from "@material-ui/styles";
+import { LinearProgress } from "@mui/material";
+import { CSSProperties } from "@mui/styles";
+import makeStyles from "@mui/styles/makeStyles";
 
 export interface Props {
     value: number;

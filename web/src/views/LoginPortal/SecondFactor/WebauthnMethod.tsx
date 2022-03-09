@@ -1,7 +1,8 @@
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, makeStyles, useTheme } from "@material-ui/core";
-import { CSSProperties } from "@material-ui/styles";
+import { Button, useTheme } from "@mui/material";
+import { CSSProperties } from "@mui/styles";
+import makeStyles from "@mui/styles/makeStyles";
 
 import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
