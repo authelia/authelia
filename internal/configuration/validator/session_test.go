@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,12 +38,12 @@ func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
-	config.Expiration, config.Inactivity, config.RememberMeDuration = -1, -1, -1
+	config.Expiration, config.Inactivity, config.RememberMeDuration = -1, -1, -2
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
 	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
@@ -406,7 +407,7 @@ func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	}
 }
 
-func TestShouldSetDefaultWhenNegativeInactivityAndExpirationSet(t *testing.T) {
+func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Inactivity = -1
@@ -420,7 +421,7 @@ func TestShouldSetDefaultWhenNegativeInactivityAndExpirationSet(t *testing.T) {
 
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
+	assert.Equal(t, time.Duration(-1), config.RememberMeDuration)
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
