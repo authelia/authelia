@@ -4,14 +4,11 @@ import (
 	"crypto/rsa"
 
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/oauth2"
-	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	istore "github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -39,8 +36,9 @@ type OpenIDConnectStore struct {
 
 */
 
+// OpenIDConnectStore performs OIDC storage.
 type OpenIDConnectStore struct {
-	provider istore.Provider
+	provider storage.Provider
 	clients  map[string]*Client
 }
 
@@ -75,13 +73,6 @@ type KeyManager struct {
 
 // AutheliaHasher implements the fosite.Hasher interface without an actual hashing algo.
 type AutheliaHasher struct{}
-
-type OpenIDConnectStorage interface {
-	oauth2.AuthorizeCodeStorage
-	oauth2.TokenRevocationStorage
-	pkce.PKCERequestStorage
-	openid.OpenIDConnectRequestStorage
-}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {

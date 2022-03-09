@@ -15,8 +15,8 @@ const (
 	tableEncryption           = "encryption"
 
 	tableOAuth2AuthorizeCodeSessions = "oauth2_authorize_code_sessions"
-	tableOAuth2AccessTokenSessions   = "oauth2_access_token_sessions"
-	tableOAuth2RefreshTokenSessions  = "oauth2_refresh_token_sessions"
+	tableOAuth2AccessTokenSessions   = "oauth2_access_token_sessions"  //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2RefreshTokenSessions  = "oauth2_refresh_token_sessions" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2PKCERequestSessions   = "oauth2_pkce_request_sessions"
 	tableOAuth2OpenIDConnectSessions = "oauth2_openid_connect_sessions"
 	tableOAuth2BlacklistedJTI        = "oauth2_blacklisted_jti"
@@ -24,8 +24,10 @@ const (
 	tablePrefixBackup = "_bkp_"
 )
 
+// OAuth2SessionType represents the potential OAuth 2.0 session types.
 type OAuth2SessionType string
 
+// Representation of specific OAuth 2.0 session types.
 const (
 	OAuth2SessionTypeAuthorizeCode OAuth2SessionType = "authorize code"
 	OAuth2SessionTypeAccessToken   OAuth2SessionType = "access token"
@@ -81,10 +83,10 @@ const (
 	SchemaLatest = 2147483647
 )
 
-type CTXKey int
+type ctxKey int
 
 const (
-	ctxKeyTransaction CTXKey = iota
+	ctxKeyTransaction ctxKey = iota
 )
 
 var (

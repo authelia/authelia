@@ -222,7 +222,7 @@ func (s *OpenIDConnectStore) CreateOpenIDConnectSession(ctx context.Context, aut
 	return s.saveSession(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request)
 }
 
-// Deprecated: DeleteOpenIDConnectSession is not called from anywhere. Originally, it should remove an open id connect session from the store.
+// DeleteOpenIDConnectSession just implements the method required by fosite even though it's unused.
 // This implements a portion of openid.OpenIDConnectRequestStorage.
 func (s *OpenIDConnectStore) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) (err error) {
 	return s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, authorizeCode)
