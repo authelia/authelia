@@ -92,7 +92,7 @@ func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
-		keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != 0 && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
+		keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != -1 && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
 		// Set the cookie to expire if remember me is enabled and the user has asked us to.
 		if keepMeLoggedIn {
