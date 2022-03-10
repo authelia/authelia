@@ -13,26 +13,31 @@ import (
 
 type AccessControl struct {
 	suite.Suite
-	configuration schema.AccessControlConfiguration
-	validator     *schema.StructValidator
+	config    *schema.Configuration
+	validator *schema.StructValidator
 }
 
 func (suite *AccessControl) SetupTest() {
 	suite.validator = schema.NewStructValidator()
-	suite.configuration.DefaultPolicy = policyDeny
-	suite.configuration.Networks = schema.DefaultACLNetwork
-	suite.configuration.Rules = schema.DefaultACLRule
+	suite.config = &schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: policyDeny,
+
+			Networks: schema.DefaultACLNetwork,
+			Rules:    schema.DefaultACLRule,
+		},
+	}
 }
 
 func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
-	ValidateAccessControl(&suite.configuration, suite.validator)
+	ValidateAccessControl(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
 }
 
 func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
-	suite.configuration.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"abc.example.com"},
 			Policy:  "bypass",
@@ -46,97 +51,102 @@ func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
 		},
 	}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	assert.EqualError(suite.T(), suite.validator.Errors()[0], "access control: rule #3: rules must have one or more domains")
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "access control: rule #3: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
-	suite.configuration.DefaultPolicy = testInvalidPolicy
+	suite.config.AccessControl.DefaultPolicy = testInvalidPolicy
 
-	ValidateAccessControl(&suite.configuration, suite.validator)
+	ValidateAccessControl(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: default_policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: option 'default_policy' must be one of 'bypass', 'one_factor', 'two_factor', 'deny' but it is configured as 'invalid'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
-	suite.configuration.Networks = []schema.ACLNetwork{
+	suite.config.AccessControl.Networks = []schema.ACLNetwork{
 		{
 			Name:     "internal",
 			Networks: []string{"abc.def.ghi.jkl"},
 		},
 	}
 
-	ValidateAccessControl(&suite.configuration, suite.validator)
+	ValidateAccessControl(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: network '[abc.def.ghi.jkl]' from network group: 'internal' must be a valid IP or CIDR")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: networks: network group 'internal' is invalid: the network 'abc.def.ghi.jkl' is not a valid IP or CIDR notation")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {
-	suite.configuration.Rules = []schema.ACLRule{}
+	suite.config.AccessControl.Rules = []schema.ACLRule{}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: default policy 'deny' is invalid, access control rules must be provided or a policy must either be 'one_factor' or 'two_factor'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: 'default_policy' option 'deny' is invalid: when no rules are specified it must be 'two_factor' or 'one_factor'")
 }
 
 func (suite *AccessControl) TestShouldRaiseWarningWithNoRulesDefined() {
-	suite.configuration.Rules = []schema.ACLRule{}
+	suite.config.AccessControl.Rules = []schema.ACLRule{}
 
-	suite.configuration.DefaultPolicy = policyTwoFactor
+	suite.config.AccessControl.DefaultPolicy = policyTwoFactor
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasErrors())
 	suite.Require().Len(suite.validator.Warnings(), 1)
 
-	suite.Assert().EqualError(suite.validator.Warnings()[0], "access control: no access control rules have been defined so the default policy 'two_factor' will be applied to all requests")
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "access control: no rules have been specified so the 'default_policy' of 'two_factor' is going to be applied to all requests")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorsWithEmptyRules() {
-	suite.configuration.Rules = []schema.ACLRule{{}, {}}
+	suite.config.AccessControl.Rules = []schema.ACLRule{
+		{},
+		{
+			Policy: "wrong",
+		},
+	}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 4)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: rules must have one or more domains")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #1: policy '' is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #2: rules must have one or more domains")
-	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #2: policy '' is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #1: rule 'policy' option '' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #2: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #2: rule 'policy' option 'wrong' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
-	suite.configuration.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  testInvalidPolicy,
 		},
 	}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: policy 'invalid' is invalid, a policy must either be 'deny', 'two_factor', 'one_factor' or 'bypass'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): rule 'policy' option 'invalid' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
-	suite.configuration.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains:  []string{"public.example.com"},
 			Policy:   "bypass",
@@ -144,16 +154,16 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
 		},
 	}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: network '[abc.def.ghi.jkl/32]' is not a valid network or network group")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): the network 'abc.def.ghi.jkl/32' is not a valid Group Name, IP, or CIDR notation")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
-	suite.configuration.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"public.example.com"},
 			Policy:  "bypass",
@@ -161,18 +171,18 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 		},
 	}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: method 'HOP' is invalid, must be one of the following methods: GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, CONNECT, OPTIONS")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'methods' option 'HOP' is invalid: must be one of 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	domains := []string{"public.example.com"}
 	subjects := [][]string{{"invalid"}}
-	suite.configuration.Rules = []schema.ACLRule{
+	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains:  domains,
 			Policy:   "bypass",
@@ -180,13 +190,13 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 		},
 	}
 
-	ValidateRules(suite.configuration, suite.validator)
+	ValidateRules(suite.config, suite.validator)
 
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 2)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: subject '[invalid]' for rule is invalid, must start with 'user:' or 'group:'")
-	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlRuleInvalidPolicyWithSubjects, 1))
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'subject' option 'invalid' is invalid: must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(1, suite.config.AccessControl.Rules[0])))
 }
 
 func TestAccessControl(t *testing.T) {

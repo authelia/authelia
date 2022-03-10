@@ -50,9 +50,9 @@ required: no
 The default redirection URL is the URL where users are redirected when Authelia cannot detect the target URL where the
 user was heading.
 
-In a normal authentication workflow, a user tries to access a website and she gets redirected to the sign-in portal in
+In a normal authentication workflow, a user tries to access a website and they get redirected to the sign-in portal in
 order to authenticate. Since the user initially targeted a website, the portal knows where the user was heading and
-can redirect her after the authentication process. However, when a user visits the sign in portal directly, the portal
+can redirect them after the authentication process. However, when a user visits the sign in portal directly, the portal
 considers the targeted website is the portal. In that case and if the default redirection URL is configured, the user is
 redirected to that URL. If not defined, the user is not redirected after authentication.
 

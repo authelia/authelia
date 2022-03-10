@@ -25,6 +25,22 @@ func PolicyToLevel(policy string) Level {
 	return Denied
 }
 
+// LevelToPolicy converts a int authorization level to string policy.
+func LevelToPolicy(level Level) (policy string) {
+	switch level {
+	case Bypass:
+		return bypass
+	case OneFactor:
+		return oneFactor
+	case TwoFactor:
+		return twoFactor
+	case Denied:
+		return deny
+	}
+
+	return deny
+}
+
 func stringSliceToRegexpSlice(strings []string) (regexps []*regexp.Regexp) {
 	for _, str := range strings {
 		regexps = append(regexps, regexp.MustCompile(str))

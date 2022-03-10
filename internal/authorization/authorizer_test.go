@@ -31,18 +31,21 @@ func NewAuthorizerTester(config schema.AccessControlConfiguration) *AuthorizerTe
 }
 
 func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, requestURI, method string, expectedLevel Level) {
-	url, _ := url.ParseRequestURI(requestURI)
+	targetURL, _ := url.ParseRequestURI(requestURI)
 
-	object := Object{
-		Scheme: url.Scheme,
-		Domain: url.Hostname(),
-		Path:   url.Path,
-		Method: method,
-	}
+	object := NewObject(targetURL, method)
 
 	level := s.GetRequiredLevel(subject, object)
 
 	assert.Equal(t, expectedLevel, level)
+}
+
+func (s *AuthorizerTester) GetRuleMatchResults(subject Subject, requestURI, method string) (results []RuleMatchResult) {
+	targetURL, _ := url.ParseRequestURI(requestURI)
+
+	object := NewObject(targetURL, method)
+
+	return s.Authorizer.GetRuleMatchResults(subject, object)
 }
 
 type AuthorizerTesterBuilder struct {
@@ -585,6 +588,59 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 	tester.CheckAuthorizations(s.T(), John, "https://private.example.com", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://private.example.com", "GET", Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://private.example.com", "GET", TwoFactor)
+
+	results := tester.GetRuleMatchResults(John, "https://private.example.com", "GET")
+
+	require.Len(s.T(), results, 7)
+
+	assert.False(s.T(), results[0].IsMatch())
+	assert.False(s.T(), results[0].MatchDomain)
+	assert.False(s.T(), results[0].MatchResources)
+	assert.True(s.T(), results[0].MatchSubjects)
+	assert.True(s.T(), results[0].MatchNetworks)
+	assert.True(s.T(), results[0].MatchMethods)
+
+	assert.False(s.T(), results[1].IsMatch())
+	assert.False(s.T(), results[1].MatchDomain)
+	assert.False(s.T(), results[1].MatchResources)
+	assert.True(s.T(), results[1].MatchSubjects)
+	assert.True(s.T(), results[1].MatchNetworks)
+	assert.True(s.T(), results[1].MatchMethods)
+
+	assert.False(s.T(), results[2].IsMatch())
+	assert.False(s.T(), results[2].MatchDomain)
+	assert.True(s.T(), results[2].MatchResources)
+	assert.True(s.T(), results[2].MatchSubjects)
+	assert.True(s.T(), results[2].MatchNetworks)
+	assert.True(s.T(), results[2].MatchMethods)
+
+	assert.False(s.T(), results[3].IsMatch())
+	assert.False(s.T(), results[3].MatchDomain)
+	assert.False(s.T(), results[3].MatchResources)
+	assert.True(s.T(), results[3].MatchSubjects)
+	assert.True(s.T(), results[3].MatchNetworks)
+	assert.True(s.T(), results[3].MatchMethods)
+
+	assert.False(s.T(), results[4].IsMatch())
+	assert.False(s.T(), results[4].MatchDomain)
+	assert.False(s.T(), results[4].MatchResources)
+	assert.True(s.T(), results[4].MatchSubjects)
+	assert.True(s.T(), results[4].MatchNetworks)
+	assert.True(s.T(), results[4].MatchMethods)
+
+	assert.False(s.T(), results[5].IsMatch())
+	assert.False(s.T(), results[5].MatchDomain)
+	assert.True(s.T(), results[5].MatchResources)
+	assert.True(s.T(), results[5].MatchSubjects)
+	assert.True(s.T(), results[5].MatchNetworks)
+	assert.True(s.T(), results[5].MatchMethods)
+
+	assert.True(s.T(), results[6].IsMatch())
+	assert.True(s.T(), results[6].MatchDomain)
+	assert.True(s.T(), results[6].MatchResources)
+	assert.True(s.T(), results[6].MatchSubjects)
+	assert.True(s.T(), results[6].MatchNetworks)
+	assert.True(s.T(), results[6].MatchMethods)
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {

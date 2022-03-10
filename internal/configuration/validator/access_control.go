@@ -12,7 +12,7 @@ import (
 
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) (isValid bool) {
-	return policy == policyDeny || policy == policyOneFactor || policy == policyTwoFactor || policy == policyBypass
+	return utils.IsStringInSlice(policy, validACLRulePolicies)
 }
 
 // IsSubjectValid check if a subject is valid.
@@ -21,8 +21,8 @@ func IsSubjectValid(subject string) (isValid bool) {
 }
 
 // IsNetworkGroupValid check if a network group is valid.
-func IsNetworkGroupValid(configuration schema.AccessControlConfiguration, network string) bool {
-	for _, networks := range configuration.Networks {
+func IsNetworkGroupValid(config schema.AccessControlConfiguration, network string) bool {
+	for _, networks := range config.Networks {
 		if network != networks.Name {
 			continue
 		} else {
@@ -43,21 +43,29 @@ func IsNetworkValid(network string) (isValid bool) {
 	return true
 }
 
+func ruleDescriptor(position int, rule schema.ACLRule) string {
+	if len(rule.Domains) == 0 {
+		return fmt.Sprintf("#%d", position)
+	}
+
+	return fmt.Sprintf("#%d (domain '%s')", position, strings.Join(rule.Domains, ","))
+}
+
 // ValidateAccessControl validates access control configuration.
-func ValidateAccessControl(configuration *schema.AccessControlConfiguration, validator *schema.StructValidator) {
-	if configuration.DefaultPolicy == "" {
-		configuration.DefaultPolicy = policyDeny
+func ValidateAccessControl(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AccessControl.DefaultPolicy == "" {
+		config.AccessControl.DefaultPolicy = policyDeny
 	}
 
-	if !IsPolicyValid(configuration.DefaultPolicy) {
-		validator.Push(fmt.Errorf(errAccessControlInvalidDefaultPolicy))
+	if !IsPolicyValid(config.AccessControl.DefaultPolicy) {
+		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, strings.Join(validACLRulePolicies, "', '"), config.AccessControl.DefaultPolicy))
 	}
 
-	if configuration.Networks != nil {
-		for _, n := range configuration.Networks {
+	if config.AccessControl.Networks != nil {
+		for _, n := range config.AccessControl.Networks {
 			for _, networks := range n.Networks {
 				if !IsNetworkValid(networks) {
-					validator.Push(fmt.Errorf(errAccessControlInvalidNetwork, n.Networks, n.Name))
+					validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
 				}
 			}
 		}
@@ -65,31 +73,31 @@ func ValidateAccessControl(configuration *schema.AccessControlConfiguration, val
 }
 
 // ValidateRules validates an ACL Rule configuration.
-func ValidateRules(configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
-	if configuration.Rules == nil || len(configuration.Rules) == 0 {
-		if configuration.DefaultPolicy != policyOneFactor && configuration.DefaultPolicy != policyTwoFactor {
-			validator.Push(fmt.Errorf(errAccessControlInvalidDefaultPolicyNoRules, configuration.DefaultPolicy))
+func ValidateRules(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AccessControl.Rules == nil || len(config.AccessControl.Rules) == 0 {
+		if config.AccessControl.DefaultPolicy != policyOneFactor && config.AccessControl.DefaultPolicy != policyTwoFactor {
+			validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyWithoutRules, config.AccessControl.DefaultPolicy))
 
 			return
 		}
 
-		validator.PushWarning(fmt.Errorf(warnAccessControlNoRules, configuration.DefaultPolicy))
+		validator.PushWarning(fmt.Errorf(errFmtAccessControlWarnNoRulesDefaultPolicy, config.AccessControl.DefaultPolicy))
 
 		return
 	}
 
-	for i, rule := range configuration.Rules {
+	for i, rule := range config.AccessControl.Rules {
 		rulePosition := i + 1
 
 		if len(rule.Domains)+len(rule.DomainsRegex) == 0 {
-			validator.Push(fmt.Errorf(errAccessControlRuleNoDomains, rulePosition))
+			validator.Push(fmt.Errorf(errFmtAccessControlRuleNoDomains, ruleDescriptor(rulePosition, rule)))
 		}
 
 		if !IsPolicyValid(rule.Policy) {
-			validator.Push(fmt.Errorf(errAccessControlRuleInvalidPolicy, rulePosition, rule.Policy))
+			validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), rule.Policy))
 		}
 
-		validateNetworks(rulePosition, rule, configuration, validator)
+		validateNetworks(rulePosition, rule, config.AccessControl, validator)
 
 		validateSubjects(rulePosition, rule, validator)
 
@@ -103,22 +111,22 @@ func ValidateRules(configuration schema.AccessControlConfiguration, validator *s
 
 func validateBypass(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
 	if len(rule.Subjects) != 0 {
-		validator.Push(fmt.Errorf(errAccessControlRuleInvalidPolicyWithSubjects, rulePosition))
+		validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(rulePosition, rule)))
 	}
 
 	for _, pattern := range rule.DomainsRegex {
 		if utils.IsStringSliceContainsAny(authorization.IdentitySubexpNames, pattern.SubexpNames()) {
-			validator.Push(fmt.Errorf(errAccessControlRuleInvalidPolicyWithSpecialDomainRegexp, rulePosition))
+			validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex, ruleDescriptor(rulePosition, rule)))
 			return
 		}
 	}
 }
 
-func validateNetworks(rulePosition int, rule schema.ACLRule, configuration schema.AccessControlConfiguration, validator *schema.StructValidator) {
+func validateNetworks(rulePosition int, rule schema.ACLRule, config schema.AccessControlConfiguration, validator *schema.StructValidator) {
 	for _, network := range rule.Networks {
 		if !IsNetworkValid(network) {
-			if !IsNetworkGroupValid(configuration, network) {
-				validator.Push(fmt.Errorf(errAccessControlRuleNetworkInvalid, rulePosition, rule.Networks))
+			if !IsNetworkGroupValid(config, network) {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleNetworksInvalid, ruleDescriptor(rulePosition, rule), network))
 			}
 		}
 	}
@@ -128,7 +136,7 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 	for _, subjectRule := range rule.Subjects {
 		for _, subject := range subjectRule {
 			if !IsSubjectValid(subject) {
-				validator.Push(fmt.Errorf(errAccessControlRuleInvalidSubjectPrefix, rulePosition, subjectRule))
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleSubjectInvalid, ruleDescriptor(rulePosition, rule), subject))
 			}
 		}
 	}
@@ -136,8 +144,8 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 
 func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
 	for _, method := range rule.Methods {
-		if !utils.IsStringInSliceFold(method, validHTTPRequestMethods) {
-			validator.Push(fmt.Errorf(errAccessControlRuleInvalidMethod, rulePosition, method, strings.Join(validHTTPRequestMethods, ", ")))
+		if !utils.IsStringInSliceFold(method, validACLRuleMethods) {
+			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLRuleMethods, "', '")))
 		}
 	}
 }

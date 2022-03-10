@@ -29,7 +29,8 @@ access_control:
     - internal
     - 1.1.1.1
     subject:
-    - ["user:adam", "user:fred"]
+    - ["user:adam"]
+    - ["user:fred"]
     - ["group:admins"]
     methods:
     - GET

@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +19,7 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	return config
 }
 
-func TestShouldSetDefaultSessionName(t *testing.T) {
+func TestShouldSetDefaultSessionValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
@@ -27,39 +28,25 @@ func TestShouldSetDefaultSessionName(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Name, config.Name)
-}
-
-func TestShouldSetDefaultSessionInactivity(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
-}
-
-func TestShouldSetDefaultSessionExpiration(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
 }
 
-func TestShouldSetDefaultSessionSameSite(t *testing.T) {
+func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 
+	config.Expiration, config.Inactivity, config.RememberMeDuration = -1, -1, -2
+
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
+	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 }
 
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
@@ -100,7 +87,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis"))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, -1))
 }
 
 func TestShouldRaiseErrorWithInvalidRedisPortHigh(t *testing.T) {
@@ -117,7 +104,7 @@ func TestShouldRaiseErrorWithInvalidRedisPortHigh(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis"))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, 65536))
 }
 
 func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
@@ -140,7 +127,7 @@ func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis"))
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
 }
 
 func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
@@ -193,7 +180,7 @@ func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testi
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, errors, 1)
 
-	assert.EqualError(t, errors[0], "The redis sentinel nodes require a host set but you have not set the host for one or more nodes")
+	assert.EqualError(t, errors[0], "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this")
 }
 
 func TestShouldRaiseOneErrorWhenRedisHighAvailabilityDoesNotHaveSentinelName(t *testing.T) {
@@ -215,7 +202,7 @@ func TestShouldRaiseOneErrorWhenRedisHighAvailabilityDoesNotHaveSentinelName(t *
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, errors, 1)
 
-	assert.EqualError(t, errors[0], "Session provider redis is configured for high availability but doesn't have a sentinel_name which is required")
+	assert.EqualError(t, errors[0], "session: redis: high_availability: option 'sentinel_name' is required")
 }
 
 func TestShouldUpdateDefaultPortWhenRedisSentinelHasNodes(t *testing.T) {
@@ -281,8 +268,8 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, errors, 2)
 
-	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
-	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
+	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, 65536))
+	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
 
 	validator.Clear()
 
@@ -295,8 +282,8 @@ func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testi
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, errors, 2)
 
-	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, "redis sentinel"))
-	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRedisProvider, "redis sentinel"))
+	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, -1))
+	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
 }
 
 func TestShouldNotRaiseErrorsAndSetDefaultPortWhenRedisSentinelPortBlank(t *testing.T) {
@@ -347,7 +334,7 @@ func TestShouldRaiseErrorWhenRedisHostAndHighAvailabilityNodesEmpty(t *testing.T
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisHostOrNodesRequired, "redis sentinel"))
+	assert.EqualError(t, validator.Errors()[0], errFmtSessionRedisHostOrNodesRequired)
 }
 
 func TestShouldRaiseErrorsWhenRedisHostNotSet(t *testing.T) {
@@ -365,7 +352,7 @@ func TestShouldRaiseErrorsWhenRedisHostNotSet(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	require.Len(t, errors, 1)
 
-	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisHostRequired, "redis"))
+	assert.EqualError(t, errors[0], errFmtSessionRedisHostRequired)
 }
 
 func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
@@ -377,7 +364,7 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Set domain of the session object")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' is required")
 }
 
 func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
@@ -389,7 +376,7 @@ func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "The domain of the session must be the root domain you're protecting instead of a wildcard domain")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
 }
 
 func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
@@ -401,7 +388,7 @@ func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session same_site is configured incorrectly, must be one of 'none', 'lax', or 'strict'")
+	assert.EqualError(t, validator.Errors()[0], "session: option 'same_site' must be one of 'none', 'lax', 'strict' but is configured as 'NOne'")
 }
 
 func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
@@ -420,30 +407,21 @@ func TestShouldNotRaiseErrorWhenSameSiteSetCorrectly(t *testing.T) {
 	}
 }
 
-func TestShouldRaiseErrorWhenBadInactivityAndExpirationSet(t *testing.T) {
+func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
-	config.Inactivity = testBadTimer
-	config.Expiration = testBadTimer
+	config.Inactivity = -1
+	config.Expiration = -1
+	config.RememberMeDuration = -1
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing session expiration string: could not convert the input string of -1 into a duration")
-	assert.EqualError(t, validator.Errors()[1], "Error occurred parsing session inactivity string: could not convert the input string of -1 into a duration")
-}
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
 
-func TestShouldRaiseErrorWhenBadRememberMeDurationSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.RememberMeDuration = "1 year"
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "Error occurred parsing session remember_me_duration string: could not convert the input string of 1 year into a duration")
+	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
+	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
+	assert.Equal(t, time.Duration(-1), config.RememberMeDuration)
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {

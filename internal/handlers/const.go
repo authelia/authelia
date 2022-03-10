@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -8,8 +10,8 @@ const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
 
-	// ActionU2FRegistration is the string representation of the action for which the token has been produced.
-	ActionU2FRegistration = "RegisterU2FDevice"
+	// ActionWebauthnRegistration is the string representation of the action for which the token has been produced.
+	ActionWebauthnRegistration = "RegisterWebauthnDevice"
 
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
@@ -56,7 +58,7 @@ const (
 )
 
 const (
-	testInactivity     = "10"
+	testInactivity     = time.Second * 10
 	testRedirectionURL = "http://redirection.local"
 	testUsername       = "john"
 )
@@ -71,14 +73,9 @@ const (
 
 // OIDC constants.
 const (
-	pathOpenIDConnectWellKnown = "/.well-known/openid-configuration"
-
-	pathOpenIDConnectJWKs          = "/api/oidc/jwks"
-	pathOpenIDConnectAuthorization = "/api/oidc/authorize"
-	pathOpenIDConnectToken         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
-	pathOpenIDConnectIntrospection = "/api/oidc/introspect"
-	pathOpenIDConnectRevocation    = "/api/oidc/revoke"
-	pathOpenIDConnectUserinfo      = "/api/oidc/userinfo"
+	pathLegacyOpenIDConnectAuthorization = "/api/oidc/authorize"
+	pathLegacyOpenIDConnectIntrospection = "/api/oidc/introspect"
+	pathLegacyOpenIDConnectRevocation    = "/api/oidc/revoke"
 
 	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
 	pathOpenIDConnectConsent = "/api/oidc/consent"
