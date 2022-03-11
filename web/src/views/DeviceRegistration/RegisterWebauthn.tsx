@@ -28,6 +28,18 @@ const RegisterWebauthn = function () {
         uaResult.os.name === "Mac OS" ||
         uaResult.browser.name === "Safari";
 
+    console.log("device.vendor: ", uaResult.device.vendor);
+    console.log("device.model: ", uaResult.device.model);
+    console.log("device.type: ", uaResult.device.type);
+    console.log("cpu.architecture: ", uaResult.cpu.architecture);
+    console.log("os.name: ", uaResult.os.name);
+    console.log("os.version: ", uaResult.os.version);
+    console.log("browser.name: ", uaResult.browser.version);
+    console.log("browser.version: ", uaResult.browser.version);
+    console.log("engine.name: ", uaResult.engine.name);
+    console.log("engine.version: ", uaResult.engine.version);
+    console.log("apple: ", apple);
+
     const [state, setState] = useState(apple ? State.UserGestureRequired : State.InProgress);
 
     const style = useStyles();

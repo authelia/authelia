@@ -49,6 +49,18 @@ const WebauthnMethod = function (props: Props) {
         uaResult.os.name === "Mac OS" ||
         uaResult.browser.name === "Safari";
 
+    console.log("device.vendor: ", uaResult.device.vendor);
+    console.log("device.model: ", uaResult.device.model);
+    console.log("device.type: ", uaResult.device.type);
+    console.log("cpu.architecture: ", uaResult.cpu.architecture);
+    console.log("os.name: ", uaResult.os.name);
+    console.log("os.version: ", uaResult.os.version);
+    console.log("browser.name: ", uaResult.browser.version);
+    console.log("browser.version: ", uaResult.browser.version);
+    console.log("engine.name: ", uaResult.engine.name);
+    console.log("engine.version: ", uaResult.engine.version);
+    console.log("apple: ", apple);
+
     const signInTimeout = 30;
 
     const [state, setState] = useState(apple ? State.UserGestureRequired : State.Starting);
@@ -69,10 +81,15 @@ const WebauthnMethod = function (props: Props) {
             return;
         }
 
-        try {
-            setState(State.WaitTouch);
+        if (state === State.WaitTouch) {
+            return;
+        }
 
-            triggerTimer();
+        setState(State.WaitTouch);
+
+        triggerTimer();
+
+        try {
             const assertionRequestResponse = await getAssertionRequestOptions();
 
             if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
@@ -153,6 +170,7 @@ const WebauthnMethod = function (props: Props) {
         onSignInSuccessCallback,
         redirectionURL,
         mounted,
+        state,
         triggerTimer,
         props.authenticationLevel,
         props.registered,
@@ -160,7 +178,6 @@ const WebauthnMethod = function (props: Props) {
 
     useEffect(() => {
         if (state === State.Starting) {
-            setState(State.WaitTouch);
             doInitiateSignIn();
         }
     }, [doInitiateSignIn, state, setState]);
