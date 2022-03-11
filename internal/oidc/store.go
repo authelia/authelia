@@ -237,6 +237,20 @@ func (s *OpenIDConnectStore) GetOpenIDConnectSession(ctx context.Context, author
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
 }
 
+// IsJWTUsed implements an interface required for RFC7523.
+func (s *OpenIDConnectStore) IsJWTUsed(ctx context.Context, jti string) (used bool, err error) {
+	if err = s.ClientAssertionJWTValid(ctx, jti); err != nil {
+		return true, err
+	}
+
+	return false, nil
+}
+
+// MarkJWTUsedForTime implements an interface required for RFC7523.
+func (s *OpenIDConnectStore) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) (err error) {
+	return s.SetClientAssertionJWT(ctx, jti, exp)
+}
+
 func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session

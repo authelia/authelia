@@ -90,6 +90,11 @@ type OAuth2Session struct {
 	Session           []byte                   `db:"session_data"`
 }
 
+// SetSubject implements an interface required for RFC7523.
+func (s *OAuth2Session) SetSubject(subject string) {
+	s.Subject = subject
+}
+
 // ToRequest converts an OAuth2Session into a fosite.Request given a fosite.Session and fosite.Storage.
 func (s OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
 	sessionData := s.Session
