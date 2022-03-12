@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
-import { CssBaseline, ThemeProvider, Theme, StyledEngineProvider } from "@mui/material";
+import { CssBaseline, ThemeProvider, StyledEngineProvider } from "@mui/material";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
