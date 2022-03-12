@@ -29,11 +29,6 @@ import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
-declare module "@mui/styles/defaultTheme" {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface DefaultTheme extends Theme {}
-}
-
 faConfig.autoAddCss = false;
 
 function MainTheme() {

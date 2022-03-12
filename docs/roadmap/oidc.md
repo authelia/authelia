@@ -74,11 +74,14 @@ for which stage will have each feature, and may evolve over time:
         <td>Proof Key for Code Exchange (PKCE) for Authorization Code Flow</td>
       </tr>
       <tr>
-        <td rowspan="2" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
+        <td rowspan="3" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
         <td>Token Storage</td>
       </tr>
       <tr>
         <td class="tbl-beta-stage">Audit Storage</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Subject Storage</td>
       </tr>
       <tr>
         <td rowspan="2" class="tbl-header tbl-beta-stage">beta5 <sup>1</sup></td>
