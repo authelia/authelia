@@ -1,18 +1,16 @@
-import { createTheme, adaptV4Theme } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 
-const Dark = createTheme(
-    adaptV4Theme({
-        custom: {
-            icon: "#fff",
-            loadingBar: "#fff",
+const Dark = createTheme({
+    custom: {
+        icon: "#fff",
+        loadingBar: "#fff",
+    },
+    palette: {
+        mode: "dark",
+        primary: {
+            main: "#1976d2",
         },
-        palette: {
-            mode: "dark",
-            primary: {
-                main: "#1976d2",
-            },
-        },
-    }),
-);
+    },
+});
 
 export default Dark;
