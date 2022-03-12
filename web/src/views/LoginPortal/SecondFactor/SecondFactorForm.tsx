@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, CSSProperties } from "react";
 
-import { Grid, Button } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Grid, Button, Theme, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
@@ -36,7 +35,9 @@ export interface Props {
 }
 
 const SecondFactorForm = function (props: Props) {
-    const style = useStyles();
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
@@ -103,7 +104,7 @@ const SecondFactorForm = function (props: Props) {
                         {translate("Methods")}
                     </Button>
                 </Grid>
-                <Grid item xs={12} className={style.methodContainer}>
+                <Grid item xs={12} sx={style.methodContainer}>
                     <Routes>
                         <Route
                             path={SecondFactorTOTPSubRoute}
@@ -156,7 +157,7 @@ const SecondFactorForm = function (props: Props) {
 
 export default SecondFactorForm;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     methodContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",
@@ -164,4 +165,4 @@ const useStyles = makeStyles((theme) => ({
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
     },
-}));
+});

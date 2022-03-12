@@ -1,7 +1,6 @@
-import React, { ReactNode, Fragment } from "react";
+import React, { ReactNode, Fragment, CSSProperties } from "react";
 
-import { Typography, Link, useTheme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Typography, Link, useTheme, Box } from "@mui/material";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 
@@ -55,11 +54,11 @@ const DefaultMethodContainer = function (props: Props) {
     }
 
     return (
-        <div id={props.id}>
+        <Box id={props.id}>
             <Typography variant="h6">{props.title}</Typography>
-            <div className={classnames(style.container, stateClass)} id="2fa-container">
-                <div className={style.containerFlex}>{container}</div>
-            </div>
+            <Box className={classnames(style.container, stateClass)} id="2fa-container">
+                <Box sx={style.containerFlex}>{container}</Box>
+            </Box>
             {props.onSelectClick && props.registered ? (
                 <Link component="button" id="selection-link" onClick={props.onSelectClick} underline="hover">
                     {selectMessage}
@@ -71,13 +70,13 @@ const DefaultMethodContainer = function (props: Props) {
                     {registerMessage}
                 </Link>
             ) : null}
-        </div>
+        </Box>
     );
 };
 
 export default DefaultMethodContainer;
 
-const useStyles = makeStyles(() => ({
+const useStyles = (): { [key: string]: CSSProperties } => ({
     container: {
         height: "200px",
     },
@@ -90,7 +89,7 @@ const useStyles = makeStyles(() => ({
         alignContent: "center",
         justifyContent: "center",
     },
-}));
+});
 
 interface NotRegisteredContainerProps {
     title: string;
@@ -102,9 +101,9 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const theme = useTheme();
     return (
         <Fragment>
-            <div style={{ marginBottom: theme.spacing(2), flex: "0 0 100%" }}>
+            <Box style={{ marginBottom: theme.spacing(2), flex: "0 0 100%" }}>
                 <InformationIcon />
-            </div>
+            </Box>
             <Typography style={{ color: "#5858ff" }}>
                 {translate("The resource you're attempting to access requires two-factor authentication")}
             </Typography>
@@ -128,7 +127,7 @@ function MethodContainer(props: MethodContainerProps) {
     const theme = useTheme();
     return (
         <Fragment>
-            <div style={{ marginBottom: theme.spacing(2) }}>{props.children}</div>
+            <Box style={{ marginBottom: theme.spacing(2) }}>{props.children}</Box>
             <Typography>{props.explanation}</Typography>
         </Fragment>
     );

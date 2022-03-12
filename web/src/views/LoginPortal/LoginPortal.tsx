@@ -1,5 +1,6 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
+import { Box } from "@mui/material";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -216,9 +217,9 @@ interface ComponentOrLoadingProps {
 function ComponentOrLoading(props: ComponentOrLoadingProps) {
     return (
         <Fragment>
-            <div className={props.ready ? "hidden" : ""}>
+            <Box className={props.ready ? "hidden" : ""}>
                 <LoadingPage />
-            </div>
+            </Box>
             {props.ready ? props.children : null}
         </Fragment>
     );

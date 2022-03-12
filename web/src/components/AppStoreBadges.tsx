@@ -1,4 +1,4 @@
-import React from "react";
+import React, { CSSProperties } from "react";
 
 import { Link } from "@mui/material";
 
@@ -11,7 +11,7 @@ export interface Props {
     appleStoreLink: string;
 
     targetBlank?: boolean;
-    className?: string;
+    style?: CSSProperties;
 }
 
 const AppStoreBadges = function (props: Props) {
@@ -20,7 +20,7 @@ const AppStoreBadges = function (props: Props) {
     const width = props.iconSize;
 
     return (
-        <div className={props.className}>
+        <div style={props.style}>
             <Link href={props.googlePlayLink} target={target} underline="hover">
                 <img src={GooglePlay} alt="google play" style={{ width }} />
             </Link>

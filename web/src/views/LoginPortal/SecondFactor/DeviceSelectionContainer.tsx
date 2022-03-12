@@ -1,7 +1,6 @@
-import React, { ReactNode, useState } from "react";
+import React, { CSSProperties, ReactNode, useState } from "react";
 
-import { Typography, Grid, Button, Container } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Typography, Grid, Button, Container, useTheme, Box } from "@mui/material";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
 
@@ -104,7 +103,8 @@ interface DeviceItemProps {
 function DeviceItem(props: DeviceItemProps) {
     const className = "device-option-" + props.id;
     const idName = "device-" + props.device.id;
-    const style = makeStyles((theme) => ({
+    const theme = useTheme();
+    const styles: { [key: string]: CSSProperties } = {
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),
@@ -117,23 +117,22 @@ function DeviceItem(props: DeviceItemProps) {
         buttonRoot: {
             display: "block",
         },
-    }))();
+    };
 
     return (
         <Grid item xs={12} className={className} id={idName}>
             <Button
-                className={style.item}
+                sx={{ ...styles.item, ...styles.buttonRoot }}
                 color="primary"
-                classes={{ root: style.buttonRoot }}
                 variant="contained"
                 onClick={props.onSelect}
             >
-                <div className={style.icon}>
+                <Box sx={styles.icon}>
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
+                </Box>
+                <Box>
                     <Typography>{props.device.name}</Typography>
-                </div>
+                </Box>
             </Button>
         </Grid>
     );
@@ -149,7 +148,8 @@ interface MethodItemProps {
 function MethodItem(props: MethodItemProps) {
     const className = "method-option-" + props.id;
     const idName = "method-" + props.method;
-    const style = makeStyles((theme) => ({
+    const theme = useTheme();
+    const styles: { [key: string]: CSSProperties } = {
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),
@@ -162,23 +162,22 @@ function MethodItem(props: MethodItemProps) {
         buttonRoot: {
             display: "block",
         },
-    }))();
+    };
 
     return (
         <Grid item xs={12} className={className} id={idName}>
             <Button
-                className={style.item}
+                sx={{ ...styles.item, ...styles.buttonRoot }}
                 color="primary"
-                classes={{ root: style.buttonRoot }}
                 variant="contained"
                 onClick={props.onSelect}
             >
-                <div className={style.icon}>
+                <Box sx={styles.icon}>
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
+                </Box>
+                <Box>
                     <Typography>{props.method}</Typography>
-                </div>
+                </Box>
             </Button>
         </Grid>
     );

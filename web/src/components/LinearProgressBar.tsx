@@ -1,8 +1,7 @@
 import React from "react";
 
-import { LinearProgress } from "@mui/material";
+import { LinearProgress, Theme, useTheme } from "@mui/material";
 import { CSSProperties } from "@mui/styles";
-import makeStyles from "@mui/styles/makeStyles";
 
 export interface Props {
     value: number;
@@ -12,22 +11,21 @@ export interface Props {
 }
 
 const LinearProgressBar = function (props: Props) {
-    const style = makeStyles((theme) => ({
-        progressRoot: {
-            height: props.height ? props.height : theme.spacing(),
-        },
-        transition: {
-            transition: "transform .2s linear",
-        },
-    }))();
+    const theme = useTheme();
+    const style = useStyles(theme, props);
+
     return (
-        <LinearProgress
-            style={props.style as React.CSSProperties}
-            variant="determinate"
-            classes={{
+        /*
+        TODO: Check this component.
+               classes={{
                 root: style.progressRoot,
                 bar1Determinate: style.transition,
             }}
+         */
+        <LinearProgress
+            style={props.style as React.CSSProperties}
+            variant="determinate"
+            sx={{ ...style.progressRoot, ...style.transition }}
             value={props.value}
             className={props.className}
         />
@@ -35,3 +33,12 @@ const LinearProgressBar = function (props: Props) {
 };
 
 export default LinearProgressBar;
+
+const useStyles = (theme: Theme, props: Props): { [key: string]: CSSProperties } => ({
+    progressRoot: {
+        height: props.height ? props.height : theme.spacing(),
+    },
+    transition: {
+        transition: "transform .2s linear",
+    },
+});

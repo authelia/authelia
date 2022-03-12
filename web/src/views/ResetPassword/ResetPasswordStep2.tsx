@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 
-import { Grid, Button } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
+import { Grid, Button, Theme, useTheme } from "@mui/material";
+import { CSSProperties } from "@mui/styles";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -14,7 +13,9 @@ import { completeResetPasswordProcess, resetPassword } from "@services/ResetPass
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const ResetPasswordStep2 = function () {
-    const style = useStyles();
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const location = useLocation();
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
@@ -92,7 +93,7 @@ const ResetPasswordStep2 = function () {
 
     return (
         <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">
-            <Grid container className={style.root} spacing={2}>
+            <Grid container sx={style.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="password1-textfield"
@@ -103,7 +104,7 @@ const ResetPasswordStep2 = function () {
                         disabled={formDisabled}
                         onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
-                        className={classnames(style.fullWidth)}
+                        sx={style.fullWidth}
                         autoComplete="new-password"
                     />
                 </Grid>
@@ -123,7 +124,7 @@ const ResetPasswordStep2 = function () {
                                 ev.preventDefault();
                             }
                         }}
-                        className={classnames(style.fullWidth)}
+                        sx={style.fullWidth}
                         autoComplete="new-password"
                     />
                 </Grid>
@@ -135,7 +136,7 @@ const ResetPasswordStep2 = function () {
                         name="password1"
                         disabled={formDisabled}
                         onClick={handleResetClick}
-                        className={style.fullWidth}
+                        sx={style.fullWidth}
                     >
                         {translate("Reset")}
                     </Button>
@@ -147,7 +148,7 @@ const ResetPasswordStep2 = function () {
                         color="primary"
                         name="password2"
                         onClick={handleCancelClick}
-                        className={style.fullWidth}
+                        sx={style.fullWidth}
                     >
                         {translate("Cancel")}
                     </Button>
@@ -159,7 +160,7 @@ const ResetPasswordStep2 = function () {
 
 export default ResetPasswordStep2;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
@@ -167,4 +168,4 @@ const useStyles = makeStyles((theme) => ({
     fullWidth: {
         width: "100%",
     },
-}));
+});

@@ -1,8 +1,19 @@
-import React, { useEffect, Fragment, ReactNode } from "react";
+import React, { useEffect, Fragment, ReactNode, CSSProperties } from "react";
 
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
-import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import {
+    Box,
+    Button,
+    Grid,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Theme,
+    Tooltip,
+    Typography,
+    useTheme,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -32,12 +43,14 @@ function scopeNameToAvatar(id: string) {
 }
 
 const ConsentView = function (props: Props) {
-    const classes = useStyles();
     const navigate = useNavigate();
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
     const { t: translate } = useTranslation("Portal");
+
+    const theme = useTheme();
+    const styles = useStyles(theme);
 
     useEffect(() => {
         if (err) {
@@ -95,26 +108,24 @@ const ConsentView = function (props: Props) {
             <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
                 <Grid container>
                     <Grid item xs={12}>
-                        <div>
+                        <Box>
                             {resp !== undefined && resp.client_description !== "" ? (
                                 <Tooltip title={"Client ID: " + resp.client_id}>
-                                    <Typography className={classes.clientDescription}>
-                                        {resp.client_description}
-                                    </Typography>
+                                    <Typography sx={styles.clientDescription}>{resp.client_description}</Typography>
                                 </Tooltip>
                             ) : (
                                 <Tooltip title={"Client ID: " + resp?.client_id}>
-                                    <Typography className={classes.clientDescription}>{resp?.client_id}</Typography>
+                                    <Typography sx={styles.clientDescription}>{resp?.client_id}</Typography>
                                 </Tooltip>
                             )}
-                        </div>
+                        </Box>
                     </Grid>
                     <Grid item xs={12}>
-                        <div>{translate("The above application is requesting the following permissions")}:</div>
+                        <Box>{translate("The above application is requesting the following permissions")}:</Box>
                     </Grid>
                     <Grid item xs={12}>
-                        <div className={classes.scopesListContainer}>
-                            <List className={classes.scopesList}>
+                        <Box sx={styles.scopesListContainer}>
+                            <List sx={styles.scopesList}>
                                 {resp?.scopes.map((scope: string) => (
                                     <Tooltip title={"Scope " + scope}>
                                         <ListItem id={"scope-" + scope} dense>
@@ -124,14 +135,14 @@ const ConsentView = function (props: Props) {
                                     </Tooltip>
                                 ))}
                             </List>
-                        </div>
+                        </Box>
                     </Grid>
                     <Grid item xs={12}>
                         <Grid container spacing={1}>
                             <Grid item xs={6}>
                                 <Button
                                     id="accept-button"
-                                    className={classes.button}
+                                    sx={styles.button}
                                     disabled={!resp}
                                     onClick={handleAcceptConsent}
                                     color="primary"
@@ -143,7 +154,7 @@ const ConsentView = function (props: Props) {
                             <Grid item xs={6}>
                                 <Button
                                     id="deny-button"
-                                    className={classes.button}
+                                    sx={styles.button}
                                     disabled={!resp}
                                     onClick={handleRejectConsent}
                                     color="secondary"
@@ -160,7 +171,7 @@ const ConsentView = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     container: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
@@ -198,7 +209,7 @@ const useStyles = makeStyles((theme) => ({
         textAlign: "center",
         marginRight: theme.spacing(2),
     },
-}));
+});
 
 export default ConsentView;
 
@@ -211,9 +222,9 @@ interface ComponentOrLoadingProps {
 function ComponentOrLoading(props: ComponentOrLoadingProps) {
     return (
         <Fragment>
-            <div className={props.ready ? "hidden" : ""}>
+            <Box className={props.ready ? "hidden" : ""}>
                 <LoadingPage />
-            </div>
+            </Box>
             {props.ready ? props.children : null}
         </Fragment>
     );

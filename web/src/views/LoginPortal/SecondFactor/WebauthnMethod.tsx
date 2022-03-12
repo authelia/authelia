@@ -1,12 +1,8 @@
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, useTheme } from "@mui/material";
+import { Box, Button, Theme, useTheme } from "@mui/material";
 import { CSSProperties } from "@mui/styles";
-import makeStyles from "@mui/styles/makeStyles";
 
-import FailureIcon from "@components/FailureIcon";
-import FingerTouchIcon from "@components/FingerTouchIcon";
-import LinearProgressBar from "@components/LinearProgressBar";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useTimer } from "@hooks/Timer";
@@ -19,6 +15,7 @@ import {
 } from "@services/Webauthn";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
+import WebauthnMethodIcon from "@views/LoginPortal/SecondFactor/WebauthnMethodIcon";
 
 export enum State {
     WaitTouch = 1,
@@ -37,9 +34,10 @@ export interface Props {
 }
 
 const WebauthnMethod = function (props: Props) {
+    const style = useStyles();
+
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
-    const style = useStyles();
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
@@ -163,57 +161,17 @@ const WebauthnMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <div className={style.icon}>
-                <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
-            </div>
+            <Box sx={style.icon}>
+                <WebauthnMethodIcon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
+            </Box>
         </MethodContainer>
     );
 };
 
 export default WebauthnMethod;
 
-const useStyles = makeStyles(() => ({
+const useStyles = (): { [key: string]: CSSProperties } => ({
     icon: {
         display: "inline-block",
     },
-}));
-
-interface IconProps {
-    state: State;
-
-    timer: number;
-    onRetryClick: () => void;
-}
-
-function Icon(props: IconProps) {
-    const state = props.state as State;
-    const theme = useTheme();
-
-    const progressBarStyle: CSSProperties = {
-        marginTop: theme.spacing(),
-    };
-
-    const touch = (
-        <IconWithContext
-            icon={<FingerTouchIcon size={64} animated strong />}
-            className={state === State.WaitTouch ? undefined : "hidden"}
-        >
-            <LinearProgressBar value={props.timer} style={progressBarStyle} height={theme.spacing(2)} />
-        </IconWithContext>
-    );
-
-    const failure = (
-        <IconWithContext icon={<FailureIcon />} className={state === State.Failure ? undefined : "hidden"}>
-            <Button color="secondary" onClick={props.onRetryClick}>
-                Retry
-            </Button>
-        </IconWithContext>
-    );
-
-    return (
-        <Fragment>
-            {touch}
-            {failure}
-        </Fragment>
-    );
-}
+});

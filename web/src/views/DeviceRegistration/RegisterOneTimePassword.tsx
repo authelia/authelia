@@ -1,11 +1,9 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, CSSProperties } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Typography, Button, IconButton, Link, CircularProgress, TextField } from "@mui/material";
+import { Typography, Button, IconButton, Link, CircularProgress, TextField, useTheme, Box, Theme } from "@mui/material";
 import { red } from "@mui/material/colors";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
 import QRCode from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -19,7 +17,6 @@ import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
-    const style = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
     // The secret retrieved from the API is all is ok.
@@ -29,6 +26,9 @@ const RegisterOneTimePassword = function () {
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { t: translate } = useTranslation("Portal");
+
+    const theme = useTheme();
+    const styles = useStyles(theme);
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
@@ -73,7 +73,7 @@ const RegisterOneTimePassword = function () {
     function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
         return (
             <IconButton
-                className={style.secretButtons}
+                sx={styles.secretButtons}
                 color="primary"
                 onClick={() => {
                     navigator.clipboard.writeText(`${text}`);
@@ -85,36 +85,38 @@ const RegisterOneTimePassword = function () {
             </IconButton>
         );
     }
-    const qrcodeFuzzyStyle = isLoading || hasErrored ? style.fuzzy : undefined;
+
+    const qrCodeStyle =
+        isLoading || hasErrored ? { ...styles.qrcodeContainer, ...styles.fuzzy } : styles.qrcodeContainer;
 
     return (
         <LoginLayout title={translate("Scan QR Code")}>
-            <div className={style.root}>
-                <div className={style.googleAuthenticator}>
-                    <Typography className={style.googleAuthenticatorText}>
+            <Box sx={styles.root}>
+                <Box sx={styles.googleAuthenticator}>
+                    <Typography sx={styles.googleAuthenticatorText}>
                         {translate("Need Google Authenticator?")}
                     </Typography>
                     <AppStoreBadges
                         iconSize={128}
                         targetBlank
-                        className={style.googleAuthenticatorBadges}
+                        style={styles.googleAuthenticatorBadges}
                         googlePlayLink={GoogleAuthenticator.googlePlay}
                         appleStoreLink={GoogleAuthenticator.appleStore}
                     />
-                </div>
-                <div className={classnames(qrcodeFuzzyStyle, style.qrcodeContainer)}>
+                </Box>
+                <Box sx={qrCodeStyle}>
                     <Link href={secretURL} underline="hover">
-                        <QRCode value={secretURL} className={style.qrcode} size={256} />
-                        {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
-                        {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
+                        <QRCode value={secretURL} style={styles.qrcode} size={256} />
+                        {!hasErrored && isLoading ? <CircularProgress sx={styles.loader} size={128} /> : null}
+                        {hasErrored ? <FontAwesomeIcon style={styles.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
-                </div>
-                <div>
+                </Box>
+                <Box>
                     {secretURL !== "empty" ? (
                         <TextField
                             id="secret-url"
                             label={translate("Secret")}
-                            className={style.secret}
+                            sx={styles.secret}
                             value={secretURL}
                             InputProps={{
                                 readOnly: true,
@@ -127,24 +129,24 @@ const RegisterOneTimePassword = function () {
                     {secretURL !== "empty"
                         ? SecretButton(secretURL, translate("OTP URL copied to clipboard"), faCopy)
                         : null}
-                </div>
+                </Box>
                 <Button
                     variant="contained"
                     color="primary"
-                    className={style.doneButton}
+                    sx={styles.doneButton}
                     onClick={handleDoneClick}
                     disabled={isLoading}
                 >
                     {translate("Done")}
                 </Button>
-            </div>
+            </Box>
         </LoginLayout>
     );
 };
 
 export default RegisterOneTimePassword;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     root: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
@@ -191,4 +193,4 @@ const useStyles = makeStyles((theme) => ({
         color: red[400],
         fontSize: "128px",
     },
-}));
+});

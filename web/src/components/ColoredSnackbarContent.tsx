@@ -1,14 +1,12 @@
-import React from "react";
+import React, { CSSProperties } from "react";
 
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
 import WarningIcon from "@mui/icons-material/Warning";
-import { SnackbarContent } from "@mui/material";
+import { Box, SnackbarContent, Theme, useTheme } from "@mui/material";
 import { amber, green } from "@mui/material/colors";
 import { SnackbarContentProps } from "@mui/material/SnackbarContent";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
 
 const variantIcon = {
     success: CheckCircleIcon,
@@ -26,19 +24,26 @@ export interface Props extends SnackbarContentProps {
 }
 
 const ColoredSnackbarContent = function (props: Props) {
-    const classes = useStyles();
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const Icon = variantIcon[props.level];
 
     const { className, variant, message, ...others } = props;
 
+    let sx = style[props.level];
+    if (className !== undefined) {
+        sx = { ...sx, ...style[className] };
+    }
+
     return (
         <SnackbarContent
-            className={classnames(classes[props.level], className)}
+            sx={sx}
             message={
-                <span className={classes.message}>
-                    <Icon className={classnames(classes.icon, classes.iconVariant)} />
+                <Box component="span" sx={style.message}>
+                    <Icon sx={{ ...style.icon, ...style.iconVariant }} />
                     {message}
-                </span>
+                </Box>
             }
             {...others}
         />
@@ -47,7 +52,7 @@ const ColoredSnackbarContent = function (props: Props) {
 
 export default ColoredSnackbarContent;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     success: {
         backgroundColor: green[600],
     },
@@ -71,4 +76,4 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         alignItems: "center",
     },
-}));
+});

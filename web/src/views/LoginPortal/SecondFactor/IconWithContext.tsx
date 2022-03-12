@@ -1,18 +1,18 @@
-import React, { ReactNode } from "react";
+import React, { CSSProperties, ReactNode } from "react";
 
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
+import { Box } from "@mui/material";
 
 interface IconWithContextProps {
     icon: ReactNode;
     children: ReactNode;
 
     className?: string;
+    styles?: { [key: string]: CSSProperties };
 }
 
 const IconWithContext = function (props: IconWithContextProps) {
     const iconSize = 64;
-    const style = makeStyles((theme) => ({
+    const styles: { [key: string]: CSSProperties } = {
         root: {},
         iconContainer: {
             display: "flex",
@@ -26,15 +26,15 @@ const IconWithContext = function (props: IconWithContextProps) {
         context: {
             display: "block",
         },
-    }))();
+    };
 
     return (
-        <div className={classnames(props.className, style.root)}>
-            <div className={style.iconContainer}>
-                <div className={style.icon}>{props.icon}</div>
-            </div>
-            <div className={style.context}>{props.children}</div>
-        </div>
+        <Box sx={{ ...styles.root, ...props.styles }} className={props.className}>
+            <Box sx={styles.iconContainer}>
+                <Box sx={styles.icon}>{props.icon}</Box>
+            </Box>
+            <Box sx={styles.context}>{props.children}</Box>
+        </Box>
     );
 };
 

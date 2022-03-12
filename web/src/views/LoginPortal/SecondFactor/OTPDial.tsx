@@ -1,6 +1,6 @@
-import React, { Fragment } from "react";
+import React, { CSSProperties, Fragment } from "react";
 
-import makeStyles from "@mui/styles/makeStyles";
+import { Box, Theme, useTheme } from "@mui/material";
 import classnames from "classnames";
 import OtpInput from "react-otp-input";
 
@@ -20,11 +20,12 @@ export interface Props {
 }
 
 const OTPDial = function (props: Props) {
-    const style = useStyles();
+    const theme = useTheme();
+    const style = useStyles(theme);
 
     return (
         <IconWithContext icon={<Icon state={props.state} period={props.period} />}>
-            <span className={style.otpInput} id="otp-input">
+            <Box component="span" sx={style.otpInput} id="otp-input">
                 <OtpInput
                     shouldAutoFocus
                     onChange={props.onChange}
@@ -35,14 +36,14 @@ const OTPDial = function (props: Props) {
                     hasErrored={props.state === State.Failure}
                     inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
                 />
-            </span>
+            </Box>
         </IconWithContext>
     );
 };
 
 export default OTPDial;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     timeProgress: {},
     register: {
         marginTop: theme.spacing(),
@@ -63,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
     inputError: {
         border: "1px solid rgba(255, 2, 2, 0.95)",
     },
-}));
+});
 
 interface IconProps {
     state: State;

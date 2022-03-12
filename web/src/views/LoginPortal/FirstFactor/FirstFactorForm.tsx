@@ -1,8 +1,6 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, MutableRefObject, useEffect, useRef, useState } from "react";
 
-import { Grid, Button, FormControlLabel, Checkbox, Link } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
+import { Grid, Button, FormControlLabel, Checkbox, Link, Theme, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +23,9 @@ export interface Props {
 }
 
 const FirstFactorForm = function (props: Props) {
-    const style = useStyles();
+    const theme = useTheme();
+    const styles = useStyles(theme);
+
     const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
@@ -80,6 +80,7 @@ const FirstFactorForm = function (props: Props) {
         navigate(ResetPasswordStep1Route);
     };
 
+    // @ts-ignore
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
             <Grid container spacing={2}>
@@ -143,8 +144,10 @@ const FirstFactorForm = function (props: Props) {
                     />
                 </Grid>
                 {props.rememberMe ? (
-                    <Grid item xs={12} className={classnames(style.actionRow)}>
+                    <Grid item xs={12} sx={styles.actionRow}>
                         <FormControlLabel
+                            sx={styles.rememberMe}
+                            label={translate("Remember me", "Remember me")}
                             control={
                                 <Checkbox
                                     id="remember-checkbox"
@@ -165,8 +168,6 @@ const FirstFactorForm = function (props: Props) {
                                     color="primary"
                                 />
                             }
-                            className={style.rememberMe}
-                            label={translate("Remember me")}
                         />
                     </Grid>
                 ) : null}
@@ -183,12 +184,12 @@ const FirstFactorForm = function (props: Props) {
                     </Button>
                 </Grid>
                 {props.resetPassword ? (
-                    <Grid item xs={12} className={classnames(style.actionRow, style.flexEnd)}>
+                    <Grid item xs={12} sx={{ ...styles.actionRow, ...styles.flexEnd }}>
                         <Link
                             id="reset-password-button"
                             component="button"
                             onClick={handleResetPasswordClick}
-                            className={style.resetLink}
+                            sx={styles.resetLink}
                             underline="hover"
                         >
                             {translate("Reset password?")}
@@ -202,7 +203,7 @@ const FirstFactorForm = function (props: Props) {
 
 export default FirstFactorForm;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     actionRow: {
         display: "flex",
         flexDirection: "row",
@@ -220,4 +221,4 @@ const useStyles = makeStyles((theme) => ({
     flexEnd: {
         justifyContent: "flex-end",
     },
-}));
+});

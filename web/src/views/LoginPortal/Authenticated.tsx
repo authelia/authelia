@@ -1,29 +1,31 @@
-import React from "react";
+import React, { CSSProperties } from "react";
 
-import { Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
 
 const Authenticated = function () {
-    const classes = useStyles();
+    const theme = useTheme();
+
+    const styles: { [key: string]: CSSProperties } = {
+        iconContainer: {
+            marginBottom: theme.spacing(2),
+            flex: "0 0 100%",
+        },
+    };
+
     const { t: translate } = useTranslation("Portal");
+
     return (
-        <div id="authenticated-stage">
-            <div className={classes.iconContainer}>
+        <Box id="authenticated-stage">
+            <Box sx={styles.iconContainer}>
                 <SuccessIcon />
-            </div>
+            </Box>
             <Typography>{translate("Authenticated")}</Typography>
-        </div>
+        </Box>
     );
 };
 
 export default Authenticated;
-
-const useStyles = makeStyles((theme) => ({
-    iconContainer: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
-    },
-}));

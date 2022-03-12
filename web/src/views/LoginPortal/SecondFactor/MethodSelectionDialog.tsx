@@ -1,13 +1,13 @@
-import React, { ReactNode } from "react";
+import React, { CSSProperties } from "react";
 
-import { Dialog, Grid, DialogContent, Button, DialogActions, Typography, useTheme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Dialog, Grid, DialogContent, Button, DialogActions, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import TimerIcon from "@components/TimerIcon";
 import { SecondFactorMethod } from "@models/Methods";
+import MethodItem from "@views/LoginPortal/SecondFactor/MethodItem";
 
 export interface Props {
     open: boolean;
@@ -28,7 +28,7 @@ const MethodSelectionDialog = function (props: Props) {
     );
 
     return (
-        <Dialog open={props.open} className={style.root} onClose={props.onClose}>
+        <Dialog open={props.open} sx={style.root} onClose={props.onClose}>
             <DialogContent>
                 <Grid container justifyContent="center" spacing={1} id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
@@ -68,50 +68,8 @@ const MethodSelectionDialog = function (props: Props) {
 
 export default MethodSelectionDialog;
 
-const useStyles = makeStyles(() => ({
+const useStyles = (): { [key: string]: CSSProperties } => ({
     root: {
         textAlign: "center",
     },
-}));
-
-interface MethodItemProps {
-    id: string;
-    method: string;
-    icon: ReactNode;
-
-    onClick: () => void;
-}
-
-function MethodItem(props: MethodItemProps) {
-    const style = makeStyles((theme) => ({
-        item: {
-            paddingTop: theme.spacing(4),
-            paddingBottom: theme.spacing(4),
-            width: "100%",
-        },
-        icon: {
-            display: "inline-block",
-            fill: "white",
-        },
-        buttonRoot: {
-            display: "block",
-        },
-    }))();
-
-    return (
-        <Grid item xs={12} className="method-option" id={props.id}>
-            <Button
-                className={style.item}
-                color="primary"
-                classes={{ root: style.buttonRoot }}
-                variant="contained"
-                onClick={props.onClick}
-            >
-                <div className={style.icon}>{props.icon}</div>
-                <div>
-                    <Typography>{props.method}</Typography>
-                </div>
-            </Button>
-        </Grid>
-    );
-}
+});

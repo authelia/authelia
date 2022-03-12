@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { CSSProperties, useCallback, useEffect, useState } from "react";
 
-import { Button, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -13,11 +12,21 @@ import { performAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterWebauthn = function () {
-    const style = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
     const { createErrorNotification } = useNotifications();
     const [, setRegistrationInProgress] = useState(false);
+
+    const theme = useTheme();
+    const styles: { [key: string]: CSSProperties } = {
+        icon: {
+            paddingTop: theme.spacing(4),
+            paddingBottom: theme.spacing(4),
+        },
+        instruction: {
+            paddingBottom: theme.spacing(4),
+        },
+    };
 
     const processToken = extractIdentityToken(location.search);
 
@@ -85,10 +94,10 @@ const RegisterWebauthn = function () {
 
     return (
         <LoginLayout title="Touch Security Key">
-            <div className={style.icon}>
+            <Box sx={styles.icon}>
                 <FingerTouchIcon size={64} animated />
-            </div>
-            <Typography className={style.instruction}>Touch the token on your security key</Typography>
+            </Box>
+            <Typography sx={styles.instruction}>Touch the token on your security key</Typography>
             <Button color="primary" onClick={handleBackClick}>
                 Retry
             </Button>
@@ -100,13 +109,3 @@ const RegisterWebauthn = function () {
 };
 
 export default RegisterWebauthn;
-
-const useStyles = makeStyles((theme) => ({
-    icon: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
-    instruction: {
-        paddingBottom: theme.spacing(4),
-    },
-}));

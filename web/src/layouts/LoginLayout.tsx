@@ -1,8 +1,8 @@
 import React, { ReactNode } from "react";
 
-import { Grid, Container, Typography, Link } from "@mui/material";
+import { Grid, Container, Typography, Link, Theme, useTheme, SvgIcon, Box } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import makeStyles from "@mui/styles/makeStyles";
+import { CSSProperties } from "@mui/styles";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import { getLogoOverride } from "@utils/Configuration";
@@ -15,27 +15,29 @@ export interface Props {
 }
 
 const LoginLayout = function (props: Props) {
-    const style = useStyles();
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const logo = getLogoOverride() ? (
-        <img src="./static/media/logo.png" alt="Logo" className={style.icon} />
+        <Box component="img" src="./static/media/logo.png" alt="Logo" sx={style.icon} />
     ) : (
-        <UserSvg className={style.icon} />
+        <SvgIcon component={UserSvg} sx={style.icon} />
     );
     return (
-        <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
-            <Container maxWidth="xs" className={style.rootContainer}>
+        <Grid id={props.id} sx={style.root} container spacing={0} alignItems="center" justifyContent="center">
+            <Container maxWidth="xs" sx={style.rootContainer}>
                 <Grid container>
                     <Grid item xs={12}>
                         {logo}
                     </Grid>
                     {props.title ? (
                         <Grid item xs={12}>
-                            <Typography variant="h5" className={style.title}>
+                            <Typography variant="h5" sx={style.title}>
                                 {props.title}
                             </Typography>
                         </Grid>
                     ) : null}
-                    <Grid item xs={12} className={style.body}>
+                    <Grid item xs={12} sx={style.body}>
                         {props.children}
                     </Grid>
                     {props.showBrand ? (
@@ -43,7 +45,7 @@ const LoginLayout = function (props: Props) {
                             <Link
                                 href="https://github.com/authelia/authelia"
                                 target="_blank"
-                                className={style.poweredBy}
+                                sx={style.poweredBy}
                                 underline="hover"
                             >
                                 Powered by Authelia
@@ -58,7 +60,7 @@ const LoginLayout = function (props: Props) {
 
 export default LoginLayout;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     root: {
         minHeight: "90vh",
         textAlign: "center",
@@ -82,4 +84,4 @@ const useStyles = makeStyles((theme) => ({
         fontSize: "0.7em",
         color: grey[500],
     },
-}));
+});
