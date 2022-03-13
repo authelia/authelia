@@ -35,7 +35,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		config.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
 	}
 
-	if config.RememberMeDuration <= 0 && config.RememberMeDuration != -1 {
+	if config.RememberMeDuration <= 0 && config.RememberMeDuration != schema.RememberMeDisabled {
 		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
 	}
 
