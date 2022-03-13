@@ -19,6 +19,7 @@ const (
 	tableOAuth2RefreshTokenSessions  = "oauth2_refresh_token_sessions" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2PKCERequestSessions   = "oauth2_pkce_request_sessions"
 	tableOAuth2OpenIDConnectSessions = "oauth2_openid_connect_sessions"
+	tableOAuth2Subjects              = "oauth2_subjects"
 	tableOAuth2BlacklistedJTI        = "oauth2_blacklisted_jti"
 
 	tablePrefixBackup = "_bkp_"

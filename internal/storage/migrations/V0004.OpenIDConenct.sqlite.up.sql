@@ -8,11 +8,12 @@ CREATE TABLE IF NOT EXISTS oauth2_blacklisted_jti (
 
 CREATE TABLE IF NOT EXISTS oauth2_subjects (
     id INTEGER,
-    sector_id VARCHAR(255) NULL DEFAULT NULL,
-    subject_id VARCHAR(255) NOT NULL,
-    salt CHAR(32) NOT NULL,
+    sector_id VARCHAR(255) NOT NULL,
+    username VARCHAR(100) NOT NULL,
+    subject CHAR(36) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE (sector_id, subject_id)
+    UNIQUE (username),
+    UNIQUE (subject)
 );
 
 CREATE TABLE IF NOT EXISTS oauth2_authorize_code_sessions (

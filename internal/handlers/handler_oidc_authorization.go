@@ -25,6 +25,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	if ar, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r); err != nil {
 		ctx.Logger.Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
+
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -53,14 +54,24 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
+	subject, err := ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, userSession.Username)
+	if err != nil {
+		ctx.Logger.Errorf("Failed to fetch subject for user '%s' during OAuth 2.0 Authorization: %+v", userSession.Username, err)
+
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+
+		return
+	}
+
 	extraClaims := oidcGrantRequests(ar, scopes, audience, &userSession)
 
 	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 
 	userSession.OIDCWorkflowSession = nil
-	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Error(err)
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	if err = ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.Errorf("Error occurred removing OIDC workflow session: %+v", err)
+
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
 	}
@@ -68,6 +79,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
+
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -76,6 +88,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	authTime, err := userSession.AuthenticatedTime(client.Policy)
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred obtaining authentication timestamp: %+v", err)
+
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
 
 		return
@@ -84,7 +97,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     userSession.Username,
+				Subject:     subject.String(),
 				Issuer:      issuer,
 				AuthTime:    authTime,
 				RequestedAt: workflowCreated,

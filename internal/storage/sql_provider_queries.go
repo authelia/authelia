@@ -255,6 +255,15 @@ const (
 		SET active = FALSE
 		WHERE request_id = ?;"`
 
+	queryFmtInsertOAuth20Subject = `
+		INSERT INTO %s (sector_id, username, subject)
+		VALUES('', ?, ?);`
+
+	queryFmtSelectOAuth20Subject = `
+		SELECT id, username, subject
+		FROM %s
+		WHERE username = ?;`
+
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at
 		FROM %s
@@ -262,7 +271,7 @@ const (
 
 	queryFmtUpsertOAuth2BlacklistedJTI = `
 		REPLACE INTO %s (signature, expires_at)
-		VALUES(?, ?)`
+		VALUES(?, ?);`
 
 	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
 		INSERT INTO %s (signature, expires_at)

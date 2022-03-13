@@ -104,6 +104,10 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2OpenIDConnectSessions),
 		sqlDeactivateOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSessions),
 
+		// Table: oauth2_subjects.
+		sqlInsertOAuth2Subject: fmt.Sprintf(queryFmtInsertOAuth20Subject, tableOAuth2Subjects),
+		sqlSelectOAuth2Subject: fmt.Sprintf(queryFmtSelectOAuth20Subject, tableOAuth2Subjects),
+
 		// Table: oauth2_blacklisted_jti.
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -221,6 +225,9 @@ type SQLProvider struct {
 	sqlRevokeOAuth2OpenIDConnectSessionByRequestID     string
 	sqlDeactivateOAuth2OpenIDConnectSession            string
 	sqlDeactivateOAuth2OpenIDConnectSessionByRequestID string
+
+	sqlInsertOAuth2Subject string
+	sqlSelectOAuth2Subject string
 
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
@@ -478,6 +485,31 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 	}
 
 	return session, nil
+}
+
+// SaveOAuth2Subject saves a new subject to the database.
+func (p *SQLProvider) SaveOAuth2Subject(ctx context.Context, subject *model.OAuth2Subject) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2Subject, subject.Username, subject.Subject); err != nil {
+		return fmt.Errorf("error inserting oauth2 subject for user '%s' with subject '%s': %w", subject.Username, subject.Subject.String(), err)
+	}
+
+	return nil
+}
+
+// LoadOAuth2Subject selects a subject from the database.
+func (p *SQLProvider) LoadOAuth2Subject(ctx context.Context, username string) (subject *model.OAuth2Subject, err error) {
+	subject = &model.OAuth2Subject{}
+
+	if err = p.db.GetContext(ctx, subject, p.sqlSelectOAuth2Subject, username); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, err
+		}
+	}
+
+	return subject, nil
 }
 
 // SaveOAuth2BlacklistedJTI saves a OAuth2BlacklistedJTI to the database.

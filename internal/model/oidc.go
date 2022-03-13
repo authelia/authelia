@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 )
@@ -70,6 +71,13 @@ type OpenIDSession struct {
 	ClientID    string
 
 	Extra map[string]interface{} `json:"extra"`
+}
+
+// OAuth2Subject represents a subject for OAuth 2.0 and OpenID Connect.
+type OAuth2Subject struct {
+	ID       int       `db:"id"`
+	Username string    `db:"username"`
+	Subject  uuid.UUID `db:"subject"`
 }
 
 // OAuth2Session represents a OAuth2.0 session.

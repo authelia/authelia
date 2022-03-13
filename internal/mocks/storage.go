@@ -225,6 +225,21 @@ func (mr *MockStorageMockRecorder) LoadOAuth2Session(arg0, arg1, arg2 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2Session", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2Session), arg0, arg1, arg2)
 }
 
+// LoadOAuth2Subject mocks base method.
+func (m *MockStorage) LoadOAuth2Subject(arg0 context.Context, arg1 string) (*model.OAuth2Subject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2Subject", arg0, arg1)
+	ret0, _ := ret[0].(*model.OAuth2Subject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2Subject indicates an expected call of LoadOAuth2Subject.
+func (mr *MockStorageMockRecorder) LoadOAuth2Subject(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2Subject", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2Subject), arg0, arg1)
+}
+
 // LoadPreferred2FAMethod mocks base method.
 func (m *MockStorage) LoadPreferred2FAMethod(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
@@ -412,6 +427,20 @@ func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth
 func (mr *MockStorageMockRecorder) SaveOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Session", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Session), arg0, arg1, arg2)
+}
+
+// SaveOAuth2Subject mocks base method.
+func (m *MockStorage) SaveOAuth2Subject(arg0 context.Context, arg1 *model.OAuth2Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2Subject", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2Subject indicates an expected call of SaveOAuth2Subject.
+func (mr *MockStorageMockRecorder) SaveOAuth2Subject(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Subject", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Subject), arg0, arg1)
 }
 
 // SavePreferred2FAMethod mocks base method.
