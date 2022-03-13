@@ -42,7 +42,17 @@ type expectedResponse struct {
 	err error
 }
 
-func TestMethodSetToU2F(t *testing.T) {
+type expectedResponseAlt struct {
+	description string
+
+	db      model.UserInfo
+	api     *model.UserInfo
+	loadErr error
+	saveErr error
+	config  *schema.Configuration
+}
+
+func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 	expectedResponses := []expectedResponse{
 		{
 			db: model.UserInfo{
@@ -93,8 +103,6 @@ func TestMethodSetToU2F(t *testing.T) {
 
 		mock.Ctx.Configuration.DuoAPI = &schema.DuoAPIConfiguration{}
 
-		assert.False(t, mock.Ctx.Configuration.TOTP.Disable)
-
 		// Set the initial user session.
 		userSession := mock.Ctx.GetSession()
 		userSession.Username = testUsername
@@ -128,6 +136,203 @@ func TestMethodSetToU2F(t *testing.T) {
 
 			t.Run("registered totp", func(t *testing.T) {
 				assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
+			})
+
+			t.Run("registered duo", func(t *testing.T) {
+				assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
+			})
+		} else {
+			t.Run("expected status code", func(t *testing.T) {
+				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+			})
+
+			errResponse := mock.GetResponseError(t)
+
+			assert.Equal(t, "KO", errResponse.Status)
+			assert.Equal(t, "Operation failed.", errResponse.Message)
+		}
+
+		mock.Close()
+	}
+}
+
+func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
+	expectedResponses := []expectedResponseAlt{
+		{
+			description: "should set method to totp by default even when user doesn't have totp configured and no preferred method",
+			db: model.UserInfo{
+				Method:      "",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      false,
+			},
+			api: &model.UserInfo{
+				Method:      "totp",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      false,
+			},
+			config: &schema.Configuration{
+				DuoAPI: &schema.DuoAPIConfiguration{},
+			},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
+			description: "should set method to webauthn by default when user has webauthn configured and no preferred method",
+			db: model.UserInfo{
+				Method:      "",
+				HasTOTP:     false,
+				HasWebauthn: true,
+				HasDuo:      false,
+			},
+			api: &model.UserInfo{
+				Method:      "webauthn",
+				HasTOTP:     false,
+				HasWebauthn: true,
+				HasDuo:      false,
+			},
+			config: &schema.Configuration{
+				DuoAPI: &schema.DuoAPIConfiguration{},
+			},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
+			description: "should set method to duo by default when user has duo configured and no preferred method",
+			db: model.UserInfo{
+				Method:      "",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      true,
+			},
+			api: &model.UserInfo{
+				Method:      "mobile_push",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      true,
+			},
+			config: &schema.Configuration{
+				DuoAPI: &schema.DuoAPIConfiguration{},
+			},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
+			description: "should set method to totp by default when user has duo configured and no preferred method but duo is not enabled",
+			db: model.UserInfo{
+				Method:      "",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      true,
+			},
+			api: &model.UserInfo{
+				Method:      "totp",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      true,
+			},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
+			description: "should set method to duo by default when user has duo configured and no preferred method",
+			db: model.UserInfo{
+				Method:      "",
+				HasTOTP:     true,
+				HasWebauthn: true,
+				HasDuo:      true,
+			},
+			api: &model.UserInfo{
+				Method:      "webauthn",
+				HasTOTP:     true,
+				HasWebauthn: true,
+				HasDuo:      true,
+			},
+			config: &schema.Configuration{
+				TOTP: schema.TOTPConfiguration{
+					Disable: true,
+				},
+				DuoAPI: &schema.DuoAPIConfiguration{},
+			},
+			loadErr: nil,
+			saveErr: nil,
+		},
+		{
+			description: "",
+			db: model.UserInfo{
+				Method:      "",
+				HasTOTP:     false,
+				HasWebauthn: false,
+				HasDuo:      false,
+			},
+			api: &model.UserInfo{
+				Method:      "totp",
+				HasTOTP:     true,
+				HasWebauthn: true,
+				HasDuo:      true,
+			},
+			config: &schema.Configuration{
+				DuoAPI: &schema.DuoAPIConfiguration{},
+			},
+			loadErr: nil,
+			saveErr: errors.New("could not save"),
+		},
+	}
+
+	for _, resp := range expectedResponses {
+		if resp.api == nil {
+			resp.api = &resp.db
+		}
+
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		if resp.config != nil {
+			mock.Ctx.Configuration = *resp.config
+		}
+
+		// Set the initial user session.
+		userSession := mock.Ctx.GetSession()
+		userSession.Username = testUsername
+		userSession.AuthenticationLevel = 1
+		err := mock.Ctx.SaveSession(userSession)
+		require.NoError(t, err)
+
+		mock.StorageMock.
+			EXPECT().
+			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
+			Return(resp.db, resp.loadErr)
+
+		mock.StorageMock.
+			EXPECT().
+			SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
+			Return(resp.saveErr)
+
+		UserInfoGet(mock.Ctx)
+
+		if resp.loadErr == nil && resp.saveErr == nil {
+			t.Run(fmt.Sprintf("%s/%s", resp.description, "expected status code"), func(t *testing.T) {
+				assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+			})
+
+			actualPreferences := model.UserInfo{}
+
+			mock.GetResponseData(t, &actualPreferences)
+
+			t.Run(fmt.Sprintf("%s/%s", resp.description, "expected method"), func(t *testing.T) {
+				assert.Equal(t, resp.api.Method, actualPreferences.Method)
+			})
+
+			t.Run(fmt.Sprintf("%s/%s", resp.description, "registered webauthn"), func(t *testing.T) {
+				assert.Equal(t, resp.api.HasWebauthn, actualPreferences.HasWebauthn)
+			})
+
+			t.Run(fmt.Sprintf("%s/%s", resp.description, "registered totp"), func(t *testing.T) {
+				assert.Equal(t, resp.api.HasTOTP, actualPreferences.HasTOTP)
+			})
+
+			t.Run(fmt.Sprintf("%s/%s", resp.description, "registered duo"), func(t *testing.T) {
+				assert.Equal(t, resp.api.HasDuo, actualPreferences.HasDuo)
 			})
 		} else {
 			t.Run("expected status code", func(t *testing.T) {
