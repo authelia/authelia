@@ -99,10 +99,12 @@ const SecondFactorForm = function (props: Props) {
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
                         {translate("Logout")}
                     </Button>
-                    {" | "}
-                    <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
-                        {translate("Methods")}
-                    </Button>
+                    {props.configuration.available_methods.size > 1 ? " | " : null}
+                    {props.configuration.available_methods.size > 1 ? (
+                        <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
+                            {translate("Methods")}
+                        </Button>
+                    ) : null}
                 </Grid>
                 <Grid item xs={12} className={style.methodContainer}>
                     <Routes>
