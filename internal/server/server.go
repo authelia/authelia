@@ -28,7 +28,7 @@ var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != -1)
+	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
 	duoSelfEnrollment := f
