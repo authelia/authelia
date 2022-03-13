@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -17,6 +16,13 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
 		return
+	}
+
+	if changed := userInfo.SetDefaultMethod(ctx.AvailableSecondFactorMethods()); changed {
+		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
+			ctx.Error(fmt.Errorf("unable to save user two factor method: %v", err), messageOperationFailed)
+			return
+		}
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
@@ -37,8 +43,8 @@ func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !utils.IsStringInSlice(bodyJSON.Method, authentication.PossibleMethods) {
-		ctx.Error(fmt.Errorf("unknown method '%s', it should be one of %s", bodyJSON.Method, strings.Join(authentication.PossibleMethods, ", ")), messageOperationFailed)
+	if !utils.IsStringInSlice(bodyJSON.Method, ctx.AvailableSecondFactorMethods()) {
+		ctx.Error(fmt.Errorf("unknown or unavailable method '%s', it should be one of %s", bodyJSON.Method, strings.Join(ctx.AvailableSecondFactorMethods(), ", ")), messageOperationFailed)
 		return
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 )
@@ -89,6 +90,11 @@ func TestMethodSetToU2F(t *testing.T) {
 		}
 
 		mock := mocks.NewMockAutheliaCtx(t)
+
+		mock.Ctx.Configuration.DuoAPI = &schema.DuoAPIConfiguration{}
+
+		assert.False(t, mock.Ctx.Configuration.TOTP.Disable)
+
 		// Set the initial user session.
 		userSession := mock.Ctx.GetSession()
 		userSession.Username = testUsername
@@ -205,7 +211,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	MethodPreferencePost(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unknown method 'abc', it should be one of totp, webauthn, mobile_push", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "unknown or unavailable method 'abc', it should be one of totp, webauthn", s.mock.Hook.LastEntry().Message)
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 

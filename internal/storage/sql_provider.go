@@ -11,7 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -219,7 +218,7 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 	case err == nil:
 		return info, nil
 	case errors.Is(err, sql.ErrNoRows):
-		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, authentication.PossibleMethods[0]); err != nil {
+		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, ""); err != nil {
 			return model.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
 		}
 
