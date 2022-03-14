@@ -25,7 +25,7 @@
   },"4": {
     "doc": "Access Control",
     "title": "Configuration",
-    "content": "access_control: default_policy: deny networks: - name: internal networks: - 10.0.0.0/8 - 172.16.0.0/12 - 192.168.0.0/18 rules: - domain: public.example.com policy: bypass networks: - internal - 1.1.1.1 subject: - [\"user:adam\"] - [\"user:fred\"] - [\"group:admins\"] methods: - GET - HEAD resources: - \"^/api.*\" . ",
+    "content": "access_control: default_policy: deny networks: - name: internal networks: - 10.0.0.0/8 - 172.16.0.0/12 - 192.168.0.0/18 rules: - domain: public.example.com policy: one_factor networks: - internal - 1.1.1.1 subject: - [\"user:adam\"] - [\"user:fred\"] - [\"group:admins\"] methods: - GET - HEAD resources: - \"^/api.*\" . ",
     "url": "/docs/configuration/access-control.html#configuration",
     "relUrl": "/configuration/access-control.html#configuration"
   },"5": {
