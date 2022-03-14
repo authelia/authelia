@@ -8,7 +8,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+// OpenIDConnectTokenPOST handles POST requests to the OpenID Connect 1.0 Token endpoint.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	oidcSession := newOpenIDSession("")
 
 	accessRequest, err := ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession)

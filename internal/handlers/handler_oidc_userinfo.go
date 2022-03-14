@@ -14,7 +14,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+// OpenIDConnectUserinfo handles GET/POST requests to the OpenID Connect 1.0 UserInfo endpoint.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	session := newOpenIDSession("")
 
 	tokenType, ar, err := ctx.Providers.OpenIDConnect.Fosite.IntrospectToken(req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, session)

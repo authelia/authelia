@@ -21,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 //go:embed public_html
@@ -159,7 +160,45 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
-		handlers.RegisterOIDC(r, autheliaMiddleware)
+		corsWellKnown := middlewares.NewCORSMiddleware().
+			WithAllowedMethods("OPTIONS", "GET")
+
+		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsWellKnown.HandleOPTIONS))
+		r.GET(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsWellKnown.Middleware(handlers.WellKnownOpenIDConnectConfigurationGET)))
+
+		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsWellKnown.HandleOPTIONS))
+		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsWellKnown.Middleware(handlers.WellKnownOAuthAuthorizationServerGET)))
+
+		r.OPTIONS(oidc.JWKsPath, autheliaMiddleware(corsWellKnown.HandleOPTIONS))
+		r.GET(oidc.JWKsPath, autheliaMiddleware(corsWellKnown.Middleware(handlers.JSONWebKeySetGET)))
+
+		corsUserInfo := middlewares.NewCORSMiddleware().
+			WithAllowCredentials(true).
+			WithAllowedMethods("OPTIONS", "GET", "POST")
+
+		r.OPTIONS(oidc.UserinfoPath, autheliaMiddleware(corsUserInfo.HandleOPTIONS))
+		r.GET(oidc.UserinfoPath, autheliaMiddleware(corsUserInfo.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+		r.POST(oidc.UserinfoPath, autheliaMiddleware(corsUserInfo.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+
+		corsPOSTWithCredentials := middlewares.NewCORSMiddleware().
+			WithAllowCredentials(true).
+			WithAllowedMethods("OPTIONS", "POST")
+
+		r.OPTIONS(oidc.TokenPath, autheliaMiddleware(corsPOSTWithCredentials.HandleOPTIONS))
+		r.POST(oidc.TokenPath, autheliaMiddleware(corsPOSTWithCredentials.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
+
+		r.OPTIONS(oidc.RevocationPath, autheliaMiddleware(corsPOSTWithCredentials.HandleOPTIONS))
+		r.POST(oidc.RevocationPath, autheliaMiddleware(corsPOSTWithCredentials.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+		r.POST("/api/oidc/revoke", autheliaMiddleware(corsPOSTWithCredentials.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+
+		r.GET("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentGET))
+		r.POST("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentPOST))
+
+		r.GET(oidc.AuthorizationPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+		r.GET("/api/oidc/authorize", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+
+		r.POST(oidc.IntrospectionPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))
+		r.POST("/api/oidc/introspect", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))
 	}
 
 	return handler

@@ -7,7 +7,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func oidcConsent(ctx *middlewares.AutheliaCtx) {
+// OpenIDConnectConsentGET handles requests to provide consent for OpenID Connect.
+func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
@@ -39,7 +40,8 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
+// OpenIDConnectConsentPOST handles consent responses for OpenID Connect.
+func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.OIDCWorkflowSession == nil {
