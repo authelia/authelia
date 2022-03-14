@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 // ProviderConfig is the configuration used to create the session provider.
@@ -37,7 +38,7 @@ type UserSession struct {
 	FirstFactorAuthnTimestamp  int64
 	SecondFactorAuthnTimestamp int64
 
-	AuthenticationMethodReferences []string
+	AuthenticationMethodRefs oidc.AuthenticationMethodsReferences
 
 	// Webauthn holds the session registration data for this session.
 	Webauthn *webauthn.SessionData

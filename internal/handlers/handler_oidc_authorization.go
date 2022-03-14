@@ -89,7 +89,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 				IssuedAt:                        time.Now(),
 				Nonce:                           ar.GetRequestForm().Get("nonce"),
 				Audience:                        ar.GetGrantedAudience(),
-				AuthenticationMethodsReferences: userSession.AuthenticationMethodReferences,
+				AuthenticationMethodsReferences: userSession.AuthenticationMethodRefs.MarshalRFC8176(),
 				Extra:                           extraClaims,
 			},
 			Headers: &jwt.Headers{

@@ -90,11 +90,11 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.Equal(t, timeZeroFactor, authAt)
 
 	assert.Equal(t, UserSession{
-		Username:                       testUsername,
-		AuthenticationLevel:            authentication.OneFactor,
-		LastActivity:                   timeOneFactor.Unix(),
-		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
-		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
+		Username:                  testUsername,
+		AuthenticationLevel:       authentication.OneFactor,
+		LastActivity:              timeOneFactor.Unix(),
+		FirstFactorAuthnTimestamp: timeOneFactor.Unix(),
+		AuthenticationMethodRefs:  oidc.AuthenticationMethodsReferences{UsernameAndPassword: true},
 	}, session)
 
 	session.SetTwoFactorDuo(timeTwoFactor)
@@ -106,12 +106,12 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, UserSession{
-		Username:                       testUsername,
-		AuthenticationLevel:            authentication.TwoFactor,
-		LastActivity:                   timeTwoFactor.Unix(),
-		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
-		SecondFactorAuthnTimestamp:     timeTwoFactor.Unix(),
-		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRShortMessageService, oidc.AMRMultiChannelAuthentication},
+		Username:                   testUsername,
+		AuthenticationLevel:        authentication.TwoFactor,
+		LastActivity:               timeTwoFactor.Unix(),
+		FirstFactorAuthnTimestamp:  timeOneFactor.Unix(),
+		SecondFactorAuthnTimestamp: timeTwoFactor.Unix(),
+		AuthenticationMethodRefs:   oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Duo: true},
 	}, session)
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
@@ -163,11 +163,11 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.Equal(t, timeZeroFactor, authAt)
 
 	assert.Equal(t, UserSession{
-		Username:                       testUsername,
-		AuthenticationLevel:            authentication.OneFactor,
-		LastActivity:                   timeOneFactor.Unix(),
-		FirstFactorAuthnTimestamp:      timeOneFactor.Unix(),
-		AuthenticationMethodReferences: []string{oidc.AMRPasswordBasedAuthentication},
+		Username:                  testUsername,
+		AuthenticationLevel:       authentication.OneFactor,
+		LastActivity:              timeOneFactor.Unix(),
+		FirstFactorAuthnTimestamp: timeOneFactor.Unix(),
+		AuthenticationMethodRefs:  oidc.AuthenticationMethodsReferences{UsernameAndPassword: true},
 	}, session)
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
@@ -178,9 +178,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	session, err = provider.GetSession(ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey},
-		session.AuthenticationMethodReferences)
+	assert.Equal(t, oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true}, session.AuthenticationMethodRefs)
+	assert.True(t, session.AuthenticationMethodRefs.MultiFactorAuthentication())
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
 	assert.NoError(t, err)
@@ -203,8 +202,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
@@ -215,8 +214,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
 
@@ -227,8 +226,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserPresence: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
 
@@ -239,8 +238,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserPresence: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
 
@@ -251,8 +250,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserVerified: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
 
@@ -263,8 +262,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true, WebauthnUserVerified: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorTOTP(timeTwoFactor)
 
@@ -275,8 +274,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber, oidc.AMROneTimePassword},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, Webauthn: true, WebauthnUserVerified: true},
+		session.AuthenticationMethodRefs)
 
 	session.SetTwoFactorTOTP(timeTwoFactor)
 
@@ -287,8 +286,8 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t,
-		[]string{oidc.AMRPasswordBasedAuthentication, oidc.AMRMultiFactorAuthentication, oidc.AMRHardwareSecuredKey, oidc.AMRUserPresence, oidc.AMRPersonalIdentificationNumber, oidc.AMROneTimePassword},
-		session.AuthenticationMethodReferences)
+		oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true, Webauthn: true, WebauthnUserVerified: true},
+		session.AuthenticationMethodRefs)
 }
 
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
