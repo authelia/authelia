@@ -35,7 +35,7 @@ func (r AuthenticationMethodsReferences) ChannelService() bool {
 	return r.Duo
 }
 
-// MultiChannelAuthentication returns true if the user used more than one channel to
+// MultiChannelAuthentication returns true if the user used more than one channel to authenticate.
 func (r AuthenticationMethodsReferences) MultiChannelAuthentication() bool {
 	return r.ChannelBrowser() && r.ChannelService()
 }
