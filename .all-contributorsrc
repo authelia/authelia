@@ -613,6 +613,15 @@
         "doc",
         "test"
       ]
+    },
+    {
+      "login": "DennisGaida",
+      "name": "Dennis Gaida",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2392217?v=4",
+      "profile": "http://www.dennisgaida.de",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
