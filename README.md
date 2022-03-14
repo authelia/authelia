@@ -279,6 +279,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/tarioch"><img src="https://avatars.githubusercontent.com/u/2998148?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Patrick Ruckstuhl</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tarioch" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/FineWolf"><img src="https://avatars.githubusercontent.com/u/203591?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrew Moore</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=FineWolf" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=FineWolf" title="Documentation">📖</a> <a href="https://github.com/authelia/authelia/commits?author=FineWolf" title="Tests">⚠️</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Alestrix"><img src="https://avatars.githubusercontent.com/u/7452860?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alestrix</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Alestrix" title="Documentation">📖</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
