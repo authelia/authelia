@@ -23,7 +23,7 @@ access_control:
 
   rules:
   - domain: public.example.com
-    policy: bypass
+    policy: one_factor
     networks:
     - internal
     - 1.1.1.1
