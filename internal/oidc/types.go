@@ -18,8 +18,12 @@ import (
 func NewSession() (session *OpenIDSession) {
 	return &OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
-			Claims:  new(jwt.IDTokenClaims),
-			Headers: new(jwt.Headers),
+			Claims: &jwt.IDTokenClaims{
+				Extra: map[string]interface{}{},
+			},
+			Headers: &jwt.Headers{
+				Extra: map[string]interface{}{},
+			},
 		},
 		Extra: map[string]interface{}{},
 	}
@@ -28,6 +32,10 @@ func NewSession() (session *OpenIDSession) {
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
 func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra map[string]interface{},
 	authTime, requestedAt time.Time, requester fosite.AuthorizeRequester) (session *OpenIDSession) {
+	if extra == nil {
+		extra = make(map[string]interface{})
+	}
+
 	return &OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
@@ -40,12 +48,15 @@ func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra
 				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
 			},
-			Headers: &jwt.Headers{Extra: map[string]interface{}{
-				"kid": kid,
-			}},
-			Subject:  username,
+			Headers: &jwt.Headers{
+				Extra: map[string]interface{}{
+					"kid": kid,
+				},
+			},
+			Subject:  subject,
 			Username: username,
 		},
+		Extra:    map[string]interface{}{},
 		ClientID: requester.GetClient().GetID(),
 	}
 }
