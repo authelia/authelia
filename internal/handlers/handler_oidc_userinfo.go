@@ -18,13 +18,23 @@ import (
 //
 // https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
-	session := newOpenIDSession("")
+	var (
+		tokenType fosite.TokenType
+		requester fosite.AccessRequester
+		client    *oidc.InternalClient
+		err       error
+	)
 
-	tokenType, ar, err := ctx.Providers.OpenIDConnect.Fosite.IntrospectToken(req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, session)
-	if err != nil {
+	oidcSession := oidc.NewSession()
+
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.Fosite.IntrospectToken(
+		req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("UserInfo Request failed with error: %+v", rfc)
+
 		if rfc.StatusCode() == http.StatusUnauthorized {
-			rw.Header().Set("WWW-Authenticate", fmt.Sprintf("error=%s,error_description=%s", rfc.ErrorField, rfc.GetDescription()))
+			rw.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
 		}
 
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
@@ -32,22 +42,25 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
+	clientID := requester.GetClient().GetID()
+
 	if tokenType != fosite.AccessToken {
-		errStr := "authorization header must contain an OAuth access token."
-		rw.Header().Set("WWW-Authenticate", fmt.Sprintf("error_description=\"%s\"", errStr))
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access_token", requester.GetID(), client.GetID())
+
+		errStr := "Only access tokens are allowed in the authorization header."
+		rw.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer error="invalid_token",error_description="%s"`, errStr))
 		ctx.Providers.OpenIDConnect.WriteErrorCode(rw, req, http.StatusUnauthorized, errors.New(errStr))
 
 		return
 	}
 
-	client, ok := ar.GetClient().(*oidc.InternalClient)
-	if !ok {
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID); err != nil {
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHint("Unable to assert type of client")))
 
 		return
 	}
 
-	claims := ar.GetSession().(*oidc.OpenIDSession).IDTokenClaims().ToMap()
+	claims := requester.GetSession().(*oidc.OpenIDSession).IDTokenClaims().ToMap()
 	delete(claims, "jti")
 	delete(claims, "sid")
 	delete(claims, "at_hash")
@@ -55,27 +68,49 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	delete(claims, "exp")
 	delete(claims, "nonce")
 
-	if audience, ok := claims["aud"].([]string); !ok || len(audience) == 0 {
-		claims["aud"] = []string{client.GetID()}
+	audience, ok := claims["aud"].([]string)
+
+	if !ok || len(audience) == 0 {
+		audience = []string{client.GetID()}
+	} else {
+		found := false
+
+		for _, aud := range audience {
+			if aud == clientID {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			audience = append(audience, clientID)
+		}
 	}
+
+	claims["aud"] = audience
+
+	var (
+		keyID, token string
+	)
+
+	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
 
 	switch client.UserinfoSigningAlgorithm {
 	case "RS256":
 		claims["jti"] = uuid.New()
 		claims["iat"] = time.Now().Unix()
 
-		keyID, err := ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context())
-		if err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+		if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not find the active JWK."))
 
 			return
 		}
 
-		token, _, err := ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims,
-			&jwt.Headers{
-				Extra: map[string]interface{}{"kid": keyID},
-			})
-		if err != nil {
+		headers := &jwt.Headers{
+			Extra: map[string]interface{}{"kid": keyID},
+		}
+
+		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
 			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
 
 			return
@@ -86,6 +121,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	case "none", "":
 		ctx.Providers.OpenIDConnect.Write(rw, req, claims)
 	default:
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported userinfo signing algorithm '%s'.", client.UserinfoSigningAlgorithm)))
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", client.UserinfoSigningAlgorithm)))
 	}
 }

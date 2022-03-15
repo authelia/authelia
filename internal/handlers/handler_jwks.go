@@ -11,6 +11,6 @@ func JSONWebKeySetGET(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentType("application/json")
 
 	if err := json.NewEncoder(ctx).Encode(ctx.Providers.OpenIDConnect.KeyManager.GetKeySet()); err != nil {
-		ctx.Error(err, "failed to serve jwk set")
+		ctx.Error(err, "failed to serve json web key set")
 	}
 }
