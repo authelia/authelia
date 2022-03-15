@@ -2,15 +2,53 @@ package oidc
 
 import (
 	"crypto/rsa"
+	"time"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/storage"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
+
+// NewSession creates a new OpenIDSession struct.
+func NewSession() (session *OpenIDSession) {
+	return &OpenIDSession{
+		DefaultSession: &openid.DefaultSession{
+			Claims:  new(jwt.IDTokenClaims),
+			Headers: new(jwt.Headers),
+		},
+		Extra: map[string]interface{}{},
+	}
+}
+
+// NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
+func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra map[string]interface{},
+	authTime, requestedAt time.Time, requester fosite.AuthorizeRequester) (session *OpenIDSession) {
+	return &OpenIDSession{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Subject:     subject,
+				Issuer:      issuer,
+				AuthTime:    authTime,
+				RequestedAt: requestedAt,
+				IssuedAt:    time.Now(),
+				Nonce:       requester.GetRequestForm().Get("nonce"),
+				Audience:    requester.GetGrantedAudience(),
+				Extra:       extra,
+			},
+			Headers: &jwt.Headers{Extra: map[string]interface{}{
+				"kid": kid,
+			}},
+			Subject:  username,
+			Username: username,
+		},
+		ClientID: requester.GetClient().GetID(),
+	}
+}
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
