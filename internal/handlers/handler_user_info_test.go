@@ -179,26 +179,6 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "should set method to webauthn by default when user has webauthn configured and no preferred method",
-			db: model.UserInfo{
-				Method:      "",
-				HasTOTP:     false,
-				HasWebauthn: true,
-				HasDuo:      false,
-			},
-			api: &model.UserInfo{
-				Method:      "webauthn",
-				HasTOTP:     false,
-				HasWebauthn: true,
-				HasDuo:      false,
-			},
-			config: &schema.Configuration{
-				DuoAPI: &schema.DuoAPIConfiguration{},
-			},
-			loadErr: nil,
-			saveErr: nil,
-		},
-		{
 			description: "should set method to duo by default when user has duo configured and no preferred method",
 			db: model.UserInfo{
 				Method:      "",
@@ -298,15 +278,39 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 		err := mock.Ctx.SaveSession(userSession)
 		require.NoError(t, err)
 
-		mock.StorageMock.
-			EXPECT().
-			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
-			Return(resp.db, resp.loadErr)
-
-		mock.StorageMock.
-			EXPECT().
-			SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
-			Return(resp.saveErr)
+		if resp.db.Method == "" {
+			gomock.InOrder(
+				mock.StorageMock.
+					EXPECT().
+					LoadPreferred2FAMethod(mock.Ctx, gomock.Eq("john")).
+					Return("", sql.ErrNoRows),
+				mock.StorageMock.
+					EXPECT().
+					SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq("")).
+					Return(resp.saveErr),
+				mock.StorageMock.
+					EXPECT().
+					LoadUserInfo(mock.Ctx, gomock.Eq("john")).
+					Return(resp.db, nil),
+				mock.StorageMock.EXPECT().
+					SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
+					Return(resp.saveErr),
+			)
+		} else {
+			gomock.InOrder(
+				mock.StorageMock.
+					EXPECT().
+					LoadPreferred2FAMethod(mock.Ctx, gomock.Eq("john")).
+					Return(resp.db.Method, nil),
+				mock.StorageMock.
+					EXPECT().
+					LoadUserInfo(mock.Ctx, gomock.Eq("john")).
+					Return(resp.db, nil),
+				mock.StorageMock.EXPECT().
+					SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
+					Return(resp.saveErr),
+			)
+		}
 
 		UserInfoPOST(mock.Ctx)
 

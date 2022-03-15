@@ -24,6 +24,11 @@ type UserInfo struct {
 
 // SetDefaultPreferred2FAMethod configures the default method based on what is configured as available and the users available methods.
 func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string) (changed bool) {
+	if len(methods) == 0 {
+		// No point attempting to change the method if no methods are available.
+		return false
+	}
+
 	before := i.Method
 
 	totp, webauthn, duo := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebauthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods)
@@ -46,8 +51,6 @@ func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string) (changed bool)
 			i.Method = SecondFactorMethodWebauthn
 		case duo:
 			i.Method = SecondFactorMethodDuo
-		default:
-			i.Method = SecondFactorMethodTOTP
 		}
 	}
 

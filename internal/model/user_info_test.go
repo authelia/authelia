@@ -7,7 +7,10 @@ import (
 )
 
 func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
-	var info UserInfo
+	var (
+		info    UserInfo
+		changed bool
+	)
 
 	info = UserInfo{
 		Method:      SecondFactorMethodTOTP,
@@ -16,8 +19,9 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: true,
 	}
 
-	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodWebauthn, info.Method)
 
 	info = UserInfo{
@@ -27,19 +31,57 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: true,
 	}
 
-	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
 
 	info = UserInfo{
-		Method:      "",
+		Method:      "webauthn",
 		HasDuo:      true,
 		HasTOTP:     false,
 		HasWebauthn: false,
 	}
 
-	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodDuo})
 
+	assert.True(t, changed)
+	assert.Equal(t, SecondFactorMethodDuo, info.Method)
+
+	info = UserInfo{
+		Method:      "webauthn",
+		HasDuo:      false,
+		HasTOTP:     false,
+		HasWebauthn: false,
+	}
+
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP})
+
+	assert.True(t, changed)
+	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
+
+	info = UserInfo{
+		Method:      "totp",
+		HasDuo:      false,
+		HasTOTP:     false,
+		HasWebauthn: false,
+	}
+
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn})
+
+	assert.True(t, changed)
+	assert.Equal(t, SecondFactorMethodWebauthn, info.Method)
+
+	info = UserInfo{
+		Method:      "totp",
+		HasDuo:      false,
+		HasTOTP:     false,
+		HasWebauthn: false,
+	}
+
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodDuo})
+
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodDuo, info.Method)
 
 	info = UserInfo{
@@ -49,25 +91,40 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: false,
 	}
 
-	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
+	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
+
+	info = UserInfo{
+		Method:      "webauthn",
+		HasDuo:      false,
+		HasTOTP:     true,
+		HasWebauthn: true,
+	}
+
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP})
+
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
 
 	info.Method = ""
 
-	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodWebauthn, info.Method)
 
 	info.Method = ""
 
-	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodDuo})
+	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodDuo})
 
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodDuo, info.Method)
 
 	info.Method = ""
 
-	info.SetDefaultPreferred2FAMethod(nil)
+	changed = info.SetDefaultPreferred2FAMethod(nil)
 
-	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
+	assert.False(t, changed)
+	assert.Equal(t, "", info.Method)
 }

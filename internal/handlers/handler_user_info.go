@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -12,13 +15,31 @@ import (
 func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
-	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
-	if err != nil {
+	var (
+		userInfo model.UserInfo
+		err      error
+	)
+
+	if _, err = ctx.Providers.StorageProvider.LoadPreferred2FAMethod(ctx, userSession.Username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, ""); err != nil {
+				ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+			}
+		} else {
+			ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+		}
+	}
+
+	if userInfo, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
 		ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
 		return
 	}
 
-	if changed := userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods()); changed {
+	var (
+		changed bool
+	)
+
+	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods()); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
 			ctx.Error(fmt.Errorf("unable to save user two factor method: %v", err), messageOperationFailed)
 			return

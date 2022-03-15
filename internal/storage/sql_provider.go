@@ -204,7 +204,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	case err == nil:
 		return method, nil
 	case errors.Is(err, sql.ErrNoRows):
-		return "", nil
+		return "", sql.ErrNoRows
 	default:
 		return "", fmt.Errorf("error selecting preferred two factor method for user '%s': %w", username, err)
 	}
