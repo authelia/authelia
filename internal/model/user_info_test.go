@@ -93,6 +93,7 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 
 	changed = info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
+	assert.True(t, changed)
 	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
 
 	info = UserInfo{
