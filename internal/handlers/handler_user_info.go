@@ -8,8 +8,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// UserInfoGet get the info related to the user identified by the session.
-func UserInfoGet(ctx *middlewares.AutheliaCtx) {
+// UserInfoPOST handles setting up info for users if necessary when they login.
+func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
@@ -18,11 +18,29 @@ func UserInfoGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if changed := userInfo.SetDefaultMethod(ctx.AvailableSecondFactorMethods()); changed {
+	if changed := userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods()); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
 			ctx.Error(fmt.Errorf("unable to save user two factor method: %v", err), messageOperationFailed)
 			return
 		}
+	}
+
+	userInfo.DisplayName = userSession.DisplayName
+
+	err = ctx.SetJSONBody(userInfo)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set user info response in body: %s", err)
+	}
+}
+
+// UserInfoGET get the info related to the user identified by the session.
+func UserInfoGET(ctx *middlewares.AutheliaCtx) {
+	userSession := ctx.GetSession()
+
+	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
+	if err != nil {
+		ctx.Error(fmt.Errorf("unable to load user information: %v", err), messageOperationFailed)
+		return
 	}
 
 	userInfo.DisplayName = userSession.DisplayName

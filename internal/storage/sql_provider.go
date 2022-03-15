@@ -215,17 +215,7 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
 	switch {
-	case err == nil:
-		return info, nil
-	case errors.Is(err, sql.ErrNoRows):
-		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, ""); err != nil {
-			return model.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
-		}
-
-		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username); err != nil {
-			return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
-		}
-
+	case err == nil, errors.Is(err, sql.ErrNoRows):
 		return info, nil
 	default:
 		return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)

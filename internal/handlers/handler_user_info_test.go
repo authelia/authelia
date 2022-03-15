@@ -115,7 +115,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 			Return(resp.db, resp.err)
 
-		UserInfoGet(mock.Ctx)
+		UserInfoGET(mock.Ctx)
 
 		if resp.err == nil {
 			t.Run("expected status code", func(t *testing.T) {
@@ -308,7 +308,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			SavePreferred2FAMethod(mock.Ctx, gomock.Eq("john"), gomock.Eq(resp.api.Method)).
 			Return(resp.saveErr)
 
-		UserInfoGet(mock.Ctx)
+		UserInfoPOST(mock.Ctx)
 
 		if resp.loadErr == nil && resp.saveErr == nil {
 			t.Run(fmt.Sprintf("%s/%s", resp.description, "expected status code"), func(t *testing.T) {
@@ -354,7 +354,7 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 		LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
 		Return(model.UserInfo{}, fmt.Errorf("failure"))
 
-	UserInfoGet(s.mock.Ctx)
+	UserInfoGET(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
 	assert.Equal(s.T(), "unable to load user information: failure", s.mock.Hook.LastEntry().Message)

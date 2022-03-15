@@ -22,8 +22,8 @@ type UserInfo struct {
 	HasDuo bool `db:"has_duo" json:"has_duo" valid:"required"`
 }
 
-// SetDefaultMethod configures the default method based on what is configured as available and the users available methods.
-func (i *UserInfo) SetDefaultMethod(methods []string) (changed bool) {
+// SetDefaultPreferred2FAMethod configures the default method based on what is configured as available and the users available methods.
+func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string) (changed bool) {
 	before := i.Method
 
 	totp, webauthn, duo := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebauthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods)

@@ -16,7 +16,7 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: true,
 	}
 
-	info.SetDefaultMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
 	assert.Equal(t, SecondFactorMethodWebauthn, info.Method)
 
@@ -27,7 +27,7 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: true,
 	}
 
-	info.SetDefaultMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
 	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
 
@@ -38,7 +38,7 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: false,
 	}
 
-	info.SetDefaultMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
 	assert.Equal(t, SecondFactorMethodDuo, info.Method)
 
@@ -49,25 +49,25 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		HasWebauthn: false,
 	}
 
-	info.SetDefaultMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
 	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
 
 	info.Method = ""
 
-	info.SetDefaultMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
+	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodWebauthn, SecondFactorMethodDuo})
 
 	assert.Equal(t, SecondFactorMethodWebauthn, info.Method)
 
 	info.Method = ""
 
-	info.SetDefaultMethod([]string{SecondFactorMethodDuo})
+	info.SetDefaultPreferred2FAMethod([]string{SecondFactorMethodDuo})
 
 	assert.Equal(t, SecondFactorMethodDuo, info.Method)
 
 	info.Method = ""
 
-	info.SetDefaultMethod(nil)
+	info.SetDefaultPreferred2FAMethod(nil)
 
 	assert.Equal(t, SecondFactorMethodTOTP, info.Method)
 }
