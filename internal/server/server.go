@@ -160,17 +160,17 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
-		corsWellKnown := middlewares.NewCORSMiddleware().
+		corsMetadata := middlewares.NewCORSMiddleware().
 			WithAllowedMethods("OPTIONS", "GET")
 
-		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsWellKnown.HandleOPTIONS))
-		r.GET(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsWellKnown.Middleware(handlers.WellKnownOpenIDConnectConfigurationGET)))
+		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsMetadata.HandleOPTIONS))
+		r.GET(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsMetadata.Middleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
 
-		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsWellKnown.HandleOPTIONS))
-		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsWellKnown.Middleware(handlers.WellKnownOAuthAuthorizationServerGET)))
+		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsMetadata.HandleOPTIONS))
+		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsMetadata.Middleware(handlers.OAuthAuthorizationServerWellKnownGET)))
 
-		r.OPTIONS(oidc.JWKsPath, autheliaMiddleware(corsWellKnown.HandleOPTIONS))
-		r.GET(oidc.JWKsPath, autheliaMiddleware(corsWellKnown.Middleware(handlers.JSONWebKeySetGET)))
+		r.OPTIONS(oidc.JWKsPath, autheliaMiddleware(corsMetadata.HandleOPTIONS))
+		r.GET(oidc.JWKsPath, autheliaMiddleware(corsMetadata.Middleware(handlers.JSONWebKeySetGET)))
 
 		corsUserInfo := middlewares.NewCORSMiddleware().
 			WithAllowCredentials(true).
