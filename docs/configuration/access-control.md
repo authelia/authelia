@@ -24,7 +24,7 @@ access_control:
   rules:
   - domain: public.example.com
     domain_regex: "^\d+\\.public.example.com$"
-    policy: bypass
+    policy: one_factor
     networks:
     - internal
     - 1.1.1.1
@@ -36,7 +36,7 @@ access_control:
     - GET
     - HEAD
     resources:
-    - "^/api.*"
+    - '^/api.*'
 ```
 
 ## Options
@@ -195,8 +195,10 @@ strings. When it's a list of strings the rule matches when **any** of the domain
 When used in conjunction with [domain](#domain) the rule will match when either the [domain](#domain) or the
 [domain_regex](#domain_regex) criteria matches.
 
-This criteria takes any standard go regex pattern to match the requests. However you may be required to double escape
-things you'd normally single escape due to the configuration parser. We additionally utilize two special named match 
+As this is a regex string you will either need to use single quotes or need to double-escape certain portions of the
+regex in order make this work.
+
+This criteria takes any standard go regex pattern to match the requests. We additionally utilize two special named match 
 groups which match attributes of the user:
 
 | Group Name |    Match Value    |
@@ -205,7 +207,8 @@ groups which match attributes of the user:
 |   Group    | groups (contains) |
 
 For the group match it matches if the user has any group name that matches, and both matches are case-insensitive due to
-the nature of the URL specification.
+the fact domain names should not be compared in a case-sensitive way as per the
+[RFC4343](https://datatracker.ietf.org/doc/html/rfc4343) abstract.
 
 Examples:
 
@@ -247,10 +250,10 @@ result in problematic security scenarios with badly thought out configurations a
 scenario that would require users to do this. If you have a scenario in mind please open an 
 [issue](https://github.com/authelia/authelia/issues/new) on GitHub.*
 
-This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user 
-belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically 
-require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` to identify 
-which part of the identity to check.
+This criteria matches identifying characteristics about the subject. This is either user's name or the name of the
+group a user belongs to. This allows you to effectively control exactly what each user is authorized to access or to
+specifically require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` 
+to identify which part of the identity to check.
 
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
@@ -403,9 +406,9 @@ for debugging these regular expressions is called [Rego](https://regoio.herokuap
 they match the entire path including the query parameters. When upgrading you may be required to alter some of your 
 resource rules to get them to operate as they previously did.*
 
-It's important when configuring resource rules that you enclose them in quotes otherwise you may run into some issues
-with escaping the expressions. Failure to do so may prevent Authelia from starting. It's technically optional but will
-likely save you a lot of time if you do it for all resource rules.
+As this is a regex string you will either need to use single quotes or need to double-escape certain portions of the
+regex in order make this work. If you don't do either of these things either the regex may not be parsed, or it may not
+be parsed correctly. It's technically optional but will likely save you a lot of time if you do it for all resource rules.
 
 Examples:
 
@@ -418,7 +421,7 @@ access_control:
   - domain: app.example.com
     policy: bypass
     resources:
-    - "^/api([/?].*)?$"
+    - '^/api([/?].*)?$'
 ```
 
 ## Policies
@@ -511,13 +514,13 @@ access_control:
 
     - domain: dev.example.com
       resources:
-      - "^/groups/dev/.*$"
+      - '^/groups/dev/.*$'
       subject: "group:dev"
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-      - "^/users/john/.*$"
+      - '^/users/john/.*$'
       subject: 
       - ["group:dev", "user:john"]
       - "group:admins"

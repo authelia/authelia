@@ -409,21 +409,21 @@ access_control:
     ## Rules applied to 'dev' group
     - domain: dev.example.com
       resources:
-        - "^/groups/dev/.*$"
+        - '^/groups/dev/.*$'
       subject: "group:dev"
       policy: two_factor
 
     ## Rules applied to user 'john'
     - domain: dev.example.com
       resources:
-        - "^/users/john/.*$"
+        - '^/users/john/.*$'
       subject: "user:john"
       policy: two_factor
 
     ## Rules applied to user 'harry'
     - domain: dev.example.com
       resources:
-        - "^/users/harry/.*$"
+        - '^/users/harry/.*$'
       subject: "user:harry"
       policy: two_factor
 
@@ -433,7 +433,7 @@ access_control:
       policy: two_factor
     - domain: "dev.example.com"
       resources:
-        - "^/users/bob/.*$"
+        - '^/users/bob/.*$'
       subject: "user:bob"
       policy: two_factor
 
