@@ -35,7 +35,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
@@ -96,14 +96,24 @@ const (
 		WHERE username = ?;`
 
 	queryFmtUpsertTOTPConfiguration = `
-		REPLACE INTO %s (username, issuer, algorithm, digits, period, secret)
-		VALUES (?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtPostgresUpsertTOTPConfiguration = `
-		INSERT INTO %s (username, issuer, algorithm, digits, period, secret)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username)
-			DO UPDATE SET issuer = $2, algorithm = $3, digits = $4, period = $5, secret = $6;`
+			DO UPDATE SET created_at = $1, last_used_at = $2, issuer = $4, algorithm = $5, digits = $6, period = $7, secret = $8;`
+
+	queryFmtUpdateTOTPConfigRecordSignIn = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE id = ?;`
+
+	queryFmtUpdateTOTPConfigRecordSignInByUsername = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE username = ?;`
 
 	queryFmtDeleteTOTPConfiguration = `
 		DELETE FROM %s
@@ -111,36 +121,50 @@ const (
 )
 
 const (
-	queryFmtSelectU2FDevice = `
-		SELECT id, username, key_handle, public_key
-		FROM %s
-		WHERE username = ?;`
-
-	queryFmtSelectU2FDevices = `
-		SELECT id, username, key_handle, public_key
+	queryFmtSelectWebauthnDevices = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtUpdateU2FDevicePublicKey = `
+	queryFmtSelectWebauthnDevicesByUsername = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtUpdateWebauthnDevicePublicKey = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
 
-	queryFmtUpdateUpdateU2FDevicePublicKeyByUsername = `
+	queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername = `
 		UPDATE %s
 		SET public_key = ?
-		WHERE username = ?;`
+		WHERE username = ? AND kid = ?;`
 
-	queryFmtUpsertU2FDevice = `
-		REPLACE INTO %s (username, description, key_handle, public_key)
-		VALUES (?, ?, ?, ?);`
+	queryFmtUpdateWebauthnDeviceRecordSignIn = `
+		UPDATE %s
+		SET 
+			rpid = ?, last_used_at = ?, sign_count = ?,
+			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		WHERE id = ?;`
 
-	queryFmtPostgresUpsertU2FDevice = `
-		INSERT INTO %s (username, description, key_handle, public_key)
-		VALUES ($1, $2, $3, $4)
+	queryFmtUpdateWebauthnDeviceRecordSignInByUsername = `
+		UPDATE %s
+		SET 
+			rpid = ?, last_used_at = ?, sign_count = ?,
+			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		WHERE username = ? AND kid = ?;`
+
+	queryFmtUpsertWebauthnDevice = `
+		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtPostgresUpsertWebauthnDevice = `
+		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
-			DO UPDATE SET key_handle=$3, public_key=$4;`
+			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
 )
 
 const (
@@ -152,7 +176,7 @@ const (
 		INSERT INTO %s (username, device, method)
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
-			DO UPDATE SET device=$2, method=$3;`
+			DO UPDATE SET device = $2, method = $3;`
 
 	queryFmtDeleteDuoDevice = `
 		DELETE
@@ -194,5 +218,5 @@ const (
 		INSERT INTO %s (name, value)
 		VALUES ($1, $2)
 			ON CONFLICT (name)
-			DO UPDATE SET value=$2;`
+			DO UPDATE SET value = $2;`
 )

@@ -89,10 +89,10 @@ that users who have access to the database do not also have access to this key.
 
 The encrypted data in the database is as follows:
 
-|Table              |Column    |Rational                                                                                              |
-|:-----------------:|:--------:|:----------------------------------------------------------------------------------------------------:|
-|totp_configurations|secret    |Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security|
-|u2f_devices        |public_key|Prevents [Bad Actors](#bad-actors) from compromising security                                         |
+|        Table        |   Column   |                                                Rational                                                |
+|:-------------------:|:----------:|:------------------------------------------------------------------------------------------------------:|
+| totp_configurations |   secret   | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|  webauthn_devices   | public_key |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
 
 ### Leaked Database
 
@@ -182,6 +182,12 @@ connection is over TLS. As SMTPS is deprecated, the only way to configure this i
 [port](../configuration/notifier/smtp.md#port) to the officially recognized SMTPS port of 465 which will cause Authelia
 to automatically consider it to be a SMTPS connection. As such your SMTP server, if not offering SMTPS, should not be
 listening on port 465 which is bad practice anyway.
+
+## Protection against open redirects
+
+Authelia protects your users against open redirect attacks by always checking if redirection URLs are pointing
+to a subdomain of the domain protected by Authelia. This prevents phishing campaigns tricking users into visiting
+infected websites leveraging legit links.
 
 ## Additional security
 

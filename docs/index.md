@@ -29,8 +29,8 @@ protect your apps.
 
 Multiple 2-factor methods are available for satisfying every users.
 
-* Time-based One-Time passwords with [Google Authenticator].
-* Security Keys with tokens like [Yubikey].
+* Time-based One-Time passwords with compatible authenticator applications.
+* Security Keys that support [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
 * Push notifications on your mobile using [Duo].
 
 **Authelia** is available as Docker images, static binaries and AUR packages
@@ -49,5 +49,6 @@ so that you can test it in minutes. Let's begin with the
 
 
 [Duo]: https://duo.com/
-[Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
-[Google Authenticator]: https://google-authenticator.com/
+[FIDO2]: https://www.yubico.com/authentication-standards/fido2/
+[Webauthn]: https://www.yubico.com/authentication-standards/webauthn/
+[YubiKey]: https://www.yubico.com/products/yubikey-5-overview/

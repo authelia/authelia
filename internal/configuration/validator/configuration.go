@@ -3,68 +3,61 @@ package validator
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateConfiguration and adapt the configuration read from file.
-func ValidateConfiguration(configuration *schema.Configuration, validator *schema.StructValidator) {
-	if configuration.CertificatesDirectory != "" {
-		info, err := os.Stat(configuration.CertificatesDirectory)
-		if err != nil {
-			validator.Push(fmt.Errorf("Error checking certificate directory: %v", err))
+func ValidateConfiguration(config *schema.Configuration, validator *schema.StructValidator) {
+	var err error
+
+	if config.CertificatesDirectory != "" {
+		var info os.FileInfo
+
+		if info, err = os.Stat(config.CertificatesDirectory); err != nil {
+			validator.Push(fmt.Errorf("the location 'certificates_directory' could not be inspected: %w", err))
 		} else if !info.IsDir() {
-			validator.Push(fmt.Errorf("The path %s specified for certificate_directory is not a directory", configuration.CertificatesDirectory))
+			validator.Push(fmt.Errorf("the location 'certificates_directory' refers to '%s' is not a directory", config.CertificatesDirectory))
 		}
 	}
 
-	if configuration.JWTSecret == "" {
-		validator.Push(fmt.Errorf("Provide a JWT secret using \"jwt_secret\" key"))
+	if config.JWTSecret == "" {
+		validator.Push(fmt.Errorf("option 'jwt_secret' is required"))
 	}
 
-	if configuration.DefaultRedirectionURL != "" {
-		err := utils.IsStringAbsURL(configuration.DefaultRedirectionURL)
-		if err != nil {
-			validator.Push(fmt.Errorf("Value for \"default_redirection_url\" is invalid: %+v", err))
+	if config.DefaultRedirectionURL != "" {
+		if err = utils.IsStringAbsURL(config.DefaultRedirectionURL); err != nil {
+			validator.Push(fmt.Errorf("option 'default_redirection_url' is invalid: %s", strings.ReplaceAll(err.Error(), "like 'http://' or 'https://'", "like 'ldap://' or 'ldaps://'")))
 		}
 	}
 
-	ValidateTheme(configuration, validator)
+	ValidateTheme(config, validator)
 
-	ValidateLogging(configuration, validator)
+	ValidateLog(config, validator)
 
-	ValidateTOTP(configuration, validator)
+	ValidateTOTP(config, validator)
 
-	ValidateAuthenticationBackend(&configuration.AuthenticationBackend, validator)
+	ValidateWebauthn(config, validator)
 
-	ValidateAccessControl(&configuration.AccessControl, validator)
+	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
 
-	ValidateRules(configuration.AccessControl, validator)
+	ValidateAccessControl(config, validator)
 
-	ValidateSession(&configuration.Session, validator)
+	ValidateRules(config, validator)
 
-	if configuration.Regulation == nil {
-		configuration.Regulation = &schema.DefaultRegulationConfiguration
-	}
+	ValidateSession(&config.Session, validator)
 
-	ValidateRegulation(configuration.Regulation, validator)
+	ValidateRegulation(config, validator)
 
-	ValidateServer(configuration, validator)
+	ValidateServer(config, validator)
 
-	ValidateStorage(configuration.Storage, validator)
+	ValidateStorage(config.Storage, validator)
 
-	if configuration.Notifier == nil {
-		validator.Push(fmt.Errorf("A notifier configuration must be provided"))
-	} else {
-		ValidateNotifier(configuration.Notifier, validator)
-	}
+	ValidateNotifier(config.Notifier, validator)
 
-	ValidateIdentityProviders(&configuration.IdentityProviders, validator)
+	ValidateIdentityProviders(&config.IdentityProviders, validator)
 
-	if configuration.NTP == nil {
-		configuration.NTP = &schema.DefaultNTPConfiguration
-	}
-
-	ValidateNTP(configuration.NTP, validator)
+	ValidateNTP(config, validator)
 }

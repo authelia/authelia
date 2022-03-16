@@ -9,7 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	models "github.com/authelia/authelia/v4/internal/models"
+	models "github.com/authelia/authelia/v4/internal/model"
 )
 
 // MockTOTP is a mock of Provider interface.

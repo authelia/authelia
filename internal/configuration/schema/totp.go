@@ -2,6 +2,7 @@ package schema
 
 // TOTPConfiguration represents the configuration related to TOTP options.
 type TOTPConfiguration struct {
+	Disable   bool   `koanf:"disable"`
 	Issuer    string `koanf:"issuer"`
 	Algorithm string `koanf:"algorithm"`
 	Digits    uint   `koanf:"digits"`
