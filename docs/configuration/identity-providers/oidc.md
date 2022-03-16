@@ -8,8 +8,8 @@ nav_order: 2
 
 # OpenID Connect
 
-**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](#roadmap) feature. The OP role is the
-[OpenID Connect] Provider role, not the Relying Party or RP role. This means other applications that implement the
+**Authelia** currently supports the [OpenID Connect] OP role as a [**beta**](../../roadmap/oidc.md) feature. The OP role
+is the [OpenID Connect] Provider role, not the Relying Party or RP role. This means other applications that implement the
 [OpenID Connect] RP role can use Authelia as an authentication and authorization backend similar to how you may use
 social media or development platforms for login.
 
@@ -441,7 +441,7 @@ This scope includes the groups the authentication backend reports the user is a 
 
 | Claim  |   JWT Type    | Authelia Attribute |      Description       |
 |:------:|:-------------:|:------------------:|:----------------------:|
-| groups | array[string] |       groups       | The users display name |
+| groups | array[string] |       groups       | List of user's groups discovered via [authentication](https://www.authelia.com/docs/configuration/authentication/) |
 
 ### email
 
