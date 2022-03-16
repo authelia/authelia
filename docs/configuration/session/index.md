@@ -135,7 +135,7 @@ required: no
 </div>
 
 The time in [duration notation format](../index.md#duration-notation-format) the cookie expires and the session is
-destroyed when the remember me box is checked.
+destroyed when the remember me box is checked. Setting this to `-1` disables this feature entirely.
 
 ## Security
 

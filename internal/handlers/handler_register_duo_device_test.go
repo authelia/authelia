@@ -12,7 +12,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 type RegisterDuoDeviceSuite struct {
@@ -129,7 +129,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
 func (s *RegisterDuoDeviceSuite) TestShouldRespondOK() {
 	s.mock.Ctx.Request.SetBodyString("{\"device\":\"1234567890123456\", \"method\":\"push\"}")
 	s.mock.StorageMock.EXPECT().
-		SavePreferredDuoDevice(gomock.Eq(s.mock.Ctx), gomock.Eq(models.DuoDevice{Username: "john", Device: "1234567890123456", Method: "push"})).
+		SavePreferredDuoDevice(gomock.Eq(s.mock.Ctx), gomock.Eq(model.DuoDevice{Username: "john", Device: "1234567890123456", Method: "push"})).
 		Return(nil)
 
 	SecondFactorDuoDevicePost(s.mock.Ctx)

@@ -11,11 +11,11 @@ import (
 
 func newDefaultNTPConfig() schema.Configuration {
 	return schema.Configuration{
-		NTP: &schema.NTPConfiguration{},
+		NTP: schema.NTPConfiguration{},
 	}
 }
 
-func TestShouldSetDefaultNtpAddress(t *testing.T) {
+func TestShouldSetDefaultNTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultNTPConfig()
 
@@ -23,48 +23,21 @@ func TestShouldSetDefaultNtpAddress(t *testing.T) {
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultNTPConfiguration.Address, config.NTP.Address)
+	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.NTP.Version)
+	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.NTP.MaximumDesync)
+	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.NTP.DisableStartupCheck)
 }
 
 func TestShouldSetDefaultNtpVersion(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultNTPConfig()
 
-	ValidateNTP(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.Version, config.NTP.Version)
-}
-
-func TestShouldSetDefaultNtpMaximumDesync(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultNTPConfig()
+	config.NTP.MaximumDesync = -1
 
 	ValidateNTP(&config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultNTPConfiguration.MaximumDesync, config.NTP.MaximumDesync)
-}
-
-func TestShouldSetDefaultNtpDisableStartupCheck(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultNTPConfig()
-
-	ValidateNTP(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	assert.Equal(t, schema.DefaultNTPConfiguration.DisableStartupCheck, config.NTP.DisableStartupCheck)
-}
-
-func TestShouldRaiseErrorOnMaximumDesyncString(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultNTPConfig()
-	config.NTP.MaximumDesync = "a second"
-
-	ValidateNTP(&config, validator)
-
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "ntp: option 'max_desync' can't be parsed: could not parse 'a second' as a duration")
 }
 
 func TestShouldRaiseErrorOnInvalidNTPVersion(t *testing.T) {

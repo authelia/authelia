@@ -33,7 +33,7 @@ module.exports = {
                 "logging",
                 "middlewares",
                 "mocks",
-                "models",
+                "model",
                 "notification",
                 "npm",
                 "ntp",

@@ -98,6 +98,9 @@ log:
 ##
 ## Parameters used for TOTP generation.
 totp:
+  ## Disable TOTP.
+  disable: false
+
   ## The issuer name displayed in the Authenticator application of your choice.
   issuer: authelia.com
 
@@ -120,6 +123,28 @@ totp:
   ## Warning: before changing skew read the docs link below.
   skew: 1
   ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
+
+##
+## WebAuthn Configuration
+##
+## Parameters used for WebAuthn.
+webauthn:
+  ## Disable Webauthn.
+  disable: false
+
+  ## Adjust the interaction timeout for Webauthn dialogues.
+  timeout: 60s
+
+  ## The display name the browser should show the user for when using Webauthn to login/register.
+  display_name: Authelia
+
+  ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
+  ## Options are none, indirect, direct.
+  attestation_conveyance_preference: indirect
+
+  ## User verification controls if the user must make a gesture or action to confirm they are present.
+  ## Options are required, preferred, discouraged.
+  user_verification: preferred
 
 ##
 ## Duo Push API Configuration
@@ -436,7 +461,7 @@ session:
   inactivity: 5m
 
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
-  ## Value of 0 disables remember me.
+  ## Value of -1 disables remember me.
   remember_me_duration: 1M
 
   ##
@@ -576,7 +601,7 @@ storage:
 ##
 ## Notification Provider
 ##
-## Notifications are sent to users when they require a password reset, a U2F registration or a TOTP registration.
+## Notifications are sent to users when they require a password reset, a Webauthn registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use only one of these providers.
 notifier:
   ## You can disable the notifier startup check by setting this to true.
@@ -683,6 +708,10 @@ notifier:
     ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
     ## security reasons.
     # minimum_parameter_entropy: 8
+
+    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'
+    ## for security reasons.
+    # enforce_pkce: public_clients_only
 
     ## Clients is a list of known clients and their configuration.
     # clients:

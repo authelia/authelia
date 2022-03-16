@@ -27,22 +27,16 @@ func ValidateSession(config *schema.SessionConfiguration, validator *schema.Stru
 }
 
 func validateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if config.Expiration == "" {
+	if config.Expiration <= 0 {
 		config.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
-	} else if _, err := utils.ParseDurationString(config.Expiration); err != nil {
-		validator.Push(fmt.Errorf(errFmtSessionCouldNotParseDuration, "expiriation", err))
 	}
 
-	if config.Inactivity == "" {
+	if config.Inactivity <= 0 {
 		config.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
-	} else if _, err := utils.ParseDurationString(config.Inactivity); err != nil {
-		validator.Push(fmt.Errorf(errFmtSessionCouldNotParseDuration, "inactivity", err))
 	}
 
-	if config.RememberMeDuration == "" {
+	if config.RememberMeDuration <= 0 && config.RememberMeDuration != schema.RememberMeDisabled {
 		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
-	} else if _, err := utils.ParseDurationString(config.RememberMeDuration); err != nil {
-		validator.Push(fmt.Errorf(errFmtSessionCouldNotParseDuration, "remember_me_duration", err))
 	}
 
 	if config.Domain == "" {

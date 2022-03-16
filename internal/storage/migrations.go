@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 //go:embed migrations/*
@@ -46,7 +46,7 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 	return version, nil
 }
 
-func loadMigration(providerName string, version int, up bool) (migration *models.SchemaMigration, err error) {
+func loadMigration(providerName string, version int, up bool) (migration *model.SchemaMigration, err error) {
 	entries, err := migrationsFS.ReadDir("migrations")
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func loadMigration(providerName string, version int, up bool) (migration *models
 // loadMigrations scans the migrations fs and loads the appropriate migrations for a given providerName, prior and
 // target versions. If the target version is -1 this indicates the latest version. If the target version is 0
 // this indicates the database zero state.
-func loadMigrations(providerName string, prior, target int) (migrations []models.SchemaMigration, err error) {
+func loadMigrations(providerName string, prior, target int) (migrations []model.SchemaMigration, err error) {
 	if prior == target && (prior != -1 || target != -1) {
 		return nil, ErrMigrateCurrentVersionSameAsTarget
 	}
@@ -127,7 +127,7 @@ func loadMigrations(providerName string, prior, target int) (migrations []models
 	return migrations, nil
 }
 
-func skipMigration(providerName string, up bool, target, prior int, migration *models.SchemaMigration) (skip bool) {
+func skipMigration(providerName string, up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
 	if migration.Provider != providerAll && migration.Provider != providerName {
 		// Skip if migration.Provider is not a match.
 		return true
@@ -165,21 +165,21 @@ func skipMigration(providerName string, up bool, target, prior int, migration *m
 	return false
 }
 
-func scanMigration(m string) (migration models.SchemaMigration, err error) {
+func scanMigration(m string) (migration model.SchemaMigration, err error) {
 	result := reMigration.FindStringSubmatch(m)
 
 	if result == nil || len(result) != 5 {
-		return models.SchemaMigration{}, errors.New("invalid migration: could not parse the format")
+		return model.SchemaMigration{}, errors.New("invalid migration: could not parse the format")
 	}
 
-	migration = models.SchemaMigration{
+	migration = model.SchemaMigration{
 		Name:     strings.ReplaceAll(result[2], "_", " "),
 		Provider: result[3],
 	}
 
 	data, err := migrationsFS.ReadFile(fmt.Sprintf("migrations/%s", m))
 	if err != nil {
-		return models.SchemaMigration{}, err
+		return model.SchemaMigration{}, err
 	}
 
 	migration.Query = string(data)
@@ -190,7 +190,7 @@ func scanMigration(m string) (migration models.SchemaMigration, err error) {
 	case "down":
 		migration.Up = false
 	default:
-		return models.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 4 '%s' must be up or down", result[4])
+		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 4 '%s' must be up or down", result[4])
 	}
 
 	migration.Version, _ = strconv.Atoi(result[1])
@@ -199,7 +199,7 @@ func scanMigration(m string) (migration models.SchemaMigration, err error) {
 	case providerAll, providerSQLite, providerMySQL, providerPostgres:
 		break
 	default:
-		return models.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
+		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in position 3 '%s' must be all, sqlite, postgres, or mysql", result[3])
 	}
 
 	return migration, nil

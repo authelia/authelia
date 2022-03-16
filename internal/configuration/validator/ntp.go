@@ -4,17 +4,10 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateNTP validates and update NTP configuration.
 func ValidateNTP(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.NTP == nil {
-		config.NTP = &schema.DefaultNTPConfiguration
-
-		return
-	}
-
 	if config.NTP.Address == "" {
 		config.NTP.Address = schema.DefaultNTPConfiguration.Address
 	}
@@ -25,12 +18,7 @@ func ValidateNTP(config *schema.Configuration, validator *schema.StructValidator
 		validator.Push(fmt.Errorf(errFmtNTPVersion, config.NTP.Version))
 	}
 
-	if config.NTP.MaximumDesync == "" {
+	if config.NTP.MaximumDesync <= 0 {
 		config.NTP.MaximumDesync = schema.DefaultNTPConfiguration.MaximumDesync
-	}
-
-	_, err := utils.ParseDurationString(config.NTP.MaximumDesync)
-	if err != nil {
-		validator.Push(fmt.Errorf(errFmtNTPMaxDesync, err))
 	}
 }

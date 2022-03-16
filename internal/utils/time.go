@@ -6,46 +6,64 @@ import (
 	"time"
 )
 
-// ParseDurationString parses a string to a duration
-// Duration notations are an integer followed by a unit
-// Units are s = second, m = minute, d = day, w = week, M = month, y = year
-// Example 1y is the same as 1 year.
-func ParseDurationString(input string) (time.Duration, error) {
-	var duration time.Duration
-
-	matches := reDuration.FindStringSubmatch(input)
-
-	switch {
-	case len(matches) == 3 && matches[2] != "":
-		d, _ := strconv.Atoi(matches[1])
-
-		switch matches[2] {
-		case "y":
-			duration = time.Duration(d) * Year
-		case "M":
-			duration = time.Duration(d) * Month
-		case "w":
-			duration = time.Duration(d) * Week
-		case "d":
-			duration = time.Duration(d) * Day
-		case "h":
-			duration = time.Duration(d) * Hour
-		case "m":
-			duration = time.Duration(d) * time.Minute
-		case "s":
-			duration = time.Duration(d) * time.Second
-		}
-	case input == "0" || len(matches) == 3:
-		seconds, err := strconv.Atoi(input)
-		if err != nil {
-			return 0, fmt.Errorf("could not parse '%s' as a duration: %w", input, err)
-		}
-
-		duration = time.Duration(seconds) * time.Second
-	case input != "":
-		// Throw this error if input is anything other than a blank string, blank string will default to a duration of nothing.
-		return 0, fmt.Errorf("could not parse '%s' as a duration", input)
+// StandardizeDurationString converts units of time that stdlib is unaware of to hours.
+func StandardizeDurationString(input string) (output string, err error) {
+	if input == "" {
+		return "0s", nil
 	}
 
-	return duration, nil
+	matches := reDurationStandard.FindAllStringSubmatch(input, -1)
+
+	if len(matches) == 0 {
+		return "", fmt.Errorf("could not parse '%s' as a duration", input)
+	}
+
+	var d int
+
+	for _, match := range matches {
+		if d, err = strconv.Atoi(match[1]); err != nil {
+			return "", fmt.Errorf("could not parse the numeric portion of '%s' in duration string '%s': %w", match[0], input, err)
+		}
+
+		unit := match[2]
+
+		switch {
+		case IsStringInSlice(unit, standardDurationUnits):
+			output += fmt.Sprintf("%d%s", d, unit)
+		case unit == DurationUnitDays:
+			output += fmt.Sprintf("%dh", d*HoursInDay)
+		case unit == DurationUnitWeeks:
+			output += fmt.Sprintf("%dh", d*HoursInWeek)
+		case unit == DurationUnitMonths:
+			output += fmt.Sprintf("%dh", d*HoursInMonth)
+		case unit == DurationUnitYears:
+			output += fmt.Sprintf("%dh", d*HoursInYear)
+		default:
+			return "", fmt.Errorf("could not parse the units portion of '%s' in duration string '%s': the unit '%s' is not valid", match[0], input, unit)
+		}
+	}
+
+	return output, nil
+}
+
+// ParseDurationString standardizes a duration string with StandardizeDurationString then uses time.ParseDuration to
+// convert it into a time.Duration.
+func ParseDurationString(input string) (duration time.Duration, err error) {
+	if reDurationSeconds.MatchString(input) {
+		var seconds int
+
+		if seconds, err = strconv.Atoi(input); err != nil {
+			return 0, nil
+		}
+
+		return time.Second * time.Duration(seconds), nil
+	}
+
+	var out string
+
+	if out, err = StandardizeDurationString(input); err != nil {
+		return 0, err
+	}
+
+	return time.ParseDuration(out)
 }
