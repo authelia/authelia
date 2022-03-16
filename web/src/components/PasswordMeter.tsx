@@ -44,7 +44,7 @@ const PasswordMeter = function (props: Props) {
             setMaxScores(4);
             if (password.length < props.minLength) {
                 setPasswordScore(0);
-                setFeedback(translate("Two short, minimun length is {{len}} letters", { len: props.minLength }));
+                setFeedback(translate("Must be at least {{len}} characters in length", { len: props.minLength }));
                 return;
             }
             if (password.length > props.maxLength) {
