@@ -83,7 +83,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasNumber) {
                     hits++;
                 } else {
-                    warning += "* " + translate("Add some Numbers") + "\n";
+                    warning += "* " + translate("Must have at least one number") + "\n";
                 }
             }
 
