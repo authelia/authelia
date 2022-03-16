@@ -25,6 +25,22 @@ func PolicyToLevel(policy string) Level {
 	return Denied
 }
 
+// LevelToPolicy converts a int authorization level to string policy.
+func LevelToPolicy(level Level) (policy string) {
+	switch level {
+	case Bypass:
+		return bypass
+	case OneFactor:
+		return oneFactor
+	case TwoFactor:
+		return twoFactor
+	case Denied:
+		return deny
+	}
+
+	return deny
+}
+
 func schemaSubjectToACLSubject(subjectRule string) (subject AccessControlSubject) {
 	if strings.HasPrefix(subjectRule, userPrefix) {
 		user := strings.Trim(subjectRule[len(userPrefix):], " ")

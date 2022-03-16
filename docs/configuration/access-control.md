@@ -23,12 +23,13 @@ access_control:
 
   rules:
   - domain: public.example.com
-    policy: bypass
+    policy: one_factor
     networks:
     - internal
     - 1.1.1.1
     subject:
-    - ["user:adam", "user:fred"]
+    - ["user:adam"]
+    - ["user:fred"]
     - ["group:admins"]
     methods:
     - GET

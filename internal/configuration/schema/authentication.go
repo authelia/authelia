@@ -38,7 +38,7 @@ type PasswordConfiguration struct {
 	Iterations  int    `koanf:"iterations"`
 	KeyLength   int    `koanf:"key_length"`
 	SaltLength  int    `koanf:"salt_length"`
-	Algorithm   string `mapstrucutre:"algorithm"`
+	Algorithm   string `koaanf:"algorithm"`
 	Memory      int    `koanf:"memory"`
 	Parallelism int    `koanf:"parallelism"`
 }

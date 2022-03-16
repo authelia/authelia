@@ -57,10 +57,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}
 
-	var ntpProvider *ntp.Provider
-	if config.NTP != nil {
-		ntpProvider = ntp.NewProvider(config.NTP)
-	}
+	ntpProvider := ntp.NewProvider(&config.NTP)
 
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config)

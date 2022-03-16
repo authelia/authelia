@@ -5,12 +5,12 @@ import {
 } from "@services/Api";
 import { Get, PostWithOptionalResponse } from "@services/Client";
 
-interface CompleteU2FSigninBody {
+interface CompletePushSigninBody {
     targetURL?: string;
 }
 
 export function completePushNotificationSignIn(targetURL: string | undefined) {
-    const body: CompleteU2FSigninBody = {};
+    const body: CompletePushSigninBody = {};
     if (targetURL) {
         body.targetURL = targetURL;
     }

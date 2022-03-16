@@ -33,7 +33,7 @@ const (
 
 const (
 	// Hour is an int based representation of the time unit.
-	Hour = time.Minute * 60 //nolint: revive
+	Hour = time.Minute * 60 //nolint:revive
 
 	// Day is an int based representation of the time unit.
 	Day = Hour * 24
@@ -53,7 +53,25 @@ const (
 )
 
 var (
-	reDuration = regexp.MustCompile(`^(?P<Duration>[1-9]\d*?)(?P<Unit>[smhdwMy])?$`)
+	standardDurationUnits = []string{"ns", "us", "µs", "μs", "ms", "s", "m", "h"}
+	reDurationSeconds     = regexp.MustCompile(`^\d+$`)
+	reDurationStandard    = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
+)
+
+// Duration unit types.
+const (
+	DurationUnitDays   = "d"
+	DurationUnitWeeks  = "w"
+	DurationUnitMonths = "M"
+	DurationUnitYears  = "y"
+)
+
+// Number of hours in particular measurements of time.
+const (
+	HoursInDay   = 24
+	HoursInWeek  = HoursInDay * 7
+	HoursInMonth = HoursInDay * 30
+	HoursInYear  = HoursInDay * 365
 )
 
 var (
@@ -73,4 +91,4 @@ var htmlEscaper = strings.NewReplacer(
 var ErrTimeoutReached = errors.New("timeout reached")
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
-var ErrTLSVersionNotSupported = errors.New("supplied TLS version isn't supported")
+var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")

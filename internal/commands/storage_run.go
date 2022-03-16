@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
+	"image/png"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -12,14 +15,16 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
-	configs, err := cmd.Flags().GetStringSlice("config")
-	if err != nil {
+	var configs []string
+
+	if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
 		return err
 	}
 
@@ -33,10 +38,8 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 
 			sources = append(sources, configuration.NewYAMLFileSource(configFile))
 		}
-	} else {
-		if _, err := os.Stat(configs[0]); err == nil {
-			sources = append(sources, configuration.NewYAMLFileSource(configs[0]))
-		}
+	} else if _, err := os.Stat(configs[0]); err == nil {
+		sources = append(sources, configuration.NewYAMLFileSource(configs[0]))
 	}
 
 	mapping := map[string]string{
@@ -74,8 +77,7 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	config = &schema.Configuration{}
 
-	_, err = configuration.LoadAdvanced(val, "", &config, sources...)
-	if err != nil {
+	if _, err = configuration.LoadAdvanced(val, "", &config, sources...); err != nil {
 		return err
 	}
 
@@ -119,7 +121,9 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
-		ctx      = context.Background()
+		verbose  bool
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -128,8 +132,7 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 		_ = provider.Close()
 	}()
 
-	verbose, err := cmd.Flags().GetBool("verbose")
-	if err != nil {
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return err
 	}
 
@@ -152,7 +155,10 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
-		ctx      = context.Background()
+		key      string
+		version  int
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -165,8 +171,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return err
 	}
 
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
+	if version, err = provider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
@@ -174,17 +179,15 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return errors.New("schema version must be at least version 1 to change the encryption key")
 	}
 
-	key, err := cmd.Flags().GetString("new-encryption-key")
-	if err != nil {
+	key, err = cmd.Flags().GetString("new-encryption-key")
+
+	switch {
+	case err != nil:
 		return err
-	}
-
-	if key == "" {
+	case key == "":
 		return errors.New("you must set the --new-encryption-key flag")
-	}
-
-	if len(key) < 20 {
-		return errors.New("the encryption key must be at least 20 characters")
+	case len(key) < 20:
+		return errors.New("the new encryption key must be at least 20 characters")
 	}
 
 	if err = provider.SchemaEncryptionChangeKey(ctx, key); err != nil {
@@ -200,8 +203,11 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
 		ctx      = context.Background()
-		c        *models.TOTPConfiguration
+		c        *model.TOTPConfiguration
 		force    bool
+		filename string
+		file     *os.File
+		img      image.Image
 	)
 
 	provider = getStorageProvider()
@@ -210,10 +216,15 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	force, err = cmd.Flags().GetBool("force")
+	if force, err = cmd.Flags().GetBool("force"); err != nil {
+		return err
+	}
 
-	_, err = provider.LoadTOTPConfiguration(ctx, args[0])
-	if err == nil && !force {
+	if filename, err = cmd.Flags().GetString("path"); err != nil {
+		return err
+	}
+
+	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
 	}
 
@@ -227,12 +238,35 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	err = provider.SaveTOTPConfiguration(ctx, *c)
-	if err != nil {
+	extraInfo := ""
+
+	if filename != "" {
+		if _, err = os.Stat(filename); !os.IsNotExist(err) {
+			return errors.New("image output filepath already exists")
+		}
+
+		if file, err = os.Create(filename); err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		if img, err = c.Image(256, 256); err != nil {
+			return err
+		}
+
+		if err = png.Encode(file, img); err != nil {
+			return err
+		}
+
+		extraInfo = fmt.Sprintf(" and saved it as a PNG image at the path '%s'", filename)
+	}
+
+	if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
 		return err
 	}
 
-	fmt.Printf("Generated TOTP configuration for user '%s': %s", args[0], c.URI())
+	fmt.Printf("Generated TOTP configuration for user '%s' with URI '%s'%s\n", args[0], c.URI(), extraInfo)
 
 	return nil
 }
@@ -251,13 +285,11 @@ func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	_, err = provider.LoadTOTPConfiguration(ctx, user)
-	if err != nil {
+	if _, err = provider.LoadTOTPConfiguration(ctx, user); err != nil {
 		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
 	}
 
-	err = provider.DeleteTOTPConfiguration(ctx, user)
-	if err != nil {
+	if err = provider.DeleteTOTPConfiguration(ctx, user); err != nil {
 		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
 	}
 
@@ -268,8 +300,12 @@ func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 
 func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider storage.Provider
-		ctx      = context.Background()
+		provider       storage.Provider
+		format, dir    string
+		configurations []model.TOTPConfiguration
+		img            image.Image
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -282,25 +318,14 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	format, err := cmd.Flags().GetString("format")
-	if err != nil {
+	if format, dir, err = storageTOTPExportGetConfigFromFlags(cmd); err != nil {
 		return err
-	}
-
-	switch format {
-	case storageExportFormatCSV, storageExportFormatURI:
-		break
-	default:
-		return errors.New("format must be csv or uri")
 	}
 
 	limit := 10
 
-	var configurations []models.TOTPConfiguration
-
 	for page := 0; true; page++ {
-		configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page)
-		if err != nil {
+		if configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page); err != nil {
 			return err
 		}
 
@@ -314,6 +339,17 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 				fmt.Printf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
 			case storageExportFormatURI:
 				fmt.Println(c.URI())
+			case storageExportFormatPNG:
+				file, _ := os.Create(filepath.Join(dir, fmt.Sprintf("%s.png", c.Username)))
+				defer file.Close()
+
+				if img, err = c.Image(256, 256); err != nil {
+					return err
+				}
+
+				if err = png.Encode(file, img); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -322,13 +358,51 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
+	if format == storageExportFormatPNG {
+		fmt.Printf("Exported TOTP QR codes in PNG format in the '%s' directory\n", dir)
+	}
+
 	return nil
+}
+
+func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string, err error) {
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return "", "", err
+	}
+
+	if dir, err = cmd.Flags().GetString("dir"); err != nil {
+		return "", "", err
+	}
+
+	switch format {
+	case storageExportFormatCSV, storageExportFormatURI:
+		break
+	case storageExportFormatPNG:
+		if dir == "" {
+			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
+		}
+
+		if _, err = os.Stat(dir); !os.IsNotExist(err) {
+			return "", "", errors.New("output directory must not exist")
+		}
+
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return "", "", err
+		}
+	default:
+		return "", "", errors.New("format must be csv, uri, or png")
+	}
+
+	return format, dir, nil
 }
 
 func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
-		provider storage.Provider
-		ctx      = context.Background()
+		provider   storage.Provider
+		version    int
+		migrations []model.Migration
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -340,8 +414,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
+	if version, err = provider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
@@ -350,8 +423,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		return
 	}
 
-	migrations, err := provider.SchemaMigrationHistory(ctx)
-	if err != nil {
+	if migrations, err = provider.SchemaMigrationHistory(ctx); err != nil {
 		return err
 	}
 
@@ -373,7 +445,7 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 		var (
 			provider     storage.Provider
 			ctx          = context.Background()
-			migrations   []models.SchemaMigration
+			migrations   []model.SchemaMigration
 			directionStr string
 		)
 
@@ -413,7 +485,10 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			provider storage.Provider
-			ctx      = context.Background()
+			target   int
+			pre1     bool
+
+			ctx = context.Background()
 		)
 
 		provider = getStorageProvider()
@@ -422,8 +497,7 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 			_ = provider.Close()
 		}()
 
-		target, err := cmd.Flags().GetInt("target")
-		if err != nil {
+		if target, err = cmd.Flags().GetInt("target"); err != nil {
 			return err
 		}
 
@@ -436,8 +510,7 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 				return provider.SchemaMigrate(ctx, true, storage.SchemaLatest)
 			}
 		default:
-			pre1, err := cmd.Flags().GetBool("pre1")
-			if err != nil {
+			if pre1, err = cmd.Flags().GetBool("pre1"); err != nil {
 				return err
 			}
 
@@ -460,8 +533,9 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 }
 
 func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
-	destroy, err := cmd.Flags().GetBool("destroy-data")
-	if err != nil {
+	var destroy bool
+
+	if destroy, err = cmd.Flags().GetBool("destroy-data"); err != nil {
 		return err
 	}
 
@@ -482,10 +556,13 @@ func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
 
 func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
-		provider   storage.Provider
-		ctx        = context.Background()
-		upgradeStr string
-		tablesStr  string
+		upgradeStr, tablesStr string
+
+		provider        storage.Provider
+		tables          []string
+		version, latest int
+
+		ctx = context.Background()
 	)
 
 	provider = getStorageProvider()
@@ -494,13 +571,11 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil && err.Error() != "unknown schema state" {
+	if version, err = provider.SchemaVersion(ctx); err != nil && err.Error() != "unknown schema state" {
 		return err
 	}
 
-	tables, err := provider.SchemaTables(ctx)
-	if err != nil {
+	if tables, err = provider.SchemaTables(ctx); err != nil {
 		return err
 	}
 
@@ -510,8 +585,7 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		tablesStr = strings.Join(tables, ", ")
 	}
 
-	latest, err := provider.SchemaLatestVersion()
-	if err != nil {
+	if latest, err = provider.SchemaLatestVersion(); err != nil {
 		return err
 	}
 
@@ -539,13 +613,13 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 }
 
 func checkStorageSchemaUpToDate(ctx context.Context, provider storage.Provider) (err error) {
-	version, err := provider.SchemaVersion(ctx)
-	if err != nil {
+	var version, latest int
+
+	if version, err = provider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
-	latest, err := provider.SchemaLatestVersion()
-	if err != nil {
+	if latest, err = provider.SchemaLatestVersion(); err != nil {
 		return err
 	}
 

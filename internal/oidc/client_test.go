@@ -73,8 +73,8 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	consentRequestBody := c.GetConsentResponseBody(nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
 	assert.Equal(t, "", consentRequestBody.ClientDescription)
-	assert.Equal(t, []Scope(nil), consentRequestBody.Scopes)
-	assert.Equal(t, []Audience(nil), consentRequestBody.Audience)
+	assert.Equal(t, []string(nil), consentRequestBody.Scopes)
+	assert.Equal(t, []string(nil), consentRequestBody.Audience)
 
 	c.ID = "myclient"
 	c.Description = "My Client"
@@ -83,13 +83,9 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 		RequestedAudience: []string{"https://example.com"},
 		RequestedScopes:   []string{"openid", "groups"},
 	}
-	expectedScopes := []Scope{
-		{"openid", "Use OpenID to verify your identity"},
-		{"groups", "Access your group membership"},
-	}
-	expectedAudiences := []Audience{
-		{"https://example.com", "https://example.com"},
-	}
+
+	expectedScopes := []string{"openid", "groups"}
+	expectedAudiences := []string{"https://example.com"}
 
 	consentRequestBody = c.GetConsentResponseBody(workflow)
 	assert.Equal(t, "myclient", consentRequestBody.ClientID)
