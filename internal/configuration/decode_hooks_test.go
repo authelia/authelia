@@ -9,7 +9,88 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStringToURLHookFunc(t *testing.T) {
+func TestStringToURLHookFunc_ShouldNotParseStrings(t *testing.T) {
+	hook := StringToURLHookFunc()
+
+	var (
+		from = "https://google.com/abc?a=123"
+
+		result interface{}
+		err    error
+
+		resultTo    string
+		resultPtrTo *time.Time
+		ok          bool
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
+	assert.NoError(t, err)
+
+	resultTo, ok = result.(string)
+	assert.True(t, ok)
+	assert.Equal(t, from, resultTo)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
+	assert.NoError(t, err)
+
+	resultTo, ok = result.(string)
+	assert.True(t, ok)
+	assert.Equal(t, from, resultTo)
+}
+
+func TestStringToURLHookFunc_ShouldParseEmptyString(t *testing.T) {
+	hook := StringToURLHookFunc()
+
+	var (
+		from = ""
+
+		result interface{}
+		err    error
+
+		resultTo    url.URL
+		resultPtrTo *url.URL
+
+		ok bool
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
+	assert.NoError(t, err)
+
+	resultTo, ok = result.(url.URL)
+	assert.True(t, ok)
+	assert.Equal(t, "", resultTo.String())
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
+	assert.NoError(t, err)
+
+	resultPtrTo, ok = result.(*url.URL)
+	assert.True(t, ok)
+	assert.Nil(t, resultPtrTo)
+}
+
+func TestStringToURLHookFunc_ShouldNotParseBadURLs(t *testing.T) {
+	hook := StringToURLHookFunc()
+
+	var (
+		from = "*(!&@#(!*^$%"
+
+		result interface{}
+		err    error
+
+		resultTo    url.URL
+		resultPtrTo *url.URL
+	)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
+	assert.EqualError(t, err, "could not parse '*(!&@#(!*^$%' as a URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"")
+	assert.Nil(t, result)
+
+	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
+	assert.EqualError(t, err, "could not parse '*(!&@#(!*^$%' as a URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"")
+	assert.Nil(t, result)
+}
+
+func TestStringToURLHookFunc_ShouldParseURLs(t *testing.T) {
 	hook := StringToURLHookFunc()
 
 	var (

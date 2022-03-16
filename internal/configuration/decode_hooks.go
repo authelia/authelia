@@ -50,7 +50,9 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 
 		typeURL := reflect.TypeOf(url.URL{})
 
-		if t != typeURL && ptr && t.Elem() != typeURL {
+		if ptr && t.Elem() != typeURL {
+			return data, nil
+		} else if !ptr && t != typeURL {
 			return data, nil
 		}
 
