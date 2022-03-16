@@ -73,7 +73,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasUppercase) {
                     hits++;
                 } else {
-                    warning += "* " + translate("Add some UPPERCASE letter") + "\n";
+                    warning += "* " + translate("Must have at least one UPPERCASE letter") + "\n";
                 }
             }
 
