@@ -14,6 +14,7 @@ _Authelia_ allows administrators to configure an enforced password policy.
 password_policy:
   mode: classic
   min_length: 8
+  max_length: 12
   require_uppercase: true
   require_lowercase: true
   require_number: true
@@ -52,6 +53,18 @@ required: no
 </div>
 
 Determines the minimun password length for `mode=classic`
+
+### max_length
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple } 
+default: 0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Determines the maximum password length for `mode=classic`
 
 ### require_uppercase
 <div markdown="1">

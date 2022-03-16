@@ -56,11 +56,12 @@
         "Accept": "Aceptar",
         "Deny": "Denegar",
         "The above application is requesting the following permissions": "La aplicación solicita los siguientes permisos",
-        "Add some lowercase letter": "Agregue alguna letra minúscula",
-        "Add some UPPERCASE letter": "Agregue alguna letra MAYUSCULA",
-        "Add some Numbers": "Agregue algún número",
-        "Add some Special character": "Agregue algún caracter especial (!,#,:,?,¿. etc)",
-        "Two short, minimun length is {{len}} letters": "Contraseña demasiado corta, el tamaño mínimo debe ser {{len}} caracteres",
-        "Two long, maximum length is {{len}} letters": "Contraseña demasiado larga, el tamaño máximo debe ser {{len}} caracteres"
+        "The password does not meet the password policy": "La contraseña no cumple con la política de contraseñas",
+        "Must have at least one lowercase letter": "Debe contener al menos una letra minúscula",
+        "Must have at least one UPPERCASE letter": "Debe contener al menos una letra MAYUSCULA",
+        "Must have at least one number": "Debe contener al menos un número",
+        "Must have at least one special character": "Debe contener al menos un caracter especial",
+        "Must be at least {{len}} characters in length": "La longitud mínima es de {{len}} caracteres",
+        "Must not be more than {{len}} characters in length": "La longitud máxima es de {{len}} caracteres"
     }
 }
