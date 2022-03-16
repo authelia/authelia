@@ -442,7 +442,7 @@ This scope includes the groups the authentication backend reports the user is a 
 
 | Claim  |   JWT Type    | Authelia Attribute |      Description       |
 |:------:|:-------------:|:------------------:|:----------------------:|
-| groups | array[string] |       groups       | The users display name |
+| groups | array[string] |       groups       | List of user's groups discovered via [authentication](https://www.authelia.com/docs/configuration/authentication/) |
 
 ### email
 
