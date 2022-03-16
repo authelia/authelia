@@ -98,7 +98,7 @@ const PasswordMeter = function (props: Props) {
             }
             score += hits > 0 ? 1 : 0;
             score += required === hits ? 1 : 0;
-            setFeedback(warning);
+            setFeedback(translate("The password does not meet the password policy") + ":\n" + warning);
             setPasswordScore(score);
         } else if (props.mode === "zxcvbn") {
             //use zxcvbn mode
