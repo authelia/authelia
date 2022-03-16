@@ -94,7 +94,15 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 
 	switch client.UserinfoSigningAlgorithm {
 	case "RS256":
-		claims["jti"] = uuid.New()
+		var jti uuid.UUID
+
+		if jti, err = uuid.NewRandom(); err != nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not generate JWT ID."))
+
+			return
+		}
+
+		claims["jti"] = jti.String()
 		claims["iat"] = time.Now().Unix()
 
 		if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
