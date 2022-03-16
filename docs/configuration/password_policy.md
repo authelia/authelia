@@ -6,7 +6,7 @@ nav_order: 17
 ---
 
 # Password Policy
-authelia permite a los administradores definir las reglas de contraseña.
+_Authelia_ allows administrators to configure an enforced password policy.
 
 ## Configuration
 
