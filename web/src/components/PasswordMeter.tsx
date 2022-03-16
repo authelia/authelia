@@ -63,7 +63,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasLowercase) {
                     hits++;
                 } else {
-                    warning += "* " + translate("Add some lowercase letter") + "\n";
+                    warning += "* " + translate("Must have at least one lowercase letter") + "\n";
                 }
             }
 
