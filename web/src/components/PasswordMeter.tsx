@@ -49,7 +49,7 @@ const PasswordMeter = function (props: Props) {
             }
             if (password.length > props.maxLength) {
                 setPasswordScore(0);
-                setFeedback(translate("Two long, maximum length is {{len}} letters", { len: props.maxLength }));
+                setFeedback(translate("Must not be more than {{len}} characters in length", { len: props.maxLength }));
                 return;
             }
             setFeedback("");
