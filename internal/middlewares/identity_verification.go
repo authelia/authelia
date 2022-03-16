@@ -83,6 +83,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 				"url":         link,
 				"button":      args.MailButtonContent,
 				"displayName": identity.DisplayName,
+				"remoteIP":    ctx.RemoteIP().String(),
 			}
 
 			err = templates.HTMLEmailTemplateStep1.Execute(bufHTML, htmlParams)

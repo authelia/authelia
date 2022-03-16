@@ -69,6 +69,7 @@ In template files, you can use the following variables:
 |`{{.url}}`  | The url that allows to reset the user password |
 |`{{.displayName}}` |The name of the user, i.e. `John Doe` |
 |`{{.button}}` |The content for the password reset button, it's hardcoded to `Reset` |
+|`{{.remoteIP}}` |The remote IP address that initiated the request or event |
 
 #### Example
 

@@ -311,8 +311,20 @@ const emailHTMLContentStep1 = `
                                              <tr>
                                                 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
                                                    st-title="fulltext-content">
+                                                   Hi {{.displayName}}
+                                                </td>
+                                             </tr>
+                                             <tr>
+                                                <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
+                                                   st-title="fulltext-content">
                                                    This email has been sent to you in order to validate your identity.
                                                    If you did not initiate the process your credentials might have been compromised. You should reset your password and contact an administrator.
+                                                </td>
+                                             </tr>
+                                             <tr>
+                                                <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
+                                                   st-title="fulltext-content">
+                                                   Remote IP: {{.remoteIP}}
                                                 </td>
                                              </tr>
                                              <!-- End of Title -->

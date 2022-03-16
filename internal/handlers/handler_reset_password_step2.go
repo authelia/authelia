@@ -56,8 +56,6 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	defer ctx.ReplyOK()
-
 	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
@@ -69,6 +67,8 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 	if len(userInfo.Emails) == 0 {
 		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", username))
+		ctx.ReplyOK()
+
 		return
 	}
 
@@ -83,12 +83,15 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		htmlParams := map[string]interface{}{
 			"title":       "Password changed successfully",
 			"displayName": userInfo.DisplayName,
+			"remoteIP":    ctx.RemoteIP().String(),
 		}
 
 		err = templates.HTMLEmailTemplateStep2.Execute(bufHTML, htmlParams)
 
 		if err != nil {
-			ctx.Error(err, messageOperationFailed)
+			ctx.Logger.Error(err)
+			ctx.ReplyOK()
+
 			return
 		}
 	}
@@ -101,7 +104,9 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err = templates.PlainTextEmailTemplateStep2.Execute(bufText, textParams)
 
 	if err != nil {
-		ctx.Error(err, messageOperationFailed)
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
 		return
 	}
 
@@ -111,7 +116,9 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	err = ctx.Providers.Notifier.Send(userInfo.Emails[0], "Password changed successfully", bufText.String(), bufHTML.String())
 
 	if err != nil {
-		ctx.Error(err, messageOperationFailed)
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
 		return
 	}
 }
