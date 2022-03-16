@@ -160,45 +160,63 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
-		corsMetadata := middlewares.NewCORSMiddleware().
-			WithAllowedMethods("OPTIONS", "GET")
+		corsGET := middlewares.NewCORSMiddleware().
+			WithAllowedMethods("OPTIONS", "GET").
+			WithAllowedOrigins("*")
 
-		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, corsMetadata.HandleOPTIONS)
-		r.GET(oidc.WellKnownOpenIDConfigurationPath, corsMetadata.Middleware(autheliaMiddleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
+		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, corsGET.HandleOPTIONS)
+		r.GET(oidc.WellKnownOpenIDConfigurationPath, corsGET.Middleware(autheliaMiddleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
 
-		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, corsMetadata.HandleOPTIONS)
-		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, corsMetadata.Middleware(autheliaMiddleware(handlers.OAuthAuthorizationServerWellKnownGET)))
+		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, corsGET.HandleOPTIONS)
+		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, corsGET.Middleware(autheliaMiddleware(handlers.OAuthAuthorizationServerWellKnownGET)))
 
-		r.OPTIONS(oidc.JWKsPath, corsMetadata.HandleOPTIONS)
-		r.GET(oidc.JWKsPath, corsMetadata.Middleware(autheliaMiddleware(handlers.JSONWebKeySetGET)))
+		r.OPTIONS(oidc.JWKsPath, corsGET.HandleOPTIONS)
+		r.GET(oidc.JWKsPath, corsGET.Middleware(autheliaMiddleware(handlers.JSONWebKeySetGET)))
 
 		corsUserInfo := middlewares.NewCORSMiddleware().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "GET", "POST")
 
+		// TODO (james-d-elliott): Make enabling CORS for this endpoint opt-in and based on a allowed origins string slice.
 		r.OPTIONS(oidc.UserinfoPath, corsUserInfo.HandleOPTIONS)
 		r.GET(oidc.UserinfoPath, corsUserInfo.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
 		r.POST(oidc.UserinfoPath, corsUserInfo.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
 
-		corsPOSTWithCredentials := middlewares.NewCORSMiddleware().
+		corsPOSTWithCred := middlewares.NewCORSMiddleware().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST")
 
-		r.OPTIONS(oidc.TokenPath, corsPOSTWithCredentials.HandleOPTIONS)
-		r.POST(oidc.TokenPath, corsPOSTWithCredentials.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
+		// TODO (james-d-elliott): Make enabling CORS for this endpoint opt-in and based on a allowed origins string slice.
+		r.OPTIONS(oidc.TokenPath, corsPOSTWithCred.HandleOPTIONS)
+		r.POST(oidc.TokenPath, corsPOSTWithCred.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
 
-		r.OPTIONS(oidc.RevocationPath, corsPOSTWithCredentials.HandleOPTIONS)
-		r.POST(oidc.RevocationPath, corsPOSTWithCredentials.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
-		r.POST("/api/oidc/revoke", corsPOSTWithCredentials.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+		// TODO (james-d-elliott): Make enabling CORS for this endpoint opt-in and based on a allowed origins string slice.
+		r.OPTIONS(oidc.RevocationPath, corsPOSTWithCred.HandleOPTIONS)
+		r.POST(oidc.RevocationPath, corsPOSTWithCred.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+
+		// TODO (james-d-elliott): Make enabling CORS for this endpoint opt-in and based on a allowed origins string slice.
+		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+		r.OPTIONS("/api/oidc/revoke", corsPOSTWithCred.HandleOPTIONS)
+		r.POST("/api/oidc/revoke", corsPOSTWithCred.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
 
 		r.GET("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentGET))
 		r.POST("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentPOST))
 
+		r.OPTIONS("/api/oidc/authorize", corsGET.HandleOnlyOPTIONS)
 		r.GET(oidc.AuthorizationPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+
+		// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
+		r.OPTIONS("/api/oidc/authorize", corsGET.HandleOnlyOPTIONS)
 		r.GET("/api/oidc/authorize", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
 
-		r.POST(oidc.IntrospectionPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))
-		r.POST("/api/oidc/introspect", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))
+		// TODO (james-d-elliott): Make enabling CORS for this endpoint opt-in and based on a allowed origins string slice.
+		r.OPTIONS(oidc.IntrospectionPath, corsPOSTWithCred.HandleOPTIONS)
+		r.POST(oidc.IntrospectionPath, corsPOSTWithCred.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
+
+		// TODO (james-d-elliott): Make enabling CORS for this endpoint opt-in and based on a allowed origins string slice.
+		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+		r.OPTIONS("/api/oidc/introspect", corsPOSTWithCred.HandleOPTIONS)
+		r.POST("/api/oidc/introspect", corsPOSTWithCred.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
 	}
 
 	return handler

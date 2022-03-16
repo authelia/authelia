@@ -11,8 +11,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// CORSMiddleware is a special middleware which provides CORS headers via handlers and middleware methods which can be configured.
+// CORSMiddleware is a special middleware which provides CORS headers via handlers and middleware methods which can be
+// configured. It aims to simplify CORS configurations.
 type CORSMiddleware struct {
+	enabled     bool
 	varyOnly    bool
 	methods     []byte
 	headers     []string
@@ -36,10 +38,23 @@ type CORSMiddleware struct {
 // HandleOPTIONS method.
 func NewCORSMiddleware() (policy *CORSMiddleware) {
 	return &CORSMiddleware{
+		enabled:     true,
 		vary:        headerValueVary,
 		maxAge:      headerValueMaxAge,
 		credentials: headerValueFalse,
 	}
+}
+
+// WithEnabled changes the enabled state of the middleware. If the middleware is initialized with NewCORSMiddleware this
+// value will be true but this function can override the value. Setting it to false prevents the middleware from adding
+// any CORS headers. The only effect this middleware has after disabling this is the HandleOPTIONS and HandleOnlyOPTIONS
+// handlers still function to return a HTTP 204 No Content, with the Allow header communicating the available HTTP
+// method verbs. The main benefit of this option is that you don't have to implement complex logic to add/remove the
+// middleware, you can just add it with the Middleware method, and adjust it using the WithEnabled method.
+func (p *CORSMiddleware) WithEnabled(enabled bool) (policy *CORSMiddleware) {
+	p.enabled = enabled
+
+	return p
 }
 
 // WithAllowedMethods takes a list or HTTP methods and adjusts the Access-Control-Allow-Methods header to respond with
@@ -137,15 +152,14 @@ func (p *CORSMiddleware) WithMaxAge(age int) (policy *CORSMiddleware) {
 // HandleOPTIONS is an OPTIONS handler that just adds CORS headers, the Allow header, and sets the status code to 204
 // without a body. This handler should generally not be used without using WithAllowedMethods.
 func (p CORSMiddleware) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
-	ctx.Response.ResetBody()
-
-	ctx.SetStatusCode(fasthttp.StatusNoContent)
-
-	if len(p.methods) != 0 {
-		ctx.Response.Header.SetBytesKV(headerAllow, p.methods)
-	}
-
+	p.handleOPTIONS(ctx)
 	p.handle(ctx)
+}
+
+// HandleOnlyOPTIONS is an OPTIONS handler that just handles the Allow header, and sets the status code to 204
+// without a body. This handler should generally not be used without using WithAllowedMethods.
+func (p CORSMiddleware) HandleOnlyOPTIONS(ctx *fasthttp.RequestCtx) {
+	p.handleOPTIONS(ctx)
 }
 
 // Middleware provides a middleware that adds the appropriate CORS headers for this CORSMiddleware.
@@ -158,10 +172,24 @@ func (p CORSMiddleware) Middleware(next fasthttp.RequestHandler) (handler fastht
 }
 
 func (p CORSMiddleware) handle(ctx *fasthttp.RequestCtx) {
+	if !p.enabled {
+		return
+	}
+
 	p.handleVary(ctx)
 
 	if !p.varyOnly {
 		p.handleCORS(ctx)
+	}
+}
+
+func (p CORSMiddleware) handleOPTIONS(ctx *fasthttp.RequestCtx) {
+	ctx.Response.ResetBody()
+
+	ctx.SetStatusCode(fasthttp.StatusNoContent)
+
+	if len(p.methods) != 0 {
+		ctx.Response.Header.SetBytesKV(headerAllow, p.methods)
 	}
 }
 

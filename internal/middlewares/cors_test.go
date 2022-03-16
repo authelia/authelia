@@ -22,6 +22,15 @@ func TestNewCORSMiddleware(t *testing.T) {
 	assert.False(t, cors.varyOnly)
 }
 
+func TestCORSMiddleware_WithEnabled(t *testing.T) {
+	cors := NewCORSMiddleware()
+
+	assert.True(t, cors.enabled)
+
+	cors.WithEnabled(false)
+	assert.False(t, cors.enabled)
+}
+
 func TestCORSMiddleware_WithVary(t *testing.T) {
 	cors := NewCORSMiddleware()
 
@@ -162,6 +171,39 @@ func TestCORSMiddleware_HandleOPTIONS(t *testing.T) {
 	assert.Equal(t, headerValueMaxAge, ctx.Response.Header.PeekBytes(headerAccessControlMaxAge))
 	assert.Equal(t, []byte("X-Example-Header"), ctx.Response.Header.PeekBytes(headerAccessControlAllowHeaders))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAccessControlAllowMethods))
+
+	ctx = newFastHTTPRequestCtx()
+
+	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
+	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
+
+	cors.HandleOnlyOPTIONS(ctx)
+
+	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerVary))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowCredentials))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlMaxAge))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowHeaders))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowMethods))
+
+	ctx = newFastHTTPRequestCtx()
+
+	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
+	ctx.Request.Header.SetBytesKV(headerOrigin, origin)
+
+	cors.WithEnabled(false)
+	cors.HandleOPTIONS(ctx)
+
+	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerVary))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowCredentials))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlMaxAge))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowHeaders))
+	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowMethods))
 }
 
 func TestCORSMiddleware_HandleOPTIONS_WithoutOrigin(t *testing.T) {
