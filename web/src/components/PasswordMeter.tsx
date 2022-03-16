@@ -93,7 +93,7 @@ const PasswordMeter = function (props: Props) {
                 if (hasSpecial) {
                     hits++;
                 } else {
-                    warning += "* " + translate("Add some Special character") + "\n";
+                    warning += "* " + translate("Must have at least one special character") + "\n";
                 }
             }
             score += hits > 0 ? 1 : 0;
