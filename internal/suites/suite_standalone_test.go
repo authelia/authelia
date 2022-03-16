@@ -139,7 +139,7 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	// Login one factor again.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, "")
 
-	// now the user should be asked to perform 2FA
+	// now the user should be asked to perform 2FA.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 
@@ -288,7 +288,7 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 }
 
 func (s *StandaloneSuite) TestAvailableMethodsScenario() {
-	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"TIME-BASED ONE-TIME PASSWORD"}))
+	suite.Run(s.T(), NewAvailableMethodsScenario([]string{"TIME-BASED ONE-TIME PASSWORD", "SECURITY KEY - WEBAUTHN"}))
 }
 
 func (s *StandaloneSuite) TestRedirectionURLScenario() {

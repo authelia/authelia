@@ -1,10 +1,21 @@
 import React, { useEffect, Fragment, ReactNode } from "react";
 
-import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, makeStyles } from "@material-ui/core";
+import {
+    Button,
+    Grid,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Tooltip,
+    Typography,
+    makeStyles,
+} from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useRequestedScopes } from "@hooks/Consent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
@@ -14,7 +25,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {}
 
-function showListItemAvatar(id: string) {
+function scopeNameToAvatar(id: string) {
     switch (id) {
         case "openid":
             return <AccountBox />;
@@ -35,10 +46,11 @@ const ConsentView = function (props: Props) {
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
+    const { t: translate } = useTranslation("Portal");
 
     useEffect(() => {
         if (err) {
-            navigate(FirstFactorRoute);
+            navigate(IndexRoute);
             console.error(`Unable to display consent screen: ${err.message}`);
         }
     }, [navigate, resetNotification, createErrorNotification, err]);
@@ -46,6 +58,21 @@ const ConsentView = function (props: Props) {
     useEffect(() => {
         fetch();
     }, [fetch]);
+
+    const translateScopeNameToDescription = (id: string): string => {
+        switch (id) {
+            case "openid":
+                return translate("Use OpenID to verify your identity");
+            case "profile":
+                return translate("Access your display name");
+            case "groups":
+                return translate("Access your group membership");
+            case "email":
+                return translate("Access your email addresses");
+            default:
+                return id;
+        }
+    };
 
     const handleAcceptConsent = async () => {
         // This case should not happen in theory because the buttons are disabled when response is undefined.
@@ -77,20 +104,31 @@ const ConsentView = function (props: Props) {
             <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
                 <Grid container>
                     <Grid item xs={12}>
-                        <div style={{ textAlign: "left" }}>
-                            The application
-                            <b>{` ${resp?.client_description} (${resp?.client_id}) `}</b>
-                            is requesting the following permissions
+                        <div>
+                            {resp !== undefined && resp.client_description !== "" ? (
+                                <Tooltip title={"Client ID: " + resp.client_id}>
+                                    <Typography className={classes.clientDescription}>
+                                        {resp.client_description}
+                                    </Typography>
+                                </Tooltip>
+                            ) : (
+                                <Tooltip title={"Client ID: " + resp?.client_id}>
+                                    <Typography className={classes.clientDescription}>{resp?.client_id}</Typography>
+                                </Tooltip>
+                            )}
                         </div>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div>{translate("The above application is requesting the following permissions")}:</div>
                     </Grid>
                     <Grid item xs={12}>
                         <div className={classes.scopesListContainer}>
                             <List className={classes.scopesList}>
-                                {resp?.scopes.map((s) => (
-                                    <Tooltip title={"Scope " + s.name}>
-                                        <ListItem id={"scope-" + s.name} dense>
-                                            <ListItemIcon>{showListItemAvatar(s.name)}</ListItemIcon>
-                                            <ListItemText primary={s.description} />
+                                {resp?.scopes.map((scope: string) => (
+                                    <Tooltip title={"Scope " + scope}>
+                                        <ListItem id={"scope-" + scope} dense>
+                                            <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
+                                            <ListItemText primary={translateScopeNameToDescription(scope)} />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
@@ -108,7 +146,7 @@ const ConsentView = function (props: Props) {
                                     color="primary"
                                     variant="contained"
                                 >
-                                    Accept
+                                    {translate("Accept")}
                                 </Button>
                             </Grid>
                             <Grid item xs={6}>
@@ -120,7 +158,7 @@ const ConsentView = function (props: Props) {
                                     color="secondary"
                                     variant="contained"
                                 >
-                                    Deny
+                                    {translate("Deny")}
                                 </Button>
                             </Grid>
                         </Grid>
@@ -137,6 +175,9 @@ const useStyles = makeStyles((theme) => ({
         paddingBottom: theme.spacing(4),
         display: "block",
         justifyContent: "center",
+    },
+    clientDescription: {
+        fontWeight: 600,
     },
     scopesListContainer: {
         textAlign: "center",

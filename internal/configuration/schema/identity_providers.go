@@ -9,7 +9,7 @@ type IdentityProvidersConfiguration struct {
 
 // OpenIDConnectConfiguration configuration for OpenID Connect.
 type OpenIDConnectConfiguration struct {
-	// This secret must be 32 bytes long
+	// This secret must be 32 bytes long.
 	HMACSecret       string `koanf:"hmac_secret"`
 	IssuerPrivateKey string `koanf:"issuer_private_key"`
 
@@ -20,6 +20,9 @@ type OpenIDConnectConfiguration struct {
 
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages"`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy"`
+
+	EnforcePKCE              string `koanf:"enforce_pkce"`
+	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
 }
@@ -49,6 +52,7 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 	AuthorizeCodeLifespan: time.Minute,
 	IDTokenLifespan:       time.Hour,
 	RefreshTokenLifespan:  time.Minute * 90,
+	EnforcePKCE:           "public_clients_only",
 }
 
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.

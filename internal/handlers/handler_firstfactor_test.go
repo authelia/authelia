@@ -12,7 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -33,13 +33,13 @@ func (s *FirstFactorSuite) TearDownTest() {
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPost(nil)(s.mock.Ctx)
 
-	// No body
+	// No body.
 	assert.Equal(s.T(), "Failed to parse 1FA request body: unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
-	// Missing password
+	// Missing password.
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)
@@ -57,13 +57,13 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -85,13 +85,13 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -111,13 +111,13 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 
 	s.mock.StorageMock.
 		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(models.AuthenticationAttempt{
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
 			Username:   "test",
 			Successful: false,
 			Banned:     false,
 			Time:       s.mock.Clock.Now(),
 			Type:       regulation.AuthType1FA,
-			RemoteIP:   models.NewNullIPFromString("0.0.0.0"),
+			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
 	s.mock.Ctx.Request.SetBodyString(`{

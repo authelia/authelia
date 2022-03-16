@@ -12,13 +12,19 @@ type ServerConfiguration struct {
 	EnableExpvars      bool   `koanf:"enable_endpoint_expvars"`
 	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
-	TLS ServerTLSConfiguration `koanf:"tls"`
+	TLS     ServerTLSConfiguration     `koanf:"tls"`
+	Headers ServerHeadersConfiguration `koanf:"headers"`
 }
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
 type ServerTLSConfiguration struct {
 	Certificate string `koanf:"certificate"`
 	Key         string `koanf:"key"`
+}
+
+// ServerHeadersConfiguration represents the customization of the http server headers.
+type ServerHeadersConfiguration struct {
+	CSPTemplate string `koanf:"csp_template"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.

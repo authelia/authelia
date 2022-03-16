@@ -1,5 +1,9 @@
 package schema
 
+import (
+	"time"
+)
+
 // RedisNode Represents a Node.
 type RedisNode struct {
 	Host string `koanf:"host"`
@@ -31,21 +35,22 @@ type RedisSessionConfiguration struct {
 
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
-	Name               string                     `koanf:"name"`
-	Domain             string                     `koanf:"domain"`
-	SameSite           string                     `koanf:"same_site"`
-	Secret             string                     `koanf:"secret"`
-	Expiration         string                     `koanf:"expiration"`
-	Inactivity         string                     `koanf:"inactivity"`
-	RememberMeDuration string                     `koanf:"remember_me_duration"`
-	Redis              *RedisSessionConfiguration `koanf:"redis"`
+	Name               string        `koanf:"name"`
+	Domain             string        `koanf:"domain"`
+	SameSite           string        `koanf:"same_site"`
+	Secret             string        `koanf:"secret"`
+	Expiration         time.Duration `koanf:"expiration"`
+	Inactivity         time.Duration `koanf:"inactivity"`
+	RememberMeDuration time.Duration `koanf:"remember_me_duration"`
+
+	Redis *RedisSessionConfiguration `koanf:"redis"`
 }
 
 // DefaultSessionConfiguration is the default session configuration.
 var DefaultSessionConfiguration = SessionConfiguration{
 	Name:               "authelia_session",
-	Expiration:         "1h",
-	Inactivity:         "5m",
-	RememberMeDuration: "1M",
+	Expiration:         time.Hour,
+	Inactivity:         time.Minute * 5,
+	RememberMeDuration: time.Hour * 24 * 30,
 	SameSite:           "lax",
 }

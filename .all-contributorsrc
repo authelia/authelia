@@ -602,6 +602,35 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "FineWolf",
+      "name": "Andrew Moore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/203591?v=4",
+      "profile": "https://github.com/FineWolf",
+      "contributions": [
+        "code",
+        "doc",
+        "test"
+      ]
+    },
+    {
+      "login": "DennisGaida",
+      "name": "Dennis Gaida",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2392217?v=4",
+      "profile": "http://www.dennisgaida.de",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Alestrix",
+      "name": "Alestrix",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7452860?v=4",
+      "profile": "https://github.com/Alestrix",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

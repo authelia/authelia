@@ -41,7 +41,7 @@ for, and the structure it must have.
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
   │       └─⫸ Commit Scope: api|authentication|authorization|cmd|commands|configuration|duo|
-  │                          handlers|logging|middlewares|mocks|models|notification|oidc|
+  │                          handlers|logging|middlewares|mocks|model|notification|ntp|oidc|
   │                          regulation|server|session|storage|suites|templates|utils|web
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|release|test
@@ -77,8 +77,9 @@ The scope should be the name of the package affected
 * logging
 * middlewares
 * mocks
-* models
+* model
 * notification
+* ntp
 * oidc
 * regulation
 * server

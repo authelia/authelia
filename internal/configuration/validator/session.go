@@ -10,109 +10,104 @@ import (
 )
 
 // ValidateSession validates and update session configuration.
-func ValidateSession(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Name == "" {
-		configuration.Name = schema.DefaultSessionConfiguration.Name
+func ValidateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Name == "" {
+		config.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if configuration.Redis != nil {
-		if configuration.Redis.HighAvailability != nil {
-			if configuration.Redis.HighAvailability.SentinelName != "" {
-				validateRedisSentinel(configuration, validator)
-			} else {
-				validator.Push(fmt.Errorf("Session provider redis is configured for high availability but doesn't have a sentinel_name which is required"))
-			}
+	if config.Redis != nil {
+		if config.Redis.HighAvailability != nil {
+			validateRedisSentinel(config, validator)
 		} else {
-			validateRedis(configuration, validator)
+			validateRedis(config, validator)
 		}
 	}
 
-	validateSession(configuration, validator)
+	validateSession(config, validator)
 }
 
-func validateSession(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Expiration == "" {
-		configuration.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour
-	} else if _, err := utils.ParseDurationString(configuration.Expiration); err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing session expiration string: %s", err))
+func validateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Expiration <= 0 {
+		config.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
 	}
 
-	if configuration.Inactivity == "" {
-		configuration.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min
-	} else if _, err := utils.ParseDurationString(configuration.Inactivity); err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing session inactivity string: %s", err))
+	if config.Inactivity <= 0 {
+		config.Inactivity = schema.DefaultSessionConfiguration.Inactivity // 5 min.
 	}
 
-	if configuration.RememberMeDuration == "" {
-		configuration.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month
-	} else if _, err := utils.ParseDurationString(configuration.RememberMeDuration); err != nil {
-		validator.Push(fmt.Errorf("Error occurred parsing session remember_me_duration string: %s", err))
+	if config.RememberMeDuration <= 0 && config.RememberMeDuration != schema.RememberMeDisabled {
+		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
 	}
 
-	if configuration.Domain == "" {
-		validator.Push(errors.New("Set domain of the session object"))
+	if config.Domain == "" {
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 
-	if strings.Contains(configuration.Domain, "*") {
-		validator.Push(errors.New("The domain of the session must be the root domain you're protecting instead of a wildcard domain"))
+	if strings.HasPrefix(config.Domain, "*.") {
+		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, config.Domain))
 	}
 
-	if configuration.SameSite == "" {
-		configuration.SameSite = schema.DefaultSessionConfiguration.SameSite
-	} else if configuration.SameSite != "none" && configuration.SameSite != "lax" && configuration.SameSite != "strict" {
-		validator.Push(errors.New("session same_site is configured incorrectly, must be one of 'none', 'lax', or 'strict'"))
+	if config.SameSite == "" {
+		config.SameSite = schema.DefaultSessionConfiguration.SameSite
+	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
+		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
 	}
 }
 
-func validateRedis(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Redis.Host == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired, "redis"))
+func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Secret == "" {
+		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "redis"))
+	}
+}
+
+func validateRedis(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Redis.Host == "" {
+		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired))
 	}
 
-	if configuration.Secret == "" {
-		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, "redis"))
-	}
+	validateRedisCommon(config, validator)
 
-	if !strings.HasPrefix(configuration.Redis.Host, "/") && configuration.Redis.Port == 0 {
+	if !strings.HasPrefix(config.Redis.Host, "/") && config.Redis.Port == 0 {
 		validator.Push(errors.New("A redis port different than 0 must be provided"))
-	} else if configuration.Redis.Port < 0 || configuration.Redis.Port > 65535 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis"))
+	} else if config.Redis.Port < 0 || config.Redis.Port > 65535 {
+		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 
-	if configuration.Redis.MaximumActiveConnections <= 0 {
-		configuration.Redis.MaximumActiveConnections = 8
+	if config.Redis.MaximumActiveConnections <= 0 {
+		config.Redis.MaximumActiveConnections = 8
 	}
 }
 
-func validateRedisSentinel(configuration *schema.SessionConfiguration, validator *schema.StructValidator) {
-	if configuration.Redis.Port == 0 {
-		configuration.Redis.Port = 26379
-	} else if configuration.Redis.Port < 0 || configuration.Redis.Port > 65535 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, "redis sentinel"))
+func validateRedisSentinel(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if config.Redis.HighAvailability.SentinelName == "" {
+		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelMissingName))
 	}
 
-	validateHighAvailability(configuration, validator, "redis sentinel")
-}
-
-func validateHighAvailability(configuration *schema.SessionConfiguration, validator *schema.StructValidator, provider string) {
-	if configuration.Redis.Host == "" && len(configuration.Redis.HighAvailability.Nodes) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostOrNodesRequired, provider))
+	if config.Redis.Port == 0 {
+		config.Redis.Port = 26379
+	} else if config.Redis.Port < 0 || config.Redis.Port > 65535 {
+		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 
-	if configuration.Secret == "" {
-		validator.Push(fmt.Errorf(errFmtSessionSecretRedisProvider, provider))
+	if config.Redis.Host == "" && len(config.Redis.HighAvailability.Nodes) == 0 {
+		validator.Push(fmt.Errorf(errFmtSessionRedisHostOrNodesRequired))
 	}
 
-	for i, node := range configuration.Redis.HighAvailability.Nodes {
+	validateRedisCommon(config, validator)
+
+	hostMissing := false
+
+	for i, node := range config.Redis.HighAvailability.Nodes {
 		if node.Host == "" {
-			validator.Push(fmt.Errorf("The %s nodes require a host set but you have not set the host for one or more nodes", provider))
-			break
+			hostMissing = true
 		}
 
 		if node.Port == 0 {
-			if provider == "redis sentinel" {
-				configuration.Redis.HighAvailability.Nodes[i].Port = 26379
-			}
+			config.Redis.HighAvailability.Nodes[i].Port = 26379
 		}
+	}
+
+	if hostMissing {
+		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelNodeHostMissing))
 	}
 }

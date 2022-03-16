@@ -4,7 +4,7 @@ import { Typography, makeStyles } from "@material-ui/core";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
@@ -50,7 +50,7 @@ const SignOut = function (props: Props) {
         if (redirectionURL && safeRedirect) {
             redirector(redirectionURL);
         } else {
-            return <Navigate to={FirstFactorRoute} />;
+            return <Navigate to={IndexRoute} />;
         }
     }
 

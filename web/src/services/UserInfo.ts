@@ -1,14 +1,14 @@
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { UserInfoPath, UserInfo2FAMethodPath } from "@services/Api";
+import { UserInfo2FAMethodPath, UserInfoPath } from "@services/Api";
 import { Get, PostWithOptionalResponse } from "@services/Client";
 
-export type Method2FA = "u2f" | "totp" | "mobile_push";
+export type Method2FA = "webauthn" | "totp" | "mobile_push";
 
 export interface UserInfoPayload {
     display_name: string;
     method: Method2FA;
-    has_u2f: boolean;
+    has_webauthn: boolean;
     has_totp: boolean;
     has_duo: boolean;
 }
@@ -19,10 +19,10 @@ export interface MethodPreferencePayload {
 
 export function toEnum(method: Method2FA): SecondFactorMethod {
     switch (method) {
-        case "u2f":
-            return SecondFactorMethod.U2F;
         case "totp":
             return SecondFactorMethod.TOTP;
+        case "webauthn":
+            return SecondFactorMethod.Webauthn;
         case "mobile_push":
             return SecondFactorMethod.MobilePush;
     }
@@ -30,10 +30,10 @@ export function toEnum(method: Method2FA): SecondFactorMethod {
 
 export function toString(method: SecondFactorMethod): Method2FA {
     switch (method) {
-        case SecondFactorMethod.U2F:
-            return "u2f";
         case SecondFactorMethod.TOTP:
             return "totp";
+        case SecondFactorMethod.Webauthn:
+            return "webauthn";
         case SecondFactorMethod.MobilePush:
             return "mobile_push";
     }

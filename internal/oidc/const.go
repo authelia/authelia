@@ -1,20 +1,12 @@
 package oidc
 
-var scopeDescriptions = map[string]string{
-	"openid":  "Use OpenID to verify your identity",
-	"email":   "Access your email addresses",
-	"profile": "Access your display name",
-	"groups":  "Access your group membership",
-}
-
-var audienceDescriptions = map[string]string{}
-
 // Scope strings.
 const (
-	ScopeOpenID  = "openid"
-	ScopeProfile = "profile"
-	ScopeEmail   = "email"
-	ScopeGroups  = "groups"
+	ScopeOfflineAccess = "offline_access"
+	ScopeOpenID        = "openid"
+	ScopeProfile       = "profile"
+	ScopeEmail         = "email"
+	ScopeGroups        = "groups"
 )
 
 // Claim strings.
@@ -24,5 +16,18 @@ const (
 	ClaimPreferredUsername = "preferred_username"
 	ClaimEmail             = "email"
 	ClaimEmailVerified     = "email_verified"
-	ClaimAltEmails         = "alt_emails"
+	ClaimEmailAlts         = "alt_emails"
+)
+
+// Paths.
+const (
+	WellKnownOpenIDConfigurationPath      = "/.well-known/openid-configuration"
+	WellKnownOAuthAuthorizationServerPath = "/.well-known/oauth-authorization-server"
+
+	JWKsPath          = "/api/oidc/jwks"
+	AuthorizationPath = "/api/oidc/authorization"
+	TokenPath         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
+	IntrospectionPath = "/api/oidc/introspection"
+	RevocationPath    = "/api/oidc/revocation"
+	UserinfoPath      = "/api/oidc/userinfo"
 )

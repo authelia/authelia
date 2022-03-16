@@ -11,18 +11,18 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
 type RegulatorSuite struct {
 	suite.Suite
 
-	ctx           context.Context
-	ctrl          *gomock.Controller
-	storageMock   *mocks.MockStorage
-	configuration schema.RegulationConfiguration
-	clock         mocks.TestingClock
+	ctx         context.Context
+	ctrl        *gomock.Controller
+	storageMock *mocks.MockStorage
+	config      schema.RegulationConfiguration
+	clock       mocks.TestingClock
 }
 
 func (s *RegulatorSuite) SetupTest() {
@@ -30,10 +30,10 @@ func (s *RegulatorSuite) SetupTest() {
 	s.storageMock = mocks.NewMockStorage(s.ctrl)
 	s.ctx = context.Background()
 
-	s.configuration = schema.RegulationConfiguration{
+	s.config = schema.RegulationConfiguration{
 		MaxRetries: 3,
-		BanTime:    "180",
-		FindTime:   "30",
+		BanTime:    time.Second * 180,
+		FindTime:   time.Second * 30,
 	}
 	s.clock.Set(time.Now())
 }
@@ -43,7 +43,7 @@ func (s *RegulatorSuite) TearDownTest() {
 }
 
 func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: true,
@@ -55,7 +55,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
@@ -64,7 +64,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenUserIsLegitimate() {
 // This test checks the case in which a user failed to authenticate many times but always
 // with a certain amount of time larger than FindTime. Meaning the user should not be banned.
 func (s *RegulatorSuite) TestShouldNotThrowWhenFailedAuthenticationNotInFindTime() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -86,7 +86,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenFailedAuthenticationNotInFindTime
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
@@ -95,7 +95,7 @@ func (s *RegulatorSuite) TestShouldNotThrowWhenFailedAuthenticationNotInFindTime
 // This test checks the case in which a user failed to authenticate many times only a few
 // seconds ago (meaning we are checking from now back to now-FindTime).
 func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFinTime() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -122,7 +122,7 @@ func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFinTime() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.Equal(s.T(), regulation.ErrUserIsBanned, err)
@@ -133,7 +133,7 @@ func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFinTime() {
 // we are within now and now-BanTime). It means the user has been banned some time ago and is still
 // banned right now.
 func (s *RegulatorSuite) TestShouldCheckUserIsStillBanned() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -155,14 +155,14 @@ func (s *RegulatorSuite) TestShouldCheckUserIsStillBanned() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.Equal(s.T(), regulation.ErrUserIsBanned, err)
 }
 
 func (s *RegulatorSuite) TestShouldCheckUserIsNotYetBanned() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -179,14 +179,14 @@ func (s *RegulatorSuite) TestShouldCheckUserIsNotYetBanned() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
 }
 
 func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -211,14 +211,14 @@ func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
 }
 
 func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttempt() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -247,7 +247,7 @@ func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttemp
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	regulator := regulation.NewRegulator(&s.configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(s.config, s.storageMock, &s.clock)
 
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
@@ -260,7 +260,7 @@ func TestRunRegulatorSuite(t *testing.T) {
 
 // This test checks that the regulator is disabled when configuration is set to 0.
 func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
-	attemptsInDB := []models.AuthenticationAttempt{
+	attemptsInDB := []model.AuthenticationAttempt{
 		{
 			Username:   "john",
 			Successful: false,
@@ -282,25 +282,25 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 		LoadAuthenticationLogs(s.ctx, gomock.Eq("john"), gomock.Any(), gomock.Eq(10), gomock.Eq(0)).
 		Return(attemptsInDB, nil)
 
-	// Check Disabled Functionality
-	configuration := schema.RegulationConfiguration{
+	// Check Disabled Functionality.
+	config := schema.RegulationConfiguration{
 		MaxRetries: 0,
-		FindTime:   "180",
-		BanTime:    "180",
+		FindTime:   time.Second * 180,
+		BanTime:    time.Second * 180,
 	}
 
-	regulator := regulation.NewRegulator(&configuration, s.storageMock, &s.clock)
+	regulator := regulation.NewRegulator(config, s.storageMock, &s.clock)
 	_, err := regulator.Regulate(s.ctx, "john")
 	assert.NoError(s.T(), err)
 
-	// Check Enabled Functionality
-	configuration = schema.RegulationConfiguration{
+	// Check Enabled Functionality.
+	config = schema.RegulationConfiguration{
 		MaxRetries: 1,
-		FindTime:   "180",
-		BanTime:    "180",
+		FindTime:   time.Second * 180,
+		BanTime:    time.Second * 180,
 	}
 
-	regulator = regulation.NewRegulator(&configuration, s.storageMock, &s.clock)
+	regulator = regulation.NewRegulator(config, s.storageMock, &s.clock)
 	_, err = regulator.Regulate(s.ctx, "john")
 	assert.Equal(s.T(), regulation.ErrUserIsBanned, err)
 }

@@ -1,8 +1,12 @@
 package session
 
+import (
+	"time"
+)
+
 const (
 	testDomain     = "example.com"
-	testExpiration = "40"
+	testExpiration = time.Second * 40
 	testName       = "my_session"
 	testUsername   = "john"
 )
