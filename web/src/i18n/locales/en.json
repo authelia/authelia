@@ -56,11 +56,12 @@
         "Accept": "Accept",
         "Deny": "Deny",
         "The above application is requesting the following permissions": "The above application is requesting the following permissions",
-        "Add some lowercase letter": "Add some lowercase letter",
-        "Add some UPPERCASE letter": "Add some UPPERCASE letter",
-        "Add some Numbers": "Add some Numbers",
-        "Add some Epecial character": "Add some Epecial character",
-        "Two short, minimun length is {{len}} letters": "Two short, minimun length is {{len}} letters",
-        "Two long, maximum length is {{len}} letters": "Two long, maximum length is {{len}} letters"
+        "The password does not meet the password policy": "The password does not meet the password policy",
+        "Must have at least one lowercase letter": "Must have at least one lowercase letter",
+        "Must have at least one UPPERCASE letter": "Must have at least one UPPERCASE letter",
+        "Must have at least one number": "Must have at least one number",
+        "Must have at least one special character": "Must have at least one special character",
+        "Must be at least {{len}} characters in length": "Must be at least {{len}} characters in length",
+        "Must not be more than {{len}} characters in length": "Must not be more than {{len}} characters in length"
     }
 }
