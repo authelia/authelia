@@ -16,7 +16,7 @@ Currently, two methods are supported:
     * Require Lowercase
     * Require Numbers
     * Require Special characters
-* the password entered by the user must meet these rules 
+* when changing the password users must meet these rules 
 
 
 <p align="center">
