@@ -163,33 +163,33 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		corsMetadata := middlewares.NewCORSMiddleware().
 			WithAllowedMethods("OPTIONS", "GET")
 
-		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsMetadata.HandleOPTIONS))
-		r.GET(oidc.WellKnownOpenIDConfigurationPath, autheliaMiddleware(corsMetadata.Middleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
+		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, corsMetadata.HandleOPTIONS)
+		r.GET(oidc.WellKnownOpenIDConfigurationPath, corsMetadata.Middleware(autheliaMiddleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
 
-		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsMetadata.HandleOPTIONS))
-		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, autheliaMiddleware(corsMetadata.Middleware(handlers.OAuthAuthorizationServerWellKnownGET)))
+		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, corsMetadata.HandleOPTIONS)
+		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, corsMetadata.Middleware(autheliaMiddleware(handlers.OAuthAuthorizationServerWellKnownGET)))
 
-		r.OPTIONS(oidc.JWKsPath, autheliaMiddleware(corsMetadata.HandleOPTIONS))
-		r.GET(oidc.JWKsPath, autheliaMiddleware(corsMetadata.Middleware(handlers.JSONWebKeySetGET)))
+		r.OPTIONS(oidc.JWKsPath, corsMetadata.HandleOPTIONS)
+		r.GET(oidc.JWKsPath, corsMetadata.Middleware(autheliaMiddleware(handlers.JSONWebKeySetGET)))
 
 		corsUserInfo := middlewares.NewCORSMiddleware().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "GET", "POST")
 
-		r.OPTIONS(oidc.UserinfoPath, autheliaMiddleware(corsUserInfo.HandleOPTIONS))
-		r.GET(oidc.UserinfoPath, autheliaMiddleware(corsUserInfo.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
-		r.POST(oidc.UserinfoPath, autheliaMiddleware(corsUserInfo.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+		r.OPTIONS(oidc.UserinfoPath, corsUserInfo.HandleOPTIONS)
+		r.GET(oidc.UserinfoPath, corsUserInfo.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+		r.POST(oidc.UserinfoPath, corsUserInfo.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
 
 		corsPOSTWithCredentials := middlewares.NewCORSMiddleware().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST")
 
-		r.OPTIONS(oidc.TokenPath, autheliaMiddleware(corsPOSTWithCredentials.HandleOPTIONS))
-		r.POST(oidc.TokenPath, autheliaMiddleware(corsPOSTWithCredentials.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
+		r.OPTIONS(oidc.TokenPath, corsPOSTWithCredentials.HandleOPTIONS)
+		r.POST(oidc.TokenPath, corsPOSTWithCredentials.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
 
-		r.OPTIONS(oidc.RevocationPath, autheliaMiddleware(corsPOSTWithCredentials.HandleOPTIONS))
-		r.POST(oidc.RevocationPath, autheliaMiddleware(corsPOSTWithCredentials.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
-		r.POST("/api/oidc/revoke", autheliaMiddleware(corsPOSTWithCredentials.Middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+		r.OPTIONS(oidc.RevocationPath, corsPOSTWithCredentials.HandleOPTIONS)
+		r.POST(oidc.RevocationPath, corsPOSTWithCredentials.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+		r.POST("/api/oidc/revoke", corsPOSTWithCredentials.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
 
 		r.GET("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentGET))
 		r.POST("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentPOST))

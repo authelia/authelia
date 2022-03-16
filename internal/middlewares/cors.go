@@ -136,7 +136,7 @@ func (p *CORSMiddleware) WithMaxAge(age int) (policy *CORSMiddleware) {
 
 // HandleOPTIONS is an OPTIONS handler that just adds CORS headers, the Allow header, and sets the status code to 204
 // without a body. This handler should generally not be used without using WithAllowedMethods.
-func (p CORSMiddleware) HandleOPTIONS(ctx *AutheliaCtx) {
+func (p CORSMiddleware) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
 	ctx.Response.ResetBody()
 
 	ctx.SetStatusCode(fasthttp.StatusNoContent)
@@ -145,39 +145,39 @@ func (p CORSMiddleware) HandleOPTIONS(ctx *AutheliaCtx) {
 		ctx.Response.Header.SetBytesKV(headerAllow, p.methods)
 	}
 
-	p.handle(&ctx.Request, &ctx.Response)
+	p.handle(ctx)
 }
 
 // Middleware provides a middleware that adds the appropriate CORS headers for this CORSMiddleware.
-func (p CORSMiddleware) Middleware(next RequestHandler) (handler RequestHandler) {
-	return func(ctx *AutheliaCtx) {
-		p.handle(&ctx.Request, &ctx.Response)
+func (p CORSMiddleware) Middleware(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler) {
+	return func(ctx *fasthttp.RequestCtx) {
+		p.handle(ctx)
 
 		next(ctx)
 	}
 }
 
-func (p CORSMiddleware) handle(req *fasthttp.Request, resp *fasthttp.Response) {
-	p.handleVary(resp)
+func (p CORSMiddleware) handle(ctx *fasthttp.RequestCtx) {
+	p.handleVary(ctx)
 
 	if !p.varyOnly {
-		p.handleCORS(req, resp)
+		p.handleCORS(ctx)
 	}
 }
 
-func (p CORSMiddleware) handleVary(resp *fasthttp.Response) {
+func (p CORSMiddleware) handleVary(ctx *fasthttp.RequestCtx) {
 	if len(p.vary) != 0 {
-		resp.Header.SetBytesKV(headerVary, p.vary)
+		ctx.Response.Header.SetBytesKV(headerVary, p.vary)
 	}
 }
 
-func (p CORSMiddleware) handleCORS(req *fasthttp.Request, resp *fasthttp.Response) {
+func (p CORSMiddleware) handleCORS(ctx *fasthttp.RequestCtx) {
 	var (
 		originURL *url.URL
 		err       error
 	)
 
-	origin := req.Header.PeekBytes(headerOrigin)
+	origin := ctx.Request.Header.PeekBytes(headerOrigin)
 
 	// Skip processing of any `https` scheme URL that has not expressly been configured.
 	if originURL, err = url.Parse(string(origin)); err != nil || (originURL.Scheme != "https" && p.origins == nil) {
@@ -203,33 +203,33 @@ func (p CORSMiddleware) handleCORS(req *fasthttp.Request, resp *fasthttp.Respons
 		}
 	}
 
-	resp.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
-	resp.Header.SetBytesKV(headerAccessControlAllowCredentials, p.credentials)
+	ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
+	ctx.Response.Header.SetBytesKV(headerAccessControlAllowCredentials, p.credentials)
 
 	if p.maxAge != nil {
-		resp.Header.SetBytesKV(headerAccessControlMaxAge, p.maxAge)
+		ctx.Response.Header.SetBytesKV(headerAccessControlMaxAge, p.maxAge)
 	}
 
-	p.handleAllowedHeaders(req, resp)
+	p.handleAllowedHeaders(ctx)
 
-	p.handleAllowedMethods(req, resp)
+	p.handleAllowedMethods(ctx)
 }
 
-func (p CORSMiddleware) handleAllowedMethods(req *fasthttp.Request, resp *fasthttp.Response) {
+func (p CORSMiddleware) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	switch len(p.methods) {
 	case 0:
-		if requestMethods := req.Header.PeekBytes(headerAccessControlRequestMethod); requestMethods != nil {
-			resp.Header.SetBytesKV(headerAccessControlAllowMethods, requestMethods)
+		if requestMethods := ctx.Request.Header.PeekBytes(headerAccessControlRequestMethod); requestMethods != nil {
+			ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, requestMethods)
 		}
 	default:
-		resp.Header.SetBytesKV(headerAccessControlAllowMethods, p.methods)
+		ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, p.methods)
 	}
 }
 
-func (p CORSMiddleware) handleAllowedHeaders(req *fasthttp.Request, resp *fasthttp.Response) {
+func (p CORSMiddleware) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 	switch len(p.headers) {
 	case 0:
-		if headers := req.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
+		if headers := ctx.Request.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
 			requestedHeaders := strings.Split(string(headers), ",")
 			allowHeaders := make([]string, 0, len(requestedHeaders))
 
@@ -249,7 +249,7 @@ func (p CORSMiddleware) handleAllowedHeaders(req *fasthttp.Request, resp *fastht
 			}
 
 			if len(allowHeaders) != 0 {
-				resp.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(allowHeaders, ", ")))
+				ctx.Response.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(allowHeaders, ", ")))
 			}
 		}
 	default:
@@ -269,6 +269,6 @@ func (p CORSMiddleware) handleAllowedHeaders(req *fasthttp.Request, resp *fastht
 			}
 		}
 
-		resp.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(headers, ", ")))
+		ctx.Response.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(headers, ", ")))
 	}
 }
