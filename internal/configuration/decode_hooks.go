@@ -3,6 +3,7 @@ package configuration
 import (
 	"fmt"
 	"net/mail"
+	"net/url"
 	"reflect"
 	"time"
 
@@ -11,8 +12,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// StringToMailAddressFunc decodes a string into a mail.Address.
-func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
+// StringToMailAddressHookFunc decodes a string into a mail.Address.
+func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
 		if f.Kind() != reflect.String || t != reflect.TypeOf(mail.Address{}) {
 			return data, nil
@@ -36,12 +37,53 @@ func StringToMailAddressFunc() mapstructure.DecodeHookFunc {
 	}
 }
 
-// ToTimeDurationFunc converts string and integer types to a time.Duration.
-func ToTimeDurationFunc() mapstructure.DecodeHookFuncType {
+// StringToURLHookFunc converts string types into a url.URL.
+func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
-		var (
-			ptr bool
-		)
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		ptr = t.Kind() == reflect.Ptr
+
+		typeURL := reflect.TypeOf(url.URL{})
+
+		if ptr && t.Elem() != typeURL {
+			return data, nil
+		} else if !ptr && t != typeURL {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var parsedURL *url.URL
+
+		// Return an empty URL if there is an empty string.
+		if dataStr != "" {
+			if parsedURL, err = url.Parse(dataStr); err != nil {
+				return nil, fmt.Errorf("could not parse '%s' as a URL: %w", dataStr, err)
+			}
+		}
+
+		if ptr {
+			return parsedURL, nil
+		}
+
+		// Return an empty URL if there is an empty string.
+		if parsedURL == nil {
+			return url.URL{}, nil
+		}
+
+		return *parsedURL, nil
+	}
+}
+
+// ToTimeDurationHookFunc converts string and integer types to a time.Duration.
+func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
 
 		switch f.Kind() {
 		case reflect.String, reflect.Int, reflect.Int32, reflect.Int64:

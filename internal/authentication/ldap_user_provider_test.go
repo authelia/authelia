@@ -750,7 +750,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 
 	passwdModify := mockConn.EXPECT().
 		PasswordModify(pwdModifyRequest).
-		Return(nil)
+		Return(nil, nil)
 
 	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
 
