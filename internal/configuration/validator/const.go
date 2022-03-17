@@ -352,6 +352,7 @@ var ValidKeys = []string{
 	"session.redis.tls.skip_verify",
 	"session.redis.tls.server_name",
 	"session.redis.high_availability.sentinel_name",
+	"session.redis.high_availability.sentinel_username",
 	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.nodes",
 	"session.redis.high_availability.route_by_latency",
