@@ -1,7 +1,7 @@
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserInfo2FAMethodPath, UserInfoPath } from "@services/Api";
-import { Get, Post, PostWithOptionalResponse } from "@services/Client";
+import { Post, PostWithOptionalResponse } from "@services/Client";
 
 export type Method2FA = "webauthn" | "totp" | "mobile_push";
 
