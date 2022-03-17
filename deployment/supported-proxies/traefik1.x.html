@@ -78,8 +78,8 @@
       <span class="pi">-</span> <span class="s">net</span>
     <span class="na">labels</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.rule=Host:heimdall.example.com'</span>
-      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic</span>
-      <span class="s">-</span><span class="nv"> </span><span class="s">'traefik.frontend.auth.forward.trustForwardHeader=true'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic'</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.trustForwardHeader=true'</span>
       <span class="pi">-</span> <span class="s1">'</span><span class="s">traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'</span>
     <span class="na">expose</span><span class="pi">:</span>
       <span class="pi">-</span> <span class="m">443</span>
