@@ -151,8 +151,6 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = autheliaMiddleware(serveIndexHandler)
-
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
 		handler = middlewares.StripPathMiddleware(configuration.Server.Path, handler)
