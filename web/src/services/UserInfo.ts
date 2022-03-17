@@ -39,11 +39,6 @@ export function toString(method: SecondFactorMethod): Method2FA {
     }
 }
 
-export async function getUserInfo(): Promise<UserInfo> {
-    const res = await Get<UserInfoPayload>(UserInfoPath);
-    return { ...res, method: toEnum(res.method) };
-}
-
 export async function postUserInfo(): Promise<UserInfo> {
     const res = await Post<UserInfoPayload>(UserInfoPath);
     return { ...res, method: toEnum(res.method) };
