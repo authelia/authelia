@@ -2,10 +2,7 @@ package handlers
 
 import (
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
 
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -20,17 +17,6 @@ func isConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, re
 
 	return len(requestedScopes) > 0 && utils.IsStringSlicesDifferent(requestedScopes, workflow.GrantedScopes) ||
 		len(requestedAudience) > 0 && utils.IsStringSlicesDifferentFold(requestedAudience, workflow.GrantedAudience)
-}
-
-func newOpenIDSession(subject string) *model.OpenIDSession {
-	return &model.OpenIDSession{
-		DefaultSession: &openid.DefaultSession{
-			Claims:  new(jwt.IDTokenClaims),
-			Headers: new(jwt.Headers),
-			Subject: subject,
-		},
-		Extra: map[string]interface{}{},
-	}
 }
 
 func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {

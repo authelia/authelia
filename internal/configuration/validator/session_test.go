@@ -3,7 +3,6 @@ package validator
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -412,7 +411,7 @@ func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing
 	config := newDefaultSessionConfig()
 	config.Inactivity = -1
 	config.Expiration = -1
-	config.RememberMeDuration = -1
+	config.RememberMeDuration = schema.RememberMeDisabled
 
 	ValidateSession(&config, validator)
 
@@ -421,7 +420,7 @@ func TestShouldSetDefaultWhenNegativeAndNotOverrideDisabledRememberMe(t *testing
 
 	assert.Equal(t, schema.DefaultSessionConfiguration.Inactivity, config.Inactivity)
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
-	assert.Equal(t, time.Duration(-1), config.RememberMeDuration)
+	assert.Equal(t, schema.RememberMeDisabled, config.RememberMeDuration)
 }
 
 func TestShouldSetDefaultRememberMeDuration(t *testing.T) {

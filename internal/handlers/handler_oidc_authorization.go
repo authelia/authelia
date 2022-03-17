@@ -1,159 +1,153 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
-		ar     fosite.AuthorizeRequester
-		client *oidc.Client
-		err    error
+		requester fosite.AuthorizeRequester
+		responder fosite.AuthorizeResponder
+		client    *oidc.Client
+		authTime  time.Time
+		issuer    string
+		err       error
 	)
 
-	if ar, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r); err != nil {
-		ctx.Logger.Errorf("Error occurred in NewAuthorizeRequest: %+v", err)
+	if requester, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+		ctx.Logger.Errorf("Authorization Request failed with error: %+v", rfc)
+
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
 
 		return
 	}
 
-	clientID := ar.GetClient().GetID()
+	clientID := requester.GetClient().GetID()
+
+	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being processed", requester.GetID(), clientID)
 
 	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(clientID); err != nil {
-		err = fmt.Errorf("unable to find related client configuration with name '%s': %v", ar.GetID(), err)
+		if errors.Is(err, fosite.ErrNotFound) {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: client was not found", requester.GetID(), clientID)
+		} else {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %+v", requester.GetID(), clientID, err)
+		}
 
-		ctx.Logger.Error(err)
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
+
+		return
+	}
+
+	if issuer, err = ctx.ExternalRootURL(); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred determining issuer: %+v", requester.GetID(), clientID, err)
+
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not determine issuer."))
 
 		return
 	}
 
 	userSession := ctx.GetSession()
 
+	requestedScopes := requester.GetRequestedScopes()
+	requestedAudience := requester.GetRequestedAudience()
+
 	isAuthInsufficient := !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
 
-	scopes, audience := ar.GetRequestedScopes(), ar.GetRequestedAudience()
-
-	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, scopes, audience)) {
-		oidcAuthorizeHandleAuthorizationOrConsentInsufficient(ctx, userSession, client, isAuthInsufficient, rw, r, ar)
+	if isAuthInsufficient || (isConsentMissing(userSession.OIDCWorkflowSession, requestedScopes, requestedAudience)) {
+		oidcAuthorizeHandleAuthorizationOrConsentInsufficient(ctx, userSession, client, isAuthInsufficient, rw, r, requester, issuer)
 
 		return
 	}
 
 	subject, err := ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, userSession.Username)
 	if err != nil {
-		ctx.Logger.Errorf("Failed to fetch subject for user '%s' during OAuth 2.0 Authorization: %+v", userSession.Username, err)
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retriving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
 
 		return
 	}
 
-	extraClaims := oidcGrantRequests(ar, scopes, audience, &userSession)
+	extraClaims := oidcGrantRequests(requester, requestedScopes, requestedAudience, &userSession)
 
 	workflowCreated := time.Unix(userSession.OIDCWorkflowSession.CreatedTimestamp, 0)
 
 	userSession.OIDCWorkflowSession = nil
+
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Error occurred removing OIDC workflow session: %+v", err)
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving session: %+v", requester.GetID(), client.GetID(), err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
-
-		return
-	}
-
-	issuer, err := ctx.ExternalRootURL()
-	if err != nil {
-		ctx.Logger.Errorf("Error occurred obtaining issuer: %+v", err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
 
 		return
 	}
 
-	authTime, err := userSession.AuthenticatedTime(client.Policy)
-	if err != nil {
-		ctx.Logger.Errorf("Error occurred obtaining authentication timestamp: %+v", err)
+	if authTime, err = userSession.AuthenticatedTime(client.Policy); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
-
-		return
-	}
-
-	response, err := ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, ar, &model.OpenIDSession{
-		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
-				Subject:     subject.String(),
-				Issuer:      issuer,
-				AuthTime:    authTime,
-				RequestedAt: workflowCreated,
-				IssuedAt:    ctx.Clock.Now(),
-				Nonce:       ar.GetRequestForm().Get("nonce"),
-				Audience:    ar.GetGrantedAudience(),
-				Extra:       extraClaims,
-			},
-			Headers: &jwt.Headers{Extra: map[string]interface{}{
-				"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
-			}},
-			Subject:  userSession.Username,
-			Username: userSession.Username,
-		},
-		ClientID: clientID,
-	})
-	if err != nil {
-		ctx.Logger.Errorf("Error occurred in NewAuthorizeResponse: %+v", err)
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, ar, err)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not obtain the authentication time."))
 
 		return
 	}
 
-	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, ar, response)
+	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
+
+	oidcSession := oidc.NewSessionWithAuthorizeRequest(issuer, ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+		subject.String(), userSession.Username, extraClaims, authTime, workflowCreated, requester)
+
+	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
+		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Claims)
+	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with headers: %+v",
+		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Headers)
+
+	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, requester, oidcSession); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %+v", requester.GetID(), clientID, rfc)
+
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
+
+		return
+	}
+
+	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, requester, responder)
 }
 
 func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx *middlewares.AutheliaCtx, userSession session.UserSession, client *oidc.Client, isAuthInsufficient bool,
 	rw http.ResponseWriter, r *http.Request,
-	ar fosite.AuthorizeRequester) {
-	issuer, err := ctx.ExternalRootURL()
-	if err != nil {
-		ctx.Logger.Error(err)
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
+	requester fosite.AuthorizeRequester, issuer string) {
 	redirectURL := fmt.Sprintf("%s%s", issuer, string(ctx.Request.RequestURI()))
 
-	ctx.Logger.Debugf("User %s must consent with scopes %s",
-		userSession.Username, strings.Join(ar.GetRequestedScopes(), ", "))
+	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' requires user '%s' provides consent for scopes '%s'",
+		requester.GetID(), client.GetID(), userSession.Username, strings.Join(requester.GetRequestedScopes(), "', '"))
 
 	userSession.OIDCWorkflowSession = &session.OIDCWorkflowSession{
-		ClientID:                   client.ID,
-		RequestedScopes:            ar.GetRequestedScopes(),
-		RequestedAudience:          ar.GetRequestedAudience(),
+		ClientID:                   client.GetID(),
+		RequestedScopes:            requester.GetRequestedScopes(),
+		RequestedAudience:          requester.GetRequestedAudience(),
 		AuthURI:                    redirectURL,
-		TargetURI:                  ar.GetRedirectURI().String(),
+		TargetURI:                  requester.GetRedirectURI().String(),
 		RequiredAuthorizationLevel: client.Policy,
 		CreatedTimestamp:           time.Now().Unix(),
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Unable to save session: %v", err)
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving session for consent: %+v", requester.GetID(), client.GetID(), err)
+
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
 
 		return
 	}

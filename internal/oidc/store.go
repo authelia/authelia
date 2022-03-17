@@ -44,7 +44,7 @@ func (s OpenIDConnectStore) GetSubject(ctx context.Context, username string) (su
 	if sub, err = s.provider.LoadOAuth2Subject(ctx, username); err != nil {
 		return subject, err
 	} else if sub == nil {
-		if subject, err = uuid.NewUUID(); err != nil {
+		if subject, err = uuid.NewRandom(); err != nil {
 			return subject, err
 		}
 
