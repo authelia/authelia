@@ -202,7 +202,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentGET))
 		r.POST("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentPOST))
 
-		r.OPTIONS("/api/oidc/authorize", corsGET.HandleOnlyOPTIONS)
+		r.OPTIONS(oidc.AuthorizationPath, corsGET.HandleOnlyOPTIONS)
 		r.GET(oidc.AuthorizationPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
 
 		// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
