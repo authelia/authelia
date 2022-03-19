@@ -26,6 +26,7 @@ i18n.use(XHR)
         defaultNS: "",
         fallbackLng: "en",
         supportedLngs: ["en", "es"],
+        nonExplicitSupportedLngs: true,
         interpolation: {
             escapeValue: false,
         },
