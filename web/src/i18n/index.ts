@@ -8,6 +8,9 @@ import langEs from "@i18n/locales/es.json";
 
 const resources = {
     en: langEn,
+    "en-US": langEn,
+    "en-GB": langEn,
+    "en-AU": langEn,
     es: langEs,
 };
 
@@ -25,7 +28,7 @@ i18n.use(XHR)
         ns: [""],
         defaultNS: "",
         fallbackLng: "en",
-        supportedLngs: ["en", "es"],
+        supportedLngs: ["en", "en-US", "en-GB", "en-AU", "es"],
         interpolation: {
             escapeValue: false,
         },
