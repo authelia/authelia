@@ -5,12 +5,12 @@ import { initReactI18next } from "react-i18next";
 
 import langEn from "@i18n/locales/en.json";
 import langEs from "@i18n/locales/es.json";
-import langEs from "@i18n/locales/de.json";
+import langDe from "@i18n/locales/de.json";
 
 const resources = {
     en: langEn,
     es: langEs,
-    de: langEs,
+    de: langDe,
 };
 
 const options = {
