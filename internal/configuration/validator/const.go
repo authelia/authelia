@@ -319,6 +319,8 @@ var ValidKeys = []string{
 	// Access Control Keys.
 	"access_control.default_policy",
 	"access_control.networks",
+	"access_control.networks[].name",
+	"access_control.networks[].networks",
 	"access_control.rules",
 	"access_control.rules[].domain",
 	"access_control.rules[].methods",
@@ -351,14 +353,12 @@ var ValidKeys = []string{
 	"session.redis.high_availability.sentinel_username",
 	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.nodes",
+	"session.redis.high_availability.nodes[].host",
+	"session.redis.high_availability.nodes[].port",
 	"session.redis.high_availability.route_by_latency",
 	"session.redis.high_availability.route_randomly",
-	"session.redis.timeouts.dial",
-	"session.redis.timeouts.idle",
-	"session.redis.timeouts.pool",
-	"session.redis.timeouts.read",
-	"session.redis.timeouts.write",
 
+	// Storage Keys.
 	"storage.encryption_key",
 
 	// Local Storage Keys.
@@ -459,12 +459,16 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
+	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].secret",
 	"identity_providers.oidc.clients[].redirect_uris",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].scopes",
+	"identity_providers.oidc.clients[].audience",
 	"identity_providers.oidc.clients[].grant_types",
 	"identity_providers.oidc.clients[].response_types",
+	"identity_providers.oidc.clients[].response_modes",
+	"identity_providers.oidc.clients[].userinfo_signing_algorithm",
 
 	// NTP keys.
 	"ntp.address",
