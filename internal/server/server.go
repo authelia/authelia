@@ -66,6 +66,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/api/configuration", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
+	r.GET("/api/configuration/languages", autheliaMiddleware(handlers.ConfigurationLanguagesGet))
+
 	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 

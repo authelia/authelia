@@ -36,6 +36,7 @@ export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
 export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
 
 export const ConfigurationPath = basePath + "/api/configuration";
+export const ConfigurationLanguagesPath = ConfigurationPath + "/languages";
 
 export interface ErrorResponse {
     status: "KO";
