@@ -9,7 +9,7 @@ i18n.use(HTTPBackend)
     .init({
         detection: {
             order: ["querystring", "navigator"],
-            lookupQuerystring: "lng",
+            lookupQuerystring: "locale",
         },
         backend: {
             loadPath: "/locale.json?lng={{lng}}&ns={{ns}}",

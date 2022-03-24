@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
@@ -59,32 +59,34 @@ const App: React.FC = () => {
         }
     }, []);
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <NotificationsContext.Provider value={{ notification, setNotification }}>
-                <Router basename={getBasePath()}>
-                    <NotificationBar onClose={() => setNotification(null)} />
-                    <Routes>
-                        <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                        <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                        <Route path={RegisterWebauthnRoute} element={<RegisterWebauthn />} />
-                        <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
-                        <Route path={LogoutRoute} element={<SignOut />} />
-                        <Route path={ConsentRoute} element={<ConsentView />} />
-                        <Route
-                            path={`${IndexRoute}*`}
-                            element={
-                                <LoginPortal
-                                    duoSelfEnrollment={getDuoSelfEnrollment()}
-                                    rememberMe={getRememberMe()}
-                                    resetPassword={getResetPassword()}
-                                />
-                            }
-                        />
-                    </Routes>
-                </Router>
-            </NotificationsContext.Provider>
-        </ThemeProvider>
+        <Suspense fallback="loading">
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <NotificationsContext.Provider value={{ notification, setNotification }}>
+                    <Router basename={getBasePath()}>
+                        <NotificationBar onClose={() => setNotification(null)} />
+                        <Routes>
+                            <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                            <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                            <Route path={RegisterWebauthnRoute} element={<RegisterWebauthn />} />
+                            <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
+                            <Route path={LogoutRoute} element={<SignOut />} />
+                            <Route path={ConsentRoute} element={<ConsentView />} />
+                            <Route
+                                path={`${IndexRoute}*`}
+                                element={
+                                    <LoginPortal
+                                        duoSelfEnrollment={getDuoSelfEnrollment()}
+                                        rememberMe={getRememberMe()}
+                                        resetPassword={getResetPassword()}
+                                    />
+                                }
+                            />
+                        </Routes>
+                    </Router>
+                </NotificationsContext.Provider>
+            </ThemeProvider>
+        </Suspense>
     );
 };
 
