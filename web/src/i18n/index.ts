@@ -27,8 +27,9 @@ i18n.use(HTTPBackend)
         fallbackLng: {
             default: ["en"],
         },
+        load: "languageOnly",
         supportedLngs: ["en", "es"],
-        nonExplicitSupportedLngs: true,
+        nonExplicitSupportedLngs: false,
         interpolation: {
             escapeValue: false,
         },
