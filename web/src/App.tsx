@@ -21,7 +21,7 @@ import { getBasePath } from "@utils/BasePath";
 import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
 import RegisterWebauthn from "@views/DeviceRegistration/RegisterWebauthn";
-import LoadingPage from "@views/LoadingPage/LoadingPage";
+import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
@@ -60,7 +60,7 @@ const App: React.FC = () => {
         }
     }, []);
     return (
-        <Suspense fallback={<LoadingPage />}>
+        <Suspense fallback={<BaseLoadingPage message={"Loading"} />}>
             <ThemeProvider theme={theme}>
                 <CssBaseline />
                 <NotificationsContext.Provider value={{ notification, setNotification }}>
