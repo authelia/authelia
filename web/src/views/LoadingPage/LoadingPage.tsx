@@ -6,7 +6,7 @@ import ReactLoading from "react-loading";
 
 const LoadingPage = function () {
     const theme = useTheme();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     return (
         <Grid container alignItems="center" justifyContent="center" style={{ minHeight: "100vh" }}>
             <Grid item style={{ textAlign: "center", display: "inline-block" }}>

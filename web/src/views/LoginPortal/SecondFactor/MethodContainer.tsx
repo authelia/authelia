@@ -28,7 +28,7 @@ export interface Props {
 
 const DefaultMethodContainer = function (props: Props) {
     const style = useStyles();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     const registerMessage = props.registered
         ? props.title === "Push Notification"
             ? ""
@@ -97,7 +97,7 @@ interface NotRegisteredContainerProps {
 }
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     const theme = useTheme();
     return (
         <Fragment>

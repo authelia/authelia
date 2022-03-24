@@ -15,7 +15,7 @@ export interface Props {
 const AuthenticatedView = function (props: Props) {
     const style = useStyles();
     const navigate = useNavigate();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     const handleLogoutClick = () => {
         navigate(SignOutRoute);

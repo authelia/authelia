@@ -21,7 +21,7 @@ const ResetPasswordStep2 = function () {
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createSuccessNotification, createErrorNotification } = useNotifications();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     const navigate = useNavigate();
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
