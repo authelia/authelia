@@ -15,11 +15,6 @@ import (
 //go:embed locales
 var locales embed.FS
 
-const (
-	defaultLocaleNS       = "portal"
-	defaultLocaleLanguage = "en"
-)
-
 // NewLocalesEmbeddedFS creates a handler for the locales assets.
 func NewLocalesEmbeddedFS(path string) (handler middlewares.RequestHandler) {
 	// TODO: implement a method to load from the assets path.
@@ -57,7 +52,7 @@ func NewLocalesEmbeddedFS(path string) (handler middlewares.RequestHandler) {
 
 		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
 			if variant != "" && utils.IsStringInSliceFold(language, languages) {
-				data, _ = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", language, namespace))
+				data = jsonEmptyObject
 			}
 
 			if len(data) == 0 {
