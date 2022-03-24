@@ -154,8 +154,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	locales := asset.NewLocalesEmbeddedFS()
 
-	r.GET("/locales/{language:[a-z]{2}}/{namespace}.json", autheliaMiddleware(locales))
-	r.GET("/locales/{language:[a-z]{2}}-{variant:[a-zA-Z]{2}}/{namespace}.json", autheliaMiddleware(locales))
+	r.GET("/locale.json", autheliaMiddleware(locales))
 
 	r.NotFound = autheliaMiddleware(serveIndexHandler)
 
