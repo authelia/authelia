@@ -2,6 +2,7 @@ package asset
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,9 +15,17 @@ import (
 //go:embed locales
 var locales embed.FS
 
-var blank = []byte("{}")
+var blankLocale = []byte("{}")
 
-func NewLocalesEmbeddedFS() (handler middlewares.RequestHandler) {
+const (
+	defaultLocaleNS       = "portal"
+	defaultLocaleLanguage = "en"
+)
+
+// NewLocalesEmbeddedFS creates a handler for the locales assets.
+func NewLocalesEmbeddedFS(path string) (handler middlewares.RequestHandler) {
+	// TODO: implement a method to load from the assets path.
+
 	var languages []string
 
 	entries, err := locales.ReadDir("locales")
@@ -29,35 +38,28 @@ func NewLocalesEmbeddedFS() (handler middlewares.RequestHandler) {
 	}
 
 	return func(ctx *middlewares.AutheliaCtx) {
-		lng := ctx.RequestCtx.QueryArgs().Peek("lng")
-		namespace := ctx.RequestCtx.QueryArgs().Peek("ns")
-		locale := string(lng)
+		var (
+			lng, ns                              []byte
+			language, variant, locale, namespace string
+		)
 
-		var language, variant string
+		lng = ctx.RequestCtx.QueryArgs().Peek("lng")
+		ns = ctx.RequestCtx.QueryArgs().Peek("ns")
 
-		parts := strings.SplitN(locale, "-", 2)
+		if language, variant, locale, namespace, err = localeDecodeLngAndNS(lng, ns); err != nil {
+			fmt.Printf("%v, %v\n", lng, ns)
 
-		if len(parts) == 0 {
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
 			return
 		}
 
-		language = parts[0]
-
-		if len(parts) == 2 {
-			variant = parts[1]
-		}
-
-		if len(language) != 2 || (len(variant) != 0 && len(variant) != 2) {
-			ctx.SetStatusCode(fasthttp.StatusNotFound)
-			return
-		}
-
+		fmt.Printf("%s %s %s %s", language, variant, locale, namespace)
+		
 		var data []byte
 
 		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
 			if variant != "" && utils.IsStringInSliceFold(language, languages) {
-				data = blank
+				data = blankLocale
 			}
 
 			if len(data) == 0 {
@@ -69,4 +71,30 @@ func NewLocalesEmbeddedFS() (handler middlewares.RequestHandler) {
 		ctx.SetContentType("application/json")
 		ctx.SetBody(data)
 	}
+}
+
+func localeDecodeLngAndNS(lng, ns []byte) (language, variant, locale, namespace string, err error) {
+	locale, namespace = string(lng), string(ns)
+
+	if len(namespace) == 0 {
+		namespace = defaultLocaleNS
+	}
+
+	parts := strings.SplitN(locale, "-", 2)
+
+	if len(parts) == 0 {
+		return defaultLocaleLanguage, variant, defaultLocaleLanguage, namespace, nil
+	}
+
+	language = parts[0]
+
+	if len(parts) == 2 {
+		variant = parts[1]
+	}
+
+	if len(language) != 2 || len(variant) != 0 && len(variant) != 2 {
+		return "", "", "", "", errors.New("invalid lng")
+	}
+
+	return language, variant, locale, namespace, nil
 }

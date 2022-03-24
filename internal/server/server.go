@@ -152,7 +152,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	locales := asset.NewLocalesEmbeddedFS()
+	locales := asset.NewLocalesEmbeddedFS(configuration.Server.AssetPath)
 
 	r.GET("/locale.json", autheliaMiddleware(locales))
 
