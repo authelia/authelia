@@ -14,7 +14,7 @@ i18n.use(HTTPBackend)
     .init({
         detection: options,
         backend: {
-            loadPath: "/locales.json?lng={{lng}}&ns={{ns}}",
+            loadPath: "/locale.json?lng={{lng}}&ns={{ns}}",
         },
         ns: ["portal"],
         defaultNS: "portal",
