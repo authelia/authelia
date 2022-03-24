@@ -1,6 +1,6 @@
 import i18n from "i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
-import XHR from "i18next-http-backend";
+import BrowserLanguageDetector from "i18next-browser-languagedetector";
+import HTTPBackend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
 import langEn from "@i18n/locales/en.json";
@@ -16,8 +16,8 @@ const options = {
     lookupQuerystring: "lng",
 };
 
-i18n.use(XHR)
-    .use(LanguageDetector)
+i18n.use(HTTPBackend)
+    .use(BrowserLanguageDetector)
     .use(initReactI18next)
     .init({
         detection: options,
@@ -26,34 +26,6 @@ i18n.use(XHR)
         defaultNS: "",
         fallbackLng: {
             default: ["en"],
-            "en-AU": ["en"],
-            "en-BZ": ["en"],
-            "en-CA": ["en"],
-            "en-IE": ["en"],
-            "en-JM": ["en"],
-            "en-NZ": ["en"],
-            "en-ZA": ["en"],
-            "en-TT": ["en"],
-            "en-GB": ["en"],
-            "en-US": ["en"],
-            "es-AR": ["es"],
-            "es-BO": ["es"],
-            "es-CL": ["es"],
-            "es-CO": ["es"],
-            "es-CR": ["es"],
-            "es-DO": ["es"],
-            "es-EC": ["es"],
-            "es-SV": ["es"],
-            "es-GT": ["es"],
-            "es-HN": ["es"],
-            "es-MX": ["es"],
-            "es-NI": ["es"],
-            "es-PA": ["es"],
-            "es-PY": ["es"],
-            "es-PE": ["es"],
-            "es-PR": ["es"],
-            "es-UY": ["es"],
-            "es-VE": ["es"],
         },
         supportedLngs: [
             "en",
@@ -90,7 +62,7 @@ i18n.use(XHR)
         interpolation: {
             escapeValue: false,
         },
-        debug: false,
+        debug: true,
     });
 
 export default i18n;
