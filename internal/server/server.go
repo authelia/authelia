@@ -16,6 +16,7 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
+	"github.com/authelia/authelia/v4/internal/asset"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
@@ -150,6 +151,11 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	if configuration.Server.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
+
+	locales := asset.NewLocalesEmbeddedFS()
+
+	r.GET("/locales/{language:[a-z]{2}}/{namespace}.json", autheliaMiddleware(locales))
+	r.GET("/locales/{language:[a-z]{2}}-{variant:[a-zA-Z]{2}}/{namespace}.json", autheliaMiddleware(locales))
 
 	r.NotFound = autheliaMiddleware(serveIndexHandler)
 
