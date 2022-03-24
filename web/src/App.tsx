@@ -60,8 +60,8 @@ const App: React.FC = () => {
         }
     }, []);
     return (
-        <Suspense fallback={<BaseLoadingPage message={"Loading"} />}>
-            <ThemeProvider theme={theme}>
+        <ThemeProvider theme={theme}>
+            <Suspense fallback={<BaseLoadingPage message={"Loading"} />}>
                 <CssBaseline />
                 <NotificationsContext.Provider value={{ notification, setNotification }}>
                     <Router basename={getBasePath()}>
@@ -86,8 +86,8 @@ const App: React.FC = () => {
                         </Routes>
                     </Router>
                 </NotificationsContext.Provider>
-            </ThemeProvider>
-        </Suspense>
+            </Suspense>
+        </ThemeProvider>
     );
 };
 
