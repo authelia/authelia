@@ -3,16 +3,14 @@ import BrowserLanguageDetector from "i18next-browser-languagedetector";
 import HTTPBackend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-const options = {
-    order: ["querystring", "navigator"],
-    lookupQuerystring: "lng",
-};
-
 i18n.use(HTTPBackend)
     .use(BrowserLanguageDetector)
     .use(initReactI18next)
     .init({
-        detection: options,
+        detection: {
+            order: ["querystring", "navigator"],
+            lookupQuerystring: "lng",
+        },
         backend: {
             loadPath: "/locale.json?lng={{lng}}&ns={{ns}}",
         },

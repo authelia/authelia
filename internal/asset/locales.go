@@ -54,7 +54,7 @@ func NewLocalesEmbeddedFS(path string) (handler middlewares.RequestHandler) {
 		}
 
 		fmt.Printf("%s %s %s %s", language, variant, locale, namespace)
-		
+
 		var data []byte
 
 		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
@@ -74,7 +74,7 @@ func NewLocalesEmbeddedFS(path string) (handler middlewares.RequestHandler) {
 }
 
 func localeDecodeLngAndNS(lng, ns []byte) (language, variant, locale, namespace string, err error) {
-	locale, namespace = string(lng), string(ns)
+	locale, namespace = string(lng), strings.ToLower(string(ns))
 
 	if len(namespace) == 0 {
 		namespace = defaultLocaleNS
@@ -86,10 +86,10 @@ func localeDecodeLngAndNS(lng, ns []byte) (language, variant, locale, namespace 
 		return defaultLocaleLanguage, variant, defaultLocaleLanguage, namespace, nil
 	}
 
-	language = parts[0]
+	language = strings.ToLower(parts[0])
 
 	if len(parts) == 2 {
-		variant = parts[1]
+		variant = strings.ToUpper(parts[1])
 	}
 
 	if len(language) != 2 || len(variant) != 0 && len(variant) != 2 {
