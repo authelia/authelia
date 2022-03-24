@@ -3,9 +3,9 @@
   "version": "4.34.5",
   "private": true,
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "6.1.0",
-    "@fortawesome/free-regular-svg-icons": "6.1.0",
-    "@fortawesome/free-solid-svg-icons": "6.1.0",
+    "@fortawesome/fontawesome-svg-core": "6.1.1",
+    "@fortawesome/free-regular-svg-icons": "6.1.1",
+    "@fortawesome/free-solid-svg-icons": "6.1.1",
     "@fortawesome/react-fontawesome": "0.1.18",
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
