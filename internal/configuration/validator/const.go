@@ -120,10 +120,11 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
-
+	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
+
+	errFmtOIDCCORSInvalidOrigin = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
 
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
@@ -456,6 +457,9 @@ var ValidKeys = []string{
 	"identity_providers.oidc.enable_pkce_plain_challenge",
 	"identity_providers.oidc.enable_client_debug_messages",
 	"identity_providers.oidc.minimum_parameter_entropy",
+	"identity_providers.oidc.cors.endpoints",
+	"identity_providers.oidc.cors.allowed_origins",
+	"identity_providers.oidc.cors.enable_origins_from_clients",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",

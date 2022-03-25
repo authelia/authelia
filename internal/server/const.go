@@ -11,9 +11,12 @@ const (
 var rootFiles = []string{"favicon.ico", "manifest.json", "robots.txt"}
 
 const (
-	dev = "dev"
-	f   = "false"
-	t   = "true"
+	dev         = "dev"
+	f           = "false"
+	t           = "true"
+	localhost   = "localhost"
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 )
 
 const healthCheckEnv = `# Written by Authelia Process

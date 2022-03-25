@@ -49,10 +49,40 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 			validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
 		}
 
+		validateOIDCCORS(config, validator)
 		validateOIDCClients(config, validator)
 
 		if len(config.Clients) == 0 {
 			validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
+		}
+	}
+}
+
+func validateOIDCCORS(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	for _, origin := range config.CORS.AllowedOrigins {
+		if origin.Path != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOrigin, origin.String(), "path"))
+		}
+
+		if origin.RawQuery != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOrigin, origin.String(), "query string"))
+		}
+	}
+
+	if config.CORS.AllowedOriginsFromClientRedirectURIs {
+		for _, client := range config.Clients {
+			for _, redirectURI := range client.RedirectURIs {
+				uri, err := url.Parse(redirectURI)
+				if err != nil || (uri.Scheme != schemeHTTP && uri.Scheme != schemeHTTPS) || uri.Hostname() == "localhost" {
+					continue
+				}
+
+				origin := utils.OriginFromURL(*uri)
+
+				if !utils.IsURLInSlice(origin, config.CORS.AllowedOrigins) {
+					config.CORS.AllowedOrigins = append(config.CORS.AllowedOrigins, origin)
+				}
+			}
 		}
 	}
 }

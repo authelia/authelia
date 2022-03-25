@@ -145,6 +145,52 @@ func IsStringSlicesDifferentFold(a, b []string) (different bool) {
 	return isStringSlicesDifferent(a, b, IsStringInSliceFold)
 }
 
+// IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
+func IsURLInSlice(needle url.URL, haystack []url.URL) (has bool) {
+	for i := 0; i < len(haystack); i++ {
+		if strings.EqualFold(needle.String(), haystack[i].String()) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// StringSliceFromURLs returns a []string from a []url.URL.
+func StringSliceFromURLs(urls []url.URL) []string {
+	result := make([]string, len(urls))
+
+	for i := 0; i < len(urls); i++ {
+		result[i] = urls[i].String()
+	}
+
+	return result
+}
+
+// URLsFromStringSlice returns a []url.URL from a []string.
+func URLsFromStringSlice(urls []string) []url.URL {
+	var result []url.URL
+
+	for i := 0; i < len(urls); i++ {
+		u, err := url.Parse(urls[i])
+		if err != nil {
+			continue
+		}
+
+		result = append(result, *u)
+	}
+
+	return result
+}
+
+// OriginFromURL returns an origin url.URL given another url.URL.
+func OriginFromURL(u url.URL) (origin url.URL) {
+	return url.URL{
+		Scheme: u.Scheme,
+		Host:   u.Host,
+	}
+}
+
 // StringSlicesDelta takes a before and after []string and compares them returning a added and removed []string.
 func StringSlicesDelta(before, after []string) (added, removed []string) {
 	for _, s := range before {

@@ -9,7 +9,7 @@ import (
 )
 
 // Replacement for the default error handler in fasthttp.
-func autheliaErrorHandler(ctx *fasthttp.RequestCtx, err error) {
+func handleError(ctx *fasthttp.RequestCtx, err error) {
 	logger := logging.Logger()
 
 	if _, ok := err.(*fasthttp.ErrSmallBuffer); ok {

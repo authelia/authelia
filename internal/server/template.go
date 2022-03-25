@@ -48,14 +48,14 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 			}
 		}
 
-		var scheme = "https"
+		var scheme = schemeHTTPS
 
 		if !https {
 			proto := string(ctx.XForwardedProto())
 			switch proto {
 			case "":
 				break
-			case "http", "https":
+			case schemeHTTP, schemeHTTPS:
 				scheme = proto
 			}
 		}
@@ -116,7 +116,7 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 	}()
 
 	if host == "0.0.0.0" {
-		host = "localhost"
+		host = localhost
 	} else if strings.Contains(host, ":") {
 		host = "[" + host + "]"
 	}

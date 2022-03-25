@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -170,4 +171,43 @@ func TestIsStringSliceContainsAny(t *testing.T) {
 
 	assert.False(t, IsStringSliceContainsAny(needles, haystackOne))
 	assert.True(t, IsStringSliceContainsAny(needles, haystackTwo))
+}
+
+func TestStringSliceURLConversionFuncs(t *testing.T) {
+	urls := URLsFromStringSlice([]string{"https://google.com", "abc", "%*()@#$J(@*#$J@#($H"})
+
+	require.Len(t, urls, 2)
+	assert.Equal(t, "https://google.com", urls[0].String())
+	assert.Equal(t, "abc", urls[1].String())
+
+	strs := StringSliceFromURLs(urls)
+
+	require.Len(t, strs, 2)
+	assert.Equal(t, "https://google.com", strs[0])
+	assert.Equal(t, "abc", strs[1])
+}
+
+func TestIsURLInSlice(t *testing.T) {
+	urls := URLsFromStringSlice([]string{"https://google.com", "https://example.com"})
+
+	google, err := url.Parse("https://google.com")
+	assert.NoError(t, err)
+
+	microsoft, err := url.Parse("https://microsoft.com")
+	assert.NoError(t, err)
+
+	example, err := url.Parse("https://example.com")
+	assert.NoError(t, err)
+
+	assert.True(t, IsURLInSlice(*google, urls))
+	assert.False(t, IsURLInSlice(*microsoft, urls))
+	assert.True(t, IsURLInSlice(*example, urls))
+}
+
+func TestOriginFromURL(t *testing.T) {
+	google, err := url.Parse("https://google.com/abc?a=123#five")
+	assert.NoError(t, err)
+
+	origin := OriginFromURL(*google)
+	assert.Equal(t, "https://google.com", origin.String())
 }

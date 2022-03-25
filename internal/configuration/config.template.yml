@@ -713,6 +713,26 @@ notifier:
     ## for security reasons.
     # enforce_pkce: public_clients_only
 
+    ## Cross-Origin Resource Sharing (CORS) settings.
+    # cors:
+      ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
+      # endpoints:
+      #    - authorization
+      #    - token
+      #    - revocation
+      #    - introspection
+      #    - userinfo
+
+      ## List of allowed origins.
+      ## Any origin with https is permitted unless this option is configured or the
+      ## allowed_origins_from_client_redirect_uris option is enabled.
+      # allowed_origins:
+      #   - https://example.com
+
+      ## Automatically adds the origin portion of all redirect URI's on all clients to the list of allowed_origins,
+      ## provided they have the scheme http or https and do not have the hostname of localhost.
+      # allowed_origins_from_client_redirect_uris: false
+
     ## Clients is a list of known clients and their configuration.
     # clients:
       # -
