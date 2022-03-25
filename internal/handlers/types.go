@@ -14,10 +14,6 @@ type configurationBody struct {
 	AvailableMethods MethodList `json:"available_methods"`
 }
 
-type configurationLanguageBody struct {
-	SupportedLanguages []string `json:"supported_languages"`
-}
-
 // signTOTPRequestBody model of the request body received by TOTP authentication endpoint.
 type signTOTPRequestBody struct {
 	Token     string `json:"token" valid:"required"`

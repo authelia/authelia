@@ -3,10 +3,6 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-import { getConfigurationLanguages } from "@services/Configuration";
-
-const config = getConfigurationLanguages();
-
 i18n.use(Backend)
     .use(LanguageDetector)
     .use(initReactI18next)
@@ -24,7 +20,7 @@ i18n.use(Backend)
             default: ["en"],
         },
         load: "all",
-        supportedLngs: config.supported_languages,
+        supportedLngs: ["en", "es"],
         nonExplicitSupportedLngs: true,
         interpolation: {
             escapeValue: false,
