@@ -218,10 +218,10 @@ func (p CORSMiddleware) handleCORS(ctx *fasthttp.RequestCtx) {
 	case 0:
 		allowedOrigin = origin
 	default:
-		for _, o := range p.origins {
-			if bytes.Equal(o, originValueWildcard) {
+		for i := 0; i < len(p.origins); i++ {
+			if bytes.Equal(p.origins[i], originValueWildcard) {
 				allowedOrigin = originValueWildcard
-			} else if bytes.Equal(o, origin) {
+			} else if bytes.Equal(p.origins[i], origin) {
 				allowedOrigin = origin
 			}
 		}
@@ -261,8 +261,8 @@ func (p CORSMiddleware) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 			requestedHeaders := strings.Split(string(headers), ",")
 			allowHeaders := make([]string, 0, len(requestedHeaders))
 
-			for _, header := range requestedHeaders {
-				headerTrimmed := strings.Trim(header, " ")
+			for i := 0; i < len(requestedHeaders); i++ {
+				headerTrimmed := strings.Trim(requestedHeaders[i], " ")
 
 				if headerTrimmed == "*" {
 					continue
