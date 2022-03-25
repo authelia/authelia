@@ -23,7 +23,6 @@ import (
 )
 
 func getRequestHandler(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	middleware := middlewares.AutheliaMiddleware(config, providers)
 	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.DisableResetPassword)
 
@@ -32,14 +31,15 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		duoSelfEnrollment = strconv.FormatBool(config.DuoAPI.EnableSelfEnrollment)
 	}
 
-	embeddedPath, _ := fs.Sub(assets, "public_html")
-	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
-
 	https := config.Server.TLS.Key != "" && config.Server.TLS.Certificate != ""
 
 	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, config.Session.Name, config.Theme, https)
 	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, config.Session.Name, config.Theme, https)
 	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, config.Session.Name, config.Theme, https)
+
+	embeddedPath, _ := fs.Sub(assets, "public_html")
+	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+	middleware := middlewares.AutheliaMiddleware(config, providers)
 
 	r := router.New()
 	r.GET("/", middleware(serveIndexHandler))
@@ -58,8 +58,7 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	r.GET("/api/health", middleware(handlers.HealthGet))
 	r.GET("/api/state", middleware(handlers.StateGet))
 
-	r.GET("/api/configuration", middleware(
-		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
+	r.GET("/api/configuration", middleware(middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
 
 	r.GET("/api/verify", middleware(handlers.VerifyGet(config.AuthenticationBackend)))
 	r.HEAD("/api/verify", middleware(handlers.VerifyGet(config.AuthenticationBackend)))
@@ -72,46 +71,32 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	// Only register endpoints if forgot password is not disabled.
 	if !config.AuthenticationBackend.DisableResetPassword {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middleware(
-			handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", middleware(
-			handlers.ResetPasswordIdentityFinish))
-		r.POST("/api/reset-password", middleware(
-			handlers.ResetPasswordPost))
+		r.POST("/api/reset-password/identity/start", middleware(handlers.ResetPasswordIdentityStart))
+		r.POST("/api/reset-password/identity/finish", middleware(handlers.ResetPasswordIdentityFinish))
+		r.POST("/api/reset-password", middleware(handlers.ResetPasswordPost))
 	}
 
 	// Information about the user.
-	r.GET("/api/user/info", middleware(
-		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
-	r.POST("/api/user/info/2fa_method", middleware(
-		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
+	r.GET("/api/user/info", middleware(middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+	r.POST("/api/user/info/2fa_method", middleware(middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
-		r.GET("/api/user/info/totp", middleware(
-			middlewares.RequireFirstFactor(handlers.UserTOTPGet)))
+		r.GET("/api/user/info/totp", middleware(middlewares.RequireFirstFactor(handlers.UserTOTPGet)))
 
-		r.POST("/api/secondfactor/totp/identity/start", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
-		r.POST("/api/secondfactor/totp/identity/finish", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
-		r.POST("/api/secondfactor/totp", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
+		r.POST("/api/secondfactor/totp/identity/start", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
+		r.POST("/api/secondfactor/totp/identity/finish", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
+		r.POST("/api/secondfactor/totp", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
 	}
 
 	if !config.Webauthn.Disable {
 		// Webauthn Endpoints.
-		r.POST("/api/secondfactor/webauthn/identity/start", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
-		r.POST("/api/secondfactor/webauthn/identity/finish", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityFinish)))
-		r.POST("/api/secondfactor/webauthn/attestation", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAttestationPOST)))
+		r.POST("/api/secondfactor/webauthn/identity/start", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
+		r.POST("/api/secondfactor/webauthn/identity/finish", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityFinish)))
+		r.POST("/api/secondfactor/webauthn/attestation", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAttestationPOST)))
 
-		r.GET("/api/secondfactor/webauthn/assertion", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionGET)))
-		r.POST("/api/secondfactor/webauthn/assertion", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionPOST)))
+		r.GET("/api/secondfactor/webauthn/assertion", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionGET)))
+		r.POST("/api/secondfactor/webauthn/assertion", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionPOST)))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
@@ -129,14 +114,11 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 				config.DuoAPI.Hostname, ""))
 		}
 
-		r.GET("/api/secondfactor/duo_devices", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicesGet(duoAPI))))
+		r.GET("/api/secondfactor/duo_devices", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicesGet(duoAPI))))
 
-		r.POST("/api/secondfactor/duo", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
+		r.POST("/api/secondfactor/duo", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
 
-		r.POST("/api/secondfactor/duo_device", middleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicePost)))
+		r.POST("/api/secondfactor/duo_device", middleware(middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicePost)))
 	}
 
 	if config.Server.EnablePprof {
@@ -145,13 +127,6 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 
 	if config.Server.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
-	}
-
-	r.NotFound = middleware(serveIndexHandler)
-
-	handler := middlewares.LogRequestMiddleware(r.Handler)
-	if config.Server.Path != "" {
-		handler = middlewares.StripPathMiddleware(config.Server.Path, handler)
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
@@ -233,6 +208,13 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
 		r.OPTIONS("/api/oidc/revoke", corsRevocation.HandleOPTIONS)
 		r.POST("/api/oidc/revoke", corsRevocation.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+	}
+
+	r.NotFound = middleware(serveIndexHandler)
+
+	handler := middlewares.LogRequestMiddleware(r.Handler)
+	if config.Server.Path != "" {
+		handler = middlewares.StripPathMiddleware(config.Server.Path, handler)
 	}
 
 	return handler
