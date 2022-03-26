@@ -3,9 +3,9 @@ lockfileVersion: 5.3
 specifiers:
   '@commitlint/cli': 16.2.3
   '@commitlint/config-conventional': 16.2.1
-  '@fortawesome/fontawesome-svg-core': 6.1.0
-  '@fortawesome/free-regular-svg-icons': 6.1.0
-  '@fortawesome/free-solid-svg-icons': 6.1.0
+  '@fortawesome/fontawesome-svg-core': 6.1.1
+  '@fortawesome/free-regular-svg-icons': 6.1.1
+  '@fortawesome/free-solid-svg-icons': 6.1.1
   '@fortawesome/react-fontawesome': 0.1.18
   '@material-ui/core': 4.12.3
   '@material-ui/icons': 4.11.2
@@ -39,7 +39,7 @@ specifiers:
   jest: 27.5.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0
-  prettier: 2.6.0
+  prettier: 2.6.1
   qrcode.react: 2.0.0
   query-string: 7.1.1
   react: 17.0.2
@@ -58,10 +58,10 @@ specifiers:
   vite-tsconfig-paths: 3.4.1
 
 dependencies:
-  '@fortawesome/fontawesome-svg-core': 6.1.0
-  '@fortawesome/free-regular-svg-icons': 6.1.0
-  '@fortawesome/free-solid-svg-icons': 6.1.0
-  '@fortawesome/react-fontawesome': 0.1.18_d2d03af444233300c17090fb2cc105c2
+  '@fortawesome/fontawesome-svg-core': 6.1.1
+  '@fortawesome/free-regular-svg-icons': 6.1.1
+  '@fortawesome/free-solid-svg-icons': 6.1.1
+  '@fortawesome/react-fontawesome': 0.1.18_6909f5698ccb6b468185370814560628
   '@material-ui/core': 4.12.3_4211ed8b26069fec1bc8ff4659f40efc
   '@material-ui/icons': 4.11.2_eca83d1d956e61655abac121890d9ed0
   '@material-ui/styles': 4.11.4_4211ed8b26069fec1bc8ff4659f40efc
@@ -100,14 +100,14 @@ devDependencies:
   eslint-plugin-flowtype: 8.0.3
   eslint-plugin-import: 2.25.4
   eslint-plugin-jsx-a11y: 6.5.1
-  eslint-plugin-prettier: 4.0.0_abddd5e412da582fb6fdac8f1ecbbd6d
+  eslint-plugin-prettier: 4.0.0_402c22c633b7d169edb414eb30facea3
   eslint-plugin-react: 7.29.4
   eslint-plugin-react-hooks: 4.3.0
   husky: 7.0.4
   jest: 27.5.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0_jest@27.5.1
-  prettier: 2.6.0
+  prettier: 2.6.1
   react-test-renderer: 17.0.2_react@17.0.2
   typescript: 4.6.2
   vite: 2.8.6
@@ -1695,43 +1695,43 @@ packages:
       - supports-color
     dev: true
 
-  /@fortawesome/fontawesome-common-types/6.1.0:
-    resolution: {integrity: sha512-lFIJ5opxOKG9q88xOsuJJAdRZ+2WRldsZwUR/7MJoOMUMhF/LkHUjwWACIEPTa5Wo6uTDHvGRIX+XutdN7zYxA==}
+  /@fortawesome/fontawesome-common-types/6.1.1:
+    resolution: {integrity: sha512-wVn5WJPirFTnzN6tR95abCx+ocH+3IFLXAgyavnf9hUmN0CfWoDjPT/BAWsUVwSlYYVBeCLJxaqi7ZGe4uSjBA==}
     engines: {node: '>=6'}
     requiresBuild: true
     dev: false
 
-  /@fortawesome/fontawesome-svg-core/6.1.0:
-    resolution: {integrity: sha512-racj+/EDnMZN0jcuHePOa+9kdHHOCpCAbBvVRnEi4G4DA5SWQiT/uXJ8WcfVEbLN51vPJjhukP4o+zH0cfYplg==}
-    engines: {node: '>=6'}
-    requiresBuild: true
-    dependencies:
-      '@fortawesome/fontawesome-common-types': 6.1.0
-    dev: false
-
-  /@fortawesome/free-regular-svg-icons/6.1.0:
-    resolution: {integrity: sha512-MLSBZ3AprHZXVG6zVg9Jd/mGZrlX/1jxqQsHhvZuhdRdL9bZQyXHe5RmP0n4IOth/fdnoj3fs+EnbW/O+0K4dw==}
+  /@fortawesome/fontawesome-svg-core/6.1.1:
+    resolution: {integrity: sha512-NCg0w2YIp81f4V6cMGD9iomfsIj7GWrqmsa0ZsPh59G7PKiGN1KymZNxmF00ssuAlo/VZmpK6xazsGOwzKYUMg==}
     engines: {node: '>=6'}
     requiresBuild: true
     dependencies:
-      '@fortawesome/fontawesome-common-types': 6.1.0
+      '@fortawesome/fontawesome-common-types': 6.1.1
     dev: false
 
-  /@fortawesome/free-solid-svg-icons/6.1.0:
-    resolution: {integrity: sha512-OOr0jRHl5d41RzBS3sZh5Z3HmdPjMr43PxxKlYeLtQxFSixPf4sJFVM12/rTepB2m0rVShI0vtjHQmzOTlBaXg==}
+  /@fortawesome/free-regular-svg-icons/6.1.1:
+    resolution: {integrity: sha512-xXiW7hcpgwmWtndKPOzG+43fPH7ZjxOaoeyooptSztGmJxCAflHZxXNK0GcT0uEsR4jTGQAfGklDZE5NHoBhKg==}
     engines: {node: '>=6'}
     requiresBuild: true
     dependencies:
-      '@fortawesome/fontawesome-common-types': 6.1.0
+      '@fortawesome/fontawesome-common-types': 6.1.1
     dev: false
 
-  /@fortawesome/react-fontawesome/0.1.18_d2d03af444233300c17090fb2cc105c2:
+  /@fortawesome/free-solid-svg-icons/6.1.1:
+    resolution: {integrity: sha512-0/5exxavOhI/D4Ovm2r3vxNojGZioPwmFrKg0ZUH69Q68uFhFPs6+dhAToh6VEQBntxPRYPuT5Cg1tpNa9JUPg==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dependencies:
+      '@fortawesome/fontawesome-common-types': 6.1.1
+    dev: false
+
+  /@fortawesome/react-fontawesome/0.1.18_6909f5698ccb6b468185370814560628:
     resolution: {integrity: sha512-RwLIB4TZw0M9gvy5u+TusAA0afbwM4JQIimNH/j3ygd6aIvYPQLqXMhC9ErY26J23rDPyDZldIfPq/HpTTJ/tQ==}
     peerDependencies:
       '@fortawesome/fontawesome-svg-core': ~1 || ~6
       react: '>=16.x'
     dependencies:
-      '@fortawesome/fontawesome-svg-core': 6.1.0
+      '@fortawesome/fontawesome-svg-core': 6.1.1
       prop-types: 15.8.1
       react: 17.0.2
     dev: false
@@ -4257,7 +4257,7 @@ packages:
       minimatch: 3.1.2
     dev: true
 
-  /eslint-plugin-prettier/4.0.0_abddd5e412da582fb6fdac8f1ecbbd6d:
+  /eslint-plugin-prettier/4.0.0_402c22c633b7d169edb414eb30facea3:
     resolution: {integrity: sha512-98MqmCJ7vJodoQK359bqQWaxOE0CS8paAz/GgjaZLyex4TTk3g9HugoO89EqWCrFiOqn9EVvcoo7gZzONCWVwQ==}
     engines: {node: '>=6.0.0'}
     peerDependencies:
@@ -4269,7 +4269,7 @@ packages:
         optional: true
     dependencies:
       eslint-config-prettier: 8.5.0
-      prettier: 2.6.0
+      prettier: 2.6.1
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -6749,8 +6749,8 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.6.0:
-    resolution: {integrity: sha512-m2FgJibYrBGGgQXNzfd0PuDGShJgRavjUoRCw1mZERIWVSXF0iLzLm+aOqTAbLnC3n6JzUhAA8uZnFVghHJ86A==}
+  /prettier/2.6.1:
+    resolution: {integrity: sha512-8UVbTBYGwN37Bs9LERmxCPjdvPxlEowx2urIL6urHzdb3SDq4B/Z6xLFCblrSnE4iKWcS6ziJ3aOYrc1kz/E2A==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
