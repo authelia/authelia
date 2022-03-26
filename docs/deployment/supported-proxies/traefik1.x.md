@@ -110,7 +110,7 @@ services:
       - net
     labels:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic
+      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:
