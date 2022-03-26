@@ -60,6 +60,18 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 
 func validateOIDCCORS(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	for _, origin := range config.CORS.AllowedOrigins {
+		if origin.String() == "*" {
+			if len(config.CORS.AllowedOrigins) != 1 {
+				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcard))
+			}
+
+			if config.CORS.AllowedOriginsFromClientRedirectURIs {
+				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcardWithClients))
+			}
+
+			continue
+		}
+
 		if origin.Path != "" {
 			validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOrigin, origin.String(), "path"))
 		}

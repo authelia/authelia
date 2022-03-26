@@ -269,6 +269,24 @@ make cross-origin requests to the OpenID Connect endpoints, however this is not 
 
 Origins must only have the scheme, hostname and port, they may not have a trailing slash or path.
 
+In addition to an Origin URI, you may specify the wildcard origin in the allowed_origins. It MUST be specified by itself
+and the allowed_origins_from_client_redirect_uris MUST NOT be enabled. The wildcard origin is denoted as `*`. Examples:
+
+```yaml
+identity_providers:
+  oidc:
+    cors:
+      allowed_origins: "*"
+```
+
+```yaml
+identity_providers:
+  oidc:
+    cors:
+      allowed_origins: 
+        - "*"
+```
+
 #### allowed_origins_from_client_redirect_uris
 <div markdown="1">
 type: boolean

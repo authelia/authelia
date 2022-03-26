@@ -43,7 +43,6 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 
 	r := router.New()
 	r.GET("/", middleware(serveIndexHandler))
-	r.OPTIONS("/", middleware(handleOPTIONS))
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, middlewares.AssetOverrideMiddleware(config.Server.AssetPath, embeddedFS))
@@ -59,7 +58,6 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 
 	r.OPTIONS("/api/"+apiFile, corsSwagger.HandleOPTIONS)
 	r.GET("/api/"+apiFile, corsSwagger.Middleware(middleware(serveSwaggerAPIHandler)))
-	r.ANY("/api/"+apiFile, corsSwagger.Middleware(middleware(serveSwaggerAPIHandler)))
 
 	for _, f := range swaggerFiles {
 		r.OPTIONS("/api/"+f, corsSwagger.HandleOPTIONS)

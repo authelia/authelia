@@ -56,7 +56,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: "key-material",
 			CORS: schema.OpenIDConnectCORSConfiguration{
-				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true"}),
+				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
@@ -72,14 +72,17 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 
 	ValidateIdentityProviders(config, validator)
 
-	require.Len(t, validator.Errors(), 4)
+	require.Len(t, validator.Errors(), 6)
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://example.com/' as it has a path: origins must only be scheme, hostname, and an optional port")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://site.example.com/subpath' as it has a path: origins must only be scheme, hostname, and an optional port")
 	assert.EqualError(t, validator.Errors()[2], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://site.example.com?example=true' as it has a query string: origins must only be scheme, hostname, and an optional port")
-	assert.EqualError(t, validator.Errors()[3], "identity_providers: oidc: client 'myclient': option 'redirect_uris' has an invalid value: redirect uri 'file://a/file' must have a scheme of 'http' or 'https' but 'file' is configured")
+	assert.EqualError(t, validator.Errors()[3], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself")
+	assert.EqualError(t, validator.Errors()[4], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled")
+	assert.EqualError(t, validator.Errors()[5], "identity_providers: oidc: client 'myclient': option 'redirect_uris' has an invalid value: redirect uri 'file://a/file' must have a scheme of 'http' or 'https' but 'file' is configured")
 
-	assert.Len(t, config.OIDC.CORS.AllowedOrigins, 5)
-	assert.Equal(t, "https://example.com", config.OIDC.CORS.AllowedOrigins[3].String())
+	require.Len(t, config.OIDC.CORS.AllowedOrigins, 6)
+	assert.Equal(t, "*", config.OIDC.CORS.AllowedOrigins[3].String())
+	assert.Equal(t, "https://example.com", config.OIDC.CORS.AllowedOrigins[4].String())
 }
 
 func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
