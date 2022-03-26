@@ -11,159 +11,205 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// CORSMiddleware is a special middleware which provides CORS headers via handlers and middleware methods which can be
+// NewCORSPolicyBuilder returns a new CORSPolicyBuilder which is used to build a CORSPolicy which adds the Vary header
+// with a value reflecting that the Origin header will Vary this response, then if the Origin header has a https scheme
+// it makes the following additional adjustments: copies the Origin header to the Access-Control-Allow-Origin header
+// effectively allowing all origins, sets the Access-Control-Allow-Credentials header to false which disallows CORS
+// requests from sending cookies etc, sets the Access-Control-Allow-Headers header to the value specified by
+// Access-Control-Request-Headers in the request excluding the Cookie/Authorization/Proxy-Authorization and special *
+// values, sets Access-Control-Allow-Methods to the value specified by the Access-Control-Request-Method header, sets
+// the Access-Control-Max-Age header to 100.
+//
+// These behaviours can be overridden by the With methods on the returned policy.
+func NewCORSPolicyBuilder() (policy *CORSPolicyBuilder) {
+	return &CORSPolicyBuilder{
+		enabled: true,
+		maxAge:  100,
+	}
+}
+
+// CORSPolicyBuilder is a special middleware which provides CORS headers via handlers and middleware methods which can be
 // configured. It aims to simplify CORS configurations.
-type CORSMiddleware struct {
+type CORSPolicyBuilder struct {
+	enabled     bool
+	varyOnly    bool
+	varySet     bool
+	methods     []string
+	headers     []string
+	origins     []string
+	credentials bool
+	vary        []string
+	maxAge      int
+}
+
+// Build reads the CORSPolicyBuilder configuration and generates a CORSPolicy.
+func (b *CORSPolicyBuilder) Build() (policy *CORSPolicy) {
+	policy = &CORSPolicy{
+		enabled:     b.enabled,
+		varyOnly:    b.varyOnly,
+		credentials: []byte(strconv.FormatBool(b.credentials)),
+		origins:     b.buildOrigins(),
+		headers:     b.buildHeaders(),
+		vary:        b.buildVary(),
+	}
+
+	if len(b.methods) != 0 {
+		policy.methods = []byte(strings.Join(b.methods, ", "))
+	}
+
+	if b.maxAge <= 0 {
+		policy.maxAge = headerValueMaxAge
+	} else {
+		policy.maxAge = []byte(strconv.Itoa(b.maxAge))
+	}
+
+	return policy
+}
+
+func (b CORSPolicyBuilder) buildOrigins() (origins [][]byte) {
+	if len(b.origins) != 0 {
+		if len(b.origins) == 1 && b.origins[0] == "*" {
+			origins = append(origins, []byte(b.origins[0]))
+		} else {
+			for _, origin := range b.origins {
+				origins = append(origins, []byte(origin))
+			}
+		}
+	}
+
+	return origins
+}
+
+func (b CORSPolicyBuilder) buildHeaders() (headers []byte) {
+	if len(b.headers) != 0 {
+		h := b.headers
+
+		if b.credentials {
+			if !utils.IsStringInSliceFold(fasthttp.HeaderCookie, h) {
+				h = append(h, fasthttp.HeaderCookie)
+			}
+
+			if !utils.IsStringInSliceFold(fasthttp.HeaderAuthorization, h) {
+				h = append(h, fasthttp.HeaderAuthorization)
+			}
+
+			if !utils.IsStringInSliceFold(fasthttp.HeaderProxyAuthorization, h) {
+				h = append(h, fasthttp.HeaderProxyAuthorization)
+			}
+		}
+
+		headers = utils.JoinAndCanonicalizeHeaders(headerSeparator, h...)
+	}
+
+	return headers
+}
+
+func (b CORSPolicyBuilder) buildVary() (vary []byte) {
+	if b.varySet {
+		if len(b.vary) != 0 {
+			vary = utils.JoinAndCanonicalizeHeaders(headerSeparator, b.vary...)
+		}
+	} else {
+		if len(b.origins) == 1 && b.origins[0] == "*" {
+			vary = headerValueVaryWildcard
+		} else {
+			vary = headerValueVary
+		}
+	}
+
+	return vary
+}
+
+// WithEnabled changes the enabled state of the middleware. If the middleware is initialized with NewCORSPolicyBuilder this
+// value will be true but this function can override the value. Setting it to false prevents the middleware from adding
+// any CORS headers. The only effect this middleware has after disabling this is the HandleOPTIONS and HandleOnlyOPTIONS
+// handlers still function to return a HTTP 204 No Content, with the Allow header communicating the available HTTP
+// method verbs. The main benefit of this option is that you don't have to implement complex logic to add/remove the
+// middleware, you can just add it with the Middleware method, and adjust it using the WithEnabled method.
+func (b *CORSPolicyBuilder) WithEnabled(enabled bool) (policy *CORSPolicyBuilder) {
+	b.enabled = enabled
+
+	return b
+}
+
+// WithAllowedMethods takes a list or HTTP methods and adjusts the Access-Control-Allow-Methods header to respond with
+// that value.
+func (b *CORSPolicyBuilder) WithAllowedMethods(methods ...string) (policy *CORSPolicyBuilder) {
+	b.methods = methods
+
+	return b
+}
+
+// WithAllowedOrigins takes a list of origin strings and only applies the CORS policy if the origin matches one of these.
+func (b *CORSPolicyBuilder) WithAllowedOrigins(origins ...string) (policy *CORSPolicyBuilder) {
+	b.origins = origins
+
+	return b
+}
+
+// WithAllowedHeaders takes a list of header strings and alters the default Access-Control-Allow-Headers header.
+func (b *CORSPolicyBuilder) WithAllowedHeaders(headers ...string) (policy *CORSPolicyBuilder) {
+	b.headers = headers
+
+	return b
+}
+
+// WithAllowCredentials takes bool and alters the default Access-Control-Allow-Credentials header.
+func (b *CORSPolicyBuilder) WithAllowCredentials(allow bool) (policy *CORSPolicyBuilder) {
+	b.credentials = allow
+
+	return b
+}
+
+// WithVary takes a list of header strings and alters the default Vary header.
+func (b *CORSPolicyBuilder) WithVary(headers ...string) (policy *CORSPolicyBuilder) {
+	b.vary = headers
+	b.varySet = true
+
+	return b
+}
+
+// WithVaryOnly just adds the Vary header.
+func (b *CORSPolicyBuilder) WithVaryOnly(varyOnly bool) (policy *CORSPolicyBuilder) {
+	b.varyOnly = varyOnly
+
+	return b
+}
+
+// WithMaxAge takes an integer and alters the default Access-Control-Max-Age header.
+func (b *CORSPolicyBuilder) WithMaxAge(age int) (policy *CORSPolicyBuilder) {
+	b.maxAge = age
+
+	return b
+}
+
+// CORSPolicy is a middleware that handles adding CORS headers.
+type CORSPolicy struct {
 	enabled     bool
 	varyOnly    bool
 	methods     []byte
-	headers     []string
+	headers     []byte
 	origins     [][]byte
 	credentials []byte
 	vary        []byte
 	maxAge      []byte
 }
 
-// NewCORSMiddleware generates a new automatic CORS policy which adds the Vary header with a value reflecting that the
-// Origin header will Vary this response, then if the Origin header has a https scheme it makes the following additional
-// adjustments: copies the Origin header to the Access-Control-Allow-Origin header effectively allowing all origins,
-// sets the Access-Control-Allow-Credentials header to false which disallows CORS requests from sending cookies etc,
-// sets the Access-Control-Allow-Headers header to the value specified by Access-Control-Request-Headers in the request
-// excluding the Cookie/Authorization/Proxy-Authorization and special * values, sets Access-Control-Allow-Methods to
-// the value specified by the Access-Control-Request-Method header, sets the Access-Control-Max-Age header to 100.
-//
-// These behaviours can be overridden by the With methods on the returned policy.
-//
-// The CORS policy can either be used as a middleware using the Middleware method, or as an OPTIONS handler using the
-// HandleOPTIONS method.
-func NewCORSMiddleware() (policy *CORSMiddleware) {
-	return &CORSMiddleware{
-		enabled:     true,
-		vary:        headerValueVary,
-		maxAge:      headerValueMaxAge,
-		credentials: headerValueFalse,
-	}
-}
-
-// WithEnabled changes the enabled state of the middleware. If the middleware is initialized with NewCORSMiddleware this
-// value will be true but this function can override the value. Setting it to false prevents the middleware from adding
-// any CORS headers. The only effect this middleware has after disabling this is the HandleOPTIONS and HandleOnlyOPTIONS
-// handlers still function to return a HTTP 204 No Content, with the Allow header communicating the available HTTP
-// method verbs. The main benefit of this option is that you don't have to implement complex logic to add/remove the
-// middleware, you can just add it with the Middleware method, and adjust it using the WithEnabled method.
-func (p *CORSMiddleware) WithEnabled(enabled bool) (policy *CORSMiddleware) {
-	p.enabled = enabled
-
-	return p
-}
-
-// WithAllowedMethods takes a list or HTTP methods and adjusts the Access-Control-Allow-Methods header to respond with
-// that value.
-func (p *CORSMiddleware) WithAllowedMethods(methods ...string) (policy *CORSMiddleware) {
-	if len(methods) == 0 {
-		p.methods = nil
-
-		return p
-	}
-
-	p.methods = []byte(strings.Join(methods, ", "))
-
-	return p
-}
-
-// WithAllowedOrigins takes a list of origin strings and only applies the CORS policy if the origin matches one of these.
-func (p *CORSMiddleware) WithAllowedOrigins(origins ...string) (policy *CORSMiddleware) {
-	if len(origins) == 0 {
-		p.origins = nil
-
-		return p
-	}
-
-	originsValue := make([][]byte, len(origins))
-
-	for i, origin := range origins {
-		if origin == "*" {
-			p.origins = [][]byte{[]byte(origin)}
-
-			return p
-		}
-
-		originsValue[i] = []byte(origin)
-	}
-
-	p.origins = originsValue
-
-	return p
-}
-
-// WithAllowedHeaders takes a list of header strings and alters the default Access-Control-Allow-Headers header.
-func (p *CORSMiddleware) WithAllowedHeaders(headers ...string) (policy *CORSMiddleware) {
-	if len(headers) == 0 {
-		p.headers = nil
-
-		return p
-	}
-
-	p.headers = headers
-
-	return p
-}
-
-// WithAllowCredentials takes bool and alters the default Access-Control-Allow-Credentials header.
-func (p *CORSMiddleware) WithAllowCredentials(allow bool) (policy *CORSMiddleware) {
-	p.credentials = []byte(strconv.FormatBool(allow))
-
-	return p
-}
-
-// WithVary takes a list of header strings and alters the default Vary header.
-func (p *CORSMiddleware) WithVary(headers ...string) (policy *CORSMiddleware) {
-	if len(headers) == 0 {
-		p.vary = nil
-
-		return p
-	}
-
-	p.vary = []byte(strings.Join(headers, ", "))
-
-	return p
-}
-
-// WithVaryOnly just adds the Vary header.
-func (p *CORSMiddleware) WithVaryOnly(varyOnly bool) (policy *CORSMiddleware) {
-	p.varyOnly = varyOnly
-
-	return p
-}
-
-// WithMaxAge takes an integer and alters the default Access-Control-Max-Age header.
-func (p *CORSMiddleware) WithMaxAge(age int) (policy *CORSMiddleware) {
-	if age == 0 {
-		p.maxAge = nil
-
-		return p
-	}
-
-	p.maxAge = []byte(strconv.Itoa(age))
-
-	return p
-}
-
 // HandleOPTIONS is an OPTIONS handler that just adds CORS headers, the Allow header, and sets the status code to 204
 // without a body. This handler should generally not be used without using WithAllowedMethods.
-func (p CORSMiddleware) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
 	p.handleOPTIONS(ctx)
 	p.handle(ctx)
 }
 
 // HandleOnlyOPTIONS is an OPTIONS handler that just handles the Allow header, and sets the status code to 204
 // without a body. This handler should generally not be used without using WithAllowedMethods.
-func (p CORSMiddleware) HandleOnlyOPTIONS(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) HandleOnlyOPTIONS(ctx *fasthttp.RequestCtx) {
 	p.handleOPTIONS(ctx)
 }
 
-// Middleware provides a middleware that adds the appropriate CORS headers for this CORSMiddleware.
-func (p CORSMiddleware) Middleware(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler) {
+// Middleware provides a middleware that adds the appropriate CORS headers for this CORSPolicyBuilder.
+func (p CORSPolicy) Middleware(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler) {
 	return func(ctx *fasthttp.RequestCtx) {
 		p.handle(ctx)
 
@@ -171,7 +217,7 @@ func (p CORSMiddleware) Middleware(next fasthttp.RequestHandler) (handler fastht
 	}
 }
 
-func (p CORSMiddleware) handle(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) handle(ctx *fasthttp.RequestCtx) {
 	if !p.enabled {
 		return
 	}
@@ -183,7 +229,7 @@ func (p CORSMiddleware) handle(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (p CORSMiddleware) handleOPTIONS(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 	ctx.Response.ResetBody()
 
 	ctx.SetStatusCode(fasthttp.StatusNoContent)
@@ -193,13 +239,13 @@ func (p CORSMiddleware) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (p CORSMiddleware) handleVary(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) handleVary(ctx *fasthttp.RequestCtx) {
 	if len(p.vary) != 0 {
 		ctx.Response.Header.SetBytesKV(headerVary, p.vary)
 	}
 }
 
-func (p CORSMiddleware) handleCORS(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	var (
 		originURL *url.URL
 		err       error
@@ -219,8 +265,8 @@ func (p CORSMiddleware) handleCORS(ctx *fasthttp.RequestCtx) {
 		allowedOrigin = origin
 	default:
 		for i := 0; i < len(p.origins); i++ {
-			if bytes.Equal(p.origins[i], originValueWildcard) {
-				allowedOrigin = originValueWildcard
+			if bytes.Equal(p.origins[i], headerValueOriginWildcard) {
+				allowedOrigin = headerValueOriginWildcard
 			} else if bytes.Equal(p.origins[i], origin) {
 				allowedOrigin = origin
 			}
@@ -243,7 +289,7 @@ func (p CORSMiddleware) handleCORS(ctx *fasthttp.RequestCtx) {
 	p.handleAllowedMethods(ctx)
 }
 
-func (p CORSMiddleware) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	switch len(p.methods) {
 	case 0:
 		if requestMethods := ctx.Request.Header.PeekBytes(headerAccessControlRequestMethod); requestMethods != nil {
@@ -254,7 +300,7 @@ func (p CORSMiddleware) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (p CORSMiddleware) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
+func (p CORSPolicy) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 	switch len(p.headers) {
 	case 0:
 		if headers := ctx.Request.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
@@ -281,22 +327,6 @@ func (p CORSMiddleware) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	default:
-		headers := p.headers
-
-		if bytes.Equal(p.credentials, headerValueTrue) {
-			if !utils.IsStringInSliceFold(fasthttp.HeaderCookie, headers) {
-				headers = append(headers, fasthttp.HeaderCookie)
-			}
-
-			if !utils.IsStringInSliceFold(fasthttp.HeaderAuthorization, headers) {
-				headers = append(headers, fasthttp.HeaderAuthorization)
-			}
-
-			if !utils.IsStringInSliceFold(fasthttp.HeaderProxyAuthorization, headers) {
-				headers = append(headers, fasthttp.HeaderProxyAuthorization)
-			}
-		}
-
-		ctx.Response.Header.SetBytesKV(headerAccessControlAllowHeaders, []byte(strings.Join(headers, ", ")))
+		ctx.Response.Header.SetBytesKV(headerAccessControlAllowHeaders, p.headers)
 	}
 }

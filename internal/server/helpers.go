@@ -49,9 +49,10 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	}
 
 	// Swagger.
-	corsSwagger := middlewares.NewCORSMiddleware().
+	corsSwagger := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods("OPTIONS", "GET").
-		WithAllowedOrigins("*")
+		WithAllowedOrigins("*").
+		Build()
 
 	r.OPTIONS("/api/", corsSwagger.HandleOPTIONS)
 	r.GET("/api/", corsSwagger.Middleware(middleware(serveSwaggerHandler)))
@@ -146,9 +147,10 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 
 		allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
 
-		corsGETPublic := middlewares.NewCORSMiddleware().
+		corsGETPublic := middlewares.NewCORSPolicyBuilder().
 			WithAllowedMethods("OPTIONS", "GET").
-			WithAllowedOrigins("*")
+			WithAllowedOrigins("*").
+			Build()
 
 		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, corsGETPublic.HandleOPTIONS)
 		r.GET(oidc.WellKnownOpenIDConfigurationPath, corsGETPublic.Middleware(middleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
@@ -163,10 +165,11 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		r.OPTIONS("/api/oidc/jwks", corsGETPublic.HandleOPTIONS)
 		r.GET("/api/oidc/jwks", corsGETPublic.Middleware(middleware(handlers.JSONWebKeySetGET)))
 
-		corsAuthorization := middlewares.NewCORSMiddleware().
+		corsAuthorization := middlewares.NewCORSPolicyBuilder().
 			WithAllowedMethods("OPTIONS", "GET").
 			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.AuthorizationEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints))
+			WithEnabled(utils.IsStringInSlice(oidc.AuthorizationEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
 
 		r.OPTIONS(oidc.AuthorizationPath, corsAuthorization.HandleOnlyOPTIONS)
 		r.GET(oidc.AuthorizationPath, middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
@@ -175,30 +178,33 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		r.OPTIONS("/api/oidc/authorize", corsAuthorization.HandleOnlyOPTIONS)
 		r.GET("/api/oidc/authorize", middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
 
-		corsToken := middlewares.NewCORSMiddleware().
+		corsToken := middlewares.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST").
 			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.TokenEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints))
+			WithEnabled(utils.IsStringInSlice(oidc.TokenEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
 
 		r.OPTIONS(oidc.TokenPath, corsToken.HandleOPTIONS)
 		r.POST(oidc.TokenPath, corsToken.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
 
-		corsUserInfo := middlewares.NewCORSMiddleware().
+		corsUserInfo := middlewares.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "GET", "POST").
 			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.UserinfoEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints))
+			WithEnabled(utils.IsStringInSlice(oidc.UserinfoEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
 
 		r.OPTIONS(oidc.UserinfoPath, corsUserInfo.HandleOPTIONS)
 		r.GET(oidc.UserinfoPath, corsUserInfo.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
 		r.POST(oidc.UserinfoPath, corsUserInfo.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
 
-		corsIntrospection := middlewares.NewCORSMiddleware().
+		corsIntrospection := middlewares.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST").
 			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.IntrospectionEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints))
+			WithEnabled(utils.IsStringInSlice(oidc.IntrospectionEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
 
 		r.OPTIONS(oidc.IntrospectionPath, corsIntrospection.HandleOPTIONS)
 		r.POST(oidc.IntrospectionPath, corsIntrospection.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
@@ -207,11 +213,12 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		r.OPTIONS("/api/oidc/introspect", corsIntrospection.HandleOPTIONS)
 		r.POST("/api/oidc/introspect", corsIntrospection.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
 
-		corsRevocation := middlewares.NewCORSMiddleware().
+		corsRevocation := middlewares.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST").
 			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.RevocationEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints))
+			WithEnabled(utils.IsStringInSlice(oidc.RevocationEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
 
 		r.OPTIONS(oidc.RevocationPath, corsRevocation.HandleOPTIONS)
 		r.POST(oidc.RevocationPath, corsRevocation.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))

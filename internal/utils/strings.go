@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/valyala/fasthttp"
 )
 
 // IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
@@ -237,6 +239,19 @@ func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
 // StringHTMLEscape escapes chars for a HTML body.
 func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
+}
+
+// JoinAndCanonicalizeHeaders join header strings by a given sep.
+func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
+	for i, header := range headers {
+		if i != 0 {
+			joined = append(joined, sep...)
+		}
+
+		joined = fasthttp.AppendNormalizedHeaderKey(joined, header)
+	}
+
+	return joined
 }
 
 func init() {

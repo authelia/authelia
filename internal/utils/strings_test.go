@@ -211,3 +211,9 @@ func TestOriginFromURL(t *testing.T) {
 	origin := OriginFromURL(*google)
 	assert.Equal(t, "https://google.com", origin.String())
 }
+
+func TestJoinAndCanonicalizeHeaders(t *testing.T) {
+	result := JoinAndCanonicalizeHeaders([]byte(", "), "x-example-ONE", "X-EGG-Two")
+
+	assert.Equal(t, []byte("X-Example-One, X-Egg-Two"), result)
+}

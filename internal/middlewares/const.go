@@ -29,11 +29,12 @@ var (
 )
 
 var (
-	headerValueFalse    = []byte("false")
-	headerValueTrue     = []byte("true")
-	headerValueMaxAge   = []byte("100")
-	headerValueVary     = []byte("Accept-Encoding, Origin")
-	originValueWildcard = []byte("*")
+	headerValueFalse          = []byte("false")
+	headerValueTrue           = []byte("true")
+	headerValueMaxAge         = []byte("100")
+	headerValueVary           = []byte("Accept-Encoding, Origin")
+	headerValueVaryWildcard   = []byte("Accept-Encoding")
+	headerValueOriginWildcard = []byte("*")
 )
 
 var (
@@ -42,6 +43,8 @@ var (
 
 	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
 	UserValueKeyBaseURL = []byte("base_url")
+
+	headerSeparator = []byte(", ")
 )
 
 const (
