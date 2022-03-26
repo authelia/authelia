@@ -50,14 +50,20 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	}
 
 	// Swagger.
-	r.GET("/api/", middleware(serveSwaggerHandler))
-	r.GET("/api/"+apiFile, middleware(serveSwaggerAPIHandler))
+	corsSwagger := middlewares.NewCORSMiddleware().
+		WithAllowedMethods("OPTIONS", "GET").
+		WithAllowedOrigins("*")
+
+	r.OPTIONS("/api/", corsSwagger.HandleOPTIONS)
+	r.GET("/api/", corsSwagger.Middleware(middleware(serveSwaggerHandler)))
+
+	r.OPTIONS("/api/"+apiFile, corsSwagger.HandleOPTIONS)
+	r.GET("/api/"+apiFile, corsSwagger.Middleware(middleware(serveSwaggerAPIHandler)))
 
 	for _, f := range swaggerFiles {
-		r.GET("/api/"+f, embeddedFS)
+		r.OPTIONS("/api/"+f, corsSwagger.HandleOPTIONS)
+		r.GET("/api/"+f, corsSwagger.Middleware(embeddedFS))
 	}
-
-	//r.ANY("/api/{filepath:*}", embeddedFS)
 
 	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(config.Server.AssetPath, embeddedFS))
 
