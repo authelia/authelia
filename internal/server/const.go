@@ -8,7 +8,10 @@ const (
 	logoFile       = "logo.png"
 )
 
-var rootFiles = []string{"favicon.ico", "manifest.json", "robots.txt"}
+var (
+	rootFiles    = []string{"favicon.ico", "manifest.json", "robots.txt"}
+	swaggerFiles = []string{"swagger-ui.css", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js", "favicon{extra?:[-]{1}[^.]+}.{ext:[a-zA-Z0-9]{3}"}
+)
 
 const (
 	dev         = "dev"

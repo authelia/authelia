@@ -45,15 +45,21 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	r.GET("/", middleware(serveIndexHandler))
 	r.OPTIONS("/", middleware(handleOPTIONS))
 
-	r.GET("/api/", middleware(serveSwaggerHandler))
-	r.GET("/api/"+apiFile, middleware(serveSwaggerAPIHandler))
-
 	for _, f := range rootFiles {
 		r.GET("/"+f, middlewares.AssetOverrideMiddleware(config.Server.AssetPath, embeddedFS))
 	}
 
+	// Swagger.
+	r.GET("/api/", middleware(serveSwaggerHandler))
+	r.GET("/api/"+apiFile, middleware(serveSwaggerAPIHandler))
+
+	for _, f := range swaggerFiles {
+		r.GET("/api/"+f, embeddedFS)
+	}
+
+	//r.ANY("/api/{filepath:*}", embeddedFS)
+
 	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(config.Server.AssetPath, embeddedFS))
-	r.ANY("/api/{filepath:*}", embeddedFS)
 
 	r.GET("/api/health", middleware(handlers.HealthGet))
 	r.GET("/api/state", middleware(handlers.StateGet))
@@ -210,7 +216,7 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		r.POST("/api/oidc/revoke", corsRevocation.Middleware(middleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
 	}
 
-	r.NotFound = middleware(serveIndexHandler)
+	r.NotFound = handleNotFound(middleware(serveIndexHandler))
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if config.Server.Path != "" {
