@@ -10,7 +10,25 @@ const (
 
 var (
 	rootFiles    = []string{"favicon.ico", "manifest.json", "robots.txt"}
-	swaggerFiles = []string{"swagger-ui.css", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js", "favicon{extra?:[-]{1}[^.]+}.{ext:[a-zA-Z0-9]{3}"}
+	swaggerFiles = []string{
+		"favicon-16x16.png",
+		"favicon-32x32.png",
+		"index.css",
+		"oauth2-redirect.html",
+		"swagger-initializer.js",
+		"swagger-ui-bundle.js",
+		"swagger-ui-bundle.js.map",
+		"swagger-ui-es-bundle-core.js",
+		"swagger-ui-es-bundle-core.js.map",
+		"swagger-ui-es-bundle.js",
+		"swagger-ui-es-bundle.js.map",
+		"swagger-ui-standalone-preset.js",
+		"swagger-ui-standalone-preset.js.map",
+		"swagger-ui.css",
+		"swagger-ui.css.map",
+		"swagger-ui.js",
+		"swagger-ui.js.map",
+	}
 )
 
 const (
