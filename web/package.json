@@ -150,7 +150,7 @@
     "jest": "27.5.1",
     "jest-transform-stub": "2.0.0",
     "jest-watch-typeahead": "1.0.0",
-    "prettier": "2.6.0",
+    "prettier": "2.6.1",
     "react-test-renderer": "17.0.2",
     "typescript": "4.6.2",
     "vite": "2.8.6",
