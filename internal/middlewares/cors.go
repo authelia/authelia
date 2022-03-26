@@ -278,20 +278,23 @@ func (p CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
-	ctx.Response.Header.SetBytesKV(headerAccessControlAllowCredentials, p.credentials)
 
-	if p.maxAge != nil {
+	if len(p.credentials) != 0 {
+		ctx.Response.Header.SetBytesKV(headerAccessControlAllowCredentials, p.credentials)
+	}
+
+	if len(p.maxAge) != 0 {
 		ctx.Response.Header.SetBytesKV(headerAccessControlMaxAge, p.maxAge)
 	}
 
 	p.handleAllowedHeaders(ctx)
-
 	p.handleAllowedMethods(ctx)
 }
 
 func (p CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	switch len(p.methods) {
 	case 0:
+		// TODO: It may be beneficial to be able to control this automatic behaviour.
 		if requestMethods := ctx.Request.Header.PeekBytes(headerAccessControlRequestMethod); requestMethods != nil {
 			ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, requestMethods)
 		}
@@ -303,6 +306,7 @@ func (p CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 func (p CORSPolicy) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 	switch len(p.headers) {
 	case 0:
+		// TODO: It may be beneficial to be able to control this automatic behaviour.
 		if headers := ctx.Request.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
 			requestedHeaders := strings.Split(string(headers), ",")
 			allowHeaders := make([]string, 0, len(requestedHeaders))
