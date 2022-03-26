@@ -39,7 +39,7 @@ specifiers:
   jest: 27.5.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0
-  prettier: 2.6.0
+  prettier: 2.6.1
   qrcode.react: 2.0.0
   query-string: 7.1.1
   react: 17.0.2
@@ -100,14 +100,14 @@ devDependencies:
   eslint-plugin-flowtype: 8.0.3
   eslint-plugin-import: 2.25.4
   eslint-plugin-jsx-a11y: 6.5.1
-  eslint-plugin-prettier: 4.0.0_abddd5e412da582fb6fdac8f1ecbbd6d
+  eslint-plugin-prettier: 4.0.0_402c22c633b7d169edb414eb30facea3
   eslint-plugin-react: 7.29.4
   eslint-plugin-react-hooks: 4.3.0
   husky: 7.0.4
   jest: 27.5.1
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0_jest@27.5.1
-  prettier: 2.6.0
+  prettier: 2.6.1
   react-test-renderer: 17.0.2_react@17.0.2
   typescript: 4.6.2
   vite: 2.8.6
@@ -4245,7 +4245,7 @@ packages:
       minimatch: 3.1.2
     dev: true
 
-  /eslint-plugin-prettier/4.0.0_abddd5e412da582fb6fdac8f1ecbbd6d:
+  /eslint-plugin-prettier/4.0.0_402c22c633b7d169edb414eb30facea3:
     resolution: {integrity: sha512-98MqmCJ7vJodoQK359bqQWaxOE0CS8paAz/GgjaZLyex4TTk3g9HugoO89EqWCrFiOqn9EVvcoo7gZzONCWVwQ==}
     engines: {node: '>=6.0.0'}
     peerDependencies:
@@ -4257,7 +4257,7 @@ packages:
         optional: true
     dependencies:
       eslint-config-prettier: 8.5.0
-      prettier: 2.6.0
+      prettier: 2.6.1
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -6737,8 +6737,8 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.6.0:
-    resolution: {integrity: sha512-m2FgJibYrBGGgQXNzfd0PuDGShJgRavjUoRCw1mZERIWVSXF0iLzLm+aOqTAbLnC3n6JzUhAA8uZnFVghHJ86A==}
+  /prettier/2.6.1:
+    resolution: {integrity: sha512-8UVbTBYGwN37Bs9LERmxCPjdvPxlEowx2urIL6urHzdb3SDq4B/Z6xLFCblrSnE4iKWcS6ziJ3aOYrc1kz/E2A==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
