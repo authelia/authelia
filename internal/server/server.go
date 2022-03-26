@@ -179,9 +179,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
 
-	addrPattern := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
+	address := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
 
-	listener, err := net.Listen("tcp", addrPattern)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		logger.Fatalf("Error initializing listener: %s", err)
 	}
@@ -192,9 +192,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if configuration.Server.Path == "" {
-			logger.Infof("Listening for TLS connections on '%s' path '/'", addrPattern)
+			logger.Infof("Listening for TLS connections on '%s' path '/'", address)
 		} else {
-			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
 		}
 
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
@@ -204,9 +204,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if configuration.Server.Path == "" {
-			logger.Infof("Listening for non-TLS connections on '%s' path '/'", addrPattern)
+			logger.Infof("Listening for non-TLS connections on '%s' path '/'", address)
 		} else {
-			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
 		}
 		logger.Fatal(server.Serve(listener))
 	}
