@@ -152,7 +152,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS(t *testing.T) {
 
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -171,7 +172,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -188,7 +190,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOnlyOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -207,7 +210,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -227,7 +231,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS_WithoutOrigin(t *testing.T) {
 	policy := cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -245,7 +250,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS_WithoutOrigin(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -269,7 +275,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedOrigins(t *testing.T) {
 	policy := cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -288,7 +295,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedOrigins(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -308,7 +316,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedOrigins(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, headerValueOriginWildcard, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -333,7 +342,8 @@ func TestCORSPolicyBuilder_WithAllowedOrigins_DoesntOverrideVary(t *testing.T) {
 	policy := cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin, Test"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, headerValueOriginWildcard, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -358,7 +368,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithVaryOnly(t *testing.T) {
 	policy := cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -377,7 +388,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithVaryOnly(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -402,7 +414,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedHeaders(t *testing.T) {
 	policy := cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -421,7 +434,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedHeaders(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -440,7 +454,8 @@ func TestCORSPolicyBuilder_HandleOPTIONSWithAllowedHeaders(t *testing.T) {
 	policy = cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte("GET, OPTIONS"), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))
@@ -463,7 +478,8 @@ func TestCORSPolicyBuilder_HandleOPTIONS_ShouldNotAllowWildcardInRequestedHeader
 	policy := cors.Build()
 	policy.HandleOPTIONS(ctx)
 
-	assert.Equal(t, fasthttp.StatusNoContent, ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+	assert.Equal(t, headerValueZero, ctx.Response.Header.PeekBytes(headerContentLength))
 	assert.Equal(t, []byte(nil), ctx.Response.Header.PeekBytes(headerAllow))
 	assert.Equal(t, []byte("Accept-Encoding, Origin"), ctx.Response.Header.PeekBytes(headerVary))
 	assert.Equal(t, origin, ctx.Response.Header.PeekBytes(headerAccessControlAllowOrigin))

@@ -5,11 +5,13 @@ import (
 )
 
 var (
+	headerAccept        = []byte(fasthttp.HeaderAccept)
+	headerContentLength = []byte(fasthttp.HeaderContentLength)
+
 	headerXForwardedProto = []byte(fasthttp.HeaderXForwardedProto)
 	headerXForwardedHost  = []byte(fasthttp.HeaderXForwardedHost)
 	headerXForwardedFor   = []byte(fasthttp.HeaderXForwardedFor)
 	headerXRequestedWith  = []byte(fasthttp.HeaderXRequestedWith)
-	headerAccept          = []byte(fasthttp.HeaderAccept)
 
 	headerXForwardedURI    = []byte("X-Forwarded-URI")
 	headerXOriginalURL     = []byte("X-Original-URL")
@@ -35,6 +37,7 @@ var (
 	headerValueVary           = []byte("Accept-Encoding, Origin")
 	headerValueVaryWildcard   = []byte("Accept-Encoding")
 	headerValueOriginWildcard = []byte("*")
+	headerValueZero           = []byte("0")
 )
 
 var (
