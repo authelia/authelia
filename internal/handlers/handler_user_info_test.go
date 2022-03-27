@@ -239,7 +239,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			saveErr: nil,
 		},
 		{
-			description: "",
+			description: "should default new users to totp if all enabled",
 			db: model.UserInfo{
 				Method:      "",
 				HasTOTP:     false,
