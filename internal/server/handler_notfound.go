@@ -8,10 +8,10 @@ import (
 
 func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		path := string(ctx.Path())
+		path := strings.ToLower(string(ctx.Path()))
 
 		for i := 0; i < len(httpServerDirs); i++ {
-			if strings.EqualFold(path, httpServerDirs[i].name) || strings.HasPrefix(path, httpServerDirs[i].prefix) {
+			if path == httpServerDirs[i].name || strings.HasPrefix(path, httpServerDirs[i].prefix) {
 				ctx.SetStatusCode(fasthttp.StatusNotFound)
 				ctx.SetBodyString(fasthttp.StatusMessage(fasthttp.StatusNotFound))
 
