@@ -9,6 +9,44 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// validateFileExists checks whether a file exist.
+func validateFileExists(path string, validator *schema.StructValidator, errTemplate string) {
+	exist, err := utils.FileExists(path)
+	if err != nil {
+		validator.Push(fmt.Errorf("tls: unable to check if file %s exists: %s", path, err))
+	}
+
+	if !exist {
+		validator.Push(fmt.Errorf(errTemplate, path))
+	}
+}
+
+// ValidateServerTLS checks a server TLS configuration is correct.
+func ValidateServerTLS(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Server.TLS.Key != "" && config.Server.TLS.Certificate == "" {
+		validator.Push(fmt.Errorf(errFmtServerTLSCert))
+	} else if config.Server.TLS.Key == "" && config.Server.TLS.Certificate != "" {
+		validator.Push(fmt.Errorf(errFmtServerTLSKey))
+	}
+
+	if config.Server.TLS.Key != "" {
+		validateFileExists(config.Server.TLS.Key, validator, errFmtServerTLSKeyFileDoesNotExist)
+	}
+
+	if config.Server.TLS.Certificate != "" {
+		validateFileExists(config.Server.TLS.Certificate, validator, errFmtServerTLSCertFileDoesNotExist)
+	}
+
+	if config.Server.TLS.Key == "" && config.Server.TLS.Certificate == "" &&
+		len(config.Server.TLS.ClientCertificates) > 0 {
+		validator.Push(fmt.Errorf(errFmtServerTLSClientAuthNoAuth))
+	}
+
+	for _, clientCertPath := range config.Server.TLS.ClientCertificates {
+		validateFileExists(clientCertPath, validator, errFmtServerTLSClientAuthCertFileDoesNotExist)
+	}
+}
+
 // ValidateServer checks a server configuration is correct.
 func ValidateServer(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Host == "" {
@@ -19,11 +57,7 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 		config.Server.Port = schema.DefaultServerConfiguration.Port
 	}
 
-	if config.Server.TLS.Key != "" && config.Server.TLS.Certificate == "" {
-		validator.Push(fmt.Errorf(errFmtServerTLSCert))
-	} else if config.Server.TLS.Key == "" && config.Server.TLS.Certificate != "" {
-		validator.Push(fmt.Errorf(errFmtServerTLSKey))
-	}
+	ValidateServerTLS(config, validator)
 
 	switch {
 	case strings.Contains(config.Server.Path, "/"):

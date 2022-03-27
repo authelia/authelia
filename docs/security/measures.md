@@ -189,6 +189,17 @@ Authelia protects your users against open redirect attacks by always checking if
 to a subdomain of the domain protected by Authelia. This prevents phishing campaigns tricking users into visiting
 infected websites leveraging legit links.
 
+## Mutual TLS
+
+For the best security protection, configuration with TLS is highly recommended. TLS is used to secure the connection between
+the proxies and Authelia meaning that an attacker on the network cannot perform a man-in-the-middle attack on those
+connections. However, an attacker on the network can still impersonate proxies. In order to mitigate this risk, mutual
+TLS can be used.
+Mutual TLS brings mutual authentication between Authelia and the proxies. Any other party attempting to contact Authelia
+will not even be able to create a TCP connection.
+
+To configure mutual TLS, please refer to [this document](../configuration/server.md#client_certificates)
+
 ## Additional security
 
 ### Reset Password

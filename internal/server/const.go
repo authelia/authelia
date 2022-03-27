@@ -40,6 +40,9 @@ var (
 	}
 )
 
+const schemeHTTP = "http"
+const schemeHTTPS = "https"
+
 const (
 	dev = "dev"
 	f   = "false"

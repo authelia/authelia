@@ -71,6 +71,9 @@ server:
     ## The path to the DER base64/PEM format public certificate.
     certificate: ""
 
+    ## The list of certificates for client authentication.
+    client_certificates: []
+
   ## Server headers configuration/customization.
   headers:
 

@@ -1,21 +1,15 @@
 package commands
 
 import (
-	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"math/big"
-	"net"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -113,14 +107,13 @@ func cmdCertificatesGenerateRun(cmd *cobra.Command, _ []string) {
 }
 
 func cmdCertificatesGenerateRunExtended(hosts []string, ecdsaCurve, validFrom, certificateTargetDirectory string, ed25519Key, isCA bool, rsaBits int, validFor time.Duration) {
-	priv, err := getPrivateKey(ecdsaCurve, ed25519Key, rsaBits)
+	certPath := filepath.Join(certificateTargetDirectory, "cert.pem")
+	keyPath := filepath.Join(certificateTargetDirectory, "key.pem")
 
-	if err != nil {
-		fmt.Printf("Failed to generate private key: %v\n", err)
-		os.Exit(1)
-	}
-
-	var notBefore time.Time
+	var (
+		notBefore time.Time
+		err       error
+	)
 
 	switch len(validFrom) {
 	case 0:
@@ -128,122 +121,45 @@ func cmdCertificatesGenerateRunExtended(hosts []string, ecdsaCurve, validFrom, c
 	default:
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", validFrom)
 		if err != nil {
-			fmt.Printf("Failed to parse start date: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("failed to parse start date: %v", err)
 		}
 	}
 
-	notAfter := notBefore.Add(validFor)
+	var privateKeyBuilder utils.PrivateKeyBuilder
 
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
-		fmt.Printf("Failed to generate serial number: %v\n", err)
-		os.Exit(1)
-	}
-
-	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			Organization: []string{"Acme Co"},
-		},
-		NotBefore: notBefore,
-		NotAfter:  notAfter,
-
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
-	}
-
-	for _, h := range hosts {
-		if ip := net.ParseIP(h); ip != nil {
-			template.IPAddresses = append(template.IPAddresses, ip)
-		} else {
-			template.DNSNames = append(template.DNSNames, h)
-		}
-	}
-
-	if isCA {
-		template.IsCA = true
-		template.KeyUsage |= x509.KeyUsageCertSign
-	}
-
-	certPath := filepath.Join(certificateTargetDirectory, "cert.pem")
-
-	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
-	if err != nil {
-		fmt.Printf("Failed to create certificate: %v\n", err)
-		os.Exit(1)
-	}
-
-	writePEM(derBytes, "CERTIFICATE", certPath)
-
-	fmt.Printf("Certificate Public Key written to %s\n", certPath)
-
-	keyPath := filepath.Join(certificateTargetDirectory, "key.pem")
-
-	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
-	if err != nil {
-		fmt.Printf("Failed to marshal private key: %v\n", err)
-		os.Exit(1)
-	}
-
-	writePEM(privBytes, "PRIVATE KEY", keyPath)
-
-	fmt.Printf("Certificate Private Key written to %s\n", keyPath)
-}
-
-func getPrivateKey(ecdsaCurve string, ed25519Key bool, rsaBits int) (priv interface{}, err error) {
 	switch ecdsaCurve {
 	case "":
 		if ed25519Key {
-			_, priv, err = ed25519.GenerateKey(rand.Reader)
+			privateKeyBuilder = utils.Ed25519KeyBuilder{}
 		} else {
-			priv, err = rsa.GenerateKey(rand.Reader, rsaBits)
+			privateKeyBuilder = utils.RSAKeyBuilder{}.WithKeySize(rsaBits)
 		}
 	case "P224":
-		priv, err = ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
+		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P224())
 	case "P256":
-		priv, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	case "P384":
-		priv, err = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-	case "P521":
-		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
-	default:
-		err = fmt.Errorf("unrecognized elliptic curve: %q", ecdsaCurve)
+		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P256())
+	case "384":
+		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P384())
+	case "521":
+		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P521())
 	}
 
-	return priv, err
-}
-
-func writePEM(bytes []byte, blockType, path string) {
-	keyOut, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	certBytes, keyBytes, err := utils.GenerateCertificate(privateKeyBuilder, hosts, notBefore, validFor, isCA)
 	if err != nil {
-		fmt.Printf("Failed to open %s for writing: %v\n", path, err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	if err := pem.Encode(keyOut, &pem.Block{Type: blockType, Bytes: bytes}); err != nil {
-		fmt.Printf("Failed to write data to %s: %v\n", path, err)
-		os.Exit(1)
+	err = ioutil.WriteFile(certPath, certBytes, 0600)
+	if err != nil {
+		log.Fatalf("failed to write %s for writing: %v", certPath, err)
 	}
 
-	if err := keyOut.Close(); err != nil {
-		fmt.Printf("Error closing %s: %v\n", path, err)
-		os.Exit(1)
-	}
-}
+	fmt.Printf("Certificate written to %s\n", certPath)
 
-func publicKey(priv interface{}) interface{} {
-	switch k := priv.(type) {
-	case *rsa.PrivateKey:
-		return &k.PublicKey
-	case *ecdsa.PrivateKey:
-		return &k.PublicKey
-	case ed25519.PrivateKey:
-		return k.Public().(ed25519.PublicKey)
-	default:
-		return nil
+	err = ioutil.WriteFile(keyPath, keyBytes, 0600)
+	if err != nil {
+		log.Fatalf("failed to write %s for writing: %v", certPath, err)
 	}
+
+	fmt.Printf("Private Key written to %s\n", keyPath)
 }
