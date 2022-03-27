@@ -29,6 +29,14 @@ var (
 		"swagger-ui.js",
 		"swagger-ui.js.map",
 	}
+
+	// Directories excluded from the not found handler proceeding to the next() handler.
+	httpServerDirs = []struct {
+		name, prefix string
+	}{
+		{name: "/api", prefix: "/api/"},
+		{name: "/.well-known", prefix: "/.well-known/"},
+	}
 )
 
 const (

@@ -10,11 +10,13 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		path := string(ctx.Path())
 
-		if strings.EqualFold(path, "/api") || strings.HasPrefix(path, "/api/") {
-			ctx.SetStatusCode(fasthttp.StatusNotFound)
-			ctx.SetBodyString(fasthttp.StatusMessage(fasthttp.StatusNotFound))
+		for i := 0; i < len(httpServerDirs); i++ {
+			if strings.EqualFold(path, httpServerDirs[i].name) || strings.HasPrefix(path, httpServerDirs[i].prefix) {
+				ctx.SetStatusCode(fasthttp.StatusNotFound)
+				ctx.SetBodyString(fasthttp.StatusMessage(fasthttp.StatusNotFound))
 
-			return
+				return
+			}
 		}
 
 		next(ctx)
