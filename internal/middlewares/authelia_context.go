@@ -14,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -52,6 +53,25 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 			next(autheliaCtx)
 		}
 	}
+}
+
+// AvailableSecondFactorMethods returns the available 2FA methods.
+func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
+	methods = make([]string, 0, 3)
+
+	if !ctx.Configuration.TOTP.Disable {
+		methods = append(methods, model.SecondFactorMethodTOTP)
+	}
+
+	if !ctx.Configuration.Webauthn.Disable {
+		methods = append(methods, model.SecondFactorMethodWebauthn)
+	}
+
+	if ctx.Configuration.DuoAPI != nil {
+		methods = append(methods, model.SecondFactorMethodDuo)
+	}
+
+	return methods
 }
 
 // Error reply with an error and display the stack trace in the logs.
