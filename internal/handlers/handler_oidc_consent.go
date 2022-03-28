@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -101,7 +102,17 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 			return
 		}
 	case reject:
-		redirectURI = fmt.Sprintf("%s?error=access_denied&error_description=%s", form.Get("redirect_uri"), "User rejected the consent request")
+
+		redirectURIForm := url.Values{
+			"error":             []string{"access_denied"},
+			"error_description": []string{"User rejected the consent request"},
+		}
+
+		if state := form.Get("state"); state != "" {
+			redirectURIForm.Set("state", state)
+		}
+
+		redirectURI = fmt.Sprintf("%s?%s", form.Get("redirect_uri"), redirectURIForm.Encode())
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, true); err != nil {
 			ctx.Logger.Errorf("Failed to save the consent session to the database: %+v", err)
