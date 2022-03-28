@@ -227,7 +227,7 @@ func TestShouldRaiseErrorWhenTLSClientCertificateDoesNotExist(t *testing.T) {
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: tls: client_auth: certificates: file path /tmp/unexisting does not exist")
+	assert.EqualError(t, validator.Errors()[0], "server: tls: client_certificates: certificates: file path /tmp/unexisting does not exist")
 }
 
 func TestShouldRaiseErrorWhenTLSClientAuthIsDefinedButNotServerCertificate(t *testing.T) {
