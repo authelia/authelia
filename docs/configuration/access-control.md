@@ -208,7 +208,8 @@ groups which match attributes of the user:
 
 For the group match it matches if the user has any group name that matches, and both matches are case-insensitive due to
 the fact domain names should not be compared in a case-sensitive way as per the
-[RFC4343](https://datatracker.ietf.org/doc/html/rfc4343) abstract.
+[RFC4343](https://datatracker.ietf.org/doc/html/rfc4343) abstract and 
+[RFC3986](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2) section 3.2.2.
 
 Examples:
 
