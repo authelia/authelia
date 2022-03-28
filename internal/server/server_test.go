@@ -7,9 +7,10 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -147,7 +148,15 @@ func NewTLSServerContext(configuration schema.Configuration) (*TLSServerContext,
 		}
 	}()
 
-	serverContext.port = listener.Addr().(*net.TCPAddr).Port
+	addrSplit := strings.Split(listener.Addr().String(), ":")
+	if len(addrSplit) > 1 {
+		port, err := strconv.ParseInt(addrSplit[len(addrSplit)-1], 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse port from address: %v", err)
+		}
+
+		serverContext.port = int(port)
+	}
 
 	return serverContext, nil
 }
@@ -179,6 +188,7 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
+	fmt.Println(tlsServerContext.Port())
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 

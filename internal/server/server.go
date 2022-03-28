@@ -246,7 +246,7 @@ func CreateServer(configuration schema.Configuration, providers middlewares.Prov
 		logger.Fatalf("Could not configure healthcheck: %v", err)
 	}
 
-	actualAddress := listener.Addr().(*net.TCPAddr).AddrPort()
+	actualAddress := listener.Addr().String()
 	if configuration.Server.Path == "" {
 		logger.Infof("Initializing server for %s connections on '%s' path '/'", connectionType, actualAddress)
 	} else {
