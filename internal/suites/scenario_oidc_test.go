@@ -93,7 +93,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
-	s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!")
+	// s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!").
 
 	preferredUsername, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-preferred_username").Text()
 	assert.NoError(s.T(), err)
