@@ -1,7 +1,7 @@
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserInfo2FAMethodPath, UserInfoPath } from "@services/Api";
-import { Get, PostWithOptionalResponse } from "@services/Client";
+import { Post, PostWithOptionalResponse } from "@services/Client";
 
 export type Method2FA = "webauthn" | "totp" | "mobile_push";
 
@@ -39,8 +39,8 @@ export function toString(method: SecondFactorMethod): Method2FA {
     }
 }
 
-export async function getUserInfo(): Promise<UserInfo> {
-    const res = await Get<UserInfoPayload>(UserInfoPath);
+export async function postUserInfo(): Promise<UserInfo> {
+    const res = await Post<UserInfoPayload>(UserInfoPath);
     return { ...res, method: toEnum(res.method) };
 }
 
