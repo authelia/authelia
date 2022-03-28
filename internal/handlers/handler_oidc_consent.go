@@ -102,7 +102,6 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 			return
 		}
 	case reject:
-
 		redirectURIForm := url.Values{
 			"error":             []string{"access_denied"},
 			"error_description": []string{"User rejected the consent request"},

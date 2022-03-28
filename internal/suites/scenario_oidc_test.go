@@ -94,6 +94,18 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
 	s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!")
+
+	preferredUsername, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-preferred_username").Text()
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "john", preferredUsername)
+
+	groups, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-groups").Text()
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "admins, dev", groups)
+
+	iss, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-iss").Text()
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "test", iss)
 }
 
 func (s *OIDCScenario) TestShouldDenyConsent() {
