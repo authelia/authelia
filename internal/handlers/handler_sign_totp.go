@@ -78,7 +78,7 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, requestBody.TargetURL)

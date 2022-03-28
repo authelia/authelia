@@ -13,6 +13,26 @@ import (
 	"github.com/ory/fosite/handler/openid"
 )
 
+// NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
+func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+	consent = &OAuth2ConsentSession{
+		ClientID:          r.GetClient().GetID(),
+		Subject:           subject,
+		Form:              r.GetRequestForm().Encode(),
+		RequestedAt:       r.GetRequestedAt(),
+		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
+		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		GrantedScopes:     StringSlicePipeDelimited(r.GetGrantedScopes()),
+		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+	}
+
+	if consent.ChallengeID, err = uuid.NewRandom(); err != nil {
+		return nil, err
+	}
+
+	return consent, nil
+}
+
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and fosite.Requester.
 func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
 	var (
@@ -56,6 +76,33 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist *OAuth2Bla
 	}
 }
 
+// OAuth2ConsentSession stores information about an OAuth2.0 Consent.
+type OAuth2ConsentSession struct {
+	ID          int       `db:"id"`
+	ChallengeID uuid.UUID `db:"challenge_id"`
+	ClientID    string    `db:"client_id"`
+	Subject     uuid.UUID `db:"subject"`
+
+	Authorized bool `db:"authorized"`
+	Rejected   bool `db:"rejected"`
+	Granted    bool `db:"granted"`
+
+	RequestedAt time.Time  `db:"requested_at"`
+	RespondedAt *time.Time `db:"responded_at"`
+
+	Form string `db:"form_data"`
+
+	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
+	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
+	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
+	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+}
+
+// GetForm returns the form.
+func (s OAuth2ConsentSession) GetForm() (form url.Values, err error) {
+	return url.ParseQuery(s.Form)
+}
+
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
 	ID        int       `db:"id"`
@@ -67,22 +114,16 @@ type OAuth2BlacklistedJTI struct {
 type OpenIDSession struct {
 	*openid.DefaultSession `json:"idToken"`
 
-	ChallengeID string
+	ChallengeID uuid.UUID `db:"challenge_id"`
 	ClientID    string
 
 	Extra map[string]interface{} `json:"extra"`
 }
 
-// OAuth2Subject represents a subject for OAuth 2.0 and OpenID Connect.
-type OAuth2Subject struct {
-	ID       int       `db:"id"`
-	Username string    `db:"username"`
-	Subject  uuid.UUID `db:"subject"`
-}
-
 // OAuth2Session represents a OAuth2.0 session.
 type OAuth2Session struct {
 	ID                int                      `db:"id"`
+	ChallengeID       uuid.UUID                `db:"challenge_id"`
 	RequestID         string                   `db:"request_id"`
 	ClientID          string                   `db:"client_id"`
 	Signature         string                   `db:"signature"`

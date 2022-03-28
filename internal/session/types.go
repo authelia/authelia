@@ -7,6 +7,7 @@ import (
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -42,6 +43,8 @@ type UserSession struct {
 
 	// Represent an OIDC workflow session initiated by the client if not null.
 	OIDCWorkflowSession *OIDCWorkflowSession
+
+	ConsentChallengeID *uuid.UUID
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.

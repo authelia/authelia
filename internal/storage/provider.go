@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/ory/fosite/storage"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -20,6 +21,10 @@ type Provider interface {
 	SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error)
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
 	LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error)
+
+	SaveOpaqueUserID(ctx context.Context, subject *model.OpaqueUserID) (err error)
+	LoadOpaqueUserID(ctx context.Context, opaqueUUID uuid.UUID) (subject *model.OpaqueUserID, err error)
+	LoadOpaqueUserIDBySectorIDAndUsername(ctx context.Context, sectorID, username string) (subject *model.OpaqueUserID, err error)
 
 	SaveIdentityVerification(ctx context.Context, verification model.IdentityVerification) (err error)
 	ConsumeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error)
@@ -40,14 +45,17 @@ type Provider interface {
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
 
+	SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error)
+	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
+	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)
+
 	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *model.OAuth2Session) (err error)
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 	DeactivateOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
-	SaveOAuth2Subject(ctx context.Context, subject *model.OAuth2Subject) (err error)
-	LoadOAuth2Subject(ctx context.Context, username string) (subject *model.OAuth2Subject, err error)
 
 	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error)
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)

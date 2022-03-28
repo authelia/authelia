@@ -7,10 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/model"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestNewClient(t *testing.T) {
@@ -79,7 +80,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	c.ID = "myclient"
 	c.Description = "My Client"
 
-	workflow := &session.OIDCWorkflowSession{
+	consent := &model.OAuth2ConsentSession{
 		RequestedAudience: []string{"https://example.com"},
 		RequestedScopes:   []string{"openid", "groups"},
 	}
@@ -87,7 +88,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	expectedScopes := []string{"openid", "groups"}
 	expectedAudiences := []string{"https://example.com"}
 
-	consentRequestBody = c.GetConsentResponseBody(workflow)
+	consentRequestBody = c.GetConsentResponseBody(consent)
 	assert.Equal(t, "myclient", consentRequestBody.ClientID)
 	assert.Equal(t, "My Client", consentRequestBody.ClientDescription)
 	assert.Equal(t, expectedScopes, consentRequestBody.Scopes)

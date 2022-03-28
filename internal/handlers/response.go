@@ -16,9 +16,10 @@ import (
 func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
-	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", userSession.OIDCWorkflowSession.ClientID)
-		ctx.ReplyOK()
+	if userSession.ConsentChallengeID == nil {
+		ctx.Logger.Errorf("Unable to handle OIDC workflow response because the user session doesn't contain a consent challenge id")
+
+		respondUnauthorized(ctx, messageOperationFailed)
 
 		return
 	}
@@ -32,18 +33,49 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if isConsentMissing(
-		userSession.OIDCWorkflowSession,
-		userSession.OIDCWorkflowSession.RequestedScopes,
-		userSession.OIDCWorkflowSession.RequestedAudience) {
-		err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)})
+	var (
+		required bool
+	)
 
-		if err != nil {
+	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to load consent session from database: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	client, err := ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to find client for the consent session: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", userSession.OIDCWorkflowSession.ClientID)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if required, err = isOIDCConsentRequired(ctx, &userSession); err != nil {
+		ctx.Logger.Errorf("Unable to check consent session status: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	if required {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	} else {
-		err = ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI})
-		if err != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	}

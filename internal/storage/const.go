@@ -5,22 +5,24 @@ import (
 )
 
 const (
-	tableUserPreferences      = "user_preferences"
+	tableAuthenticationLogs   = "authentication_logs"
+	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableTOTPConfigurations   = "totp_configurations"
+	tableUserOpaqueID         = "user_opaque_id"
+	tableUserPreferences      = "user_preferences"
 	tableWebauthnDevices      = "webauthn_devices"
-	tableDuoDevices           = "duo_devices"
-	tableAuthenticationLogs   = "authentication_logs"
-	tableMigrations           = "migrations"
-	tableEncryption           = "encryption"
 
-	tableOAuth2AuthorizeCodeSessions = "oauth2_authorize_code_sessions"
-	tableOAuth2AccessTokenSessions   = "oauth2_access_token_sessions"  //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2RefreshTokenSessions  = "oauth2_refresh_token_sessions" //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2PKCERequestSessions   = "oauth2_pkce_request_sessions"
-	tableOAuth2OpenIDConnectSessions = "oauth2_openid_connect_sessions"
-	tableOAuth2Subjects              = "oauth2_subjects"
-	tableOAuth2BlacklistedJTI        = "oauth2_blacklisted_jti"
+	tableOAuth2ConsentSession       = "oauth2_consent_session"
+	tableOAuth2AuthorizeCodeSession = "oauth2_authorize_code_session"
+	tableOAuth2AccessTokenSession   = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
+	tableOAuth2OpenIDConnectSession = "oauth2_openid_connect_session"
+	tableOAuth2BlacklistedJTI       = "oauth2_blacklisted_jti"
+
+	tableMigrations = "migrations"
+	tableEncryption = "encryption"
 
 	tablePrefixBackup = "_bkp_"
 )

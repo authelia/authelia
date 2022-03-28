@@ -37,28 +37,32 @@ func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider s
 	return store
 }
 
-// GetSubject returns a subject UUID for a username. If it exists, it returns the existing one, otherwise it creates and saves it.
-func (s OpenIDConnectStore) GetSubject(ctx context.Context, username string) (subject uuid.UUID, err error) {
-	var sub *model.OAuth2Subject
-
-	if sub, err = s.provider.LoadOAuth2Subject(ctx, username); err != nil {
-		return subject, err
-	} else if sub == nil {
-		if subject, err = uuid.NewRandom(); err != nil {
-			return subject, err
+// GenerateOpaqueUserID either retrieves or creates an opaque user id from a sectorID and username.
+func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.OpaqueUserID, err error) {
+	if opaqueID, err = s.provider.LoadOpaqueUserIDBySectorIDAndUsername(ctx, sectorID, username); err != nil {
+		return opaqueID, err
+	} else if opaqueID == nil {
+		if opaqueID, err = model.NewOpaqueUserID("", username); err != nil {
+			return opaqueID, err
 		}
 
-		sub = &model.OAuth2Subject{
-			Username: username,
-			Subject:  subject,
-		}
-
-		if err = s.provider.SaveOAuth2Subject(ctx, sub); err != nil {
-			return subject, err
+		if err = s.provider.SaveOpaqueUserID(ctx, opaqueID); err != nil {
+			return opaqueID, err
 		}
 	}
 
-	return subject, nil
+	return opaqueID, err
+}
+
+// GetSubject returns a subject UUID for a username. If it exists, it returns the existing one, otherwise it creates and saves it.
+func (s OpenIDConnectStore) GetSubject(ctx context.Context, username string) (subject uuid.UUID, err error) {
+	var opaqueID *model.OpaqueUserID
+
+	if opaqueID, err = s.GenerateOpaqueUserID(ctx, "", username); err != nil {
+		return subject, err
+	}
+
+	return opaqueID.OpaqueID, nil
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.
@@ -160,7 +164,7 @@ func (s *OpenIDConnectStore) InvalidateAuthorizeCodeSession(ctx context.Context,
 // Make sure to also return the fosite.Requester value when returning the fosite.ErrInvalidatedAuthorizeCode error!
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
-	// TODO: Implement the  fosite.ErrInvalidatedAuthorizeCode error above. This requires splitting the invalidated sessions and deleted sessions.
+	// TODO: Implement the fosite.ErrInvalidatedAuthorizeCode error above. This requires splitting the invalidated sessions and deleted sessions.
 	return s.loadSessionBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
 }
 

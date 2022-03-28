@@ -222,18 +222,51 @@ const (
 )
 
 const (
+	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
+		SELECT id, challenge_id, client_id, subject, authorized, rejected, granted, requested_at, responded_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		FROM %s
+		WHERE challenge_id = ?;`
+
+	queryFmtInsertOAuth2ConsentSession = `
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, rejected, granted, requested_at, responded_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2ConsentSessionAuthorized = `
+		UPDATE %s
+		SET
+			authorized = TRUE,
+			responded_at = CURRENT_TIMESTAMP,
+			granted_scopes = ?,
+			granted_audience = ?
+		WHERE id = ? AND responded_at IS NULL AND authorized = FALSE AND rejected = FALSE;`
+
+	queryFmtUpdateOAuth2ConsentSessionRejected = `
+		UPDATE %s
+		SET
+			rejected = TRUE,
+			responded_at = CURRENT_TIMESTAMP,
+		WHERE id = ? AND responded_at IS NULL AND authorized = FALSE AND rejected = FALSE;`
+
+	queryFmtUpdateOAuth2ConsentSessionGranted = `
+		UPDATE %s
+		SET
+			granted = TRUE,
+		WHERE id = ? AND responded_at IS NOT NULL AND authorized = TRUE AND rejected = FALSE;`
+
 	queryFmtSelectOAuth2Session = `
-		SELECT id, request_id, client_id, signature, subject, requested_at,
+		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
 		requested_scopes, granted_scopes, requested_audience, granted_audience,
 		active, revoked, form_data, session_data
 		FROM %s
-		WHERE signature = ? AND revoked = FALSE`
+		WHERE signature = ? AND revoked = FALSE;`
 
 	queryFmtInsertOAuth2Session = `
-		INSERT INTO %s (request_id, client_id, signature, subject, requested_at, 
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at, 
 		requested_scopes, granted_scopes, requested_audience, granted_audience, 
 		active, revoked, form_data, session_data)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s
@@ -243,7 +276,7 @@ const (
 	queryFmtRevokeOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET revoked = TRUE
-		WHERE request_id = ?;"`
+		WHERE request_id = ?;`
 
 	queryFmtDeactivateOAuth2Session = `
 		UPDATE %s
@@ -254,15 +287,6 @@ const (
 		UPDATE %s
 		SET active = FALSE
 		WHERE request_id = ?;"`
-
-	queryFmtInsertOAuth20Subject = `
-		INSERT INTO %s (sector_id, username, subject)
-		VALUES('', ?, ?);`
-
-	queryFmtSelectOAuth20Subject = `
-		SELECT id, username, subject
-		FROM %s
-		WHERE username = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at
@@ -278,4 +302,20 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (signature)
 			DO UPDATE SET expires_at = $2;`
+)
+
+const (
+	queryFmtInsertOpaqueUserID = `
+		INSERT INTO %s (sector_id, username, opaque_id)
+		VALUES(?, ?, ?);`
+
+	queryFmtSelectOpaqueUserID = `
+		SELECT id, sector_id, username, opaque_id
+		FROM %s
+		WHERE opaque_id = ?;`
+
+	queryFmtSelectOpaqueUserIDBySectorIDAndUsername = `
+		SELECT id, sector_id, username, opaque_id
+		FROM %s
+		WHERE sector_id = ? AND username = ?;`
 )

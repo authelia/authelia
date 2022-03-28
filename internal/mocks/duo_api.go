@@ -8,10 +8,9 @@ import (
 	url "net/url"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
-
 	duo "github.com/authelia/authelia/v4/internal/duo"
 	middlewares "github.com/authelia/authelia/v4/internal/middlewares"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockAPI is a mock of API interface.
