@@ -3,6 +3,7 @@ package authorization
 import (
 	"net"
 	"net/url"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -288,25 +289,33 @@ func (s *AuthorizerSuite) TestShouldcheckDomainMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
+	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
+		result, err := stringSliceToRegexpSlice(rules)
+
+		require.NoError(t, err)
+
+		return result
+	}
+
 	tester := NewAuthorizerBuilder().
 		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.example.com$`}),
 			Policy:       bypass,
 		}).
 		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.example2.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.example2.com$`}),
 			Policy:       oneFactor,
 		}).
 		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       oneFactor,
 		}).
 		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       twoFactor,
 		}).
 		WithRule(schema.ACLRule{
-			DomainsRegex: stringSliceToRegexpSlice([]string{`^.*\.(one|two).com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.(one|two).com$`}),
 			Policy:       twoFactor,
 		}).
 		Build()
@@ -471,17 +480,25 @@ func (s *AuthorizerSuite) TestShouldCheckMethodMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
+	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
+		result, err := stringSliceToRegexpSlice(rules)
+
+		require.NoError(t, err)
+
+		return result
+	}
+
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    bypass,
-			Resources: stringSliceToRegexpSlice([]string{"^/bypass/[a-z]+$", "^/$", "embedded"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/bypass/[a-z]+$", "^/$", "embedded"}),
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    oneFactor,
-			Resources: stringSliceToRegexpSlice([]string{"^/one_factor/[a-z]+$"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/one_factor/[a-z]+$"}),
 		}).
 		Build()
 
@@ -528,17 +545,25 @@ func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 }
 
 func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
+	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
+		result, err := stringSliceToRegexpSlice(rules)
+
+		require.NoError(t, err)
+
+		return result
+	}
+
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public.example.com"},
-			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Subjects:  [][]string{{"group:admins"}},
 			Policy:    oneFactor,
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public.example.com"},
-			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Policy:    deny,
 		}).
 		WithRule(schema.ACLRule{
@@ -547,13 +572,13 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public2.example.com"},
-			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Subjects:  [][]string{{"group:admins"}},
 			Policy:    bypass,
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"public2.example.com"},
-			Resources: stringSliceToRegexpSlice([]string{"^/admin/.*$"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/admin/.*$"}),
 			Policy:    deny,
 		}).
 		WithRule(schema.ACLRule{

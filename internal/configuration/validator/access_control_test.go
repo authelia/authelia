@@ -37,13 +37,15 @@ func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
 }
 
 func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
+	domainsRegex := regexp.MustCompile(`^abc.example.com$`)
+
 	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"abc.example.com"},
 			Policy:  "bypass",
 		},
 		{
-			DomainsRegex: []*regexp.Regexp{regexp.MustCompile(`^abc.example.com$`)},
+			DomainsRegex: []regexp.Regexp{*domainsRegex},
 			Policy:       "bypass",
 		},
 		{

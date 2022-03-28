@@ -41,12 +41,17 @@ func LevelToPolicy(level Level) (policy string) {
 	return deny
 }
 
-func stringSliceToRegexpSlice(strings []string) (regexps []*regexp.Regexp) {
+func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err error) {
 	for _, str := range strings {
-		regexps = append(regexps, regexp.MustCompile(str))
+		pattern, err := regexp.Compile(str)
+		if err != nil {
+			return nil, err
+		}
+
+		regexps = append(regexps, *pattern)
 	}
 
-	return regexps
+	return regexps, nil
 }
 
 func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
@@ -65,7 +70,7 @@ func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 	return nil
 }
 
-func schemaDomainsToACL(domainRules []string, domainRegexRules []*regexp.Regexp) (domains []SubjectObjectMatcher) {
+func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []SubjectObjectMatcher) {
 	for _, domainRule := range domainRules {
 		domains = append(domains, NewAccessControlDomain(domainRule))
 	}
@@ -77,7 +82,7 @@ func schemaDomainsToACL(domainRules []string, domainRegexRules []*regexp.Regexp)
 	return domains
 }
 
-func schemaResourcesToACL(resourceRules []*regexp.Regexp) (resources []AccessControlResource) {
+func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []AccessControlResource) {
 	for _, resourceRule := range resourceRules {
 		resources = append(resources, AccessControlResource{Pattern: resourceRule})
 	}

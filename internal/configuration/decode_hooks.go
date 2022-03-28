@@ -139,10 +139,22 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToRegexpFunc decodes a string into a *regexp.Regexp.
-func StringToRegexpFunc() mapstructure.DecodeHookFunc {
+// StringToRegexpFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
+func StringToRegexpFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
-		if f.Kind() != reflect.String || t != reflect.TypeOf(&regexp.Regexp{}) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		ptr = t.Kind() == reflect.Ptr
+
+		typeRegexp := reflect.TypeOf(regexp.Regexp{})
+
+		if ptr && t.Elem() != typeRegexp {
+			return data, nil
+		} else if !ptr && t != typeRegexp {
 			return data, nil
 		}
 
@@ -153,6 +165,10 @@ func StringToRegexpFunc() mapstructure.DecodeHookFunc {
 			return nil, fmt.Errorf("could not parse '%s' as regexp: %w", regexStr, err)
 		}
 
-		return pattern, nil
+		if ptr {
+			return pattern, nil
+		}
+
+		return *pattern, nil
 	}
 }

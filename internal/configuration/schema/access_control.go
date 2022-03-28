@@ -19,13 +19,13 @@ type ACLNetwork struct {
 
 // ACLRule represents one ACL rule entry.
 type ACLRule struct {
-	Domains      []string         `koanf:"domain"`
-	DomainsRegex []*regexp.Regexp `koanf:"domain_regex"`
-	Policy       string           `koanf:"policy"`
-	Subjects     [][]string       `koanf:"subject"`
-	Networks     []string         `koanf:"networks"`
-	Resources    []*regexp.Regexp `koanf:"resources"`
-	Methods      []string         `koanf:"methods"`
+	Domains      []string        `koanf:"domain"`
+	DomainsRegex []regexp.Regexp `koanf:"domain_regex"`
+	Policy       string          `koanf:"policy"`
+	Subjects     [][]string      `koanf:"subject"`
+	Networks     []string        `koanf:"networks"`
+	Resources    []regexp.Regexp `koanf:"resources"`
+	Methods      []string        `koanf:"methods"`
 }
 
 // DefaultACLNetwork represents the default configuration related to access control network group configuration.

@@ -62,7 +62,7 @@ func (acl AccessControlDomain) String() string {
 
 // NewAccessControlDomainRegex creates a new SubjectObjectMatcher that matches the domain either in a basic way or
 // dynamic User/Group subexpression group way.
-func NewAccessControlDomainRegex(pattern *regexp.Regexp) SubjectObjectMatcher {
+func NewAccessControlDomainRegex(pattern regexp.Regexp) SubjectObjectMatcher {
 	var iuser, igroup = -1, -1
 
 	for i, group := range pattern.SubexpNames() {
@@ -83,7 +83,7 @@ func NewAccessControlDomainRegex(pattern *regexp.Regexp) SubjectObjectMatcher {
 
 // AccessControlDomainRegexBasic represents a basic domain regex SubjectObjectMatcher.
 type AccessControlDomainRegexBasic struct {
-	Pattern *regexp.Regexp
+	Pattern regexp.Regexp
 }
 
 // IsMatch returns true if the ACL regex matches the object domain.
@@ -98,7 +98,7 @@ func (acl AccessControlDomainRegexBasic) String() string {
 
 // AccessControlDomainRegex represents an ACL domain regex.
 type AccessControlDomainRegex struct {
-	Pattern         *regexp.Regexp
+	Pattern         regexp.Regexp
 	SubexpNameUser  int
 	SubexpNameGroup int
 }
