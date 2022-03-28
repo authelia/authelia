@@ -9,11 +9,13 @@ import (
 )
 
 func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
+	none := "none"
+
 	testName := func(i int, have UserInfo, availableMethods []string) string {
 		method := have.Method
 
 		if method == "" {
-			method = "none"
+			method = none
 		}
 
 		has := ""
@@ -34,7 +36,7 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 			}
 		}
 
-		available := "none"
+		available := none
 		if len(availableMethods) != 0 {
 			available = strings.Join(availableMethods, " ")
 		}
