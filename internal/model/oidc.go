@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -36,22 +37,24 @@ func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OA
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and fosite.Requester.
 func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
 	var (
-		subject  string
-		sess     fosite.Session
-		sessData []byte
+		subject       string
+		openidSession *OpenIDSession
+		sessData      []byte
 	)
 
-	sess = r.GetSession()
+	openidSession = r.GetSession().(*OpenIDSession)
+	if openidSession == nil {
+		return nil, errors.New("unexpected session type")
+	}
 
-	if sess != nil {
-		subject = sess.GetSubject()
+	subject = openidSession.GetSubject()
 
-		if sessData, err = json.Marshal(sess); err != nil {
-			return nil, err
-		}
+	if sessData, err = json.Marshal(openidSession); err != nil {
+		return nil, err
 	}
 
 	return &OAuth2Session{
+		ChallengeID:       openidSession.ChallengeID,
 		RequestID:         r.GetID(),
 		ClientID:          r.GetClient().GetID(),
 		Signature:         signature,

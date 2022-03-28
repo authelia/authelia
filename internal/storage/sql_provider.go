@@ -365,36 +365,13 @@ func (p *SQLProvider) LoadOpaqueUserIDBySectorIDAndUsername(ctx context.Context,
 	return opaqueID, nil
 }
 
-/*
-CREATE TABLE IF NOT EXISTS oauth2_consent_session (
-    id SERIAL,
-    challenge_id CHAR(36) NOT NULL,
-    client_id VARCHAR(255) NOT NULL,
-    subject CHAR(36) NOT NULL,
-    authorized BOOLEAN NOT NULL DEFAULT FALSE,
-    rejected BOOLEAN NOT NULL DEFAULT FALSE,
-    granted BOOLEAN NOT NULL DEFAULT FALSE,
-    requested_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    responded_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
-    form_data TEXT NOT NULL,
-    requested_scopes TEXT NOT NULL,
-    granted_scopes TEXT NOT NULL,
-    requested_audience TEXT NULL DEFAULT '',
-    granted_audience TEXT NULL DEFAULT '',
-    PRIMARY KEY (id),
-    UNIQUE (challenge_id),
-    CONSTRAINT oauth2_consent_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
-);.
-*/
-
 // SaveOAuth2ConsentSession inserts an OAuth2.0 consent.
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
 		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Rejected, consent.Granted,
 		consent.RequestedAt, consent.RespondedAt, consent.Form,
 		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience); err != nil {
+		p.log.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %+v", consent.ChallengeID.String(), consent.Subject.String(), err)
 		return fmt.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %w", consent.ChallengeID.String(), consent.Subject.String(), err)
 	}
 
@@ -407,11 +384,13 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, cons
 	case false:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionAuthorized, consent.GrantedScopes, consent.GrantedAudience, consent.ID)
 		if err != nil {
+			p.log.Errorf("error updating oauth2 consent session (authorized) with id '%d' and challenge id '%s' for subject '%s': %+v", consent.ID, consent.ChallengeID, consent.Subject, err)
 			return fmt.Errorf("error updating oauth2 consent session (authorized) with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject, err)
 		}
 	default:
 		_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionRejected, consent.ID)
 		if err != nil {
+			p.log.Errorf("error updating oauth2 consent session (rejection) with id '%d' and challenge id '%s' for subject '%s': %+v", consent.ID, consent.ChallengeID, consent.Subject, err)
 			return fmt.Errorf("error updating oauth2 consent session (rejection) with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject, err)
 		}
 	}
@@ -422,6 +401,7 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, cons
 // SaveOAuth2ConsentSessionGranted updates an OAuth2.0 consent recording that it has been granted by the authorization endpoint.
 func (p *SQLProvider) SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionGranted, id); err != nil {
+		p.log.Errorf("error updating oauth2 consent session (granted) with id '%d': %+v", id, err)
 		return fmt.Errorf("error updating oauth2 consent session (granted) with id '%d': %w", id, err)
 	}
 
@@ -433,7 +413,8 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 	consent = &model.OAuth2ConsentSession{}
 
 	if err = p.db.GetContext(ctx, consent, p.sqlSelectOAuth2ConsentSessionByChallengeID, challengeID); err != nil {
-		return nil, err
+		p.log.Errorf("error selecting oauth2 consent session with challenge id '%s': %+v", challengeID.String(), err)
+		return nil, fmt.Errorf("error selecting oauth2 consent session with challenge id '%s': %w", challengeID.String(), err)
 	}
 
 	return consent, nil
@@ -459,7 +440,8 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 	}
 
 	if session.Session, err = p.encrypt(session.Session); err != nil {
-		return fmt.Errorf("error encrypting the oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
+		p.log.Errorf("error encrypting the oauth2 %s session data for subject '%s' and request id '%s' and challenge id '%s': %+v", sessionType, session.Subject, session.RequestID, session.ChallengeID.String(), err)
+		return fmt.Errorf("error encrypting the oauth2 %s session data for subject '%s' and request id '%s' and challenge id '%s': %w", sessionType, session.Subject, session.RequestID, session.ChallengeID.String(), err)
 	}
 
 	_, err = p.db.ExecContext(ctx, query,
@@ -469,7 +451,8 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 		session.Active, session.Revoked, session.Form, session.Session)
 
 	if err != nil {
-		return fmt.Errorf("error inserting oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
+		p.log.Errorf("error inserting oauth2 %s session data for subject '%s' and request id '%s' and challenge id '%s': %+v", sessionType, session.Subject, session.RequestID, session.ChallengeID.String(), err)
+		return fmt.Errorf("error inserting oauth2 %s session data for subject '%s' and request id '%s' and challenge id '%s': %w", sessionType, session.Subject, session.RequestID, session.ChallengeID.String(), err)
 	}
 
 	return nil
@@ -495,6 +478,7 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
+		p.log.Errorf("error revoking oauth2 %s session with signature '%s': %+v", sessionType, signature, err)
 		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType, signature, err)
 	}
 
@@ -521,6 +505,7 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
+		p.log.Errorf("error revoking oauth2 %s session with request id '%s': %+v", sessionType, requestID, err)
 		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
@@ -547,6 +532,7 @@ func (p *SQLProvider) DeactivateOAuth2Session(ctx context.Context, sessionType O
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
+		p.log.Errorf("error deactivating oauth2 %s session with signature '%s': %+v", sessionType, signature, err)
 		return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType, signature, err)
 	}
 
@@ -573,6 +559,7 @@ func (p *SQLProvider) DeactivateOAuth2SessionByRequestID(ctx context.Context, se
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
+		p.log.Errorf("error deactivating oauth2 %s session with request id '%s': %+v", sessionType, requestID, err)
 		return fmt.Errorf("error deactivating oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
 	}
 
@@ -601,11 +588,13 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 	session = &model.OAuth2Session{}
 
 	if err = p.db.GetContext(ctx, session, query, signature); err != nil {
-		return nil, fmt.Errorf("error selecting oauth2 %s session: %w", sessionType, err)
+		p.log.Errorf("error selecting oauth2 %s session with signature '%s': %+v", sessionType, signature, err)
+		return nil, fmt.Errorf("error selecting oauth2 %s session with signature '%s': %w", sessionType, signature, err)
 	}
 
 	if session.Session, err = p.decrypt(session.Session); err != nil {
-		return nil, fmt.Errorf("error decrypting the oauth2 %s session data for subject '%s' and request id '%s': %w", session.Subject, session.RequestID, sessionType, err)
+		p.log.Errorf("error decrypting the oauth2 %s session data with signature '%s' for subject '%s' and request id '%s': %+v", sessionType, signature, session.Subject, session.RequestID, err)
+		return nil, fmt.Errorf("error decrypting the oauth2 %s session data with signature '%s' for subject '%s' and request id '%s': %w", sessionType, signature, session.Subject, session.RequestID, err)
 	}
 
 	return session, nil
@@ -614,6 +603,7 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 // SaveOAuth2BlacklistedJTI saves a OAuth2BlacklistedJTI to the database.
 func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
+		p.log.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %+v", blacklistedJTI.Signature, err)
 		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}
 
@@ -625,6 +615,7 @@ func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature st
 	blacklistedJTI = &model.OAuth2BlacklistedJTI{}
 
 	if err = p.db.GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, signature); err != nil {
+		p.log.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %+v", blacklistedJTI.Signature, err)
 		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}
 
@@ -634,6 +625,7 @@ func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature st
 // SavePreferred2FAMethod save the preferred method for 2FA to the database.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method); err != nil {
+		p.log.Errorf("error upserting preferred two factor method for user '%s': %+v", username, err)
 		return fmt.Errorf("error upserting preferred two factor method for user '%s': %w", username, err)
 	}
 

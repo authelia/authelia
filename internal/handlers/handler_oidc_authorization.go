@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -84,6 +85,8 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	)
 
 	if userSession.ConsentChallengeID != nil {
+		ctx.Logger.Debugf("Authorization Request with id '%s' is being processed against challenge id '%s'", requester.GetID(), userSession.ConsentChallengeID.String())
+
 		if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving oauth2 consent session with challenge id '%s' for user '%s': %+v", userSession.ConsentChallengeID.String(), requester.GetID(), client.GetID(), userSession.Username, err)
 
@@ -110,6 +113,8 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 		return
 	}
+
+	ctx.Logger.Debugf("Authorization Request with id '%s' loaded consent session with id '%d' and challenge id '%s' for subject '%s' and scopes '%s'", requester.GetID(), consent.ID, consent.ChallengeID.String(), consent.Subject.String(), strings.Join(requester.GetRequestedScopes(), " "))
 
 	extraClaims := oidcGrantRequests(requester, requestedScopes, requestedAudience, &userSession)
 
