@@ -9,6 +9,8 @@ import (
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func TestNewSession(t *testing.T) {
@@ -50,7 +52,12 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	authAt := time.Unix(1647332500, 0)
 	issuer := "https://example.com"
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", extra, authAt, requested, request)
+	consent := &model.OAuth2ConsentSession{
+		ChallengeID: uuid.New(),
+		RequestedAt: requested,
+	}
+
+	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -73,7 +80,12 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	require.Contains(t, session.Claims.Extra, "preferred_username")
 	assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, authAt, requested, request)
+	consent = &model.OAuth2ConsentSession{
+		ChallengeID: uuid.New(),
+		RequestedAt: requested,
+	}
+
+	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)

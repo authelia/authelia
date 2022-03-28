@@ -32,7 +32,7 @@ func NewSession() (session *model.OpenIDSession) {
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
 func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra map[string]interface{},
-	authTime, requestedAt time.Time, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
+	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
 		extra = make(map[string]interface{})
 	}
@@ -43,7 +43,7 @@ func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra
 				Subject:     subject,
 				Issuer:      issuer,
 				AuthTime:    authTime,
-				RequestedAt: requestedAt,
+				RequestedAt: consent.RequestedAt,
 				IssuedAt:    time.Now(),
 				Nonce:       requester.GetRequestForm().Get("nonce"),
 				Audience:    requester.GetGrantedAudience(),
@@ -57,8 +57,9 @@ func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra
 			Subject:  subject,
 			Username: username,
 		},
-		Extra:    map[string]interface{}{},
-		ClientID: requester.GetClient().GetID(),
+		Extra:       map[string]interface{}{},
+		ClientID:    requester.GetClient().GetID(),
+		ChallengeID: consent.ChallengeID,
 	}
 }
 

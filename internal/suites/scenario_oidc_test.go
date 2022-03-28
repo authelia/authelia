@@ -120,7 +120,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "deny-button").Click("left")
 	assert.NoError(s.T(), err)
 
-	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=User%20has%20rejected%20the%20scopes")
+	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=User%20rejected%20the%20consent%20request")
 }
 
 func TestRunOIDCScenario(t *testing.T) {

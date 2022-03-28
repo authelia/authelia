@@ -463,7 +463,7 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 	}
 
 	_, err = p.db.ExecContext(ctx, query,
-		session.RequestID, session.ClientID, session.Signature,
+		session.ChallengeID, session.RequestID, session.ClientID, session.Signature,
 		session.Subject, session.RequestedAt, session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
 		session.Active, session.Revoked, session.Form, session.Session)

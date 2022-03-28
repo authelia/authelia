@@ -124,7 +124,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 
 	oidcSession := oidc.NewSessionWithAuthorizeRequest(issuer, ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
-		subject.String(), userSession.Username, extraClaims, authTime, consent.RequestedAt, requester)
+		subject.String(), userSession.Username, extraClaims, authTime, consent, requester)
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
 		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Claims)
@@ -195,7 +195,7 @@ func isOIDCConsentRequiredCheck(consent *model.OAuth2ConsentSession) (required b
 }
 
 func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID,
+	userSession session.UserSession, _ *model.OAuth2ConsentSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (handled bool) {
 	var (
 		required, sufficientAuth bool
@@ -204,7 +204,7 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 
 	sufficientAuth = client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
 
-	if required, err = isOIDCConsentRequiredCheck(consent); err != nil {
+	if required, err = isOIDCConsentRequired(ctx, &userSession); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checcking consent session: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generating the consent."))

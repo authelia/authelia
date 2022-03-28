@@ -100,20 +100,8 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 
 			return
 		}
-
-		/*
-			userSession.ConsentChallengeID = nil
-
-			if err = ctx.SaveSession(userSession); err != nil {
-				ctx.Logger.Errorf("Failed to save the user session: %+v", err)
-				ctx.SetJSONError(messageOperationFailed)
-
-				return
-			}
-
-		*/
 	case reject:
-		redirectURI = fmt.Sprintf("%s?error=access_denied&error_description=%s", form.Get("redirect_uri"), "User rejected the consent request.")
+		redirectURI = fmt.Sprintf("%s?error=access_denied&error_description=%s", form.Get("redirect_uri"), "User rejected the consent request")
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, true); err != nil {
 			ctx.Logger.Errorf("Failed to save the consent session to the database: %+v", err)

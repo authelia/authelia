@@ -235,24 +235,17 @@ const (
 
 	queryFmtUpdateOAuth2ConsentSessionAuthorized = `
 		UPDATE %s
-		SET
-			authorized = TRUE,
-			responded_at = CURRENT_TIMESTAMP,
-			granted_scopes = ?,
-			granted_audience = ?
+		SET authorized = TRUE, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?
 		WHERE id = ? AND responded_at IS NULL AND authorized = FALSE AND rejected = FALSE;`
 
 	queryFmtUpdateOAuth2ConsentSessionRejected = `
 		UPDATE %s
-		SET
-			rejected = TRUE,
-			responded_at = CURRENT_TIMESTAMP,
+		SET rejected = TRUE, responded_at = CURRENT_TIMESTAMP
 		WHERE id = ? AND responded_at IS NULL AND authorized = FALSE AND rejected = FALSE;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
 		UPDATE %s
-		SET
-			granted = TRUE,
+		SET granted = TRUE
 		WHERE id = ? AND responded_at IS NOT NULL AND authorized = TRUE AND rejected = FALSE;`
 
 	queryFmtSelectOAuth2Session = `
