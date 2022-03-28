@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     form_data TEXT NOT NULL,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
-    requested_audience TEXT NULL DEFAULT '',
-    granted_audience TEXT NULL DEFAULT '',
+    requested_audience TEXT NULL,
+    granted_audience TEXT NULL,
     PRIMARY KEY (id),
     UNIQUE (challenge_id),
     FOREIGN KEY (subject) REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
