@@ -166,10 +166,10 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 
 			ctx.Logger.Debugf("Authorization Request with id '%s' loaded consent session with id '%d' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s'", requester.GetID(), consent.ID, consent.ChallengeID.String(), client.GetID(), consent.Subject.String(), strings.Join(requester.GetRequestedScopes(), " "))
 
-			if !consent.Authorized {
+			if consent.IsDenied() {
 				ctx.Logger.Warnf("Authorization Request with id '%s' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s' was not denied by the user durng the consent session", requester.GetID(), consent.ChallengeID.String(), client.GetID(), consent.Subject.String(), strings.Join(requester.GetRequestedScopes(), " "))
 
-				ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrAccessDenied.WithHint("Authorization Request was denied by the user during the consent session."))
+				ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrAccessDenied)
 
 				return true, nil
 			}
@@ -177,10 +177,20 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 			return false, consent
 		}
 	} else {
+		// TODO: Change this to lookup multiple consents and loop through them to ensure the scopes/audience match.
+		if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionBySignature(ctx, client.GetID(), subject,
+			model.StringSlicePipeDelimited(requester.GetRequestedScopes())); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up previous consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+		}
+
+		if consent != nil && consent.CanGrant() {
+			return false, consent
+		}
+
 		if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generating the consent."))
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generate the consent session."))
 
 			return true, nil
 		}

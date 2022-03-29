@@ -91,6 +91,7 @@ type OAuth2ConsentSession struct {
 
 	RequestedAt time.Time  `db:"requested_at"`
 	RespondedAt *time.Time `db:"responded_at"`
+	ExpiresAt   *time.Time `db:"expires_at"`
 
 	Form string `db:"form_data"`
 
@@ -98,6 +99,30 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+}
+
+// IsAuthorized returns true if the user has responded to the consent session and it was authorized.
+func (s OAuth2ConsentSession) IsAuthorized() bool {
+	return s.Responded() && s.Authorized
+}
+
+// CanGrant returns true if the user has responded to the consent session, it was authorized, and it either hast not
+// previously been granted or the ability to grant has not expired.
+func (s OAuth2ConsentSession) CanGrant() bool {
+	if !s.Responded() {
+		return false
+	}
+
+	if s.Granted && (s.ExpiresAt == nil || s.ExpiresAt.Before(time.Now())) {
+		return false
+	}
+
+	return true
+}
+
+// IsDenied returns true if the user has responded to the consent session and it was not authorized.
+func (s OAuth2ConsentSession) IsDenied() bool {
+	return s.Responded() && !s.Authorized
 }
 
 // Responded returns true if the user has responded to the consent session.

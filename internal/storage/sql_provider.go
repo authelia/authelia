@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -107,6 +108,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateOAuth2ConsentSessionResponse:      fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionGranted:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionBySignature:   fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionBySignature, tableOAuth2ConsentSession),
 
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -235,6 +237,7 @@ type SQLProvider struct {
 	sqlUpdateOAuth2ConsentSessionResponse      string
 	sqlUpdateOAuth2ConsentSessionGranted       string
 	sqlSelectOAuth2ConsentSessionByChallengeID string
+	sqlSelectOAuth2ConsentSessionBySignature   string
 
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
@@ -367,7 +370,7 @@ func (p *SQLProvider) LoadOpaqueUserIDBySectorIDAndUsername(ctx context.Context,
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
 		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
-		consent.RequestedAt, consent.RespondedAt, consent.Form,
+		consent.RequestedAt, consent.RespondedAt, consent.ExpiresAt, consent.Form,
 		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience); err != nil {
 		p.log.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %+v", consent.ChallengeID.String(), consent.Subject.String(), err)
 		return fmt.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %w", consent.ChallengeID.String(), consent.Subject.String(), err)
@@ -404,6 +407,23 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 	if err = p.db.GetContext(ctx, consent, p.sqlSelectOAuth2ConsentSessionByChallengeID, challengeID); err != nil {
 		p.log.Errorf("error selecting oauth2 consent session with challenge id '%s': %+v", challengeID.String(), err)
 		return nil, fmt.Errorf("error selecting oauth2 consent session with challenge id '%s': %w", challengeID.String(), err)
+	}
+
+	return consent, nil
+}
+
+// LoadOAuth2ConsentSessionBySignature returns an OAuth2.0 consent given the consent signature.
+func (p *SQLProvider) LoadOAuth2ConsentSessionBySignature(ctx context.Context, clientID string, subject uuid.UUID, scopes model.StringSlicePipeDelimited) (consent *model.OAuth2ConsentSession, err error) {
+	consent = &model.OAuth2ConsentSession{}
+
+	if err = p.db.GetContext(ctx, consent, p.sqlSelectOAuth2ConsentSessionBySignature, clientID, subject, scopes); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		p.log.Errorf("error selecting oauth2 consent session by signature with client id '%s' and subject '%s' with scopes '%s': %+v", clientID, subject.String(), strings.Join(scopes, " "), err)
+
+		return nil, fmt.Errorf("error selecting oauth2 consent session by signature with client id '%s' and subject '%s' with scopes '%s': %w", clientID, subject.String(), strings.Join(scopes, " "), err)
 	}
 
 	return consent, nil
