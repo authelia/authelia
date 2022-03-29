@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -19,10 +20,10 @@ func isConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, re
 		len(requestedAudience) > 0 && utils.IsStringSlicesDifferentFold(requestedAudience, workflow.GrantedAudience)
 }
 
-func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string, userSession *session.UserSession) (extraClaims map[string]interface{}) {
+func oidcGrantRequests(ar fosite.AuthorizeRequester, consent *model.OAuth2ConsentSession, userSession *session.UserSession) (extraClaims map[string]interface{}) {
 	extraClaims = map[string]interface{}{}
 
-	for _, scope := range scopes {
+	for _, scope := range consent.GrantedScopes {
 		if ar != nil {
 			ar.GrantScope(scope)
 		}
@@ -46,12 +47,8 @@ func oidcGrantRequests(ar fosite.AuthorizeRequester, scopes, audiences []string,
 	}
 
 	if ar != nil {
-		for _, audience := range audiences {
+		for _, audience := range consent.GrantedAudience {
 			ar.GrantAudience(audience)
-		}
-
-		if !utils.IsStringInSlice(ar.GetClient().GetID(), ar.GetGrantedAudience()) {
-			ar.GrantAudience(ar.GetClient().GetID())
 		}
 	}
 

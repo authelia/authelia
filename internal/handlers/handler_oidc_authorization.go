@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,10 +14,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-//nolint:gocyclo
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester fosite.AuthorizeRequester
@@ -76,47 +73,16 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
-	requestedScopes := requester.GetRequestedScopes()
-	requestedAudience := requester.GetRequestedAudience()
-
 	var (
 		consent *model.OAuth2ConsentSession
 		handled bool
 	)
 
-	if userSession.ConsentChallengeID != nil {
-		ctx.Logger.Debugf("Authorization Request with id '%s' is being processed against challenge id '%s'", requester.GetID(), userSession.ConsentChallengeID.String())
-
-		if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil && !errors.Is(err, sql.ErrNoRows) {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving oauth2 consent session with challenge id '%s' for user '%s': %+v", userSession.ConsentChallengeID.String(), requester.GetID(), client.GetID(), userSession.Username, err)
-
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the consent session."))
-
-			return
-		}
-	}
-
-	if handled = handleOIDCAuthorizeConsent(ctx, issuer, client, userSession, consent, subject, rw, r, requester); handled {
+	if handled, consent = handleOIDCAuthorizeConsent(ctx, issuer, client, userSession, subject, rw, r, requester); handled {
 		return
 	}
 
-	if consent.Granted {
-		userSession.ConsentChallengeID = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: could not save session while rejecting already granted consent session with challenge id '%s': %+v", requester.GetID(), client.GetID(), consent.ChallengeID.String(), err)
-		}
-
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: this consent session with challenge id '%s' was already granted", requester.GetID(), client.GetID(), consent.ChallengeID.String())
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Authorization already granted."))
-
-		return
-	}
-
-	ctx.Logger.Debugf("Authorization Request with id '%s' loaded consent session with id '%d' and challenge id '%s' for subject '%s' and scopes '%s'", requester.GetID(), consent.ID, consent.ChallengeID.String(), consent.Subject.String(), strings.Join(requester.GetRequestedScopes(), " "))
-
-	extraClaims := oidcGrantRequests(requester, requestedScopes, requestedAudience, &userSession)
+	extraClaims := oidcGrantRequests(requester, consent, &userSession)
 
 	if authTime, err = userSession.AuthenticatedTime(client.Policy); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), err)
@@ -154,108 +120,95 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
-	userSession.ConsentChallengeID = nil
-
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving session: %+v", requester.GetID(), client.GetID(), err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
-
-		return
-	}
-
 	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, requester, responder)
 }
 
-func isOIDCConsentRequired(ctx *middlewares.AutheliaCtx, userSession *session.UserSession) (required bool, err error) {
-	if userSession.ConsentChallengeID == nil {
-		return true, nil
-	}
-
-	var consent *model.OAuth2ConsentSession
-
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil {
-		return false, err
-	}
-
-	return isOIDCConsentRequiredCheck(consent)
-}
-
-func isOIDCConsentRequiredCheck(consent *model.OAuth2ConsentSession) (required bool, err error) {
-	if consent.Authorized {
-		// TODO: Figure out of OP's are allowed to let users decide which scopes can be granted.
-		// These errors can't occur under normal circumstances.
-		if !utils.IsStringSliceContainsAll(consent.RequestedScopes, consent.GrantedScopes) {
-			return false, errors.New("one or more requested scopes was not granted")
-		}
-
-		if !utils.IsStringSliceContainsAll(consent.RequestedAudience, consent.GrantedAudience) {
-			return false, errors.New("one or more requested audiences was not granted")
-		}
-
-		return false, nil
-	}
-
-	return true, nil
-}
-
 func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession, _ *model.OAuth2ConsentSession, subject uuid.UUID,
-	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (handled bool) {
+	userSession session.UserSession, subject uuid.UUID,
+	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (handled bool, consent *model.OAuth2ConsentSession) {
 	var (
-		required, sufficientAuth bool
-		err                      error
+		err error
 	)
 
-	sufficientAuth = client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
+	if userSession.ConsentChallengeID != nil {
+		if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
-	if required, err = isOIDCConsentRequired(ctx, &userSession); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checcking consent session: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Failed to lookup consent session."))
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generating the consent."))
+			userSession.ConsentChallengeID = nil
 
-		return true
+			if err = ctx.SaveSession(userSession); err != nil {
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred unlinking consent session challenge id: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+			}
+
+			return true, nil
+		}
+
+		if consent.Responded() {
+			userSession.ConsentChallengeID = nil
+
+			if err = ctx.SaveSession(userSession); err != nil {
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving session: %+v", requester.GetID(), client.GetID(), err)
+
+				ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
+
+				return true, nil
+			}
+
+			if consent.Granted {
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: this consent session with challenge id '%s' was already granted", requester.GetID(), client.GetID(), consent.ChallengeID.String())
+
+				ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Authorization already granted."))
+
+				return true, nil
+			}
+
+			ctx.Logger.Debugf("Authorization Request with id '%s' loaded consent session with id '%d' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s'", requester.GetID(), consent.ID, consent.ChallengeID.String(), client.GetID(), consent.Subject.String(), strings.Join(requester.GetRequestedScopes(), " "))
+
+			if !consent.Authorized {
+				ctx.Logger.Warnf("Authorization Request with id '%s' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s' was not denied by the user durng the consent session", requester.GetID(), consent.ChallengeID.String(), client.GetID(), consent.Subject.String(), strings.Join(requester.GetRequestedScopes(), " "))
+
+				ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrAccessDenied.WithHint("Authorization Request was denied by the user during the consent session."))
+
+				return true, nil
+			}
+
+			return false, consent
+		}
+	} else {
+		if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generating the consent."))
+
+			return true, nil
+		}
+
+		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session: %+v", requester.GetID(), client.GetID(), err)
+
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the consent session."))
+
+			return true, nil
+		}
+
+		userSession.ConsentChallengeID = &consent.ChallengeID
+
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving user session for consent: %+v", requester.GetID(), client.GetID(), err)
+
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the user session."))
+
+			return true, nil
+		}
 	}
 
-	if !required {
-		return false
-	}
-
-	var (
-		newConsent *model.OAuth2ConsentSession
-	)
-
-	if newConsent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generating the consent."))
-
-		return true
-	}
-
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, newConsent); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session: %+v", requester.GetID(), client.GetID(), err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the consent session."))
-
-		return true
-	}
-
-	userSession.ConsentChallengeID = &newConsent.ChallengeID
-
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving user session for consent: %+v", requester.GetID(), client.GetID(), err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the user session."))
-
-		return true
-	}
-
-	if sufficientAuth {
+	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		http.Redirect(rw, r, fmt.Sprintf("%s/consent", rootURI), http.StatusFound)
 	} else {
 		http.Redirect(rw, r, rootURI, http.StatusFound)
 	}
 
-	return true
+	return true, consent
 }

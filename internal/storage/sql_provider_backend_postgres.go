@@ -75,8 +75,7 @@ func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLPr
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	provider.sqlInsertOAuth2ConsentSession = provider.db.Rebind(provider.sqlInsertOAuth2ConsentSession)
-	provider.sqlUpdateOAuth2ConsentSessionAuthorized = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionAuthorized)
-	provider.sqlUpdateOAuth2ConsentSessionRejected = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionRejected)
+	provider.sqlUpdateOAuth2ConsentSessionResponse = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponse)
 	provider.sqlUpdateOAuth2ConsentSessionGranted = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionGranted)
 	provider.sqlSelectOAuth2ConsentSessionByChallengeID = provider.db.Rebind(provider.sqlSelectOAuth2ConsentSessionByChallengeID)
 

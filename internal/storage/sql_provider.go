@@ -104,8 +104,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSession),
 
 		sqlInsertOAuth2ConsentSession:              fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionAuthorized:    fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionAuthorized, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionRejected:      fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionRejected, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionResponse:      fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionGranted:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
@@ -233,8 +232,7 @@ type SQLProvider struct {
 
 	// Table: oauth2_consent_session.
 	sqlInsertOAuth2ConsentSession              string
-	sqlUpdateOAuth2ConsentSessionAuthorized    string
-	sqlUpdateOAuth2ConsentSessionRejected      string
+	sqlUpdateOAuth2ConsentSessionResponse      string
 	sqlUpdateOAuth2ConsentSessionGranted       string
 	sqlSelectOAuth2ConsentSessionByChallengeID string
 
@@ -368,7 +366,7 @@ func (p *SQLProvider) LoadOpaqueUserIDBySectorIDAndUsername(ctx context.Context,
 // SaveOAuth2ConsentSession inserts an OAuth2.0 consent.
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
-		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Rejected, consent.Granted,
+		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
 		consent.RequestedAt, consent.RespondedAt, consent.Form,
 		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience); err != nil {
 		p.log.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %+v", consent.ChallengeID.String(), consent.Subject.String(), err)
@@ -379,20 +377,11 @@ func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *mod
 }
 
 // SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent with the consent response.
-func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error) {
-	switch rejection {
-	case false:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionAuthorized, consent.GrantedScopes, consent.GrantedAudience, consent.ID)
-		if err != nil {
-			p.log.Errorf("error updating oauth2 consent session (authorized) with id '%d' and challenge id '%s' for subject '%s': %+v", consent.ID, consent.ChallengeID, consent.Subject, err)
-			return fmt.Errorf("error updating oauth2 consent session (authorized) with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject, err)
-		}
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionRejected, consent.ID)
-		if err != nil {
-			p.log.Errorf("error updating oauth2 consent session (rejection) with id '%d' and challenge id '%s' for subject '%s': %+v", consent.ID, consent.ChallengeID, consent.Subject, err)
-			return fmt.Errorf("error updating oauth2 consent session (rejection) with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject, err)
-		}
+func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, authorized bool) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.GrantedScopes, consent.GrantedAudience, consent.ID)
+	if err != nil {
+		p.log.Errorf("error updating oauth2 consent session (authorized '%t') with id '%d' and challenge id '%s' for subject '%s': %+v", authorized, consent.ID, consent.ChallengeID, consent.Subject, err)
+		return fmt.Errorf("error updating oauth2 consent session (authorized  '%t') with id '%d' and challenge id '%s' for subject '%s': %w", authorized, consent.ID, consent.ChallengeID, consent.Subject, err)
 	}
 
 	return nil

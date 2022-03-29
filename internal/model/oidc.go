@@ -87,7 +87,6 @@ type OAuth2ConsentSession struct {
 	Subject     uuid.UUID `db:"subject"`
 
 	Authorized bool `db:"authorized"`
-	Rejected   bool `db:"rejected"`
 	Granted    bool `db:"granted"`
 
 	RequestedAt time.Time  `db:"requested_at"`
@@ -99,6 +98,11 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+}
+
+// Responded returns true if the user has responded to the consent session.
+func (s OAuth2ConsentSession) Responded() bool {
+	return s.RespondedAt != nil
 }
 
 // GetForm returns the form.

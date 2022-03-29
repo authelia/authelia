@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -73,8 +72,8 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var (
-		redirectURI     string
 		externalRootURL string
+		authorized      = true
 	)
 
 	switch body.AcceptOrReject {
@@ -86,7 +85,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 			return
 		}
 
-		redirectURI = fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, form.Encode())
+		// redirectURI = fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, form.Encode()).
 
 		consent.GrantedScopes = consent.RequestedScopes
 		consent.GrantedAudience = consent.RequestedAudience
@@ -95,39 +94,46 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 			consent.GrantedAudience = append(consent.GrantedAudience, consent.ClientID)
 		}
 
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
-			ctx.Logger.Errorf("Failed to save the consent session to the database: %+v", err)
-			ctx.SetJSONError(messageOperationFailed)
+		/*
+			if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
+				ctx.Logger.Errorf("Failed to save the consent session to the database: %+v", err)
+				ctx.SetJSONError(messageOperationFailed)
 
-			return
-		}
+				return
+			}
+
+		*/
 	case reject:
-		redirectURIForm := url.Values{
-			"error":             []string{"access_denied"},
-			"error_description": []string{"User rejected the consent request"},
-		}
+		authorized = false
+		/*
+			redirectURIForm := url.Values{
+				"error":             []string{"access_denied"},
+				"error_description": []string{"User rejected the consent request"},
+			}
 
-		if state := form.Get("state"); state != "" {
-			redirectURIForm.Set("state", state)
-		}
+			if state := form.Get("state"); state != "" {
+				redirectURIForm.Set("state", state)
+			}
 
-		redirectURI = fmt.Sprintf("%s?%s", form.Get("redirect_uri"), redirectURIForm.Encode())
+			redirectURI = fmt.Sprintf("%s?%s", form.Get("redirect_uri"), redirectURIForm.Encode())
 
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, true); err != nil {
-			ctx.Logger.Errorf("Failed to save the consent session to the database: %+v", err)
-			ctx.SetJSONError(messageOperationFailed)
+			if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, true); err != nil {
+				ctx.Logger.Errorf("Failed to save the consent session to the database: %+v", err)
+				ctx.SetJSONError(messageOperationFailed)
 
-			return
-		}
+				return
+			}
 
-		userSession.ConsentChallengeID = nil
+			userSession.ConsentChallengeID = nil
 
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Failed to save the user session: %+v", err)
-			ctx.SetJSONError(messageOperationFailed)
+			if err = ctx.SaveSession(userSession); err != nil {
+				ctx.Logger.Errorf("Failed to save the user session: %+v", err)
+				ctx.SetJSONError(messageOperationFailed)
 
-			return
-		}
+				return
+			}
+
+		*/
 	default:
 		ctx.Logger.Warnf("User '%s' tried to reply to consent with an unexpected verb", userSession.Username)
 		ctx.ReplyBadRequest()
@@ -135,7 +141,14 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	response := ConsentPostResponseBody{RedirectURI: redirectURI}
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, authorized); err != nil {
+		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	response := ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, form.Encode())}
 
 	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body in response"), "Operation failed")

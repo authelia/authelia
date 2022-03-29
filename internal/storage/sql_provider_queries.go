@@ -223,30 +223,25 @@ const (
 
 const (
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
-		SELECT id, challenge_id, client_id, subject, authorized, rejected, granted, requested_at, responded_at,
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
 		FROM %s
 		WHERE challenge_id = ?;`
 
 	queryFmtInsertOAuth2ConsentSession = `
-		INSERT INTO %s (challenge_id, client_id, subject, authorized, rejected, granted, requested_at, responded_at,
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpdateOAuth2ConsentSessionAuthorized = `
+	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
-		SET authorized = TRUE, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?
-		WHERE id = ? AND responded_at IS NULL AND authorized = FALSE AND rejected = FALSE;`
-
-	queryFmtUpdateOAuth2ConsentSessionRejected = `
-		UPDATE %s
-		SET rejected = TRUE, responded_at = CURRENT_TIMESTAMP
-		WHERE id = ? AND responded_at IS NULL AND authorized = FALSE AND rejected = FALSE;`
+		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?
+		WHERE id = ? AND responded_at IS NULL;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
 		UPDATE %s
 		SET granted = TRUE
-		WHERE id = ? AND responded_at IS NOT NULL AND authorized = TRUE AND rejected = FALSE;`
+		WHERE id = ? AND responded_at IS NOT NULL;`
 
 	queryFmtSelectOAuth2Session = `
 		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,

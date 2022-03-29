@@ -33,10 +33,6 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	var (
-		required bool
-	)
-
 	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID)
 	if err != nil {
 		ctx.Logger.Errorf("Unable to load consent session from database: %v", err)
@@ -62,15 +58,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if required, err = isOIDCConsentRequired(ctx, &userSession); err != nil {
-		ctx.Logger.Errorf("Unable to check consent session status: %v", err)
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
-
-	if required {
+	if userSession.ConsentChallengeID != nil {
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
