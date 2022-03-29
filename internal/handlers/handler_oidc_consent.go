@@ -49,7 +49,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
+		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, client.Policy)
 		ctx.ReplyForbidden()
 
 		return
@@ -58,14 +58,6 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	if consent.ClientID != body.ClientID {
 		ctx.Logger.Errorf("User '%s' consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
 			userSession.Username, body.ClientID, consent.ClientID)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	form, err := consent.GetForm()
-	if err != nil {
-		ctx.Logger.Errorf("Could not parse the form stored in the consent session with challenge id '%s' for user '%s': %v", consent.ChallengeID.String(), userSession.Username, err)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -107,7 +99,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	response := ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, form.Encode())}
+	response := ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}
 
 	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body in response"), "Operation failed")

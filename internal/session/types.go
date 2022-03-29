@@ -41,9 +41,7 @@ type UserSession struct {
 	// Webauthn holds the session registration data for this session.
 	Webauthn *webauthn.SessionData
 
-	// Represent an OIDC workflow session initiated by the client if not null.
-	OIDCWorkflowSession *OIDCWorkflowSession
-
+	// ConsentChallengeID is the OpenID Connect Consent Session challenge ID.
 	ConsentChallengeID *uuid.UUID
 
 	// This boolean is set to true after identity verification and checked

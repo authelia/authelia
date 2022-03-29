@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -24,7 +25,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	uri, err := ctx.ExternalRootURL()
+	externalRootURL, err := ctx.ExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Unable to determine external Base URL: %v", err)
 
@@ -52,18 +53,18 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", userSession.OIDCWorkflowSession.ClientID)
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
 		ctx.ReplyOK()
 
 		return
 	}
 
 	if userSession.ConsentChallengeID != nil {
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)}); err != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", externalRootURL)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	} else {
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI}); err != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	}
