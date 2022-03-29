@@ -162,19 +162,12 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.verifyIsOIDC(s.T(), s.Context(ctx), "access_denied", "https://oidc.example.com:8080/error?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
 
-	var text string
+	errorDescription := "The resource owner or authorization server denied the request. Make sure that the request " +
+		"you are making is valid. Maybe the credential or request parameters you are using are limited in scope or " +
+		"otherwise restricted."
 
-	text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "state").Text()
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "random-string-here", text)
-
-	text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "error").Text()
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "access_denied", text)
-
-	text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "error_description").Text()
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "The resource owner or authorization server denied the request. Make sure that the request you are making is valid. Maybe the credential or request parameters you are using are limited in scope or otherwise restricted.", text)
+	s.verifyIsOIDCErrorPage(s.T(), s.Context(ctx), "access_denied", errorDescription, "",
+		"random-string-here")
 }
 
 func TestRunOIDCScenario(t *testing.T) {
