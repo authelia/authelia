@@ -39,9 +39,9 @@ func NewPostgreSQLProvider(config *schema.Configuration) (provider *PostgreSQLPr
 	provider.sqlSelectPreferred2FAMethod = provider.db.Rebind(provider.sqlSelectPreferred2FAMethod)
 	provider.sqlSelectUserInfo = provider.db.Rebind(provider.sqlSelectUserInfo)
 
-	provider.sqlInsertOpaqueUserID = provider.db.Rebind(provider.sqlInsertOpaqueUserID)
-	provider.sqlSelectOpaqueUserID = provider.db.Rebind(provider.sqlSelectOpaqueUserID)
-	provider.sqlSelectOpaqueUserIDBySectorIDAndUsername = provider.db.Rebind(provider.sqlSelectOpaqueUserIDBySectorIDAndUsername)
+	provider.sqlInsertUserOpaqueIdentifier = provider.db.Rebind(provider.sqlInsertUserOpaqueIdentifier)
+	provider.sqlSelectUserOpaqueIdentifier = provider.db.Rebind(provider.sqlSelectUserOpaqueIdentifier)
+	provider.sqlSelectUserOpaqueIdentifierBySignature = provider.db.Rebind(provider.sqlSelectUserOpaqueIdentifierBySignature)
 
 	provider.sqlSelectIdentityVerification = provider.db.Rebind(provider.sqlSelectIdentityVerification)
 	provider.sqlInsertIdentityVerification = provider.db.Rebind(provider.sqlInsertIdentityVerification)

@@ -47,6 +47,11 @@ func (c Client) GetID() string {
 	return c.ID
 }
 
+// GetSectorID returns the SectorID.
+func (c Client) GetSectorID() string {
+	return ""
+}
+
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
 func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{

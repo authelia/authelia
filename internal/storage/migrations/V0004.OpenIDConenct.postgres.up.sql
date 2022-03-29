@@ -1,11 +1,12 @@
-CREATE TABLE IF NOT EXISTS user_opaque_id (
+CREATE TABLE IF NOT EXISTS user_opaque_identifier (
     id SERIAL,
+    service VARCHAR(20) NOT NULL,
     sector_id VARCHAR(255) NOT NULL,
     username VARCHAR(100) NOT NULL,
-    opaque_id CHAR(36) NOT NULL,
+    identifier CHAR(36) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE (sector_id, username),
-    UNIQUE (opaque_id)
+    UNIQUE (service, sector_id, username),
+    UNIQUE (identifier)
 );
 
 CREATE TABLE IF NOT EXISTS oauth2_blacklisted_jti (
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     UNIQUE (challenge_id),
     CONSTRAINT oauth2_consent_subject_fkey
         FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS oauth2_authorize_code_session (
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS oauth2_authorize_code_session (
             REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_authorize_code_session_subject_fkey
         FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_authorize_code_session_request_id_idx ON oauth2_authorize_code_session (request_id);
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
             REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_access_token_session_subject_fkey
         FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
@@ -118,7 +119,7 @@ CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
             REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_refresh_token_session_subject_fkey
         FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
@@ -147,7 +148,7 @@ CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
             REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_pkce_request_session_subject_fkey
         FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
@@ -176,7 +177,7 @@ CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
             REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_openid_connect_session_subject_fkey
         FOREIGN KEY(subject)
-            REFERENCES user_opaque_id(opaque_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);

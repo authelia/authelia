@@ -22,9 +22,9 @@ type Provider interface {
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
 	LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error)
 
-	SaveOpaqueUserID(ctx context.Context, subject *model.OpaqueUserID) (err error)
-	LoadOpaqueUserID(ctx context.Context, opaqueUUID uuid.UUID) (subject *model.OpaqueUserID, err error)
-	LoadOpaqueUserIDBySectorIDAndUsername(ctx context.Context, sectorID, username string) (subject *model.OpaqueUserID, err error)
+	SaveUserOpaqueIdentifier(ctx context.Context, subject *model.UserOpaqueIdentifier) (err error)
+	LoadUserOpaqueIdentifier(ctx context.Context, opaqueUUID uuid.UUID) (subject *model.UserOpaqueIdentifier, err error)
+	LoadUserOpaqueIdentifierBySignature(ctx context.Context, service, sectorID, username string) (subject *model.UserOpaqueIdentifier, err error)
 
 	SaveIdentityVerification(ctx context.Context, verification model.IdentityVerification) (err error)
 	ConsumeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error)

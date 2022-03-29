@@ -9,10 +9,11 @@ import (
 	reflect "reflect"
 	time "time"
 
-	model "github.com/authelia/authelia/v4/internal/model"
-	storage "github.com/authelia/authelia/v4/internal/storage"
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
+
+	model "github.com/authelia/authelia/v4/internal/model"
+	storage "github.com/authelia/authelia/v4/internal/storage"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -255,36 +256,6 @@ func (mr *MockStorageMockRecorder) LoadOAuth2Session(arg0, arg1, arg2 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2Session", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2Session), arg0, arg1, arg2)
 }
 
-// LoadOpaqueUserID mocks base method.
-func (m *MockStorage) LoadOpaqueUserID(arg0 context.Context, arg1 uuid.UUID) (*model.OpaqueUserID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOpaqueUserID", arg0, arg1)
-	ret0, _ := ret[0].(*model.OpaqueUserID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadOpaqueUserID indicates an expected call of LoadOpaqueUserID.
-func (mr *MockStorageMockRecorder) LoadOpaqueUserID(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOpaqueUserID", reflect.TypeOf((*MockStorage)(nil).LoadOpaqueUserID), arg0, arg1)
-}
-
-// LoadOpaqueUserIDBySectorIDAndUsername mocks base method.
-func (m *MockStorage) LoadOpaqueUserIDBySectorIDAndUsername(arg0 context.Context, arg1, arg2 string) (*model.OpaqueUserID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOpaqueUserIDBySectorIDAndUsername", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*model.OpaqueUserID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadOpaqueUserIDBySectorIDAndUsername indicates an expected call of LoadOpaqueUserIDBySectorIDAndUsername.
-func (mr *MockStorageMockRecorder) LoadOpaqueUserIDBySectorIDAndUsername(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOpaqueUserIDBySectorIDAndUsername", reflect.TypeOf((*MockStorage)(nil).LoadOpaqueUserIDBySectorIDAndUsername), arg0, arg1, arg2)
-}
-
 // LoadPreferred2FAMethod mocks base method.
 func (m *MockStorage) LoadPreferred2FAMethod(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
@@ -358,6 +329,36 @@ func (m *MockStorage) LoadUserInfo(arg0 context.Context, arg1 string) (model.Use
 func (mr *MockStorageMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadUserInfo), arg0, arg1)
+}
+
+// LoadUserOpaqueIdentifier mocks base method.
+func (m *MockStorage) LoadUserOpaqueIdentifier(arg0 context.Context, arg1 uuid.UUID) (*model.UserOpaqueIdentifier, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserOpaqueIdentifier", arg0, arg1)
+	ret0, _ := ret[0].(*model.UserOpaqueIdentifier)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserOpaqueIdentifier indicates an expected call of LoadUserOpaqueIdentifier.
+func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifier(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserOpaqueIdentifier", reflect.TypeOf((*MockStorage)(nil).LoadUserOpaqueIdentifier), arg0, arg1)
+}
+
+// LoadUserOpaqueIdentifierBySignature mocks base method.
+func (m *MockStorage) LoadUserOpaqueIdentifierBySignature(arg0 context.Context, arg1, arg2, arg3 string) (*model.UserOpaqueIdentifier, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserOpaqueIdentifierBySignature", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.UserOpaqueIdentifier)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserOpaqueIdentifierBySignature indicates an expected call of LoadUserOpaqueIdentifierBySignature.
+func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifierBySignature(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserOpaqueIdentifierBySignature", reflect.TypeOf((*MockStorage)(nil).LoadUserOpaqueIdentifierBySignature), arg0, arg1, arg2, arg3)
 }
 
 // LoadWebauthnDevices mocks base method.
@@ -516,20 +517,6 @@ func (mr *MockStorageMockRecorder) SaveOAuth2Session(arg0, arg1, arg2 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Session", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Session), arg0, arg1, arg2)
 }
 
-// SaveOpaqueUserID mocks base method.
-func (m *MockStorage) SaveOpaqueUserID(arg0 context.Context, arg1 *model.OpaqueUserID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOpaqueUserID", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOpaqueUserID indicates an expected call of SaveOpaqueUserID.
-func (mr *MockStorageMockRecorder) SaveOpaqueUserID(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOpaqueUserID", reflect.TypeOf((*MockStorage)(nil).SaveOpaqueUserID), arg0, arg1)
-}
-
 // SavePreferred2FAMethod mocks base method.
 func (m *MockStorage) SavePreferred2FAMethod(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -570,6 +557,20 @@ func (m *MockStorage) SaveTOTPConfiguration(arg0 context.Context, arg1 model.TOT
 func (mr *MockStorageMockRecorder) SaveTOTPConfiguration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).SaveTOTPConfiguration), arg0, arg1)
+}
+
+// SaveUserOpaqueIdentifier mocks base method.
+func (m *MockStorage) SaveUserOpaqueIdentifier(arg0 context.Context, arg1 *model.UserOpaqueIdentifier) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveUserOpaqueIdentifier", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveUserOpaqueIdentifier indicates an expected call of SaveUserOpaqueIdentifier.
+func (mr *MockStorageMockRecorder) SaveUserOpaqueIdentifier(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveUserOpaqueIdentifier", reflect.TypeOf((*MockStorage)(nil).SaveUserOpaqueIdentifier), arg0, arg1)
 }
 
 // SaveWebauthnDevice mocks base method.

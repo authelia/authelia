@@ -38,15 +38,15 @@ func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider s
 }
 
 // GenerateOpaqueUserID either retrieves or creates an opaque user id from a sectorID and username.
-func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.OpaqueUserID, err error) {
-	if opaqueID, err = s.provider.LoadOpaqueUserIDBySectorIDAndUsername(ctx, sectorID, username); err != nil {
+func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
+	if opaqueID, err = s.provider.LoadUserOpaqueIdentifierBySignature(ctx, "openid", sectorID, username); err != nil {
 		return opaqueID, err
 	} else if opaqueID == nil {
-		if opaqueID, err = model.NewOpaqueUserID("", username); err != nil {
+		if opaqueID, err = model.NewUserOpaqueIdentifier("openid", sectorID, username); err != nil {
 			return opaqueID, err
 		}
 
-		if err = s.provider.SaveOpaqueUserID(ctx, opaqueID); err != nil {
+		if err = s.provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
 			return opaqueID, err
 		}
 	}
@@ -55,14 +55,14 @@ func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, 
 }
 
 // GetSubject returns a subject UUID for a username. If it exists, it returns the existing one, otherwise it creates and saves it.
-func (s OpenIDConnectStore) GetSubject(ctx context.Context, username string) (subject uuid.UUID, err error) {
-	var opaqueID *model.OpaqueUserID
+func (s OpenIDConnectStore) GetSubject(ctx context.Context, sectorID, username string) (subject uuid.UUID, err error) {
+	var opaqueID *model.UserOpaqueIdentifier
 
-	if opaqueID, err = s.GenerateOpaqueUserID(ctx, "", username); err != nil {
+	if opaqueID, err = s.GenerateOpaqueUserID(ctx, sectorID, username); err != nil {
 		return subject, err
 	}
 
-	return opaqueID.OpaqueID, nil
+	return opaqueID.Identifier, nil
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.

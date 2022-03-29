@@ -9,7 +9,7 @@ const (
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableTOTPConfigurations   = "totp_configurations"
-	tableUserOpaqueID         = "user_opaque_id"
+	tableUserOpaqueIdentifier = "user_opaque_identifier"
 	tableUserPreferences      = "user_preferences"
 	tableWebauthnDevices      = "webauthn_devices"
 

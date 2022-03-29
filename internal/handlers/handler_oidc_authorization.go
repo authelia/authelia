@@ -36,7 +36,6 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		return
 	}
 
-	requester.GetRedirectURI()
 	clientID := requester.GetClient().GetID()
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being processed", requester.GetID(), clientID)
@@ -65,7 +64,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	var subject uuid.UUID
 
-	if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, userSession.Username); err != nil {
+	if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorID(), userSession.Username); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))

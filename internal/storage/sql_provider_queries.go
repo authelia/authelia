@@ -300,17 +300,17 @@ const (
 )
 
 const (
-	queryFmtInsertOpaqueUserID = `
-		INSERT INTO %s (sector_id, username, opaque_id)
-		VALUES(?, ?, ?);`
+	queryFmtInsertUserOpaqueIdentifier = `
+		INSERT INTO %s (service, sector_id, username, identifier)
+		VALUES(?, ?, ?, ?);`
 
-	queryFmtSelectOpaqueUserID = `
-		SELECT id, sector_id, username, opaque_id
+	queryFmtSelectUserOpaqueIdentifier = `
+		SELECT id, sector_id, username, identifier
 		FROM %s
-		WHERE opaque_id = ?;`
+		WHERE identifier = ?;`
 
-	queryFmtSelectOpaqueUserIDBySectorIDAndUsername = `
-		SELECT id, sector_id, username, opaque_id
+	queryFmtSelectUserOpaqueIdentifierBySignature = `
+		SELECT id, service, sector_id, username, identifier
 		FROM %s
-		WHERE sector_id = ? AND username = ?;`
+		WHERE service = ? AND sector_id = ? AND username = ?;`
 )

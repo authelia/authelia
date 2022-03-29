@@ -65,9 +65,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
 		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebauthnDevices, tableDuoDevices, tableUserPreferences),
 
-		sqlInsertOpaqueUserID:                      fmt.Sprintf(queryFmtInsertOpaqueUserID, tableUserOpaqueID),
-		sqlSelectOpaqueUserID:                      fmt.Sprintf(queryFmtSelectOpaqueUserID, tableUserOpaqueID),
-		sqlSelectOpaqueUserIDBySectorIDAndUsername: fmt.Sprintf(queryFmtSelectOpaqueUserIDBySectorIDAndUsername, tableUserOpaqueID),
+		sqlInsertUserOpaqueIdentifier:            fmt.Sprintf(queryFmtInsertUserOpaqueIdentifier, tableUserOpaqueIdentifier),
+		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
+		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
 		sqlInsertOAuth2AuthorizeCodeSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AuthorizeCodeSession),
 		sqlSelectOAuth2AuthorizeCodeSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AuthorizeCodeSession),
@@ -178,10 +178,10 @@ type SQLProvider struct {
 	sqlSelectPreferred2FAMethod string
 	sqlSelectUserInfo           string
 
-	// Table: user_opaque_id.
-	sqlInsertOpaqueUserID                      string
-	sqlSelectOpaqueUserID                      string
-	sqlSelectOpaqueUserIDBySectorIDAndUsername string
+	// Table: user_opaque_identifier.
+	sqlInsertUserOpaqueIdentifier            string
+	sqlSelectUserOpaqueIdentifier            string
+	sqlSelectUserOpaqueIdentifierBySignature string
 
 	// Table: migrations.
 	sqlInsertMigration       string
@@ -325,20 +325,20 @@ func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
 	return tx.Rollback()
 }
 
-// SaveOpaqueUserID saves a new opaque user id to the database.
-func (p *SQLProvider) SaveOpaqueUserID(ctx context.Context, opaqueID *model.OpaqueUserID) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertOpaqueUserID, opaqueID.SectorID, opaqueID.Username, opaqueID.OpaqueID); err != nil {
-		return fmt.Errorf("error inserting user opaque id for user '%s' with opaque id '%s': %w", opaqueID.Username, opaqueID.OpaqueID.String(), err)
+// SaveUserOpaqueIdentifier saves a new opaque user identifier to the database.
+func (p *SQLProvider) SaveUserOpaqueIdentifier(ctx context.Context, opaqueID *model.UserOpaqueIdentifier) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertUserOpaqueIdentifier, opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier); err != nil {
+		return fmt.Errorf("error inserting user opaque id for user '%s' with opaque id '%s': %w", opaqueID.Username, opaqueID.Identifier.String(), err)
 	}
 
 	return nil
 }
 
-// LoadOpaqueUserID selects an opaque user id from the database.
-func (p *SQLProvider) LoadOpaqueUserID(ctx context.Context, opaqueUUID uuid.UUID) (opaqueID *model.OpaqueUserID, err error) {
-	opaqueID = &model.OpaqueUserID{}
+// LoadUserOpaqueIdentifier selects an opaque user identifier from the database.
+func (p *SQLProvider) LoadUserOpaqueIdentifier(ctx context.Context, opaqueUUID uuid.UUID) (opaqueID *model.UserOpaqueIdentifier, err error) {
+	opaqueID = &model.UserOpaqueIdentifier{}
 
-	if err = p.db.GetContext(ctx, opaqueID, p.sqlSelectOpaqueUserID, opaqueUUID); err != nil {
+	if err = p.db.GetContext(ctx, opaqueID, p.sqlSelectUserOpaqueIdentifier, opaqueUUID); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
@@ -350,11 +350,11 @@ func (p *SQLProvider) LoadOpaqueUserID(ctx context.Context, opaqueUUID uuid.UUID
 	return opaqueID, nil
 }
 
-// LoadOpaqueUserIDBySectorIDAndUsername selects an opaque user id from the database given a sector id and username.
-func (p *SQLProvider) LoadOpaqueUserIDBySectorIDAndUsername(ctx context.Context, sectorID, username string) (opaqueID *model.OpaqueUserID, err error) {
-	opaqueID = &model.OpaqueUserID{}
+// LoadUserOpaqueIdentifierBySignature selects an opaque user identifier from the database given a service name,  sector id, and username.
+func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, service, sectorID, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
+	opaqueID = &model.UserOpaqueIdentifier{}
 
-	if err = p.db.GetContext(ctx, opaqueID, p.sqlSelectOpaqueUserIDBySectorIDAndUsername, sectorID, username); err != nil {
+	if err = p.db.GetContext(ctx, opaqueID, p.sqlSelectUserOpaqueIdentifierBySignature, service, sectorID, username); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
