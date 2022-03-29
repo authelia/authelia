@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 	"time"
 
@@ -89,23 +90,48 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	assert.NoError(s.T(), err)
 
 	s.verifyIsConsentPage(s.T(), s.Context(ctx))
-	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "accept-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "accept-button").Click("left")
 	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
 	// s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!").
 
-	preferredUsername, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-preferred_username").Text()
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "john", preferredUsername)
+	rUUID := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+	rInteger := regexp.MustCompile(`^\d+$`)
+	rBoolean := regexp.MustCompile(`^(true|false)$`)
+	rBase64 := regexp.MustCompile(`^[A-Za-z0-9+\\/-_]+([=]{0,3})$`)
 
-	groups, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-groups").Text()
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "admins, dev", groups)
+	testCases := []struct {
+		desc, elementID, elementText string
+		pattern                      *regexp.Regexp
+	}{
+		{"issuer", "claim-iss", "https://login.example.com:8080", nil},
+		{"preferred_username", "claim-preferred_username", "john", nil},
+		{"groups", "claim-groups", "admins, dev", nil},
+		{"email", "claim-email", "john.doe@authelia.com", nil},
+		{"amr", "claim-amr", "", nil},
+		{"iat", "claim-iat", "", rInteger},
+		{"rat", "claim-rat", "", rInteger},
+		{"expires", "claim-exp", "", rInteger},
+		{"jti", "claim-jti", "", rUUID},
+		{"name", "claim-name", "John Doe", nil},
+		{"email_verified", "claim-email_verified", "", rBoolean},
+		{"at_hash", "claim-at_hash", "", rBase64},
+	}
 
-	iss, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-iss").Text()
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "https://login.example.com:8080", iss)
+	var text string
+
+	for _, tc := range testCases {
+		s.T().Run(fmt.Sprintf("check_claims/%s", tc.desc), func(t *testing.T) {
+			text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), tc.elementID).Text()
+			assert.NoError(t, err)
+			if tc.pattern == nil {
+				assert.Equal(t, tc.elementText, text)
+			} else {
+				assert.Regexp(t, tc.pattern, text)
+			}
+		})
+	}
 }
 
 func (s *OIDCScenario) TestShouldDenyConsent() {
@@ -129,7 +155,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.verifyIsConsentPage(s.T(), s.Context(ctx))
 
-	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "deny-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "deny-button").Click("left")
 	assert.NoError(s.T(), err)
 
 	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
