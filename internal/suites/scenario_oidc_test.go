@@ -98,7 +98,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	rUUID := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 	rInteger := regexp.MustCompile(`^\d+$`)
 	rBoolean := regexp.MustCompile(`^(true|false)$`)
-	rBase64 := regexp.MustCompile(`^[A-Za-z0-9+\\/-_]+([=]{0,3})$`)
+	rBase64 := regexp.MustCompile(`^[-_A-Za-z0-9+\\/]+([=]{0,3})$`)
 
 	testCases := []struct {
 		desc, elementID, elementText string
