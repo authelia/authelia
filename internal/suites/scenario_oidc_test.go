@@ -94,7 +94,6 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
-	// s.waitBodyContains(s.T(), s.Context(ctx), "Logged in as john!").
 
 	rUUID := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 	rInteger := regexp.MustCompile(`^\d+$`)
@@ -105,12 +104,15 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 		desc, elementID, elementText string
 		pattern                      *regexp.Regexp
 	}{
+		{"welcome", "welcome", "Logged in as john!", nil},
 		{"issuer", "claim-iss", "https://login.example.com:8080", nil},
 		{"preferred_username", "claim-preferred_username", "john", nil},
 		{"groups", "claim-groups", "admins, dev", nil},
 		{"email", "claim-email", "john.doe@authelia.com", nil},
 		{"amr", "claim-amr", "", nil},
+		{"acr", "claim-acr", "", nil},
 		{"iat", "claim-iat", "", rInteger},
+		{"nbf", "claim-nbf", "", rInteger},
 		{"rat", "claim-rat", "", rInteger},
 		{"expires", "claim-exp", "", rInteger},
 		{"jti", "claim-jti", "", rUUID},
@@ -123,7 +125,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	for _, tc := range testCases {
 		s.T().Run(fmt.Sprintf("check_claims/%s", tc.desc), func(t *testing.T) {
-			text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), tc.elementID).Text()
+			text, err = s.WaitElementLocatedByID(t, s.Context(ctx), tc.elementID).Text()
 			assert.NoError(t, err)
 			if tc.pattern == nil {
 				assert.Equal(t, tc.elementText, text)
@@ -158,7 +160,21 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "deny-button").Click("left")
 	assert.NoError(s.T(), err)
 
-	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
+	s.verifyIsOIDC(s.T(), s.Context(ctx), "access_denied", "https://oidc.example.com:8080/error?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
+
+	var text string
+
+	text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "state").Text()
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "random-string-here", text)
+
+	text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "error").Text()
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "access_denied", text)
+
+	text, err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "error_description").Text()
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "The resource owner or authorization server denied the request. Make sure that the request you are making is valid. Maybe the credential or request parameters you are using are limited in scope or otherwise restricted.", text)
 }
 
 func TestRunOIDCScenario(t *testing.T) {
