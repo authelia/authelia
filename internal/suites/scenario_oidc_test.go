@@ -101,11 +101,11 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	groups, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-groups").Text()
 	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "admins, dev", groups)
+	assert.Equal(s.T(), "", groups)
 
 	iss, err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "claim-iss").Text()
 	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), "test", iss)
+	assert.Equal(s.T(), "https://login.example.com:8080", iss)
 }
 
 func (s *OIDCScenario) TestShouldDenyConsent() {
@@ -132,7 +132,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "deny-button").Click("left")
 	assert.NoError(s.T(), err)
 
-	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=User+rejected+the+consent+request&state=random-string-here")
+	s.verifyIsOIDC(s.T(), s.Context(ctx), "oauth2:", "https://oidc.example.com:8080/oauth2/callback?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
 }
 
 func TestRunOIDCScenario(t *testing.T) {
