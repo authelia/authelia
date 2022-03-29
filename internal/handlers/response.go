@@ -5,11 +5,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
