@@ -121,7 +121,7 @@ func cmdCertificatesGenerateRunExtended(hosts []string, ecdsaCurve, validFrom, c
 	default:
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", validFrom)
 		if err != nil {
-			log.Fatalf("failed to parse start date: %v", err)
+			log.Fatalf("Failed to parse start date: %v", err)
 		}
 	}
 
@@ -138,10 +138,12 @@ func cmdCertificatesGenerateRunExtended(hosts []string, ecdsaCurve, validFrom, c
 		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P224())
 	case "P256":
 		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P256())
-	case "384":
+	case "P384":
 		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P384())
-	case "521":
+	case "P521":
 		privateKeyBuilder = utils.ECDSAKeyBuilder{}.WithCurve(elliptic.P521())
+	default:
+		log.Fatalf("Failed to generate private key: unrecognized elliptic curve: \"%s\"", ecdsaCurve)
 	}
 
 	certBytes, keyBytes, err := utils.GenerateCertificate(privateKeyBuilder, hosts, notBefore, validFor, isCA)
