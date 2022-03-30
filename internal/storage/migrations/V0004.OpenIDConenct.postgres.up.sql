@@ -4,18 +4,20 @@ CREATE TABLE IF NOT EXISTS user_opaque_identifier (
     sector_id VARCHAR(255) NOT NULL,
     username VARCHAR(100) NOT NULL,
     identifier CHAR(36) NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE (service, sector_id, username),
-    UNIQUE (identifier)
+    PRIMARY KEY (id)
 );
+
+CREATE UNIQUE INDEX user_opaque_identifier_service_sector_id_username_key ON user_opaque_identifier (service, sector_id, username);
+CREATE UNIQUE INDEX user_opaque_identifier_identifier_key ON user_opaque_identifier (identifier);
 
 CREATE TABLE IF NOT EXISTS oauth2_blacklisted_jti (
     id SERIAL,
     signature VARCHAR(64) NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE (signature)
+    PRIMARY KEY (id)
 );
+
+CREATE UNIQUE INDEX oauth2_blacklisted_jti_signature_key ON oauth2_blacklisted_jti (signature);
 
 CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     id SERIAL,
@@ -33,11 +35,12 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
     PRIMARY KEY (id),
-    UNIQUE (challenge_id),
     CONSTRAINT oauth2_consent_subject_fkey
         FOREIGN KEY(subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
+
+CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
 
 CREATE TABLE IF NOT EXISTS oauth2_authorize_code_session (
     id SERIAL,
