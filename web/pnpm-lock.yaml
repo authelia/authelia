@@ -31,7 +31,7 @@ specifiers:
   eslint-plugin-jsx-a11y: 6.5.1
   eslint-plugin-prettier: 4.0.0
   eslint-plugin-react: 7.29.4
-  eslint-plugin-react-hooks: 4.3.0
+  eslint-plugin-react-hooks: 4.4.0
   husky: 7.0.4
   i18next: 21.6.14
   i18next-browser-languagedetector: 6.1.4
@@ -102,7 +102,7 @@ devDependencies:
   eslint-plugin-jsx-a11y: 6.5.1
   eslint-plugin-prettier: 4.0.0_402c22c633b7d169edb414eb30facea3
   eslint-plugin-react: 7.29.4
-  eslint-plugin-react-hooks: 4.3.0
+  eslint-plugin-react-hooks: 4.4.0
   husky: 7.0.4
   jest: 27.5.1
   jest-transform-stub: 2.0.0
@@ -4137,7 +4137,7 @@ packages:
       eslint-plugin-jest: 25.7.0_4f8effa95756196a8dff211513f1ec41
       eslint-plugin-jsx-a11y: 6.5.1
       eslint-plugin-react: 7.29.4
-      eslint-plugin-react-hooks: 4.3.0
+      eslint-plugin-react-hooks: 4.4.0
       eslint-plugin-testing-library: 5.0.6_typescript@4.6.3
     transitivePeerDependencies:
       - '@babel/plugin-syntax-flow'
@@ -4273,8 +4273,8 @@ packages:
       prettier-linter-helpers: 1.0.0
     dev: true
 
-  /eslint-plugin-react-hooks/4.3.0:
-    resolution: {integrity: sha512-XslZy0LnMn+84NEG9jSGR6eGqaZB3133L8xewQo3fQagbQuGt7a63gf+P1NGKZavEYEC3UXaWEAA/AqDkuN6xA==}
+  /eslint-plugin-react-hooks/4.4.0:
+    resolution: {integrity: sha512-U3RVIfdzJaeKDQKEJbz5p3NW8/L80PCATJAfuojwbaEL+gBjfGdhUcGde+WGUW46Q5sr/NgxevsIiDtNXrvZaQ==}
     engines: {node: '>=10'}
     peerDependencies:
       eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
