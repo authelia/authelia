@@ -2,7 +2,7 @@
 layout: default
 title: NTP
 parent: Configuration
-nav_order: 9
+nav_order: 10
 ---
 
 # NTP

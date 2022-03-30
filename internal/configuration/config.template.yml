@@ -94,6 +94,15 @@ log:
   # keep_stdout: false
 
 ##
+## Default Configuration
+##
+default:
+  ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
+  ## disabled. This setting has no effect if the chosen method is disabled in configuration.
+  ## Options are totp, webauthn, mobile_push.
+  user_second_factor_method: ""
+
+##
 ## TOTP Configuration
 ##
 ## Parameters used for TOTP generation.

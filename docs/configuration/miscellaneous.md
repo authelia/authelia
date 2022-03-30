@@ -2,7 +2,7 @@
 layout: default
 title: Miscellaneous
 parent: Configuration
-nav_order: 7
+nav_order: 8
 ---
 
 # Miscellaneous

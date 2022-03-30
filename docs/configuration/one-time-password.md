@@ -2,7 +2,7 @@
 layout: default
 title: Time-based One-Time Password
 parent: Configuration
-nav_order: 16
+nav_order: 17
 ---
 
 # Time-based One-Time Password

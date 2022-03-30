@@ -245,6 +245,11 @@ const (
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
 
+const (
+	errFmtDefaultInvalidMethod = "default: option 'user_second_factor_method' is configured as '%s' but must be one of " +
+		"the following values: '%s'"
+)
+
 var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
 
 var validThemeNames = []string{"light", "dark", "grey", "auto"}
@@ -258,6 +263,8 @@ var validWebauthnUserVerificationRequirement = []string{string(protocol.Verifica
 
 var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+
+var validDefaultUserSecondFactorMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
@@ -274,6 +281,9 @@ var ValidKeys = []string{
 	"theme",
 	"default_redirection_url",
 	"jwt_secret",
+
+	// Default keys.
+	"default.user_second_factor_method",
 
 	// Log keys.
 	"log.level",
