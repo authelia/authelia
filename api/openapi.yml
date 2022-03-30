@@ -317,6 +317,24 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+    post:
+      tags:
+        - User Information
+      summary: User Configuration
+      description: >
+        The user info endpoint provides detailed information including a users display name, preferred and registered
+        second factor method(s). The POST method also ensures the preferred method is configured correctly.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfo'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
   /api/user/info/totp:
     get:
       tags:

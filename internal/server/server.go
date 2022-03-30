@@ -87,7 +87,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	// Information about the user.
 	r.GET("/api/user/info", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+		middlewares.RequireFirstFactor(handlers.UserInfoGET)))
+	r.POST("/api/user/info", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.UserInfoPOST)))
 	r.POST("/api/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
