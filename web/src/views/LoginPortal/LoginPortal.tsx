@@ -16,7 +16,7 @@ import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
-import { useUserInfo } from "@hooks/UserInfo";
+import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -44,7 +44,7 @@ const LoginPortal = function (props: Props) {
     const redirector = useRedirector();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfo();
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
     const redirect = useCallback((url: string) => navigate(url), [navigate]);

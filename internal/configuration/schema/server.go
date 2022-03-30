@@ -8,8 +8,8 @@ type ServerConfiguration struct {
 	AssetPath          string `koanf:"asset_path"`
 	ReadBufferSize     int    `koanf:"read_buffer_size"`
 	WriteBufferSize    int    `koanf:"write_buffer_size"`
-	EnablePprof        bool   `koanf:"enable_endpoint_pprof"`
-	EnableExpvars      bool   `koanf:"enable_endpoint_expvars"`
+	EnablePprof        bool   `koanf:"enable_pprof"`
+	EnableExpvars      bool   `koanf:"enable_expvars"`
 	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
 	TLS     ServerTLSConfiguration     `koanf:"tls"`
