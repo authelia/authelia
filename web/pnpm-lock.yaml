@@ -40,7 +40,7 @@ specifiers:
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.0.0
   prettier: 2.6.1
-  qrcode.react: 3.0.0
+  qrcode.react: 3.0.1
   query-string: 7.1.1
   react: 18.0.0
   react-dom: 18.0.0
@@ -70,7 +70,7 @@ dependencies:
   i18next: 21.6.14
   i18next-browser-languagedetector: 6.1.4
   i18next-http-backend: 1.4.0
-  qrcode.react: 3.0.0_react@18.0.0
+  qrcode.react: 3.0.1_react@18.0.0
   query-string: 7.1.1
   react: 18.0.0
   react-dom: 18.0.0_react@18.0.0
@@ -6805,10 +6805,10 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     dev: true
 
-  /qrcode.react/3.0.0_react@18.0.0:
-    resolution: {integrity: sha512-c9wHOCtmFxDkybKAYRdqe4+M7O6mJ6AbsWGkRt+XFxpsR16pJbpZT22Lf28LwBIi6UcYPsbJ0AnqaT5qGX5Frg==}
+  /qrcode.react/3.0.1_react@18.0.0:
+    resolution: {integrity: sha512-uCNm16ClMCrdM2R20c/zqmdwHcbMQf3K7ey39EiK/UgEKbqWeM0iH2QxW3iDVFzjQKFzH23ICgOyG4gNsJ0/gw==}
     peerDependencies:
-      react: ^16.8.0 || ^17.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
       react: 18.0.0
     dev: false
