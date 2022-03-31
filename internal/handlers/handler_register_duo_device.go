@@ -45,7 +45,7 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		if result == allow {
-			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Default to Auto Push", userSession.Username)
+			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
 
 			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: allow}); err != nil {
 				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
