@@ -12,7 +12,7 @@ i18n.use(Backend)
             lookupQuerystring: "locale",
         },
         backend: {
-            loadPath: "/locale.json?lng={{lng}}&ns={{ns}}",
+            loadPath: "/locales/{{lng}}/{{ns}}.json",
         },
         ns: ["portal"],
         defaultNS: "portal",

@@ -55,4 +55,3 @@ const (
 )
 
 var protoHostSeparator = []byte("://")
-var validOverrideAssets = []string{"favicon.ico", "logo.png"}

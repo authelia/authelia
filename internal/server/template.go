@@ -43,7 +43,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		logoOverride := f
 
 		if assetPath != "" {
-			if _, err := os.Stat(assetPath + logoFile); err == nil {
+			if _, err := os.Stat(filepath.Join(assetPath, logoFile)); err == nil {
 				logoOverride = t
 			}
 		}

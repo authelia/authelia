@@ -8,7 +8,7 @@ const (
 	logoFile       = "logo.png"
 )
 
-var rootFiles = []string{"favicon.ico", "manifest.json", "robots.txt"}
+var rootFiles = []string{"manifest.json", "robots.txt"}
 
 const (
 	dev = "dev"

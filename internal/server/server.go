@@ -1,10 +1,7 @@
 package server
 
 import (
-	"embed"
-	"io/fs"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -13,19 +10,14 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
-	"github.com/authelia/authelia/v4/internal/asset"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
-
-//go:embed public_html
-var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
@@ -37,8 +29,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	}
 
-	embeddedPath, _ := fs.Sub(assets, "public_html")
-	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
+	handlerLocales := newLocalesEmbeddedHandler()
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
@@ -54,11 +46,16 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
 
 	for _, f := range rootFiles {
-		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
+		r.GET("/"+f, handlerPublicHTML)
 	}
 
-	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
-	r.ANY("/api/{filepath:*}", embeddedFS)
+	r.GET("/favicon.ico", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/media/logo.png", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 2, handlerPublicHTML))
+	r.GET("/static/{filepath:*}", handlerPublicHTML)
+	r.GET("/locales/{language:[a-z]{2}}-{variant:[A-Z]{2}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{2}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
+
+	r.ANY("/api/{filepath:*}", handlerPublicHTML)
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
@@ -153,10 +150,6 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	if configuration.Server.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
-
-	locales := asset.NewLocalesEmbeddedFS(configuration.Server.AssetPath)
-
-	r.GET("/locale.json", autheliaMiddleware(locales))
 
 	r.NotFound = autheliaMiddleware(serveIndexHandler)
 
