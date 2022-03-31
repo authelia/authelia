@@ -51,8 +51,6 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 			locale = fmt.Sprintf("%s-%s", language, locale)
 		}
 
-		fmt.Printf("language: %s, variant: %s, namespace: %s\n", language, variant, namespace)
-
 		var data []byte
 
 		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
