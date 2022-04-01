@@ -22,10 +22,6 @@ function WebauthnMethodIcon(props: Props) {
 
     const state = props.state as State;
 
-    const progressBarStyle: CSSProperties = {
-        marginTop: theme.spacing(),
-    };
-
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
