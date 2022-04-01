@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func TestNewClient(t *testing.T) {
@@ -79,7 +79,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	c.ID = "myclient"
 	c.Description = "My Client"
 
-	workflow := &session.OIDCWorkflowSession{
+	workflow := &model.OIDCWorkflowSession{
 		RequestedAudience: []string{"https://example.com"},
 		RequestedScopes:   []string{"openid", "groups"},
 	}

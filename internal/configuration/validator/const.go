@@ -169,16 +169,17 @@ const (
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
 	errFmtAccessControlRuleNoDomains = "access control: rule %s: rule is invalid: must have the option " +
-		"'domain' configured"
+		"'domain' or 'domain_regex' configured"
 	errFmtAccessControlRuleInvalidPolicy = "access control: rule %s: rule 'policy' option '%s' " +
 		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
 	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
 		"https://www.authelia.com/docs/configuration/access-control.html#bypass"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
+		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
-	errFmtAccessControlRuleResourceInvalid = "access control: rule %s: 'resources' option '%s' is " +
-		"invalid: %w"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
@@ -256,7 +257,11 @@ var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
 var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
-var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
+
+var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
@@ -319,8 +324,11 @@ var ValidKeys = []string{
 	// Access Control Keys.
 	"access_control.default_policy",
 	"access_control.networks",
+	"access_control.networks[].name",
+	"access_control.networks[].networks",
 	"access_control.rules",
 	"access_control.rules[].domain",
+	"access_control.rules[].domain_regex",
 	"access_control.rules[].methods",
 	"access_control.rules[].networks",
 	"access_control.rules[].subject",
@@ -348,16 +356,15 @@ var ValidKeys = []string{
 	"session.redis.tls.skip_verify",
 	"session.redis.tls.server_name",
 	"session.redis.high_availability.sentinel_name",
+	"session.redis.high_availability.sentinel_username",
 	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.nodes",
+	"session.redis.high_availability.nodes[].host",
+	"session.redis.high_availability.nodes[].port",
 	"session.redis.high_availability.route_by_latency",
 	"session.redis.high_availability.route_randomly",
-	"session.redis.timeouts.dial",
-	"session.redis.timeouts.idle",
-	"session.redis.timeouts.pool",
-	"session.redis.timeouts.read",
-	"session.redis.timeouts.write",
 
+	// Storage Keys.
 	"storage.encryption_key",
 
 	// Local Storage Keys.
@@ -459,12 +466,16 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
+	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].secret",
 	"identity_providers.oidc.clients[].redirect_uris",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].scopes",
+	"identity_providers.oidc.clients[].audience",
 	"identity_providers.oidc.clients[].grant_types",
 	"identity_providers.oidc.clients[].response_types",
+	"identity_providers.oidc.clients[].response_modes",
+	"identity_providers.oidc.clients[].userinfo_signing_algorithm",
 
 	// NTP keys.
 	"ntp.address",

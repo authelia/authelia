@@ -98,6 +98,10 @@ const emailHTMLContentStep2 = `
          text-decoration: none !important;
       }
 
+      .link {
+         color: #0645AD;
+      }
+
       h1 {
          line-height: 30px;
       }
