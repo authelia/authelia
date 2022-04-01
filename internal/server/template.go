@@ -117,6 +117,8 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 
 	if host == "0.0.0.0" {
 		host = "localhost"
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
 	}
 
 	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
