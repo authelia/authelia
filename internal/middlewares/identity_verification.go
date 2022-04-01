@@ -38,7 +38,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		var jti uuid.UUID
 
-		if jti, err = uuid.NewUUID(); err != nil {
+		if jti, err = uuid.NewRandom(); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

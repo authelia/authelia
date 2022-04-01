@@ -300,7 +300,7 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 			newPassword,
 		)
 
-		err = conn.PasswordModify(modifyRequest)
+		_, err = conn.PasswordModify(modifyRequest)
 	case p.configuration.Implementation == schema.LDAPImplementationActiveDirectory:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 		utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)

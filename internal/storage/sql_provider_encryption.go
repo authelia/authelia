@@ -279,7 +279,7 @@ func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (valu
 }
 
 func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, key *[32]byte, e sqlx.ExecerContext) (err error) {
-	valueClearText, err := uuid.NewUUID()
+	valueClearText, err := uuid.NewRandom()
 	if err != nil {
 		return err
 	}

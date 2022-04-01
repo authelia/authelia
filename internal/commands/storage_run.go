@@ -341,15 +341,20 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 				fmt.Println(c.URI())
 			case storageExportFormatPNG:
 				file, _ := os.Create(filepath.Join(dir, fmt.Sprintf("%s.png", c.Username)))
-				defer file.Close()
 
 				if img, err = c.Image(256, 256); err != nil {
+					_ = file.Close()
+
 					return err
 				}
 
 				if err = png.Encode(file, img); err != nil {
+					_ = file.Close()
+
 					return err
 				}
+
+				_ = file.Close()
 			}
 		}
 

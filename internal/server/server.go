@@ -28,7 +28,7 @@ var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != -1)
+	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
 	duoSelfEnrollment := f
@@ -86,7 +86,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	// Information about the user.
 	r.GET("/api/user/info", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+		middlewares.RequireFirstFactor(handlers.UserInfoGET)))
+	r.POST("/api/user/info", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.UserInfoPOST)))
 	r.POST("/api/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
@@ -179,9 +181,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
 
-	addrPattern := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
+	address := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
 
-	listener, err := net.Listen("tcp", addrPattern)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		logger.Fatalf("Error initializing listener: %s", err)
 	}
@@ -192,9 +194,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if configuration.Server.Path == "" {
-			logger.Infof("Listening for TLS connections on '%s' path '/'", addrPattern)
+			logger.Infof("Listening for TLS connections on '%s' path '/'", address)
 		} else {
-			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
 		}
 
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
@@ -204,9 +206,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if configuration.Server.Path == "" {
-			logger.Infof("Listening for non-TLS connections on '%s' path '/'", addrPattern)
+			logger.Infof("Listening for non-TLS connections on '%s' path '/'", address)
 		} else {
-			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
 		}
 		logger.Fatal(server.Serve(listener))
 	}
