@@ -17,7 +17,7 @@ func NewDefaultUserSession() UserSession {
 	}
 }
 
-// SetOneFactor sets the expected property values for one factor authentication.
+// SetOneFactor sets the 1FA AMR's and expected property values for one factor authentication.
 func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
@@ -29,13 +29,35 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	s.DisplayName = details.DisplayName
 	s.Groups = details.Groups
 	s.Emails = details.Emails
+
+	s.AuthenticationMethodRefs.UsernameAndPassword = true
 }
 
-// SetTwoFactor sets the expected property values for two factor authentication.
-func (s *UserSession) SetTwoFactor(now time.Time) {
+func (s *UserSession) setTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.TwoFactor
+}
+
+// SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorTOTP(now time.Time) {
+	s.setTwoFactor(now)
+	s.AuthenticationMethodRefs.TOTP = true
+}
+
+// SetTwoFactorDuo sets the relevant Duo AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorDuo(now time.Time) {
+	s.setTwoFactor(now)
+	s.AuthenticationMethodRefs.Duo = true
+}
+
+// SetTwoFactorWebauthn sets the relevant Webauthn AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorWebauthn(now time.Time, userPresence, userVerified bool) {
+	s.setTwoFactor(now)
+	s.AuthenticationMethodRefs.Webauthn = true
+	s.AuthenticationMethodRefs.WebauthnUserPresence, s.AuthenticationMethodRefs.WebauthnUserVerified = userPresence, userVerified
+
+	s.Webauthn = nil
 }
 
 // AuthenticatedTime returns the unix timestamp this session authenticated successfully at the given level.

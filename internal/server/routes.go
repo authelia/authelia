@@ -87,7 +87,8 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	}
 
 	// Information about the user.
-	r.GET("/api/user/info", middleware(middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+	r.GET("/api/user/info", middleware(middlewares.RequireFirstFactor(handlers.UserInfoGET)))
+	r.POST("/api/user/info", middleware(middlewares.RequireFirstFactor(handlers.UserInfoPOST)))
 	r.POST("/api/user/info/2fa_method", middleware(middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
 	if !config.TOTP.Disable {

@@ -29,7 +29,7 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent v2 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
+		ctx.Logger.Debugf("Insufficient permissions to give consent during GET current level: %d, require 2FA: %t", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.Require2FA)
 		ctx.ReplyForbidden()
 
 		return
@@ -61,7 +61,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel)
+		ctx.Logger.Debugf("Insufficient permissions to give consent during POST current level: %d, require 2FA: %t", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.Require2FA)
 		ctx.ReplyForbidden()
 
 		return

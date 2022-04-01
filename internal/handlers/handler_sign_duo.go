@@ -255,7 +255,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
+	userSession.SetTwoFactorDuo(ctx.Clock.Now())
 
 	err = ctx.SaveSession(userSession)
 	if err != nil {

@@ -4,14 +4,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// AccessControlSubject abstracts an ACL subject of type `group:` or `user:`.
-type AccessControlSubject interface {
-	IsMatch(subject Subject) (match bool)
-}
-
 // AccessControlSubjects represents an ACL subject.
 type AccessControlSubjects struct {
-	Subjects []AccessControlSubject
+	Subjects []SubjectMatcher
 }
 
 // AddSubject appends to the AccessControlSubjects based on a subject rule string.

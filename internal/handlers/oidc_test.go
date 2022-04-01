@@ -6,19 +6,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestShouldDetectIfConsentIsMissing(t *testing.T) {
-	var workflow *session.OIDCWorkflowSession
+	var workflow *model.OIDCWorkflowSession
 
 	requestedScopes := []string{"openid", "profile"}
 	requestedAudience := []string{"https://authelia.com"}
 
 	assert.True(t, isConsentMissing(workflow, requestedScopes, requestedAudience))
 
-	workflow = &session.OIDCWorkflowSession{
+	workflow = &model.OIDCWorkflowSession{
 		GrantedScopes:   []string{"openid", "profile"},
 		GrantedAudience: []string{"https://authelia.com"},
 	}

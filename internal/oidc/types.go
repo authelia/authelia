@@ -30,7 +30,7 @@ func NewSession() (session *OpenIDSession) {
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra map[string]interface{},
+func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, amr []string, extra map[string]interface{},
 	authTime, requestedAt time.Time, requester fosite.AuthorizeRequester) (session *OpenIDSession) {
 	if extra == nil {
 		extra = make(map[string]interface{})
@@ -47,6 +47,8 @@ func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, extra
 				Nonce:       requester.GetRequestForm().Get("nonce"),
 				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
+
+				AuthenticationMethodsReferences: amr,
 			},
 			Headers: &jwt.Headers{
 				Extra: map[string]interface{}{

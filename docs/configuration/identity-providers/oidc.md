@@ -501,19 +501,20 @@ does.
 _**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
 individual user. Please use the claim `preferred_username` instead._
 
-|       Claim        |   JWT Type    | Authelia Attribute |                  Description                  |
-|:------------------:|:-------------:|:------------------:|:---------------------------------------------:|
-|        sub         |    string     |      username      |   The username the user used to login with    |
-|       scope        |    string     |       scopes       |       Granted scopes (space delimited)        |
-|        scp         | array[string] |       scopes       |                Granted scopes                 |
-|        iss         |    string     |      hostname      |      The issuer name, determined by URL       |
-|      at_hash       |    string     |       _N/A_        |               Access Token Hash               |
-|        aud         | array[string] |       _N/A_        |                   Audience                    |
-|        exp         |    number     |       _N/A_        |                    Expires                    |
-|     auth_time      |    number     |       _N/A_        | The time the user authenticated with Authelia |
-|        rat         |    number     |       _N/A_        |     The time when the token was requested     |
-|        iat         |    number     |       _N/A_        |      The time when the token was issued       |
-|        jti         | string(uuid)  |       _N/A_        |                JWT Identifier                 |
+|   Claim   |   JWT Type    | Authelia Attribute |                         Description                         |
+|:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
+|    sub    |    string     |      username      |       A unique value linked to the user who logged in       |
+|   scope   |    string     |       scopes       |              Granted scopes (space delimited)               |
+|    scp    | array[string] |       scopes       |                       Granted scopes                        |
+|    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
+|  at_hash  |    string     |       _N/A_        |                      Access Token Hash                      |
+|    aud    | array[string] |       _N/A_        |                          Audience                           |
+|    exp    |    number     |       _N/A_        |                           Expires                           |
+| auth_time |    number     |       _N/A_        |        The time the user authenticated with Authelia        |
+|    rat    |    number     |       _N/A_        |            The time when the token was requested            |
+|    iat    |    number     |       _N/A_        |             The time when the token was issued              |
+|    jti    | string(uuid)  |       _N/A_        |                       JWT Identifier                        |
+|    amr    | array[string] |       _N/A_        | An [RFC8176] list of authentication method reference values |
 
 ### groups
 
@@ -541,6 +542,28 @@ This scope includes the profile information the authentication backend reports a
 |:------------------:|:--------:|:------------------:|:----------------------------------------:|
 | preferred_username |  string  |      username      | The username the user used to login with |
 |        name        |  string  |    display_name    |          The users display name          |
+
+## Authentication Method References
+
+Authelia currently supports adding the `amr` claim to the [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
+utilizing the [RFC8176] Authentication Method Reference values. 
+
+The values this claim has are not strictly defined by the [OpenID Connect] specification. As such, some backends may
+expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
+it then you're encouraged to create an issue.
+
+Below is a list of the potential values we place in the claim and their meaning:
+
+| Value |                           Description                            | Factor | Channel  |
+|:-----:|:----------------------------------------------------------------:|:------:|:--------:|
+|  mfa  |     User used multiple factors to login (see factor column)      |  N/A   |   N/A    |
+|  mca  |    User used multiple channels to login (see channel column)     |  N/A   |   N/A    |
+| user  |  User confirmed they were present when using their hardware key  |  N/A   |   N/A    |
+|  pin  | User confirmed they are the owner of the hardware key with a pin |  N/A   |   N/A    |
+|  pwd  |            User used a username and password to login            |  Know  | Browser  |
+|  otp  |                     User used TOTP to login                      |  Have  | Browser  |
+|  hwk  |                User used a hardware key to login                 |  Have  | Browser  |
+|  sms  |                      User used Duo to login                      |  Have  | External |
 
 ## Endpoint Implementations
 
@@ -586,3 +609,4 @@ These endpoints implement OpenID Connect elements.
 [Userinfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
+[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
