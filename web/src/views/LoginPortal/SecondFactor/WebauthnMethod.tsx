@@ -1,6 +1,6 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button, Theme, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { CSSProperties } from "@mui/styles";
 
 import { useIsMountedRef } from "@hooks/Mounted";
@@ -13,7 +13,6 @@ import {
     getAssertionRequestOptions,
     postAssertionPublicKeyCredentialResult,
 } from "@services/Webauthn";
-import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 import WebauthnMethodIcon from "@views/LoginPortal/SecondFactor/WebauthnMethodIcon";
 

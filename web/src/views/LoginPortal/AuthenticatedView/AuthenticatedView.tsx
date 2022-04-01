@@ -1,6 +1,6 @@
 import React, { CSSProperties } from "react";
 
-import { Grid, Button, useTheme } from "@mui/material";
+import { Grid, Button, useTheme, Theme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -13,19 +13,11 @@ export interface Props {
 }
 
 const AuthenticatedView = function (props: Props) {
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const navigate = useNavigate();
     const { t: translate } = useTranslation("Portal");
-
-    const theme = useTheme();
-    const styles: { [key: string]: CSSProperties } = {
-        mainContainer: {
-            border: "1px solid #d6d6d6",
-            borderRadius: "10px",
-            padding: theme.spacing(4),
-            marginTop: theme.spacing(2),
-            marginBottom: theme.spacing(2),
-        },
-    };
 
     const handleLogoutClick = () => {
         navigate(SignOutRoute);
@@ -39,7 +31,7 @@ const AuthenticatedView = function (props: Props) {
                         {translate("Logout")}
                     </Button>
                 </Grid>
-                <Grid item xs={12} sx={styles.mainContainer}>
+                <Grid item xs={12} sx={style.mainContainer}>
                     <Authenticated />
                 </Grid>
             </Grid>
@@ -48,3 +40,13 @@ const AuthenticatedView = function (props: Props) {
 };
 
 export default AuthenticatedView;
+
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
+    mainContainer: {
+        border: "1px solid #d6d6d6",
+        borderRadius: "10px",
+        padding: theme.spacing(4),
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+    },
+});

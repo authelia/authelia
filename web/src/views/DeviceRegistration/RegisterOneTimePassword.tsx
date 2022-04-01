@@ -17,6 +17,9 @@ import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const navigate = useNavigate();
     const location = useLocation();
     // The secret retrieved from the API is all is ok.
@@ -26,9 +29,6 @@ const RegisterOneTimePassword = function () {
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { t: translate } = useTranslation("Portal");
-
-    const theme = useTheme();
-    const styles = useStyles(theme);
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
@@ -73,7 +73,7 @@ const RegisterOneTimePassword = function () {
     function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
         return (
             <IconButton
-                sx={styles.secretButtons}
+                sx={style.secretButtons}
                 color="primary"
                 onClick={() => {
                     navigator.clipboard.writeText(`${text}`);
@@ -86,29 +86,28 @@ const RegisterOneTimePassword = function () {
         );
     }
 
-    const qrCodeStyle =
-        isLoading || hasErrored ? { ...styles.qrcodeContainer, ...styles.fuzzy } : styles.qrcodeContainer;
+    const qrCodeStyle = isLoading || hasErrored ? { ...style.qrcodeContainer, ...style.fuzzy } : style.qrcodeContainer;
 
     return (
         <LoginLayout title={translate("Scan QR Code")}>
-            <Box sx={styles.root}>
-                <Box sx={styles.googleAuthenticator}>
-                    <Typography sx={styles.googleAuthenticatorText}>
+            <Box sx={style.root}>
+                <Box sx={style.googleAuthenticator}>
+                    <Typography sx={style.googleAuthenticatorText}>
                         {translate("Need Google Authenticator?")}
                     </Typography>
                     <AppStoreBadges
                         iconSize={128}
                         targetBlank
-                        style={styles.googleAuthenticatorBadges}
+                        style={style.googleAuthenticatorBadges}
                         googlePlayLink={GoogleAuthenticator.googlePlay}
                         appleStoreLink={GoogleAuthenticator.appleStore}
                     />
                 </Box>
                 <Box sx={qrCodeStyle}>
                     <Link href={secretURL} underline="hover">
-                        <QRCode value={secretURL} style={styles.qrcode} size={256} />
-                        {!hasErrored && isLoading ? <CircularProgress sx={styles.loader} size={128} /> : null}
-                        {hasErrored ? <FontAwesomeIcon style={styles.failureIcon} icon={faTimesCircle} /> : null}
+                        <QRCode value={secretURL} style={style.qrcode} size={256} />
+                        {!hasErrored && isLoading ? <CircularProgress sx={style.loader} size={128} /> : null}
+                        {hasErrored ? <FontAwesomeIcon style={style.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
                 </Box>
                 <Box>
@@ -116,7 +115,7 @@ const RegisterOneTimePassword = function () {
                         <TextField
                             id="secret-url"
                             label={translate("Secret")}
-                            sx={styles.secret}
+                            sx={style.secret}
                             value={secretURL}
                             InputProps={{
                                 readOnly: true,
@@ -133,7 +132,7 @@ const RegisterOneTimePassword = function () {
                 <Button
                     variant="contained"
                     color="primary"
-                    sx={styles.doneButton}
+                    sx={style.doneButton}
                     onClick={handleDoneClick}
                     disabled={isLoading}
                 >

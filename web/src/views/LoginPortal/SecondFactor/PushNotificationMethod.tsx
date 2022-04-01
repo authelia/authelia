@@ -40,6 +40,8 @@ export interface Props {
 }
 
 const PushNotificationMethod = function (props: Props) {
+    const style = useStyles();
+
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
@@ -227,10 +229,10 @@ const PushNotificationMethod = function (props: Props) {
 
 export default PushNotificationMethod;
 
-const style: { [key: string]: CSSProperties } = {
+const useStyles = (): { [key: string]: CSSProperties } => ({
     icon: {
         width: "64px",
         height: "64px",
         display: "inline-block",
     },
-};
+});

@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState, CSSProperties } from "react";
 
-import { Typography, useTheme } from "@mui/material";
+import { Theme, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 
@@ -15,6 +15,9 @@ import { signOut } from "@services/SignOut";
 export interface Props {}
 
 const SignOut = function (props: Props) {
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const mounted = useIsMountedRef();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
@@ -22,13 +25,6 @@ const SignOut = function (props: Props) {
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
     const { t: translate } = useTranslation("Portal");
-
-    const theme = useTheme();
-    const styles: { [key: string]: CSSProperties } = {
-        typo: {
-            padding: theme.spacing(),
-        },
-    };
 
     const doSignOut = useCallback(async () => {
         try {
@@ -62,9 +58,15 @@ const SignOut = function (props: Props) {
 
     return (
         <LoginLayout title={translate("Sign out")}>
-            <Typography sx={styles.typo}>{translate("You're being signed out and redirected")}...</Typography>
+            <Typography sx={style.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </LoginLayout>
     );
 };
 
 export default SignOut;
+
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
+    typo: {
+        padding: theme.spacing(),
+    },
+});

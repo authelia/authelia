@@ -43,14 +43,14 @@ function scopeNameToAvatar(id: string) {
 }
 
 const ConsentView = function (props: Props) {
+    const theme = useTheme();
+    const style = useStyles(theme);
+
     const navigate = useNavigate();
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
     const { t: translate } = useTranslation("Portal");
-
-    const theme = useTheme();
-    const styles = useStyles(theme);
 
     useEffect(() => {
         if (err) {
@@ -111,11 +111,11 @@ const ConsentView = function (props: Props) {
                         <Box>
                             {resp !== undefined && resp.client_description !== "" ? (
                                 <Tooltip title={"Client ID: " + resp.client_id}>
-                                    <Typography sx={styles.clientDescription}>{resp.client_description}</Typography>
+                                    <Typography sx={style.clientDescription}>{resp.client_description}</Typography>
                                 </Tooltip>
                             ) : (
                                 <Tooltip title={"Client ID: " + resp?.client_id}>
-                                    <Typography sx={styles.clientDescription}>{resp?.client_id}</Typography>
+                                    <Typography sx={style.clientDescription}>{resp?.client_id}</Typography>
                                 </Tooltip>
                             )}
                         </Box>
@@ -124,8 +124,8 @@ const ConsentView = function (props: Props) {
                         <Box>{translate("The above application is requesting the following permissions")}:</Box>
                     </Grid>
                     <Grid item xs={12}>
-                        <Box sx={styles.scopesListContainer}>
-                            <List sx={styles.scopesList}>
+                        <Box sx={style.scopesListContainer}>
+                            <List sx={style.scopesList}>
                                 {resp?.scopes.map((scope: string) => (
                                     <Tooltip title={"Scope " + scope}>
                                         <ListItem id={"scope-" + scope} dense>
@@ -142,7 +142,7 @@ const ConsentView = function (props: Props) {
                             <Grid item xs={6}>
                                 <Button
                                     id="accept-button"
-                                    sx={styles.button}
+                                    sx={style.button}
                                     disabled={!resp}
                                     onClick={handleAcceptConsent}
                                     color="primary"
@@ -154,7 +154,7 @@ const ConsentView = function (props: Props) {
                             <Grid item xs={6}>
                                 <Button
                                     id="deny-button"
-                                    sx={styles.button}
+                                    sx={style.button}
                                     disabled={!resp}
                                     onClick={handleRejectConsent}
                                     color="secondary"

@@ -7,12 +7,17 @@ export interface Props {
     value: number;
     height?: number;
     className?: string;
-    style?: CSSProperties;
+    sx?: CSSProperties;
 }
 
 const LinearProgressBar = function (props: Props) {
     const theme = useTheme();
     const style = useStyles(theme, props);
+
+    let sx = { ...style.progressRoot, ...style.transition };
+    if (props.sx !== undefined) {
+        sx = { ...sx, ...props.sx };
+    }
 
     return (
         /*
@@ -22,13 +27,7 @@ const LinearProgressBar = function (props: Props) {
                 bar1Determinate: style.transition,
             }}
          */
-        <LinearProgress
-            style={props.style as React.CSSProperties}
-            variant="determinate"
-            sx={{ ...style.progressRoot, ...style.transition }}
-            value={props.value}
-            className={props.className}
-        />
+        <LinearProgress variant="determinate" sx={sx} value={props.value} className={props.className} />
     );
 };
 
