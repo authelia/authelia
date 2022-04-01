@@ -302,6 +302,8 @@ have the scheme http or https and do not have the hostname of localhost.
 
 ### clients
 
+A list of clients to configure. The options for each client are described below.
+
 #### id
 
 <div markdown="1">
