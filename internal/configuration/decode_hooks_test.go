@@ -3,10 +3,12 @@ package configuration
 import (
 	"net/url"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStringToURLHookFunc_ShouldNotParseStrings(t *testing.T) {
@@ -416,4 +418,122 @@ func TestToTimeDurationHookFunc_ShouldParse_FromZero(t *testing.T) {
 	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
 	assert.NoError(t, err)
 	assert.Equal(t, &expected, result)
+}
+
+func TestStringToRegexpFunc(t *testing.T) {
+	wantRegexp := func(regexpStr string) regexp.Regexp {
+		pattern := regexp.MustCompile(regexpStr)
+
+		return *pattern
+	}
+
+	testCases := []struct {
+		desc           string
+		have           interface{}
+		want           regexp.Regexp
+		wantPtr        *regexp.Regexp
+		wantErr        string
+		wantGroupNames []string
+	}{
+		{
+			desc:    "should not parse regexp with open paren",
+			have:    "hello(test one two",
+			wantErr: "could not parse 'hello(test one two' as regexp: error parsing regexp: missing closing ): `hello(test one two`",
+		},
+		{
+			desc:    "should parse valid regex",
+			have:    "^(api|admin)$",
+			want:    wantRegexp("^(api|admin)$"),
+			wantPtr: regexp.MustCompile("^(api|admin)$"),
+		},
+		{
+			desc:           "should parse valid regex with named groups",
+			have:           "^(?P<area>api|admin)$",
+			want:           wantRegexp("^(?P<area>api|admin)$"),
+			wantPtr:        regexp.MustCompile("^(?P<area>api|admin)$"),
+			wantGroupNames: []string{"area"},
+		},
+	}
+
+	hook := StringToRegexpFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			t.Run("non-ptr", func(t *testing.T) {
+				result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+				if tc.wantErr != "" {
+					assert.EqualError(t, err, tc.wantErr)
+					assert.Nil(t, result)
+				} else {
+					assert.NoError(t, err)
+					require.Equal(t, tc.want, result)
+
+					resultRegexp := result.(regexp.Regexp)
+
+					actualNames := resultRegexp.SubexpNames()
+					var names []string
+
+					for _, name := range actualNames {
+						if name != "" {
+							names = append(names, name)
+						}
+					}
+
+					if len(tc.wantGroupNames) != 0 {
+						t.Run("must_have_all_expected_subexp_group_names", func(t *testing.T) {
+							for _, name := range tc.wantGroupNames {
+								assert.Contains(t, names, name)
+							}
+						})
+						t.Run("must_not_have_unexpected_subexp_group_names", func(t *testing.T) {
+							for _, name := range names {
+								assert.Contains(t, tc.wantGroupNames, name)
+							}
+						})
+					} else {
+						t.Run("must_have_no_subexp_group_names", func(t *testing.T) {
+							assert.Len(t, names, 0)
+						})
+					}
+				}
+			})
+			t.Run("ptr", func(t *testing.T) {
+				result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.wantPtr), tc.have)
+				if tc.wantErr != "" {
+					assert.EqualError(t, err, tc.wantErr)
+					assert.Nil(t, result)
+				} else {
+					assert.NoError(t, err)
+					assert.Equal(t, tc.wantPtr, result)
+
+					resultRegexp := result.(*regexp.Regexp)
+
+					actualNames := resultRegexp.SubexpNames()
+					var names []string
+
+					for _, name := range actualNames {
+						if name != "" {
+							names = append(names, name)
+						}
+					}
+
+					if len(tc.wantGroupNames) != 0 {
+						t.Run("must_have_all_expected_names", func(t *testing.T) {
+							for _, name := range tc.wantGroupNames {
+								assert.Contains(t, names, name)
+							}
+						})
+
+						t.Run("must_not_have_unexpected_names", func(t *testing.T) {
+							for _, name := range names {
+								assert.Contains(t, tc.wantGroupNames, name)
+							}
+						})
+					} else {
+						assert.Len(t, names, 0)
+					}
+				}
+			})
+		})
+	}
 }
