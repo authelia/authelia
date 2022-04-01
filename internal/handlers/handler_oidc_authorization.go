@@ -9,7 +9,9 @@ import (
 
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -97,7 +99,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 
 	subject := userSession.Username
 	oidcSession := oidc.NewSessionWithAuthorizeRequest(issuer, ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
-		subject, userSession.Username, extraClaims, authTime, workflowCreated, requester)
+		subject, userSession.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extraClaims, authTime, workflowCreated, requester)
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
 		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Claims)
@@ -126,14 +128,14 @@ func oidcAuthorizeHandleAuthorizationOrConsentInsufficient(
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' requires user '%s' provides consent for scopes '%s'",
 		requester.GetID(), client.GetID(), userSession.Username, strings.Join(requester.GetRequestedScopes(), "', '"))
 
-	userSession.OIDCWorkflowSession = &session.OIDCWorkflowSession{
-		ClientID:                   client.GetID(),
-		RequestedScopes:            requester.GetRequestedScopes(),
-		RequestedAudience:          requester.GetRequestedAudience(),
-		AuthURI:                    redirectURL,
-		TargetURI:                  requester.GetRedirectURI().String(),
-		RequiredAuthorizationLevel: client.Policy,
-		CreatedTimestamp:           time.Now().Unix(),
+	userSession.OIDCWorkflowSession = &model.OIDCWorkflowSession{
+		ClientID:          client.GetID(),
+		RequestedScopes:   requester.GetRequestedScopes(),
+		RequestedAudience: requester.GetRequestedAudience(),
+		AuthURI:           redirectURL,
+		TargetURI:         requester.GetRedirectURI().String(),
+		Require2FA:        client.Policy == authorization.TwoFactor,
+		CreatedTimestamp:  time.Now().Unix(),
 	}
 
 	if err := ctx.SaveSession(userSession); err != nil {

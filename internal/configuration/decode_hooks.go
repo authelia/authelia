@@ -5,6 +5,7 @@ import (
 	"net/mail"
 	"net/url"
 	"reflect"
+	"regexp"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -135,5 +136,39 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		return duration, nil
+	}
+}
+
+// StringToRegexpFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
+func StringToRegexpFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		ptr = t.Kind() == reflect.Ptr
+
+		typeRegexp := reflect.TypeOf(regexp.Regexp{})
+
+		if ptr && t.Elem() != typeRegexp {
+			return data, nil
+		} else if !ptr && t != typeRegexp {
+			return data, nil
+		}
+
+		regexStr := data.(string)
+
+		pattern, err := regexp.Compile(regexStr)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse '%s' as regexp: %w", regexStr, err)
+		}
+
+		if ptr {
+			return pattern, nil
+		}
+
+		return *pattern, nil
 	}
 }

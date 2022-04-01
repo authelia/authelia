@@ -14,12 +14,26 @@ const (
 	Denied Level = iota
 )
 
-const userPrefix = "user:"
-const groupPrefix = "group:"
+const (
+	prefixUser  = "user:"
+	prefixGroup = "group:"
+)
 
-const bypass = "bypass"
-const oneFactor = "one_factor"
-const twoFactor = "two_factor"
-const deny = "deny"
+const (
+	bypass    = "bypass"
+	oneFactor = "one_factor"
+	twoFactor = "two_factor"
+	deny      = "deny"
+)
+
+const (
+	subexpNameUser  = "User"
+	subexpNameGroup = "Group"
+)
+
+var (
+	// IdentitySubexpNames is a list of valid regex subexp names.
+	IdentitySubexpNames = []string{subexpNameUser, subexpNameGroup}
+)
 
 const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (Method %s)"
