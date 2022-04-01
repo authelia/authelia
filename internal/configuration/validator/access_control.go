@@ -144,8 +144,8 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 
 func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
 	for _, method := range rule.Methods {
-		if !utils.IsStringInSliceFold(method, validACLRuleMethods) {
-			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLRuleMethods, "', '")))
+		if !utils.IsStringInSliceFold(method, validACLHTTPMethodVerbs) {
+			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLHTTPMethodVerbs, "', '")))
 		}
 	}
 }

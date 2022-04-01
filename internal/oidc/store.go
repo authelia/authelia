@@ -25,6 +25,7 @@ func NewOpenIDConnectStore(configuration *schema.OpenIDConnectConfiguration) (st
 			AccessTokens:           map[string]fosite.Requester{},
 			RefreshTokens:          map[string]storage.StoreRefreshToken{},
 			PKCES:                  map[string]fosite.Requester{},
+			BlacklistedJTIs:        map[string]time.Time{},
 			AccessTokenRequestIDs:  map[string]string{},
 			RefreshTokenRequestIDs: map[string]string{},
 		},

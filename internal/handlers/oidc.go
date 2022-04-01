@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -10,7 +11,7 @@ import (
 
 // isConsentMissing compares the requestedScopes and requestedAudience to the workflows
 // GrantedScopes and GrantedAudience and returns true if they do not match or the workflow is nil.
-func isConsentMissing(workflow *session.OIDCWorkflowSession, requestedScopes, requestedAudience []string) (isMissing bool) {
+func isConsentMissing(workflow *model.OIDCWorkflowSession, requestedScopes, requestedAudience []string) (isMissing bool) {
 	if workflow == nil {
 		return true
 	}
