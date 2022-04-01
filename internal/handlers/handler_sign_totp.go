@@ -68,7 +68,7 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
+	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)

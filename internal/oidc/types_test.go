@@ -51,13 +51,14 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	requested := time.Unix(1647332518, 0)
 	authAt := time.Unix(1647332500, 0)
 	issuer := "https://example.com"
+	amr := []string{AMRPasswordBasedAuthentication}
 
 	consent := &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
 	}
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", extra, authAt, consent, request)
+	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -65,29 +66,34 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	require.NotNil(t, session.Headers.Extra)
 	require.NotNil(t, session.Claims)
 	require.NotNil(t, session.Claims.Extra)
+	require.NotNil(t, session.Claims.AuthenticationMethodsReferences)
 
-	assert.Equal(t, "abc123xyzauthelia", session.Claims.Nonce)
-	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, subject.String(), session.Subject)
-	assert.Equal(t, issuer, session.Claims.Issuer)
-	assert.Equal(t, "primary", session.Headers.Get("kid"))
 	assert.Equal(t, "example", session.ClientID)
-	assert.Equal(t, requested, session.Claims.RequestedAt)
-	assert.Equal(t, authAt, session.Claims.AuthTime)
 	assert.Greater(t, session.Claims.IssuedAt.Unix(), authAt.Unix())
 	assert.Equal(t, "john", session.Username)
 
-	require.Contains(t, session.Claims.Extra, "preferred_username")
+	assert.Equal(t, "abc123xyzauthelia", session.Claims.Nonce)
+	assert.Equal(t, subject.String(), session.Claims.Subject)
+	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
+	assert.Equal(t, authAt, session.Claims.AuthTime)
+	assert.Equal(t, requested, session.Claims.RequestedAt)
+	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
+
+	assert.Equal(t, "primary", session.Headers.Get("kid"))
+
+	require.Contains(t, session.Claims.Extra, "preferred_username")
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
 	}
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, authAt, consent, request)
+	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
+	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
 }

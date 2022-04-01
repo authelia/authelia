@@ -185,8 +185,9 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
-	userSession.Webauthn = nil
+	userSession.SetTwoFactorWebauthn(ctx.Clock.Now(),
+		assertionResponse.Response.AuthenticatorData.Flags.UserPresent(),
+		assertionResponse.Response.AuthenticatorData.Flags.UserVerified())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the assertion challenge and authentication time", regulation.AuthTypeWebauthn, userSession.Username, err)

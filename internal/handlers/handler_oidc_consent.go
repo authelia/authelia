@@ -19,7 +19,6 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		ctx.Logger.Errorf("Unable to perform consent without sufficient authentication for user '%s' and client id '%s'", userSession.Username, consent.ClientID)
-		ctx.Logger.Debugf("Insufficient permissions to give consent %d -> %d", userSession.AuthenticationLevel, client.Policy)
 		ctx.ReplyForbidden()
 
 		return
@@ -49,7 +48,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent v1 %d -> %d", userSession.AuthenticationLevel, client.Policy)
+		ctx.Logger.Debugf("Insufficient permissions to give consent during POST current level: %d, require 2FA: %d", userSession.AuthenticationLevel, client.Policy)
 		ctx.ReplyForbidden()
 
 		return
