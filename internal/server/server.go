@@ -49,15 +49,18 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/", autheliaMiddleware(serveIndexHandler))
 	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 
-	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
-	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
-
 	for _, f := range rootFiles {
 		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
 	}
 
+	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
+	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
+
+	for _, file := range swaggerFiles {
+		r.GET("/api/"+file, embeddedFS)
+	}
+
 	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
-	r.ANY("/api/{filepath:*}", embeddedFS)
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
@@ -153,7 +156,7 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = autheliaMiddleware(serveIndexHandler)
+	r.NotFound = handleNotFound(autheliaMiddleware(serveIndexHandler))
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
