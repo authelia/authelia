@@ -3,12 +3,14 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import XHR from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
+import langDe from "@i18n/locales/de.json";
 import langEn from "@i18n/locales/en.json";
 import langEs from "@i18n/locales/es.json";
 
 const resources = {
     en: langEn,
     es: langEs,
+    de: langDe,
 };
 
 const options = {
@@ -25,7 +27,7 @@ i18n.use(XHR)
         ns: [""],
         defaultNS: "",
         fallbackLng: "en",
-        supportedLngs: ["en", "es"],
+        supportedLngs: ["en", "es", "de"],
         interpolation: {
             escapeValue: false,
         },

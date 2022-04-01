@@ -11,7 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -205,7 +204,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	case err == nil:
 		return method, nil
 	case errors.Is(err, sql.ErrNoRows):
-		return "", nil
+		return "", sql.ErrNoRows
 	default:
 		return "", fmt.Errorf("error selecting preferred two factor method for user '%s': %w", username, err)
 	}
@@ -216,17 +215,7 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
 	switch {
-	case err == nil:
-		return info, nil
-	case errors.Is(err, sql.ErrNoRows):
-		if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, authentication.PossibleMethods[0]); err != nil {
-			return model.UserInfo{}, fmt.Errorf("error upserting preferred two factor method while selecting user info for user '%s': %w", username, err)
-		}
-
-		if err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username); err != nil {
-			return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
-		}
-
+	case err == nil, errors.Is(err, sql.ErrNoRows):
 		return info, nil
 	default:
 		return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)

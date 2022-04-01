@@ -271,8 +271,16 @@ access_control:
     - OPTIONS
 ```
 
-The valid request methods are: OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE, TRACE, CONNECT. Additional information 
-about HTTP request methods can be found on the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
+The accepted and valid methods for this configuration option are those specified in well known RFC's. The RFC's and the
+relevant methods are listed in this table:
+
+|                           RFC                            |                        Methods                        |                     Additional Documentation                     |
+|:--------------------------------------------------------:|:-----------------------------------------------------:|:----------------------------------------------------------------:|
+| [RFC7231](https://datatracker.ietf.org/doc/html/rfc7231) | GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| [RFC5789](https://datatracker.ietf.org/doc/html/rfc5789) |                         PATCH                         | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| [RFC4918](https://datatracker.ietf.org/doc/html/rfc4918) | PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK  |                                                                  |
+
+
 
 ### networks
 <div markdown="1">
