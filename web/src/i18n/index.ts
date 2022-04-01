@@ -9,7 +9,7 @@ i18n.use(Backend)
     .init({
         detection: {
             order: ["querystring", "navigator"],
-            lookupQuerystring: "locale",
+            lookupQuerystring: "lng",
         },
         backend: {
             loadPath: "/locales/{{lng}}/{{ns}}.json",
@@ -20,12 +20,13 @@ i18n.use(Backend)
             default: ["en"],
         },
         load: "all",
-        supportedLngs: ["en", "es"],
+        supportedLngs: ["en", "es", "de"],
+        lowerCaseLng: true,
         nonExplicitSupportedLngs: true,
         interpolation: {
             escapeValue: false,
         },
-        debug: true,
+        debug: false,
     });
 
 export default i18n;
