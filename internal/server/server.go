@@ -157,6 +157,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	}
 
 	r.NotFound = handleNotFound(autheliaMiddleware(serveIndexHandler))
+	r.MethodNotAllowed = func(ctx *fasthttp.RequestCtx) {
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
+	}
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
