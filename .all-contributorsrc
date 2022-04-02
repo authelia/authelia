@@ -555,7 +555,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/45292366?v=4",
       "profile": "https://github.com/you1996",
       "contributions": [
-        "code"
+        "code",
+        "design"
       ]
     },
     {
@@ -630,6 +631,25 @@
       "profile": "https://github.com/Alestrix",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "bgh-github",
+      "name": "bgh-github",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99472455?v=4",
+      "profile": "https://github.com/bgh-github",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "mind-ar",
+      "name": "Manuel Nuñez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10672208?v=4",
+      "profile": "https://github.com/mind-ar",
+      "contributions": [
+        "code",
+        "translation"
       ]
     }
   ],
