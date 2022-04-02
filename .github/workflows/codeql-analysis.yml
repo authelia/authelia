@@ -35,6 +35,7 @@ on:
       - 'Dockerfile'
       - 'Dockerfile.*'
       - 'LICENSE'
+      - 'internal/configuration/config.template.yml'
   pull_request:
     # The branches below must be a subset of the branches above
     branches:
@@ -56,6 +57,7 @@ on:
       - 'Dockerfile'
       - 'Dockerfile.*'
       - 'LICENSE'
+      - 'internal/configuration/config.template.yml'
   schedule:
     - cron: '25 13 * * 3'
 
