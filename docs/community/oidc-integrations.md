@@ -26,6 +26,7 @@ has_toc: false
 | Bookstack        | `21.10`                        |                                                                                                             |
 | Harbor        |                `1.10`             |   It works on >v2.1 also, but not sure if there is OIDC support on v2.0|
 | Verdaccio        |              `5`               |   Depends on this fork of verdaccio-github-oauth-ui: [Link](https://github.com/OnekO/verdaccio-github-oauth-ui) |
+| Miniflux         | `2.0.21`                       |                                                                                                             |
 
 ## Known Callback URLs
 
@@ -45,3 +46,4 @@ If you do not find the application in the list below, you will need to search fo
 | Bookstack       | `21.10`                               |        `<DOMAIN>/oidc/callback`                                          |                                                                                                                                                                                                                                                                                                  |
 | Harbor          | `1.10`                                |        `<DOMAIN>/-/oauth/callback`                                       |                                                                                                                                                                                                                                                                                                  |
 | Verdaccio       | `5`                                   |        `<DOMAIN>/oidc/callback`                                          |                                                                                                                                                                                                                                                                                                  |
+| Miniflux        | `2.0.21`                              | `<DOMAIN>/oauth2/oidc/callback`                                          | Set via Miniflux `OAUTH2_REDIRECT_URL` [configuration parameter](https://miniflux.app/docs/configuration.html#oauth2-redirect-url). Example value follows this format                                                                                                                                            |
