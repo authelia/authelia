@@ -26,8 +26,13 @@ type PasswordPolicyConfiguration struct {
 // DefaultPasswordPolicyConfiguration is the default password policy configuration.
 var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
 	Standard: PasswordPolicyStandardParams{
-		Enabled:   false,
-		MinLength: 1,
+		Enabled:          false,
+		MinLength:        8,
+		MaxLength:        0,
+		RequireUppercase: true,
+		RequireLowercase: true,
+		RequireNumber:    true,
+		RequireSpecial:   true,
 	},
 	Zxcvbn: PasswordPolicyZxcvbnParams{
 		Enabled: false,

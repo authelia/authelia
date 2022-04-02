@@ -12,109 +12,99 @@ _Authelia_ allows administrators to configure an enforced password policy.
 
 ```yaml
 password_policy:
-  mode: classic
-  min_length: 8
-  max_length: 12
-  require_uppercase: true
-  require_lowercase: true
-  require_number: true
-  require_special: true
+  standard:
+    enabled: false 
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+  zxcvbn:
+    enabled: false
 ```
 
 ## Options
 
-### mode
+### standard
 <div markdown="1">
-type: string
+type: list
 {: .label .label-config .label-purple } 
-default: none
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
 
-Determines the password policy mode:
-#### none
-* to password policy is applied
-#### classic
-* enables classic password policy
-* allows to determine basic rules
-#### zxcvbn
-* enables advanced password strengh metering
+This section allows you to enable standard security policies. 
+#### enabled 
+type: bool
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
+Enables standard password policy
 
-### min_length
-<div markdown="1">
+#### min_length 
 type: integer
 {: .label .label-config .label-purple } 
-default: 8
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
+Determines the minimum allowed password length
 
-Determines the minimun password length for `mode=classic`
-
-### max_length
-<div markdown="1">
+#### max_length 
 type: integer
 {: .label .label-config .label-purple } 
-default: 0
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
+Determines the maximum allowed password length
 
-Determines the maximum password length for `mode=classic`
-
-### require_uppercase
-<div markdown="1">
-type: integer
+#### require_uppercase 
+type: bool
 {: .label .label-config .label-purple } 
-default: false
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
+Indicates that at least one UPPERCASE letter must be provided as part of the password
 
-Determines that the password must contain at least one UPPERCASE letter.
-Applies to  `mode=classic`
-
-
-### require_lowercase
-<div markdown="1">
-type: integer
+#### require_lowercase 
+type: bool
 {: .label .label-config .label-purple } 
-default: false
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
+Indicates that at least one lowercase letter must be provided as part of the password
 
-Determines that the password must contain at least one lowercase letter.
-Applies to  `mode=classic`
-
-### require_number
-<div markdown="1">
-type: integer
+#### require_number 
+type: bool
 {: .label .label-config .label-purple } 
-default: false
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
+Indicates that at least one number must be provided as part of the password
 
-Determines that the password must contain at least one digit (0-9).
-Applies to  `mode=classic`
-
-### require_special
-<div markdown="1">
-type: integer
+#### require_special 
+type: bool
 {: .label .label-config .label-purple } 
-default: false
-{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
+Indicates that at least one special character must be provided as part of the password
 
-Determines that the password must contain at least one special character.
-Applies to  `mode=classic`
+
+### zxcvbn
+This password policy enables advanced password strengh metering, using [Dropbox zxcvbn package](https://github.com/dropbox/zxcvbn).
+
+Note that this password policy do not restrict the user's entry, just warns the user that if their password is too weak
+
+
+#### enabled 
+type: bool
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
+Enables standard password policy
+
+Note:
+* only one password policy can be applied at a time

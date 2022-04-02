@@ -105,7 +105,7 @@ password_policy:
     # Enables standard password Policy
     enabled: false 
     min_length: 8
-    max_length: 12
+    max_length: 0
     require_uppercase: true
     require_lowercase: true
     require_number: true
