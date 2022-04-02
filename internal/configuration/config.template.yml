@@ -322,6 +322,25 @@ authentication_backend:
   #     parallelism: 8
 
 ##
+## Password Policy Configuration.
+##
+password_policy:
+
+  ## The standard policy allows you to tune individual settings manually.
+  standard:
+    enabled: false
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+
+  ## zxcvbn is a well known and used password strength algorithm developed by Dropbox. It does not have tunable settings.
+  zxcvbn:
+    enabled: false
+
+##
 ## Access Control Configuration
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
