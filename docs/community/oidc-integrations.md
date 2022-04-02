@@ -19,15 +19,14 @@ has_toc: false
 |      GitLab      |            `13.0.0`            |                                                                                                             |
 |     Grafana      |            `8.0.5`             |                                                                                                             |
 | Hashicorp Vault  |            `1.8.1`             |                                                                                                             |
-|      MinIO       | `RELEASE.2021-11-09T03-21-45Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies] as groups in Authelia |
+|      MinIO       | `RELEASE.2021-11-09T03-21-45Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies](https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy) as groups in Authelia |
 |    Nextcloud     |            `22.1.0`            |   Tested using the `nextcloud-oidc-login` app - [Link](https://github.com/pulsejet/nextcloud-oidc-login)    |
 |      Wekan       |             `5.41`             |                                                                                                             |
 |   Portainer CE   |            `2.6.1`             |   Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `preferred_username`    |
 | Bookstack        | `21.10`                        |                                                                                                             |
 | Harbor        |                `1.10`             |   It works on >v2.1 also, but not sure if there is OIDC support on v2.0|
-| Verdaccio        |              `5`               |   Depends on this fork of verdaccio-github-oauth-ui: [Link](https://github.com/OnekO/verdaccio-github-oauth-ui)
-|
-[MinIO policies]: https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy
+| Verdaccio        |              `5`               |   Depends on this fork of verdaccio-github-oauth-ui: [Link](https://github.com/OnekO/verdaccio-github-oauth-ui) |
+| Miniflux         | `2.0.21`                       |                                                                                                             |
 
 ## Known Callback URLs
 
@@ -47,3 +46,4 @@ If you do not find the application in the list below, you will need to search fo
 | Bookstack       | `21.10`                               |        `<DOMAIN>/oidc/callback`                                          |                                                                                                                                                                                                                                                                                                  |
 | Harbor          | `1.10`                                |        `<DOMAIN>/-/oauth/callback`                                       |                                                                                                                                                                                                                                                                                                  |
 | Verdaccio       | `5`                                   |        `<DOMAIN>/oidc/callback`                                          |                                                                                                                                                                                                                                                                                                  |
+| Miniflux        | `2.0.21`                              | `<DOMAIN>/oauth2/oidc/callback`                                          | Set via Miniflux `OAUTH2_REDIRECT_URL` [configuration parameter](https://miniflux.app/docs/configuration.html#oauth2-redirect-url). Example value follows this format                                                                                                                                            |

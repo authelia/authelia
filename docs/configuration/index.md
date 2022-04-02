@@ -98,6 +98,27 @@ integrations, it only checks that your configuration syntax is valid.
 $ authelia validate-config --config configuration.yml
 ```
 
+# Regex
+
+We have several sections of configuration that utilize regular expressions. It's recommended to validate your regex
+manually either via tools like [Rego](https://regoio.herokuapp.com/) or some other means. 
+
+It's important when attempting to utilize a backslash that it's utilized correctly. The YAML parser is likely to parse
+this as you trying to use YAML escape syntax instead of regex escape syntax. To avoid this use single quotes instead of
+no quotes or double quotes.
+
+Good Example:
+
+```yaml
+domain_regex: '^(admin|secure)\.example\.com$'
+```
+
+Bad Example:
+
+```yaml
+domain_regex: "^(admin|secure)\.example\.com$"
+```
+
 # Duration Notation Format
 
 We have implemented a string/integer based notation for configuration options that take a duration of time. This section 

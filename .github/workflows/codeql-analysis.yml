@@ -18,10 +18,46 @@ on:
     branches:
       - master
       - gh-pages
+    paths-ignore:
+      - '.github/**'
+      - '.buildkite/**'
+      - 'docs/**'
+      - 'examples/**'
+      - '*.env'
+      - '*.yml'
+      - '*.service'
+      - '*.sh'
+      - '*.md'
+      - '.all-contributorsrc'
+      - '.dockerignore'
+      - '.gitignore'
+      - '.renovaterc'
+      - 'Dockerfile'
+      - 'Dockerfile.*'
+      - 'LICENSE'
+      - 'internal/configuration/config.template.yml'
   pull_request:
     # The branches below must be a subset of the branches above
     branches:
       - master
+    paths-ignore:
+      - '.github/**'
+      - '.buildkite/**'
+      - 'docs/**'
+      - 'examples/**'
+      - '*.env'
+      - '*.yml'
+      - '*.service'
+      - '*.sh'
+      - '*.md'
+      - '.all-contributorsrc'
+      - '.dockerignore'
+      - '.gitignore'
+      - '.renovaterc'
+      - 'Dockerfile'
+      - 'Dockerfile.*'
+      - 'LICENSE'
+      - 'internal/configuration/config.template.yml'
   schedule:
     - cron: '25 13 * * 3'
 
