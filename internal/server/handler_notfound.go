@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/handlers"
 )
 
 func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
@@ -12,8 +14,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 		for i := 0; i < len(httpServerDirs); i++ {
 			if path == httpServerDirs[i].name || strings.HasPrefix(path, httpServerDirs[i].prefix) {
-				ctx.SetStatusCode(fasthttp.StatusNotFound)
-				ctx.SetBodyString(fasthttp.StatusMessage(fasthttp.StatusNotFound))
+				handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 				return
 			}

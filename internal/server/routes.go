@@ -42,6 +42,7 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	middleware := middlewares.AutheliaMiddleware(config, providers)
 
 	r := router.New()
+
 	r.GET("/", middleware(serveIndexHandler))
 
 	for _, file := range rootFiles {
@@ -55,7 +56,6 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 		Build()
 
 	r.GET("/api/", middleware(serveSwaggerHandler))
-
 	r.OPTIONS("/api/"+apiFile, policyCORSPublicGET.HandleOPTIONS)
 	r.GET("/api/"+apiFile, policyCORSPublicGET.Middleware(middleware(serveSwaggerAPIHandler)))
 
@@ -223,6 +223,9 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	}
 
 	r.NotFound = handleNotFound(middleware(serveIndexHandler))
+	r.MethodNotAllowed = func(ctx *fasthttp.RequestCtx) {
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
+	}
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if config.Server.Path != "" {

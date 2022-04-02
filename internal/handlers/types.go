@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"io"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
@@ -111,4 +113,13 @@ type resetPasswordStep1RequestBody struct {
 // resetPasswordStep2RequestBody model of the reset password (step2) request body.
 type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
+}
+
+type responseWriter interface {
+	SetStatusCode(statusCode int)
+	SetBodyString(body string)
+	SetBody(body []byte)
+	SetContentType(contentType string)
+	SetContentTypeBytes(contentType []byte)
+	SetBodyStream(bodyStream io.Reader, bodySize int)
 }

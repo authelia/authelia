@@ -36,6 +36,7 @@ var (
 	}{
 		{name: "/api", prefix: "/api/"},
 		{name: "/.well-known", prefix: "/.well-known/"},
+		{name: "/static", prefix: "/static/"},
 	}
 )
 
