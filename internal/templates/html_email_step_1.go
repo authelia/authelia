@@ -93,7 +93,6 @@ const emailHTMLContentStep1 = `
       }
 
       a {
-         color: #ffffff;
          text-decoration: none;
          text-decoration: none !important;
       }
@@ -103,11 +102,18 @@ const emailHTMLContentStep1 = `
       }
 
       .button {
-         padding: 15px 30px;
-         border-radius: 10px;
-         background: rgb(25, 118, 210);
-         text-decoration: none;
+				color: #ffffff;
+				padding: 15px 30px;
+				border-radius: 10px;
+				background: rgb(25, 118, 210);
+				text-decoration: none;
       }
+			
+      .link {
+				color: rgb(25, 118, 210);
+				text-decoration: none;
+      }
+
 
       /*STYLES*/
       table[class=full] {
