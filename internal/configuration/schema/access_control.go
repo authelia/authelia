@@ -1,5 +1,9 @@
 package schema
 
+import (
+	"regexp"
+)
+
 // AccessControlConfiguration represents the configuration related to ACLs.
 type AccessControlConfiguration struct {
 	DefaultPolicy string       `koanf:"default_policy"`
@@ -7,20 +11,21 @@ type AccessControlConfiguration struct {
 	Rules         []ACLRule    `koanf:"rules"`
 }
 
-// ACLNetwork represents one ACL network group entry; "weak" coerces a single value into slice.
+// ACLNetwork represents one ACL network group entry.
 type ACLNetwork struct {
 	Name     string   `koanf:"name"`
 	Networks []string `koanf:"networks"`
 }
 
-// ACLRule represents one ACL rule entry; "weak" coerces a single value into slice.
+// ACLRule represents one ACL rule entry.
 type ACLRule struct {
-	Domains   []string   `koanf:"domain"`
-	Policy    string     `koanf:"policy"`
-	Subjects  [][]string `koanf:"subject"`
-	Networks  []string   `koanf:"networks"`
-	Resources []string   `koanf:"resources"`
-	Methods   []string   `koanf:"methods"`
+	Domains      []string        `koanf:"domain"`
+	DomainsRegex []regexp.Regexp `koanf:"domain_regex"`
+	Policy       string          `koanf:"policy"`
+	Subjects     [][]string      `koanf:"subject"`
+	Networks     []string        `koanf:"networks"`
+	Resources    []regexp.Regexp `koanf:"resources"`
+	Methods      []string        `koanf:"methods"`
 }
 
 // DefaultACLNetwork represents the default configuration related to access control network group configuration.

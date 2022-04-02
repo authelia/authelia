@@ -363,10 +363,22 @@ access_control:
 
   rules:
     ## Rules applied to everyone
-    - domain: public.example.com
+    - domain: 'public.example.com'
       policy: bypass
 
-    - domain: secure.example.com
+    ## Domain Regex examples. Generally we recommend just using a standard domain.
+    # - domain_regex: '^(?P<User>\w+)\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex: '^(?P<Group>\w+)\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex:
+    #    - '^appgroup-.*\.example\.com$'
+    #    - '^appgroup2-.*\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex: '^.*\.example\.com$'
+    #   policy: two_factor
+
+    - domain: 'secure.example.com'
       policy: one_factor
       ## Network based rule, if not provided any network matches.
       networks:
@@ -376,53 +388,53 @@ access_control:
         - 10.0.0.1
 
     - domain:
-        - secure.example.com
-        - private.example.com
+        - 'secure.example.com'
+        - 'private.example.com'
       policy: two_factor
 
-    - domain: singlefactor.example.com
+    - domain: 'singlefactor.example.com'
       policy: one_factor
 
     ## Rules applied to 'admins' group
-    - domain: "mx2.mail.example.com"
-      subject: "group:admins"
+    - domain: 'mx2.mail.example.com'
+      subject: 'group:admins'
       policy: deny
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       subject:
-        - "group:admins"
-        - "group:moderators"
+        - 'group:admins'
+        - 'group:moderators'
       policy: two_factor
 
     ## Rules applied to 'dev' group
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/groups/dev/.*$"
-      subject: "group:dev"
+        - '^/groups/dev/.*$'
+      subject: 'group:dev'
       policy: two_factor
 
     ## Rules applied to user 'john'
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
+        - '^/users/john/.*$'
+      subject: 'user:john'
       policy: two_factor
 
     ## Rules applied to user 'harry'
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
       policy: two_factor
 
     ## Rules applied to user 'bob'
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
       policy: two_factor
-    - domain: "dev.example.com"
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
       policy: two_factor
 
 ##
@@ -461,7 +473,7 @@ session:
   inactivity: 5m
 
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
-  ## Value of 0 disables remember me.
+  ## Value of -1 disables remember me.
   remember_me_duration: 1M
 
   ##
