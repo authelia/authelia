@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -31,7 +32,7 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 
 func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
-		body ConsentPostRequestBody
+		body oidc.ConsentPostRequestBody
 		err  error
 	)
 
@@ -76,6 +77,14 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 			return
 		}
 
+		if body.PreConfigure && client.ConsentDuration != nil {
+			expires := time.Now().Add(*client.ConsentDuration)
+
+			consent.ExpiresAt = &expires
+
+			ctx.Logger.Debugf("Consent session with challenge id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID.String(), userSession.Username, consent.ExpiresAt)
+		}
+
 		consent.GrantedScopes = consent.RequestedScopes
 		consent.GrantedAudience = consent.RequestedAudience
 
@@ -98,7 +107,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	response := ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}
+	response := oidc.ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}
 
 	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body in response"), "Operation failed")

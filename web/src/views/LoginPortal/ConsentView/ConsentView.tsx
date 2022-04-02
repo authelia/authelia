@@ -1,4 +1,4 @@
-import React, { useEffect, Fragment, ReactNode } from "react";
+import React, { useEffect, Fragment, ReactNode, useState } from "react";
 
 import {
     Button,
@@ -10,13 +10,15 @@ import {
     Tooltip,
     Typography,
     makeStyles,
+    FormControlLabel,
+    Checkbox,
 } from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
-import { useRequestedScopes } from "@hooks/Consent";
+import { useConsentRequest } from "@hooks/Consent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import LoginLayout from "@layouts/LoginLayout";
@@ -45,8 +47,14 @@ const ConsentView = function (props: Props) {
     const navigate = useNavigate();
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
-    const [resp, fetch, , err] = useRequestedScopes();
+    const [resp, fetch, , err] = useConsentRequest();
     const { t: translate } = useTranslation("Portal");
+
+    const [preConfigure, setPreConfigure] = useState(false);
+
+    const handlePreConfigureChanged = () => {
+        setPreConfigure((preConfigure) => !preConfigure);
+    };
 
     useEffect(() => {
         if (err) {
@@ -79,7 +87,7 @@ const ConsentView = function (props: Props) {
         if (!resp) {
             return;
         }
-        const res = await acceptConsent(resp.client_id);
+        const res = await acceptConsent(resp.client_id, preConfigure);
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -135,6 +143,23 @@ const ConsentView = function (props: Props) {
                             </List>
                         </div>
                     </Grid>
+                    {resp?.pre_configuration ? (
+                        <Grid item xs={12}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        id="pre-configure"
+                                        checked={preConfigure}
+                                        onChange={handlePreConfigureChanged}
+                                        value="preConfigure"
+                                        color="primary"
+                                    />
+                                }
+                                className={classes.preConfigure}
+                                label={translate("Remember me")}
+                            />
+                        </Grid>
+                    ) : null}
                     <Grid item xs={12}>
                         <Grid container spacing={1}>
                             <Grid item xs={6}>
@@ -206,6 +231,9 @@ const useStyles = makeStyles((theme) => ({
     listItem: {
         textAlign: "center",
         marginRight: theme.spacing(2),
+    },
+    preConfigure: {
+        flexGrow: 1,
     },
 }));
 

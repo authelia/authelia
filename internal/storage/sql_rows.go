@@ -30,7 +30,7 @@ func (r *ConsentSessionRows) Get() (consent *model.OAuth2ConsentSession, err err
 
 	consent = &model.OAuth2ConsentSession{}
 
-	if err = r.rows.Scan(consent); err != nil {
+	if err = r.rows.StructScan(consent); err != nil {
 		return nil, err
 	}
 

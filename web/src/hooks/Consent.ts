@@ -1,6 +1,6 @@
 import { useRemoteCall } from "@hooks/RemoteCall";
-import { getRequestedScopes } from "@services/Consent";
+import { getConsentRequest } from "@services/Consent";
 
-export function useRequestedScopes() {
-    return useRemoteCall(getRequestedScopes, []);
+export function useConsentRequest() {
+    return useRemoteCall(getConsentRequest, []);
 }

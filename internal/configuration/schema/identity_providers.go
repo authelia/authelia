@@ -35,6 +35,8 @@ type OpenIDConnectClientConfiguration struct {
 
 	Policy string `koanf:"authorization_policy"`
 
+	ConsentDuration *time.Duration `koanf:"consent_duration"`
+
 	RedirectURIs []string `koanf:"redirect_uris"`
 
 	Audience      []string `koanf:"audience"`
