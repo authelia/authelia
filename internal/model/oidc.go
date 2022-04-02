@@ -12,6 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
@@ -99,6 +101,22 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+}
+
+// HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
+// audience and set of scopes.
+func (s OAuth2ConsentSession) HasExactGrants(scopes, audience []string) (has bool) {
+	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
+}
+
+// HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
+func (s OAuth2ConsentSession) HasExactGrantedAudience(audience []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.GrantedAudience, audience)
+}
+
+// HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
+func (s OAuth2ConsentSession) HasExactGrantedScopes(scopes []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.GrantedScopes, scopes)
 }
 
 // IsAuthorized returns true if the user has responded to the consent session and it was authorized.

@@ -105,20 +105,20 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 		pattern                      *regexp.Regexp
 	}{
 		{"welcome", "welcome", "Logged in as john!", nil},
-		{"issuer", "claim-iss", "https://login.example.com:8080", nil},
-		{"preferred_username", "claim-preferred_username", "john", nil},
-		{"groups", "claim-groups", "admins, dev", nil},
-		{"email", "claim-email", "john.doe@authelia.com", nil},
-		{"amr", "claim-amr", "", nil},
-		{"acr", "claim-acr", "", nil},
+		{"at_hash", "claim-at_hash", "", rBase64},
+		{"jti", "claim-jti", "", rUUID},
 		{"iat", "claim-iat", "", rInteger},
 		{"nbf", "claim-nbf", "", rInteger},
 		{"rat", "claim-rat", "", rInteger},
 		{"expires", "claim-exp", "", rInteger},
-		{"jti", "claim-jti", "", rUUID},
+		{"amr", "claim-amr", "pwd, otp, mfa", nil},
+		{"acr", "claim-acr", "", nil},
+		{"issuer", "claim-iss", "https://login.example.com:8080", nil},
 		{"name", "claim-name", "John Doe", nil},
+		{"preferred_username", "claim-preferred_username", "john", nil},
+		{"groups", "claim-groups", "admins, dev", nil},
+		{"email", "claim-email", "john.doe@authelia.com", nil},
 		{"email_verified", "claim-email_verified", "", rBoolean},
-		{"at_hash", "claim-at_hash", "", rBase64},
 	}
 
 	var text string

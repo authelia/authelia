@@ -232,8 +232,10 @@ const (
 		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
 		FROM %s
-		WHERE client_id = ? AND subject = ? AND granted_scopes = ? AND 
-			  authorized = TRUE AND granted = TRUE AND expires_at IS NOT NULL AND expires_at >= CURRENT_TIMESTAMP;`
+		WHERE client_id = ? AND subject = ? AND authorized = TRUE AND (
+				(granted = FALSE AND expires_at IS NULL) OR
+				(granted = TRUE AND expires_at IS NOT NULL AND expires_at >= CURRENT_TIMESTAMP)
+		);`
 
 	queryFmtInsertOAuth2ConsentSession = `
 		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,

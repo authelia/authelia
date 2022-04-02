@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -409,18 +408,18 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 }
 
 // LoadOAuth2ConsentSessionBySignature returns an OAuth2.0 consent given the consent signature.
-func (p *SQLProvider) LoadOAuth2ConsentSessionBySignature(ctx context.Context, clientID string, subject uuid.UUID, scopes model.StringSlicePipeDelimited) (consent *model.OAuth2ConsentSession, err error) {
-	consent = &model.OAuth2ConsentSession{}
+func (p *SQLProvider) LoadOAuth2ConsentSessionBySignature(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentSessionRows, err error) {
+	var r *sqlx.Rows
 
-	if err = p.db.GetContext(ctx, consent, p.sqlSelectOAuth2ConsentSessionBySignature, clientID, subject, scopes); err != nil {
+	if r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionBySignature, clientID, subject); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return &ConsentSessionRows{}, nil
 		}
 
-		return nil, fmt.Errorf("error selecting oauth2 consent session by signature with client id '%s' and subject '%s' with scopes '%s': %w", clientID, subject.String(), strings.Join(scopes, " "), err)
+		return &ConsentSessionRows{}, fmt.Errorf("error selecting oauth2 consent session by signature with client id '%s' and subject '%s': %w", clientID, subject.String(), err)
 	}
 
-	return consent, nil
+	return &ConsentSessionRows{rows: r}, nil
 }
 
 // SaveOAuth2Session saves a OAuth2Session to the database.

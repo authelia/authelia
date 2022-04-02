@@ -14,6 +14,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
@@ -176,13 +178,32 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 			return false, consent
 		}
 	} else {
-		// TODO: Change this to lookup multiple consents and loop through them to ensure the scopes/audience match.
-		if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionBySignature(ctx, client.GetID(), subject,
-			model.StringSlicePipeDelimited(requester.GetRequestedScopes())); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up previous consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+		var (
+			rows             *storage.ConsentSessionRows
+			scopes, audience []string
+		)
+
+		if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionBySignature(ctx, client.GetID(), subject); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 		}
 
-		if consent != nil && consent.CanGrant() {
+		for rows.Next() {
+			if consent, err = rows.Get(); err != nil {
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+
+				ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not lookup pre-configured consent sessions."))
+
+				return true, nil
+			}
+
+			scopes, audience = expectedScopesAndAudienceForRequest(requester)
+
+			if consent.HasExactGrants(scopes, audience) && consent.CanGrant() {
+				break
+			}
+		}
+
+		if consent != nil && consent.HasExactGrants(scopes, audience) && consent.CanGrant() {
 			return false, consent
 		}
 
@@ -220,4 +241,13 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 	}
 
 	return true, consent
+}
+
+func expectedScopesAndAudienceForRequest(requester fosite.Requester) (scopes, audience []string) {
+	audience = requester.GetRequestedAudience()
+	if !utils.IsStringInSlice(requester.GetClient().GetID(), audience) {
+		audience = append(audience, requester.GetClient().GetID())
+	}
+
+	return requester.GetRequestedScopes(), audience
 }
