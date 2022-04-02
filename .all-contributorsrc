@@ -641,6 +641,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "mind-ar",
+      "name": "Manuel Nuñez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10672208?v=4",
+      "profile": "https://github.com/mind-ar",
+      "contributions": [
+        "code",
+        "translation"
+      ]
     }
   ],
   "contributorsPerLine": 7
