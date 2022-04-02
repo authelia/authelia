@@ -631,6 +631,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "bgh-github",
+      "name": "bgh-github",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99472455?v=4",
+      "profile": "https://github.com/bgh-github",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
