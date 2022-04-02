@@ -41,15 +41,28 @@ func LevelToPolicy(level Level) (policy string) {
 	return deny
 }
 
-func schemaSubjectToACLSubject(subjectRule string) (subject AccessControlSubject) {
-	if strings.HasPrefix(subjectRule, userPrefix) {
-		user := strings.Trim(subjectRule[len(userPrefix):], " ")
+func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err error) {
+	for _, str := range strings {
+		pattern, err := regexp.Compile(str)
+		if err != nil {
+			return nil, err
+		}
+
+		regexps = append(regexps, *pattern)
+	}
+
+	return regexps, nil
+}
+
+func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
+	if strings.HasPrefix(subjectRule, prefixUser) {
+		user := strings.Trim(subjectRule[len(prefixUser):], " ")
 
 		return AccessControlUser{Name: user}
 	}
 
-	if strings.HasPrefix(subjectRule, groupPrefix) {
-		group := strings.Trim(subjectRule[len(groupPrefix):], " ")
+	if strings.HasPrefix(subjectRule, prefixGroup) {
+		group := strings.Trim(subjectRule[len(prefixGroup):], " ")
 
 		return AccessControlGroup{Name: group}
 	}
@@ -57,35 +70,21 @@ func schemaSubjectToACLSubject(subjectRule string) (subject AccessControlSubject
 	return nil
 }
 
-func schemaDomainsToACL(domainRules []string) (domains []AccessControlDomain) {
+func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []SubjectObjectMatcher) {
 	for _, domainRule := range domainRules {
-		domain := AccessControlDomain{}
+		domains = append(domains, NewAccessControlDomain(domainRule))
+	}
 
-		domainRule = strings.ToLower(domainRule)
-
-		switch {
-		case strings.HasPrefix(domainRule, "*."):
-			domain.Wildcard = true
-			domain.Name = domainRule[1:]
-		case strings.HasPrefix(domainRule, "{user}"):
-			domain.UserWildcard = true
-			domain.Name = domainRule[7:]
-		case strings.HasPrefix(domainRule, "{group}"):
-			domain.GroupWildcard = true
-			domain.Name = domainRule[8:]
-		default:
-			domain.Name = domainRule
-		}
-
-		domains = append(domains, domain)
+	for _, domainRegexRule := range domainRegexRules {
+		domains = append(domains, NewAccessControlDomainRegex(domainRegexRule))
 	}
 
 	return domains
 }
 
-func schemaResourcesToACL(resourceRules []string) (resources []AccessControlResource) {
+func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []AccessControlResource) {
 	for _, resourceRule := range resourceRules {
-		resources = append(resources, AccessControlResource{regexp.MustCompile(resourceRule)})
+		resources = append(resources, AccessControlResource{Pattern: resourceRule})
 	}
 
 	return resources

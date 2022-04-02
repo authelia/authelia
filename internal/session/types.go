@@ -10,8 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 // ProviderConfig is the configuration used to create the session provider.
@@ -37,11 +38,13 @@ type UserSession struct {
 	FirstFactorAuthnTimestamp  int64
 	SecondFactorAuthnTimestamp int64
 
+	AuthenticationMethodRefs oidc.AuthenticationMethodsReferences
+
 	// Webauthn holds the session registration data for this session.
 	Webauthn *webauthn.SessionData
 
 	// Represent an OIDC workflow session initiated by the client if not null.
-	OIDCWorkflowSession *OIDCWorkflowSession
+	OIDCWorkflowSession *model.OIDCWorkflowSession
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
@@ -54,19 +57,6 @@ type UserSession struct {
 type Identity struct {
 	Username string
 	Email    string
-}
-
-// OIDCWorkflowSession represent an OIDC workflow session.
-type OIDCWorkflowSession struct {
-	ClientID                   string
-	RequestedScopes            []string
-	GrantedScopes              []string
-	RequestedAudience          []string
-	GrantedAudience            []string
-	TargetURI                  string
-	AuthURI                    string
-	RequiredAuthorizationLevel authorization.Level
-	CreatedTimestamp           int64
 }
 
 func newRedisLogger() *redisLogger {
