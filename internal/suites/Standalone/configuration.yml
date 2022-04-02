@@ -99,4 +99,21 @@ ntp:
   max_desync: 3s
   ## You can enable or disable the NTP synchronization check on startup
   disable_startup_check: false
+
+password_policy:
+  standard:
+    # Enables standard password Policy
+    enabled: false 
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+  zxcvbn:
+    ##  zxcvbn: uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn)
+    ##    Note that the zxcvbn option does not prohibit the user from using a weak password,
+    ##    it only offers feedback about the strength of the password they are entering.
+    ##    if you need to enforce password rules, you should use `mode=classic`
+    enabled: false
 ...

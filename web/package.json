@@ -23,7 +23,8 @@
     "react-i18next": "11.16.2",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.3.0"
+    "react-router-dom": "6.3.0",
+    "zxcvbn": "^4.4.2"
   },
   "scripts": {
     "prepare": "cd .. && husky install .github",
