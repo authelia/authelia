@@ -6,7 +6,7 @@ import (
 
 // AccessControlResource represents an ACL resource.
 type AccessControlResource struct {
-	Pattern *regexp.Regexp
+	Pattern regexp.Regexp
 }
 
 // IsMatch returns true if the ACL resource match the object path.

@@ -169,16 +169,17 @@ const (
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
 	errFmtAccessControlRuleNoDomains = "access control: rule %s: rule is invalid: must have the option " +
-		"'domain' configured"
+		"'domain' or 'domain_regex' configured"
 	errFmtAccessControlRuleInvalidPolicy = "access control: rule %s: rule 'policy' option '%s' " +
 		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
 	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
 		"https://www.authelia.com/docs/configuration/access-control.html#bypass"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
+		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
-	errFmtAccessControlRuleResourceInvalid = "access control: rule %s: 'resources' option '%s' is " +
-		"invalid: %w"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
@@ -261,7 +262,11 @@ var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
 var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
-var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
+
+var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
 var validDefaultUserSecondFactorMethods = []string{"totp", "webauthn", "mobile_push"}
@@ -333,6 +338,7 @@ var ValidKeys = []string{
 	"access_control.networks[].networks",
 	"access_control.rules",
 	"access_control.rules[].domain",
+	"access_control.rules[].domain_regex",
 	"access_control.rules[].methods",
 	"access_control.rules[].networks",
 	"access_control.rules[].subject",
