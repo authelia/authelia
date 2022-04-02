@@ -282,6 +282,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://www.dennisgaida.de"><img src="https://avatars.githubusercontent.com/u/2392217?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dennis Gaida</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=DennisGaida" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/Alestrix"><img src="https://avatars.githubusercontent.com/u/7452860?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alestrix</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Alestrix" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/bgh-github"><img src="https://avatars.githubusercontent.com/u/99472455?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bgh-github</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=bgh-github" title="Documentation">📖</a></td>
   </tr>
 </table>
 
