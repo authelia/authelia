@@ -53,7 +53,28 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 		ctx.Logger.Errorf("Unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
 	}
 
-	ctx.ReplyOK()
+	mode := ""
+	if ctx.Configuration.PasswordPolicy.Standard.Enabled {
+		mode = "standard"
+	} else if ctx.Configuration.PasswordPolicy.Zxcvbn.Enabled {
+		mode = "zxcvbn"
+	}
+
+	policyResponse := PassworPolicyBody{
+		Mode:             mode,
+		MinLength:        ctx.Configuration.PasswordPolicy.Standard.MinLength,
+		MaxLength:        ctx.Configuration.PasswordPolicy.Standard.MaxLength,
+		RequireLowercase: ctx.Configuration.PasswordPolicy.Standard.RequireLowercase,
+		RequireUppercase: ctx.Configuration.PasswordPolicy.Standard.RequireUppercase,
+		RequireNumber:    ctx.Configuration.PasswordPolicy.Standard.RequireNumber,
+		RequireSpecial:   ctx.Configuration.PasswordPolicy.Standard.RequireSpecial,
+		MinScore:         ctx.Configuration.PasswordPolicy.Zxcvbn.MinScore,
+	}
+
+	err = ctx.SetJSONBody(policyResponse)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to send password Policy: %s", err)
+	}
 }
 
 // ResetPasswordIdentityFinish the handler for finishing the identity validation.
