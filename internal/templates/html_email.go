@@ -97,6 +97,9 @@ const emailHTMLContent = `
          text-decoration: none;
          text-decoration: none !important;
       }
+      .link {
+         color: #0645AD;
+      }
 
       h1 {
          line-height: 30px;
@@ -328,6 +331,22 @@ const emailHTMLContent = `
                                                 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;"
                                                    st-content="fulltext-content">
                                                    <a href="{{.url}}" class="button">{{.button}}</a>
+                                                </td>
+                                             </tr>
+                                             <tr>
+                                                <td width="100%" height="20"
+                                                   style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">
+                                                   &nbsp;</td>
+                                             </tr>
+                                             <tr>
+                                                <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
+                                                   st-title="fulltext-content">
+                                                   Or
+                                                </td>
+                                             </tr>
+                                             <tr>
+                                                <td style="word-break: break-word; overflow-wrap: break-word; text-align:center; line-height: 30px;">
+                                                   <a href="{{.url}}" class="link">{{.url}}</a>
                                                 </td>
                                              </tr>
                                              <!-- End of content -->
