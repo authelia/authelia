@@ -1,11 +1,13 @@
 import React, { useState, useCallback, useEffect } from "react";
 
-import { Grid, Button, makeStyles } from "@material-ui/core";
+import { Grid, Button, makeStyles, InputAdornment, IconButton } from "@material-ui/core";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FixedTextField from "@components/FixedTextField";
+import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
@@ -23,6 +25,15 @@ const ResetPasswordStep2 = function () {
     const { createSuccessNotification, createErrorNotification } = useNotifications();
     const { t: translate } = useTranslation();
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
+    const [pPolicyMode, setPPolicyMode] = useState("none");
+    const [pPolicyMinLength, setPPolicyMinLength] = useState(0);
+    const [pPolicyMaxLength, setPPolicyMaxLength] = useState(0);
+    const [pPolicyRequireUpperCase, setPPolicyRequireUpperCase] = useState(false);
+    const [pPolicyRequireLowerCase, setPPolicyRequireLowerCase] = useState(false);
+    const [pPolicyRequireNumber, setPPolicyRequireNumber] = useState(false);
+    const [pPolicyRequireSpecial, setPPolicyRequireSpecial] = useState(false);
+
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
     const processToken = extractIdentityToken(location.search);
@@ -36,7 +47,22 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            await completeResetPasswordProcess(processToken);
+            const {
+                mode,
+                min_length,
+                max_length,
+                require_uppercase,
+                require_lowercase,
+                require_number,
+                require_special,
+            } = await completeResetPasswordProcess(processToken);
+            setPPolicyMode(mode);
+            setPPolicyMinLength(min_length);
+            setPPolicyMaxLength(max_length);
+            setPPolicyRequireLowerCase(require_lowercase);
+            setPPolicyRequireUpperCase(require_uppercase);
+            setPPolicyRequireNumber(require_number);
+            setPPolicyRequireSpecial(require_special);
             setFormDisabled(false);
         } catch (err) {
             console.error(err);
@@ -76,9 +102,9 @@ const ResetPasswordStep2 = function () {
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification(
-                    translate("Your supplied password does not meet the password policy requirements"),
-                );
+                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+            } else if ((err as Error).message.includes("policy")) {
+                createErrorNotification("Your supplied password does not meet the password policy requirements.");
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
@@ -97,21 +123,44 @@ const ResetPasswordStep2 = function () {
                         id="password1-textfield"
                         label={translate("New password")}
                         variant="outlined"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={password1}
                         disabled={formDisabled}
                         onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
                         className={classnames(style.fullWidth)}
                         autoComplete="new-password"
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={(e) => setShowPassword(!showPassword)}
+                                        edge="end"
+                                    >
+                                        {showPassword ? <VisibilityOff></VisibilityOff> : <Visibility></Visibility>}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
                     />
+                    <PasswordMeter
+                        value={password1}
+                        mode={pPolicyMode}
+                        minLength={pPolicyMinLength}
+                        maxLength={pPolicyMaxLength}
+                        requireLowerCase={pPolicyRequireLowerCase}
+                        requireUpperCase={pPolicyRequireUpperCase}
+                        requireNumber={pPolicyRequireNumber}
+                        requireSpecial={pPolicyRequireSpecial}
+                    ></PasswordMeter>
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="password2-textfield"
                         label={translate("Repeat new password")}
                         variant="outlined"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         disabled={formDisabled}
                         value={password2}
                         onChange={(e) => setPassword2(e.target.value)}
