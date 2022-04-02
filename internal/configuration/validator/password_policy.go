@@ -1,48 +1,33 @@
 package validator
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// PasswordPolicyNone represents password policy disable.
-const PasswordPolicyNone = "none"
 
 // ValidatePasswordPolicy validates and update Password Policy configuration.
 func ValidatePasswordPolicy(configuration *schema.PasswordPolicyConfiguration, validator *schema.StructValidator) {
-	switch configuration.Mode {
-	case "", PasswordPolicyNone:
-		configuration.Mode = PasswordPolicyNone
-		configuration.MinScore = 0
-		configuration.MinLength = 0
-		configuration.RequireLowercase = false
-		configuration.RequireUppercase = false
-		configuration.RequireNumber = false
-		configuration.RequireSpecial = false
-	case "zxcvbn":
-		if configuration.MinScore == 0 {
-			configuration.MinScore = schema.DefaultPasswordPolicyConfiguration.MinScore
-		} else if configuration.MinScore < 0 || configuration.MinScore > 4 {
-			validator.Push(fmt.Errorf("password_policy: min_score must be between 0 and 4"))
+	if !utils.IsBoolCountLessThanN(1, true, configuration.Standard.Enabled, configuration.Zxcvbn.Enabled) {
+		validator.Push(errors.New("password_policy:only one password policy can be enabled at a time"))
+	}
+
+	if configuration.Standard.Enabled {
+		if configuration.Standard.MinLength == 0 {
+			configuration.Standard.MinLength = schema.DefaultPasswordPolicyConfiguration.Standard.MinLength
+		} else if configuration.Standard.MinLength < 0 {
+			validator.Push(errors.New("password_policy: min_length must be > 0"))
 		}
 
-		configuration.MinLength = 0
-		configuration.RequireLowercase = false
-		configuration.RequireUppercase = false
-		configuration.RequireNumber = false
-		configuration.RequireSpecial = false
-	case "classic":
-		if configuration.MinLength == 0 {
-			configuration.MinLength = schema.DefaultPasswordPolicyConfiguration.MinLength
-		} else if configuration.MinLength < 0 {
-			validator.Push(fmt.Errorf("password_policy: min_length must be > 0"))
+		if configuration.Standard.MaxLength == 0 {
+			configuration.Standard.MaxLength = schema.DefaultPasswordPolicyConfiguration.Standard.MaxLength
 		}
-
-		if configuration.MaxLength == 0 {
-			configuration.MaxLength = schema.DefaultPasswordPolicyConfiguration.MaxLength
+	} else if configuration.Zxcvbn.Enabled {
+		if configuration.Zxcvbn.MinScore == 0 {
+			configuration.Zxcvbn.MinScore = schema.DefaultPasswordPolicyConfiguration.Zxcvbn.MinScore
+		} else if configuration.Zxcvbn.MinScore < 0 || configuration.Zxcvbn.MinScore > 4 {
+			validator.Push(errors.New("min_score must be between 0 and 4"))
 		}
-
-		configuration.MinScore = 0
 	}
 }

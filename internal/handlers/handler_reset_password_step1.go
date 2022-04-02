@@ -53,15 +53,22 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 		ctx.Logger.Errorf("Unable to clear password reset flag in session for user %s: %s", userSession.Username, err)
 	}
 
+	mode := ""
+	if ctx.Configuration.PasswordPolicy.Standard.Enabled {
+		mode = "standard"
+	} else if ctx.Configuration.PasswordPolicy.Zxcvbn.Enabled {
+		mode = "zxcvbn"
+	}
+
 	policyResponse := PassworPolicyBody{
-		Mode:             ctx.Configuration.PasswordPolicy.Mode,
-		MinLength:        ctx.Configuration.PasswordPolicy.MinLength,
-		MaxLength:        ctx.Configuration.PasswordPolicy.MaxLength,
-		MinScore:         ctx.Configuration.PasswordPolicy.MinScore,
-		RequireLowercase: ctx.Configuration.PasswordPolicy.RequireLowercase,
-		RequireUppercase: ctx.Configuration.PasswordPolicy.RequireUppercase,
-		RequireNumber:    ctx.Configuration.PasswordPolicy.RequireNumber,
-		RequireSpecial:   ctx.Configuration.PasswordPolicy.RequireSpecial,
+		Mode:             mode,
+		MinLength:        ctx.Configuration.PasswordPolicy.Standard.MinLength,
+		MaxLength:        ctx.Configuration.PasswordPolicy.Standard.MaxLength,
+		RequireLowercase: ctx.Configuration.PasswordPolicy.Standard.RequireLowercase,
+		RequireUppercase: ctx.Configuration.PasswordPolicy.Standard.RequireUppercase,
+		RequireNumber:    ctx.Configuration.PasswordPolicy.Standard.RequireNumber,
+		RequireSpecial:   ctx.Configuration.PasswordPolicy.Standard.RequireSpecial,
+		MinScore:         ctx.Configuration.PasswordPolicy.Zxcvbn.MinScore,
 	}
 
 	err = ctx.SetJSONBody(policyResponse)

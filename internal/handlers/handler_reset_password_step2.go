@@ -63,12 +63,17 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 // validatePassword validates if the password met the password policy rules.
 func validatePassword(ctx *middlewares.AutheliaCtx, password string) error {
-	requireLowercase := ctx.Configuration.PasswordPolicy.RequireLowercase
-	requireUppercase := ctx.Configuration.PasswordPolicy.RequireUppercase
-	requireNumber := ctx.Configuration.PasswordPolicy.RequireNumber
-	requireSpecial := ctx.Configuration.PasswordPolicy.RequireSpecial
-	minLength := ctx.Configuration.PasswordPolicy.MinLength
-	maxlength := ctx.Configuration.PasswordPolicy.MaxLength
+	// password validation applies only to standard passwor policy.
+	if !ctx.Configuration.PasswordPolicy.Standard.Enabled {
+		return nil
+	}
+
+	requireLowercase := ctx.Configuration.PasswordPolicy.Standard.RequireLowercase
+	requireUppercase := ctx.Configuration.PasswordPolicy.Standard.RequireUppercase
+	requireNumber := ctx.Configuration.PasswordPolicy.Standard.RequireNumber
+	requireSpecial := ctx.Configuration.PasswordPolicy.Standard.RequireSpecial
+	minLength := ctx.Configuration.PasswordPolicy.Standard.MinLength
+	maxlength := ctx.Configuration.PasswordPolicy.Standard.MaxLength
 
 	var patterns []string
 

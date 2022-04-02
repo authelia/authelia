@@ -1,27 +1,35 @@
 package schema
 
-// PasswordPolicyConfiguration represents the password policy configuration.
-type PasswordPolicyConfiguration struct {
-	// Possible Modes: 'none', 'zxcvbn', 'classic', 'ldap'
-	// 	none: doesn't provide any password policy
-	// 	zxcvbn: uses zxcvbn to get the password strength. this option enables the MinScore param
-	// 	classic: uses classic rules (i.e. Require LowerCases, Require Uppercases, etc)
-	// 	ldap: uses classic rules, but the rules are fetched from ldap
-	Mode      string `koanf:"mode"`
-	MinLength int    `koanf:"min_length"`
-	MaxLength int    `koanf:"max_length"`
-	// MinScore set the minimal acceptable score for mode 'zxcvbn'.
-	MinScore         int  `koanf:"min_score"`
+// PasswordPolicyStandardParams represents the configuration related to standard parameters of password policy.
+type PasswordPolicyStandardParams struct {
+	Enabled          bool
+	MinLength        int  `koanf:"min_length"`
+	MaxLength        int  `koanf:"max_length"`
 	RequireUppercase bool `koanf:"require_uppercase"`
 	RequireLowercase bool `koanf:"require_lowercase"`
 	RequireNumber    bool `koanf:"require_number"`
 	RequireSpecial   bool `koanf:"require_special"`
 }
 
+// PasswordPolicyZxcvbnParams represents the configuration related to zxcvbn parameters of password policy.
+type PasswordPolicyZxcvbnParams struct {
+	Enabled  bool
+	MinScore int `koanf:"min_score"`
+}
+
+// PasswordPolicyConfiguration represents the configuration related to password policy.
+type PasswordPolicyConfiguration struct {
+	Standard PasswordPolicyStandardParams `koanf:"standard"`
+	Zxcvbn   PasswordPolicyZxcvbnParams   `koanf:"zxcvbn"`
+}
+
 // DefaultPasswordPolicyConfiguration is the default password policy configuration.
 var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
-	Mode:      "none",
-	MinLength: 4,
-	MaxLength: 0,
-	MinScore:  0,
+	Standard: PasswordPolicyStandardParams{
+		Enabled:   false,
+		MinLength: 1,
+	},
+	Zxcvbn: PasswordPolicyZxcvbnParams{
+		Enabled: false,
+	},
 }

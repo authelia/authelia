@@ -16,10 +16,10 @@ type Configuration struct {
 	AccessControl         AccessControlConfiguration         `koanf:"access_control"`
 	Regulation            RegulationConfiguration            `koanf:"regulation"`
 
-	Server         ServerConfiguration          `koanf:"server"`
-	Session        SessionConfiguration         `koanf:"session"`
-	NTP            NTPConfiguration             `koanf:"ntp"`
-	Storage        StorageConfiguration         `koanf:"storage"`
-	Notifier       *NotifierConfiguration       `koanf:"notifier"`
-	PasswordPolicy *PasswordPolicyConfiguration `koanf:"password_policy"`
+	Server         ServerConfiguration         `koanf:"server"`
+	Session        SessionConfiguration        `koanf:"session"`
+	NTP            NTPConfiguration            `koanf:"ntp"`
+	Storage        StorageConfiguration        `koanf:"storage"`
+	Notifier       *NotifierConfiguration      `koanf:"notifier"`
+	PasswordPolicy PasswordPolicyConfiguration `koanf:"password_policy"`
 }
