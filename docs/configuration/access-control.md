@@ -22,16 +22,16 @@ access_control:
     - 192.168.0.0/18
 
   rules:
-  - domain: public.example.com
-    domain_regex: "^\d+\\.public.example.com$"
+  - domain: 'public.example.com'
+    domain_regex: '^\d+\.public.example.com$'
     policy: one_factor
     networks:
     - internal
     - 1.1.1.1
     subject:
-    - ["user:adam"]
-    - ["user:fred"]
-    - ["group:admins"]
+    - ['user:adam']
+    - ['user:fred']
+    - ['group:admins']
     methods:
     - GET
     - HEAD
@@ -156,10 +156,10 @@ different ways.*
 ```yaml
 access_control:
   rules:
-  - domain: "*.example.com"
+  - domain: '*.example.com'
     policy: bypass
   - domain:
-    - "*.example.com"
+    - '*.example.com'
     policy: bypass
 ```
 
@@ -169,7 +169,7 @@ list are effectively the same rule just expressed in different ways.*
 ```yaml
 access_control:
   rules:
-  - domain: ["apple.example.com", "banana.example.com"]
+  - domain: ['apple.example.com', 'banana.example.com']
     policy: bypass
   - domain:
     - apple.example.com
@@ -190,13 +190,12 @@ _**Required:** This criteria OR the [domain](#domain) criteria are required._
 _**Important Note:** If you intend to use this criteria with a bypass rule please read 
 [bypass and subjects](#bypass-and-user-identity) before doing so._
 
+_**Important Note:** to utilize regex you must escape it properly. See [regex](./index.md#regex) for more information._
+
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
 strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
 When used in conjunction with [domain](#domain) the rule will match when either the [domain](#domain) or the
 [domain_regex](#domain_regex) criteria matches.
-
-As this is a regex string you will either need to use single quotes or need to double-escape certain portions of the
-regex in order make this work.
 
 This criteria takes any standard go regex pattern to match the requests. We additionally utilize two special named match 
 groups which match attributes of the user:
@@ -221,8 +220,8 @@ access_control:
     - banana.example.com
     policy: bypass
   - domain_regex:
-    - "^user-(?P<User>\w+)\\.example\\.com$"
-    - "^group-(?P<Group>\w+)\\.example\\.com$"
+    - '^user-(?P<User>\w+)\.example\.com$'
+    - '^group-(?P<Group>\w+)\.example\.com$'
     policy: one_factor
 ```
 
@@ -407,17 +406,15 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
+_**Important Note:** to utilize regex you must escape it properly. See [regex](./index.md#regex) for more information._
+
 This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
 for debugging these regular expressions is called [Rego](https://regoio.herokuapp.com/).
 
-***Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0 
+_**Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0 
 they match the entire path including the query parameters. When upgrading you may be required to alter some of your 
-resource rules to get them to operate as they previously did.*
-
-As this is a regex string you will either need to use single quotes or need to double-escape certain portions of the
-regex in order make this work. If you don't do either of these things either the regex may not be parsed, or it may not
-be parsed correctly. It's technically optional but will likely save you a lot of time if you do it for all resource rules.
+resource rules to get them to operate as they previously did._
 
 Examples:
 
@@ -487,15 +484,15 @@ access_control:
     - name: VPN
       networks: 10.9.0.0/16
   rules:
-    - domain: public.example.com
+    - domain: 'public.example.com'
       policy: bypass
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       policy: bypass
       methods:
         - OPTIONS
 
-    - domain: secure.example.com
+    - domain: 'secure.example.com'
       policy: one_factor
       networks:
         - internal
@@ -504,37 +501,37 @@ access_control:
         - 10.0.0.1
 
     - domain:
-      - secure.example.com
-      - private.example.com
+      - 'secure.example.com'
+      - 'private.example.com'
       policy: two_factor
 
-    - domain: singlefactor.example.com
+    - domain: 'singlefactor.example.com'
       policy: one_factor
 
-    - domain: "mx2.mail.example.com"
+    - domain: 'mx2.mail.example.com'
       subject: "group:admins"
       policy: deny
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       subject:
-        - "group:admins"
-        - "group:moderators"
+        - 'group:admins'
+        - 'group:moderators'
       policy: two_factor
 
     - domain: dev.example.com
       resources:
       - '^/groups/dev/.*$'
-      subject: "group:dev"
+      subject: 'group:dev'
       policy: two_factor
 
     - domain: dev.example.com
       resources:
       - '^/users/john/.*$'
       subject: 
-      - ["group:dev", "user:john"]
-      - "group:admins"
+      - ['group:dev', 'user:john']
+      - 'group:admins'
       policy: two_factor
 
-    - domain: "{user}.example.com"
+    - domain: '{user}.example.com'
       policy: bypass
 ```
