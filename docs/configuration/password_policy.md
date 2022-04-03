@@ -36,6 +36,7 @@ required: no
 
 This section allows you to enable standard security policies. 
 #### enabled 
+<div markdown="1">
 type: bool
 {: .label .label-config .label-purple } 
 required: no
@@ -44,6 +45,7 @@ required: no
 Enables standard password policy
 
 #### min_length 
+<div markdown="1">
 type: integer
 {: .label .label-config .label-purple } 
 required: no
@@ -52,6 +54,7 @@ required: no
 Determines the minimum allowed password length
 
 #### max_length 
+<div markdown="1">
 type: integer
 {: .label .label-config .label-purple } 
 required: no
@@ -60,6 +63,7 @@ required: no
 Determines the maximum allowed password length
 
 #### require_uppercase 
+<div markdown="1">
 type: bool
 {: .label .label-config .label-purple } 
 required: no
@@ -68,6 +72,7 @@ required: no
 Indicates that at least one UPPERCASE letter must be provided as part of the password
 
 #### require_lowercase 
+<div markdown="1">
 type: bool
 {: .label .label-config .label-purple } 
 required: no
@@ -76,6 +81,7 @@ required: no
 Indicates that at least one lowercase letter must be provided as part of the password
 
 #### require_number 
+<div markdown="1">
 type: bool
 {: .label .label-config .label-purple } 
 required: no
@@ -84,6 +90,7 @@ required: no
 Indicates that at least one number must be provided as part of the password
 
 #### require_special 
+<div markdown="1">
 type: bool
 {: .label .label-config .label-purple } 
 required: no
@@ -99,6 +106,7 @@ Note that this password policy do not restrict the user's entry, just warns the 
 
 
 #### enabled 
+<div markdown="1">
 type: bool
 {: .label .label-config .label-purple } 
 required: no
