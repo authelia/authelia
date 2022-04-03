@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"errors"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -55,3 +57,5 @@ const (
 )
 
 var protoHostSeparator = []byte("://")
+
+var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")

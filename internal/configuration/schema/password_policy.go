@@ -2,7 +2,7 @@ package schema
 
 // PasswordPolicyStandardParams represents the configuration related to standard parameters of password policy.
 type PasswordPolicyStandardParams struct {
-	Enabled          bool
+	Enabled          bool `koanf:"enabled"`
 	MinLength        int  `koanf:"min_length"`
 	MaxLength        int  `koanf:"max_length"`
 	RequireUppercase bool `koanf:"require_uppercase"`
@@ -13,8 +13,8 @@ type PasswordPolicyStandardParams struct {
 
 // PasswordPolicyZxcvbnParams represents the configuration related to zxcvbn parameters of password policy.
 type PasswordPolicyZxcvbnParams struct {
-	Enabled  bool
-	MinScore int `koanf:"min_score"`
+	Enabled  bool `koanf:"enabled"`
+	MinScore int  `koanf:"min_score"`
 }
 
 // PasswordPolicyConfiguration represents the configuration related to password policy.
@@ -26,15 +26,12 @@ type PasswordPolicyConfiguration struct {
 // DefaultPasswordPolicyConfiguration is the default password policy configuration.
 var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
 	Standard: PasswordPolicyStandardParams{
-		Enabled:          false,
-		MinLength:        8,
-		MaxLength:        0,
-		RequireUppercase: true,
-		RequireLowercase: true,
-		RequireNumber:    true,
-		RequireSpecial:   true,
+		Enabled:   false,
+		MinLength: 8,
+		MaxLength: 0,
 	},
 	Zxcvbn: PasswordPolicyZxcvbnParams{
-		Enabled: false,
+		Enabled:  false,
+		MinScore: 0,
 	},
 }
