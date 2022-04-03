@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -28,7 +27,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err := validatePassword(ctx, requestBody.Password); err != nil {
+	if err = ctx.Providers.PasswordPolicy.Check(requestBody.Password); err != nil {
 		ctx.Error(err, messagePasswordWeak)
 		return
 	}
@@ -59,55 +58,4 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.ReplyOK()
-}
-
-// validatePassword validates if the password met the password policy rules.
-func validatePassword(ctx *middlewares.AutheliaCtx, password string) error {
-	// password validation applies only to standard passwor policy.
-	if !ctx.Configuration.PasswordPolicy.Standard.Enabled {
-		return nil
-	}
-
-	requireLowercase := ctx.Configuration.PasswordPolicy.Standard.RequireLowercase
-	requireUppercase := ctx.Configuration.PasswordPolicy.Standard.RequireUppercase
-	requireNumber := ctx.Configuration.PasswordPolicy.Standard.RequireNumber
-	requireSpecial := ctx.Configuration.PasswordPolicy.Standard.RequireSpecial
-	minLength := ctx.Configuration.PasswordPolicy.Standard.MinLength
-	maxlength := ctx.Configuration.PasswordPolicy.Standard.MaxLength
-
-	var patterns []string
-
-	if (minLength > 0 && len(password) < minLength) || (maxlength > 0 && len(password) > maxlength) {
-		return errPasswordPolicyNoMet
-	}
-
-	if requireLowercase {
-		patterns = append(patterns, "[a-z]+")
-	}
-
-	if requireUppercase {
-		patterns = append(patterns, "[A-Z]+")
-	}
-
-	if requireNumber {
-		patterns = append(patterns, "[0-9]+")
-	}
-
-	if requireSpecial {
-		patterns = append(patterns, "[^a-zA-Z0-9]+")
-	}
-
-	for _, pattern := range patterns {
-		re, err := regexp.Compile(pattern)
-
-		if err != nil {
-			return err
-		}
-
-		if found := re.MatchString(password); !found {
-			return errPasswordPolicyNoMet
-		}
-	}
-
-	return nil
 }

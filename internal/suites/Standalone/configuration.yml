@@ -103,7 +103,7 @@ ntp:
 password_policy:
   standard:
     # Enables standard password Policy
-    enabled: false 
+    enabled: false
     min_length: 8
     max_length: 0
     require_uppercase: true
