@@ -31,7 +31,7 @@ func oidcConsent(ctx *middlewares.AutheliaCtx) {
 
 func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
-		body ConsentPostRequestBody
+		body oidc.ConsentPostRequestBody
 		err  error
 	)
 
@@ -98,7 +98,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	response := ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}
+	response := oidc.ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}
 
 	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body in response"), "Operation failed")

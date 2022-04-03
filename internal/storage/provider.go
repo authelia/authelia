@@ -49,7 +49,7 @@ type Provider interface {
 	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error)
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)
-	LoadOAuth2ConsentSessionBySignature(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentSessionRows, err error)
+	LoadOAuth2ConsentSessionsBySignature(ctx context.Context, clientID string, subject uuid.UUID, preConfigured bool) (rows *ConsentSessionRows, err error)
 
 	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *model.OAuth2Session) (err error)
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)

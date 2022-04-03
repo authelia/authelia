@@ -136,6 +136,17 @@ type ConsentGetResponseBody struct {
 	Audience          []string `json:"audience"`
 }
 
+// ConsentPostRequestBody schema of the request body of the consent POST endpoint.
+type ConsentPostRequestBody struct {
+	ClientID       string `json:"client_id"`
+	AcceptOrReject string `json:"accept_or_reject"`
+}
+
+// ConsentPostResponseBody schema of the response body of the consent POST endpoint.
+type ConsentPostResponseBody struct {
+	RedirectURI string `json:"redirect_uri"`
+}
+
 /*
 CommonDiscoveryOptions represents the discovery options used in both OAuth 2.0 and OpenID Connect.
 See Also:
