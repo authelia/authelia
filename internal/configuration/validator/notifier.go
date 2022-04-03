@@ -3,10 +3,11 @@ package validator
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	autheliaTemplates "github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // ValidateNotifier validates and update notifier configuration.
@@ -34,37 +35,49 @@ func ValidateNotifier(config *schema.NotifierConfiguration, validator *schema.St
 	validateNotifierTemplates(config, validator)
 }
 
-func validateNotifierTemplates(configuration *schema.NotifierConfiguration, validator *schema.StructValidator) {
-	if configuration.TemplatePath != "" {
-		_, err := os.Stat(configuration.TemplatePath)
-		if os.IsNotExist(err) {
-			validator.PushWarning(fmt.Errorf("e-mail template folder '%s' does not exists. Using default templates", configuration.TemplatePath))
-			return
-		}
+func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *schema.StructValidator) {
+	if config.TemplatePath == "" {
+		return
+	}
 
-		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep1.html`); err == nil {
-			autheliaTemplates.HTMLEmailTemplateStep1 = t
-		} else {
-			validator.PushWarning(fmt.Errorf("error loading html template: %s ", err.Error()))
-		}
+	var (
+		err error
+		t   *template.Template
+	)
 
-		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep1.txt`); err == nil {
-			autheliaTemplates.PlainTextEmailTemplateStep1 = t
-		} else {
-			validator.PushWarning(fmt.Errorf("error loading text template: %s ", err.Error()))
-		}
+	_, err = os.Stat(config.TemplatePath)
 
-		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep2.html`); err == nil {
-			autheliaTemplates.HTMLEmailTemplateStep2 = t
-		} else {
-			validator.PushWarning(fmt.Errorf("error loading html template: %s ", err.Error()))
-		}
+	switch {
+	case os.IsNotExist(err):
+		validator.Push(fmt.Errorf(errFmtNotifierTemplatePathNotExist, config.TemplatePath))
+		return
+	case err != nil:
+		validator.Push(fmt.Errorf(errFmtNotifierTemplatePathUnknownError, config.TemplatePath, err))
+		return
+	}
 
-		if t, err := template.ParseFiles(configuration.TemplatePath + `/PasswordResetStep2.txt`); err == nil {
-			autheliaTemplates.PlainTextEmailTemplateStep2 = t
-		} else {
-			validator.PushWarning(fmt.Errorf("error loading text template: %s ", err.Error()))
-		}
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep1+".html")); err == nil {
+		templates.HTMLEmailTemplateStep1 = t
+	} else {
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep1+".html", err))
+	}
+
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep1+".txt")); err == nil {
+		templates.PlainTextEmailTemplateStep1 = t
+	} else {
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep1+".txt", err))
+	}
+
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep2+".html")); err == nil {
+		templates.HTMLEmailTemplateStep2 = t
+	} else {
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep2+".html", err))
+	}
+
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep2+".txt")); err == nil {
+		templates.PlainTextEmailTemplateStep2 = t
+	} else {
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep2+".txt", err))
 	}
 }
 
