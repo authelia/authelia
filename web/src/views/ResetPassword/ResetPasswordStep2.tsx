@@ -92,6 +92,7 @@ const ResetPasswordStep2 = function () {
             createSuccessNotification(translate("Password has been reset"));
             setTimeout(() => navigate(IndexRoute), 1500);
             setFormDisabled(true);
+            console.table(pPolicy);
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {

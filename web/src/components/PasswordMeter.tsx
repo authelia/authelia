@@ -9,11 +9,6 @@ import { PasswordPolicyMode } from "@models/PasswordPolicy";
 
 export interface Props {
     value: string;
-    /**
-     * mode password meter mode
-     *   classic: classic mode (checks lowercase, uppercase, specials and numbers)
-     *   zxcvbn: uses zxcvbn package to get the password strength
-     **/
     mode: PasswordPolicyMode;
     minLength: number;
     maxLength: number;
@@ -114,11 +109,7 @@ const PasswordMeter = function (props: Props) {
     }, [props, translate]);
 
     return (
-        <div
-            style={{
-                width: "100%",
-            }}
-        >
+        <div style={{ width: "100%" }}>
             <div
                 title={feedback}
                 className={classnames(style.progressBar)}
@@ -126,7 +117,7 @@ const PasswordMeter = function (props: Props) {
                     width: `${(passwordScore + 1) * (100 / maxScores)}%`,
                     backgroundColor: progressColor[passwordScore],
                 }}
-            ></div>
+            />
         </div>
     );
 };
