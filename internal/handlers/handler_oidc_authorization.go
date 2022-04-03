@@ -183,9 +183,11 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 			scopes, audience []string
 		)
 
-		if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionBySignature(ctx, client.GetID(), subject, client.ConsentDuration != nil); err != nil {
+		if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionsBySignature(ctx, client.GetID(), subject, false); err != nil {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 		}
+
+		defer rows.Close()
 
 		for rows.Next() {
 			if consent, err = rows.Get(); err != nil {

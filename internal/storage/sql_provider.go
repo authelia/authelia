@@ -409,8 +409,8 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 	return consent, nil
 }
 
-// LoadOAuth2ConsentSessionBySignature returns an OAuth2.0 consent given the consent signature.
-func (p *SQLProvider) LoadOAuth2ConsentSessionBySignature(ctx context.Context, clientID string, subject uuid.UUID, preConfigured bool) (rows *ConsentSessionRows, err error) {
+// LoadOAuth2ConsentSessionsBySignature returns an OAuth2.0 consents given the consent signature.
+func (p *SQLProvider) LoadOAuth2ConsentSessionsBySignature(ctx context.Context, clientID string, subject uuid.UUID, preConfigured bool) (rows *ConsentSessionRows, err error) {
 	var r *sqlx.Rows
 
 	switch {

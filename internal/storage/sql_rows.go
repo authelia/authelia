@@ -22,6 +22,11 @@ func (r *ConsentSessionRows) Next() bool {
 	return r.rows.Next()
 }
 
+// Close the rows.
+func (r *ConsentSessionRows) Close() (err error) {
+	return r.rows.Close()
+}
+
 // Get returns the *model.OAuth2ConsentSession or scan error.
 func (r *ConsentSessionRows) Get() (consent *model.OAuth2ConsentSession, err error) {
 	if r.rows == nil {
