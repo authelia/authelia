@@ -56,7 +56,7 @@ specifiers:
   vite-plugin-istanbul: 2.5.1
   vite-plugin-svgr: 1.1.0
   vite-tsconfig-paths: 3.4.1
-  zxcvbn: ^4.4.2
+  zxcvbn: 4.4.2
 
 dependencies:
   '@fortawesome/fontawesome-svg-core': 6.1.1
