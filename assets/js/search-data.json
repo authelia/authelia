@@ -1069,19 +1069,19 @@
   },"178": {
     "doc": "Password Policy",
     "title": "Password Policy",
-    "content": "Password policy enforces the security by requering the users to use strong passwords Currently, two methods are supported: . ",
+    "content": "Password policy enforces the security by requiring the users to use strong passwords. Currently, two methods are supported: . ",
     "url": "/docs/features/password-policy.html",
     "relUrl": "/features/password-policy.html"
   },"179": {
     "doc": "Password Policy",
     "title": "classic",
-    "content": ". | this mode of operation allows administrators to set the rules that user passwords must comply with | the available options are: . | Minimum password length | Require Uppercase | Require Lowercase | Require Numbers | Require Special characters | . | when changing the password users must meet these rules | . ",
+    "content": "This mode of operation allows administrators to set the rules that user passwords must comply with when changing their password. The available options are: . | Minimum password length | Require Uppercase | Require Lowercase | Require Numbers | Require Special characters | . ",
     "url": "/docs/features/password-policy.html#classic",
     "relUrl": "/features/password-policy.html#classic"
   },"180": {
     "doc": "Password Policy",
     "title": "zxcvbn",
-    "content": ". | this mode uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn) | in this mode of operation, the user is not forced to follow any rules. the user is notified if their passwords is weak or strong | . ",
+    "content": "This mode uses zxcvbn for password strength checking. In this mode of operation, the user is not forced to follow any rules. The user is notified if their passwords is weak or strong. ",
     "url": "/docs/features/password-policy.html#zxcvbn",
     "relUrl": "/features/password-policy.html#zxcvbn"
   },"181": {
@@ -1105,7 +1105,7 @@
   },"184": {
     "doc": "Password Policy",
     "title": "Options",
-    "content": "standard . type: list . required: no . This section allows you to enable standard security policies. enabled . type: bool . required: no . &lt;/div&gt; Enables standard password policy . min_length . type: integer . required: no . &lt;/div&gt; Determines the minimum allowed password length . max_length . type: integer . required: no . &lt;/div&gt; Determines the maximum allowed password length . require_uppercase . type: bool . required: no . &lt;/div&gt; Indicates that at least one UPPERCASE letter must be provided as part of the password . require_lowercase . type: bool . required: no . &lt;/div&gt; Indicates that at least one lowercase letter must be provided as part of the password . require_number . type: bool . required: no . &lt;/div&gt; Indicates that at least one number must be provided as part of the password . require_special . type: bool . required: no . &lt;/div&gt; Indicates that at least one special character must be provided as part of the password . zxcvbn . This password policy enables advanced password strengh metering, using Dropbox zxcvbn package. Note that this password policy do not restrict the user’s entry, just warns the user that if their password is too weak . enabled . type: bool . required: no . &lt;/div&gt; Enables standard password policy . Note: . | only one password policy can be applied at a time | . ",
+    "content": "standard . type: list . required: no . This section allows you to enable standard security policies. enabled . type: bool . required: no . Enables standard password policy. min_length . type: integer . required: no . Determines the minimum allowed password length. max_length . type: integer . required: no . Determines the maximum allowed password length. require_uppercase . type: bool . required: no . Indicates that at least one UPPERCASE letter must be provided as part of the password. require_lowercase . type: bool . required: no . Indicates that at least one lowercase letter must be provided as part of the password. require_number . type: bool . required: no . Indicates that at least one number must be provided as part of the password. require_special . type: bool . required: no . Indicates that at least one special character must be provided as part of the password. zxcvbn . This password policy enables advanced password strength metering, using zxcvbn. Note that this password policy do not restrict the user’s entry it just gives the user feedback as to how strong their password is. enabled . type: bool . required: no . Important Note: only one password policy can be applied at a time. Enables zxcvbn password policy. ",
     "url": "/docs/configuration/password_policy.html#options",
     "relUrl": "/configuration/password_policy.html#options"
   },"185": {
