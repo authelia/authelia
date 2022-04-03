@@ -56,6 +56,7 @@ const ResetPasswordStep2 = function () {
             await completeResetPasswordProcess(processToken);
             const policy = await getPasswordPolicyConfiguration();
             setPPolicy(policy);
+            setFormDisabled(false);
         } catch (err) {
             console.error(err);
             createErrorNotification(
