@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { makeStyles } from "@material-ui/core";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
+
+import { PasswordPolicyMode } from "@models/PasswordPolicy";
 
 export interface Props {
     value: string;
@@ -12,7 +14,7 @@ export interface Props {
      *   classic: classic mode (checks lowercase, uppercase, specials and numbers)
      *   zxcvbn: uses zxcvbn package to get the password strength
      **/
-    mode: string;
+    mode: PasswordPolicyMode;
     minLength: number;
     maxLength: number;
     requireLowerCase: boolean;
@@ -39,7 +41,7 @@ const PasswordMeter = function (props: Props) {
 
     useEffect(() => {
         const password = props.value;
-        if (props.mode === "standard") {
+        if (props.mode === PasswordPolicyMode.Standard) {
             //use mode mode
             setMaxScores(4);
             if (password.length < props.minLength) {
@@ -102,7 +104,7 @@ const PasswordMeter = function (props: Props) {
                 setFeedback(translate("The password does not meet the password policy") + ":\n" + warning);
             }
             setPasswordScore(score);
-        } else if (props.mode === "zxcvbn") {
+        } else if (props.mode === PasswordPolicyMode.ZXCVBN) {
             //use zxcvbn mode
             setMaxScores(5);
             const { score, feedback } = zxcvbn(password);
@@ -110,8 +112,6 @@ const PasswordMeter = function (props: Props) {
             setPasswordScore(score);
         }
     }, [props, translate]);
-
-    if (props.mode === "" || props.mode === "none") return <span></span>;
 
     return (
         <div

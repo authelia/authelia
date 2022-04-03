@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
-import { Grid, Button, makeStyles, InputAdornment, IconButton } from "@material-ui/core";
+import { Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,8 @@ import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
+import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
+import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
@@ -26,13 +28,17 @@ const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation("Portal");
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [pPolicyMode, setPPolicyMode] = useState("none");
-    const [pPolicyMinLength, setPPolicyMinLength] = useState(0);
-    const [pPolicyMaxLength, setPPolicyMaxLength] = useState(0);
-    const [pPolicyRequireUpperCase, setPPolicyRequireUpperCase] = useState(false);
-    const [pPolicyRequireLowerCase, setPPolicyRequireLowerCase] = useState(false);
-    const [pPolicyRequireNumber, setPPolicyRequireNumber] = useState(false);
-    const [pPolicyRequireSpecial, setPPolicyRequireSpecial] = useState(false);
+
+    const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
+        max_length: 0,
+        min_length: 8,
+        min_score: 0,
+        require_lowercase: false,
+        require_number: false,
+        require_special: false,
+        require_uppercase: false,
+        mode: PasswordPolicyMode.Disabled,
+    });
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
@@ -47,23 +53,9 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            const {
-                mode,
-                min_length,
-                max_length,
-                require_uppercase,
-                require_lowercase,
-                require_number,
-                require_special,
-            } = await completeResetPasswordProcess(processToken);
-            setPPolicyMode(mode);
-            setPPolicyMinLength(min_length);
-            setPPolicyMaxLength(max_length);
-            setPPolicyRequireLowerCase(require_lowercase);
-            setPPolicyRequireUpperCase(require_uppercase);
-            setPPolicyRequireNumber(require_number);
-            setPPolicyRequireSpecial(require_special);
-            setFormDisabled(false);
+            await completeResetPasswordProcess(processToken);
+            const policy = await getPasswordPolicyConfiguration();
+            setPPolicy(policy);
         } catch (err) {
             console.error(err);
             createErrorNotification(
@@ -144,16 +136,18 @@ const ResetPasswordStep2 = function () {
                             ),
                         }}
                     />
-                    <PasswordMeter
-                        value={password1}
-                        mode={pPolicyMode}
-                        minLength={pPolicyMinLength}
-                        maxLength={pPolicyMaxLength}
-                        requireLowerCase={pPolicyRequireLowerCase}
-                        requireUpperCase={pPolicyRequireUpperCase}
-                        requireNumber={pPolicyRequireNumber}
-                        requireSpecial={pPolicyRequireSpecial}
-                    ></PasswordMeter>
+                    {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
+                        <PasswordMeter
+                            value={password1}
+                            mode={pPolicy.mode}
+                            minLength={pPolicy.min_length}
+                            maxLength={pPolicy.max_length}
+                            requireLowerCase={pPolicy.require_lowercase}
+                            requireUpperCase={pPolicy.require_uppercase}
+                            requireNumber={pPolicy.require_number}
+                            requireSpecial={pPolicy.require_special}
+                        />
+                    )}
                 </Grid>
                 <Grid item xs={12}>
                     <FixedTextField
