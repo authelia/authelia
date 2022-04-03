@@ -71,6 +71,8 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
+	passwordPolicyProvider := middlewares.NewPasswordPolicyProvider(config.PasswordPolicy)
+
 	return middlewares.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
@@ -81,5 +83,6 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 		TOTP:            totpProvider,
+		PasswordPolicy:  passwordPolicyProvider,
 	}, warnings, errors
 }

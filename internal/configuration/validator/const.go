@@ -54,6 +54,9 @@ const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
 	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
+	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
+	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
+	errFmtNotifierTemplateLoad                    = "notifier: error loading template '%s': %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required "
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 )
@@ -412,6 +415,7 @@ var ValidKeys = []string{
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
+	"notifier.template_path",
 
 	// Regulation Keys.
 	"regulation.max_retries",
