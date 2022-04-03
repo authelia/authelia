@@ -14,7 +14,7 @@ _Authelia_ allows administrators to configure an enforced password policy.
 ```yaml
 password_policy:
   standard:
-    enabled: false 
+    enabled: false
     min_length: 8
     max_length: 0
     require_uppercase: true
