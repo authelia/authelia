@@ -27,7 +27,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.PasswordPolicy.Validate(requestBody.Password); err != nil {
+	if err = ctx.Providers.PasswordPolicy.Check(requestBody.Password); err != nil {
 		ctx.Error(err, messagePasswordWeak)
 		return
 	}

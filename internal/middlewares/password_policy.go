@@ -39,8 +39,8 @@ type PasswordPolicyProvider struct {
 	min, max int
 }
 
-// Validate checks the password against the policy.
-func (p PasswordPolicyProvider) Validate(password string) (err error) {
+// Check checks the password against the policy.
+func (p PasswordPolicyProvider) Check(password string) (err error) {
 	patterns := len(p.patterns)
 
 	if (p.min > 0 && len(password) < p.min) || (p.max > 0 && len(password) > p.max) {

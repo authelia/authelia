@@ -137,7 +137,7 @@ func TestPasswordPolicyProvider_Validate(t *testing.T) {
 			for i := 0; i < len(tc.have); i++ {
 				provider := NewPasswordPolicyProvider(tc.config)
 				t.Run(tc.have[i], func(t *testing.T) {
-					assert.Equal(t, tc.expected[i], provider.Validate(tc.have[i]))
+					assert.Equal(t, tc.expected[i], provider.Check(tc.have[i]))
 				})
 			}
 		})
