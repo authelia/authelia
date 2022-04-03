@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -19,6 +21,8 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	username := *userSession.PasswordResetUsername
+
 	var requestBody resetPasswordStep2RequestBody
 	err := ctx.ParseBody(&requestBody)
 
@@ -32,7 +36,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	err = ctx.Providers.UserProvider.UpdatePassword(*userSession.PasswordResetUsername, requestBody.Password)
+	err = ctx.Providers.UserProvider.UpdatePassword(username, requestBody.Password)
 
 	if err != nil {
 		switch {
@@ -46,7 +50,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Password of user %s has been reset", *userSession.PasswordResetUsername)
+	ctx.Logger.Debugf("Password of user %s has been reset", username)
 
 	// Reset the request.
 	userSession.PasswordResetUsername = nil
@@ -57,5 +61,69 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.ReplyOK()
+	// Send Notification.
+	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
+	if err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if len(userInfo.Emails) == 0 {
+		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", username))
+		ctx.ReplyOK()
+
+		return
+	}
+
+	bufHTML := new(bytes.Buffer)
+
+	disableHTML := false
+	if ctx.Configuration.Notifier != nil && ctx.Configuration.Notifier.SMTP != nil {
+		disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
+	}
+
+	if !disableHTML {
+		htmlParams := map[string]interface{}{
+			"title":       "Password changed successfully",
+			"displayName": userInfo.DisplayName,
+			"remoteIP":    ctx.RemoteIP().String(),
+		}
+
+		err = templates.HTMLEmailTemplateStep2.Execute(bufHTML, htmlParams)
+
+		if err != nil {
+			ctx.Logger.Error(err)
+			ctx.ReplyOK()
+
+			return
+		}
+	}
+
+	bufText := new(bytes.Buffer)
+	textParams := map[string]interface{}{
+		"displayName": userInfo.DisplayName,
+	}
+
+	err = templates.PlainTextEmailTemplateStep2.Execute(bufText, textParams)
+
+	if err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
+		username, userInfo.Emails[0])
+
+	err = ctx.Providers.Notifier.Send(userInfo.Emails[0], "Password changed successfully", bufText.String(), bufHTML.String())
+
+	if err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
 }
