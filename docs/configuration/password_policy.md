@@ -17,10 +17,10 @@ password_policy:
     enabled: false
     min_length: 8
     max_length: 0
-    require_uppercase: true
-    require_lowercase: true
-    require_number: true
-    require_special: true
+    require_uppercase: false
+    require_lowercase: false
+    require_number: false
+    require_special: false
   zxcvbn:
     enabled: false
 ```
@@ -30,7 +30,7 @@ password_policy:
 ### standard
 <div markdown="1">
 type: list
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -40,7 +40,7 @@ This section allows you to enable standard security policies.
 #### enabled
 <div markdown="1">
 type: bool
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -50,7 +50,9 @@ Enables standard password policy.
 #### min_length
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
+default: 8
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -60,7 +62,9 @@ Determines the minimum allowed password length.
 #### max_length
 <div markdown="1">
 type: integer
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
+default: 0
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -70,7 +74,7 @@ Determines the maximum allowed password length.
 #### require_uppercase
 <div markdown="1">
 type: bool
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -80,7 +84,7 @@ Indicates that at least one UPPERCASE letter must be provided as part of the pas
 #### require_lowercase
 <div markdown="1">
 type: bool
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -90,7 +94,7 @@ Indicates that at least one lowercase letter must be provided as part of the pas
 #### require_number
 <div markdown="1">
 type: bool
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -100,7 +104,7 @@ Indicates that at least one number must be provided as part of the password.
 #### require_special
 <div markdown="1">
 type: bool
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -117,7 +121,7 @@ password is.
 #### enabled
 <div markdown="1">
 type: bool
-{: .label .label-config .label-purple } 
+{: .label .label-config .label-purple }
 required: no
 {: .label .label-config .label-green }
 </div>
