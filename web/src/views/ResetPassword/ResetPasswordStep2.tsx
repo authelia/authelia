@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
+import { Box, Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -92,7 +92,6 @@ const ResetPasswordStep2 = function () {
             createSuccessNotification(translate("Password has been reset"));
             setTimeout(() => navigate(IndexRoute), 1500);
             setFormDisabled(true);
-            console.table(pPolicy);
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
@@ -139,16 +138,7 @@ const ResetPasswordStep2 = function () {
                         }}
                     />
                     {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
-                        <PasswordMeter
-                            value={password1}
-                            mode={pPolicy.mode}
-                            minLength={pPolicy.min_length}
-                            maxLength={pPolicy.max_length}
-                            requireLowerCase={pPolicy.require_lowercase}
-                            requireUpperCase={pPolicy.require_uppercase}
-                            requireNumber={pPolicy.require_number}
-                            requireSpecial={pPolicy.require_special}
-                        />
+                        <PasswordMeter value={password1} policy={pPolicy} />
                     )}
                 </Grid>
                 <Grid item xs={12}>

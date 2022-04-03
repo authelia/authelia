@@ -5,17 +5,11 @@ import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
-import { PasswordPolicyMode } from "@models/PasswordPolicy";
+import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 
 export interface Props {
     value: string;
-    mode: PasswordPolicyMode;
-    minLength: number;
-    maxLength: number;
-    requireLowerCase: boolean;
-    requireUpperCase: boolean;
-    requireNumber: boolean;
-    requireSpecial: boolean;
+    policy: PasswordPolicyConfiguration;
 }
 
 const PasswordMeter = function (props: Props) {
@@ -36,17 +30,25 @@ const PasswordMeter = function (props: Props) {
 
     useEffect(() => {
         const password = props.value;
-        if (props.mode === PasswordPolicyMode.Standard) {
+        if (props.policy.mode === PasswordPolicyMode.Standard) {
+            console.log(password);
+            console.log("standard");
+            console.table(props.policy);
+            console.log("length: ", password.length);
             //use mode mode
             setMaxScores(4);
-            if (password.length < props.minLength) {
+            if (password.length < props.policy.min_length) {
                 setPasswordScore(0);
-                setFeedback(translate("Must be at least {{len}} characters in length", { len: props.minLength }));
+                setFeedback(
+                    translate("Must be at least {{len}} characters in length", { len: props.policy.min_length }),
+                );
                 return;
             }
-            if (password.length > props.maxLength) {
+            if (props.policy.max_length !== 0 && password.length > props.policy.max_length) {
                 setPasswordScore(0);
-                setFeedback(translate("Must not be more than {{len}} characters in length", { len: props.maxLength }));
+                setFeedback(
+                    translate("Must not be more than {{len}} characters in length", { len: props.policy.max_length }),
+                );
                 return;
             }
             setFeedback("");
@@ -54,7 +56,7 @@ const PasswordMeter = function (props: Props) {
             let required = 0;
             let hits = 0;
             let warning = "";
-            if (props.requireLowerCase) {
+            if (props.policy.require_lowercase) {
                 required++;
                 const hasLowercase = /[a-z]/.test(password);
                 if (hasLowercase) {
@@ -64,7 +66,7 @@ const PasswordMeter = function (props: Props) {
                 }
             }
 
-            if (props.requireUpperCase) {
+            if (props.policy.require_uppercase) {
                 required++;
                 const hasUppercase = /[A-Z]/.test(password);
                 if (hasUppercase) {
@@ -74,7 +76,7 @@ const PasswordMeter = function (props: Props) {
                 }
             }
 
-            if (props.requireNumber) {
+            if (props.policy.require_number) {
                 required++;
                 const hasNumber = /[0-9]/.test(password);
                 if (hasNumber) {
@@ -84,7 +86,7 @@ const PasswordMeter = function (props: Props) {
                 }
             }
 
-            if (props.requireSpecial) {
+            if (props.policy.require_special) {
                 required++;
                 const hasSpecial = /[^0-9\w]/i.test(password);
                 if (hasSpecial) {
@@ -98,8 +100,11 @@ const PasswordMeter = function (props: Props) {
             if (warning !== "") {
                 setFeedback(translate("The password does not meet the password policy") + ":\n" + warning);
             }
+            console.log("score: ", score);
+            console.log("hits: ", hits);
+            console.log("required: ", required);
             setPasswordScore(score);
-        } else if (props.mode === PasswordPolicyMode.ZXCVBN) {
+        } else if (props.policy.mode === PasswordPolicyMode.ZXCVBN) {
             //use zxcvbn mode
             setMaxScores(5);
             const { score, feedback } = zxcvbn(password);

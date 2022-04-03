@@ -20,7 +20,7 @@ export function toEnum(method: ModePasswordPolicy): PasswordPolicyMode {
         case "disabled":
             return PasswordPolicyMode.Disabled;
         case "standard":
-            return PasswordPolicyMode.Disabled;
+            return PasswordPolicyMode.Standard;
         case "zxcvbn":
             return PasswordPolicyMode.ZXCVBN;
     }
