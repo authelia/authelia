@@ -115,6 +115,18 @@ type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
 }
 
+// PassworPolicyBody represents the response sent by the password reset step 2.
+type PassworPolicyBody struct {
+	Mode             string `json:"mode"`
+	MinLength        int    `json:"min_length"`
+	MaxLength        int    `json:"max_length"`
+	MinScore         int    `json:"min_score"`
+	RequireUppercase bool   `json:"require_uppercase"`
+	RequireLowercase bool   `json:"require_lowercase"`
+	RequireNumber    bool   `json:"require_number"`
+	RequireSpecial   bool   `json:"require_special"`
+}
+
 type responseWriter interface {
 	SetStatusCode(statusCode int)
 	SetBodyString(body string)

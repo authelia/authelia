@@ -25,6 +25,7 @@ export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
 
 export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
 export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";
+
 // Do the password reset during completion.
 export const ResetPasswordPath = basePath + "/api/reset-password";
 export const ChecksSafeRedirectionPath = basePath + "/api/checks/safe-redirection";
@@ -36,6 +37,7 @@ export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
 export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
 
 export const ConfigurationPath = basePath + "/api/configuration";
+export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
 export interface ErrorResponse {
     status: "KO";

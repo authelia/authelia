@@ -322,6 +322,38 @@ authentication_backend:
   #     parallelism: 8
 
 ##
+## Password Policy Configuration.
+##
+password_policy:
+
+  ## The standard policy allows you to tune individual settings manually.
+  standard:
+    enabled: false
+
+    ## Require a minimum length for passwords.
+    min_length: 8
+
+    ## Require a maximum length for passwords.
+    max_length: 0
+
+    ## Require uppercase characters.
+    require_uppercase: true
+
+    ## Require lowercase characters.
+    require_lowercase: true
+
+    ## Require numeric characters.
+    require_number: true
+
+    ## Require special characters.
+    require_special: true
+
+  ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
+  zxcvbn:
+    enabled: false
+    min_score: 0
+
+##
 ## Access Control Configuration
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
