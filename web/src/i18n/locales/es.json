@@ -55,6 +55,13 @@
         "Access your email addresses": "Acceso a su dirección de correo",
         "Accept": "Aceptar",
         "Deny": "Denegar",
-        "The above application is requesting the following permissions": "La aplicación solicita los siguientes permisos"    
+        "The above application is requesting the following permissions": "La aplicación solicita los siguientes permisos",
+        "The password does not meet the password policy": "La contraseña no cumple con la política de contraseñas",
+        "Must have at least one lowercase letter": "Debe contener al menos una letra minúscula",
+        "Must have at least one UPPERCASE letter": "Debe contener al menos una letra MAYUSCULA",
+        "Must have at least one number": "Debe contener al menos un número",
+        "Must have at least one special character": "Debe contener al menos un caracter especial",
+        "Must be at least {{len}} characters in length": "La longitud mínima es de {{len}} caracteres",
+        "Must not be more than {{len}} characters in length": "La longitud máxima es de {{len}} caracteres"
     }
 }
