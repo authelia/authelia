@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Box, Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
+import { Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
