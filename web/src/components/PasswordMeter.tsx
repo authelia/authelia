@@ -31,10 +31,6 @@ const PasswordMeter = function (props: Props) {
     useEffect(() => {
         const password = props.value;
         if (props.policy.mode === PasswordPolicyMode.Standard) {
-            console.log(password);
-            console.log("standard");
-            console.table(props.policy);
-            console.log("length: ", password.length);
             //use mode mode
             setMaxScores(4);
             if (password.length < props.policy.min_length) {
@@ -100,9 +96,6 @@ const PasswordMeter = function (props: Props) {
             if (warning !== "") {
                 setFeedback(translate("The password does not meet the password policy") + ":\n" + warning);
             }
-            console.log("score: ", score);
-            console.log("hits: ", hits);
-            console.log("required: ", required);
             setPasswordScore(score);
         } else if (props.policy.mode === PasswordPolicyMode.ZXCVBN) {
             //use zxcvbn mode
