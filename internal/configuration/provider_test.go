@@ -254,7 +254,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not parse 'admin' as a RFC5322 address: mail: missing '@' or angle-addr")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
 }
 
 func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
@@ -361,7 +361,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'access_control.rules[0].domain_regex[0]': could not parse '^\\K(public|public2).example.com$' as regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'access_control.rules[0].domain_regex[0]': could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {

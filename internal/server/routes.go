@@ -69,6 +69,7 @@ func getRequestHandler(config schema.Configuration, providers middlewares.Provid
 	r.GET("/api/state", middleware(handlers.StateGet))
 
 	r.GET("/api/configuration", middleware(middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
+	r.GET("/api/configuration/password-policy", middleware(handlers.PasswordPolicyConfigurationGet))
 
 	r.GET("/api/verify", middleware(handlers.VerifyGet(config.AuthenticationBackend)))
 	r.HEAD("/api/verify", middleware(handlers.VerifyGet(config.AuthenticationBackend)))
