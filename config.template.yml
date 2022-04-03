@@ -336,7 +336,7 @@ password_policy:
     require_number: true
     require_special: true
 
-  ## zxcvbn is a well known and used password strength algorithm developed by Dropbox. It does not have tunable settings.
+  ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
   zxcvbn:
     enabled: false
 
