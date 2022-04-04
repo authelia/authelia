@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -81,7 +81,7 @@ func (cc *CertificateContext) GenerateCertificate() (*TemporaryCertificate, erro
 
 	tmpCertificate := new(TemporaryCertificate)
 
-	certFile, err := ioutil.TempFile("", "cert")
+	certFile, err := os.CreateTemp("", "cert")
 	if err != nil {
 		return nil, fmt.Errorf("unable to create temp file for certificate: %v", err)
 	}
@@ -98,13 +98,13 @@ func (cc *CertificateContext) GenerateCertificate() (*TemporaryCertificate, erro
 
 	tmpCertificate.Certificate = c
 
-	err = ioutil.WriteFile(tmpCertificate.CertFile.Name(), certBytes, 0600)
+	err = os.WriteFile(tmpCertificate.CertFile.Name(), certBytes, 0600)
 	if err != nil {
 		tmpCertificate.Close()
 		return nil, fmt.Errorf("unable to write certificates in file: %v", err)
 	}
 
-	keyFile, err := ioutil.TempFile("", "key")
+	keyFile, err := os.CreateTemp("", "key")
 	if err != nil {
 		tmpCertificate.Close()
 		return nil, fmt.Errorf("unable to create temp file for private key: %v", err)
@@ -113,7 +113,7 @@ func (cc *CertificateContext) GenerateCertificate() (*TemporaryCertificate, erro
 	tmpCertificate.KeyFile = keyFile
 	tmpCertificate.KeyPEM = keyBytes
 
-	err = ioutil.WriteFile(tmpCertificate.KeyFile.Name(), keyBytes, 0600)
+	err = os.WriteFile(tmpCertificate.KeyFile.Name(), keyBytes, 0600)
 	if err != nil {
 		tmpCertificate.Close()
 		return nil, fmt.Errorf("unable to write private key in file: %v", err)
@@ -230,7 +230,7 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, "404 Not Found", res.Status)
 }
@@ -278,7 +278,7 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, "404 Not Found", res.Status)
 }
@@ -373,7 +373,7 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, "404 Not Found", res.Status)
 }

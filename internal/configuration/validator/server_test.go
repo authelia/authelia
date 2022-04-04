@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -124,7 +123,7 @@ func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	file, err := ioutil.TempFile("", "cert")
+	file, err := os.CreateTemp("", "cert")
 	require.NoError(t, err)
 
 	defer os.Remove(file.Name())
@@ -140,7 +139,7 @@ func TestShouldRaiseErrorWhenTLSCertDoesNotExist(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	file, err := ioutil.TempFile("", "key")
+	file, err := os.CreateTemp("", "key")
 	require.NoError(t, err)
 
 	defer os.Remove(file.Name())
@@ -157,7 +156,7 @@ func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	file, err := ioutil.TempFile("", "key")
+	file, err := os.CreateTemp("", "key")
 	require.NoError(t, err)
 
 	defer os.Remove(file.Name())
@@ -173,7 +172,7 @@ func TestShouldRaiseErrorWhenTLSKeyDoesNotExist(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	file, err := ioutil.TempFile("", "key")
+	file, err := os.CreateTemp("", "key")
 	require.NoError(t, err)
 
 	defer os.Remove(file.Name())
@@ -190,12 +189,12 @@ func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	certFile, err := ioutil.TempFile("", "cert")
+	certFile, err := os.CreateTemp("", "cert")
 	require.NoError(t, err)
 
 	defer os.Remove(certFile.Name())
 
-	keyFile, err := ioutil.TempFile("", "key")
+	keyFile, err := os.CreateTemp("", "key")
 	require.NoError(t, err)
 
 	defer os.Remove(keyFile.Name())
@@ -211,12 +210,12 @@ func TestShouldRaiseErrorWhenTLSClientCertificateDoesNotExist(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	certFile, err := ioutil.TempFile("", "cert")
+	certFile, err := os.CreateTemp("", "cert")
 	require.NoError(t, err)
 
 	defer os.Remove(certFile.Name())
 
-	keyFile, err := ioutil.TempFile("", "key")
+	keyFile, err := os.CreateTemp("", "key")
 	require.NoError(t, err)
 
 	defer os.Remove(keyFile.Name())
@@ -234,7 +233,7 @@ func TestShouldRaiseErrorWhenTLSClientAuthIsDefinedButNotServerCertificate(t *te
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
 
-	certFile, err := ioutil.TempFile("", "cert")
+	certFile, err := os.CreateTemp("", "cert")
 	require.NoError(t, err)
 
 	defer os.Remove(certFile.Name())

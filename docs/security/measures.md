@@ -192,11 +192,13 @@ infected websites leveraging legit links.
 ## Mutual TLS
 
 For the best security protection, configuration with TLS is highly recommended. TLS is used to secure the connection between
-the proxies and Authelia meaning that an attacker on the network cannot perform a man-in-the-middle attack on those
-connections. However, an attacker on the network can still impersonate proxies. In order to mitigate this risk, mutual
-TLS can be used.
+the proxies and Authelia instances meaning that an attacker on the network cannot perform a man-in-the-middle attack on those
+connections. However, an attacker on the network can still impersonate proxies but this can be prevented by configuring mutual
+TLS.
 Mutual TLS brings mutual authentication between Authelia and the proxies. Any other party attempting to contact Authelia
-will not even be able to create a TCP connection.
+would not even be able to create a TCP connection. This measure is recommended in all cases except if you already configured
+some kind of ACLs specifically allowing the communication between proxies and Authelia instances like in a service mesh or
+some kind of network overlay.
 
 To configure mutual TLS, please refer to [this document](../configuration/server.md#client_certificates)
 

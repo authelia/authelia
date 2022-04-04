@@ -3,7 +3,6 @@ package commands
 import (
 	"crypto/elliptic"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -151,14 +150,14 @@ func cmdCertificatesGenerateRunExtended(hosts []string, ecdsaCurve, validFrom, c
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile(certPath, certBytes, 0600)
+	err = os.WriteFile(certPath, certBytes, 0600)
 	if err != nil {
 		log.Fatalf("failed to write %s for writing: %v", certPath, err)
 	}
 
 	fmt.Printf("Certificate written to %s\n", certPath)
 
-	err = ioutil.WriteFile(keyPath, keyBytes, 0600)
+	err = os.WriteFile(keyPath, keyBytes, 0600)
 	if err != nil {
 		log.Fatalf("failed to write %s for writing: %v", certPath, err)
 	}
