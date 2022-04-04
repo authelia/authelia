@@ -280,7 +280,7 @@ _**Important Note** Currently users can only override languages that already exi
 the language itself, or adding a variant form of that language. If you'd like support for another language feel free
 to make a PR. We also encourage people to make PR's for variants where the difference in the variants is important._
 
-_**Important Note** The key names in these files are not guaranteed in any form of stability. Users who utilize these
+_**Important Note** Overriding these files will not guarantee any form of stability. Users who planning to utilize these
 overrides should either check for changes to the files in the 
 [en](https://github.com/authelia/authelia/tree/master/internal/server/locales/en) translation prior to upgrading or PR 
-their translation._
+their translation to ensure it is maintained._

@@ -19,8 +19,6 @@ func AssetOverrideMiddleware(root string, strip int, next fasthttp.RequestHandle
 
 		_, err := os.Stat(filepath.Join(root, string(fasthttp.NewPathSlashesStripper(strip)(ctx))))
 		if err != nil {
-			fmt.Println(err)
-
 			next(ctx)
 
 			return
