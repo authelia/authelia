@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"io"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
@@ -123,4 +125,13 @@ type PassworPolicyBody struct {
 	RequireLowercase bool   `json:"require_lowercase"`
 	RequireNumber    bool   `json:"require_number"`
 	RequireSpecial   bool   `json:"require_special"`
+}
+
+type responseWriter interface {
+	SetStatusCode(statusCode int)
+	SetBodyString(body string)
+	SetBody(body []byte)
+	SetContentType(contentType string)
+	SetContentTypeBytes(contentType []byte)
+	SetBodyStream(bodyStream io.Reader, bodySize int)
 }
