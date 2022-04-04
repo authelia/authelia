@@ -41,7 +41,7 @@ const SecondFactorForm = function (props: Props) {
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [webauthnSupported, setWebauthnSupported] = useState(false);
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     useEffect(() => {
         setWebauthnSupported(isWebauthnSupported());

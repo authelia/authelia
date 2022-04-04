@@ -33,7 +33,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
     const redirectionURL = useRedirectionURL();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
