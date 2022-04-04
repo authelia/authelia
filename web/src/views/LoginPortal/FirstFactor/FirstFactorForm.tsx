@@ -16,7 +16,9 @@ import { postFirstFactor } from "@services/FirstFactor";
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
+
     resetPassword: boolean;
+    resetPasswordCustomURL: string;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -76,7 +78,13 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleResetPasswordClick = () => {
-        navigate(ResetPasswordStep1Route);
+        if (props.resetPassword) {
+            if (props.resetPasswordCustomURL !== "") {
+                window.open(props.resetPasswordCustomURL);
+            } else {
+                navigate(ResetPasswordStep1Route);
+            }
+        }
     };
 
     return (
