@@ -22,20 +22,21 @@ access_control:
     - 192.168.0.0/18
 
   rules:
-  - domain: public.example.com
+  - domain: 'public.example.com'
+    domain_regex: '^\d+\.public.example.com$'
     policy: one_factor
     networks:
     - internal
     - 1.1.1.1
     subject:
-    - ["user:adam"]
-    - ["user:fred"]
-    - ["group:admins"]
+    - ['user:adam']
+    - ['user:fred']
+    - ['group:admins']
     methods:
     - GET
     - HEAD
     resources:
-    - "^/api.*"
+    - '^/api.*'
 ```
 
 ## Options
@@ -96,6 +97,7 @@ A rule defines two primary things:
 The criteria is broken into several parts:
 
 * [domain](#domain): domain or list of domains targeted by the request.
+* [domain_regex](#domain_regex): regex form of [domain](#domain).
 * [resources](#resources): pattern or list of patterns that the path should match.
 * [subject](#subject): the user or group of users to define the policy for.
 * [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
@@ -107,17 +109,6 @@ is a match for a given request is the rule applied; subsequent rules have *no ef
 carefully evaluate your rule list **in order** to see which rule matches a particular scenario. A comprehensive 
 understanding of how rules apply is also recommended.
 
-#### policy
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple } 
-required: yes
-{: .label .label-config .label-red }
-</div>
-
-The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
-take when a match is made.
-
 #### domain
 <div markdown="1">
 type: list(string)
@@ -126,8 +117,12 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
+_**Required:** This criteria OR the [domain_regex](#domain_regex) criteria are required._
+
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of 
 strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
+When used in conjunction with [domain_regex](#domain_regex) the rule will match when either the [domain](#domain) or the 
+[domain_regex](#domain_regex) criteria matches.
 
 Rules may start with a few different wildcards:
 
@@ -136,12 +131,17 @@ Rules may start with a few different wildcards:
   string **must** be quoted like `"*.example.com"`.
     
 * The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
-  example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. ***Note:** we're
-  considering refactoring this to just be regex which would likely allow many additional possibilities.*
+  example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. _**Warning:** this is
+  officially deprecated as the [domain_regex](#domain_regex) criteria completely replaces the functionality in a much
+  more useful way. It is strongly recommended you do not use this as it will be removed in a future version, most likely
+  v5.0.0._
   
 * The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
   group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
-  in the following groups `admins,users,people` because `admins` is in the list.
+  in the following groups `admins,users,people` because `admins` is in the list. _**Warning:** this is
+  officially deprecated as the [domain_regex](#domain_regex) criteria completely replaces the functionality in a much
+  more useful way. It is strongly recommended you do not use this as it will be removed in a future version, most likely
+  v5.0.0._
 
 Domains in this section must be the domain configured in the [session](./session/index.md#domain) configuration or
 subdomains of that domain. This is because a website can only write cookies for a domain it is part of. It is
@@ -156,10 +156,10 @@ different ways.*
 ```yaml
 access_control:
   rules:
-  - domain: "*.example.com"
+  - domain: '*.example.com'
     policy: bypass
   - domain:
-    - "*.example.com"
+    - '*.example.com'
     policy: bypass
 ```
 
@@ -169,13 +169,72 @@ list are effectively the same rule just expressed in different ways.*
 ```yaml
 access_control:
   rules:
-  - domain: ["apple.example.com", "banana.example.com"]
+  - domain: ['apple.example.com', 'banana.example.com']
     policy: bypass
   - domain:
     - apple.example.com
     - banana.example.com
     policy: bypass
 ```
+
+### domain_regex
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Required:** This criteria OR the [domain](#domain) criteria are required._
+
+_**Important Note:** If you intend to use this criteria with a bypass rule please read 
+[bypass and subjects](#bypass-and-user-identity) before doing so._
+
+_**Important Note:** to utilize regex you must escape it properly. See [regex](./index.md#regex) for more information._
+
+This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
+strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
+When used in conjunction with [domain](#domain) the rule will match when either the [domain](#domain) or the
+[domain_regex](#domain_regex) criteria matches.
+
+This criteria takes any standard go regex pattern to match the requests. We additionally utilize two special named match 
+groups which match attributes of the user:
+
+| Group Name |    Match Value    |
+|:----------:|:-----------------:|
+|    User    |     username      |
+|   Group    | groups (contains) |
+
+For the group match it matches if the user has any group name that matches, and both matches are case-insensitive due to
+the fact domain names should not be compared in a case-sensitive way as per the
+[RFC4343](https://datatracker.ietf.org/doc/html/rfc4343) abstract and 
+[RFC3986](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2) section 3.2.2.
+
+Examples:
+
+```yaml
+access_control:
+  rules:
+  - domain: 
+    - apple.example.com
+    - banana.example.com
+    policy: bypass
+  - domain_regex:
+    - '^user-(?P<User>\w+)\.example\.com$'
+    - '^group-(?P<Group>\w+)\.example\.com$'
+    policy: one_factor
+```
+
+#### policy
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple } 
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
+take when a match is made.
 
 ### subject
 <div markdown="1">
@@ -191,10 +250,10 @@ result in problematic security scenarios with badly thought out configurations a
 scenario that would require users to do this. If you have a scenario in mind please open an 
 [issue](https://github.com/authelia/authelia/issues/new) on GitHub.*
 
-This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user 
-belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically 
-require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` to identify 
-which part of the identity to check.
+This criteria matches identifying characteristics about the subject. This is either user's name or the name of the
+group a user belongs to. This allows you to effectively control exactly what each user is authorized to access or to
+specifically require two-factor authentication to specific users. Subjects are prefixed with either `user:` or `group:` 
+to identify which part of the identity to check.
 
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
@@ -271,8 +330,16 @@ access_control:
     - OPTIONS
 ```
 
-The valid request methods are: OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE, TRACE, CONNECT. Additional information 
-about HTTP request methods can be found on the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
+The accepted and valid methods for this configuration option are those specified in well known RFC's. The RFC's and the
+relevant methods are listed in this table:
+
+|                           RFC                            |                        Methods                        |                     Additional Documentation                     |
+|:--------------------------------------------------------:|:-----------------------------------------------------:|:----------------------------------------------------------------:|
+| [RFC7231](https://datatracker.ietf.org/doc/html/rfc7231) | GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| [RFC5789](https://datatracker.ietf.org/doc/html/rfc5789) |                         PATCH                         | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
+| [RFC4918](https://datatracker.ietf.org/doc/html/rfc4918) | PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK  |                                                                  |
+
+
 
 ### networks
 <div markdown="1">
@@ -339,17 +406,15 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
+_**Important Note:** to utilize regex you must escape it properly. See [regex](./index.md#regex) for more information._
+
 This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
 for debugging these regular expressions is called [Rego](https://regoio.herokuapp.com/).
 
-***Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0 
+_**Note:** Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0 
 they match the entire path including the query parameters. When upgrading you may be required to alter some of your 
-resource rules to get them to operate as they previously did.*
-
-It's important when configuring resource rules that you enclose them in quotes otherwise you may run into some issues
-with escaping the expressions. Failure to do so may prevent Authelia from starting. It's technically optional but will
-likely save you a lot of time if you do it for all resource rules.
+resource rules to get them to operate as they previously did._
 
 Examples:
 
@@ -362,16 +427,13 @@ access_control:
   - domain: app.example.com
     policy: bypass
     resources:
-    - "^/api([/?].*)?$"
+    - '^/api([/?].*)?$'
 ```
 
 ## Policies
 
-With **Authelia** you can define a list of rules that are going to be evaluated in
-sequential order when authorization is delegated to Authelia.
-
-The first matching rule of the list defines the policy applied to the resource, if
-no rule matches the resource a customizable default policy is applied.
+The policy of the first matching rule in the configured list decides the policy applied to the request, if no rule 
+matches the request the [default_policy](#default_policy) is applied.
 
 ### deny
 
@@ -384,6 +446,18 @@ access in desired situations. Examples include denying access to an API that has
 This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
 that includes a [subject](#subject) restriction because the minimum authentication level required to obtain information 
 about the subject is [one_factor](#one_factor).
+
+#### bypass and user identity
+
+The [bypass](#bypass) policy cannot be used when the rule uses a criteria that requires we know the users identity. This
+means: 
+
+- If the rule defines [subjects](#subject) criteria
+- If the rule defines [domain regex](#domain_regex) criteria which contains either the user or group named match groups 
+
+This is because these criteria types require knowing who the user is in order to determine if their identity matches the 
+request. This information can only be known after 1FA, which means the minimum policy that can be used logically is 
+[one_factor](#one_factor). 
 
 ### one_factor
 
@@ -410,15 +484,15 @@ access_control:
     - name: VPN
       networks: 10.9.0.0/16
   rules:
-    - domain: public.example.com
+    - domain: 'public.example.com'
       policy: bypass
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       policy: bypass
       methods:
         - OPTIONS
 
-    - domain: secure.example.com
+    - domain: 'secure.example.com'
       policy: one_factor
       networks:
         - internal
@@ -427,37 +501,37 @@ access_control:
         - 10.0.0.1
 
     - domain:
-      - secure.example.com
-      - private.example.com
+      - 'secure.example.com'
+      - 'private.example.com'
       policy: two_factor
 
-    - domain: singlefactor.example.com
+    - domain: 'singlefactor.example.com'
       policy: one_factor
 
-    - domain: "mx2.mail.example.com"
+    - domain: 'mx2.mail.example.com'
       subject: "group:admins"
       policy: deny
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       subject:
-        - "group:admins"
-        - "group:moderators"
+        - 'group:admins'
+        - 'group:moderators'
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-      - "^/groups/dev/.*$"
-      subject: "group:dev"
+      - '^/groups/dev/.*$'
+      subject: 'group:dev'
       policy: two_factor
 
     - domain: dev.example.com
       resources:
-      - "^/users/john/.*$"
+      - '^/users/john/.*$'
       subject: 
-      - ["group:dev", "user:john"]
-      - "group:admins"
+      - ['group:dev', 'user:john']
+      - 'group:admins'
       policy: two_factor
 
-    - domain: "{user}.example.com"
+    - domain: '{user}.example.com'
       policy: bypass
 ```

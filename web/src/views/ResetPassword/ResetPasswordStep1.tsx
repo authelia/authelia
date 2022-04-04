@@ -16,7 +16,7 @@ const ResetPasswordStep1 = function () {
     const [error, setError] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     const doInitiateResetPasswordProcess = async () => {
         if (username === "") {

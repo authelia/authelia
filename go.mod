@@ -7,13 +7,13 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20220201180708-96a8851a8448
-	github.com/fasthttp/router v1.4.6
-	github.com/fasthttp/session/v2 v2.4.7
+	github.com/fasthttp/router v1.4.7
+	github.com/fasthttp/session/v2 v2.4.8
 	github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/go-rod/rod v0.103.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/go-webauthn/webauthn v0.2.1
-	github.com/golang-jwt/jwt/v4 v4.3.0
+	github.com/go-webauthn/webauthn v0.2.2
+	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.15.0
@@ -51,7 +51,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.1 // indirect
-	github.com/go-redis/redis/v8 v8.11.4 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/certificate-transparency-go v1.0.21 // indirect
@@ -80,8 +80,8 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/savsgio/dictpool v0.0.0-20220201165159-a5d561a1a2c9 // indirect
-	github.com/savsgio/gotils v0.0.0-20220201163454-d252f0a44d5b // indirect
+	github.com/savsgio/dictpool v0.0.0-20220323153334-553225bc53a9 // indirect
+	github.com/savsgio/gotils v0.0.0-20220323135742-7576ce6963fd // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

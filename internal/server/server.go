@@ -1,10 +1,7 @@
 package server
 
 import (
-	"embed"
-	"io/fs"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -13,7 +10,6 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -22,9 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
-
-//go:embed public_html
-var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
@@ -42,8 +35,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	}
 
-	embeddedPath, _ := fs.Sub(assets, "public_html")
-	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
+	handlerLocales := newLocalesEmbeddedHandler()
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
@@ -55,21 +48,31 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/", autheliaMiddleware(serveIndexHandler))
 	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 
+	for _, f := range rootFiles {
+		r.GET("/"+f, handlerPublicHTML)
+	}
+
 	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
 	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
 
-	for _, f := range rootFiles {
-		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
+	for _, file := range swaggerFiles {
+		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
-	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
-	r.ANY("/api/{filepath:*}", embeddedFS)
+	r.GET("/favicon.ico", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/media/logo.png", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 2, handlerPublicHTML))
+	r.GET("/static/{filepath:*}", handlerPublicHTML)
+
+	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
 
 	r.GET("/api/configuration", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
+
+	r.GET("/api/configuration/password-policy", autheliaMiddleware(handlers.PasswordPolicyConfigurationGet))
 
 	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
 	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
@@ -92,7 +95,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	// Information about the user.
 	r.GET("/api/user/info", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
+		middlewares.RequireFirstFactor(handlers.UserInfoGET)))
+	r.POST("/api/user/info", autheliaMiddleware(
+		middlewares.RequireFirstFactor(handlers.UserInfoPOST)))
 	r.POST("/api/user/info/2fa_method", autheliaMiddleware(
 		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
 
@@ -157,7 +162,12 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = autheliaMiddleware(serveIndexHandler)
+	r.NotFound = handleNotFound(autheliaMiddleware(serveIndexHandler))
+
+	r.HandleMethodNotAllowed = true
+	r.MethodNotAllowed = func(ctx *fasthttp.RequestCtx) {
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
+	}
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
@@ -185,9 +195,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
 
-	addrPattern := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
+	address := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
 
-	listener, err := net.Listen("tcp", addrPattern)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		logger.Fatalf("Error initializing listener: %s", err)
 	}
@@ -198,9 +208,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if configuration.Server.Path == "" {
-			logger.Infof("Listening for TLS connections on '%s' path '/'", addrPattern)
+			logger.Infof("Listening for TLS connections on '%s' path '/'", address)
 		} else {
-			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
 		}
 
 		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
@@ -210,9 +220,9 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if configuration.Server.Path == "" {
-			logger.Infof("Listening for non-TLS connections on '%s' path '/'", addrPattern)
+			logger.Infof("Listening for non-TLS connections on '%s' path '/'", address)
 		} else {
-			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", addrPattern, configuration.Server.Path)
+			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
 		}
 		logger.Fatal(server.Serve(listener))
 	}

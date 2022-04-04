@@ -7,6 +7,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -16,7 +17,7 @@ import (
 func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
-	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
+	if userSession.OIDCWorkflowSession.Require2FA && userSession.AuthenticationLevel != authentication.TwoFactor {
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", userSession.OIDCWorkflowSession.ClientID)
 		ctx.ReplyOK()
 
@@ -188,4 +189,11 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	ctx.SetJSONError(message)
+}
+
+// SetStatusCodeResponse writes a response status code and an appropriate body on either a
+// *fasthttp.RequestCtx or *middlewares.AutheliaCtx.
+func SetStatusCodeResponse(ctx responseWriter, statusCode int) {
+	ctx.SetStatusCode(statusCode)
+	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }

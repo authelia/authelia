@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
         build: {
             sourcemap,
             outDir: "../internal/server/public_html",
+            emptyOutDir: true,
             assetsDir: "static",
             rollupOptions: {
                 output: {

@@ -43,7 +43,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		logoOverride := f
 
 		if assetPath != "" {
-			if _, err := os.Stat(assetPath + logoFile); err == nil {
+			if _, err := os.Stat(filepath.Join(assetPath, logoFile)); err == nil {
 				logoOverride = t
 			}
 		}
@@ -117,6 +117,8 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 
 	if host == "0.0.0.0" {
 		host = "localhost"
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
 	}
 
 	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))

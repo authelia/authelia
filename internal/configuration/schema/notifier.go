@@ -31,6 +31,7 @@ type NotifierConfiguration struct {
 	DisableStartupCheck bool                             `koanf:"disable_startup_check"`
 	FileSystem          *FileSystemNotifierConfiguration `koanf:"filesystem"`
 	SMTP                *SMTPNotifierConfiguration       `koanf:"smtp"`
+	TemplatePath        string                           `koanf:"template_path"`
 }
 
 // DefaultSMTPNotifierConfiguration represents default configuration parameters for the SMTP notifier.

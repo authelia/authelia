@@ -6,7 +6,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewClient creates a new InternalClient.
@@ -46,8 +46,8 @@ func (c InternalClient) GetID() string {
 	return c.ID
 }
 
-// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c InternalClient) GetConsentResponseBody(session *session.OIDCWorkflowSession) ConsentGetResponseBody {
+// GetConsentResponseBody returns the proper consent response body for this model.OIDCWorkflowSession.
+func (c InternalClient) GetConsentResponseBody(session *model.OIDCWorkflowSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,

@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,31 @@ func (suite *AccessControl) TestShouldValidateCompleteConfiguration() {
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Assert().False(suite.validator.HasErrors())
+}
+
+func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
+	domainsRegex := regexp.MustCompile(`^abc.example.com$`)
+
+	suite.config.AccessControl.Rules = []schema.ACLRule{
+		{
+			Domains: []string{"abc.example.com"},
+			Policy:  "bypass",
+		},
+		{
+			DomainsRegex: []regexp.Regexp{*domainsRegex},
+			Policy:       "bypass",
+		},
+		{
+			Policy: "bypass",
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	assert.EqualError(suite.T(), suite.validator.Errors()[0], "access control: rule #3: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
@@ -99,9 +125,9 @@ func (suite *AccessControl) TestShouldRaiseErrorsWithEmptyRules() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 4)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: rule is invalid: must have the option 'domain' configured")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #1: rule 'policy' option '' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #2: rule is invalid: must have the option 'domain' configured")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #2: rule is invalid: must have the option 'domain' or 'domain_regex' configured")
 	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #2: rule 'policy' option 'wrong' is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'")
 }
 
@@ -152,24 +178,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'methods' option 'HOP' is invalid: must be one of 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS'")
-}
-
-func (suite *AccessControl) TestShouldRaiseErrorInvalidResource() {
-	suite.config.AccessControl.Rules = []schema.ACLRule{
-		{
-			Domains:   []string{"public.example.com"},
-			Policy:    "bypass",
-			Resources: []string{"^/(api.*"},
-		},
-	}
-
-	ValidateRules(suite.config, suite.validator)
-
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'resources' option '^/(api.*' is invalid: error parsing regexp: missing closing ): `^/(api.*`")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'methods' option 'HOP' is invalid: must be one of 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'TRACE', 'CONNECT', 'OPTIONS', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', 'UNLOCK'")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {

@@ -40,7 +40,7 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);

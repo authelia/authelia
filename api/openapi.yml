@@ -44,6 +44,20 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  /api/configuration/password-policy:
+    get:
+      tags:
+        - State
+      summary: Password Policy Configuration
+      description: >
+        The password policy configuration endpoint provides a password policy for resetting passwords.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.configuration.PasswordPolicyConfigurationBody'
   /api/health:
     get:
       tags:
@@ -306,6 +320,24 @@ paths:
       description: >
         The user info endpoint provides detailed information including a users display name, preferred and registered
         second factor method(s).
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfo'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - User Information
+      summary: User Configuration
+      description: >
+        The user info endpoint provides detailed information including a users display name, preferred and registered
+        second factor method(s). The POST method also ensures the preferred method is configured correctly.
       responses:
         "200":
           description: Successful Operation
@@ -619,7 +651,23 @@ components:
       explode: true
       schema:
         type: string
-        enum: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"]
+        enum:
+          - "GET"
+          - "HEAD"
+          - "POST"
+          - "PUT"
+          - "PATCH"
+          - "DELETE"
+          - "TRACE"
+          - "CONNECT"
+          - "OPTIONS"
+          - "COPY"
+          - "LOCK"
+          - "MKCOL"
+          - "MOVE"
+          - "PROPFIND"
+          - "PROPPATCH"
+          - "UNLOCK"
     authParam:
       name: auth
       in: query
@@ -660,6 +708,43 @@ components:
                   - "webauthn"
                   - "mobile_push"
               example: [totp, webauthn, mobile_push]
+    handlers.configuration.PasswordPolicyConfigurationBody:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            mode:
+              type: string
+              description: The password policy mode.
+              enum:
+                - "disabled"
+                - "standard"
+                - "zxcvbn"
+            min_length:
+              type: integer
+              description: The minimum password length when using the standard mode.
+            max_length:
+              type: integer
+              description: The maximum password length when using the standard mode.
+            min_score:
+              type: integer
+              description: The minimum password score when using the zxcvbn mode.
+            require_uppercase:
+              type: boolean
+              description: If uppercase characters are required when using the standard mode.
+            require_lowercase:
+              type: boolean
+              description: If uppercase characters are required when using the standard mode.
+            require_number:
+              type: boolean
+              description: If numeric characters are required when using the standard mode.
+            require_special:
+              type: boolean
+              description: If special characters are required when using the standard mode.
     handlers.DuoDeviceBody:
       required:
         - device
