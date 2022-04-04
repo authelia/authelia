@@ -99,13 +99,24 @@ require (
 	golang.org/x/tools v0.1.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
-	google.golang.org/grpc v1.42.0 // indirect
+	google.golang.org/grpc v1.43.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 replace (
+	github.com/apache/thrift v0.13.0 => github.com/apache/thrift v0.14.0 // required to fix CVE-2020-13949
+	github.com/containerd/containerd v1.4.3 => github.com/containerd/containerd v1.6.1 // required to fix CVE-2021-41103, CVE-2022-23648, CVE-2021-21334, CVE-2021-32760, GMS-2021-175
+	github.com/gogo/protobuf v1.2.1 => github.com/gogo/protobuf v1.3.2 // required to fix CVE-2021-3121
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.11
+	github.com/microcosm-cc/bluemonday v1.0.2 => github.com/microcosm-cc/bluemonday v1.0.16
+	github.com/miekg/dns v1.0.14 => github.com/miekg/dns v1.1.25-0.20191211073109-8ebf2e419df7 // required to fix CVE-2019-19794
+	github.com/nats-io/jwt v0.3.2 => github.com/nats-io/jwt v1.1.0 // required to fix CVE-2020-26892, CVE-2020-2652172
+	github.com/nats-io/nats-server/v2 v2.1.2 => github.com/nats-io/nats-server/v2 v2.2.0 // required to fix CVE-2020-26892, CVE-2020-26521, CVE-2022-24450, GMS-2021-96, GMS-2021-97/98/99
+	github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2 // required to fix GMS-2021-101
+	github.com/opencontainers/runc v1.0.0-rc9 => github.com/opencontainers/runc v1.0.0-rc9.0.20200122160610-2fc03cc11c77 // required to fix CVE-2019-19921
+	github.com/satori/go.uuid v1.2.0 => github.com/satori/go.uuid v1.2.1-0.20181016170032-d91630c85102 // required to fix CVE-2021-3538
 	github.com/tidwall/gjson => github.com/tidwall/gjson v1.11.0
+	go.mongodb.org/mongo-driver v1.3.4 => go.mongodb.org/mongo-driver v1.5.1 // required to fix CVE-2021-20329
 )
