@@ -535,13 +535,13 @@
   },"89": {
     "doc": "Authentication Backends",
     "title": "Configuration",
-    "content": "authentication_backend: disable_reset_password: false file: {} ldap: {} . ",
+    "content": "authentication_backend: disable_reset_password: false password_reset: custom_url: \"\" file: {} ldap: {} . ",
     "url": "/docs/configuration/authentication/#configuration",
     "relUrl": "/configuration/authentication/#configuration"
   },"90": {
     "doc": "Authentication Backends",
     "title": "Options",
-    "content": "disable_reset_password . type: boolean . default: false . required: no . This setting controls if users can reset their password from the web frontend or not. file . The file authentication provider. ldap . The LDAP authentication provider. ",
+    "content": "disable_reset_password . type: boolean . default: false . required: no . This setting controls if users can reset their password from the web frontend or not. password_reset . custom_url . type: string . default: “” . required: no . The custom password reset URL. This replaces the inbuilt password reset functionality and disables the endpoints if this is configured to anything other than nothing or an empty string. file . The file authentication provider. ldap . The LDAP authentication provider. ",
     "url": "/docs/configuration/authentication/#options",
     "relUrl": "/configuration/authentication/#options"
   },"91": {
