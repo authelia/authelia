@@ -39,6 +39,7 @@ type Providers struct {
 	StorageProvider storage.Provider
 	Notifier        notification.Notifier
 	TOTP            totp.Provider
+	PasswordPolicy  PasswordPolicyProvider
 }
 
 // RequestHandler represents an Authelia request handler.

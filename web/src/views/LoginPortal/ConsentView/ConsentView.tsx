@@ -46,7 +46,7 @@ const ConsentView = function (props: Props) {
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     useEffect(() => {
         if (err) {

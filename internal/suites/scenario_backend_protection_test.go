@@ -64,6 +64,10 @@ func (s *BackendProtectionScenario) TestInvalidEndpointsReturn404() {
 	s.AssertRequestStatusCode("POST", fmt.Sprintf("%s/api/not_existing/second", AutheliaBaseURL), 404)
 }
 
+func (s *BackendProtectionScenario) TestInvalidEndpointsReturn405() {
+	s.AssertRequestStatusCode("PUT", fmt.Sprintf("%s/api/configuration", AutheliaBaseURL), 405)
+}
+
 func TestRunBackendProtection(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

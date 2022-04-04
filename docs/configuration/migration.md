@@ -34,15 +34,15 @@ logged for users.
 ### 4.30.0
 The following changes occurred in 4.30.0:
 
-|Previous Key |New Key               |
-|:-----------:|:--------------------:|
-|host         |server.host           |
-|port         |server.port           |
-|tls_key      |server.tls.key        |
-|tls_cert     |server.tls.certificate|
-|log_level    |log.level             |
-|log_file_path|log.file_path         |
-|log_format   |log.format            |
+| Previous Key  |        New Key         |
+|:-------------:|:----------------------:|
+|     host      |      server.host       |
+|     port      |      server.port       |
+|    tls_key    |     server.tls.key     |
+|   tls_cert    | server.tls.certificate |
+|   log_level   |       log.level        |
+| log_file_path |     log.file_path      |
+|  log_format   |       log.format       |
 
 _**Please Note:** you can no longer define secrets for providers that you are not using. For example if you're using the 
 [filesystem notifier](./notifier/filesystem.md) you must ensure that the `AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE` 

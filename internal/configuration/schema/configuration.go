@@ -20,6 +20,7 @@ type Configuration struct {
 	Notifier              *NotifierConfiguration             `koanf:"notifier"`
 	Server                ServerConfiguration                `koanf:"server"`
 	Webauthn              WebauthnConfiguration              `koanf:"webauthn"`
+	PasswordPolicy        PasswordPolicyConfiguration        `koanf:"password_policy"`
 
 	Default DefaultConfiguration `koanf:"default"`
 }

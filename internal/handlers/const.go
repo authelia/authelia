@@ -44,6 +44,7 @@ const (
 	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
 	messageUnableToResetPassword           = "Unable to reset your password."
 	messageMFAValidationFailed             = "Authentication failed, please retry later."
+	messagePasswordWeak                    = "Your supplied password does not meet the password policy requirements"
 )
 
 const (

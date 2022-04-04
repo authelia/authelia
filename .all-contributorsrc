@@ -651,7 +651,15 @@
         "code",
         "translation"
       ]
-    }
+    }, 
+    {
+      "login": "protvis74",
+      "name": "protvis74",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50554836?v=4",
+      "profile": "https://github.com/protvis74",
+      "contributions": [
+        "translation"
+      ]
   ],
   "contributorsPerLine": 7
 }

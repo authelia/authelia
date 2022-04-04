@@ -54,6 +54,9 @@ const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
 	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
+	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
+	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
+	errFmtNotifierTemplateLoad                    = "notifier: error loading template '%s': %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required "
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 )
@@ -422,6 +425,7 @@ var ValidKeys = []string{
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
+	"notifier.template_path",
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -492,6 +496,17 @@ var ValidKeys = []string{
 	"ntp.max_desync",
 	"ntp.disable_startup_check",
 	"ntp.disable_failure",
+
+	// Password Policy keys.
+	"password_policy.standard.enabled",
+	"password_policy.standard.min_length",
+	"password_policy.standard.max_length",
+	"password_policy.standard.require_uppercase",
+	"password_policy.standard.require_lowercase",
+	"password_policy.standard.require_number",
+	"password_policy.standard.require_special",
+	"password_policy.zxcvbn.enabled",
+	"password_policy.zxcvbn.min_score",
 }
 
 var replacedKeys = map[string]string{

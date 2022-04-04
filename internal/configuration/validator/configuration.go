@@ -61,5 +61,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateNTP(config, validator)
 
+	ValidatePasswordPolicy(&config.PasswordPolicy, validator)
+
 	ValidateDefault(config.Default, validator)
 }
