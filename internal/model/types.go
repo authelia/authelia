@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewIP easily constructs a new IP.
@@ -164,7 +166,7 @@ func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
 	}
 
 	if nullStr.Valid {
-		*s = scanStringSlice('|', nullStr.String)
+		*s = utils.StringSplitDelimitedEscaped(nullStr.String, '|')
 	}
 
 	return nil
@@ -172,5 +174,5 @@ func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
 
 // Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
 func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
-	return valueStringSlice('|', s), nil
+	return utils.StringJoinDelimitedEscaped(s, '|'), nil
 }

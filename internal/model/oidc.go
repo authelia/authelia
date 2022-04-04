@@ -74,8 +74,8 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 }
 
 // NewOAuth2BlacklistedJTI creates a new OAuth2BlacklistedJTI.
-func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist *OAuth2BlacklistedJTI) {
-	return &OAuth2BlacklistedJTI{
+func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2BlacklistedJTI) {
+	return OAuth2BlacklistedJTI{
 		Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(jti))),
 		ExpiresAt: exp,
 	}

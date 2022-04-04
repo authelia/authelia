@@ -40,18 +40,18 @@ func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider s
 // GenerateOpaqueUserID either retrieves or creates an opaque user id from a sectorID and username.
 func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
 	if opaqueID, err = s.provider.LoadUserOpaqueIdentifierBySignature(ctx, "openid", sectorID, username); err != nil {
-		return opaqueID, err
+		return nil, err
 	} else if opaqueID == nil {
 		if opaqueID, err = model.NewUserOpaqueIdentifier("openid", sectorID, username); err != nil {
-			return opaqueID, err
+			return nil, err
 		}
 
-		if err = s.provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
-			return opaqueID, err
+		if err = s.provider.SaveUserOpaqueIdentifier(ctx, *opaqueID); err != nil {
+			return nil, err
 		}
 	}
 
-	return opaqueID, err
+	return opaqueID, nil
 }
 
 // GetSubject returns a subject UUID for a username. If it exists, it returns the existing one, otherwise it creates and saves it.
@@ -59,7 +59,7 @@ func (s OpenIDConnectStore) GetSubject(ctx context.Context, sectorID, username s
 	var opaqueID *model.UserOpaqueIdentifier
 
 	if opaqueID, err = s.GenerateOpaqueUserID(ctx, sectorID, username); err != nil {
-		return subject, err
+		return uuid.UUID{}, err
 	}
 
 	return opaqueID.Identifier, nil
@@ -313,7 +313,7 @@ func (s *OpenIDConnectStore) saveSession(ctx context.Context, sessionType storag
 		return err
 	}
 
-	return s.provider.SaveOAuth2Session(ctx, sessionType, session)
+	return s.provider.SaveOAuth2Session(ctx, sessionType, *session)
 }
 
 func (s *OpenIDConnectStore) revokeSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) (err error) {

@@ -14,7 +14,7 @@ const (
 	tableWebauthnDevices      = "webauthn_devices"
 
 	tableOAuth2ConsentSession       = "oauth2_consent_session"
-	tableOAuth2AuthorizeCodeSession = "oauth2_authorize_code_session"
+	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
 	tableOAuth2AccessTokenSession   = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
@@ -32,7 +32,7 @@ type OAuth2SessionType string
 
 // Representation of specific OAuth 2.0 session types.
 const (
-	OAuth2SessionTypeAuthorizeCode OAuth2SessionType = "authorize code"
+	OAuth2SessionTypeAuthorizeCode OAuth2SessionType = "authorization code"
 	OAuth2SessionTypeAccessToken   OAuth2SessionType = "access token"
 	OAuth2SessionTypeRefreshToken  OAuth2SessionType = "refresh token"
 	OAuth2SessionTypePKCEChallenge OAuth2SessionType = "pkce challenge"

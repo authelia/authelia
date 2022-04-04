@@ -192,7 +192,7 @@ type SQLProvider struct {
 	sqlUpsertEncryptionValue string
 	sqlSelectEncryptionValue string
 
-	// Table: oauth2_authorize_code_session.
+	// Table: oauth2_authorization_code_session.
 	sqlInsertOAuth2AuthorizeCodeSession                string
 	sqlSelectOAuth2AuthorizeCodeSession                string
 	sqlRevokeOAuth2AuthorizeCodeSession                string
@@ -327,7 +327,7 @@ func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
 }
 
 // SaveUserOpaqueIdentifier saves a new opaque user identifier to the database.
-func (p *SQLProvider) SaveUserOpaqueIdentifier(ctx context.Context, opaqueID *model.UserOpaqueIdentifier) (err error) {
+func (p *SQLProvider) SaveUserOpaqueIdentifier(ctx context.Context, opaqueID model.UserOpaqueIdentifier) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertUserOpaqueIdentifier, opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier); err != nil {
 		return fmt.Errorf("error inserting user opaque id for user '%s' with opaque id '%s': %w", opaqueID.Username, opaqueID.Identifier.String(), err)
 	}
@@ -368,7 +368,7 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 }
 
 // SaveOAuth2ConsentSession inserts an OAuth2.0 consent.
-func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
+func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
 		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
 		consent.RequestedAt, consent.RespondedAt, consent.ExpiresAt, consent.Form,
@@ -380,7 +380,7 @@ func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *mod
 }
 
 // SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent with the consent response.
-func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, authorized bool) (err error) {
+func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, authorized bool) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.ExpiresAt, consent.GrantedScopes, consent.GrantedAudience, consent.ID)
 	if err != nil {
 		return fmt.Errorf("error updating oauth2 consent session (authorized  '%t') with id '%d' and challenge id '%s' for subject '%s': %w", authorized, consent.ID, consent.ChallengeID, consent.Subject, err)
@@ -432,7 +432,7 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionsBySignature(ctx context.Context, 
 }
 
 // SaveOAuth2Session saves a OAuth2Session to the database.
-func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *model.OAuth2Session) (err error) {
+func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session model.OAuth2Session) (err error) {
 	var query string
 
 	switch sessionType {
@@ -604,7 +604,7 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 }
 
 // SaveOAuth2BlacklistedJTI saves a OAuth2BlacklistedJTI to the database.
-func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error) {
+func (p *SQLProvider) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, blacklistedJTI.Signature, blacklistedJTI.ExpiresAt); err != nil {
 		return fmt.Errorf("error inserting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
 	}

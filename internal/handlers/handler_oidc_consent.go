@@ -12,8 +12,8 @@ import (
 )
 
 func oidcConsent(ctx *middlewares.AutheliaCtx) {
-	userSession, consent, client, ret := oidcConsentGetSessionsAndClient(ctx)
-	if ret {
+	userSession, consent, client, handled := oidcConsentGetSessionsAndClient(ctx)
+	if handled {
 		return
 	}
 
@@ -42,8 +42,8 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession, consent, client, ret := oidcConsentGetSessionsAndClient(ctx)
-	if ret {
+	userSession, consent, client, handled := oidcConsentGetSessionsAndClient(ctx)
+	if handled {
 		return
 	}
 
@@ -91,7 +91,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, authorized); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, authorized); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -105,7 +105,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client *oidc.Client, ret bool) {
+func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client *oidc.Client, handled bool) {
 	var (
 		err error
 	)

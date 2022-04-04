@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 )
 
@@ -9,7 +11,7 @@ func NewUserOpaqueIdentifier(service, sectorID, username string) (id *UserOpaque
 	var opaqueID uuid.UUID
 
 	if opaqueID, err = uuid.NewRandom(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to generate uuid: %w", err)
 	}
 
 	return &UserOpaqueIdentifier{

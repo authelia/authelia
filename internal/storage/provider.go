@@ -22,7 +22,7 @@ type Provider interface {
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
 	LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error)
 
-	SaveUserOpaqueIdentifier(ctx context.Context, subject *model.UserOpaqueIdentifier) (err error)
+	SaveUserOpaqueIdentifier(ctx context.Context, subject model.UserOpaqueIdentifier) (err error)
 	LoadUserOpaqueIdentifier(ctx context.Context, opaqueUUID uuid.UUID) (subject *model.UserOpaqueIdentifier, err error)
 	LoadUserOpaqueIdentifierBySignature(ctx context.Context, service, sectorID, username string) (subject *model.UserOpaqueIdentifier, err error)
 
@@ -45,20 +45,20 @@ type Provider interface {
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
 
-	SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
-	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error)
+	SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, rejection bool) (err error)
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)
 	LoadOAuth2ConsentSessionsBySignature(ctx context.Context, clientID string, subject uuid.UUID, preConfigured bool) (rows *ConsentSessionRows, err error)
 
-	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session *model.OAuth2Session) (err error)
+	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session model.OAuth2Session) (err error)
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 	DeactivateOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
 
-	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI *model.OAuth2BlacklistedJTI) (err error)
+	SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) (err error)
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
 
 	SchemaTables(ctx context.Context) (tables []string, err error)

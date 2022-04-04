@@ -79,7 +79,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 		handled bool
 	)
 
-	if handled, consent = handleOIDCAuthorizeConsent(ctx, issuer, client, userSession, subject, rw, r, requester); handled {
+	if handled, consent = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, subject, rw, r, requester); handled {
 		return
 	}
 
@@ -124,7 +124,7 @@ func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *
 	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, requester, responder)
 }
 
-func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
+func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (handled bool, consent *model.OAuth2ConsentSession) {
 	var (
@@ -198,7 +198,7 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 				return true, nil
 			}
 
-			scopes, audience = expectedScopesAndAudienceForRequest(requester)
+			scopes, audience = getExpectedScopesAndAudience(requester)
 
 			if consent.HasExactGrants(scopes, audience) && consent.CanGrant() {
 				break
@@ -217,7 +217,7 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 			return true, nil
 		}
 
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
+		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session: %+v", requester.GetID(), client.GetID(), err)
 
 			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the consent session."))
@@ -245,7 +245,7 @@ func handleOIDCAuthorizeConsent(ctx *middlewares.AutheliaCtx, rootURI string, cl
 	return true, consent
 }
 
-func expectedScopesAndAudienceForRequest(requester fosite.Requester) (scopes, audience []string) {
+func getExpectedScopesAndAudience(requester fosite.Requester) (scopes, audience []string) {
 	audience = requester.GetRequestedAudience()
 	if !utils.IsStringInSlice(requester.GetClient().GetID(), audience) {
 		audience = append(audience, requester.GetClient().GetID())

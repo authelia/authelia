@@ -448,7 +448,7 @@ func (mr *MockStorageMockRecorder) SaveIdentityVerification(arg0, arg1 interface
 }
 
 // SaveOAuth2BlacklistedJTI mocks base method.
-func (m *MockStorage) SaveOAuth2BlacklistedJTI(arg0 context.Context, arg1 *model.OAuth2BlacklistedJTI) error {
+func (m *MockStorage) SaveOAuth2BlacklistedJTI(arg0 context.Context, arg1 model.OAuth2BlacklistedJTI) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2BlacklistedJTI", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -462,7 +462,7 @@ func (mr *MockStorageMockRecorder) SaveOAuth2BlacklistedJTI(arg0, arg1 interface
 }
 
 // SaveOAuth2ConsentSession mocks base method.
-func (m *MockStorage) SaveOAuth2ConsentSession(arg0 context.Context, arg1 *model.OAuth2ConsentSession) error {
+func (m *MockStorage) SaveOAuth2ConsentSession(arg0 context.Context, arg1 model.OAuth2ConsentSession) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSession", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -490,7 +490,7 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionGranted(arg0, arg1 in
 }
 
 // SaveOAuth2ConsentSessionResponse mocks base method.
-func (m *MockStorage) SaveOAuth2ConsentSessionResponse(arg0 context.Context, arg1 *model.OAuth2ConsentSession, arg2 bool) error {
+func (m *MockStorage) SaveOAuth2ConsentSessionResponse(arg0 context.Context, arg1 model.OAuth2ConsentSession, arg2 bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionResponse", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -504,7 +504,7 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionResponse(arg0, arg1, 
 }
 
 // SaveOAuth2Session mocks base method.
-func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 *model.OAuth2Session) error {
+func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 model.OAuth2Session) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2Session", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -560,7 +560,7 @@ func (mr *MockStorageMockRecorder) SaveTOTPConfiguration(arg0, arg1 interface{})
 }
 
 // SaveUserOpaqueIdentifier mocks base method.
-func (m *MockStorage) SaveUserOpaqueIdentifier(arg0 context.Context, arg1 *model.UserOpaqueIdentifier) error {
+func (m *MockStorage) SaveUserOpaqueIdentifier(arg0 context.Context, arg1 model.UserOpaqueIdentifier) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveUserOpaqueIdentifier", arg0, arg1)
 	ret0, _ := ret[0].(error)
