@@ -56,9 +56,10 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	consent := &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
+		Subject:     subject,
 	}
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", amr, extra, authAt, consent, request)
+	session := NewSessionWithAuthorizeRequest(issuer, "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -90,7 +91,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		RequestedAt: requested,
 	}
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, nil, authAt, consent, request)
+	session = NewSessionWithAuthorizeRequest(issuer, "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)

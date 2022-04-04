@@ -13,9 +13,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewSession creates a new OpenIDSession struct.
+// NewSession creates a new empty OpenIDSession struct.
 func NewSession() (session *model.OpenIDSession) {
 	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
@@ -31,16 +32,16 @@ func NewSession() (session *model.OpenIDSession) {
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, amr []string, extra map[string]interface{},
+func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]interface{},
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
 		extra = make(map[string]interface{})
 	}
 
-	return &model.OpenIDSession{
+	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     subject,
+				Subject:     consent.Subject.String(),
 				Issuer:      issuer,
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
@@ -56,13 +57,20 @@ func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, amr [
 					"kid": kid,
 				},
 			},
-			Subject:  subject,
+			Subject:  consent.Subject.String(),
 			Username: username,
 		},
 		Extra:       map[string]interface{}{},
 		ClientID:    requester.GetClient().GetID(),
 		ChallengeID: consent.ChallengeID,
 	}
+
+	// Ensure required audience value of the client_id exists.
+	if !utils.IsStringInSlice(requester.GetClient().GetID(), session.Claims.Audience) {
+		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
+	}
+
+	return session
 }
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -76,21 +84,11 @@ type OpenIDConnectProvider struct {
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-/*
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
-//
-//	Currently it is mostly just implementing a decorator pattern other then GetFullClient.
-//	The long term plan is to have these methods interact with the Authelia storage and
-//	session providers where applicable.
-type OpenIDConnectStore struct {
-	clients map[string]*Client
-	memory  *storage.MemoryStore
-}.
-
-
-*/
-
-// OpenIDConnectStore performs OIDC storage.
+// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// interfaces to the storage.Provider interface:
+// fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
+// oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
+// openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type OpenIDConnectStore struct {
 	provider storage.Provider
 	clients  map[string]*Client
@@ -125,8 +123,8 @@ type KeyManager struct {
 	strategy    *RS256JWTStrategy
 }
 
-// AutheliaHasher implements the fosite.Hasher interface without an actual hashing algo.
-type AutheliaHasher struct{}
+// PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
+type PlainTextHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {

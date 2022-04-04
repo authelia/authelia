@@ -275,7 +275,7 @@ func (s *OpenIDConnectStore) IsJWTUsed(ctx context.Context, jti string) (used bo
 	return false, nil
 }
 
-// MarkJWTUsedForTime implements an interface required for RFC7523.
+// MarkJWTUsedForTime implements an interface required for rfc7523.RFC7523KeyStorage.
 func (s *OpenIDConnectStore) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) (err error) {
 	return s.SetClientAssertionJWT(ctx, jti, exp)
 }
