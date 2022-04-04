@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"net/url"
+	"time"
+)
 
 // LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
 type LDAPAuthenticationBackendConfiguration struct {
@@ -45,10 +48,18 @@ type PasswordConfiguration struct {
 
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
-	DisableResetPassword bool                                    `koanf:"disable_reset_password"`
-	RefreshInterval      string                                  `koanf:"refresh_interval"`
-	LDAP                 *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
-	File                 *FileAuthenticationBackendConfiguration `koanf:"file"`
+	LDAP *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
+	File *FileAuthenticationBackendConfiguration `koanf:"file"`
+
+	PasswordReset PasswordResetAuthenticationBackendConfiguration `koanf:"password_reset"`
+
+	DisableResetPassword bool   `koanf:"disable_reset_password"`
+	RefreshInterval      string `koanf:"refresh_interval"`
+}
+
+// PasswordResetAuthenticationBackendConfiguration represents the configuration related to password reset functionality.
+type PasswordResetAuthenticationBackendConfiguration struct {
+	CustomURL url.URL `koanf:"custom_url"`
 }
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.

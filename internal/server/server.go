@@ -24,6 +24,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
+	resetPasswordCustomURL := configuration.AuthenticationBackend.PasswordReset.CustomURL.String()
+
 	duoSelfEnrollment := f
 	if configuration.DuoAPI != nil {
 		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
@@ -34,9 +36,9 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, configuration.Session.Name, configuration.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, configuration.Session.Name, configuration.Theme, https)
 
 	r := router.New()
 	r.GET("/", autheliaMiddleware(serveIndexHandler))
@@ -77,7 +79,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
 
 	// Only register endpoints if forgot password is not disabled.
-	if !configuration.AuthenticationBackend.DisableResetPassword {
+	if !configuration.AuthenticationBackend.DisableResetPassword &&
+		configuration.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
 		r.POST("/api/reset-password/identity/start", autheliaMiddleware(
 			handlers.ResetPasswordIdentityStart))

@@ -24,8 +24,8 @@ func (suite *Theme) SetupTest() {
 func (suite *Theme) TestShouldValidateCompleteConfiguration() {
 	ValidateTheme(suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
 func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
@@ -33,7 +33,7 @@ func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
 
 	ValidateTheme(suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "option 'theme' must be one of 'light', 'dark', 'grey', 'auto' but it is configured as 'invalid'")

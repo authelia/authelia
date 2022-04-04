@@ -33,6 +33,15 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfigura
 			validator.Push(fmt.Errorf(errFmtAuthBackendRefreshInterval, config.RefreshInterval, err))
 		}
 	}
+
+	if config.PasswordReset.CustomURL.String() != "" {
+		switch config.PasswordReset.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			config.DisableResetPassword = false
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.PasswordReset.CustomURL.String(), config.PasswordReset.CustomURL.Scheme))
+		}
+	}
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
