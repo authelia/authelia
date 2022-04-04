@@ -28,9 +28,9 @@ import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 export interface Props {
     duoSelfEnrollment: boolean;
     rememberMe: boolean;
+
     resetPassword: boolean;
-    externalResetPassword: boolean;
-    externalResetUrl: string;
+    resetPasswordCustomURL: string;
 }
 
 const RedirectionErrorMessage =
@@ -177,8 +177,7 @@ const LoginPortal = function (props: Props) {
                             disabled={firstFactorDisabled}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
-                            externalResetPassword={props.externalResetPassword}
-                            externalResetUrl={props.externalResetUrl}
+                            resetPasswordCustomURL={props.resetPasswordCustomURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}

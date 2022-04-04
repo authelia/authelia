@@ -69,6 +69,8 @@ const (
 		"backend is configured"
 	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
 		"it must be either a duration notation or one of 'disable', or 'always': %w"
+	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
+		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
@@ -424,8 +426,7 @@ var ValidKeys = []string{
 
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
-	"authentication_backend.enable_external_reset_password",
-	"authentication_backend.external_reset_password_url",
+	"authentication_backend.password_reset.custom_url",
 	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.

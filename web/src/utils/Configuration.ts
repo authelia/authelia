@@ -23,12 +23,8 @@ export function getResetPassword() {
     return getEmbeddedVariable("resetpassword") === "true";
 }
 
-export function getExternalResetPassword() {
-    return getEmbeddedVariable("externalresetpassword") === "true";
-}
-
-export function getExternalResetUrl() {
-    return getEmbeddedVariable("externalreseturl");
+export function getResetPasswordCustomURL() {
+    return getEmbeddedVariable("resetpasswordcustomurl");
 }
 
 export function getTheme() {

@@ -22,8 +22,7 @@ import {
     getDuoSelfEnrollment,
     getRememberMe,
     getResetPassword,
-    getExternalResetPassword,
-    getExternalResetUrl,
+    getResetPasswordCustomURL,
     getTheme,
 } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
@@ -87,8 +86,7 @@ const App: React.FC = () => {
                                         duoSelfEnrollment={getDuoSelfEnrollment()}
                                         rememberMe={getRememberMe()}
                                         resetPassword={getResetPassword()}
-                                        externalResetPassword={getExternalResetPassword()}
-                                        externalResetUrl={getExternalResetUrl()}
+                                        resetPasswordCustomURL={getResetPasswordCustomURL()}
                                     />
                                 }
                             />

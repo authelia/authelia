@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -10,7 +9,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ValidateAuthenticationBackend validates and updates the authentication backend config.
+// ValidateAuthenticationBackend validates and updates the authentication backend configuration.
 func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if config.LDAP == nil && config.File == nil {
 		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
@@ -35,19 +34,17 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfigura
 		}
 	}
 
-	if config.EnableExternalResetPassword && !config.DisableResetPassword {
-		validator.Push(errors.New("You cannot enable both `internal reset password` and `external reset password` processes in `authentication_backend`"))
-	}
-
-	if config.EnableExternalResetPassword {
-		err := utils.IsStringAbsURL(config.ExternalResetPasswordURL)
-		if err != nil {
-			validator.Push(fmt.Errorf("Provided reset url is invalid. Error from parser: %s", err))
+	if config.PasswordReset.CustomURL.String() != "" {
+		switch config.PasswordReset.CustomURL.Scheme {
+		case schemeHTTP, schemeHTTPS:
+			config.DisableResetPassword = false
+		default:
+			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.PasswordReset.CustomURL.String(), config.PasswordReset.CustomURL.Scheme))
 		}
 	}
 }
 
-// validateFileAuthenticationBackend validates and updates the file authentication backend config.
+// validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
 func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))

@@ -18,8 +18,8 @@ There are two ways to store the users along with their password:
 ```yaml
 authentication_backend:
   disable_reset_password: false
-  enable_external_reset_password: false
-  external_reset_password_url: ""
+  password_reset:
+    custom_url: ""
   file: {}
   ldap: {}
 ```
@@ -38,29 +38,20 @@ required: no
 
 This setting controls if users can reset their password from the web frontend or not.
 
-### enable_external_reset_password
-<div markdown="1">
-type: boolean
-{: .label .label-config .label-purple } 
-default: false
-{: .label .label-config .label-blue }
-required: no
-{: .label .label-config .label-green }
-</div>
+### password_reset
 
-This setting controls if users can reset their password from an external reset password portal.
-
-### external_reset_password_url
+#### custom_url
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
 default: ""
 {: .label .label-config .label-blue }
-required: no (yes if enable_external_reset_password is true)
+required: no
 {: .label .label-config .label-green }
 </div>
 
-The custom reset password URL, which redirects users to the custom reset password portal. 
+The custom password reset URL. This replaces the inbuilt password reset functionality and disables the endpoints if
+this is configured to anything other than nothing or an empty string.
 
 ### file
 

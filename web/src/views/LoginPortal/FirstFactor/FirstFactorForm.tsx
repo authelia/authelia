@@ -16,9 +16,9 @@ import { postFirstFactor } from "@services/FirstFactor";
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
+
     resetPassword: boolean;
-    externalResetPassword: boolean;
-    externalResetUrl: string;
+    resetPasswordCustomURL: string;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -79,9 +79,11 @@ const FirstFactorForm = function (props: Props) {
 
     const handleResetPasswordClick = () => {
         if (props.resetPassword) {
-            navigate(ResetPasswordStep1Route);
-        } else if (props.externalResetPassword) {
-            window.open(props.externalResetUrl);
+            if (props.resetPasswordCustomURL !== "") {
+                window.open(props.resetPasswordCustomURL);
+            } else {
+                navigate(ResetPasswordStep1Route);
+            }
         }
     };
 
@@ -188,17 +190,6 @@ const FirstFactorForm = function (props: Props) {
                     </Button>
                 </Grid>
                 {props.resetPassword ? (
-                    <Grid item xs={12} className={classnames(style.actionRow, style.flexEnd)}>
-                        <Link
-                            id="reset-password-button"
-                            component="button"
-                            onClick={handleResetPasswordClick}
-                            className={style.resetLink}
-                        >
-                            {translate("Reset password?")}
-                        </Link>
-                    </Grid>
-                ) : props.externalResetPassword ? (
                     <Grid item xs={12} className={classnames(style.actionRow, style.flexEnd)}>
                         <Link
                             id="reset-password-button"
