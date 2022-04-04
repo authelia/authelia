@@ -103,12 +103,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2OpenIDConnectSession),
 		sqlDeactivateOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSession),
 
-		sqlInsertOAuth2ConsentSession:                         fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionResponse:                 fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionGranted:                  fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionByChallengeID:            fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionBySignature:              fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionBySignature, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionBySignaturePreConfigured: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionBySignaturePreConfigured, tableOAuth2ConsentSession),
+		sqlInsertOAuth2ConsentSession:                          fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionResponse:                  fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionGranted:                   fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionByChallengeID:             fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionsBySignature:              fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionsBySignature, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionsBySignaturePreConfigured: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionsBySignaturePreConfigured, tableOAuth2ConsentSession),
 
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -233,12 +233,12 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2OpenIDConnectSessionByRequestID string
 
 	// Table: oauth2_consent_session.
-	sqlInsertOAuth2ConsentSession                         string
-	sqlUpdateOAuth2ConsentSessionResponse                 string
-	sqlUpdateOAuth2ConsentSessionGranted                  string
-	sqlSelectOAuth2ConsentSessionByChallengeID            string
-	sqlSelectOAuth2ConsentSessionBySignature              string
-	sqlSelectOAuth2ConsentSessionBySignaturePreConfigured string
+	sqlInsertOAuth2ConsentSession                          string
+	sqlUpdateOAuth2ConsentSessionResponse                  string
+	sqlUpdateOAuth2ConsentSessionGranted                   string
+	sqlSelectOAuth2ConsentSessionByChallengeID             string
+	sqlSelectOAuth2ConsentSessionsBySignature              string
+	sqlSelectOAuth2ConsentSessionsBySignaturePreConfigured string
 
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
@@ -415,9 +415,9 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionsBySignature(ctx context.Context, 
 
 	switch {
 	case preConfigured:
-		r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionBySignaturePreConfigured, clientID, subject)
+		r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionsBySignaturePreConfigured, clientID, subject)
 	default:
-		r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionBySignature, clientID, subject)
+		r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionsBySignature, clientID, subject)
 	}
 
 	if err != nil {
