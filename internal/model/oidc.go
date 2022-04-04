@@ -162,7 +162,7 @@ type OAuth2BlacklistedJTI struct {
 
 // OpenIDSession holds OIDC Session information.
 type OpenIDSession struct {
-	*openid.DefaultSession `json:"idToken"`
+	*openid.DefaultSession `json:"id_token"`
 
 	ChallengeID uuid.UUID `db:"challenge_id"`
 	ClientID    string
