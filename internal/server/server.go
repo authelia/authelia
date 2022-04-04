@@ -1,10 +1,7 @@
 package server
 
 import (
-	"embed"
-	"io/fs"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -13,7 +10,6 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -22,9 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
-
-//go:embed public_html
-var assets embed.FS
 
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
@@ -36,8 +29,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	}
 
-	embeddedPath, _ := fs.Sub(assets, "public_html")
-	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
+	handlerLocales := newLocalesEmbeddedHandler()
 
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
@@ -50,17 +43,22 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 
 	for _, f := range rootFiles {
-		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
+		r.GET("/"+f, handlerPublicHTML)
 	}
 
 	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
 	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
 
 	for _, file := range swaggerFiles {
-		r.GET("/api/"+file, embeddedFS)
+		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
-	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
+	r.GET("/favicon.ico", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/media/logo.png", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 2, handlerPublicHTML))
+	r.GET("/static/{filepath:*}", handlerPublicHTML)
+
+	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))

@@ -9,7 +9,7 @@ const (
 )
 
 var (
-	rootFiles    = []string{"favicon.ico", "manifest.json", "robots.txt"}
+	rootFiles    = []string{"manifest.json", "robots.txt"}
 	swaggerFiles = []string{
 		"favicon-16x16.png",
 		"favicon-32x32.png",
