@@ -42,11 +42,15 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	r.GET("/", autheliaMiddleware(serveIndexHandler))
 	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 
+	for _, f := range rootFiles {
+		r.GET("/"+f, handlerPublicHTML)
+	}
+
 	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
 	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
 
-	for _, f := range rootFiles {
-		r.GET("/"+f, handlerPublicHTML)
+	for _, file := range swaggerFiles {
+		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
 	r.GET("/favicon.ico", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerPublicHTML))
@@ -55,8 +59,6 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 
 	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
-
-	r.ANY("/api/{filepath:*}", handlerPublicHTML)
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
@@ -154,7 +156,12 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = autheliaMiddleware(serveIndexHandler)
+	r.NotFound = handleNotFound(autheliaMiddleware(serveIndexHandler))
+
+	r.HandleMethodNotAllowed = true
+	r.MethodNotAllowed = func(ctx *fasthttp.RequestCtx) {
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
+	}
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
