@@ -27,7 +27,7 @@ const RegisterOneTimePassword = function () {
     const { createSuccessNotification, createErrorNotification } = useNotifications();
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.

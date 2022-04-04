@@ -1,33 +1,28 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import XHR from "i18next-http-backend";
+import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-import langDe from "@i18n/locales/de.json";
-import langEn from "@i18n/locales/en.json";
-import langEs from "@i18n/locales/es.json";
-
-const resources = {
-    en: langEn,
-    es: langEs,
-    de: langDe,
-};
-
-const options = {
-    order: ["querystring", "navigator"],
-    lookupQuerystring: "lng",
-};
-
-i18n.use(XHR)
+i18n.use(Backend)
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-        detection: options,
-        resources,
-        ns: [""],
-        defaultNS: "",
-        fallbackLng: "en",
+        detection: {
+            order: ["querystring", "navigator"],
+            lookupQuerystring: "lng",
+        },
+        backend: {
+            loadPath: "/locales/{{lng}}/{{ns}}.json",
+        },
+        ns: ["portal"],
+        defaultNS: "portal",
+        fallbackLng: {
+            default: ["en"],
+        },
+        load: "all",
         supportedLngs: ["en", "es", "de"],
+        lowerCaseLng: true,
+        nonExplicitSupportedLngs: true,
         interpolation: {
             escapeValue: false,
         },

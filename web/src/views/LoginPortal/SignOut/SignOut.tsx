@@ -22,7 +22,7 @@ const SignOut = function (props: Props) {
     const redirector = useRedirector();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     const doSignOut = useCallback(async () => {
         try {

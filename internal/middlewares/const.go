@@ -67,6 +67,5 @@ const (
 )
 
 var protoHostSeparator = []byte("://")
-var validOverrideAssets = []string{"favicon.ico", "logo.png"}
 
 var errPasswordPolicyNoMet = errors.New("the supplied password does not met the security policy")
