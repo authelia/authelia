@@ -231,11 +231,11 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateCompleteConfigura
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsInvalid() {
-	suite.configuration.EnableExternalResetPassword = true
-	suite.configuration.DisableResetPassword = true
-	suite.configuration.ExternalResetPasswordURL = "example.com" //nolint:goconst
+	suite.config.EnableExternalResetPassword = true
+	suite.config.DisableResetPassword = true
+	suite.config.ExternalResetPasswordURL = "example.com" //nolint:goconst
 
-	ValidateAuthenticationBackend(&suite.configuration, suite.validator)
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().False(suite.validator.HasWarnings())
 	suite.Require().Len(suite.validator.Errors(), 1)
