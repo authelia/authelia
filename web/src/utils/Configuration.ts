@@ -23,6 +23,10 @@ export function getResetPassword() {
     return getEmbeddedVariable("resetpassword") === "true";
 }
 
+export function getResetPasswordCustomURL() {
+    return getEmbeddedVariable("resetpasswordcustomurl");
+}
+
 export function getTheme() {
     return getEmbeddedVariable("theme");
 }

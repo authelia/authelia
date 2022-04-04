@@ -18,7 +18,13 @@ import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
-import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getTheme } from "@utils/Configuration";
+import {
+    getDuoSelfEnrollment,
+    getRememberMe,
+    getResetPassword,
+    getResetPasswordCustomURL,
+    getTheme,
+} from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
 import RegisterWebauthn from "@views/DeviceRegistration/RegisterWebauthn";
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
@@ -80,6 +86,7 @@ const App: React.FC = () => {
                                         duoSelfEnrollment={getDuoSelfEnrollment()}
                                         rememberMe={getRememberMe()}
                                         resetPassword={getResetPassword()}
+                                        resetPasswordCustomURL={getResetPasswordCustomURL()}
                                     />
                                 }
                             />
