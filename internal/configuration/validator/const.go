@@ -44,8 +44,6 @@ const (
 	testLDAPURL       = "ldap://ldap"
 	testLDAPUser      = "user"
 	testModeDisabled  = "disable"
-	testTLSCert       = "/tmp/cert.pem"
-	testTLSKey        = "/tmp/key.pem"
 	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
@@ -225,8 +223,12 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey  = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCert                           = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey                            = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCertFileDoesNotExist           = "server: tls: file path %s provided in 'certificate' does not exist"
+	errFmtServerTLSKeyFileDoesNotExist            = "server: tls: file path %s provided in 'key' does not exist"
+	errFmtServerTLSClientAuthCertFileDoesNotExist = "server: tls: client_certificates: certificates: file path %s does not exist"
+	errFmtServerTLSClientAuthNoAuth               = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"

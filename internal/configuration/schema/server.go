@@ -18,8 +18,9 @@ type ServerConfiguration struct {
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
 type ServerTLSConfiguration struct {
-	Certificate string `koanf:"certificate"`
-	Key         string `koanf:"key"`
+	Certificate        string   `koanf:"certificate"`
+	Key                string   `koanf:"key"`
+	ClientCertificates []string `koanf:"client_certificates"`
 }
 
 // ServerHeadersConfiguration represents the customization of the http server headers.
