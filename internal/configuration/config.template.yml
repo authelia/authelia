@@ -779,6 +779,11 @@ notifier:
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # secret: this_is_a_secret
 
+        ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
+        ## necessary. Read the documentation for more information.
+        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
+        # sector_identifier: example.com
+
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false
 

@@ -92,6 +92,7 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
 		}
 
+		validateOIDCClientSectorIdentifier(client, validator)
 		validateOIDCClientScopes(c, config, validator)
 		validateOIDCClientGrantTypes(c, config, validator)
 		validateOIDCClientResponseTypes(c, config, validator)
@@ -107,6 +108,38 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 
 	if duplicateIDs {
 		validator.Push(fmt.Errorf(errFmtOIDCClientsDuplicateID))
+	}
+}
+
+func validateOIDCClientSectorIdentifier(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
+	if client.SectorIdentifier.String() != "" {
+		if client.SectorIdentifier.Scheme != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "scheme", client.SectorIdentifier.Scheme))
+
+			if client.SectorIdentifier.Path != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "path", client.SectorIdentifier.Path))
+			}
+
+			if client.SectorIdentifier.RawQuery != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "query", client.SectorIdentifier.RawQuery))
+			}
+
+			if client.SectorIdentifier.Fragment != "" {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "fragment", client.SectorIdentifier.Fragment))
+			}
+
+			if client.SectorIdentifier.User != nil {
+				if client.SectorIdentifier.User.Username() != "" {
+					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "username", client.SectorIdentifier.User.Username()))
+				}
+
+				if password, set := client.SectorIdentifier.User.Password(); set {
+					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "password", password))
+				}
+			}
+		} else if client.SectorIdentifier.Host == "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierHost, client.ID, client.SectorIdentifier.String()))
+		}
 	}
 }
 

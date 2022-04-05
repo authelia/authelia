@@ -39,6 +39,7 @@ identity_providers:
       - id: myapp
         description: My Application
         secret: this_is_a_secret
+        sector_identifier: ''
         public: false
         authorization_policy: two_factor
         audience: []
@@ -64,7 +65,6 @@ identity_providers:
 ## Options
 
 ### hmac_secret
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
@@ -78,7 +78,6 @@ byte string for the purpose of meeting the required format. You must [generate t
 Should be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### issuer_private_key
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -95,7 +94,6 @@ private key into your configuration.
 Should be defined using a [secret](../secrets.md) which is the recommended for containerized deployments.
 
 ### access_token_lifespan
-
 <div markdown="1">
 type: duration
 {: .label .label-config .label-purple }
@@ -109,7 +107,6 @@ The maximum lifetime of an access token. It's generally recommended keeping this
 For more information read these docs about [token lifespan].
 
 ### authorize_code_lifespan
-
 <div markdown="1">
 type: duration
 {: .label .label-config .label-purple }
@@ -123,7 +120,6 @@ The maximum lifetime of an authorize code. This can be rather short, as the auth
 obtain the other token types. For more information read these docs about [token lifespan].
 
 ### id_token_lifespan
-
 <div markdown="1">
 type: duration
 {: .label .label-config .label-purple }
@@ -136,7 +132,6 @@ required: no
 The maximum lifetime of an ID token. For more information read these docs about [token lifespan].
 
 ### refresh_token_lifespan
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -156,7 +151,6 @@ A good starting point is 50% more or 30 minutes more (which ever is less) time t
 token lifespan is 90 minutes.
 
 ### enable_client_debug_messages
-
 <div markdown="1">
 type: boolean
 {: .label .label-config .label-purple }
@@ -169,7 +163,6 @@ required: no
 Allows additional debug messages to be sent to the clients.
 
 ### minimum_parameter_entropy
-
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
@@ -223,7 +216,6 @@ Allows PKCE `plain` challenges when set to `true`.
 A list of clients to configure. The options for each client are described below.
 
 #### id
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
@@ -235,7 +227,6 @@ The Client ID for this client. It must exactly match the Client ID configured in
 consuming this client.
 
 #### description
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
@@ -248,7 +239,6 @@ required: no
 A friendly description for this client shown in the UI. This defaults to the same as the ID.
 
 #### secret
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -263,8 +253,45 @@ You must [generate this option yourself](#generating-a-random-secret).
 This must be provided when the client is a confidential client type, and must be blank when using the public client
 type. To set the client type to public see the [public](#public) configuration option.
 
-#### public
+#### sector_identifier
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+default: ''
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-red }
+</div>
 
+_**Important Note:** because adjusting this option will inevitably change the `sub` claim of all tokens generated for
+the specified client, changing this should cause the relying party to detect all future authorizations as completely new
+users._
+
+Must be an empty string or the host component of a URL. This is commonly just the domain name, but may also include a
+port.
+
+Authelia utilizes UUID version 4 subject identifiers. By default the public subject identifier type is utilized for all
+clients. This means the subject identifiers will be the same for all clients. This configuration option enables pairwise
+for this client, and configures the sector identifier utilized for both the storage and the lookup of the subject
+identifier.
+
+1. All clients who do not have this configured will generate the same subject identifier for a particular user regardless
+   of which client obtains the ID token.
+2. All clients which have the same sector identifier will:
+   1. have the same subject identifier for a particular user when compared to clients with the same sector identifier.
+   2. have a completely different subject identifier for a particular user whe compared to:
+      1. any client with the public subject identifier type.
+      2. any client with a differing sector identifier.
+
+In specific but limited scenarios this option is beneficial for privacy reasons. In particular this is useful when the
+party utilizing the _Authelia_ [OpenID Connect] Authorization Server is foreign and not controlled by the user. It would
+prevent the third party utilizing the subject identifier with another third party in order to track the user.
+
+Keep in mind depending on the other claims they may still be able to perform this tracking and it is not a silver bullet.
+There are very few benefits when utilizing this in a homelab or business where no third party is utilizing
+the server.
+
+#### public
 <div markdown="1">
 type: bool
 {: .label .label-config .label-purple }
@@ -282,7 +309,6 @@ blank string.
 In addition to the standard rules for redirect URIs, public clients can use the `urn:ietf:wg:oauth:2.0:oob` redirect URI.
 
 #### authorization_policy
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
@@ -295,7 +321,6 @@ required: no
 The authorization policy for this client: either `one_factor` or `two_factor`.
 
 #### audience
-
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple } 
@@ -306,7 +331,6 @@ required: no
 A list of audiences this client is allowed to request.
 
 #### scopes
-
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple }
@@ -321,7 +345,6 @@ information. The documentation for the application you want to use with Authelia
 you with the scopes to allow.
 
 #### redirect_uris
-
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple }
@@ -343,7 +366,6 @@ their redirect URIs are as follows:
 4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
 #### grant_types
-
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple } 
@@ -358,7 +380,6 @@ know what you're doing_. Valid options are: `implicit`, `refresh_token`, `author
 `client_credentials`.
 
 #### response_types
-
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple } 
@@ -373,7 +394,6 @@ know what you're doing_. Valid options are: `code`, `code id_token`, `id_token`,
 `token id_token code`.
 
 #### response_modes
-
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple } 
@@ -387,7 +407,6 @@ A list of response modes this client can return. It is recommended that this isn
 know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
 
 #### userinfo_signing_algorithm
-
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple } 
@@ -440,8 +459,8 @@ individual user. Please use the claim `preferred_username` instead._
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
 
-| Claim  |   JWT Type    | Authelia Attribute |      Description       |
-|:------:|:-------------:|:------------------:|:----------------------:|
+| Claim  |   JWT Type    | Authelia Attribute |                                                    Description                                                     |
+|:------:|:-------------:|:------------------:|:------------------------------------------------------------------------------------------------------------------:|
 | groups | array[string] |       groups       | List of user's groups discovered via [authentication](https://www.authelia.com/docs/configuration/authentication/) |
 
 ### email
