@@ -112,15 +112,23 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx) (userSession 
 
 	userSession = ctx.GetSession()
 
-	if userSession.ConsentChallengeID == nil {
-		ctx.Logger.Errorf("Cannot consent for user '%s' when OIDC consent session has not been initiated", userSession.Username)
+	if !ctx.IsWorkflowOpenIDConnect() {
+		ctx.Logger.Errorf("Cannot consent for user '%s' as the request form is missing the workflow or workflow_id", userSession.Username)
 		ctx.ReplyForbidden()
 
 		return userSession, nil, nil, true
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil {
-		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", userSession.ConsentChallengeID.String(), err)
+	challengeID, err := decodeUUIDFromQueryString(string(ctx.FormValue("workflow_id")))
+	if err != nil {
+		ctx.Logger.Errorf("Cannot consent for user '%s' as the request form workflow_id could not be decoded: %v", userSession.Username, err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID); err != nil {
+		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", challengeID.String(), err)
 		ctx.ReplyForbidden()
 
 		return userSession, nil, nil, true

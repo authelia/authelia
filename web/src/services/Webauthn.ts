@@ -17,6 +17,7 @@ import {
     PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
 } from "@models/Webauthn";
+import { toWorkflowPath, Workflow } from "@models/Workflow";
 import {
     OptionalDataServiceResponse,
     ServiceResponse,
@@ -319,10 +320,11 @@ async function postAttestationPublicKeyCredentialResult(
 export async function postAssertionPublicKeyCredentialResult(
     credential: PublicKeyCredential,
     targetURL: string | undefined,
+    workflow: Workflow,
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
     const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL);
 
-    return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
+    return axios.post<ServiceResponse<SignInResponse>>(toWorkflowPath(WebauthnAssertionPath, workflow), credentialJSON);
 }
 
 export async function performAttestationCeremony(token: string): Promise<AttestationResult> {
@@ -351,28 +353,4 @@ export async function performAttestationCeremony(token: string): Promise<Attesta
     }
 
     return AttestationResult.Failure;
-}
-
-export async function performAssertionCeremony(targetURL: string | undefined): Promise<AssertionResult> {
-    const assertionRequestOpts = await getAssertionRequestOptions();
-
-    if (assertionRequestOpts.status !== 200 || assertionRequestOpts.options == null) {
-        return AssertionResult.FailureChallenge;
-    }
-
-    const assertionResult = await getAssertionPublicKeyCredentialResult(assertionRequestOpts.options);
-
-    if (assertionResult.result !== AssertionResult.Success) {
-        return assertionResult.result;
-    } else if (assertionResult.credential == null) {
-        return AssertionResult.Failure;
-    }
-
-    const response = await postAssertionPublicKeyCredentialResult(assertionResult.credential, targetURL);
-
-    if (response.data.status === "OK" && response.status === 200) {
-        return AssertionResult.Success;
-    }
-
-    return AssertionResult.Failure;
 }

@@ -11,9 +11,12 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import LoginLayout from "@layouts/LoginLayout";
+import { Workflow } from "@models/Workflow";
 import { postFirstFactor } from "@services/FirstFactor";
 
 export interface Props {
+    workflow: Workflow;
+
     disabled: boolean;
     rememberMe: boolean;
 
@@ -66,7 +69,14 @@ const FirstFactorForm = function (props: Props) {
 
         props.onAuthenticationStart();
         try {
-            const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod);
+            const res = await postFirstFactor(
+                username,
+                password,
+                rememberMe,
+                props.workflow,
+                redirectionURL,
+                requestMethod,
+            );
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);

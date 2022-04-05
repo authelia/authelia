@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -322,6 +323,23 @@ func (ctx AutheliaCtx) IsXHR() (xhr bool) {
 	requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith)
 
 	return requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR)
+}
+
+// GetWorkflowID returns the form workflow id.
+func (ctx AutheliaCtx) GetWorkflowID() string {
+	workflowID := ctx.FormValue("workflow_id")
+
+	return string(workflowID)
+}
+
+// IsWorkflowOpenIDConnect returns true if the form has the required values for an OpenID Connect workflow.
+func (ctx AutheliaCtx) IsWorkflowOpenIDConnect() bool {
+	workflow, workflowID := ctx.FormValue("workflow"), ctx.FormValue("workflow_id")
+	if workflow == nil || workflowID == nil {
+		return false
+	}
+
+	return bytes.Equal(workflow, queryValueWorkflowOpenIDConnect)
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.

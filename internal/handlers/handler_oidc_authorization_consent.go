@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,45 +20,38 @@ import (
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
-	if userSession.ConsentChallengeID != nil {
-		return handleOIDCAuthorizationConsentWithChallengeID(ctx, rootURI, client, userSession, rw, r, requester)
+	var (
+		challengeID uuid.UUID
+		err         error
+	)
+
+	sufficient := client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel)
+
+	if workflowID := requester.GetRequestForm().Get("workflow_id"); workflowID != "" {
+		if challengeID, err = decodeUUIDFromQueryString(workflowID); err != nil {
+			handleOIDCAuthorizationConsentWithChallengeID(ctx, rootURI, client, sufficient, challengeID, rw, r, requester)
+		}
 	}
 
-	return handleOIDCAuthorizationConsentOrGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
+	return handleOIDCAuthorizationConsentOrGenerate(ctx, rootURI, client, sufficient, subject, rw, r, requester)
 }
 
 func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession,
+	sufficient bool, challengeID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil {
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Failed to lookup consent session."))
-
-		userSession.ConsentChallengeID = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred unlinking consent session challenge id: %+v", requester.GetID(), requester.GetClient().GetID(), err)
-		}
 
 		return nil, true
 	}
 
 	if consent.Responded() {
-		userSession.ConsentChallengeID = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving session: %+v", requester.GetID(), client.GetID(), err)
-
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
-
-			return nil, true
-		}
-
 		if consent.Granted {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: this consent session with challenge id '%s' was already granted", requester.GetID(), client.GetID(), consent.ChallengeID.String())
 
@@ -79,13 +73,13 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		return consent, false
 	}
 
-	handleOIDCAuthorizationConsentRedirect(rootURI, client, userSession, rw, r)
+	handleOIDCAuthorizationConsentRedirect(sufficient, rootURI, *consent, rw, r)
 
 	return consent, true
 }
 
 func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	sufficient bool, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		rows             *storage.ConsentSessionRows
@@ -135,24 +129,14 @@ func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, root
 		return nil, true
 	}
 
-	userSession.ConsentChallengeID = &consent.ChallengeID
-
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving user session for consent: %+v", requester.GetID(), client.GetID(), err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the user session."))
-
-		return nil, true
-	}
-
-	handleOIDCAuthorizationConsentRedirect(rootURI, client, userSession, rw, r)
+	handleOIDCAuthorizationConsentRedirect(sufficient, rootURI, *consent, rw, r)
 
 	return consent, true
 }
 
-func handleOIDCAuthorizationConsentRedirect(destination string, client *oidc.Client, userSession session.UserSession, rw http.ResponseWriter, r *http.Request) {
-	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		destination = fmt.Sprintf("%s/consent", destination)
+func handleOIDCAuthorizationConsentRedirect(sufficient bool, destination string, consent model.OAuth2ConsentSession, rw http.ResponseWriter, r *http.Request) {
+	if sufficient {
+		destination = fmt.Sprintf("%s/consent?workflow=openid_connect&workflow_id=%s", destination, encodeUUIDForQueryString(consent.ChallengeID))
 	}
 
 	http.Redirect(rw, r, destination, http.StatusFound)
@@ -165,4 +149,22 @@ func getExpectedScopesAndAudience(requester fosite.Requester) (scopes, audience 
 	}
 
 	return requester.GetRequestedScopes(), audience
+}
+
+func encodeUUIDForQueryString(id uuid.UUID) (value string) {
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(id[:])
+}
+
+func decodeUUIDFromQueryString(value string) (id uuid.UUID, err error) {
+	raw, err := base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(value)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("could not decode base64 data: %w", err)
+	}
+
+	id, err = uuid.FromBytes(raw)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("could not parse UUID from decoded bytes: %w", err)
+	}
+
+	return id, nil
 }

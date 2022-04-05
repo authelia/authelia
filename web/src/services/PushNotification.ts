@@ -1,3 +1,4 @@
+import { toWorkflowPath, Workflow } from "@models/Workflow";
 import {
     CompletePushNotificationSignInPath,
     InitiateDuoDeviceSelectionPath,
@@ -9,12 +10,15 @@ interface CompletePushSigninBody {
     targetURL?: string;
 }
 
-export function completePushNotificationSignIn(targetURL: string | undefined) {
+export function completePushNotificationSignIn(targetURL: string | undefined, workflow: Workflow) {
     const body: CompletePushSigninBody = {};
     if (targetURL) {
         body.targetURL = targetURL;
     }
-    return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
+    return PostWithOptionalResponse<DuoSignInResponse>(
+        toWorkflowPath(CompletePushNotificationSignInPath, workflow),
+        body,
+    );
 }
 
 export interface DuoSignInResponse {

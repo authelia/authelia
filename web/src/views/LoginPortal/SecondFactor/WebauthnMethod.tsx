@@ -10,6 +10,7 @@ import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useTimer } from "@hooks/Timer";
 import { AssertionResult } from "@models/Webauthn";
+import { Workflow } from "@models/Workflow";
 import { AuthenticationLevel } from "@services/State";
 import {
     getAssertionPublicKeyCredentialResult,
@@ -26,6 +27,8 @@ export enum State {
 }
 
 export interface Props {
+    workflow: Workflow;
+
     id: string;
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
@@ -112,7 +115,11 @@ const WebauthnMethod = function (props: Props) {
 
             setState(State.InProgress);
 
-            const response = await postAssertionPublicKeyCredentialResult(result.credential, redirectionURL);
+            const response = await postAssertionPublicKeyCredentialResult(
+                result.credential,
+                redirectionURL,
+                props.workflow,
+            );
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -132,13 +139,14 @@ const WebauthnMethod = function (props: Props) {
             setState(State.Failure);
         }
     }, [
+        props.registered,
+        props.authenticationLevel,
+        props.workflow,
+        triggerTimer,
+        mounted,
+        redirectionURL,
         onSignInErrorCallback,
         onSignInSuccessCallback,
-        redirectionURL,
-        mounted,
-        triggerTimer,
-        props.authenticationLevel,
-        props.registered,
     ]);
 
     useEffect(() => {

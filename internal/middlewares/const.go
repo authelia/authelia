@@ -42,6 +42,10 @@ var (
 	UserValueKeyBaseURL = []byte("base_url")
 )
 
+var (
+	queryValueWorkflowOpenIDConnect = []byte("openid_connect")
+)
+
 const (
 	headerValueXRequestedWithXHR = "XMLHttpRequest"
 	contentTypeApplicationJSON   = "application/json"

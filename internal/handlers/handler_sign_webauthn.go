@@ -197,7 +197,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.ConsentChallengeID != nil {
+	if ctx.IsWorkflowOpenIDConnect() {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, requestBody.TargetURL)

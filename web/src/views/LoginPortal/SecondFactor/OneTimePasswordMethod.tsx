@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
+import { Workflow } from "@models/Workflow";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -18,6 +19,8 @@ export enum State {
 }
 
 export interface Props {
+    workflow: Workflow;
+
     id: string;
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
@@ -67,7 +70,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
         try {
             setState(State.InProgress);
-            const res = await completeTOTPSignIn(passcodeStr, redirectionURL);
+            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, props.workflow);
             setState(State.Success);
             onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
@@ -77,13 +80,14 @@ const OneTimePasswordMethod = function (props: Props) {
         }
         setPasscode("");
     }, [
-        onSignInErrorCallback,
-        onSignInSuccessCallback,
-        passcode,
-        redirectionURL,
-        resp,
-        props.authenticationLevel,
         props.registered,
+        props.authenticationLevel,
+        props.workflow,
+        passcode,
+        resp?.digits,
+        redirectionURL,
+        onSignInSuccessCallback,
+        onSignInErrorCallback,
     ]);
 
     // Set successful state if user is already authenticated.

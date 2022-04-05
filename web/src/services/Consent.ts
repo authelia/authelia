@@ -1,3 +1,4 @@
+import { toWorkflowPath, Workflow } from "@models/Workflow";
 import { ConsentPath } from "@services/Api";
 import { Post, Get } from "@services/Client";
 
@@ -10,7 +11,7 @@ interface ConsentPostResponseBody {
     redirect_uri: string;
 }
 
-interface ConsentGetResponseBody {
+export interface ConsentGetResponseBody {
     client_id: string;
     client_description: string;
     scopes: string[];
@@ -21,12 +22,16 @@ export function getRequestedScopes() {
     return Get<ConsentGetResponseBody>(ConsentPath);
 }
 
-export function acceptConsent(clientID: string) {
-    const body: ConsentPostRequestBody = { client_id: clientID, accept_or_reject: "accept" };
-    return Post<ConsentPostResponseBody>(ConsentPath, body);
+export function getRequestedScopesWorkflow(workflow: Workflow) {
+    return Get<ConsentGetResponseBody>(toWorkflowPath(ConsentPath, workflow));
 }
 
-export function rejectConsent(clientID: string) {
+export function acceptConsent(clientID: string, workflow: Workflow) {
+    const body: ConsentPostRequestBody = { client_id: clientID, accept_or_reject: "accept" };
+    return Post<ConsentPostResponseBody>(toWorkflowPath(ConsentPath, workflow), body);
+}
+
+export function rejectConsent(clientID: string, workflow: Workflow) {
     const body: ConsentPostRequestBody = { client_id: clientID, accept_or_reject: "reject" };
-    return Post<ConsentPostResponseBody>(ConsentPath, body);
+    return Post<ConsentPostResponseBody>(toWorkflowPath(ConsentPath, workflow), body);
 }

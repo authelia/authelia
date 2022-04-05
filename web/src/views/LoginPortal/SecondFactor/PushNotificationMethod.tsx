@@ -7,6 +7,7 @@ import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { Workflow } from "@models/Workflow";
 import {
     completePushNotificationSignIn,
     completeDuoDeviceSelectionProcess,
@@ -29,6 +30,7 @@ export enum State {
 }
 
 export interface Props {
+    workflow: Workflow;
     id: string;
     authenticationLevel: AuthenticationLevel;
     duoSelfEnrollment: boolean;
@@ -92,7 +94,7 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL);
+            const res = await completePushNotificationSignIn(redirectionURL, props.workflow);
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
@@ -133,6 +135,7 @@ const PushNotificationMethod = function (props: Props) {
         }
     }, [
         props.authenticationLevel,
+        props.workflow,
         props.duoSelfEnrollment,
         redirectionURL,
         mounted,

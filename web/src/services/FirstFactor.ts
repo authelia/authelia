@@ -1,3 +1,4 @@
+import { toWorkflowPath, Workflow } from "@models/Workflow";
 import { FirstFactorPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
@@ -14,6 +15,7 @@ export async function postFirstFactor(
     username: string,
     password: string,
     rememberMe: boolean,
+    workflow: Workflow,
     targetURL?: string,
     requestMethod?: string,
 ) {
@@ -31,6 +33,6 @@ export async function postFirstFactor(
         data.requestMethod = requestMethod;
     }
 
-    const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
+    const res = await PostWithOptionalResponse<SignInResponse>(toWorkflowPath(FirstFactorPath, workflow), data);
     return res ? res : ({} as SignInResponse);
 }

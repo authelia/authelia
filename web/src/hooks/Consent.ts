@@ -1,6 +1,7 @@
 import { useRemoteCall } from "@hooks/RemoteCall";
-import { getRequestedScopes } from "@services/Consent";
+import { Workflow } from "@models/Workflow";
+import { getRequestedScopesWorkflow } from "@services/Consent";
 
-export function useRequestedScopes() {
-    return useRemoteCall(getRequestedScopes, []);
+export function useRequestedScopes(workflow: Workflow) {
+    return useRemoteCall(getRequestedScopesWorkflow, [workflow]);
 }

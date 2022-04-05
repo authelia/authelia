@@ -18,6 +18,7 @@ import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
+import { Workflow } from "@models/Workflow";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -26,6 +27,8 @@ import FirstFactorForm from "@views/LoginPortal/FirstFactor/FirstFactorForm";
 import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 
 export interface Props {
+    workflow: Workflow;
+
     duoSelfEnrollment: boolean;
     rememberMe: boolean;
 
@@ -174,6 +177,7 @@ const LoginPortal = function (props: Props) {
                 element={
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
+                            workflow={props.workflow}
                             disabled={firstFactorDisabled}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
@@ -190,6 +194,7 @@ const LoginPortal = function (props: Props) {
                 element={
                     state && userInfo && configuration ? (
                         <SecondFactorForm
+                            workflow={props.workflow}
                             authenticationLevel={state.authentication_level}
                             userInfo={userInfo}
                             configuration={configuration}

@@ -1,29 +1,34 @@
-import React, { useEffect, Fragment, ReactNode } from "react";
+import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
 import {
+    Box,
     Button,
     Grid,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
+    makeStyles,
     Tooltip,
     Typography,
-    makeStyles,
 } from "@material-ui/core";
 import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
 import { useRequestedScopes } from "@hooks/Consent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import LoginLayout from "@layouts/LoginLayout";
-import { acceptConsent, rejectConsent } from "@services/Consent";
+import { toWorkflowName, Workflow, WorkflowType } from "@models/Workflow";
+import { acceptConsent, ConsentGetResponseBody, rejectConsent } from "@services/Consent";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
-export interface Props {}
+export interface Props {
+    workflow: Workflow;
+    setWorkflow: React.Dispatch<React.SetStateAction<Workflow>>;
+}
 
 function scopeNameToAvatar(id: string) {
     switch (id) {
@@ -47,6 +52,17 @@ const ConsentView = function (props: Props) {
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
     const { t: translate } = useTranslation();
+    const [searchParams] = useSearchParams();
+    const [consentInfo, setConsentInfo] = useState<ConsentGetResponseBody | undefined>(undefined);
+
+    useEffect(() => {
+        const workflowID = searchParams.get("workflow_id");
+        if (workflowID !== null && workflowID !== "") {
+            console.log("workflow set", workflowID, "openid_connect");
+            props.setWorkflow({ id: workflowID, type: WorkflowType.OpenIDConnect });
+        }
+        console.log("workflow get", toWorkflowName(props.workflow.type), props.workflow.id);
+    }, [props, searchParams]);
 
     useEffect(() => {
         if (err) {
@@ -56,8 +72,10 @@ const ConsentView = function (props: Props) {
     }, [navigate, resetNotification, createErrorNotification, err]);
 
     useEffect(() => {
-        fetch();
-    }, [fetch]);
+        if (props.workflow.type === WorkflowType.OpenIDConnect) {
+            fetch();
+        }
+    }, [fetch, props.workflow.type]);
 
     const translateScopeNameToDescription = (id: string): string => {
         switch (id) {
@@ -79,7 +97,7 @@ const ConsentView = function (props: Props) {
         if (!resp) {
             return;
         }
-        const res = await acceptConsent(resp.client_id);
+        const res = await acceptConsent(resp.client_id, props.workflow);
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -91,7 +109,7 @@ const ConsentView = function (props: Props) {
         if (!resp) {
             return;
         }
-        const res = await rejectConsent(resp.client_id);
+        const res = await rejectConsent(resp.client_id, props.workflow);
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -104,6 +122,9 @@ const ConsentView = function (props: Props) {
             <LoginLayout id="consent-stage" title={`Permissions Request`} showBrand>
                 <Grid container>
                     <Grid item xs={12}>
+                        <Box>
+                            {props.workflow.id} {toWorkflowName(props.workflow.type)}
+                        </Box>
                         <div>
                             {resp !== undefined && resp.client_description !== "" ? (
                                 <Tooltip title={"Client ID: " + resp.client_id}>

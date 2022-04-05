@@ -15,10 +15,9 @@ import (
 
 // handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
 func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
-
-	if userSession.ConsentChallengeID == nil {
-		ctx.Logger.Errorf("Unable to handle OIDC workflow response because the user session doesn't contain a consent challenge id")
+	challengeID, err := decodeUUIDFromQueryString(ctx.GetWorkflowID())
+	if err != nil {
+		ctx.Logger.Errorf("Unable to handle OIDC workflow response because the request form contains a workflow id that can't be decoded: %v", err)
 
 		respondUnauthorized(ctx, messageOperationFailed)
 
@@ -34,9 +33,18 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID)
+	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
 	if err != nil {
 		ctx.Logger.Errorf("Unable to load consent session from database: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	form, err := consent.GetForm()
+	if err != nil {
+		ctx.Logger.Errorf("Unable to decode consent session request form: %v", err)
 
 		respondUnauthorized(ctx, messageOperationFailed)
 
@@ -52,6 +60,8 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	userSession := ctx.GetSession()
+
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
 		ctx.ReplyOK()
@@ -59,15 +69,26 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.ConsentChallengeID != nil {
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", externalRootURL)}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-		}
-	} else {
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-		}
+	form.Add("workflow_id", encodeUUIDForQueryString(challengeID))
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, form.Encode())}); err != nil {
+		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 	}
+
+	/*
+		if ctx.IsWorkflowOpenIDConnect() {
+			if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent?workflow_id=%s", externalRootURL, encodeUUIDForQueryString(challengeID))}); err != nil {
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			}
+		} else {
+			form.Add("workflow_id", encodeUUIDForQueryString(challengeID))
+
+			if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, form.Encode())}); err != nil {
+				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			}
+		}
+
+	*/
 }
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.

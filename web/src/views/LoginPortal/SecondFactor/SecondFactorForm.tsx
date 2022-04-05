@@ -15,6 +15,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
+import { Workflow } from "@models/Workflow";
 import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
@@ -25,6 +26,7 @@ import PushNotificationMethod from "@views/LoginPortal/SecondFactor/PushNotifica
 import WebauthnMethod from "@views/LoginPortal/SecondFactor/WebauthnMethod";
 
 export interface Props {
+    workflow: Workflow;
     authenticationLevel: AuthenticationLevel;
     userInfo: UserInfo;
     configuration: Configuration;
@@ -112,6 +114,7 @@ const SecondFactorForm = function (props: Props) {
                             path={SecondFactorTOTPSubRoute}
                             element={
                                 <OneTimePasswordMethod
+                                    workflow={props.workflow}
                                     id="one-time-password-method"
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a TOTP secret registered already
@@ -126,6 +129,7 @@ const SecondFactorForm = function (props: Props) {
                             path={SecondFactorWebauthnSubRoute}
                             element={
                                 <WebauthnMethod
+                                    workflow={props.workflow}
                                     id="webauthn-method"
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
@@ -140,6 +144,7 @@ const SecondFactorForm = function (props: Props) {
                             path={SecondFactorPushSubRoute}
                             element={
                                 <PushNotificationMethod
+                                    workflow={props.workflow}
                                     id="push-notification-method"
                                     authenticationLevel={props.authenticationLevel}
                                     duoSelfEnrollment={props.duoSelfEnrollment}

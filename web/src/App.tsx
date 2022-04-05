@@ -16,6 +16,7 @@ import {
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
+import { Workflow, WorkflowType } from "@models/Workflow";
 import * as themes from "@themes/index";
 import { getBasePath } from "@utils/BasePath";
 import {
@@ -54,6 +55,8 @@ function Theme() {
 const App: React.FC = () => {
     const [notification, setNotification] = useState(null as Notification | null);
     const [theme, setTheme] = useState(Theme());
+    const [workflow, setWorkflow] = useState<Workflow>({ id: "", type: WorkflowType.None });
+
     useEffect(() => {
         if (getTheme() === "auto") {
             const query = window.matchMedia("(prefers-color-scheme: dark)");
@@ -78,11 +81,15 @@ const App: React.FC = () => {
                             <Route path={RegisterWebauthnRoute} element={<RegisterWebauthn />} />
                             <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                             <Route path={LogoutRoute} element={<SignOut />} />
-                            <Route path={ConsentRoute} element={<ConsentView />} />
+                            <Route
+                                path={ConsentRoute}
+                                element={<ConsentView workflow={workflow} setWorkflow={setWorkflow} />}
+                            />
                             <Route
                                 path={`${IndexRoute}*`}
                                 element={
                                     <LoginPortal
+                                        workflow={workflow}
                                         duoSelfEnrollment={getDuoSelfEnrollment()}
                                         rememberMe={getRememberMe()}
                                         resetPassword={getResetPassword()}
