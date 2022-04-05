@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/utils"
-
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewCertificatesCmd returns a new Certificates Cmd.
