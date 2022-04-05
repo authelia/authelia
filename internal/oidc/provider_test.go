@@ -84,6 +84,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 
 	assert.NoError(t, err)
 
+	assert.False(t, provider.Pairwise())
+
 	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
 
 	assert.Equal(t, "https://example.com", disco.Issuer)
@@ -95,8 +97,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Equal(t, "https://example.com/api/oidc/revocation", disco.RevocationEndpoint)
 	assert.Equal(t, "", disco.RegistrationEndpoint)
 
-	require.Len(t, disco.CodeChallengeMethodsSupported, 1)
-	assert.Equal(t, "S256", disco.CodeChallengeMethodsSupported[0])
+	assert.Len(t, disco.CodeChallengeMethodsSupported, 1)
+	assert.Contains(t, disco.CodeChallengeMethodsSupported, "S256")
 
 	assert.Len(t, disco.ScopesSupported, 5)
 	assert.Contains(t, disco.ScopesSupported, ScopeOpenID)

@@ -90,78 +90,22 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		compose.OAuth2PKCEFactory,
 	)
 
-	provider.discovery = OpenIDConnectWellKnownConfiguration{
-		CommonDiscoveryOptions: CommonDiscoveryOptions{
-			SubjectTypesSupported: []string{
-				"public",
-			},
-			ResponseTypesSupported: []string{
-				"code",
-				"token",
-				"id_token",
-				"code token",
-				"code id_token",
-				"token id_token",
-				"code token id_token",
-				"none",
-			},
-			ResponseModesSupported: []string{
-				"form_post",
-				"query",
-				"fragment",
-			},
-			ScopesSupported: []string{
-				ScopeOfflineAccess,
-				ScopeOpenID,
-				ScopeProfile,
-				ScopeGroups,
-				ScopeEmail,
-			},
-			ClaimsSupported: []string{
-				"aud",
-				"exp",
-				"iat",
-				"iss",
-				"jti",
-				"rat",
-				"sub",
-				"auth_time",
-				"nonce",
-				ClaimEmail,
-				ClaimEmailVerified,
-				ClaimEmailAlts,
-				ClaimGroups,
-				ClaimPreferredUsername,
-				ClaimDisplayName,
-			},
-		},
-		OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
-			CodeChallengeMethodsSupported: []string{
-				"S256",
-			},
-		},
-		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
-			IDTokenSigningAlgValuesSupported: []string{
-				"RS256",
-			},
-			UserinfoSigningAlgValuesSupported: []string{
-				"none",
-				"RS256",
-			},
-			RequestObjectSigningAlgValuesSupported: []string{
-				"none",
-				"RS256",
-			},
-		},
-	}
-
-	if config.EnablePKCEPlainChallenge {
-		provider.discovery.CodeChallengeMethodsSupported = append(provider.discovery.CodeChallengeMethodsSupported, "plain")
-	}
+	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Pairwise())
 
 	provider.herodot = herodot.NewJSONWriter(nil)
 
 	return provider, nil
+}
+
+// Pairwise returns true if this provider is configured with clients that require pairwise.
+func (p OpenIDConnectProvider) Pairwise() bool {
+	for _, c := range p.Store.clients {
+		if c.SectorIdentifier != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Write writes data with herodot.JSONWriter.

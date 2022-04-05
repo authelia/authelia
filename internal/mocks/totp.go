@@ -7,8 +7,9 @@ package mocks
 import (
 	reflect "reflect"
 
-	model "github.com/authelia/authelia/v4/internal/model"
 	gomock "github.com/golang/mock/gomock"
+
+	model "github.com/authelia/authelia/v4/internal/model"
 )
 
 // MockTOTP is a mock of Provider interface.
