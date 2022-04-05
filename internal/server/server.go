@@ -1,10 +1,14 @@
 package server
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"net"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/logging"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
@@ -15,7 +19,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
@@ -178,10 +181,8 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 	return handler
 }
 
-// Start Authelia's internal webserver with the given configuration and providers.
-func Start(configuration schema.Configuration, providers middlewares.Providers) {
-	logger := logging.Logger()
-
+// CreateServer Create Authelia's internal webserver with the given configuration and providers.
+func CreateServer(configuration schema.Configuration, providers middlewares.Providers) (*fasthttp.Server, net.Listener) {
 	handler := registerRoutes(configuration, providers)
 
 	server := &fasthttp.Server{
@@ -191,36 +192,66 @@ func Start(configuration schema.Configuration, providers middlewares.Providers) 
 		ReadBufferSize:        configuration.Server.ReadBufferSize,
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
+	logger := logging.Logger()
 
 	address := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
 
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		logger.Fatalf("Error initializing listener: %s", err)
-	}
+	var (
+		listener         net.Listener
+		err              error
+		connectionType   string
+		connectionScheme string
+	)
 
 	if configuration.Server.TLS.Certificate != "" && configuration.Server.TLS.Key != "" {
-		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "https", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
-			logger.Fatalf("Could not configure healthcheck: %v", err)
+		connectionType, connectionScheme = "TLS", schemeHTTPS
+		err = server.AppendCert(configuration.Server.TLS.Certificate, configuration.Server.TLS.Key)
+
+		if err != nil {
+			logger.Fatalf("unable to load certificate: %v", err)
 		}
 
-		if configuration.Server.Path == "" {
-			logger.Infof("Listening for TLS connections on '%s' path '/'", address)
-		} else {
-			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
+		if len(configuration.Server.TLS.ClientCertificates) > 0 {
+			caCertPool := x509.NewCertPool()
+
+			for _, path := range configuration.Server.TLS.ClientCertificates {
+				cert, err := os.ReadFile(path)
+				if err != nil {
+					logger.Fatalf("Cannot read client TLS certificate %s: %s", path, err)
+				}
+
+				caCertPool.AppendCertsFromPEM(cert)
+			}
+
+			// ClientCAs should never be nil, otherwise the system cert pool is used for client authentication
+			// but we don't want everybody on the Internet to be able to authenticate.
+			server.TLSConfig.ClientCAs = caCertPool
+			server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 		}
 
-		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
+		listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone())
+		if err != nil {
+			logger.Fatalf("Error initializing listener: %s", err)
+		}
 	} else {
-		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "http", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
-			logger.Fatalf("Could not configure healthcheck: %v", err)
+		connectionType, connectionScheme = "non-TLS", schemeHTTP
+		listener, err = net.Listen("tcp", address)
+		if err != nil {
+			logger.Fatalf("Error initializing listener: %s", err)
 		}
-
-		if configuration.Server.Path == "" {
-			logger.Infof("Listening for non-TLS connections on '%s' path '/'", address)
-		} else {
-			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
-		}
-		logger.Fatal(server.Serve(listener))
 	}
+
+	if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, connectionScheme, configuration.Server.Host,
+		configuration.Server.Path, configuration.Server.Port); err != nil {
+		logger.Fatalf("Could not configure healthcheck: %v", err)
+	}
+
+	actualAddress := listener.Addr().String()
+	if configuration.Server.Path == "" {
+		logger.Infof("Initializing server for %s connections on '%s' path '/'", connectionType, actualAddress)
+	} else {
+		logger.Infof("Initializing server for %s connections on '%s' paths '/' and '%s'", connectionType, actualAddress, configuration.Server.Path)
+	}
+
+	return server, listener
 }

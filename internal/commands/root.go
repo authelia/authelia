@@ -77,7 +77,9 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers)
 
-	server.Start(*config, providers)
+	s, listener := server.CreateServer(*config, providers)
+
+	logger.Fatal(s.Serve(listener))
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {

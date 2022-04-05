@@ -19,6 +19,9 @@ type HostEntry struct {
 }
 
 var hostEntries = []HostEntry{
+	// For unit tests.
+	{Domain: "local.example.com", IP: "127.0.0.1"},
+
 	// For authelia backend.
 	{Domain: "authelia.example.com", IP: "192.168.240.50"},
 
