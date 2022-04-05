@@ -46,9 +46,9 @@ func (c Client) GetID() string {
 	return c.ID
 }
 
-// GetSectorID returns the SectorID.
-func (c Client) GetSectorID() string {
-	return ""
+// GetSectorIdentifier returns the SectorIdentifier for this client.
+func (c Client) GetSectorIdentifier() string {
+	return c.SectorIdentifier
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.

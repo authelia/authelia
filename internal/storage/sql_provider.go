@@ -103,12 +103,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2OpenIDConnectSession:            fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2OpenIDConnectSession),
 		sqlDeactivateOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSession),
 
-		sqlInsertOAuth2ConsentSession:                          fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionResponse:                  fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
-		sqlUpdateOAuth2ConsentSessionGranted:                   fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionByChallengeID:             fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionsBySignature:              fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionsBySignature, tableOAuth2ConsentSession),
-		sqlSelectOAuth2ConsentSessionsBySignaturePreConfigured: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionsBySignaturePreConfigured, tableOAuth2ConsentSession),
+		sqlInsertOAuth2ConsentSession:               fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionResponse:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionGranted:        fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionByChallengeID:  fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
+		sqlSelectOAuth2ConsentSessionsPreConfigured: fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionsPreConfigured, tableOAuth2ConsentSession),
 
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -233,12 +232,11 @@ type SQLProvider struct {
 	sqlDeactivateOAuth2OpenIDConnectSessionByRequestID string
 
 	// Table: oauth2_consent_session.
-	sqlInsertOAuth2ConsentSession                          string
-	sqlUpdateOAuth2ConsentSessionResponse                  string
-	sqlUpdateOAuth2ConsentSessionGranted                   string
-	sqlSelectOAuth2ConsentSessionByChallengeID             string
-	sqlSelectOAuth2ConsentSessionsBySignature              string
-	sqlSelectOAuth2ConsentSessionsBySignaturePreConfigured string
+	sqlInsertOAuth2ConsentSession               string
+	sqlUpdateOAuth2ConsentSessionResponse       string
+	sqlUpdateOAuth2ConsentSessionGranted        string
+	sqlSelectOAuth2ConsentSessionByChallengeID  string
+	sqlSelectOAuth2ConsentSessionsPreConfigured string
 
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
@@ -409,18 +407,11 @@ func (p *SQLProvider) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 	return consent, nil
 }
 
-// LoadOAuth2ConsentSessionsBySignature returns an OAuth2.0 consents given the consent signature.
-func (p *SQLProvider) LoadOAuth2ConsentSessionsBySignature(ctx context.Context, clientID string, subject uuid.UUID, preConfigured bool) (rows *ConsentSessionRows, err error) {
+// LoadOAuth2ConsentSessionsPreConfigured returns an OAuth2.0 consents that are pre-configured given the consent signature.
+func (p *SQLProvider) LoadOAuth2ConsentSessionsPreConfigured(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentSessionRows, err error) {
 	var r *sqlx.Rows
 
-	switch {
-	case preConfigured:
-		r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionsBySignaturePreConfigured, clientID, subject)
-	default:
-		r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionsBySignature, clientID, subject)
-	}
-
-	if err != nil {
+	if r, err = p.db.QueryxContext(ctx, p.sqlSelectOAuth2ConsentSessionsPreConfigured, clientID, subject); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &ConsentSessionRows{}, nil
 		}

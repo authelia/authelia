@@ -96,11 +96,11 @@ type OpenIDConnectStore struct {
 
 // Client represents the client internally.
 type Client struct {
-	ID          string
-	SectorID    string
-	Description string
-	Secret      []byte
-	Public      bool
+	ID               string
+	SectorIdentifier string
+	Description      string
+	Secret           []byte
+	Public           bool
 
 	Policy authorization.Level
 

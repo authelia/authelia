@@ -226,19 +226,19 @@ func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionByChallengeID(arg0, a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionByChallengeID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionByChallengeID), arg0, arg1)
 }
 
-// LoadOAuth2ConsentSessionsBySignature mocks base method.
-func (m *MockStorage) LoadOAuth2ConsentSessionsBySignature(arg0 context.Context, arg1 string, arg2 uuid.UUID, arg3 bool) (*storage.ConsentSessionRows, error) {
+// LoadOAuth2ConsentSessionsPreConfigured mocks base method.
+func (m *MockStorage) LoadOAuth2ConsentSessionsPreConfigured(arg0 context.Context, arg1 string, arg2 uuid.UUID) (*storage.ConsentSessionRows, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOAuth2ConsentSessionsBySignature", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "LoadOAuth2ConsentSessionsPreConfigured", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*storage.ConsentSessionRows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadOAuth2ConsentSessionsBySignature indicates an expected call of LoadOAuth2ConsentSessionsBySignature.
-func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionsBySignature(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+// LoadOAuth2ConsentSessionsPreConfigured indicates an expected call of LoadOAuth2ConsentSessionsPreConfigured.
+func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionsPreConfigured(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionsBySignature", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionsBySignature), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionsPreConfigured", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionsPreConfigured), arg0, arg1, arg2)
 }
 
 // LoadOAuth2Session mocks base method.

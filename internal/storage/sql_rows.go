@@ -24,6 +24,10 @@ func (r *ConsentSessionRows) Next() bool {
 
 // Close the rows.
 func (r *ConsentSessionRows) Close() (err error) {
+	if r.rows == nil {
+		return nil
+	}
+
 	return r.rows.Close()
 }
 
