@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/logging"
-
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
@@ -19,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
