@@ -342,6 +342,41 @@ their redirect URIs are as follows:
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
 4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
 
+#### sector_identifier
+
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+default: ''
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-red }
+</div>
+
+Must be an empty string or the host component of a URL. This is commonly just the domain name, but may also include a 
+port.
+
+Authelia utilizes UUID version 4 subject identifiers. By default the public subject identifier type is utilized for all
+clients. This means the subject identifiers will be the same for all clients. This configuration option enables pairwise
+for this client, and configures the sector identifier utilized for both the storage and the lookup of the subject 
+identifier. 
+
+1. All clients who do not have this configured will generate the same subject identifier for a particular user regardless
+   of which client obtains the ID token. 
+2. All clients which have the same sector identifier will: 
+   1. have the same subject identifier for a particular user when compared to clients with the same sector identifier.
+   2. have a completely different subject identifier for a particular user whe compared to:
+      1. any client with the public subject identifier type.
+      2. any client with a differing sector identifier.
+
+In specific but limited scenarios this option is beneficial for privacy reasons. In particular this is useful when the
+party utilizing the _Authelia_ [OpenID Connect] Authorization Server is foreign and not controlled by the user. It would
+prevent the third party utilizing the subject identifier with another third party in order to track the user.
+
+Keep in mind depending on the other claims they may still be able to perform this tracking and it is not a silver bullet.
+There are very few benefits when utilizing this in a homelab or business where no third party is utilizing 
+the server.
+
 #### grant_types
 
 <div markdown="1">

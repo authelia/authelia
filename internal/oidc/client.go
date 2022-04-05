@@ -19,6 +19,8 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		Policy: authorization.PolicyToLevel(config.Policy),
 
+		SectorIdentifier: config.SectorIdentifier.String(),
+
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
@@ -46,9 +48,9 @@ func (c Client) GetID() string {
 	return c.ID
 }
 
-// GetSectorID returns the SectorID.
-func (c Client) GetSectorID() string {
-	return ""
+// GetSectorIdentifier returns the SectorID.
+func (c Client) GetSectorIdentifier() string {
+	return c.SectorIdentifier
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.

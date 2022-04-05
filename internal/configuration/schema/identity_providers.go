@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"net/url"
+	"time"
+)
 
 // IdentityProvidersConfiguration represents the IdentityProviders 2.0 configuration for Authelia.
 type IdentityProvidersConfiguration struct {
@@ -35,7 +38,8 @@ type OpenIDConnectClientConfiguration struct {
 
 	Policy string `koanf:"authorization_policy"`
 
-	RedirectURIs []string `koanf:"redirect_uris"`
+	RedirectURIs     []string `koanf:"redirect_uris"`
+	SectorIdentifier url.URL  `koanf:"sector_identifier"`
 
 	Audience      []string `koanf:"audience"`
 	Scopes        []string `koanf:"scopes"`

@@ -799,6 +799,11 @@ notifier:
         # redirect_uris:
         # - https://oidc.example.com:8080/oauth2/callback
 
+        ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
+        ## necessary. Read the documentation for more information.
+        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
+        # sector_identifier: example.com
+
         ## Grant Types configures which grants this client can obtain.
         ## It's not recommended to define this unless you know what you're doing.
         # grant_types:

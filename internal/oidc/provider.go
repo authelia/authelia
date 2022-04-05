@@ -155,6 +155,13 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		},
 	}
 
+	for _, c := range provider.Store.clients {
+		if c.SectorIdentifier != "" {
+			provider.discovery.SubjectTypesSupported = append(provider.discovery.SubjectTypesSupported, "pairwise")
+			break
+		}
+	}
+
 	if config.EnablePKCEPlainChallenge {
 		provider.discovery.CodeChallengeMethodsSupported = append(provider.discovery.CodeChallengeMethodsSupported, "plain")
 	}

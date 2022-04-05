@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -64,13 +65,22 @@ func TestShouldRaiseErrorWhenOIDCServerIssuerPrivateKeyPathInvalid(t *testing.T)
 }
 
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
+	mustParseURL := func(u string) url.URL {
+		out, err := url.Parse(u)
+		if err != nil {
+			panic(err)
+		}
+
+		return *out
+	}
+
 	testCases := []struct {
 		Name    string
 		Clients []schema.OpenIDConnectClientConfiguration
-		Errors  []error
+		Errors  []string
 	}{
 		{
-			Name: "empty",
+			Name: "EmptyIDAndSecret",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "",
@@ -79,13 +89,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs: []string{},
 				},
 			},
-			Errors: []error{
-				fmt.Errorf(errFmtOIDCClientInvalidSecret, ""),
-				errors.New(errFmtOIDCClientsWithEmptyID),
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidSecret, ""),
+				errFmtOIDCClientsWithEmptyID,
 			},
 		},
 		{
-			Name: "client-1",
+			Name: "InvalidPolicy",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-1",
@@ -96,10 +106,10 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []error{fmt.Errorf(errFmtOIDCClientInvalidPolicy, "client-1", "a-policy")},
+			Errors: []string{fmt.Sprintf(errFmtOIDCClientInvalidPolicy, "client-1", "a-policy")},
 		},
 		{
-			Name: "client-duplicate",
+			Name: "ClientIDDuplicated",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "client-x",
@@ -114,10 +124,10 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs: []string{},
 				},
 			},
-			Errors: []error{errors.New(errFmtOIDCClientsDuplicateID)},
+			Errors: []string{errFmtOIDCClientsDuplicateID},
 		},
 		{
-			Name: "client-check-uri-parse",
+			Name: "RedirectURIInvalid",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-parse",
@@ -128,12 +138,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []error{
-				fmt.Errorf(errFmtOIDCClientRedirectURICantBeParsed, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")),
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientRedirectURICantBeParsed, "client-check-uri-parse", "http://abc@%two", errors.New("parse \"http://abc@%two\": invalid URL escape \"%tw\"")),
 			},
 		},
 		{
-			Name: "client-check-uri-abs",
+			Name: "RedirectURINotAbsolute",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-abs",
@@ -144,8 +154,47 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					},
 				},
 			},
-			Errors: []error{
-				fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, "client-check-uri-abs", "google.com"),
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientRedirectURIAbsolute, "client-check-uri-abs", "google.com"),
+			},
+		},
+		{
+			Name: "InvalidSectorIdentifierInvalidURL",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-invalid-sector",
+					Secret: "a-secret",
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					SectorIdentifier: mustParseURL("https://user:pass@example.com/path?query=abc#fragment"),
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "scheme", "https"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "path", "/path"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "query", "query=abc"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "fragment", "fragment"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "username", "user"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "password", "pass"),
+			},
+		},
+		{
+			Name: "InvalidSectorIdentifierInvalidHost",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-invalid-sector",
+					Secret: "a-secret",
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					SectorIdentifier: mustParseURL("example.com/path?query=abc#fragment"),
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierHost, "client-invalid-sector", "example.com/path?query=abc#fragment"),
 			},
 		},
 	}
@@ -163,7 +212,14 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 			ValidateIdentityProviders(config, validator)
 
-			assert.ElementsMatch(t, validator.Errors(), tc.Errors)
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors))
+			for i, errStr := range tc.Errors {
+				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
+					assert.EqualError(t, errs[i], errStr)
+				})
+			}
 		})
 	}
 }
