@@ -102,7 +102,8 @@ type Client struct {
 	Secret           []byte
 	Public           bool
 
-	Policy authorization.Level
+	Policy          authorization.Level
+	ConsentDuration *time.Duration
 
 	Audience      []string
 	Scopes        []string
@@ -132,12 +133,14 @@ type ConsentGetResponseBody struct {
 	ClientDescription string   `json:"client_description"`
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
+	PreConfiguration  bool     `json:"pre_configuration"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
 	ClientID       string `json:"client_id"`
 	AcceptOrReject string `json:"accept_or_reject"`
+	PreConfigure   bool   `json:"pre_configure"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.

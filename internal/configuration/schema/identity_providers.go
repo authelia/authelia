@@ -33,7 +33,8 @@ type OpenIDConnectClientConfiguration struct {
 	Secret      string `koanf:"secret"`
 	Public      bool   `koanf:"public"`
 
-	Policy string `koanf:"authorization_policy"`
+	Policy          string         `koanf:"authorization_policy"`
+	ConsentDuration *time.Duration `koanf:"consent_duration"`
 
 	RedirectURIs []string `koanf:"redirect_uris"`
 

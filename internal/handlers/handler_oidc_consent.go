@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -76,6 +77,17 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 			return
 		}
 
+		if body.PreConfigure {
+			if client.ConsentDuration == nil {
+				ctx.Logger.Warnf("Consent session with challenge id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID.String(), userSession.Username)
+			} else {
+				expiresAt := time.Now().Add(*client.ConsentDuration)
+				consent.ExpiresAt = &expiresAt
+
+				ctx.Logger.Debugf("Consent session with challenge id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID.String(), userSession.Username, consent.ExpiresAt)
+			}
+		}
+
 		consent.GrantedScopes = consent.RequestedScopes
 		consent.GrantedAudience = consent.RequestedAudience
 
@@ -85,7 +97,7 @@ func oidcConsentPOST(ctx *middlewares.AutheliaCtx) {
 	case reject:
 		authorized = false
 	default:
-		ctx.Logger.Warnf("User '%s' tried to reply to consent with an unexpected verb", userSession.Username)
+		ctx.Logger.Warnf("User '%s' tried to reply to consent with an unexpected verb '%s'", userSession.Username, body.AcceptOrReject)
 		ctx.ReplyBadRequest()
 
 		return

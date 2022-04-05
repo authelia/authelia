@@ -17,7 +17,8 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		Secret:      []byte(config.Secret),
 		Public:      config.Public,
 
-		Policy: authorization.PolicyToLevel(config.Policy),
+		Policy:          authorization.PolicyToLevel(config.Policy),
+		ConsentDuration: config.ConsentDuration,
 
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
@@ -56,6 +57,7 @@ func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Cons
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
+		PreConfiguration:  c.ConsentDuration != nil,
 	}
 
 	if consent != nil {
