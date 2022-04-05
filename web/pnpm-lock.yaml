@@ -10,7 +10,7 @@ specifiers:
   '@material-ui/core': 4.12.4
   '@material-ui/icons': 4.11.3
   '@material-ui/styles': 4.11.5
-  '@testing-library/jest-dom': 5.16.3
+  '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.0.0
   '@types/node': 16.11.26
   '@types/qrcode.react': 1.0.2
@@ -86,7 +86,7 @@ dependencies:
 devDependencies:
   '@commitlint/cli': 16.2.3
   '@commitlint/config-conventional': 16.2.1
-  '@testing-library/jest-dom': 5.16.3
+  '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.0.0_react-dom@18.0.0+react@18.0.0
   '@types/node': 16.11.26
   '@types/qrcode.react': 1.0.2
@@ -2318,8 +2318,8 @@ packages:
       pretty-format: 27.5.1
     dev: true
 
-  /@testing-library/jest-dom/5.16.3:
-    resolution: {integrity: sha512-u5DfKj4wfSt6akfndfu1eG06jsdyA/IUrlX2n3pyq5UXgXMhXY+NJb8eNK/7pqPWAhCKsCGWDdDO0zKMKAYkEA==}
+  /@testing-library/jest-dom/5.16.4:
+    resolution: {integrity: sha512-Gy+IoFutbMQcky0k+bqqumXZ1cTGswLsFqmNLzNdSKkU9KGV2u9oXhukCbbJ9/LRPKiqwxEE8VpV/+YZlfkPUA==}
     engines: {node: '>=8', npm: '>=6', yarn: '>=1'}
     dependencies:
       '@babel/runtime': 7.17.8
