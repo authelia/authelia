@@ -16,7 +16,7 @@ theme: light
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-jwt_secret: a_very_important_secret
+# jwt_secret: a_very_important_secret
 
 ## Default redirection URL
 ##
@@ -25,7 +25,7 @@ jwt_secret: a_very_important_secret
 ## in such a case.
 ##
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
-default_redirection_url: https://home.example.com/
+# default_redirection_url: https://home.example.com/
 
 ##
 ## Server Configuration
@@ -154,12 +154,12 @@ webauthn:
 ##
 ## Parameters used to contact the Duo API. Those are generated when you protect an application of type
 ## "Partner Auth API" in the management panel.
-duo_api:
-  hostname: api-123456789.example.com
-  integration_key: ABCDEF
+# duo_api:
+  # hostname: api-123456789.example.com
+  # integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-  secret_key: 1234567890abcdefghifjkl
-  enable_self_enrollment: false
+  # secret_key: 1234567890abcdefghifjkl
+  # enable_self_enrollment: false
 
 ##
 ## NTP Configuration
@@ -216,7 +216,7 @@ authentication_backend:
   ## This is the recommended Authentication Provider in production
   ## because it allows Authelia to offload the stateful operations
   ## onto the LDAP service.
-  ldap:
+  # ldap:
     ## The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
     ## Acceptable options are as follows:
     ## - 'activedirectory' - For Microsoft Active Directory.
@@ -226,33 +226,33 @@ authentication_backend:
     ## Depending on the option here certain other values in this section have a default value, notably all of the
     ## attribute mappings have a default value that this config overrides, you can read more about these default values
     ## at https://www.authelia.com/docs/configuration/authentication/ldap.html#defaults
-    implementation: custom
+    # implementation: custom
 
     ## The url to the ldap server. Format: <scheme>://<address>[:<port>].
     ## Scheme can be ldap or ldaps in the format (port optional).
-    url: ldap://127.0.0.1
+    # url: ldap://127.0.0.1
 
     ## The dial timeout for LDAP.
-    timeout: 5s
+    # timeout: 5s
 
     ## Use StartTLS with the LDAP connection.
-    start_tls: false
+    # start_tls: false
 
-    tls:
+    # tls:
       ## Server Name for certificate validation (in case it's not set correctly in the URL).
       # server_name: ldap.example.com
 
       ## Skip verifying the server certificate (to allow a self-signed certificate).
       ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
       ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
-      skip_verify: false
+      # skip_verify: false
 
       ## Minimum TLS version for either Secure LDAP or LDAP StartTLS.
-      minimum_version: TLS1.2
+      # minimum_version: TLS1.2
 
     ## The distinguished name of the container searched for objects in the directory information tree.
     ## See also: additional_users_dn, additional_groups_dn.
-    base_dn: dc=example,dc=com
+    # base_dn: dc=example,dc=com
 
     ## The attribute holding the username of the user. This attribute is used to populate the username in the session
     ## information. It was introduced due to #561 to handle case insensitive search queries. For you information,
@@ -266,7 +266,7 @@ authentication_backend:
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
     ## i.e. with this set to OU=Users and base_dn set to DC=a,DC=com; OU=Users,DC=a,DC=com is searched for users.
-    additional_users_dn: ou=users
+    # additional_users_dn: ou=users
 
     ## The users filter used in search queries to find the user profile based on input filled in login form.
     ## Various placeholders are available in the user filter which you can read about in the documentation which can
@@ -280,11 +280,11 @@ authentication_backend:
     ##
     ## To allow sign in both with username and email, one can use a filter like
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    users_filter: (&({username_attribute}={input})(objectClass=person))
+    # users_filter: (&({username_attribute}={input})(objectClass=person))
 
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
-    additional_groups_dn: ou=groups
+    # additional_groups_dn: ou=groups
 
     ## The groups filter used in search queries to find the groups based on relevant authenticated user.
     ## Various placeholders are available in the groups filter which you can read about in the documentation which can
@@ -292,7 +292,7 @@ authentication_backend:
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
     ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
-    groups_filter: (&(member={dn})(objectClass=groupOfNames))
+    # groups_filter: (&(member={dn})(objectClass=groupOfNames))
 
     ## The attribute holding the name of the group.
     # group_name_attribute: cn
@@ -305,9 +305,9 @@ authentication_backend:
     # display_name_attribute: displayName
 
     ## The username and password of the admin user.
-    user: cn=admin,dc=example,dc=com
+    # user: cn=admin,dc=example,dc=com
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    password: password
+    # password: password
 
   ##
   ## File (Authentication Provider)
@@ -396,17 +396,22 @@ access_control:
   default_policy: deny
 
   networks:
-    - name: internal
+    - name: private-range
       networks:
-        - 10.10.0.0/16
-        - 192.168.2.0/24
-    - name: VPN
-      networks: 10.9.0.0/16
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    # - name: internal
+    #   networks:
+    #     - 10.10.0.0/16
+    #     - 192.168.2.0/24
+    # - name: VPN
+    #   networks: 10.9.0.0/16
 
-  rules:
+  # rules:
     ## Rules applied to everyone
-    - domain: 'public.example.com'
-      policy: bypass
+    # - domain: 'public.example.com'
+    #   policy: bypass
 
     ## Domain Regex examples. Generally we recommend just using a standard domain.
     # - domain_regex: '^(?P<User>\w+)\.example\.com$'
@@ -420,64 +425,64 @@ access_control:
     # - domain_regex: '^.*\.example\.com$'
     #   policy: two_factor
 
-    - domain: 'secure.example.com'
-      policy: one_factor
+    # - domain: 'secure.example.com'
+    #   policy: one_factor
       ## Network based rule, if not provided any network matches.
-      networks:
-        - internal
-        - VPN
-        - 192.168.1.0/24
-        - 10.0.0.1
+    #   networks:
+    #     - internal
+    #     - VPN
+    #     - 192.168.1.0/24
+    #     - 10.0.0.1
 
-    - domain:
-        - 'secure.example.com'
-        - 'private.example.com'
-      policy: two_factor
+    # - domain:
+    #     - 'secure.example.com'
+    #     - 'private.example.com'
+    #   policy: two_factor
 
-    - domain: 'singlefactor.example.com'
-      policy: one_factor
+    # - domain: 'singlefactor.example.com'
+    #   policy: one_factor
 
     ## Rules applied to 'admins' group
-    - domain: 'mx2.mail.example.com'
-      subject: 'group:admins'
-      policy: deny
+    # - domain: 'mx2.mail.example.com'
+    #   subject: 'group:admins'
+    #   policy: deny
 
-    - domain: '*.example.com'
-      subject:
-        - 'group:admins'
-        - 'group:moderators'
-      policy: two_factor
+    # - domain: '*.example.com'
+    #   subject:
+    #     - 'group:admins'
+    #     - 'group:moderators'
+    #   policy: two_factor
 
     ## Rules applied to 'dev' group
-    - domain: 'dev.example.com'
-      resources:
-        - '^/groups/dev/.*$'
-      subject: 'group:dev'
-      policy: two_factor
+    # - domain: 'dev.example.com'
+    #   resources:
+    #     - '^/groups/dev/.*$'
+    #   subject: 'group:dev'
+    #   policy: two_factor
 
     ## Rules applied to user 'john'
-    - domain: 'dev.example.com'
-      resources:
-        - '^/users/john/.*$'
-      subject: 'user:john'
-      policy: two_factor
+    # - domain: 'dev.example.com'
+    #   resources:
+    #     - '^/users/john/.*$'
+    #   subject: 'user:john'
+    #   policy: two_factor
 
     ## Rules applied to user 'harry'
-    - domain: 'dev.example.com'
-      resources:
-        - '^/users/harry/.*$'
-      subject: 'user:harry'
-      policy: two_factor
+    # - domain: 'dev.example.com'
+    #   resources:
+    #     - '^/users/harry/.*$'
+    #   subject: 'user:harry'
+    #   policy: two_factor
 
     ## Rules applied to user 'bob'
-    - domain: '*.mail.example.com'
-      subject: 'user:bob'
-      policy: two_factor
-    - domain: 'dev.example.com'
-      resources:
-        - '^/users/bob/.*$'
-      subject: 'user:bob'
-      policy: two_factor
+    # - domain: '*.mail.example.com'
+    #   subject: 'user:bob'
+    #   policy: two_factor
+    # - domain: 'dev.example.com'
+    #   resources:
+    #     - '^/users/bob/.*$'
+    #   subject: 'user:bob'
+    #   policy: two_factor
 
 ##
 ## Session Provider Configuration
@@ -523,9 +528,9 @@ session:
   ##
   ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
   ##
-  redis:
-    host: 127.0.0.1
-    port: 6379
+  # redis:
+    # host: 127.0.0.1
+    # port: 6379
     ## Use a unix socket instead
     # host: /var/run/redis/redis.sock
 
@@ -533,16 +538,16 @@ session:
     # username: authelia
 
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    password: authelia
+    # password: authelia
 
     ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
-    database_index: 0
+    # database_index: 0
 
     ## The maximum number of concurrent active connections to Redis.
-    maximum_active_connections: 8
+    # maximum_active_connections: 8
 
     ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
-    minimum_idle_connections: 0
+    # minimum_idle_connections: 0
 
     ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
     # tls:
@@ -606,7 +611,7 @@ regulation:
 ## Storage Provider Configuration
 ##
 ## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
-storage:
+# storage:
   ## The encryption key that is used to encrypt sensitive information in the database. Must be a string with a minimum
   ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it.
   # encryption_key: you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this
@@ -625,14 +630,14 @@ storage:
   ##
   ## MySQL / MariaDB (Storage Provider)
   ##
-  mysql:
-    host: 127.0.0.1
-    port: 3306
-    database: authelia
-    username: authelia
+  # mysql:
+    # host: 127.0.0.1
+    # port: 3306
+    # database: authelia
+    # username: authelia
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    password: mypassword
-    timeout: 5s
+    # password: mypassword
+    # timeout: 5s
 
   ##
   ## PostgreSQL (Storage Provider)
@@ -679,55 +684,55 @@ notifier:
   ##        (only works for unauthenticated connections)
   ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
   ##     (configure in tls section)
-  smtp:
+  # smtp:
     ## The SMTP host to connect to.
-    host: 127.0.0.1
+    # host: 127.0.0.1
 
     ## The port to connect to the SMTP host on.
-    port: 1025
+    # port: 1025
 
     ## The connection timeout.
-    timeout: 5s
+    # timeout: 5s
 
     ## The username used for SMTP authentication.
-    username: test
+    # username: test
 
     ## The password used for SMTP authentication.
     ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    password: password
+    # password: password
 
     ## The sender is used to is used for the MAIL FROM command and the FROM header.
     ## If this is not defined and the username is an email, we use the username as this value. This can either be just
     ## an email address or the RFC5322 'Name <email address>' format.
-    sender: "Authelia <admin@example.com>"
+    # sender: "Authelia <admin@example.com>"
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
-    identifier: localhost
+    # identifier: localhost
 
     ## Subject configuration of the emails sent. {title} is replaced by the text from the notifier.
-    subject: "[Authelia] {title}"
+    # subject: "[Authelia] {title}"
 
     ## This address is used during the startup check to verify the email configuration is correct.
     ## It's not important what it is except if your email server only allows local delivery.
-    startup_check_address: test@authelia.com
+    # startup_check_address: test@authelia.com
 
     ## By default we require some form of TLS. This disables this check though is not advised.
-    disable_require_tls: false
+    # disable_require_tls: false
 
     ## Disables sending HTML formatted emails.
-    disable_html_emails: false
+    # disable_html_emails: false
 
-    tls:
+    # tls:
       ## Server Name for certificate validation (in case you are using the IP or non-FQDN in the host option).
       # server_name: smtp.example.com
 
       ## Skip verifying the server certificate (to allow a self-signed certificate).
       ## In preference to setting this we strongly recommend you add the public portion of the certificate to the
       ## certificates directory which is defined by the `certificates_directory` option at the top of the config.
-      skip_verify: false
+      # skip_verify: false
 
       ## Minimum TLS version for either StartTLS or SMTPS.
-      minimum_version: TLS1.2
+      # minimum_version: TLS1.2
 
 ##
 ## Identity Providers
