@@ -4,19 +4,19 @@ import (
 	"text/template"
 )
 
-// PlainTextEmailTemplateStep2 the template of email that the user will receive for identity verification.
-var PlainTextEmailTemplateStep2 *template.Template
+// EmailBasicPlainText the template of email that the user will receive for identity verification.
+var EmailBasicPlainText *template.Template
 
 func init() {
-	t, err := template.New("text_email_template").Parse(emailPlainTextContentStep2)
+	t, err := template.New("text_email_template_basic").Parse(emailContentBasicPlainText)
 	if err != nil {
 		panic(err)
 	}
 
-	PlainTextEmailTemplateStep2 = t
+	EmailBasicPlainText = t
 }
 
-const emailPlainTextContentStep2 = `
+const emailContentBasicPlainText = `
 Your password has been successfully reset.
 If you did not initiate the process your credentials might have been compromised. You should reset your password and contact an administrator.
 

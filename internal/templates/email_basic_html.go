@@ -4,19 +4,19 @@ import (
 	"text/template"
 )
 
-// HTMLEmailTemplateStep2 the template of email that the user will receive for identity verification.
-var HTMLEmailTemplateStep2 *template.Template
+// EmailBasicHTML the template of email that the user will receive for identity verification.
+var EmailBasicHTML *template.Template
 
 func init() {
-	t, err := template.New("html_email_template").Parse(emailHTMLContentStep2)
+	t, err := template.New("html_email_template_basic").Parse(emailContentBasicHTML)
 	if err != nil {
 		panic(err)
 	}
 
-	HTMLEmailTemplateStep2 = t
+	EmailBasicHTML = t
 }
 
-const emailHTMLContentStep2 = `
+const emailContentBasicHTML = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 

@@ -86,7 +86,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 				"remoteIP":    ctx.RemoteIP().String(),
 			}
 
-			err = templates.HTMLEmailTemplateStep1.Execute(bufHTML, htmlParams)
+			err = templates.EmailIdentityVerificationHTML.Execute(bufHTML, htmlParams)
 
 			if err != nil {
 				ctx.Error(err, messageOperationFailed)
@@ -100,7 +100,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			"displayName": identity.DisplayName,
 		}
 
-		err = templates.PlainTextEmailTemplateStep1.Execute(bufText, textParams)
+		err = templates.EmailIdentityVerificationPlainText.Execute(bufText, textParams)
 
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)

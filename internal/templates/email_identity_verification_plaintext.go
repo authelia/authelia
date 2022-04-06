@@ -4,19 +4,19 @@ import (
 	"text/template"
 )
 
-// PlainTextEmailTemplateStep1 the template of email that the user will receive for identity verification.
-var PlainTextEmailTemplateStep1 *template.Template
+// EmailIdentityVerificationPlainText the template of email that the user will receive for identity verification.
+var EmailIdentityVerificationPlainText *template.Template
 
 func init() {
-	t, err := template.New("text_email_template").Parse(emailPlainTextContentStep1)
+	t, err := template.New("email_identity_verification_plaintext").Parse(emailContentIdentityVerificationPlainText)
 	if err != nil {
 		panic(err)
 	}
 
-	PlainTextEmailTemplateStep1 = t
+	EmailIdentityVerificationPlainText = t
 }
 
-const emailPlainTextContentStep1 = `
+const emailContentIdentityVerificationPlainText = `
 This email has been sent to you in order to validate your identity.
 If you did not initiate the process your credentials might have been compromised. You should reset your password and contact an administrator.
 

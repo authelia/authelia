@@ -4,19 +4,19 @@ import (
 	"text/template"
 )
 
-// HTMLEmailTemplateStep1 the template of email that the user will receive for identity verification.
-var HTMLEmailTemplateStep1 *template.Template
+// EmailIdentityVerificationHTML the template of email that the user will receive for identity verification.
+var EmailIdentityVerificationHTML *template.Template
 
 func init() {
-	t, err := template.New("html_email_template").Parse(emailHTMLContentStep1)
+	t, err := template.New("email_identity_verification_html").Parse(emailContentIdentityVerificationHTML)
 	if err != nil {
 		panic(err)
 	}
 
-	HTMLEmailTemplateStep1 = t
+	EmailIdentityVerificationHTML = t
 }
 
-const emailHTMLContentStep1 = `
+const emailContentIdentityVerificationHTML = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -340,18 +340,6 @@ const emailHTMLContentStep1 = `
                                                 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;"
                                                    st-content="fulltext-content">
                                                    <a href="{{.url}}" class="button">{{.button}}</a>
-                                                </td>
-                                             </tr>
-                                             <!-- spacing -->
-                                             <tr>
-                                                <td width="100%" height="20"
-                                                   style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">
-                                                   &nbsp;</td>
-                                             </tr>
-                                             <!-- End of spacing -->
-                                             <tr>
-                                                <td style="word-break: break-word; overflow-wrap: break-word; text-align:center; line-height: 30px;">
-                                                   <a href="{{.url}}" class="link">{{.url}}</a>
                                                 </td>
                                              </tr>
                                              <!-- End of content -->

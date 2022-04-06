@@ -56,28 +56,28 @@ func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *
 		return
 	}
 
-	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep1+".html")); err == nil {
-		templates.HTMLEmailTemplateStep1 = t
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameIdentityVerification+".html")); err == nil {
+		templates.EmailIdentityVerificationHTML = t
 	} else {
-		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep1+".html", err))
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameIdentityVerification+".html", err))
 	}
 
-	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep1+".txt")); err == nil {
-		templates.PlainTextEmailTemplateStep1 = t
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameIdentityVerification+".txt")); err == nil {
+		templates.EmailIdentityVerificationPlainText = t
 	} else {
-		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep1+".txt", err))
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameIdentityVerification+".txt", err))
 	}
 
-	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep2+".html")); err == nil {
-		templates.HTMLEmailTemplateStep2 = t
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameBasic+".html")); err == nil {
+		templates.EmailBasicHTML = t
 	} else {
-		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep2+".html", err))
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameBasic+".html", err))
 	}
 
-	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameStep2+".txt")); err == nil {
-		templates.PlainTextEmailTemplateStep2 = t
+	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameBasic+".txt")); err == nil {
+		templates.EmailBasicPlainText = t
 	} else {
-		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameStep2+".txt", err))
+		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameBasic+".txt", err))
 	}
 }
 

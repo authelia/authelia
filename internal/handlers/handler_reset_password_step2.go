@@ -91,7 +91,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 			"remoteIP":    ctx.RemoteIP().String(),
 		}
 
-		err = templates.HTMLEmailTemplateStep2.Execute(bufHTML, htmlParams)
+		err = templates.EmailBasicHTML.Execute(bufHTML, htmlParams)
 
 		if err != nil {
 			ctx.Logger.Error(err)
@@ -106,7 +106,7 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		"displayName": userInfo.DisplayName,
 	}
 
-	err = templates.PlainTextEmailTemplateStep2.Execute(bufText, textParams)
+	err = templates.EmailBasicPlainText.Execute(bufText, textParams)
 
 	if err != nil {
 		ctx.Logger.Error(err)
