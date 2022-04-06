@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Link } from "@material-ui/core";
+import { Link } from "@mui/material";
 
 import AppleStore from "@assets/images/applestore-badge.svg";
 import GooglePlay from "@assets/images/googleplay-badge.svg";

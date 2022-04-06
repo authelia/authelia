@@ -1,7 +1,7 @@
 import React from "react";
 
-import { makeStyles } from "@material-ui/core";
-import TextField, { TextFieldProps } from "@material-ui/core/TextField";
+import TextField, { TextFieldProps } from "@mui/material/TextField";
+import makeStyles from "@mui/styles/makeStyles";
 
 /**
  * This component fixes outlined TextField

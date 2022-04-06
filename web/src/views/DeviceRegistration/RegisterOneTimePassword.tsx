@@ -2,8 +2,9 @@ import React, { useEffect, useCallback, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { makeStyles, Typography, Button, IconButton, Link, CircularProgress, TextField } from "@material-ui/core";
-import { red } from "@material-ui/core/colors";
+import { Typography, Button, IconButton, Link, CircularProgress, TextField } from "@mui/material";
+import { red } from "@mui/material/colors";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import QRCode from "qrcode.react";
 import { useTranslation } from "react-i18next";
@@ -78,6 +79,7 @@ const RegisterOneTimePassword = function () {
                     navigator.clipboard.writeText(`${text}`);
                     createSuccessNotification(`${action}`);
                 }}
+                size="large"
             >
                 <FontAwesomeIcon icon={icon} />
             </IconButton>

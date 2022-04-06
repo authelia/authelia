@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, makeStyles, Typography } from "@material-ui/core";
+import { Button, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";

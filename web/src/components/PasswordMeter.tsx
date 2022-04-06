@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { makeStyles } from "@material-ui/core";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";

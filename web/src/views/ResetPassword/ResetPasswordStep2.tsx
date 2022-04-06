@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Button, Grid, IconButton, InputAdornment } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -130,6 +131,7 @@ const ResetPasswordStep2 = function () {
                                         aria-label="toggle password visibility"
                                         onClick={(e) => setShowPassword(!showPassword)}
                                         edge="end"
+                                        size="large"
                                     >
                                         {showPassword ? <VisibilityOff></VisibilityOff> : <Visibility></Visibility>}
                                     </IconButton>

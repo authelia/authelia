@@ -1,17 +1,8 @@
 import React, { useEffect, Fragment, ReactNode } from "react";
 
-import {
-    Button,
-    Grid,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    Tooltip,
-    Typography,
-    makeStyles,
-} from "@material-ui/core";
-import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
+import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
+import { Button, Grid, List, ListItem, ListItemIcon, ListItemText, Tooltip, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
