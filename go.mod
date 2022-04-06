@@ -8,7 +8,7 @@ require (
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20220201180708-96a8851a8448
 	github.com/fasthttp/router v1.4.8
-	github.com/fasthttp/session/v2 v2.4.8
+	github.com/fasthttp/session/v2 v2.4.9
 	github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/go-rod/rod v0.103.0
 	github.com/go-sql-driver/mysql v1.6.0
@@ -79,7 +79,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/savsgio/dictpool v0.0.0-20220323153334-553225bc53a9 // indirect
+	github.com/savsgio/dictpool v0.0.0-20220406081701-03de5edb2e6d // indirect
 	github.com/savsgio/gotils v0.0.0-20220401102855-e56b59f40436 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
