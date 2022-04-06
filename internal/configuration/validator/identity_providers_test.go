@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -28,6 +29,54 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 	assert.EqualError(t, validator.Errors()[0], errFmtOIDCNoPrivateKey)
 	assert.EqualError(t, validator.Errors()[1], errFmtOIDCNoClientsConfigured)
+}
+
+func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
+			CORS: schema.OpenIDConnectCORSConfiguration{
+				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint},
+			},
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "example",
+					Secret: "example",
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+}
+
+func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: "key-material",
+			CORS: schema.OpenIDConnectCORSConfiguration{
+				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint, "invalid_endpoint"},
+			},
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "example",
+					Secret: "example",
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'token', 'introspection', 'revocation', 'userinfo'")
 }
 
 func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
