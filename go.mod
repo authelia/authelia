@@ -7,7 +7,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20220201180708-96a8851a8448
-	github.com/fasthttp/router v1.4.7
+	github.com/fasthttp/router v1.4.8
 	github.com/fasthttp/session/v2 v2.4.8
 	github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/go-rod/rod v0.103.0
@@ -80,7 +80,7 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20220323153334-553225bc53a9 // indirect
-	github.com/savsgio/gotils v0.0.0-20220323135742-7576ce6963fd // indirect
+	github.com/savsgio/gotils v0.0.0-20220401102855-e56b59f40436 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
