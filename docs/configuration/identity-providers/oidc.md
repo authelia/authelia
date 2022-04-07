@@ -535,12 +535,12 @@ characters. For Kubernetes, see [this section too](../secrets.md#Kubernetes).
 This is the default scope for openid. This field is forced on every client by the configuration validation that Authelia
 does.
 
-_**Important Note:** The claim `sub` is planned to be changed in the future to a randomly unique value to identify the
-individual user. Please use the claim `preferred_username` instead._
+_**Important Note:** The subject identifiers or `sub` claim has been changed to a [RFC4122] UUID V4 to identify the 
+individual user as per the [Subject Identifier Types] specification. Please use the claim `preferred_username` instead._
 
 |   Claim   |   JWT Type    | Authelia Attribute |                         Description                         |
 |:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
-|    sub    |    string     |      username      |       A unique value linked to the user who logged in       |
+|    sub    |    string     |      username      |    A [RFC4122] UUID V4 linked to the user who logged in     |
 |   scope   |    string     |       scopes       |              Granted scopes (space delimited)               |
 |    scp    | array[string] |       scopes       |                       Granted scopes                        |
 |    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
@@ -550,7 +550,7 @@ individual user. Please use the claim `preferred_username` instead._
 | auth_time |    number     |       _N/A_        |        The time the user authenticated with Authelia        |
 |    rat    |    number     |       _N/A_        |            The time when the token was requested            |
 |    iat    |    number     |       _N/A_        |             The time when the token was issued              |
-|    jti    | string(uuid)  |       _N/A_        |                       JWT Identifier                        |
+|    jti    | string(uuid)  |       _N/A_        |     A JWT Identifier in the form of a [RFC4122] UUID V4     |
 |    amr    | array[string] |       _N/A_        | An [RFC8176] list of authentication method reference values |
 
 ### groups
@@ -641,6 +641,7 @@ These endpoints implement OpenID Connect elements.
 
 [JSON Web Key Sets]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 [OpenID Connect]: https://openid.net/connect/
+[Subject Identifier Types]:https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
@@ -649,4 +650,5 @@ These endpoints implement OpenID Connect elements.
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
+[RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
