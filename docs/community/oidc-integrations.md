@@ -13,21 +13,21 @@ has_toc: false
 
 ## Currently Tested Applications
 
-|   Application    |        Minimal Version         |                                                    Notes                                                    |
-|:----------------:|:------------------------------:|:-----------------------------------------------------------------------------------------------------------:|
-| Bookstack        | `21.10`                        |                                                                                                             |
-| Gitea            | `1.14.6`                       |                                                                                                             |
-| GitLab           | `13.0.0`                       |                                                                                                             |
-| Grafana          | `8.0.5`                        |                                                                                                             |
-| Harbor           | `1.10`                         | It works on >v2.1 also, but not sure if there is OIDC support on v2.0                                        |
-| Hashicorp Vault  | `1.8.1`                        |                                                                                                             |
-| Miniflux         | `2.0.21`                       |                                                                                                             |
+|   Application    |        Minimal Version         |                                                    Notes                                                      |
+|:----------------:|:------------------------------:|:-------------------------------------------------------------------------------------------------------------:|
+| Bookstack        | `21.10`                        |                                                                                                               |
+| Gitea            | `1.14.6`                       |                                                                                                               |
+| GitLab           | `13.0.0`                       |                                                                                                               |
+| Grafana          | `8.0.5`                        |                                                                                                               |
+| Harbor           | `1.10`                         | It works on >v2.1 also, but not sure if there is OIDC support on v2.0                                         |
+| Hashicorp Vault  | `1.8.1`                        |                                                                                                               |
+| Miniflux         | `2.0.21`                       |                                                                                                               |
 | MinIO            | `RELEASE.2021-11-09T03-21-45Z` | must set `MINIO_IDENTITY_OPENID_CLAIM_NAME: groups` in MinIO and set [MinIO policies](https://docs.min.io/minio/baremetal/security/minio-identity-management/policy-based-access-control.html#minio-policy) as groups in Authelia |
-| Nextcloud        | `22.1.0`                       | Tested using the `nextcloud-oidc-login` app - [Link](https://github.com/pulsejet/nextcloud-oidc-login)      |
-| Portainer CE     | `2.6.1`                        | Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `preferred_username`      |
-| Seafile          | `9.0.4`                        | Requires `OAUTH_ATTRIBUTE_MAP` to contain the mapping of the `id` field even if not present in Authelia, e.g. `'id': (False, "unused") (see [seahub#5162](https://github.com/haiwen/seahub/issues/5162)) |
+| Nextcloud        | `22.1.0`                       | Tested using the `nextcloud-oidc-login` app - [Link](https://github.com/pulsejet/nextcloud-oidc-login)        |
+| Portainer CE     | `2.6.1`                        | Settings to use username as ID: set `Scopes` to `openid` and `User Identifier` to `preferred_username`        |
+| Seafile          | `9.0.4`                        | Requires `OAUTH_ATTRIBUTE_MAP` to contain the mapping of the `id` field even if not present in Authelia, e.g. `'id': (False, "unused")` (see [seahub#5162](https://github.com/haiwen/seahub/issues/5162)) |
 | Verdaccio        | `5`                            | Depends on this fork of verdaccio-github-oauth-ui: [Link](https://github.com/OnekO/verdaccio-github-oauth-ui) |
-| Wekan            | `5.41`                         |                                                                                                             |
+| Wekan            | `5.41`                         |                                                                                                               |
 
 ## Known Callback URLs
 
