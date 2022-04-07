@@ -264,7 +264,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "query", "query=abc"),
 				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "fragment", "fragment"),
 				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "username", "user"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "password", "pass"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "password"),
 			},
 		},
 		{

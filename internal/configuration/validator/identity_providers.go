@@ -191,8 +191,8 @@ func validateOIDCClientSectorIdentifier(client schema.OpenIDConnectClientConfigu
 					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "username", client.SectorIdentifier.User.Username()))
 				}
 
-				if password, set := client.SectorIdentifier.User.Password(); set {
-					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "password", password))
+				if _, set := client.SectorIdentifier.User.Password(); set {
+					validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "password"))
 				}
 			}
 		} else if client.SectorIdentifier.Host == "" {

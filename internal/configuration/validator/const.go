@@ -157,6 +157,8 @@ const (
 		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
 	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
 		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
