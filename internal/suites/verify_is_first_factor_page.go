@@ -7,5 +7,5 @@ import (
 )
 
 func (rs *RodSession) verifyIsFirstFactorPage(t *testing.T, page *rod.Page) {
-	rs.WaitElementLocatedByCSSSelector(t, page, "first-factor-stage")
+	rs.WaitElementLocatedByID(t, page, "first-factor-stage")
 }

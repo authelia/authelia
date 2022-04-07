@@ -7,11 +7,11 @@ import (
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -43,8 +43,8 @@ type UserSession struct {
 	// Webauthn holds the session registration data for this session.
 	Webauthn *webauthn.SessionData
 
-	// Represent an OIDC workflow session initiated by the client if not null.
-	OIDCWorkflowSession *model.OIDCWorkflowSession
+	// ConsentChallengeID is the OpenID Connect Consent Session challenge ID.
+	ConsentChallengeID *uuid.UUID
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.

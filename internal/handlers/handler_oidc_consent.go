@@ -5,116 +5,135 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // OpenIDConnectConsentGET handles requests to provide consent for OpenID Connect.
 func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
-
-	if userSession.OIDCWorkflowSession == nil {
-		ctx.Logger.Debugf("Cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
-		ctx.ReplyForbidden()
-
-		return
-	}
-
-	clientID := userSession.OIDCWorkflowSession.ClientID
-	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID)
-
-	if err != nil {
-		ctx.Logger.Debugf("Unable to find related client configuration with name '%s': %v", clientID, err)
-		ctx.ReplyForbidden()
-
+	userSession, consent, client, handled := oidcConsentGetSessionsAndClient(ctx)
+	if handled {
 		return
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent during GET current level: %d, require 2FA: %t", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.Require2FA)
+		ctx.Logger.Errorf("Unable to perform consent without sufficient authentication for user '%s' and client id '%s'", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	if err := ctx.SetJSONBody(client.GetConsentResponseBody(userSession.OIDCWorkflowSession)); err != nil {
+	if err := ctx.SetJSONBody(client.GetConsentResponseBody(consent)); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body: %v", err), "Operation failed")
 	}
 }
 
 // OpenIDConnectConsentPOST handles consent responses for OpenID Connect.
 func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
-	userSession := ctx.GetSession()
+	var (
+		body oidc.ConsentPostRequestBody
+		err  error
+	)
 
-	if userSession.OIDCWorkflowSession == nil {
-		ctx.Logger.Debugf("Cannot consent for user %s when OIDC workflow has not been initiated", userSession.Username)
-		ctx.ReplyForbidden()
+	if err = json.Unmarshal(ctx.Request.Body(), &body); err != nil {
+		ctx.Logger.Errorf("Failed to parse JSON body in consent POST: %+v", err)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	client, err := ctx.Providers.OpenIDConnect.Store.GetInternalClient(userSession.OIDCWorkflowSession.ClientID)
-
-	if err != nil {
-		ctx.Logger.Debugf("Unable to find related client configuration with name '%s': %v", userSession.OIDCWorkflowSession.ClientID, err)
-		ctx.ReplyForbidden()
-
+	userSession, consent, client, handled := oidcConsentGetSessionsAndClient(ctx)
+	if handled {
 		return
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent during POST current level: %d, require 2FA: %t", userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.Require2FA)
+		ctx.Logger.Debugf("Insufficient permissions to give consent during POST current level: %d, require 2FA: %d", userSession.AuthenticationLevel, client.Policy)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	var body ConsentPostRequestBody
-	err = json.Unmarshal(ctx.Request.Body(), &body)
+	if consent.ClientID != body.ClientID {
+		ctx.Logger.Errorf("User '%s' consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
+			userSession.Username, body.ClientID, consent.ClientID)
+		ctx.SetJSONError(messageOperationFailed)
 
-	if err != nil {
-		ctx.Error(fmt.Errorf("unable to unmarshal body: %v", err), "Operation failed")
 		return
 	}
 
-	if body.AcceptOrReject != accept && body.AcceptOrReject != reject {
-		ctx.Logger.Infof("User %s tried to reply to consent with an unexpected verb", userSession.Username)
+	var (
+		externalRootURL string
+		authorized      = true
+	)
+
+	switch body.AcceptOrReject {
+	case accept:
+		if externalRootURL, err = ctx.ExternalRootURL(); err != nil {
+			ctx.Logger.Errorf("Could not determine the external URL during consent session processing with challenge id '%s' for user '%s': %v", consent.ChallengeID.String(), userSession.Username, err)
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
+		consent.GrantedScopes = consent.RequestedScopes
+		consent.GrantedAudience = consent.RequestedAudience
+
+		if !utils.IsStringInSlice(consent.ClientID, consent.GrantedAudience) {
+			consent.GrantedAudience = append(consent.GrantedAudience, consent.ClientID)
+		}
+	case reject:
+		authorized = false
+	default:
+		ctx.Logger.Warnf("User '%s' tried to reply to consent with an unexpected verb", userSession.Username)
 		ctx.ReplyBadRequest()
 
 		return
 	}
 
-	if userSession.OIDCWorkflowSession.ClientID != body.ClientID {
-		ctx.Logger.Infof("User %s consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
-			userSession.Username, body.ClientID, userSession.OIDCWorkflowSession.ClientID)
-		ctx.ReplyBadRequest()
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, authorized); err != nil {
+		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	var redirectionURL string
+	response := oidc.ConsentPostResponseBody{RedirectURI: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}
 
-	if body.AcceptOrReject == accept {
-		redirectionURL = userSession.OIDCWorkflowSession.AuthURI
-		userSession.OIDCWorkflowSession.GrantedScopes = userSession.OIDCWorkflowSession.RequestedScopes
-		userSession.OIDCWorkflowSession.GrantedAudience = userSession.OIDCWorkflowSession.RequestedAudience
-
-		if err := ctx.SaveSession(userSession); err != nil {
-			ctx.Error(fmt.Errorf("unable to write session: %v", err), "Operation failed")
-			return
-		}
-	} else if body.AcceptOrReject == reject {
-		redirectionURL = fmt.Sprintf("%s?error=access_denied&error_description=%s",
-			userSession.OIDCWorkflowSession.TargetURI, "User has rejected the scopes")
-		userSession.OIDCWorkflowSession = nil
-
-		if err := ctx.SaveSession(userSession); err != nil {
-			ctx.Error(fmt.Errorf("unable to write session: %v", err), "Operation failed")
-			return
-		}
-	}
-
-	response := ConsentPostResponseBody{RedirectURI: redirectionURL}
-
-	if err := ctx.SetJSONBody(response); err != nil {
+	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body in response"), "Operation failed")
 	}
+}
+
+func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client *oidc.Client, handled bool) {
+	var (
+		err error
+	)
+
+	userSession = ctx.GetSession()
+
+	if userSession.ConsentChallengeID == nil {
+		ctx.Logger.Errorf("Cannot consent for user '%s' when OIDC consent session has not been initiated", userSession.Username)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil {
+		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", userSession.ConsentChallengeID.String(), err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID); err != nil {
+		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", consent.ClientID, err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	return userSession, consent, client, false
 }

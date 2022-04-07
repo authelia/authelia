@@ -110,7 +110,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
 	enrollPage := s.Page.MustWaitOpen()
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "register-link").MustClick()
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "register-link").MustClick()
 	s.Page = enrollPage()
 
 	assert.Contains(s.T(), s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "description").MustText(), "This enrollment code has expired. Contact your administrator to get a new enrollment code.")
@@ -142,7 +142,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// And check the latest method and device is still used.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -176,7 +176,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	// Switch Method where Device Selection should open automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	// Check for available Device 1.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "device-12345ABCDEFGHIJ67890")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "device-12345ABCDEFGHIJ67890")
 	// Test Back button.
 	s.doClickButton(s.T(), s.Context(ctx), "device-selection-back")
 	// then select Device 2 for further use and be redirected.
@@ -187,7 +187,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// And check the latest method and device is still used.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -238,7 +238,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodI
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "device-selection")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "device-selection")
 	s.doSelectDevice(s.T(), s.Context(ctx), "12345ABCDEFGHIJ67890")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -303,7 +303,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "selection-link").Click("left")
+	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "selection-link").Click("left")
 	require.NoError(s.T(), err)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was denied by Duo policy")
 }

@@ -73,7 +73,7 @@ func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		userSession := ctx.GetSession()
 		newSession := session.NewDefaultUserSession()
-		newSession.OIDCWorkflowSession = userSession.OIDCWorkflowSession
+		newSession.ConsentChallengeID = userSession.ConsentChallengeID
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {
@@ -135,7 +135,7 @@ func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		successful = true
 
-		if userSession.OIDCWorkflowSession != nil {
+		if userSession.ConsentChallengeID != nil {
 			handleOIDCWorkflowResponse(ctx)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)

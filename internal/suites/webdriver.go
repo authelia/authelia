@@ -82,8 +82,8 @@ func (rs *RodSession) WaitElementLocatedByClassName(t *testing.T, page *rod.Page
 	return e
 }
 
-// WaitElementLocatedByCSSSelector wait an element is located by class name.
-func (rs *RodSession) WaitElementLocatedByCSSSelector(t *testing.T, page *rod.Page, cssSelector string) *rod.Element {
+// WaitElementLocatedByID waits for an element located by an id.
+func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) *rod.Element {
 	e, err := page.Element("#" + cssSelector)
 	require.NoError(t, err)
 	require.NotNil(t, e)
@@ -91,8 +91,8 @@ func (rs *RodSession) WaitElementLocatedByCSSSelector(t *testing.T, page *rod.Pa
 	return e
 }
 
-// WaitElementsLocatedByCSSSelector wait an element is located by CSS selector.
-func (rs *RodSession) WaitElementsLocatedByCSSSelector(t *testing.T, page *rod.Page, cssSelector string) rod.Elements {
+// WaitElementsLocatedByID waits for an elements located by an id.
+func (rs *RodSession) WaitElementsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) rod.Elements {
 	e, err := page.Elements("#" + cssSelector)
 	require.NoError(t, err)
 	require.NotNil(t, e)

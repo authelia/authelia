@@ -6,17 +6,19 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewSession creates a new OpenIDSession struct.
-func NewSession() (session *OpenIDSession) {
-	return &OpenIDSession{
+// NewSession creates a new empty OpenIDSession struct.
+func NewSession() (session *model.OpenIDSession) {
+	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Extra: map[string]interface{}{},
@@ -30,19 +32,19 @@ func NewSession() (session *OpenIDSession) {
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, amr []string, extra map[string]interface{},
-	authTime, requestedAt time.Time, requester fosite.AuthorizeRequester) (session *OpenIDSession) {
+func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]interface{},
+	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
 		extra = make(map[string]interface{})
 	}
 
-	return &OpenIDSession{
+	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     subject,
+				Subject:     consent.Subject.String(),
 				Issuer:      issuer,
 				AuthTime:    authTime,
-				RequestedAt: requestedAt,
+				RequestedAt: consent.RequestedAt,
 				IssuedAt:    time.Now(),
 				Nonce:       requester.GetRequestForm().Get("nonce"),
 				Audience:    requester.GetGrantedAudience(),
@@ -55,12 +57,20 @@ func NewSessionWithAuthorizeRequest(issuer, kid, subject, username string, amr [
 					"kid": kid,
 				},
 			},
-			Subject:  subject,
+			Subject:  consent.Subject.String(),
 			Username: username,
 		},
-		Extra:    map[string]interface{}{},
-		ClientID: requester.GetClient().GetID(),
+		Extra:       map[string]interface{}{},
+		ClientID:    requester.GetClient().GetID(),
+		ChallengeID: consent.ChallengeID,
 	}
+
+	// Ensure required audience value of the client_id exists.
+	if !utils.IsStringInSlice(requester.GetClient().GetID(), session.Claims.Audience) {
+		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
+	}
+
+	return session
 }
 
 // OpenIDConnectProvider for OpenID Connect.
@@ -74,33 +84,34 @@ type OpenIDConnectProvider struct {
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface.
-//
-//	Currently it is mostly just implementing a decorator pattern other then GetInternalClient.
-//	The long term plan is to have these methods interact with the Authelia storage and
-//	session providers where applicable.
+// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// interfaces to the storage.Provider interface:
+// fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
+// oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
+// openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type OpenIDConnectStore struct {
-	clients map[string]*InternalClient
-	memory  *storage.MemoryStore
+	provider storage.Provider
+	clients  map[string]*Client
 }
 
-// InternalClient represents the client internally.
-type InternalClient struct {
-	ID          string `json:"id"`
-	Description string `json:"-"`
-	Secret      []byte `json:"client_secret,omitempty"`
-	Public      bool   `json:"public"`
+// Client represents the client internally.
+type Client struct {
+	ID               string
+	SectorIdentifier string
+	Description      string
+	Secret           []byte
+	Public           bool
 
-	Policy authorization.Level `json:"-"`
+	Policy authorization.Level
 
-	Audience      []string                  `json:"audience"`
-	Scopes        []string                  `json:"scopes"`
-	RedirectURIs  []string                  `json:"redirect_uris"`
-	GrantTypes    []string                  `json:"grant_types"`
-	ResponseTypes []string                  `json:"response_types"`
-	ResponseModes []fosite.ResponseModeType `json:"response_modes"`
+	Audience      []string
+	Scopes        []string
+	RedirectURIs  []string
+	GrantTypes    []string
+	ResponseTypes []string
+	ResponseModes []fosite.ResponseModeType
 
-	UserinfoSigningAlgorithm string `json:"userinfo_signed_response_alg,omitempty"`
+	UserinfoSigningAlgorithm string
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
@@ -112,8 +123,8 @@ type KeyManager struct {
 	strategy    *RS256JWTStrategy
 }
 
-// AutheliaHasher implements the fosite.Hasher interface without an actual hashing algo.
-type AutheliaHasher struct{}
+// PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
+type PlainTextHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
@@ -123,12 +134,15 @@ type ConsentGetResponseBody struct {
 	Audience          []string `json:"audience"`
 }
 
-// OpenIDSession holds OIDC Session information.
-type OpenIDSession struct {
-	*openid.DefaultSession `json:"idToken"`
+// ConsentPostRequestBody schema of the request body of the consent POST endpoint.
+type ConsentPostRequestBody struct {
+	ClientID       string `json:"client_id"`
+	AcceptOrReject string `json:"accept_or_reject"`
+}
 
-	Extra    map[string]interface{} `json:"extra"`
-	ClientID string
+// ConsentPostResponseBody schema of the response body of the consent POST endpoint.
+type ConsentPostResponseBody struct {
+	RedirectURI string `json:"redirect_uri"`
 }
 
 /*

@@ -9,9 +9,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// NewClient creates a new InternalClient.
-func NewClient(config schema.OpenIDConnectClientConfiguration) (client *InternalClient) {
-	client = &InternalClient{
+// NewClient creates a new Client.
+func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) {
+	client = &Client{
 		ID:          config.ID,
 		Description: config.Description,
 		Secret:      []byte(config.Secret),
@@ -37,42 +37,47 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Internal
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c InternalClient) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+func (c Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
 	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
 // GetID returns the ID.
-func (c InternalClient) GetID() string {
+func (c Client) GetID() string {
 	return c.ID
 }
 
-// GetConsentResponseBody returns the proper consent response body for this model.OIDCWorkflowSession.
-func (c InternalClient) GetConsentResponseBody(session *model.OIDCWorkflowSession) ConsentGetResponseBody {
+// GetSectorIdentifier returns the SectorIdentifier for this client.
+func (c Client) GetSectorIdentifier() string {
+	return c.SectorIdentifier
+}
+
+// GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
+func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
 	}
 
-	if session != nil {
-		body.Scopes = session.RequestedScopes
-		body.Audience = session.RequestedAudience
+	if consent != nil {
+		body.Scopes = consent.RequestedScopes
+		body.Audience = consent.RequestedAudience
 	}
 
 	return body
 }
 
 // GetHashedSecret returns the Secret.
-func (c InternalClient) GetHashedSecret() []byte {
+func (c Client) GetHashedSecret() []byte {
 	return c.Secret
 }
 
 // GetRedirectURIs returns the RedirectURIs.
-func (c InternalClient) GetRedirectURIs() []string {
+func (c Client) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
 // GetGrantTypes returns the GrantTypes.
-func (c InternalClient) GetGrantTypes() fosite.Arguments {
+func (c Client) GetGrantTypes() fosite.Arguments {
 	if len(c.GrantTypes) == 0 {
 		return fosite.Arguments{"authorization_code"}
 	}
@@ -81,7 +86,7 @@ func (c InternalClient) GetGrantTypes() fosite.Arguments {
 }
 
 // GetResponseTypes returns the ResponseTypes.
-func (c InternalClient) GetResponseTypes() fosite.Arguments {
+func (c Client) GetResponseTypes() fosite.Arguments {
 	if len(c.ResponseTypes) == 0 {
 		return fosite.Arguments{"code"}
 	}
@@ -90,23 +95,23 @@ func (c InternalClient) GetResponseTypes() fosite.Arguments {
 }
 
 // GetScopes returns the Scopes.
-func (c InternalClient) GetScopes() fosite.Arguments {
+func (c Client) GetScopes() fosite.Arguments {
 	return c.Scopes
 }
 
 // IsPublic returns the value of the Public property.
-func (c InternalClient) IsPublic() bool {
+func (c Client) IsPublic() bool {
 	return c.Public
 }
 
 // GetAudience returns the Audience.
-func (c InternalClient) GetAudience() fosite.Arguments {
+func (c Client) GetAudience() fosite.Arguments {
 	return c.Audience
 }
 
 // GetResponseModes returns the valid response modes for this client.
 //
 // Implements the fosite.ResponseModeClient.
-func (c InternalClient) GetResponseModes() []fosite.ResponseModeType {
+func (c Client) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
 }

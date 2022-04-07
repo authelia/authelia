@@ -9,13 +9,13 @@ import (
 )
 
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
-	err := rs.WaitElementLocatedByCSSSelector(t, page, "reset-password-button").Click("left")
+	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left")
 	require.NoError(t, err)
 	// Fill in username.
-	err = rs.WaitElementLocatedByCSSSelector(t, page, "username-textfield").Input(username)
+	err = rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
 	// And click on the reset button.
-	err = rs.WaitElementLocatedByCSSSelector(t, page, "reset-button").Click("left")
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left")
 	require.NoError(t, err)
 }
 
@@ -25,15 +25,15 @@ func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newP
 
 	time.Sleep(1 * time.Second)
 
-	err := rs.WaitElementLocatedByCSSSelector(t, page, "password1-textfield").Input(newPassword1)
+	err := rs.WaitElementLocatedByID(t, page, "password1-textfield").Input(newPassword1)
 	require.NoError(t, err)
 
 	time.Sleep(1 * time.Second)
 
-	err = rs.WaitElementLocatedByCSSSelector(t, page, "password2-textfield").Input(newPassword2)
+	err = rs.WaitElementLocatedByID(t, page, "password2-textfield").Input(newPassword2)
 	require.NoError(t, err)
 
-	err = rs.WaitElementLocatedByCSSSelector(t, page, "reset-button").Click("left")
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left")
 	require.NoError(t, err)
 }
 

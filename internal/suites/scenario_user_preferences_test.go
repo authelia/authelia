@@ -60,7 +60,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 
 	// Then switch to push notification method.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 
 	// Switch context to clean up state in portal.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
@@ -70,7 +70,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL())
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 	// And check the latest method is still used.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
@@ -78,7 +78,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "harry", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "one-time-password-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "one-time-password-method")
 
 	s.doLogout(s.T(), s.Context(ctx))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
@@ -86,7 +86,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	// Then log back as previous user and verify the push notification is still the default method.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
 	s.doLogout(s.T(), s.Context(ctx))
@@ -94,7 +94,7 @@ func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 
 	// Eventually restore the default method.
 	s.doChangeMethod(s.T(), s.Context(ctx), "one-time-password")
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "one-time-password-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "one-time-password-method")
 }
 
 func TestUserPreferencesScenario(t *testing.T) {

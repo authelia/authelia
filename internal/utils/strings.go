@@ -241,6 +241,39 @@ func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
 }
 
+// StringJoinDelimitedEscaped joins a string with a specified rune delimiter after escaping any instance of that string
+// in the string slice. Used with StringSplitDelimitedEscaped.
+func StringJoinDelimitedEscaped(value []string, delimiter rune) string {
+	escaped := make([]string, len(value))
+	for k, v := range value {
+		escaped[k] = strings.ReplaceAll(v, string(delimiter), "\\"+string(delimiter))
+	}
+
+	return strings.Join(escaped, string(delimiter))
+}
+
+// StringSplitDelimitedEscaped splits a string with a specified rune delimiter after unescaping any instance of that
+// string in the string slice that has been escaped. Used with StringJoinDelimitedEscaped.
+func StringSplitDelimitedEscaped(value string, delimiter rune) (out []string) {
+	var escape bool
+
+	split := strings.FieldsFunc(value, func(r rune) bool {
+		if r == '\\' {
+			escape = !escape
+		} else if escape && r != delimiter {
+			escape = false
+		}
+
+		return !escape && r == delimiter
+	})
+
+	for k, v := range split {
+		split[k] = strings.ReplaceAll(v, "\\"+string(delimiter), string(delimiter))
+	}
+
+	return split
+}
+
 // JoinAndCanonicalizeHeaders join header strings by a given sep.
 func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 	for i, header := range headers {

@@ -8,6 +8,51 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestStringSplitDelimitedEscaped(t *testing.T) {
+	testCases := []struct {
+		desc, have string
+		delimiter  rune
+		want       []string
+	}{
+		{desc: "ShouldSplitNormalString", have: "abc,123,456", delimiter: ',', want: []string{"abc", "123", "456"}},
+		{desc: "ShouldSplitEscapedString", have: "a\\,bc,123,456", delimiter: ',', want: []string{"a,bc", "123", "456"}},
+		{desc: "ShouldSplitEscapedStringPipe", have: "a\\|bc|123|456", delimiter: '|', want: []string{"a|bc", "123", "456"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			actual := StringSplitDelimitedEscaped(tc.have, tc.delimiter)
+
+			assert.Equal(t, tc.want, actual)
+		})
+	}
+}
+
+func TestStringJoinDelimitedEscaped(t *testing.T) {
+	testCases := []struct {
+		desc, want string
+		delimiter  rune
+		have       []string
+	}{
+		{desc: "ShouldJoinNormalStringSlice", have: []string{"abc", "123", "456"}, delimiter: ',', want: "abc,123,456"},
+		{desc: "ShouldJoinEscapeNeededStringSlice", have: []string{"abc", "1,23", "456"}, delimiter: ',', want: "abc,1\\,23,456"},
+		{desc: "ShouldJoinEscapeNeededStringSlicePipe", have: []string{"abc", "1|23", "456"}, delimiter: '|', want: "abc|1\\|23|456"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			actual := StringJoinDelimitedEscaped(tc.have, tc.delimiter)
+
+			assert.Equal(t, tc.want, actual)
+
+			// Ensure splitting again also works fine.
+			split := StringSplitDelimitedEscaped(actual, tc.delimiter)
+
+			assert.Equal(t, tc.have, split)
+		})
+	}
+}
+
 func TestShouldNotGenerateSameRandomString(t *testing.T) {
 	randomStringOne := RandomString(10, AlphaNumericCharacters, false)
 	randomStringTwo := RandomString(10, AlphaNumericCharacters, false)

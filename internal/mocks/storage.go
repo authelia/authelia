@@ -10,8 +10,10 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 
 	model "github.com/authelia/authelia/v4/internal/model"
+	storage "github.com/authelia/authelia/v4/internal/storage"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -51,6 +53,21 @@ func (mr *MockStorageMockRecorder) AppendAuthenticationLog(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockStorage)(nil).AppendAuthenticationLog), arg0, arg1)
 }
 
+// BeginTX mocks base method.
+func (m *MockStorage) BeginTX(arg0 context.Context) (context.Context, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BeginTX", arg0)
+	ret0, _ := ret[0].(context.Context)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BeginTX indicates an expected call of BeginTX.
+func (mr *MockStorageMockRecorder) BeginTX(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockStorage)(nil).BeginTX), arg0)
+}
+
 // Close mocks base method.
 func (m *MockStorage) Close() error {
 	m.ctrl.T.Helper()
@@ -65,6 +82,20 @@ func (mr *MockStorageMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockStorage)(nil).Close))
 }
 
+// Commit mocks base method.
+func (m *MockStorage) Commit(arg0 context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Commit", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Commit indicates an expected call of Commit.
+func (mr *MockStorageMockRecorder) Commit(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockStorage)(nil).Commit), arg0)
+}
+
 // ConsumeIdentityVerification mocks base method.
 func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
 	m.ctrl.T.Helper()
@@ -77,6 +108,34 @@ func (m *MockStorage) ConsumeIdentityVerification(arg0 context.Context, arg1 str
 func (mr *MockStorageMockRecorder) ConsumeIdentityVerification(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).ConsumeIdentityVerification), arg0, arg1, arg2)
+}
+
+// DeactivateOAuth2Session mocks base method.
+func (m *MockStorage) DeactivateOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeactivateOAuth2Session", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeactivateOAuth2Session indicates an expected call of DeactivateOAuth2Session.
+func (mr *MockStorageMockRecorder) DeactivateOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2Session", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2Session), arg0, arg1, arg2)
+}
+
+// DeactivateOAuth2SessionByRequestID mocks base method.
+func (m *MockStorage) DeactivateOAuth2SessionByRequestID(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeactivateOAuth2SessionByRequestID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeactivateOAuth2SessionByRequestID indicates an expected call of DeactivateOAuth2SessionByRequestID.
+func (mr *MockStorageMockRecorder) DeactivateOAuth2SessionByRequestID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2SessionByRequestID), arg0, arg1, arg2)
 }
 
 // DeletePreferredDuoDevice mocks base method.
@@ -135,6 +194,66 @@ func (m *MockStorage) LoadAuthenticationLogs(arg0 context.Context, arg1 string, 
 func (mr *MockStorageMockRecorder) LoadAuthenticationLogs(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockStorage)(nil).LoadAuthenticationLogs), arg0, arg1, arg2, arg3, arg4)
+}
+
+// LoadOAuth2BlacklistedJTI mocks base method.
+func (m *MockStorage) LoadOAuth2BlacklistedJTI(arg0 context.Context, arg1 string) (*model.OAuth2BlacklistedJTI, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2BlacklistedJTI", arg0, arg1)
+	ret0, _ := ret[0].(*model.OAuth2BlacklistedJTI)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2BlacklistedJTI indicates an expected call of LoadOAuth2BlacklistedJTI.
+func (mr *MockStorageMockRecorder) LoadOAuth2BlacklistedJTI(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2BlacklistedJTI", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2BlacklistedJTI), arg0, arg1)
+}
+
+// LoadOAuth2ConsentSessionByChallengeID mocks base method.
+func (m *MockStorage) LoadOAuth2ConsentSessionByChallengeID(arg0 context.Context, arg1 uuid.UUID) (*model.OAuth2ConsentSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2ConsentSessionByChallengeID", arg0, arg1)
+	ret0, _ := ret[0].(*model.OAuth2ConsentSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2ConsentSessionByChallengeID indicates an expected call of LoadOAuth2ConsentSessionByChallengeID.
+func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionByChallengeID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionByChallengeID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionByChallengeID), arg0, arg1)
+}
+
+// LoadOAuth2ConsentSessionsPreConfigured mocks base method.
+func (m *MockStorage) LoadOAuth2ConsentSessionsPreConfigured(arg0 context.Context, arg1 string, arg2 uuid.UUID) (*storage.ConsentSessionRows, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2ConsentSessionsPreConfigured", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*storage.ConsentSessionRows)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2ConsentSessionsPreConfigured indicates an expected call of LoadOAuth2ConsentSessionsPreConfigured.
+func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionsPreConfigured(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionsPreConfigured", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionsPreConfigured), arg0, arg1, arg2)
+}
+
+// LoadOAuth2Session mocks base method.
+func (m *MockStorage) LoadOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) (*model.OAuth2Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2Session", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.OAuth2Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2Session indicates an expected call of LoadOAuth2Session.
+func (mr *MockStorageMockRecorder) LoadOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2Session", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2Session), arg0, arg1, arg2)
 }
 
 // LoadPreferred2FAMethod mocks base method.
@@ -212,6 +331,36 @@ func (mr *MockStorageMockRecorder) LoadUserInfo(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadUserInfo), arg0, arg1)
 }
 
+// LoadUserOpaqueIdentifier mocks base method.
+func (m *MockStorage) LoadUserOpaqueIdentifier(arg0 context.Context, arg1 uuid.UUID) (*model.UserOpaqueIdentifier, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserOpaqueIdentifier", arg0, arg1)
+	ret0, _ := ret[0].(*model.UserOpaqueIdentifier)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserOpaqueIdentifier indicates an expected call of LoadUserOpaqueIdentifier.
+func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifier(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserOpaqueIdentifier", reflect.TypeOf((*MockStorage)(nil).LoadUserOpaqueIdentifier), arg0, arg1)
+}
+
+// LoadUserOpaqueIdentifierBySignature mocks base method.
+func (m *MockStorage) LoadUserOpaqueIdentifierBySignature(arg0 context.Context, arg1, arg2, arg3 string) (*model.UserOpaqueIdentifier, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserOpaqueIdentifierBySignature", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.UserOpaqueIdentifier)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserOpaqueIdentifierBySignature indicates an expected call of LoadUserOpaqueIdentifierBySignature.
+func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifierBySignature(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserOpaqueIdentifierBySignature", reflect.TypeOf((*MockStorage)(nil).LoadUserOpaqueIdentifierBySignature), arg0, arg1, arg2, arg3)
+}
+
 // LoadWebauthnDevices mocks base method.
 func (m *MockStorage) LoadWebauthnDevices(arg0 context.Context, arg1, arg2 int) ([]model.WebauthnDevice, error) {
 	m.ctrl.T.Helper()
@@ -242,6 +391,48 @@ func (mr *MockStorageMockRecorder) LoadWebauthnDevicesByUsername(arg0, arg1 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebauthnDevicesByUsername", reflect.TypeOf((*MockStorage)(nil).LoadWebauthnDevicesByUsername), arg0, arg1)
 }
 
+// RevokeOAuth2Session mocks base method.
+func (m *MockStorage) RevokeOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeOAuth2Session", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeOAuth2Session indicates an expected call of RevokeOAuth2Session.
+func (mr *MockStorageMockRecorder) RevokeOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2Session", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2Session), arg0, arg1, arg2)
+}
+
+// RevokeOAuth2SessionByRequestID mocks base method.
+func (m *MockStorage) RevokeOAuth2SessionByRequestID(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeOAuth2SessionByRequestID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeOAuth2SessionByRequestID indicates an expected call of RevokeOAuth2SessionByRequestID.
+func (mr *MockStorageMockRecorder) RevokeOAuth2SessionByRequestID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2SessionByRequestID), arg0, arg1, arg2)
+}
+
+// Rollback mocks base method.
+func (m *MockStorage) Rollback(arg0 context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Rollback", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Rollback indicates an expected call of Rollback.
+func (mr *MockStorageMockRecorder) Rollback(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockStorage)(nil).Rollback), arg0)
+}
+
 // SaveIdentityVerification mocks base method.
 func (m *MockStorage) SaveIdentityVerification(arg0 context.Context, arg1 model.IdentityVerification) error {
 	m.ctrl.T.Helper()
@@ -254,6 +445,76 @@ func (m *MockStorage) SaveIdentityVerification(arg0 context.Context, arg1 model.
 func (mr *MockStorageMockRecorder) SaveIdentityVerification(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveIdentityVerification", reflect.TypeOf((*MockStorage)(nil).SaveIdentityVerification), arg0, arg1)
+}
+
+// SaveOAuth2BlacklistedJTI mocks base method.
+func (m *MockStorage) SaveOAuth2BlacklistedJTI(arg0 context.Context, arg1 model.OAuth2BlacklistedJTI) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2BlacklistedJTI", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2BlacklistedJTI indicates an expected call of SaveOAuth2BlacklistedJTI.
+func (mr *MockStorageMockRecorder) SaveOAuth2BlacklistedJTI(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2BlacklistedJTI", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2BlacklistedJTI), arg0, arg1)
+}
+
+// SaveOAuth2ConsentSession mocks base method.
+func (m *MockStorage) SaveOAuth2ConsentSession(arg0 context.Context, arg1 model.OAuth2ConsentSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSession", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2ConsentSession indicates an expected call of SaveOAuth2ConsentSession.
+func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSession(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSession", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSession), arg0, arg1)
+}
+
+// SaveOAuth2ConsentSessionGranted mocks base method.
+func (m *MockStorage) SaveOAuth2ConsentSessionGranted(arg0 context.Context, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionGranted", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2ConsentSessionGranted indicates an expected call of SaveOAuth2ConsentSessionGranted.
+func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionGranted(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionGranted", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionGranted), arg0, arg1)
+}
+
+// SaveOAuth2ConsentSessionResponse mocks base method.
+func (m *MockStorage) SaveOAuth2ConsentSessionResponse(arg0 context.Context, arg1 model.OAuth2ConsentSession, arg2 bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionResponse", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2ConsentSessionResponse indicates an expected call of SaveOAuth2ConsentSessionResponse.
+func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionResponse(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionResponse", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionResponse), arg0, arg1, arg2)
+}
+
+// SaveOAuth2Session mocks base method.
+func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 model.OAuth2Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2Session", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2Session indicates an expected call of SaveOAuth2Session.
+func (mr *MockStorageMockRecorder) SaveOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Session", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Session), arg0, arg1, arg2)
 }
 
 // SavePreferred2FAMethod mocks base method.
@@ -296,6 +557,20 @@ func (m *MockStorage) SaveTOTPConfiguration(arg0 context.Context, arg1 model.TOT
 func (mr *MockStorageMockRecorder) SaveTOTPConfiguration(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).SaveTOTPConfiguration), arg0, arg1)
+}
+
+// SaveUserOpaqueIdentifier mocks base method.
+func (m *MockStorage) SaveUserOpaqueIdentifier(arg0 context.Context, arg1 model.UserOpaqueIdentifier) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveUserOpaqueIdentifier", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveUserOpaqueIdentifier indicates an expected call of SaveUserOpaqueIdentifier.
+func (mr *MockStorageMockRecorder) SaveUserOpaqueIdentifier(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveUserOpaqueIdentifier", reflect.TypeOf((*MockStorage)(nil).SaveUserOpaqueIdentifier), arg0, arg1)
 }
 
 // SaveWebauthnDevice mocks base method.
