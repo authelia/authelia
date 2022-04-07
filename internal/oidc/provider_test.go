@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,6 +26,39 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_BadIssuerKey(t *testing.
 	}, nil)
 
 	assert.Error(t, err, "abc")
+}
+
+func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
+	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
+		IssuerPrivateKey:         exampleIssuerPrivateKey,
+		EnablePKCEPlainChallenge: true,
+		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
+		Clients: []schema.OpenIDConnectClientConfiguration{
+			{
+				ID:               "a-client",
+				Secret:           "a-client-secret",
+				SectorIdentifier: url.URL{Host: "google.com"},
+				Policy:           "one_factor",
+				RedirectURIs: []string{
+					"https://google.com",
+				},
+			},
+		},
+	}, nil)
+
+	assert.NoError(t, err)
+
+	assert.True(t, provider.Pairwise())
+
+	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
+
+	assert.Len(t, disco.SubjectTypesSupported, 2)
+	assert.Contains(t, disco.SubjectTypesSupported, "public")
+	assert.Contains(t, disco.SubjectTypesSupported, "pairwise")
+
+	assert.Len(t, disco.CodeChallengeMethodsSupported, 2)
+	assert.Contains(t, disco.CodeChallengeMethodsSupported, "S256")
+	assert.Contains(t, disco.CodeChallengeMethodsSupported, "S256")
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
