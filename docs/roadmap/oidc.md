@@ -96,7 +96,7 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Authentication Methods References Claim</td>
       </tr>
       <tr>
-        <td class="tbl-beta-stage">UUID v4 <code>sub</code> claim</td>
+        <td class="tbl-beta-stage">Opaque Subject Identifiers (<a href="https://datatracker.ietf.org/doc/html/rfc4122" target="_blank">UUID</a> V4) for <code>sub</code> Claim</td>
       </tr>
       <tr>
         <td rowspan="2" class="tbl-header tbl-beta-stage">beta5 <sup>1</sup></td>
