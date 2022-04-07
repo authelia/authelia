@@ -35,6 +35,15 @@ identity_providers:
     refresh_token_lifespan: 90m
     enable_client_debug_messages: false
     enforce_pkce: public_clients_only
+    cors:
+      endpoints:
+        - authorization
+        - token
+        - revocation
+        - introspection
+      allowed_origins:
+        - https://example.com
+      allowed_origins_from_client_redirect_uris: false
     clients:
       - id: myapp
         description: My Application
@@ -217,6 +226,79 @@ required: no
 Allows PKCE `plain` challenges when set to `true`.
 
 ***Security Notice:*** Changing this value is generally discouraged. Applications should use the `S256` PKCE challenge method instead.
+
+### cors
+
+Some OpenID Connect Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
+you to configure the optional parts. We reply with CORS headers when the request includes the Origin header.
+
+##### endpoints
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+default: empty
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+A list of endpoints to configure with cross-origin resource sharing headers. It is recommended that the `userinfo`
+option is at least in this list. The potential endpoints which this can be enabled on are as follows:
+
+* authorization
+* token
+* revocation
+* introspection
+* userinfo
+
+#### allowed_origins
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+default: empty
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+A list of permitted origins.
+
+Any origin with https is permitted unless this option is configured or the allowed_origins_from_client_redirect_uris
+option is enabled. This means you must configure this option manually if you want http endpoints to be permitted to
+make cross-origin requests to the OpenID Connect endpoints, however this is not recommended.
+
+Origins must only have the scheme, hostname and port, they may not have a trailing slash or path.
+
+In addition to an Origin URI, you may specify the wildcard origin in the allowed_origins. It MUST be specified by itself
+and the allowed_origins_from_client_redirect_uris MUST NOT be enabled. The wildcard origin is denoted as `*`. Examples:
+
+```yaml
+identity_providers:
+  oidc:
+    cors:
+      allowed_origins: "*"
+```
+
+```yaml
+identity_providers:
+  oidc:
+    cors:
+      allowed_origins: 
+        - "*"
+```
+
+#### allowed_origins_from_client_redirect_uris
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Automatically adds the origin portion of all redirect URI's on all clients to the list of allowed_origins, provided they
+have the scheme http or https and do not have the hostname of localhost.
 
 ### clients
 
@@ -487,22 +569,46 @@ Below is a list of the potential values we place in the claim and their meaning:
 
 ## Endpoint Implementations
 
-This is a table of the endpoints we currently support and their paths. This can be requrired information for some RP's,
-particularly those that don't use [discovery](https://openid.net/specs/openid-connect-discovery-1_0.html). The paths are
-appended to the end of the primary URL used to access Authelia. For example in the Discovery example provided you access
-Authelia via https://auth.example.com, the discovery URL is https://auth.example.com/.well-known/openid-configuration.
+The following section documents the endpoints we implement and their respective paths. This information can traditionally
+be discovered by relying parties that utilize [discovery](https://openid.net/specs/openid-connect-discovery-1_0.html),
+however this information may be useful for clients which do not implement this.
 
-|   Endpoint    |                     Path                      |
-|:-------------:|:---------------------------------------------:|
-|   Discovery   |    [root]/.well-known/openid-configuration    |
-|   Metadata    | [root]/.well-known/oauth-authorization-server |
-|     JWKS      |             [root]/api/oidc/jwks              |
-| Authorization |         [root]/api/oidc/authorization         |
-|     Token     |             [root]/api/oidc/token             |
-| Introspection |         [root]/api/oidc/introspection         |
-|  Revocation   |          [root]/api/oidc/revocation           |
-|   Userinfo    |           [root]/api/oidc/userinfo            |
+The endpoints can be discovered easily by visiting the Discovery and Metadata endpoints. It is recommended regardless
+of your version of Authelia that you utilize this version as it will always produce the correct endpoint URLs. The paths
+for the Discovery/Metadata endpoints are part of IANA's well known registration but are also documented in a table below.
+
+These tables document the endpoints we currently support and their paths in the most recent version of Authelia. The paths
+are appended to the end of the primary URL used to access Authelia. The tables use the url https://auth.example.com as 
+an example of the Authelia root URL which is also the OpenID Connect issuer.
+
+### Well Known Discovery Endpoints
+
+These endpoints can be utilized to discover other endpoints and metadata about the Authelia OP.
+
+|   Endpoint    |                              Path                               |
+|:-------------:|:---------------------------------------------------------------:|
+|   Discovery   |    https://auth.example.com/.well-known/openid-configuration    |
+|   Metadata    | https://auth.example.com/.well-known/oauth-authorization-server |
+
+
+### Discoverable Endpoints 
+
+These endpoints implement OpenID Connect elements.
+
+|    Endpoint     |                      Path                       |  Discovery Attribute   |
+|:---------------:|:-----------------------------------------------:|:----------------------:|
+|      JWKS       |       https://auth.example.com/jwks.json        |        jwks_uri        |
+| [Authorization] | https://auth.example.com/api/oidc/authorization | authorization_endpoint |
+|     [Token]     |     https://auth.example.com/api/oidc/token     |     token_endpoint     |
+|   [Userinfo]    |   https://auth.example.com/api/oidc/userinfo    |   userinfo_endpoint    |
+| [Introspection] | https://auth.example.com/api/oidc/introspection | introspection_endpoint |
+|  [Revocation]   |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
 
 [OpenID Connect]: https://openid.net/connect/
 [token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
+[Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
+[Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+[Userinfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+[Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
+[Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176

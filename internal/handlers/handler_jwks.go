@@ -6,7 +6,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func oidcJWKs(ctx *middlewares.AutheliaCtx) {
+// JSONWebKeySetGET returns the JSON Web Key Set. Used in OAuth 2.0 and OpenID Connect 1.0.
+func JSONWebKeySetGET(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentType("application/json")
 
 	if err := json.NewEncoder(ctx).Encode(ctx.Providers.OpenIDConnect.KeyManager.GetKeySet()); err != nil {
