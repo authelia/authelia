@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"image"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -63,10 +65,11 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
 		"postgres.ssl.key":              "storage.postgres.ssl.key",
 
-		"period":    "totp.period",
-		"digits":    "totp.digits",
-		"algorithm": "totp.algorithm",
-		"issuer":    "totp.issuer",
+		"period":      "totp.period",
+		"digits":      "totp.digits",
+		"algorithm":   "totp.algorithm",
+		"issuer":      "totp.issuer",
+		"secret-size": "totp.secret_size",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -201,13 +204,13 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 
 func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider storage.Provider
-		ctx      = context.Background()
-		c        *model.TOTPConfiguration
-		force    bool
-		filename string
-		file     *os.File
-		img      image.Image
+		provider         storage.Provider
+		ctx              = context.Background()
+		c                *model.TOTPConfiguration
+		force            bool
+		filename, secret string
+		file             *os.File
+		img              image.Image
 	)
 
 	provider = getStorageProvider()
@@ -216,25 +219,19 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	if force, err = cmd.Flags().GetBool("force"); err != nil {
-		return err
-	}
-
-	if filename, err = cmd.Flags().GetString("path"); err != nil {
+	if force, filename, secret, err = storageTOTPGenerateRunEOptsFromFlags(cmd.Flags()); err != nil {
 		return err
 	}
 
 	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
-	}
-
-	if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
+	} else if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
 		return err
 	}
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-	if c, err = totpProvider.Generate(args[0]); err != nil {
+	if c, err = totpProvider.GenerateCustom(args[0], config.TOTP.Algorithm, secret, config.TOTP.Digits, config.TOTP.Period, config.TOTP.SecretSize); err != nil {
 		return err
 	}
 
@@ -269,6 +266,28 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	fmt.Printf("Generated TOTP configuration for user '%s' with URI '%s'%s\n", args[0], c.URI(), extraInfo)
 
 	return nil
+}
+
+func storageTOTPGenerateRunEOptsFromFlags(flags *pflag.FlagSet) (force bool, filename, secret string, err error) {
+	if force, err = flags.GetBool("force"); err != nil {
+		return force, filename, secret, err
+	}
+
+	if filename, err = flags.GetString("path"); err != nil {
+		return force, filename, secret, err
+	}
+
+	if secret, err = flags.GetString("secret"); err != nil {
+		return force, filename, secret, err
+	}
+
+	secretLength := base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(secret))
+	if secret != "" && secretLength < schema.TOTPSecretSizeMinimum {
+		return force, filename, secret, fmt.Errorf("decoded length of the base32 secret must have "+
+			"a length of more than %d but '%s' has a decoded length of %d", schema.TOTPSecretSizeMinimum, secret, secretLength)
+	}
+
+	return force, filename, secret, nil
 }
 
 func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {

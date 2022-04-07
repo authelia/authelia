@@ -51,18 +51,18 @@ func (mr *MockTOTPMockRecorder) Generate(arg0 interface{}) *gomock.Call {
 }
 
 // GenerateCustom mocks base method.
-func (m *MockTOTP) GenerateCustom(arg0, arg1 string, arg2, arg3, arg4 uint) (*model.TOTPConfiguration, error) {
+func (m *MockTOTP) GenerateCustom(arg0, arg1, arg2 string, arg3, arg4, arg5 uint) (*model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(*model.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateCustom indicates an expected call of GenerateCustom.
-func (mr *MockTOTPMockRecorder) GenerateCustom(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockTOTPMockRecorder) GenerateCustom(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCustom", reflect.TypeOf((*MockTOTP)(nil).GenerateCustom), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCustom", reflect.TypeOf((*MockTOTP)(nil).GenerateCustom), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // Validate mocks base method.
