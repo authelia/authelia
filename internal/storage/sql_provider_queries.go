@@ -35,7 +35,7 @@ const (
 
 const (
 	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_u2f, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
+		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
@@ -48,7 +48,7 @@ const (
 		REPLACE INTO %s (username, second_factor_method)
 		VALUES (?, ?);`
 
-	queryFmtPostgresUpsertPreferred2FAMethod = `
+	queryFmtUpsertPreferred2FAMethodPostgreSQL = `
 		INSERT INTO %s (username, second_factor_method)
 		VALUES ($1, $2)
 			ON CONFLICT (username)
@@ -96,14 +96,24 @@ const (
 		WHERE username = ?;`
 
 	queryFmtUpsertTOTPConfiguration = `
-		REPLACE INTO %s (username, issuer, algorithm, digits, period, secret)
-		VALUES (?, ?, ?, ?, ?, ?);`
+		REPLACE INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtPostgresUpsertTOTPConfiguration = `
-		INSERT INTO %s (username, issuer, algorithm, digits, period, secret)
-		VALUES ($1, $2, $3, $4, $5, $6)
+	queryFmtUpsertTOTPConfigurationPostgreSQL = `
+		INSERT INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username)
-			DO UPDATE SET issuer = $2, algorithm = $3, digits = $4, period = $5, secret = $6;`
+			DO UPDATE SET created_at = $1, last_used_at = $2, issuer = $4, algorithm = $5, digits = $6, period = $7, secret = $8;`
+
+	queryFmtUpdateTOTPConfigRecordSignIn = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE id = ?;`
+
+	queryFmtUpdateTOTPConfigRecordSignInByUsername = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE username = ?;`
 
 	queryFmtDeleteTOTPConfiguration = `
 		DELETE FROM %s
@@ -111,36 +121,50 @@ const (
 )
 
 const (
-	queryFmtSelectU2FDevice = `
-		SELECT id, username, key_handle, public_key
-		FROM %s
-		WHERE username = ?;`
-
-	queryFmtSelectU2FDevices = `
-		SELECT id, username, key_handle, public_key
+	queryFmtSelectWebauthnDevices = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
-	queryFmtUpdateU2FDevicePublicKey = `
+	queryFmtSelectWebauthnDevicesByUsername = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtUpdateWebauthnDevicePublicKey = `
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
 
-	queryFmtUpdateUpdateU2FDevicePublicKeyByUsername = `
+	queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername = `
 		UPDATE %s
 		SET public_key = ?
-		WHERE username = ?;`
+		WHERE username = ? AND kid = ?;`
 
-	queryFmtUpsertU2FDevice = `
-		REPLACE INTO %s (username, description, key_handle, public_key)
-		VALUES (?, ?, ?, ?);`
+	queryFmtUpdateWebauthnDeviceRecordSignIn = `
+		UPDATE %s
+		SET 
+			rpid = ?, last_used_at = ?, sign_count = ?,
+			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		WHERE id = ?;`
 
-	queryFmtPostgresUpsertU2FDevice = `
-		INSERT INTO %s (username, description, key_handle, public_key)
-		VALUES ($1, $2, $3, $4)
+	queryFmtUpdateWebauthnDeviceRecordSignInByUsername = `
+		UPDATE %s
+		SET 
+			rpid = ?, last_used_at = ?, sign_count = ?,
+			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+		WHERE username = ? AND kid = ?;`
+
+	queryFmtUpsertWebauthnDevice = `
+		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpsertWebauthnDevicePostgreSQL = `
+		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
-			DO UPDATE SET key_handle=$3, public_key=$4;`
+			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
 )
 
 const (
@@ -148,11 +172,11 @@ const (
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
 
-	queryFmtPostgresUpsertDuoDevice = `
+	queryFmtUpsertDuoDevicePostgreSQL = `
 		INSERT INTO %s (username, device, method)
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
-			DO UPDATE SET device=$2, method=$3;`
+			DO UPDATE SET device = $2, method = $3;`
 
 	queryFmtDeleteDuoDevice = `
 		DELETE
@@ -190,9 +214,103 @@ const (
 		REPLACE INTO %s (name, value)
 		VALUES (?, ?);`
 
-	queryFmtPostgresUpsertEncryptionValue = `
+	queryFmtUpsertEncryptionValuePostgreSQL = `
 		INSERT INTO %s (name, value)
 		VALUES ($1, $2)
 			ON CONFLICT (name)
-			DO UPDATE SET value=$2;`
+			DO UPDATE SET value = $2;`
+)
+
+const (
+	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		FROM %s
+		WHERE challenge_id = ?;`
+
+	queryFmtSelectOAuth2ConsentSessionsPreConfigured = `
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		FROM %s
+		WHERE client_id = ? AND subject = ? AND 
+			  authorized = TRUE AND granted = TRUE AND expires_at IS NOT NULL AND expires_at >= CURRENT_TIMESTAMP;`
+
+	queryFmtInsertOAuth2ConsentSession = `
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2ConsentSessionResponse = `
+		UPDATE %s
+		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, expires_at = ?, granted_scopes = ?, granted_audience = ?
+		WHERE id = ? AND responded_at IS NULL;`
+
+	queryFmtUpdateOAuth2ConsentSessionGranted = `
+		UPDATE %s
+		SET granted = TRUE
+		WHERE id = ? AND responded_at IS NOT NULL;`
+
+	queryFmtSelectOAuth2Session = `
+		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ? AND revoked = FALSE;`
+
+	queryFmtInsertOAuth2Session = `
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at, 
+		requested_scopes, granted_scopes, requested_audience, granted_audience, 
+		active, revoked, form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtRevokeOAuth2Session = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE signature = ?;`
+
+	queryFmtRevokeOAuth2SessionByRequestID = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE request_id = ?;`
+
+	queryFmtDeactivateOAuth2Session = `
+		UPDATE %s
+		SET active = FALSE
+		WHERE signature = ?;`
+
+	queryFmtDeactivateOAuth2SessionByRequestID = `
+		UPDATE %s
+		SET active = FALSE
+		WHERE request_id = ?;"`
+
+	queryFmtSelectOAuth2BlacklistedJTI = `
+		SELECT id, signature, expires_at
+		FROM %s
+		WHERE signature = ?;`
+
+	queryFmtUpsertOAuth2BlacklistedJTI = `
+		REPLACE INTO %s (signature, expires_at)
+		VALUES(?, ?);`
+
+	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
+		INSERT INTO %s (signature, expires_at)
+		VALUES ($1, $2)
+			ON CONFLICT (signature)
+			DO UPDATE SET expires_at = $2;`
+)
+
+const (
+	queryFmtInsertUserOpaqueIdentifier = `
+		INSERT INTO %s (service, sector_id, username, identifier)
+		VALUES(?, ?, ?, ?);`
+
+	queryFmtSelectUserOpaqueIdentifier = `
+		SELECT id, sector_id, username, identifier
+		FROM %s
+		WHERE identifier = ?;`
+
+	queryFmtSelectUserOpaqueIdentifierBySignature = `
+		SELECT id, service, sector_id, username, identifier
+		FROM %s
+		WHERE service = ? AND sector_id = ? AND username = ?;`
 )

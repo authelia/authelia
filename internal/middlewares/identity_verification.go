@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -38,12 +38,12 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		var jti uuid.UUID
 
-		if jti, err = uuid.NewUUID(); err != nil {
+		if jti, err = uuid.NewRandom(); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
-		verification := models.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP())
+		verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP())
 
 		// Create the claim with the action to sign it.
 		claims := verification.ToIdentityVerificationClaim()
@@ -79,12 +79,14 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		if !disableHTML {
 			htmlParams := map[string]interface{}{
-				"title":  args.MailTitle,
-				"url":    link,
-				"button": args.MailButtonContent,
+				"Title":       args.MailTitle,
+				"LinkURL":     link,
+				"LinkText":    args.MailButtonContent,
+				"DisplayName": identity.DisplayName,
+				"RemoteIP":    ctx.RemoteIP().String(),
 			}
 
-			err = templates.HTMLEmailTemplate.Execute(bufHTML, htmlParams)
+			err = templates.EmailIdentityVerificationHTML.Execute(bufHTML, htmlParams)
 
 			if err != nil {
 				ctx.Error(err, messageOperationFailed)
@@ -94,10 +96,11 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		bufText := new(bytes.Buffer)
 		textParams := map[string]interface{}{
-			"url": link,
+			"LinkURL":     link,
+			"DisplayName": identity.DisplayName,
 		}
 
-		err = templates.PlainTextEmailTemplate.Execute(bufText, textParams)
+		err = templates.EmailIdentityVerificationPlainText.Execute(bufText, textParams)
 
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
@@ -139,7 +142,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		token, err := jwt.ParseWithClaims(finishBody.Token, &models.IdentityVerificationClaim{},
+		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
 			func(token *jwt.Token) (interface{}, error) {
 				return []byte(ctx.Configuration.JWTSecret), nil
 			})
@@ -165,7 +168,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		claims, ok := token.Claims.(*models.IdentityVerificationClaim)
+		claims, ok := token.Claims.(*model.IdentityVerificationClaim)
 		if !ok {
 			ctx.Error(fmt.Errorf("Wrong type of claims (%T != *middlewares.IdentityVerificationClaim)", claims), messageOperationFailed)
 			return
@@ -201,7 +204,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, models.NewNullIP(ctx.RemoteIP()))
+		err = ctx.Providers.StorageProvider.ConsumeIdentityVerification(ctx, claims.ID, model.NewNullIP(ctx.RemoteIP()))
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return

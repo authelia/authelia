@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -204,7 +204,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider         storage.Provider
 		ctx              = context.Background()
-		c                *models.TOTPConfiguration
+		c                *model.TOTPConfiguration
 		force            bool
 		filename, secret string
 		file             *os.File
@@ -228,7 +228,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if secret != "" {
-		c = &models.TOTPConfiguration{
+		c = &model.TOTPConfiguration{
 			Username:  args[0],
 			Issuer:    config.TOTP.Issuer,
 			Algorithm: config.TOTP.Algorithm,
@@ -328,7 +328,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider       storage.Provider
 		format, dir    string
-		configurations []models.TOTPConfiguration
+		configurations []model.TOTPConfiguration
 		img            image.Image
 
 		ctx = context.Background()
@@ -367,15 +367,20 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 				fmt.Println(c.URI())
 			case storageExportFormatPNG:
 				file, _ := os.Create(filepath.Join(dir, fmt.Sprintf("%s.png", c.Username)))
-				defer file.Close()
 
 				if img, err = c.Image(256, 256); err != nil {
+					_ = file.Close()
+
 					return err
 				}
 
 				if err = png.Encode(file, img); err != nil {
+					_ = file.Close()
+
 					return err
 				}
+
+				_ = file.Close()
 			}
 		}
 
@@ -426,7 +431,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		provider   storage.Provider
 		version    int
-		migrations []models.Migration
+		migrations []model.Migration
 
 		ctx = context.Background()
 	)
@@ -471,7 +476,7 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 		var (
 			provider     storage.Provider
 			ctx          = context.Background()
-			migrations   []models.SchemaMigration
+			migrations   []model.SchemaMigration
 			directionStr string
 		)
 

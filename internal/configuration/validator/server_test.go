@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+const unexistingFilePath = "/tmp/unexisting_file"
 
 func TestShouldSetDefaultServerValues(t *testing.T) {
 	validator := schema.NewStructValidator()
@@ -119,31 +122,127 @@ func TestShouldValidateAndUpdateHost(t *testing.T) {
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.Server.TLS.Certificate = testTLSCert
+
+	file, err := os.CreateTemp("", "cert")
+	require.NoError(t, err)
+
+	defer os.Remove(file.Name())
+
+	config.Server.TLS.Certificate = file.Name()
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'certificate' must also be accompanied by option 'key'")
 }
 
+func TestShouldRaiseErrorWhenTLSCertDoesNotExist(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	file, err := os.CreateTemp("", "key")
+	require.NoError(t, err)
+
+	defer os.Remove(file.Name())
+
+	config.Server.TLS.Certificate = unexistingFilePath
+	config.Server.TLS.Key = file.Name()
+
+	ValidateServer(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "server: tls: file path /tmp/unexisting_file provided in 'certificate' does not exist")
+}
+
 func TestShouldRaiseErrorWhenTLSKeyWithoutCertIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.Server.TLS.Key = testTLSKey
+
+	file, err := os.CreateTemp("", "key")
+	require.NoError(t, err)
+
+	defer os.Remove(file.Name())
+
+	config.Server.TLS.Key = file.Name()
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "server: tls: option 'key' must also be accompanied by option 'certificate'")
 }
 
+func TestShouldRaiseErrorWhenTLSKeyDoesNotExist(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	file, err := os.CreateTemp("", "key")
+	require.NoError(t, err)
+
+	defer os.Remove(file.Name())
+
+	config.Server.TLS.Key = unexistingFilePath
+	config.Server.TLS.Certificate = file.Name()
+
+	ValidateServer(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "server: tls: file path /tmp/unexisting_file provided in 'key' does not exist")
+}
+
 func TestShouldNotRaiseErrorWhenBothTLSCertificateAndKeyAreProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()
-	config.Server.TLS.Certificate = testTLSCert
-	config.Server.TLS.Key = testTLSKey
+
+	certFile, err := os.CreateTemp("", "cert")
+	require.NoError(t, err)
+
+	defer os.Remove(certFile.Name())
+
+	keyFile, err := os.CreateTemp("", "key")
+	require.NoError(t, err)
+
+	defer os.Remove(keyFile.Name())
+
+	config.Server.TLS.Certificate = certFile.Name()
+	config.Server.TLS.Key = keyFile.Name()
 
 	ValidateServer(&config, validator)
 	require.Len(t, validator.Errors(), 0)
+}
+
+func TestShouldRaiseErrorWhenTLSClientCertificateDoesNotExist(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	certFile, err := os.CreateTemp("", "cert")
+	require.NoError(t, err)
+
+	defer os.Remove(certFile.Name())
+
+	keyFile, err := os.CreateTemp("", "key")
+	require.NoError(t, err)
+
+	defer os.Remove(keyFile.Name())
+
+	config.Server.TLS.Certificate = certFile.Name()
+	config.Server.TLS.Key = keyFile.Name()
+	config.Server.TLS.ClientCertificates = []string{"/tmp/unexisting"}
+
+	ValidateServer(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "server: tls: client_certificates: certificates: file path /tmp/unexisting does not exist")
+}
+
+func TestShouldRaiseErrorWhenTLSClientAuthIsDefinedButNotServerCertificate(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultConfig()
+
+	certFile, err := os.CreateTemp("", "cert")
+	require.NoError(t, err)
+
+	defer os.Remove(certFile.Name())
+
+	config.Server.TLS.ClientCertificates = []string{certFile.Name()}
+
+	ValidateServer(&config, validator)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "server: tls: client authentication cannot be configured if no server certificate and key are provided")
 }
 
 func TestShouldNotUpdateConfig(t *testing.T) {

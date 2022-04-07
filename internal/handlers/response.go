@@ -9,6 +9,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -16,14 +17,15 @@ import (
 func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
-	if !authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, userSession.OIDCWorkflowSession.RequiredAuthorizationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", userSession.OIDCWorkflowSession.ClientID)
-		ctx.ReplyOK()
+	if userSession.ConsentChallengeID == nil {
+		ctx.Logger.Errorf("Unable to handle OIDC workflow response because the user session doesn't contain a consent challenge id")
+
+		respondUnauthorized(ctx, messageOperationFailed)
 
 		return
 	}
 
-	uri, err := ctx.ExternalRootURL()
+	externalRootURL, err := ctx.ExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Unable to determine external Base URL: %v", err)
 
@@ -32,18 +34,37 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if isConsentMissing(
-		userSession.OIDCWorkflowSession,
-		userSession.OIDCWorkflowSession.RequestedScopes,
-		userSession.OIDCWorkflowSession.RequestedAudience) {
-		err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", uri)})
+	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to load consent session from database: %v", err)
 
-		if err != nil {
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	client, err := ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to find client for the consent session: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if userSession.ConsentChallengeID != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", externalRootURL)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	} else {
-		err = ctx.SetJSONBody(redirectResponse{Redirect: userSession.OIDCWorkflowSession.AuthURI})
-		if err != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 	}
@@ -188,4 +209,11 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 	ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 	ctx.SetJSONError(message)
+}
+
+// SetStatusCodeResponse writes a response status code and an appropriate body on either a
+// *fasthttp.RequestCtx or *middlewares.AutheliaCtx.
+func SetStatusCodeResponse(ctx responseWriter, statusCode int) {
+	ctx.SetStatusCode(statusCode)
+	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }

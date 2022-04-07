@@ -7,5 +7,5 @@ import (
 )
 
 func (rs *RodSession) verifySecretAuthorized(t *testing.T, page *rod.Page) {
-	rs.WaitElementLocatedByCSSSelector(t, page, "secret")
+	rs.WaitElementLocatedByID(t, page, "secret")
 }

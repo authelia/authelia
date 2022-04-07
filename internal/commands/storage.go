@@ -13,7 +13,7 @@ func NewStorageCmd() (cmd *cobra.Command) {
 		PersistentPreRunE: storagePersistentPreRunE,
 	}
 
-	cmdWithConfigFlags(cmd, true, []string{"config.yml"})
+	cmdWithConfigFlags(cmd, true, []string{"configuration.yml"})
 
 	cmd.PersistentFlags().String("encryption-key", "", "the storage encryption key to use")
 

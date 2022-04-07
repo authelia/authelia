@@ -3,6 +3,8 @@ package validator
 import (
 	"regexp"
 
+	"github.com/go-webauthn/webauthn/protocol"
+
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -42,8 +44,6 @@ const (
 	testLDAPURL       = "ldap://ldap"
 	testLDAPUser      = "user"
 	testModeDisabled  = "disable"
-	testTLSCert       = "/tmp/cert.pem"
-	testTLSKey        = "/tmp/key.pem"
 	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
@@ -52,6 +52,9 @@ const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
 	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
+	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
+	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
+	errFmtNotifierTemplateLoad                    = "notifier: error loading template '%s': %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required "
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 )
@@ -64,6 +67,8 @@ const (
 		"backend is configured"
 	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
 		"it must be either a duration notation or one of 'disable', or 'always': %w"
+	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
+		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
@@ -118,10 +123,14 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
-
+	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
+
+	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
+	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
+	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
+	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of '%s'"
 
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
@@ -146,8 +155,20 @@ const (
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
 		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
+	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
+)
+
+// Webauthn Error constants.
+const (
+	errFmtWebauthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of '%s' but it is configured as '%s'"
+	errFmtWebauthnUserVerification     = "webauthn: option 'user_verification' must be one of 'discouraged', 'preferred', 'required' but it is configured as '%s'"
 )
 
 // Access Control error constants.
@@ -161,16 +182,17 @@ const (
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
 	errFmtAccessControlRuleNoDomains = "access control: rule %s: rule is invalid: must have the option " +
-		"'domain' configured"
+		"'domain' or 'domain_regex' configured"
 	errFmtAccessControlRuleInvalidPolicy = "access control: rule %s: rule 'policy' option '%s' " +
 		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
 	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
 		"https://www.authelia.com/docs/configuration/access-control.html#bypass"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
+		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
-	errFmtAccessControlRuleResourceInvalid = "access control: rule %s: 'resources' option '%s' is " +
-		"invalid: %w"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
@@ -208,8 +230,12 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey  = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCert                           = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey                            = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCertFileDoesNotExist           = "server: tls: file path %s provided in 'certificate' does not exist"
+	errFmtServerTLSKeyFileDoesNotExist            = "server: tls: file path %s provided in 'key' does not exist"
+	errFmtServerTLSClientAuthCertFileDoesNotExist = "server: tls: client_certificates: certificates: file path %s does not exist"
+	errFmtServerTLSClientAuthNoAuth               = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
@@ -245,13 +271,21 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 
 var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 
-var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+
+var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
+
+var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 
@@ -285,11 +319,19 @@ var ValidKeys = []string{
 	"server.headers.csp_template",
 
 	// TOTP Keys.
+	"totp.disable",
 	"totp.issuer",
 	"totp.algorithm",
 	"totp.digits",
 	"totp.period",
 	"totp.skew",
+
+	// Webauthn Keys.
+	"webauthn.disable",
+	"webauthn.display_name",
+	"webauthn.attestation_conveyance_preference",
+	"webauthn.user_verification",
+	"webauthn.timeout",
 
 	// DUO API Keys.
 	"duo_api.hostname",
@@ -300,8 +342,11 @@ var ValidKeys = []string{
 	// Access Control Keys.
 	"access_control.default_policy",
 	"access_control.networks",
+	"access_control.networks[].name",
+	"access_control.networks[].networks",
 	"access_control.rules",
 	"access_control.rules[].domain",
+	"access_control.rules[].domain_regex",
 	"access_control.rules[].methods",
 	"access_control.rules[].networks",
 	"access_control.rules[].subject",
@@ -329,16 +374,15 @@ var ValidKeys = []string{
 	"session.redis.tls.skip_verify",
 	"session.redis.tls.server_name",
 	"session.redis.high_availability.sentinel_name",
+	"session.redis.high_availability.sentinel_username",
 	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.nodes",
+	"session.redis.high_availability.nodes[].host",
+	"session.redis.high_availability.nodes[].port",
 	"session.redis.high_availability.route_by_latency",
 	"session.redis.high_availability.route_randomly",
-	"session.redis.timeouts.dial",
-	"session.redis.timeouts.idle",
-	"session.redis.timeouts.pool",
-	"session.redis.timeouts.read",
-	"session.redis.timeouts.write",
 
+	// Storage Keys.
 	"storage.encryption_key",
 
 	// Local Storage Keys.
@@ -386,6 +430,7 @@ var ValidKeys = []string{
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
+	"notifier.template_path",
 
 	// Regulation Keys.
 	"regulation.max_retries",
@@ -394,6 +439,7 @@ var ValidKeys = []string{
 
 	// Authentication Backend Keys.
 	"authentication_backend.disable_reset_password",
+	"authentication_backend.password_reset.custom_url",
 	"authentication_backend.refresh_interval",
 
 	// LDAP Authentication Backend Keys.
@@ -432,17 +478,27 @@ var ValidKeys = []string{
 	"identity_providers.oidc.access_token_lifespan",
 	"identity_providers.oidc.refresh_token_lifespan",
 	"identity_providers.oidc.authorize_code_lifespan",
+	"identity_providers.oidc.enforce_pkce",
+	"identity_providers.oidc.enable_pkce_plain_challenge",
 	"identity_providers.oidc.enable_client_debug_messages",
 	"identity_providers.oidc.minimum_parameter_entropy",
+	"identity_providers.oidc.cors.endpoints",
+	"identity_providers.oidc.cors.allowed_origins",
+	"identity_providers.oidc.cors.enable_origins_from_clients",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
 	"identity_providers.oidc.clients[].secret",
+	"identity_providers.oidc.clients[].sector_identifier",
+	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].redirect_uris",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].scopes",
+	"identity_providers.oidc.clients[].audience",
 	"identity_providers.oidc.clients[].grant_types",
 	"identity_providers.oidc.clients[].response_types",
+	"identity_providers.oidc.clients[].response_modes",
+	"identity_providers.oidc.clients[].userinfo_signing_algorithm",
 
 	// NTP keys.
 	"ntp.address",
@@ -450,6 +506,17 @@ var ValidKeys = []string{
 	"ntp.max_desync",
 	"ntp.disable_startup_check",
 	"ntp.disable_failure",
+
+	// Password Policy keys.
+	"password_policy.standard.enabled",
+	"password_policy.standard.min_length",
+	"password_policy.standard.max_length",
+	"password_policy.standard.require_uppercase",
+	"password_policy.standard.require_lowercase",
+	"password_policy.standard.require_number",
+	"password_policy.standard.require_special",
+	"password_policy.zxcvbn.enabled",
+	"password_policy.zxcvbn.min_score",
 }
 
 var replacedKeys = map[string]string{

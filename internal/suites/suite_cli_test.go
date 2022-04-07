@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -45,6 +45,10 @@ func (s *CLISuite) SetupTest() {
 }
 
 func (s *CLISuite) TestShouldPrintBuildInformation() {
+	if os.Getenv("CI") == "false" {
+		s.T().Skip("Skipping testing in dev environment")
+	}
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "build-info"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Last Tag: ")
@@ -92,22 +96,22 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=127.0.0.1", "--dir=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithStartDate() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--start-date='Jan 1 15:04:05 2011'"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithStartDate() {
@@ -119,15 +123,15 @@ func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithStartDate() {
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ca"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ed25519"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
@@ -139,29 +143,29 @@ func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P224"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P256"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P384"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "certificates", "generate", "--host=*.example.com", "--dir=/tmp/", "--ecdsa-curve=P521"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Certificate Public Key written to /tmp/cert.pem")
-	s.Assert().Contains(output, "Certificate Private Key written to /tmp/key.pem")
+	s.Assert().Contains(output, "Certificate written to /tmp/cert.pem")
+	s.Assert().Contains(output, "Private Key written to /tmp/key.pem")
 }
 
 func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
@@ -262,9 +266,17 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`^Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, duo_devices, user_preferences, migrations, encryption\nSchema Encryption Key: valid`)
-
-	s.Assert().Regexp(pattern, output)
+	s.Assert().Contains(output, "Schema Version: ")
+	s.Assert().Contains(output, "authentication_logs")
+	s.Assert().Contains(output, "identity_verification")
+	s.Assert().Contains(output, "duo_devices")
+	s.Assert().Contains(output, "user_preferences")
+	s.Assert().Contains(output, "migrations")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "totp_configurations")
+	s.Assert().Contains(output, "Schema Encryption Key: valid")
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
@@ -285,11 +297,11 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	expectedLinesCSV = append(expectedLinesCSV, "issuer,username,algorithm,digits,period,secret")
 
 	testCases := []struct {
-		config models.TOTPConfiguration
+		config model.TOTPConfiguration
 		png    bool
 	}{
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "john",
 				Period:    30,
 				Digits:    6,
@@ -297,7 +309,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			},
 		},
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "mary",
 				Period:    45,
 				Digits:    6,
@@ -305,7 +317,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			},
 		},
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "fred",
 				Period:    30,
 				Digits:    8,
@@ -313,7 +325,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			},
 		},
 		{
-			config: models.TOTPConfiguration{
+			config: model.TOTPConfiguration{
 				Username:  "jone",
 				Period:    30,
 				Digits:    6,
@@ -324,7 +336,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	var (
-		config   *models.TOTPConfiguration
+		config   *model.TOTPConfiguration
 		fileInfo os.FileInfo
 	)
 
@@ -399,8 +411,17 @@ func (s *CLISuite) TestStorage04ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	pattern := regexp.MustCompile(`Schema Version: \d+\nSchema Upgrade Available: no\nSchema Tables: authentication_logs, identity_verification, totp_configurations, u2f_devices, duo_devices, user_preferences, migrations, encryption\nSchema Encryption Key: invalid`)
-	s.Assert().Regexp(pattern, output)
+	s.Assert().Contains(output, "Schema Version: ")
+	s.Assert().Contains(output, "authentication_logs")
+	s.Assert().Contains(output, "identity_verification")
+	s.Assert().Contains(output, "duo_devices")
+	s.Assert().Contains(output, "user_preferences")
+	s.Assert().Contains(output, "migrations")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "encryption")
+	s.Assert().Contains(output, "webauthn_devices")
+	s.Assert().Contains(output, "totp_configurations")
+	s.Assert().Contains(output, "Schema Encryption Key: invalid")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)

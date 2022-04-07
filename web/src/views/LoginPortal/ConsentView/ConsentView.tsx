@@ -15,7 +15,7 @@ import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icon
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useRequestedScopes } from "@hooks/Consent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
@@ -46,11 +46,11 @@ const ConsentView = function (props: Props) {
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
     const [resp, fetch, , err] = useRequestedScopes();
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     useEffect(() => {
         if (err) {
-            navigate(FirstFactorRoute);
+            navigate(IndexRoute);
             console.error(`Unable to display consent screen: ${err.message}`);
         }
     }, [navigate, resetNotification, createErrorNotification, err]);

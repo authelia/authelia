@@ -23,7 +23,7 @@ tags:
   - name: User Information
     description: User configuration endpoints
   - name: Second Factor
-    description: TOTP, U2F and Duo endpoints
+    description: TOTP, Webauthn and Duo endpoints
 paths:
   /api/configuration:
     get:
@@ -44,6 +44,20 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+  /api/configuration/password-policy:
+    get:
+      tags:
+        - State
+      summary: Password Policy Configuration
+      description: >
+        The password policy configuration endpoint provides a password policy for resetting passwords.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.configuration.PasswordPolicyConfigurationBody'
   /api/health:
     get:
       tags:
@@ -317,6 +331,24 @@ paths:
           description: Forbidden
       security:
         - authelia_auth: []
+    post:
+      tags:
+        - User Information
+      summary: User Configuration
+      description: >
+        The user info endpoint provides detailed information including a users display name, preferred and registered
+        second factor method(s). The POST method also ensures the preferred method is configured correctly.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.UserInfo'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
   /api/user/info/totp:
     get:
       tags:
@@ -430,35 +462,34 @@ paths:
                 $ref: '#/components/schemas/middlewares.ErrorResponse'
       security:
         - authelia_auth: []
-  /api/secondfactor/u2f/sign_request:
-    post:
+  /api/secondfactor/webauthn/assertion:
+    get:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - U2F (Request)
-      description: This endpoint starts the second factor authentication process with the U2F key.
+      summary: Second Factor Authentication - Webauthn (Request)
+      description: This endpoint starts the second factor authentication process with the FIDO2 Webauthn credential.
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/u2f.WebSignRequest'
+                $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
         "401":
           description: Unauthorized
       security:
         - authelia_auth: []
-  /api/secondfactor/u2f/sign:
     post:
       tags:
         - Second Factor
-      summary: Second Factor Authentication - U2F
-      description: "This endpoint completes second factor authentication with a U2F key."
+      summary: Second Factor Authentication - Webauthn
+      description: This endpoint completes the second factor authentication process with the FIDO2 Webauthn credential.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/handlers.signU2FRequestBody"
+              $ref: "#/components/schemas/webauthn.CredentialAssertionResponse"
       responses:
         "200":
           description: Successful Operation
@@ -470,16 +501,17 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
-  /api/secondfactor/u2f/identity/start:
+  /api/secondfactor/webauthn/identity/start:
     post:
       tags:
         - Second Factor
-      summary: Identity Verification U2F Token Creation
+      summary: Identity Verification Webauthn Credential Creation
       description: >
-        This endpoint performs identity verification to begin the U2F device registration process.
+        This endpoint performs identity verification to begin the FIDO2 Webauthn credential attestation process
+        (registration).
 
         The session generated from this endpoint must be utilised for the subsequent steps in the
-        `/api/secondfactor/u2f/identity/finish` and `/api/secondfactor/u2f/register` endpoints.
+        `/api/secondfactor/webauthn/identity/finish` and `/api/secondfactor/webauthn/attestation` endpoints.
       responses:
         "200":
           description: Successful Operation
@@ -489,17 +521,17 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
-  /api/secondfactor/u2f/identity/finish:
+  /api/secondfactor/webauthn/identity/finish:
     post:
       tags:
         - Second Factor
-      summary: Identity Verification U2F Token Validation
+      summary: Identity Verification FIDO2 Webauthn Credential Validation
       description: >
-        This endpoint performs identity and token verification, upon success generates a U2F device registration
-        challenge.
+        This endpoint performs identity and token verification, upon success generates a FIDO2 Webauthn device
+        attestation challenge (registration).
 
-        The session cookie generated from the `/api/secondfactor/u2f/identity/start` endpoint must be utilised for the
-        subsequent steps here and in the `/api/secondfactor/u2f/register` endpoint.
+        The session cookie generated from the `/api/secondfactor/webauthn/identity/start` endpoint must be utilised
+        for the subsequent steps here and in the `/api/secondfactor/webauthn/attestation` endpoint.
       requestBody:
         required: true
         content:
@@ -512,21 +544,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/u2f.WebRegisterRequest'
+                $ref: '#/components/schemas/webauthn.PublicKeyCredentialCreationOptions'
       security:
         - authelia_auth: []
-  /api/secondfactor/u2f/register:
+  /api/secondfactor/webauthn/attestation:
     post:
       tags:
         - Second Factor
-      summary: U2F Device Registration
-      description: This endpoint performs U2F device registration.
+      summary: Webauthn Credential Attestation
+      description: This endpoint performs Webauthn credential attestation (registration).
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/u2f.RegisterResponse'
+              $ref: '#/components/schemas/webauthn.CredentialAttestationResponse'
       responses:
         "200":
           description: Successful Operation
@@ -619,7 +651,23 @@ components:
       explode: true
       schema:
         type: string
-        enum: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"]
+        enum:
+          - "GET"
+          - "HEAD"
+          - "POST"
+          - "PUT"
+          - "PATCH"
+          - "DELETE"
+          - "TRACE"
+          - "CONNECT"
+          - "OPTIONS"
+          - "COPY"
+          - "LOCK"
+          - "MKCOL"
+          - "MOVE"
+          - "PROPFIND"
+          - "PROPPATCH"
+          - "UNLOCK"
     authParam:
       name: auth
       in: query
@@ -653,12 +701,50 @@ components:
           properties:
             available_methods:
               type: array
+              description: List of available 2FA methods. If no methods exist 2FA is disabled.
               items:
-                type: string
-              example: [totp, u2f, mobile_push]
-            second_factor_enabled:
+                enum:
+                  - "totp"
+                  - "webauthn"
+                  - "mobile_push"
+              example: [totp, webauthn, mobile_push]
+    handlers.configuration.PasswordPolicyConfigurationBody:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        data:
+          type: object
+          properties:
+            mode:
+              type: string
+              description: The password policy mode.
+              enum:
+                - "disabled"
+                - "standard"
+                - "zxcvbn"
+            min_length:
+              type: integer
+              description: The minimum password length when using the standard mode.
+            max_length:
+              type: integer
+              description: The maximum password length when using the standard mode.
+            min_score:
+              type: integer
+              description: The minimum password score when using the zxcvbn mode.
+            require_uppercase:
               type: boolean
-              description: If second factor is enabled.
+              description: If uppercase characters are required when using the standard mode.
+            require_lowercase:
+              type: boolean
+              description: If uppercase characters are required when using the standard mode.
+            require_number:
+              type: boolean
+              description: If numeric characters are required when using the standard mode.
+            require_special:
+              type: boolean
+              description: If special characters are required when using the standard mode.
     handlers.DuoDeviceBody:
       required:
         - device
@@ -781,24 +867,6 @@ components:
         targetURL:
           type: string
           example: https://secure.example.com
-    handlers.signU2FRequestBody:
-      type: object
-      properties:
-        targetURL:
-          type: string
-          example: https://secure.example.com
-        signResponse:
-          type: object
-          properties:
-            clientData:
-              type: string
-              example: 6prxyWqSsR6MXFchtQRzwZVTedWq7Zdc6XreLt6xRDXKeqJN7vzKAfYcKwRD3AT57bP4YFL4hbxat4LUysBNss
-            keyHandle:
-              type: string
-              example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
-            signatureData:
-              type: string
-              example: p3Pe26B6T2E7EEEc59P4p869qwxy8cQAU2ttyGtGrQHb4XL2ZxCpWrawsSHNSTRZQd7jEW59Y3Ku9vSNRzj7Ly
     handlers.StateResponse:
       type: object
       properties:
@@ -846,9 +914,12 @@ components:
               example: John Doe
             method:
               type: string
-              enum: [totp, u2f, mobile_push]
+              enum:
+                - "totp"
+                - "webauthn"
+                - "mobile_push"
               example: totp
-            has_u2f:
+            has_webauthn:
               type: boolean
               example: false
             has_totp:
@@ -883,7 +954,10 @@ components:
       properties:
         method:
           type: string
-          enum: [totp, u2f, mobile_push]
+          enum:
+            - "totp"
+            - "webauthn"
+            - "mobile_push"
           example: totp
     middlewares.ErrorResponse:
       type: object
@@ -910,16 +984,70 @@ components:
           example: OK
         data:
           type: object
-    u2f.RegisterResponse:
+    webauthn.PublicKeyCredential:
       type: object
       properties:
-        version:
+        rawId:
           type: string
-        registrationData:
+          format: byte
+        id:
           type: string
-        clientData:
+        type:
           type: string
-    u2f.WebRegisterRequest:
+    webauthn.AuthenticatorResponse:
+      type: object
+      properties:
+        clientDataJSON:
+          type: string
+          format: byte
+    webauthn.CredentialAttestationResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+        - type: object
+          properties:
+            clientExtensionResults:
+              type: object
+              properties:
+                appidExclude:
+                  type: boolean
+            response:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                - type: object
+                  properties:
+                    attestationObject:
+                      type: string
+                      format: byte
+    webauthn.CredentialAssertionResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+        - type: object
+          properties:
+            response:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                - type: object
+                  required: [authenticatorData, clientDataJSON, signature]
+                  properties:
+                    authenticatorData:
+                      type: string
+                      format: byte
+                    clientDataJSON:
+                      type: string
+                      format: byte
+                    clientExtensionResults:
+                      type: object
+                      properties:
+                        appid:
+                          type: boolean
+                          example: false
+                    signature:
+                      type: string
+                      format: byte
+                    userHandle:
+                      type: string
+                      format: byte
+    webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
         status:
@@ -928,35 +1056,50 @@ components:
         data:
           type: object
           properties:
-            appId:
-              type: string
-              example: https://auth.example.com
-            registerRequests:
-              type: array
-              items:
-                type: object
-                properties:
-                  version:
-                    type: string
-                    example: U2F_V2
-                  challenge:
-                    type: string
-                    example: XGYKUzSmTpM1KxxpekArviW0w0OU2pwwRAocgn8TkVQ
-            registeredKeys:
-              type: array
-              items:
-                type: object
-                properties:
-                  appId:
-                    type: string
-                    example: https://auth.example.com
-                  version:
-                    type: string
-                    example: U2F_V2
-                  keyHandle:
-                    type: string
-                    example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
-    u2f.WebSignRequest:
+            publicKey:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AttestationType'
+                - $ref: '#/components/schemas/webauthn.AuthenticatorSelectionCriteria'
+                - $ref: '#/components/schemas/webauthn.CredentialUserEntity'
+                - $ref: '#/components/schemas/webauthn.CredentialRPEntity'
+                - type: object
+                  required:
+                    - "challenge"
+                    - "pubKeyCredParams"
+                  properties:
+                    challenge:
+                      type: string
+                      format: byte
+                    pubKeyCredParams:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - "alg"
+                          - "type"
+                        properties:
+                          alg:
+                            type: integer
+                          type:
+                            type: string
+                            example: public-key
+                            enum:
+                              - "public-key"
+                    timeout:
+                      type: integer
+                      example: 60000
+                    excludeCredentials:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/webauthn.CredentialDescriptor'
+                    extensions:
+                      type: object
+                      properties:
+                        appidExclude:
+                          type: string
+                          example: https://auth.example.com
+    webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
         status:
@@ -965,26 +1108,172 @@ components:
         data:
           type: object
           properties:
-            appId:
+            publicKey:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.UserVerification'
+                - type: object
+                  required:
+                    - "challenge"
+                  properties:
+                    challenge:
+                      type: string
+                    timeout:
+                      type: integer
+                      example: 60000
+                    rpId:
+                      type: string
+                      example: auth.example.com
+                    allowCredentials:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/webauthn.CredentialDescriptor'
+                    extensions:
+                      type: object
+                      properties:
+                        appid:
+                          type: string
+                          example: https://auth.example.com
+    webauthn.Transports:
+      type: object
+      properties:
+        transports:
+          type: array
+          items:
+            type: string
+            example:
+              - "usb"
+              - "nfc"
+            enum:
+              - "usb"
+              - "nfc"
+              - "ble"
+              - "internal"
+    webauthn.UserVerification:
+      type: object
+      properties:
+        userVerification:
+          type: string
+          example: preferred
+          enum:
+            - "required"
+            - "preferred"
+            - "discouraged"
+    webauthn.AttestationType:
+      type: object
+      properties:
+        attestation:
+          type: string
+          example: direct
+          enum:
+            - "none"
+            - "indirect"
+            - "direct"
+    webauthn.AuthenticatorSelectionCriteria:
+      type: object
+      properties:
+        authenticatorSelection:
+          type: object
+          properties:
+            authenticatorAttachment:
               type: string
-              example: https://auth.example.com
-            challenge:
+              example: cross-platform
+              enum:
+                - "platform"
+                - "cross-platform"
+            residentKey:
               type: string
-              example: XGYKUzSmTpM1KxxpekArviW0w0OU2pwwRAocgn8TkVQ
-            registeredKeys:
+              example: discouraged
+              enum:
+                - "discouraged"
+                - "preferred"
+                - "required"
+            requireResidentKey:
+              type: boolean
+    webauthn.CredentialDescriptor:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.Transports'
+        - type: object
+          required:
+            - "id"
+            - "type"
+          properties:
+            id:
+              type: string
+              format: byte
+            type:
+              type: string
+              example: public-key
+              enum:
+                - "public-key"
+    webauthn.CredentialEntity:
+      type: object
+      required:
+        - "id"
+        - "name"
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+    webauthn.CredentialRPEntity:
+      type: object
+      required:
+        - "rp"
+      properties:
+        rp:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.CredentialEntity'
+    webauthn.CredentialUserEntity:
+      type: object
+      required:
+        - "user"
+      properties:
+        user:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.CredentialEntity'
+            - type: object
+              required:
+                - "displayName"
+              properties:
+                displayName:
+                  type: string
+    webauthn.AuthenticationExtensionsClientOutputs:
+      type: object
+      properties:
+        clientExtensionResults:
+          type: object
+          properties:
+            appid:
+              type: boolean
+              example: true
+            appidExclude:
+              type: boolean
+              example: false
+            uvm:
               type: array
               items:
-                type: object
-                properties:
-                  appId:
-                    type: string
-                    example: https://auth.example.com
-                  version:
-                    type: string
-                    example: U2F_V2
-                  keyHandle:
-                    type: string
-                    example: pWgBrwr9meS5vArdffPtD4Px6AqZS7MfGEf776Rz438ujwHjeXwQEZuK53sRQ4wjeAgRCW4wX9VRj8dyKjc273
+                type: string
+                format: byte
+            credProps:
+              type: object
+              properties:
+                rk:
+                  type: boolean
+                  example: false
+            largeBlob:
+              type: object
+              properties:
+                supported:
+                  type: boolean
+                  example: false
+                blob:
+                  type: string
+                written:
+                  type: boolean
+                  example: false
   securitySchemes:
     authelia_auth:
       type: apiKey

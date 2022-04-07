@@ -71,6 +71,9 @@ server:
     ## The path to the DER base64/PEM format public certificate.
     certificate: ""
 
+    ## The list of certificates for client authentication.
+    client_certificates: []
+
   ## Server headers configuration/customization.
   headers:
 
@@ -98,6 +101,9 @@ log:
 ##
 ## Parameters used for TOTP generation.
 totp:
+  ## Disable TOTP.
+  disable: false
+
   ## The issuer name displayed in the Authenticator application of your choice.
   issuer: authelia.com
 
@@ -120,6 +126,28 @@ totp:
   ## Warning: before changing skew read the docs link below.
   skew: 1
   ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
+
+##
+## WebAuthn Configuration
+##
+## Parameters used for WebAuthn.
+webauthn:
+  ## Disable Webauthn.
+  disable: false
+
+  ## Adjust the interaction timeout for Webauthn dialogues.
+  timeout: 60s
+
+  ## The display name the browser should show the user for when using Webauthn to login/register.
+  display_name: Authelia
+
+  ## Conveyance preference controls if we collect the attestation statement including the AAGUID from the device.
+  ## Options are none, indirect, direct.
+  attestation_conveyance_preference: indirect
+
+  ## User verification controls if the user must make a gesture or action to confirm they are present.
+  ## Options are required, preferred, discouraged.
+  user_verification: preferred
 
 ##
 ## Duo Push API Configuration
@@ -165,6 +193,13 @@ ntp:
 authentication_backend:
   ## Disable both the HTML element and the API for reset password functionality.
   disable_reset_password: false
+
+  ## Password Reset Options.
+  password_reset:
+
+    ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
+    ## functionality.
+    custom_url: ""
 
   ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
@@ -297,6 +332,38 @@ authentication_backend:
   #     parallelism: 8
 
 ##
+## Password Policy Configuration.
+##
+password_policy:
+
+  ## The standard policy allows you to tune individual settings manually.
+  standard:
+    enabled: false
+
+    ## Require a minimum length for passwords.
+    min_length: 8
+
+    ## Require a maximum length for passwords.
+    max_length: 0
+
+    ## Require uppercase characters.
+    require_uppercase: true
+
+    ## Require lowercase characters.
+    require_lowercase: true
+
+    ## Require numeric characters.
+    require_number: true
+
+    ## Require special characters.
+    require_special: true
+
+  ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
+  zxcvbn:
+    enabled: false
+    min_score: 0
+
+##
 ## Access Control Configuration
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
@@ -338,10 +405,22 @@ access_control:
 
   rules:
     ## Rules applied to everyone
-    - domain: public.example.com
+    - domain: 'public.example.com'
       policy: bypass
 
-    - domain: secure.example.com
+    ## Domain Regex examples. Generally we recommend just using a standard domain.
+    # - domain_regex: '^(?P<User>\w+)\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex: '^(?P<Group>\w+)\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex:
+    #    - '^appgroup-.*\.example\.com$'
+    #    - '^appgroup2-.*\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex: '^.*\.example\.com$'
+    #   policy: two_factor
+
+    - domain: 'secure.example.com'
       policy: one_factor
       ## Network based rule, if not provided any network matches.
       networks:
@@ -351,53 +430,53 @@ access_control:
         - 10.0.0.1
 
     - domain:
-        - secure.example.com
-        - private.example.com
+        - 'secure.example.com'
+        - 'private.example.com'
       policy: two_factor
 
-    - domain: singlefactor.example.com
+    - domain: 'singlefactor.example.com'
       policy: one_factor
 
     ## Rules applied to 'admins' group
-    - domain: "mx2.mail.example.com"
-      subject: "group:admins"
+    - domain: 'mx2.mail.example.com'
+      subject: 'group:admins'
       policy: deny
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       subject:
-        - "group:admins"
-        - "group:moderators"
+        - 'group:admins'
+        - 'group:moderators'
       policy: two_factor
 
     ## Rules applied to 'dev' group
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/groups/dev/.*$"
-      subject: "group:dev"
+        - '^/groups/dev/.*$'
+      subject: 'group:dev'
       policy: two_factor
 
     ## Rules applied to user 'john'
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
+        - '^/users/john/.*$'
+      subject: 'user:john'
       policy: two_factor
 
     ## Rules applied to user 'harry'
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
       policy: two_factor
 
     ## Rules applied to user 'bob'
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
       policy: two_factor
-    - domain: "dev.example.com"
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
       policy: two_factor
 
 ##
@@ -436,7 +515,7 @@ session:
   inactivity: 5m
 
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
-  ## Value of 0 disables remember me.
+  ## Value of -1 disables remember me.
   remember_me_duration: 1M
 
   ##
@@ -576,7 +655,7 @@ storage:
 ##
 ## Notification Provider
 ##
-## Notifications are sent to users when they require a password reset, a U2F registration or a TOTP registration.
+## Notifications are sent to users when they require a password reset, a Webauthn registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use only one of these providers.
 notifier:
   ## You can disable the notifier startup check by setting this to true.
@@ -688,6 +767,26 @@ notifier:
     ## for security reasons.
     # enforce_pkce: public_clients_only
 
+    ## Cross-Origin Resource Sharing (CORS) settings.
+    # cors:
+      ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
+      # endpoints:
+      #    - authorization
+      #    - token
+      #    - revocation
+      #    - introspection
+      #    - userinfo
+
+      ## List of allowed origins.
+      ## Any origin with https is permitted unless this option is configured or the
+      ## allowed_origins_from_client_redirect_uris option is enabled.
+      # allowed_origins:
+      #   - https://example.com
+
+      ## Automatically adds the origin portion of all redirect URI's on all clients to the list of allowed_origins,
+      ## provided they have the scheme http or https and do not have the hostname of localhost.
+      # allowed_origins_from_client_redirect_uris: false
+
     ## Clients is a list of known clients and their configuration.
     # clients:
       # -
@@ -699,6 +798,11 @@ notifier:
 
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # secret: this_is_a_secret
+
+        ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
+        ## necessary. Read the documentation for more information.
+        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
+        # sector_identifier: example.com
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false

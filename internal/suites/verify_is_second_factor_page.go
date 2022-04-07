@@ -7,5 +7,5 @@ import (
 )
 
 func (rs *RodSession) verifyIsSecondFactorPage(t *testing.T, page *rod.Page) {
-	rs.WaitElementLocatedByCSSSelector(t, page, "second-factor-stage")
+	rs.WaitElementLocatedByID(t, page, "second-factor-stage")
 }

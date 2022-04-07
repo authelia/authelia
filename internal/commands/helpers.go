@@ -64,12 +64,14 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 
-	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC)
+	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC, storageProvider)
 	if err != nil {
 		errors = append(errors, err)
 	}
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+
+	passwordPolicyProvider := middlewares.NewPasswordPolicyProvider(config.PasswordPolicy)
 
 	return middlewares.Providers{
 		Authorizer:      authorizer,
@@ -81,5 +83,6 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
 		TOTP:            totpProvider,
+		PasswordPolicy:  passwordPolicyProvider,
 	}, warnings, errors
 }

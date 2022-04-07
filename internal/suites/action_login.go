@@ -9,21 +9,21 @@ import (
 )
 
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
-	usernameElement := rs.WaitElementLocatedByCSSSelector(t, page, "username-textfield")
+	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
 	err := usernameElement.Input(username)
 	require.NoError(t, err)
 
-	passwordElement := rs.WaitElementLocatedByCSSSelector(t, page, "password-textfield")
+	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
 	err = passwordElement.Input(password)
 	require.NoError(t, err)
 
 	if keepMeLoggedIn {
-		keepMeLoggedInElement := rs.WaitElementLocatedByCSSSelector(t, page, "remember-checkbox")
+		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
 		err = keepMeLoggedInElement.Click("left")
 		require.NoError(t, err)
 	}
 
-	buttonElement := rs.WaitElementLocatedByCSSSelector(t, page, "sign-in-button")
+	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
 	err = buttonElement.Click("left")
 	require.NoError(t, err)
 }

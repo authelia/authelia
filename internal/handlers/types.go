@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/tstranex/u2f"
+	"io"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
@@ -13,8 +13,7 @@ type authorizationMatching int
 
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
-	AvailableMethods    MethodList `json:"available_methods"`
-	SecondFactorEnabled bool       `json:"second_factor_enabled"` // whether second factor is enabled or not.
+	AvailableMethods MethodList `json:"available_methods"`
 }
 
 // signTOTPRequestBody model of the request body received by TOTP authentication endpoint.
@@ -23,10 +22,9 @@ type signTOTPRequestBody struct {
 	TargetURL string `json:"targetURL"`
 }
 
-// signU2FRequestBody model of the request body of U2F authentication endpoint.
-type signU2FRequestBody struct {
-	SignResponse u2f.SignResponse `json:"signResponse"`
-	TargetURL    string           `json:"targetURL"`
+// signWebauthnRequestBody model of the request body of Webauthn authentication endpoint.
+type signWebauthnRequestBody struct {
+	TargetURL string `json:"targetURL"`
 }
 
 type signDuoRequestBody struct {
@@ -115,4 +113,25 @@ type resetPasswordStep1RequestBody struct {
 // resetPasswordStep2RequestBody model of the reset password (step2) request body.
 type resetPasswordStep2RequestBody struct {
 	Password string `json:"password"`
+}
+
+// PassworPolicyBody represents the response sent by the password reset step 2.
+type PassworPolicyBody struct {
+	Mode             string `json:"mode"`
+	MinLength        int    `json:"min_length"`
+	MaxLength        int    `json:"max_length"`
+	MinScore         int    `json:"min_score"`
+	RequireUppercase bool   `json:"require_uppercase"`
+	RequireLowercase bool   `json:"require_lowercase"`
+	RequireNumber    bool   `json:"require_number"`
+	RequireSpecial   bool   `json:"require_special"`
+}
+
+type responseWriter interface {
+	SetStatusCode(statusCode int)
+	SetBodyString(body string)
+	SetBody(body []byte)
+	SetContentType(contentType string)
+	SetContentTypeBytes(contentType []byte)
+	SetBodyStream(bodyStream io.Reader, bodySize int)
 }

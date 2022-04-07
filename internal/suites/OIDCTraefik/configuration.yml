@@ -60,6 +60,7 @@ notifier:
 
 identity_providers:
   oidc:
+    enable_client_debug_messages: true
     hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
     issuer_private_key: |
       -----BEGIN RSA PRIVATE KEY-----

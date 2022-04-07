@@ -6,7 +6,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -235,7 +235,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	method := devices[0].Capabilities[0]
 	ctx.Logger.Debugf("Exactly one device: '%s' and method: '%s' found, saving as new preferred Duo device and method for user: %s", device, method, username)
 
-	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
+	if err := ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: username, Method: method, Device: device}); err != nil {
 		return "", "", fmt.Errorf("unable to save new preferred Duo device and method for user %s: %s", username, err)
 	}
 
@@ -255,7 +255,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
+	userSession.SetTwoFactorDuo(ctx.Clock.Now())
 
 	err = ctx.SaveSession(userSession)
 	if err != nil {
@@ -266,7 +266,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, targetURL)

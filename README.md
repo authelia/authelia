@@ -52,9 +52,9 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * Several second factor methods:
-  * **[Security Key (U2F)](https://www.authelia.com/docs/features/2fa/security-key)** with [Yubikey].
-  * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)** 
-    with [Google Authenticator].
+  * **[Security Keys](https://www.authelia.com/docs/features/2fa/security-key)** that support [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
+  * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)**
+    with compatible authenticator applications.
   * **[Mobile Push Notifications](https://www.authelia.com/docs/features/2fa/push-notifications)** 
     with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
@@ -271,12 +271,20 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/polandy"><img src="https://avatars.githubusercontent.com/u/3670670?v=4?s=100" width="100px;" alt=""/><br /><sub><b>polandy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=polandy" title="Documentation">📖</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/you1996"><img src="https://avatars.githubusercontent.com/u/45292366?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yossbg</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=you1996" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/you1996"><img src="https://avatars.githubusercontent.com/u/45292366?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yossbg</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=you1996" title="Code">💻</a> <a href="#design-you1996" title="Design">🎨</a></td>
     <td align="center"><a href="https://github.com/mpdcampbell"><img src="https://avatars.githubusercontent.com/u/47434940?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Michael Campbell</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=mpdcampbell" title="Documentation">📖</a></td>
     <td align="center"><a href="https://sievenpiper.co"><img src="https://avatars.githubusercontent.com/u/1131882?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Justin Sievenpiper</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=jsievenpiper" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/kaysond"><img src="https://avatars.githubusercontent.com/u/1147328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aram Akhavan</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=kaysond" title="Documentation">📖</a></td>
     <td align="center"><a href="https://skhuf.net"><img src="https://avatars.githubusercontent.com/u/286341?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Shadow</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=shadow7412" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/tarioch"><img src="https://avatars.githubusercontent.com/u/2998148?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Patrick Ruckstuhl</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tarioch" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/FineWolf"><img src="https://avatars.githubusercontent.com/u/203591?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrew Moore</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=FineWolf" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=FineWolf" title="Documentation">📖</a> <a href="https://github.com/authelia/authelia/commits?author=FineWolf" title="Tests">⚠️</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="http://www.dennisgaida.de"><img src="https://avatars.githubusercontent.com/u/2392217?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dennis Gaida</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=DennisGaida" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Alestrix"><img src="https://avatars.githubusercontent.com/u/7452860?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alestrix</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Alestrix" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/bgh-github"><img src="https://avatars.githubusercontent.com/u/99472455?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bgh-github</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=bgh-github" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/mind-ar"><img src="https://avatars.githubusercontent.com/u/10672208?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Manuel Nuñez</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=mind-ar" title="Code">💻</a> <a href="#translation-mind-ar" title="Translation">🌍</a></td>
+    <td align="center"><a href="https://github.com/protvis74"><img src="https://avatars.githubusercontent.com/u/50554836?v=4?s=100" width="100px;" alt=""/><br /><sub><b>protvis74</b></sub></a><br /><a href="#translation-protvis74" title="Translation">🌍</a></td>
   </tr>
 </table>
 
@@ -345,10 +353,10 @@ for providing us with free licenses to their great tools.
 
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [TOTP]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
-[Security Key]: https://www.yubico.com/about/background/fido/
-[Yubikey]: https://www.yubico.com/products/yubikey-hardware/yubikey4/
+[FIDO2]: https://www.yubico.com/authentication-standards/fido2/
+[YubiKey]: https://www.yubico.com/products/yubikey-5-overview/
+[Webauthn]: https://www.yubico.com/authentication-standards/webauthn/
 [auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
-[Google Authenticator]: https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en
 [config.template.yml]: ./config.template.yml
 [nginx]: https://www.nginx.com/
 [Traefik]: https://traefik.io/

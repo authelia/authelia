@@ -20,3 +20,16 @@ func TestShouldAppendQueryParamToURL(t *testing.T) {
 	assert.Equal(t, "/api?type=none", object.Path)
 	assert.Equal(t, "https", object.Scheme)
 }
+
+func TestShouldCreateNewObjectFromRaw(t *testing.T) {
+	targetURL, err := url.Parse("https://domain.example.com/api")
+
+	require.NoError(t, err)
+
+	object := NewObjectRaw(targetURL, []byte("GET"))
+
+	assert.Equal(t, "domain.example.com", object.Domain)
+	assert.Equal(t, "GET", object.Method)
+	assert.Equal(t, "/api", object.Path)
+	assert.Equal(t, "https", object.Scheme)
+}

@@ -14,7 +14,7 @@ import (
 func TestShouldSetDefaultTOTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{},
+		TOTP: schema.TOTPConfiguration{},
 	}
 
 	ValidateTOTP(config, validator)
@@ -30,7 +30,7 @@ func TestShouldNormalizeTOTPAlgorithm(t *testing.T) {
 	validator := schema.NewStructValidator()
 
 	config := &schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Algorithm: "sha1",
 		},
 	}
@@ -45,7 +45,7 @@ func TestShouldRaiseErrorWhenInvalidTOTPAlgorithm(t *testing.T) {
 	validator := schema.NewStructValidator()
 
 	config := &schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Algorithm: "sha3",
 		},
 	}
@@ -59,7 +59,7 @@ func TestShouldRaiseErrorWhenInvalidTOTPAlgorithm(t *testing.T) {
 func TestShouldRaiseErrorWhenInvalidTOTPValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		TOTP: &schema.TOTPConfiguration{
+		TOTP: schema.TOTPConfiguration{
 			Period: 5,
 			Digits: 20,
 		},

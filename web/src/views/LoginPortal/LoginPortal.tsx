@@ -4,11 +4,11 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import {
     AuthenticatedRoute,
-    FirstFactorRoute,
+    IndexRoute,
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
-    SecondFactorU2FSubRoute,
+    SecondFactorWebauthnSubRoute,
 } from "@constants/Routes";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -16,7 +16,7 @@ import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
-import { useUserInfo } from "@hooks/UserInfo";
+import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -28,7 +28,9 @@ import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 export interface Props {
     duoSelfEnrollment: boolean;
     rememberMe: boolean;
+
     resetPassword: boolean;
+    resetPasswordCustomURL: string;
 }
 
 const RedirectionErrorMessage =
@@ -44,7 +46,7 @@ const LoginPortal = function (props: Props) {
     const redirector = useRedirector();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfo();
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
     const redirect = useCallback((url: string) => navigate(url), [navigate]);
@@ -100,7 +102,7 @@ const LoginPortal = function (props: Props) {
             if (
                 redirectionURL &&
                 ((configuration &&
-                    !configuration.second_factor_enabled &&
+                    configuration.available_methods.size === 0 &&
                     state.authentication_level >= AuthenticationLevel.OneFactor) ||
                     state.authentication_level === AuthenticationLevel.TwoFactor)
             ) {
@@ -123,13 +125,13 @@ const LoginPortal = function (props: Props) {
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(`${FirstFactorRoute}${redirectionSuffix}`);
+                redirect(`${IndexRoute}${redirectionSuffix}`);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-                if (!configuration.second_factor_enabled) {
+                if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute);
                 } else {
-                    if (userInfo.method === SecondFactorMethod.U2F) {
-                        redirect(`${SecondFactorRoute}${SecondFactorU2FSubRoute}${redirectionSuffix}`);
+                    if (userInfo.method === SecondFactorMethod.Webauthn) {
+                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}${redirectionSuffix}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
                         redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}${redirectionSuffix}`);
                     } else {
@@ -163,18 +165,19 @@ const LoginPortal = function (props: Props) {
     const firstFactorReady =
         state !== undefined &&
         state.authentication_level === AuthenticationLevel.Unauthenticated &&
-        location.pathname === FirstFactorRoute;
+        location.pathname === IndexRoute;
 
     return (
         <Routes>
             <Route
-                path={FirstFactorRoute}
+                path={IndexRoute}
                 element={
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
                             disabled={firstFactorDisabled}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
+                            resetPasswordCustomURL={props.resetPasswordCustomURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}

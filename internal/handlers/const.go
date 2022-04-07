@@ -10,8 +10,8 @@ const (
 	// ActionTOTPRegistration is the string representation of the action for which the token has been produced.
 	ActionTOTPRegistration = "RegisterTOTPDevice"
 
-	// ActionU2FRegistration is the string representation of the action for which the token has been produced.
-	ActionU2FRegistration = "RegisterU2FDevice"
+	// ActionWebauthnRegistration is the string representation of the action for which the token has been produced.
+	ActionWebauthnRegistration = "RegisterWebauthnDevice"
 
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
@@ -44,6 +44,7 @@ const (
 	messageUnableToRegisterSecurityKey     = "Unable to register your security key."
 	messageUnableToResetPassword           = "Unable to reset your password."
 	messageMFAValidationFailed             = "Authentication failed, please retry later."
+	messagePasswordWeak                    = "Your supplied password does not meet the password policy requirements"
 )
 
 const (
@@ -69,21 +70,6 @@ const (
 	deny   = "deny"
 	enroll = "enroll"
 	auth   = "auth"
-)
-
-// OIDC constants.
-const (
-	pathOpenIDConnectWellKnown = "/.well-known/openid-configuration"
-
-	pathOpenIDConnectJWKs          = "/api/oidc/jwks"
-	pathOpenIDConnectAuthorization = "/api/oidc/authorize"
-	pathOpenIDConnectToken         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
-	pathOpenIDConnectIntrospection = "/api/oidc/introspect"
-	pathOpenIDConnectRevocation    = "/api/oidc/revoke"
-	pathOpenIDConnectUserinfo      = "/api/oidc/userinfo"
-
-	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
-	pathOpenIDConnectConsent = "/api/oidc/consent"
 )
 
 const (

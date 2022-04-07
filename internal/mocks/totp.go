@@ -9,7 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	models "github.com/authelia/authelia/v4/internal/models"
+	model "github.com/authelia/authelia/v4/internal/model"
 )
 
 // MockTOTP is a mock of Provider interface.
@@ -36,10 +36,10 @@ func (m *MockTOTP) EXPECT() *MockTOTPMockRecorder {
 }
 
 // Generate mocks base method.
-func (m *MockTOTP) Generate(arg0 string) (*models.TOTPConfiguration, error) {
+func (m *MockTOTP) Generate(arg0 string) (*model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Generate", arg0)
-	ret0, _ := ret[0].(*models.TOTPConfiguration)
+	ret0, _ := ret[0].(*model.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +51,10 @@ func (mr *MockTOTPMockRecorder) Generate(arg0 interface{}) *gomock.Call {
 }
 
 // GenerateCustom mocks base method.
-func (m *MockTOTP) GenerateCustom(arg0, arg1 string, arg2, arg3, arg4 uint) (*models.TOTPConfiguration, error) {
+func (m *MockTOTP) GenerateCustom(arg0, arg1 string, arg2, arg3, arg4 uint) (*model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(*models.TOTPConfiguration)
+	ret0, _ := ret[0].(*model.TOTPConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,7 +66,7 @@ func (mr *MockTOTPMockRecorder) GenerateCustom(arg0, arg1, arg2, arg3, arg4 inte
 }
 
 // Validate mocks base method.
-func (m *MockTOTP) Validate(arg0 string, arg1 *models.TOTPConfiguration) (bool, error) {
+func (m *MockTOTP) Validate(arg0 string, arg1 *model.TOTPConfiguration) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Validate", arg0, arg1)
 	ret0, _ := ret[0].(bool)

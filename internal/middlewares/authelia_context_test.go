@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -114,4 +115,27 @@ func TestShouldDetectNonXHR(t *testing.T) {
 	defer mock.Close()
 
 	assert.False(t, mock.Ctx.IsXHR())
+}
+
+func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebauthn}, mock.Ctx.AvailableSecondFactorMethods())
+
+	mock.Ctx.Configuration.DuoAPI = &schema.DuoAPIConfiguration{}
+
+	assert.Equal(t, []string{model.SecondFactorMethodTOTP, model.SecondFactorMethodWebauthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+
+	mock.Ctx.Configuration.TOTP.Disable = true
+
+	assert.Equal(t, []string{model.SecondFactorMethodWebauthn, model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+
+	mock.Ctx.Configuration.Webauthn.Disable = true
+
+	assert.Equal(t, []string{model.SecondFactorMethodDuo}, mock.Ctx.AvailableSecondFactorMethods())
+
+	mock.Ctx.Configuration.DuoAPI = nil
+
+	assert.Equal(t, []string{}, mock.Ctx.AvailableSecondFactorMethods())
 }

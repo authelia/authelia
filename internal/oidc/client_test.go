@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func TestNewClient(t *testing.T) {
@@ -44,7 +44,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestIsAuthenticationLevelSufficient(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	c.Policy = authorization.Bypass
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
@@ -68,7 +68,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 }
 
 func TestInternalClient_GetConsentResponseBody(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	consentRequestBody := c.GetConsentResponseBody(nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
@@ -79,7 +79,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	c.ID = "myclient"
 	c.Description = "My Client"
 
-	workflow := &session.OIDCWorkflowSession{
+	consent := &model.OAuth2ConsentSession{
 		RequestedAudience: []string{"https://example.com"},
 		RequestedScopes:   []string{"openid", "groups"},
 	}
@@ -87,7 +87,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	expectedScopes := []string{"openid", "groups"}
 	expectedAudiences := []string{"https://example.com"}
 
-	consentRequestBody = c.GetConsentResponseBody(workflow)
+	consentRequestBody = c.GetConsentResponseBody(consent)
 	assert.Equal(t, "myclient", consentRequestBody.ClientID)
 	assert.Equal(t, "My Client", consentRequestBody.ClientDescription)
 	assert.Equal(t, expectedScopes, consentRequestBody.Scopes)
@@ -95,7 +95,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 }
 
 func TestInternalClient_GetAudience(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	audience := c.GetAudience()
 	assert.Len(t, audience, 0)
@@ -108,7 +108,7 @@ func TestInternalClient_GetAudience(t *testing.T) {
 }
 
 func TestInternalClient_GetScopes(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	scopes := c.GetScopes()
 	assert.Len(t, scopes, 0)
@@ -121,7 +121,7 @@ func TestInternalClient_GetScopes(t *testing.T) {
 }
 
 func TestInternalClient_GetGrantTypes(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	grantTypes := c.GetGrantTypes()
 	require.Len(t, grantTypes, 1)
@@ -135,7 +135,7 @@ func TestInternalClient_GetGrantTypes(t *testing.T) {
 }
 
 func TestInternalClient_GetHashedSecret(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
@@ -147,7 +147,7 @@ func TestInternalClient_GetHashedSecret(t *testing.T) {
 }
 
 func TestInternalClient_GetID(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	id := c.GetID()
 	assert.Equal(t, "", id)
@@ -159,7 +159,7 @@ func TestInternalClient_GetID(t *testing.T) {
 }
 
 func TestInternalClient_GetRedirectURIs(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	redirectURIs := c.GetRedirectURIs()
 	require.Len(t, redirectURIs, 0)
@@ -172,7 +172,7 @@ func TestInternalClient_GetRedirectURIs(t *testing.T) {
 }
 
 func TestInternalClient_GetResponseModes(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	responseModes := c.GetResponseModes()
 	require.Len(t, responseModes, 0)
@@ -191,7 +191,7 @@ func TestInternalClient_GetResponseModes(t *testing.T) {
 }
 
 func TestInternalClient_GetResponseTypes(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	responseTypes := c.GetResponseTypes()
 	require.Len(t, responseTypes, 1)
@@ -206,7 +206,7 @@ func TestInternalClient_GetResponseTypes(t *testing.T) {
 }
 
 func TestInternalClient_IsPublic(t *testing.T) {
-	c := InternalClient{}
+	c := Client{}
 
 	assert.False(t, c.IsPublic())
 

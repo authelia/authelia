@@ -28,8 +28,9 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}
 
 	return &session.Identity{
-		Username: requestBody.Username,
-		Email:    details.Emails[0],
+		Username:    requestBody.Username,
+		Email:       details.Emails[0],
+		DisplayName: details.DisplayName,
 	}, nil
 }
 

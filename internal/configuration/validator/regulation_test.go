@@ -17,7 +17,7 @@ func newDefaultRegulationConfig() schema.Configuration {
 	return config
 }
 
-func TestShouldSetDefaultRegulationBanTime(t *testing.T) {
+func TestShouldSetDefaultRegulationTimeDurationsWhenUnset(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultRegulationConfig()
 
@@ -25,11 +25,15 @@ func TestShouldSetDefaultRegulationBanTime(t *testing.T) {
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Equal(t, schema.DefaultRegulationConfiguration.BanTime, config.Regulation.BanTime)
+	assert.Equal(t, schema.DefaultRegulationConfiguration.FindTime, config.Regulation.FindTime)
 }
 
-func TestShouldSetDefaultRegulationFindTime(t *testing.T) {
+func TestShouldSetDefaultRegulationTimeDurationsWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultRegulationConfig()
+
+	config.Regulation.BanTime = -1
+	config.Regulation.FindTime = -1
 
 	ValidateRegulation(&config, validator)
 

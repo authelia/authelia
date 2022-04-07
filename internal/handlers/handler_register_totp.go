@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -37,7 +37,7 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 
 func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (
-		config *models.TOTPConfiguration
+		config *model.TOTPConfiguration
 		err    error
 	)
 

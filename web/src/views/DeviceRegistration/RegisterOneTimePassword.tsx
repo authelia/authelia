@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import { GoogleAuthenticator } from "@constants/constants";
-import { FirstFactorRoute } from "@constants/Routes";
+import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
@@ -27,14 +27,14 @@ const RegisterOneTimePassword = function () {
     const { createSuccessNotification, createErrorNotification } = useNotifications();
     const [hasErrored, setHasErrored] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
 
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
     const processToken = extractIdentityToken(location.search);
 
     const handleDoneClick = () => {
-        navigate(FirstFactorRoute);
+        navigate(IndexRoute);
     };
 
     const completeRegistrationProcess = useCallback(async () => {

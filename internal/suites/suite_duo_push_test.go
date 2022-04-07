@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/duo"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -110,7 +110,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
 	enrollPage := s.Page.MustWaitOpen()
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "register-link").MustClick()
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "register-link").MustClick()
 	s.Page = enrollPage()
 
 	assert.Contains(s.T(), s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "description").MustText(), "This enrollment code has expired. Contact your administrator to get a new enrollment code.")
@@ -142,7 +142,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// And check the latest method and device is still used.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -153,7 +153,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 
 	// Set default 2FA preference to enable Select Device link in frontend.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "push"}))
 
 	var PreAuthAPIResponse = duo.PreAuthResponse{
 		Result: "auth",
@@ -176,7 +176,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	// Switch Method where Device Selection should open automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	// Check for available Device 1.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "device-12345ABCDEFGHIJ67890")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "device-12345ABCDEFGHIJ67890")
 	// Test Back button.
 	s.doClickButton(s.T(), s.Context(ctx), "device-selection-back")
 	// then select Device 2 for further use and be redirected.
@@ -187,7 +187,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	// And check the latest method and device is still used.
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "push-notification-method")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
 	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -232,13 +232,13 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectNewDeviceAfterSavedDeviceMethodI
 
 	// Setup unsupported Duo device in DB.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "sms"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "sms"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "device-selection")
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "device-selection")
 	s.doSelectDevice(s.T(), s.Context(ctx), "12345ABCDEFGHIJ67890")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
@@ -258,7 +258,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectNewDeviceAfterSavedDeviceIsN
 
 	// Setup unsupported Duo device in DB.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "ABCDEFGHIJ1234567890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
@@ -277,7 +277,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 	}
 
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
 
@@ -297,13 +297,13 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 	}
 
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "selection-link").Click("left")
+	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "selection-link").Click("left")
 	require.NoError(s.T(), err)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was denied by Duo policy")
 }
@@ -318,7 +318,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthenticationBecausePreauthDenied
 	}
 
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
@@ -345,7 +345,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 
 	// Setup Duo device in DB.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
@@ -372,7 +372,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 
 	// Setup Duo device in DB.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Deny)
 
@@ -431,7 +431,7 @@ func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 
 	// Setup Duo device in DB.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
@@ -462,6 +462,7 @@ func (s *DuoPushSuite) TestDuoPushRedirectionURLSuite() {
 func (s *DuoPushSuite) TestAvailableMethodsScenario() {
 	suite.Run(s.T(), NewAvailableMethodsScenario([]string{
 		"TIME-BASED ONE-TIME PASSWORD",
+		"SECURITY KEY - WEBAUTHN",
 		"PUSH NOTIFICATION",
 	}))
 }
@@ -476,7 +477,7 @@ func (s *DuoPushSuite) TestUserPreferencesScenario() {
 
 	// Setup Duo device in DB.
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, models.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
+	require.NoError(s.T(), provider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: "john", Device: "12345ABCDEFGHIJ67890", Method: "push"}))
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 

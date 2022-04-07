@@ -16,7 +16,7 @@ func newValidateConfigCmd() (cmd *cobra.Command) {
 		RunE:  cmdValidateConfigRunE,
 	}
 
-	cmdWithConfigFlags(cmd, false, []string{"config.yml"})
+	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
 
 	return cmd
 }

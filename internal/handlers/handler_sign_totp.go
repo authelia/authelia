@@ -58,7 +58,17 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
+	config.UpdateSignInInfo(ctx.Clock.Now())
+
+	if err = ctx.Providers.StorageProvider.UpdateTOTPConfigurationSignIn(ctx, config.ID, config.LastUsedAt); err != nil {
+		ctx.Logger.Errorf("Unable to save %s device sign in metadata for user '%s': %v", regulation.AuthTypeTOTP, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
@@ -68,7 +78,7 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, requestBody.TargetURL)

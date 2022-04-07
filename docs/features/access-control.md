@@ -14,11 +14,14 @@ to the resource.
 
 For instance a rule can look like this:
 
-    - domain: dev.example.com
-      resources:
-        - "^/groups/dev/.*$"
-      subject: "group:dev"
-      policy: two_factor
+```yaml
+- domain: dev.example.com
+  resources:
+    - '^/groups/dev/.*$'
+  subject: 'group:dev'
+  policy: two_factor
+```
+
 
 This rule matches when the request targets the domain `dev.example.com` and the path
 matches the regular expression `^/groups/dev/.*$`. In that case, a two-factor policy

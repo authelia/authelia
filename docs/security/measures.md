@@ -89,10 +89,10 @@ that users who have access to the database do not also have access to this key.
 
 The encrypted data in the database is as follows:
 
-|Table              |Column    |Rational                                                                                              |
-|:-----------------:|:--------:|:----------------------------------------------------------------------------------------------------:|
-|totp_configurations|secret    |Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security|
-|u2f_devices        |public_key|Prevents [Bad Actors](#bad-actors) from compromising security                                         |
+|        Table        |   Column   |                                                Rational                                                |
+|:-------------------:|:----------:|:------------------------------------------------------------------------------------------------------:|
+| totp_configurations |   secret   | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|  webauthn_devices   | public_key |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
 
 ### Leaked Database
 
@@ -188,6 +188,19 @@ listening on port 465 which is bad practice anyway.
 Authelia protects your users against open redirect attacks by always checking if redirection URLs are pointing
 to a subdomain of the domain protected by Authelia. This prevents phishing campaigns tricking users into visiting
 infected websites leveraging legit links.
+
+## Mutual TLS
+
+For the best security protection, configuration with TLS is highly recommended. TLS is used to secure the connection between
+the proxies and Authelia instances meaning that an attacker on the network cannot perform a man-in-the-middle attack on those
+connections. However, an attacker on the network can still impersonate proxies but this can be prevented by configuring mutual
+TLS.
+Mutual TLS brings mutual authentication between Authelia and the proxies. Any other party attempting to contact Authelia
+would not even be able to create a TCP connection. This measure is recommended in all cases except if you already configured
+some kind of ACLs specifically allowing the communication between proxies and Authelia instances like in a service mesh or
+some kind of network overlay.
+
+To configure mutual TLS, please refer to [this document](../configuration/server.md#client_certificates)
 
 ## Additional security
 

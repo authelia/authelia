@@ -11,7 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/models"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/server"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -77,7 +77,9 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers)
 
-	server.Start(*config, providers)
+	s, listener := server.CreateServer(*config, providers)
+
+	logger.Fatal(s.Serve(listener))
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {
@@ -121,7 +123,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 }
 
-func doStartupCheck(logger *logrus.Logger, name string, provider models.StartupCheck, disabled bool) error {
+func doStartupCheck(logger *logrus.Logger, name string, provider model.StartupCheck, disabled bool) error {
 	if disabled {
 		logger.Debugf("%s provider: startup check skipped as it is disabled", name)
 		return nil
