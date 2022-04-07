@@ -71,6 +71,9 @@ server:
     ## The path to the DER base64/PEM format public certificate.
     certificate: ""
 
+    ## The list of certificates for client authentication.
+    client_certificates: []
+
   ## Server headers configuration/customization.
   headers:
 
@@ -773,6 +776,26 @@ notifier:
     ## for security reasons.
     # enforce_pkce: public_clients_only
 
+    ## Cross-Origin Resource Sharing (CORS) settings.
+    # cors:
+      ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
+      # endpoints:
+      #    - authorization
+      #    - token
+      #    - revocation
+      #    - introspection
+      #    - userinfo
+
+      ## List of allowed origins.
+      ## Any origin with https is permitted unless this option is configured or the
+      ## allowed_origins_from_client_redirect_uris option is enabled.
+      # allowed_origins:
+      #   - https://example.com
+
+      ## Automatically adds the origin portion of all redirect URI's on all clients to the list of allowed_origins,
+      ## provided they have the scheme http or https and do not have the hostname of localhost.
+      # allowed_origins_from_client_redirect_uris: false
+
     ## Clients is a list of known clients and their configuration.
     # clients:
       # -
@@ -784,6 +807,11 @@ notifier:
 
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # secret: this_is_a_secret
+
+        ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
+        ## necessary. Read the documentation for more information.
+        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
+        # sector_identifier: example.com
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false

@@ -37,13 +37,17 @@ var (
 		{name: "/api", prefix: "/api/"},
 		{name: "/.well-known", prefix: "/.well-known/"},
 		{name: "/static", prefix: "/static/"},
+		{name: "/locales", prefix: "/locales/"},
 	}
 )
 
 const (
-	dev = "dev"
-	f   = "false"
-	t   = "true"
+	dev         = "dev"
+	f           = "false"
+	t           = "true"
+	localhost   = "localhost"
+	schemeHTTP  = "http"
+	schemeHTTPS = "https"
 )
 
 const healthCheckEnv = `# Written by Authelia Process

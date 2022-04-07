@@ -60,16 +60,16 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 
 	for i := 0; i < 3; i++ {
-		err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("bad-password")
+		err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("bad-password")
 		require.NoError(s.T(), err)
-		err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
+		err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left")
 		require.NoError(s.T(), err)
 	}
 
 	// Enter the correct password and test the regulation lock out.
-	err := s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("password")
+	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left")
 	require.NoError(s.T(), err)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 
@@ -77,9 +77,9 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	time.Sleep(10 * time.Second)
 
 	// Enter the correct password and test a successful login.
-	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "password-textfield").Input("password")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByCSSSelector(s.T(), s.Context(ctx), "sign-in-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left")
 	require.NoError(s.T(), err)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }

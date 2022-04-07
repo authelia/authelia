@@ -4,19 +4,20 @@ import (
 	"text/template"
 )
 
-// HTMLEmailTemplateStep1 the template of email that the user will receive for identity verification.
-var HTMLEmailTemplateStep1 *template.Template
+// EmailPasswordResetHTML the template of email that the user will receive for identity verification.
+var EmailPasswordResetHTML *template.Template
 
 func init() {
-	t, err := template.New("html_email_template").Parse(emailHTMLContentStep1)
+	t, err := template.New("email_password_reset_html").Parse(emailContentPasswordResetHTML)
 	if err != nil {
 		panic(err)
 	}
 
-	HTMLEmailTemplateStep1 = t
+	EmailPasswordResetHTML = t
 }
 
-const emailHTMLContentStep1 = `
+//nolint:gosec // This is a template not hardcoded credentials.
+const emailContentPasswordResetHTML = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -93,8 +94,13 @@ const emailHTMLContentStep1 = `
       }
 
       a {
+         color: #ffffff;
          text-decoration: none;
          text-decoration: none !important;
+      }
+
+      .link {
+         color: #0645AD;
       }
 
       h1 {
@@ -102,18 +108,11 @@ const emailHTMLContentStep1 = `
       }
 
       .button {
-				color: #ffffff;
-				padding: 15px 30px;
-				border-radius: 10px;
-				background: rgb(25, 118, 210);
-				text-decoration: none;
+         padding: 15px 30px;
+         border-radius: 10px;
+         background: rgb(25, 118, 210);
+         text-decoration: none;
       }
-			
-      .link {
-				color: rgb(25, 118, 210);
-				text-decoration: none;
-      }
-
 
       /*STYLES*/
       table[class=full] {
@@ -244,7 +243,7 @@ const emailHTMLContentStep1 = `
                                           <tbody>
                                              <tr>
                                                 <td width="300" height="50" align="center">
-                                                   <h1>{{.title}}</h1>
+                                                   <h1>{{ .Title }}</h1>
                                                 </td>
                                              </tr>
                                           </tbody>
@@ -317,48 +316,23 @@ const emailHTMLContentStep1 = `
                                              <tr>
                                                 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
                                                    st-title="fulltext-content">
-                                                   Hi {{.displayName}}
-                                                </td>
-                                             </tr>
-                                             <tr>
-                                                <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #333333; text-align:center; line-height: 30px;"
-                                                   st-title="fulltext-content">
-                                                   This email has been sent to you in order to validate your identity.
+                                                   Hi {{ .DisplayName }} <br/>
+                                                   Your password has been successfully reset.
                                                    If you did not initiate the process your credentials might have been compromised. You should reset your password and contact an administrator.
                                                 </td>
                                              </tr>
-                                             <!-- End of Title -->
-                                             <!-- spacing -->
-                                             <tr>
-                                                <td width="100%" height="20"
-                                                   style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">
-                                                   &nbsp;</td>
-                                             </tr>
-                                             <!-- End of spacing -->
-                                             <!-- content -->
-                                             <tr>
-                                                <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;"
-                                                   st-content="fulltext-content">
-                                                   <a href="{{.url}}" class="button">{{.button}}</a>
-                                                </td>
-                                             </tr>
-                                             <!-- spacing -->
-                                             <tr>
-                                                <td width="100%" height="20"
-                                                   style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">
-                                                   &nbsp;</td>
-                                             </tr>
-                                             <!-- End of spacing -->
-                                             <tr>
-                                                <td style="word-break: break-word; overflow-wrap: break-word; text-align:center; line-height: 30px;">
-                                                   <a href="{{.url}}" class="link">{{.url}}</a>
-                                                </td>
-                                             </tr>
-                                             <!-- End of content -->
+                                              <!-- End of Title -->
                                           </tbody>
                                        </table>
                                     </td>
                                  </tr>
+                                 <!-- Spacing -->
+                                 <tr>
+                                    <td height="20"
+                                       style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">&nbsp;
+                                    </td>
+                                 </tr>
+                                 <!-- Spacing -->
                               </tbody>
                            </table>
                         </td>
@@ -412,7 +386,7 @@ const emailHTMLContentStep1 = `
                                     <td align="center" valign="middle"
                                        style="font-family: Helvetica, arial, sans-serif; font-size: 14px;color: #666666"
                                        st-content="postfooter">
-                                       Please contact an administrator if you did not initiate the process.
+                                       Please contact an administrator if you did not initiate this process.
                                     </td>
                                  </tr>
                                 <!-- spacing -->
@@ -425,7 +399,7 @@ const emailHTMLContentStep1 = `
 								 <tr>
 									<td style="font-family: Helvetica, arial, sans-serif; font-style: italic; font-size: 12px; color: #333333; text-align:center; line-height: 30px;"
 									   st-title="fulltext-content">
-									   This email was generated by some with the IP address {{.remoteIP}}.
+									   This email was generated by a request from the IP address {{ .RemoteIP }}.
 									</td>
 								 </tr>
                                  <!-- Spacing -->

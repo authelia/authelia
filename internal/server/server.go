@@ -1,6 +1,8 @@
 package server
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"net"
 	"os"
 	"strconv"
@@ -17,10 +19,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// TODO: move to its own file and rename configuration -> config.
 func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
 	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
 
@@ -31,36 +35,48 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
 	}
 
-	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
-	handlerLocales := newLocalesEmbeddedHandler()
-
 	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
 
 	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, configuration.Session.Name, configuration.Theme, https)
 	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, configuration.Session.Name, configuration.Theme, https)
 	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, configuration.Session.Name, configuration.Theme, https)
 
+	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
+	handlerLocales := newLocalesEmbeddedHandler()
+
+	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
+
+	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
+		WithAllowedMethods("OPTIONS", "GET").
+		WithAllowedOrigins("*").
+		Build()
+
 	r := router.New()
+
+	// Static Assets.
 	r.GET("/", autheliaMiddleware(serveIndexHandler))
-	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, handlerPublicHTML)
-	}
-
-	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
-	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
-
-	for _, file := range swaggerFiles {
-		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
 	r.GET("/favicon.ico", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerPublicHTML))
 	r.GET("/static/media/logo.png", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 2, handlerPublicHTML))
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
+	// Locales.
 	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, 0, handlerLocales))
+
+	// Swagger.
+	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
+	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/"+apiFile, policyCORSPublicGET.Middleware(autheliaMiddleware(serveSwaggerAPIHandler)))
+	r.OPTIONS("/api/"+apiFile, policyCORSPublicGET.HandleOPTIONS)
+
+	for _, file := range swaggerFiles {
+		r.GET("/api/"+file, handlerPublicHTML)
+	}
 
 	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
 	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
@@ -159,68 +175,170 @@ func registerRoutes(configuration schema.Configuration, providers middlewares.Pr
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	r.NotFound = handleNotFound(autheliaMiddleware(serveIndexHandler))
+	if providers.OpenIDConnect.Fosite != nil {
+		r.GET("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentGET))
+		r.POST("/api/oidc/consent", autheliaMiddleware(handlers.OpenIDConnectConsentPOST))
+
+		allowedOrigins := utils.StringSliceFromURLs(configuration.IdentityProviders.OIDC.CORS.AllowedOrigins)
+
+		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, policyCORSPublicGET.HandleOPTIONS)
+		r.GET(oidc.WellKnownOpenIDConfigurationPath, policyCORSPublicGET.Middleware(autheliaMiddleware(handlers.OpenIDConnectConfigurationWellKnownGET)))
+
+		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, policyCORSPublicGET.HandleOPTIONS)
+		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, policyCORSPublicGET.Middleware(autheliaMiddleware(handlers.OAuthAuthorizationServerWellKnownGET)))
+
+		r.OPTIONS(oidc.JWKsPath, policyCORSPublicGET.HandleOPTIONS)
+		r.GET(oidc.JWKsPath, policyCORSPublicGET.Middleware(autheliaMiddleware(handlers.JSONWebKeySetGET)))
+
+		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+		r.OPTIONS("/api/oidc/jwks", policyCORSPublicGET.HandleOPTIONS)
+		r.GET("/api/oidc/jwks", policyCORSPublicGET.Middleware(autheliaMiddleware(handlers.JSONWebKeySetGET)))
+
+		policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
+			WithAllowedMethods("OPTIONS", "GET").
+			WithAllowedOrigins(allowedOrigins...).
+			WithEnabled(utils.IsStringInSlice(oidc.AuthorizationEndpoint, configuration.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
+
+		r.OPTIONS(oidc.AuthorizationPath, policyCORSAuthorization.HandleOnlyOPTIONS)
+		r.GET(oidc.AuthorizationPath, autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+
+		// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
+		r.OPTIONS("/api/oidc/authorize", policyCORSAuthorization.HandleOnlyOPTIONS)
+		r.GET("/api/oidc/authorize", autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+
+		policyCORSToken := middlewares.NewCORSPolicyBuilder().
+			WithAllowCredentials(true).
+			WithAllowedMethods("OPTIONS", "POST").
+			WithAllowedOrigins(allowedOrigins...).
+			WithEnabled(utils.IsStringInSlice(oidc.TokenEndpoint, configuration.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
+
+		r.OPTIONS(oidc.TokenPath, policyCORSToken.HandleOPTIONS)
+		r.POST(oidc.TokenPath, policyCORSToken.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
+
+		policyCORSUserinfo := middlewares.NewCORSPolicyBuilder().
+			WithAllowCredentials(true).
+			WithAllowedMethods("OPTIONS", "GET", "POST").
+			WithAllowedOrigins(allowedOrigins...).
+			WithEnabled(utils.IsStringInSlice(oidc.UserinfoEndpoint, configuration.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
+
+		r.OPTIONS(oidc.UserinfoPath, policyCORSUserinfo.HandleOPTIONS)
+		r.GET(oidc.UserinfoPath, policyCORSUserinfo.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+		r.POST(oidc.UserinfoPath, policyCORSUserinfo.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+
+		policyCORSIntrospection := middlewares.NewCORSPolicyBuilder().
+			WithAllowCredentials(true).
+			WithAllowedMethods("OPTIONS", "POST").
+			WithAllowedOrigins(allowedOrigins...).
+			WithEnabled(utils.IsStringInSlice(oidc.IntrospectionEndpoint, configuration.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
+
+		r.OPTIONS(oidc.IntrospectionPath, policyCORSIntrospection.HandleOPTIONS)
+		r.POST(oidc.IntrospectionPath, policyCORSIntrospection.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
+
+		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+		r.OPTIONS("/api/oidc/introspect", policyCORSIntrospection.HandleOPTIONS)
+		r.POST("/api/oidc/introspect", policyCORSIntrospection.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
+
+		policyCORSRevocation := middlewares.NewCORSPolicyBuilder().
+			WithAllowCredentials(true).
+			WithAllowedMethods("OPTIONS", "POST").
+			WithAllowedOrigins(allowedOrigins...).
+			WithEnabled(utils.IsStringInSlice(oidc.RevocationEndpoint, configuration.IdentityProviders.OIDC.CORS.Endpoints)).
+			Build()
+
+		r.OPTIONS(oidc.RevocationPath, policyCORSRevocation.HandleOPTIONS)
+		r.POST(oidc.RevocationPath, policyCORSRevocation.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+
+		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+		r.OPTIONS("/api/oidc/revoke", policyCORSRevocation.HandleOPTIONS)
+		r.POST("/api/oidc/revoke", policyCORSRevocation.Middleware(autheliaMiddleware(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+	}
+
+	r.NotFound = handlerNotFound(autheliaMiddleware(serveIndexHandler))
 
 	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = func(ctx *fasthttp.RequestCtx) {
-		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
-	}
+	r.MethodNotAllowed = handlerMethodNotAllowed
 
 	handler := middlewares.LogRequestMiddleware(r.Handler)
 	if configuration.Server.Path != "" {
 		handler = middlewares.StripPathMiddleware(configuration.Server.Path, handler)
 	}
 
-	if providers.OpenIDConnect.Fosite != nil {
-		handlers.RegisterOIDC(r, autheliaMiddleware)
-	}
-
 	return handler
 }
 
-// Start Authelia's internal webserver with the given configuration and providers.
-func Start(configuration schema.Configuration, providers middlewares.Providers) {
-	logger := logging.Logger()
-
+// CreateServer Create Authelia's internal webserver with the given configuration and providers.
+func CreateServer(configuration schema.Configuration, providers middlewares.Providers) (*fasthttp.Server, net.Listener) {
 	handler := registerRoutes(configuration, providers)
 
 	server := &fasthttp.Server{
-		ErrorHandler:          autheliaErrorHandler,
+		ErrorHandler:          handlerErrors,
 		Handler:               handler,
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        configuration.Server.ReadBufferSize,
 		WriteBufferSize:       configuration.Server.WriteBufferSize,
 	}
 
+	logger := logging.Logger()
+
 	address := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
 
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		logger.Fatalf("Error initializing listener: %s", err)
-	}
+	var (
+		listener         net.Listener
+		err              error
+		connectionType   string
+		connectionScheme string
+	)
 
 	if configuration.Server.TLS.Certificate != "" && configuration.Server.TLS.Key != "" {
-		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "https", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
-			logger.Fatalf("Could not configure healthcheck: %v", err)
+		connectionType, connectionScheme = "TLS", schemeHTTPS
+
+		if err = server.AppendCert(configuration.Server.TLS.Certificate, configuration.Server.TLS.Key); err != nil {
+			logger.Fatalf("unable to load certificate: %v", err)
 		}
 
-		if configuration.Server.Path == "" {
-			logger.Infof("Listening for TLS connections on '%s' path '/'", address)
-		} else {
-			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
+		if len(configuration.Server.TLS.ClientCertificates) > 0 {
+			caCertPool := x509.NewCertPool()
+
+			for _, path := range configuration.Server.TLS.ClientCertificates {
+				cert, err := os.ReadFile(path)
+				if err != nil {
+					logger.Fatalf("Cannot read client TLS certificate %s: %s", path, err)
+				}
+
+				caCertPool.AppendCertsFromPEM(cert)
+			}
+
+			// ClientCAs should never be nil, otherwise the system cert pool is used for client authentication
+			// but we don't want everybody on the Internet to be able to authenticate.
+			server.TLSConfig.ClientCAs = caCertPool
+			server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 		}
 
-		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
+		if listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone()); err != nil {
+			logger.Fatalf("Error initializing listener: %s", err)
+		}
 	} else {
-		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "http", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
-			logger.Fatalf("Could not configure healthcheck: %v", err)
-		}
+		connectionType, connectionScheme = "non-TLS", schemeHTTP
 
-		if configuration.Server.Path == "" {
-			logger.Infof("Listening for non-TLS connections on '%s' path '/'", address)
-		} else {
-			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
+		if listener, err = net.Listen("tcp", address); err != nil {
+			logger.Fatalf("Error initializing listener: %s", err)
 		}
-		logger.Fatal(server.Serve(listener))
 	}
+
+	if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, connectionScheme, configuration.Server.Host,
+		configuration.Server.Path, configuration.Server.Port); err != nil {
+		logger.Fatalf("Could not configure healthcheck: %v", err)
+	}
+
+	if configuration.Server.Path == "" {
+		logger.Infof("Initializing server for %s connections on '%s' path '/'", connectionType, listener.Addr().String())
+	} else {
+		logger.Infof("Initializing server for %s connections on '%s' paths '/' and '%s'", connectionType, listener.Addr().String(), configuration.Server.Path)
+	}
+
+	return server, listener
 }

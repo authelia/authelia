@@ -9,6 +9,8 @@ import (
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func TestNewSession(t *testing.T) {
@@ -38,7 +40,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &InternalClient{ID: "example"},
+			Client: &Client{ID: "example"},
 		},
 	}
 
@@ -51,7 +53,13 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	issuer := "https://example.com"
 	amr := []string{AMRPasswordBasedAuthentication}
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", amr, extra, authAt, requested, request)
+	consent := &model.OAuth2ConsentSession{
+		ChallengeID: uuid.New(),
+		RequestedAt: requested,
+		Subject:     subject,
+	}
+
+	session := NewSessionWithAuthorizeRequest(issuer, "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -78,7 +86,12 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	require.Contains(t, session.Claims.Extra, "preferred_username")
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, nil, authAt, requested, request)
+	consent = &model.OAuth2ConsentSession{
+		ChallengeID: uuid.New(),
+		RequestedAt: requested,
+	}
+
+	session = NewSessionWithAuthorizeRequest(issuer, "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)

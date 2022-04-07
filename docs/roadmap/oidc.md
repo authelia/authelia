@@ -74,7 +74,7 @@ for which stage will have each feature, and may evolve over time:
         <td>Proof Key for Code Exchange (PKCE) for Authorization Code Flow</td>
       </tr>
       <tr>
-        <td rowspan="3" class="tbl-header tbl-beta-stage">beta4 <sup>1</sup></td>
+        <td rowspan="8" class="tbl-header tbl-beta-stage">beta5 (4.35.0)</td>
         <td>Token Storage</td>
       </tr>
       <tr>
@@ -84,6 +84,21 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Subject Storage</td>
       </tr>
       <tr>
+        <td class="tbl-beta-stage"><a href="https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes" target="_blank">Pairwise Subject Identifier Type</a></td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Per-Client Consent Pre-Configuration</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Cross-Origin Resource Sharing Configuration</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Authentication Methods References Claim</td>
+      </tr>
+      <tr>
+        <td class="tbl-beta-stage">Opaque Subject Identifiers (<a href="https://datatracker.ietf.org/doc/html/rfc4122" target="_blank">UUID</a> V4) for <code>sub</code> Claim</td>
+      </tr>
+      <tr>
         <td rowspan="2" class="tbl-header tbl-beta-stage">beta5 <sup>1</sup></td>
         <td class="tbl-beta-stage">Prompt Handling</td>
       </tr>
@@ -91,7 +106,7 @@ for which stage will have each feature, and may evolve over time:
         <td class="tbl-beta-stage">Display Handling</td>
       </tr>
       <tr>
-        <td rowspan="5" class="tbl-header tbl-beta-stage">beta6 <sup>1</sup></td>
+        <td rowspan="4" class="tbl-header tbl-beta-stage">beta6 <sup>1</sup></td>
         <td><a href="https://openid.net/specs/openid-connect-backchannel-1_0.html" target="_blank" rel="noopener noreferrer">Back-Channel Logout</a></td>
       </tr>
       <tr>
@@ -102,9 +117,6 @@ for which stage will have each feature, and may evolve over time:
       </tr>
       <tr>
         <td class="tbl-beta-stage">Client Secrets Hashed in Configuration</td>
-      </tr>
-      <tr>
-        <td class="tbl-beta-stage">UUID or Random String for <code>sub</code> claim</td>
       </tr>
       <tr>
         <td class="tbl-header tbl-beta-stage">GA <sup>1</sup></td>

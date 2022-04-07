@@ -6,7 +6,7 @@ import (
 )
 
 // Compare compares the hash with the data and returns an error if they don't match.
-func (h AutheliaHasher) Compare(_ context.Context, hash, data []byte) (err error) {
+func (h PlainTextHasher) Compare(_ context.Context, hash, data []byte) (err error) {
 	if subtle.ConstantTimeCompare(hash, data) == 0 {
 		return errPasswordsDoNotMatch
 	}
@@ -15,6 +15,6 @@ func (h AutheliaHasher) Compare(_ context.Context, hash, data []byte) (err error
 }
 
 // Hash creates a new hash from data.
-func (h AutheliaHasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
+func (h PlainTextHasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
 	return data, nil
 }

@@ -1,10 +1,13 @@
 package model
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
 	"fmt"
 	"net"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewIP easily constructs a new IP.
@@ -149,4 +152,27 @@ func (b *Base64) Scan(src interface{}) (err error) {
 // StartupCheck represents a provider that has a startup check.
 type StartupCheck interface {
 	StartupCheck() (err error)
+}
+
+// StringSlicePipeDelimited is a string slice that is stored in the database delimited by pipes.
+type StringSlicePipeDelimited []string
+
+// Scan is the StringSlicePipeDelimited implementation of the sql.Scanner.
+func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
+	var nullStr sql.NullString
+
+	if err = nullStr.Scan(value); err != nil {
+		return err
+	}
+
+	if nullStr.Valid {
+		*s = utils.StringSplitDelimitedEscaped(nullStr.String, '|')
+	}
+
+	return nil
+}
+
+// Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
+func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
+	return utils.StringJoinDelimitedEscaped(s, '|'), nil
 }

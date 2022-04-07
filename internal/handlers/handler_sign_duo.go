@@ -266,7 +266,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, targetURL)

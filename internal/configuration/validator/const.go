@@ -44,8 +44,6 @@ const (
 	testLDAPURL       = "ldap://ldap"
 	testLDAPUser      = "user"
 	testModeDisabled  = "disable"
-	testTLSCert       = "/tmp/cert.pem"
-	testTLSKey        = "/tmp/key.pem"
 	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
@@ -125,10 +123,14 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
-
+	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
+
+	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
+	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
+	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
+	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of '%s'"
 
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
@@ -153,6 +155,12 @@ const (
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
 		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
+	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
@@ -222,8 +230,12 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey  = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCert                           = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey                            = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCertFileDoesNotExist           = "server: tls: file path %s provided in 'certificate' does not exist"
+	errFmtServerTLSKeyFileDoesNotExist            = "server: tls: file path %s provided in 'key' does not exist"
+	errFmtServerTLSClientAuthCertFileDoesNotExist = "server: tls: client_certificates: certificates: file path %s does not exist"
+	errFmtServerTLSClientAuthNoAuth               = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
@@ -280,6 +292,7 @@ var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProf
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 
@@ -479,11 +492,15 @@ var ValidKeys = []string{
 	"identity_providers.oidc.enable_pkce_plain_challenge",
 	"identity_providers.oidc.enable_client_debug_messages",
 	"identity_providers.oidc.minimum_parameter_entropy",
+	"identity_providers.oidc.cors.endpoints",
+	"identity_providers.oidc.cors.allowed_origins",
+	"identity_providers.oidc.cors.enable_origins_from_clients",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
-	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].secret",
+	"identity_providers.oidc.clients[].sector_identifier",
+	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].redirect_uris",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].scopes",

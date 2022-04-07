@@ -24,6 +24,7 @@ server:
   tls:
     key: ""
     certificate: ""
+    client_certificates: []
   headers:
     csp_template: ""
 ```
@@ -212,6 +213,19 @@ required: situational
 </div>
 
 The path to the public certificate for TLS connections. Must be in DER base64/PEM format.
+
+#### client_certificates
+<div markdown="1">
+type: list(string)
+{: .label .label-config .label-purple }
+default: []
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-yellow }
+</div>
+
+The list of file paths to certificates used for authenticating clients. Those certificates can be root
+or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 
 ### headers
