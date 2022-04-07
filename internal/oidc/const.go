@@ -19,17 +19,28 @@ const (
 	ClaimEmailAlts         = "alt_emails"
 )
 
+// Endpoints.
+const (
+	AuthorizationEndpoint = "authorization"
+	TokenEndpoint         = "token"
+	UserinfoEndpoint      = "userinfo"
+	IntrospectionEndpoint = "introspection"
+	RevocationEndpoint    = "revocation"
+)
+
 // Paths.
 const (
 	WellKnownOpenIDConfigurationPath      = "/.well-known/openid-configuration"
 	WellKnownOAuthAuthorizationServerPath = "/.well-known/oauth-authorization-server"
+	JWKsPath                              = "/jwks.json"
 
-	JWKsPath          = "/api/oidc/jwks"
-	AuthorizationPath = "/api/oidc/authorization"
-	TokenPath         = "/api/oidc/token" //nolint:gosec // This is not a hard coded credential, it's a path.
-	IntrospectionPath = "/api/oidc/introspection"
-	RevocationPath    = "/api/oidc/revocation"
-	UserinfoPath      = "/api/oidc/userinfo"
+	RootPath = "/api/oidc"
+
+	AuthorizationPath = RootPath + "/" + AuthorizationEndpoint
+	TokenPath         = RootPath + "/" + TokenEndpoint
+	UserinfoPath      = RootPath + "/" + UserinfoEndpoint
+	IntrospectionPath = RootPath + "/" + IntrospectionEndpoint
+	RevocationPath    = RootPath + "/" + RevocationEndpoint
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

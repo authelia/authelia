@@ -26,7 +26,17 @@ type OpenIDConnectConfiguration struct {
 	EnforcePKCE              string `koanf:"enforce_pkce"`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
+	CORS OpenIDConnectCORSConfiguration `koanf:"cors"`
+
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
+}
+
+// OpenIDConnectCORSConfiguration represents an OpenID Connect CORS config.
+type OpenIDConnectCORSConfiguration struct {
+	Endpoints      []string  `koanf:"endpoints"`
+	AllowedOrigins []url.URL `koanf:"allowed_origins"`
+
+	AllowedOriginsFromClientRedirectURIs bool `koanf:"allowed_origins_from_client_redirect_uris"`
 }
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.

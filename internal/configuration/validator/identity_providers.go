@@ -49,6 +49,7 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 			validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
 		}
 
+		validateOIDCOptionsCORS(config, validator)
 		validateOIDCClients(config, validator)
 
 		if len(config.Clients) == 0 {
@@ -57,6 +58,64 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 	}
 }
 
+func validateOIDCOptionsCORS(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	validateOIDCOptionsCORSAllowedOrigins(config, validator)
+
+	if config.CORS.AllowedOriginsFromClientRedirectURIs {
+		validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config)
+	}
+
+	validateOIDCOptionsCORSEndpoints(config, validator)
+}
+
+func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	for _, origin := range config.CORS.AllowedOrigins {
+		if origin.String() == "*" {
+			if len(config.CORS.AllowedOrigins) != 1 {
+				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcard))
+			}
+
+			if config.CORS.AllowedOriginsFromClientRedirectURIs {
+				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcardWithClients))
+			}
+
+			continue
+		}
+
+		if origin.Path != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOrigin, origin.String(), "path"))
+		}
+
+		if origin.RawQuery != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOrigin, origin.String(), "query string"))
+		}
+	}
+}
+
+func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.OpenIDConnectConfiguration) {
+	for _, client := range config.Clients {
+		for _, redirectURI := range client.RedirectURIs {
+			uri, err := url.Parse(redirectURI)
+			if err != nil || (uri.Scheme != schemeHTTP && uri.Scheme != schemeHTTPS) || uri.Hostname() == "localhost" {
+				continue
+			}
+
+			origin := utils.OriginFromURL(*uri)
+
+			if !utils.IsURLInSlice(origin, config.CORS.AllowedOrigins) {
+				config.CORS.AllowedOrigins = append(config.CORS.AllowedOrigins, origin)
+			}
+		}
+	}
+}
+
+func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	for _, endpoint := range config.CORS.Endpoints {
+		if !utils.IsStringInSlice(endpoint, validOIDCCORSEndpoints) {
+			validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidEndpoint, endpoint, strings.Join(validOIDCCORSEndpoints, "', '")))
+		}
+	}
+}
 func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, duplicateIDs := false, false
 
@@ -98,7 +157,6 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 		validateOIDCClientResponseTypes(c, config, validator)
 		validateOIDCClientResponseModes(c, config, validator)
 		validateOIDDClientUserinfoAlgorithm(c, config, validator)
-
 		validateOIDCClientRedirectURIs(client, validator)
 	}
 

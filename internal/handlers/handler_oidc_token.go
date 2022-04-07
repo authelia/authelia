@@ -9,7 +9,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+// OpenIDConnectTokenPOST handles POST requests to the OpenID Connect 1.0 Token endpoint.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		requester fosite.AccessRequester
 		responder fosite.AccessResponder
