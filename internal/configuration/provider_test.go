@@ -201,6 +201,24 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	assert.Equal(t, "example_secret value", config.Storage.EncryptionKey)
 }
 
+func TestShouldLoadURLList(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.Len(t, config.IdentityProviders.OIDC.CORS.AllowedOrigins, 2)
+	assert.Equal(t, "https://google.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[0].String())
+	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
+}
+
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testReset()
 
