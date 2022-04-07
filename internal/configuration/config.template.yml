@@ -127,7 +127,7 @@ totp:
   skew: 1
   ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
 
-  ## The size of the secret. Default is 32 and is sufficient in most use cases, minimum is 20.
+  ## The size of the generated shared secrets. Default is 32 and is sufficient in most use cases, minimum is 20.
   secret_size: 32
 
 ##

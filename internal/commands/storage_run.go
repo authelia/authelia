@@ -223,10 +223,6 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if secret == "" && config.TOTP.SecretSize < schema.TOTPSecretSizeMinimum {
-		return fmt.Errorf("secret size must not be less than %d but it is configured as %d", schema.TOTPSecretSizeMinimum, config.TOTP.SecretSize)
-	}
-
 	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
 	} else if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
