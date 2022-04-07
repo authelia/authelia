@@ -69,13 +69,13 @@ func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *
 	}
 
 	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameBasic+".html")); err == nil {
-		templates.EmailBasicHTML = t
+		templates.EmailPasswordResetHTML = t
 	} else {
 		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameBasic+".html", err))
 	}
 
 	if t, err = template.ParseFiles(filepath.Join(config.TemplatePath, templates.TemplateNameBasic+".txt")); err == nil {
-		templates.EmailBasicPlainText = t
+		templates.EmailPasswordResetPlainText = t
 	} else {
 		validator.PushWarning(fmt.Errorf(errFmtNotifierTemplateLoad, templates.TemplateNameBasic+".txt", err))
 	}

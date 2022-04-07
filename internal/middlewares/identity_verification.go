@@ -79,11 +79,11 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		if !disableHTML {
 			htmlParams := map[string]interface{}{
-				"title":       args.MailTitle,
-				"url":         link,
-				"button":      args.MailButtonContent,
-				"displayName": identity.DisplayName,
-				"remoteIP":    ctx.RemoteIP().String(),
+				"Title":       args.MailTitle,
+				"LinkURL":     link,
+				"LinkText":    args.MailButtonContent,
+				"DisplayName": identity.DisplayName,
+				"RemoteIP":    ctx.RemoteIP().String(),
 			}
 
 			err = templates.EmailIdentityVerificationHTML.Execute(bufHTML, htmlParams)
@@ -96,8 +96,8 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		bufText := new(bytes.Buffer)
 		textParams := map[string]interface{}{
-			"url":         link,
-			"displayName": identity.DisplayName,
+			"LinkURL":     link,
+			"DisplayName": identity.DisplayName,
 		}
 
 		err = templates.EmailIdentityVerificationPlainText.Execute(bufText, textParams)

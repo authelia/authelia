@@ -86,12 +86,12 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 	if !disableHTML {
 		htmlParams := map[string]interface{}{
-			"title":       "Password changed successfully",
-			"displayName": userInfo.DisplayName,
-			"remoteIP":    ctx.RemoteIP().String(),
+			"Title":       "Password changed successfully",
+			"DisplayName": userInfo.DisplayName,
+			"RemoteIP":    ctx.RemoteIP().String(),
 		}
 
-		err = templates.EmailBasicHTML.Execute(bufHTML, htmlParams)
+		err = templates.EmailPasswordResetHTML.Execute(bufHTML, htmlParams)
 
 		if err != nil {
 			ctx.Logger.Error(err)
@@ -103,10 +103,10 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 
 	bufText := new(bytes.Buffer)
 	textParams := map[string]interface{}{
-		"displayName": userInfo.DisplayName,
+		"DisplayName": userInfo.DisplayName,
 	}
 
-	err = templates.EmailBasicPlainText.Execute(bufText, textParams)
+	err = templates.EmailPasswordResetPlainText.Execute(bufText, textParams)
 
 	if err != nil {
 		ctx.Logger.Error(err)
