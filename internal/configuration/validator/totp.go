@@ -10,6 +10,10 @@ import (
 
 // ValidateTOTP validates and update TOTP configuration.
 func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.TOTP.Disable {
+		return
+	}
+
 	if config.TOTP.Issuer == "" {
 		config.TOTP.Issuer = schema.DefaultTOTPConfiguration.Issuer
 	}
@@ -38,5 +42,11 @@ func ValidateTOTP(config *schema.Configuration, validator *schema.StructValidato
 
 	if config.TOTP.Skew == nil {
 		config.TOTP.Skew = schema.DefaultTOTPConfiguration.Skew
+	}
+
+	if config.TOTP.SecretSize == 0 {
+		config.TOTP.SecretSize = schema.DefaultTOTPConfiguration.SecretSize
+	} else if config.TOTP.SecretSize < schema.TOTPSecretSizeMinimum {
+		validator.Push(fmt.Errorf(errFmtTOTPInvalidSecretSize, schema.TOTPSecretSizeMinimum, config.TOTP.SecretSize))
 	}
 }
