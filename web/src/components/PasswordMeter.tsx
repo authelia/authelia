@@ -17,7 +17,7 @@ const PasswordMeter = function (props: Props) {
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     const style = makeStyles((theme) => ({
         progressBar: {
             height: "5px",
@@ -38,6 +38,7 @@ const PasswordMeter = function (props: Props) {
                 setFeedback(
                     translate("Must be at least {{len}} characters in length", { len: props.policy.min_length }),
                 );
+
                 return;
             }
             if (props.policy.max_length !== 0 && password.length > props.policy.max_length) {

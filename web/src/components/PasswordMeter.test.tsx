@@ -5,6 +5,7 @@ import { render } from "@testing-library/react";
 import PasswordMeter from "@components/PasswordMeter";
 import { PasswordPolicyMode } from "@models/PasswordPolicy";
 
+// TODO: Add dev translation to test this, currently tests produce warnings here.
 it("renders without crashing", () => {
     render(
         <PasswordMeter
