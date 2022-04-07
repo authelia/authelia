@@ -102,9 +102,6 @@ type Client struct {
 	Secret           []byte
 	Public           bool
 
-	Policy          authorization.Level
-	ConsentDuration *time.Duration
-
 	Audience      []string
 	Scopes        []string
 	RedirectURIs  []string
@@ -113,6 +110,10 @@ type Client struct {
 	ResponseModes []fosite.ResponseModeType
 
 	UserinfoSigningAlgorithm string
+
+	Policy authorization.Level
+
+	PreConfiguredConsentDuration *time.Duration
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.

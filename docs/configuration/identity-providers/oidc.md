@@ -50,6 +50,7 @@ identity_providers:
         secret: this_is_a_secret
         public: false
         authorization_policy: two_factor
+        pre_configured_consent_duration: ''
         audience: []
         scopes:
           - openid
@@ -375,6 +376,21 @@ required: no
 </div>
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
+
+#### pre_configured_consent_duration
+<div markdown="1">
+type: string (duration) 
+{: .label .label-config .label-purple } 
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Configuring this enables users of this client to remember their consent as a pre-configured consent. The value is period
+of time is in [duration notation format](../index.md#duration-notation-format). The period of time dictates how long a
+users choice to remember the pre-configured consent lasts.
+
+Pre-configured consents are only valid if the subject, client id are exactly the same and the requested scopes/audience
+match exactly with the granted scopes/audience.
 
 #### audience
 

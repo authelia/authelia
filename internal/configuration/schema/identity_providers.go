@@ -46,9 +46,6 @@ type OpenIDConnectClientConfiguration struct {
 	Secret      string `koanf:"secret"`
 	Public      bool   `koanf:"public"`
 
-	Policy          string         `koanf:"authorization_policy"`
-	ConsentDuration *time.Duration `koanf:"consent_duration"`
-
 	RedirectURIs []string `koanf:"redirect_uris"`
 
 	Audience      []string `koanf:"audience"`
@@ -58,6 +55,10 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseModes []string `koanf:"response_modes"`
 
 	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
+
+	Policy string `koanf:"authorization_policy"`
+
+	PreConfiguredConsentDuration *time.Duration `koanf:"pre_configured_consent_duration"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.

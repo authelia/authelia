@@ -17,9 +17,6 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		Secret:      []byte(config.Secret),
 		Public:      config.Public,
 
-		Policy:          authorization.PolicyToLevel(config.Policy),
-		ConsentDuration: config.ConsentDuration,
-
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
@@ -28,6 +25,10 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		ResponseModes: []fosite.ResponseModeType{fosite.ResponseModeDefault},
 
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
+
+		Policy: authorization.PolicyToLevel(config.Policy),
+
+		PreConfiguredConsentDuration: config.PreConfiguredConsentDuration,
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -57,7 +58,7 @@ func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Cons
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.ConsentDuration != nil,
+		PreConfiguration:  c.PreConfiguredConsentDuration != nil,
 	}
 
 	if consent != nil {
