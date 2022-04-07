@@ -89,7 +89,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
 
 	assert.Equal(t, "https://example.com", disco.Issuer)
-	assert.Equal(t, "https://example.com/api/oidc/jwks", disco.JWKSURI)
+	assert.Equal(t, "https://example.com/jwks.json", disco.JWKSURI)
 	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
 	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
 	assert.Equal(t, "https://example.com/api/oidc/userinfo", disco.UserinfoEndpoint)
@@ -175,7 +175,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	disco := provider.GetOAuth2WellKnownConfiguration("https://example.com")
 
 	assert.Equal(t, "https://example.com", disco.Issuer)
-	assert.Equal(t, "https://example.com/api/oidc/jwks", disco.JWKSURI)
+	assert.Equal(t, "https://example.com/jwks.json", disco.JWKSURI)
 	assert.Equal(t, "https://example.com/api/oidc/authorization", disco.AuthorizationEndpoint)
 	assert.Equal(t, "https://example.com/api/oidc/token", disco.TokenEndpoint)
 	assert.Equal(t, "https://example.com/api/oidc/introspection", disco.IntrospectionEndpoint)

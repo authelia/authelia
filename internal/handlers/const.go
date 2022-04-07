@@ -72,16 +72,6 @@ const (
 	auth   = "auth"
 )
 
-// OIDC constants.
-const (
-	pathLegacyOpenIDConnectAuthorization = "/api/oidc/authorize"
-	pathLegacyOpenIDConnectIntrospection = "/api/oidc/introspect"
-	pathLegacyOpenIDConnectRevocation    = "/api/oidc/revoke"
-
-	// Note: If you change this const you must also do so in the frontend at web/src/services/Api.ts.
-	pathOpenIDConnectConsent = "/api/oidc/consent"
-)
-
 const (
 	accept = "accept"
 	reject = "reject"

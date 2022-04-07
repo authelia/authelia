@@ -13,7 +13,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func oidcAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+// OpenIDConnectAuthorizationGET handles GET requests to the OpenID Connect 1.0 Authorization endpoint.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
+func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester fosite.AuthorizeRequester
 		responder fosite.AuthorizeResponder

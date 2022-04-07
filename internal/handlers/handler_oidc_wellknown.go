@@ -8,7 +8,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func wellKnownOpenIDConnectConfigurationGET(ctx *middlewares.AutheliaCtx) {
+// OpenIDConnectConfigurationWellKnownGET handles requests to a .well-known endpoint (RFC5785) which returns the
+// OpenID Connect Discovery 1.0 metadata.
+//
+// https://datatracker.ietf.org/doc/html/rfc5785
+//
+// https://openid.net/specs/openid-connect-discovery-1_0.html
+func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
@@ -30,7 +36,13 @@ func wellKnownOpenIDConnectConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func wellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
+// OAuthAuthorizationServerWellKnownGET handles requests to a .well-known endpoint (RFC5785) which returns the
+// OAuth 2.0 Authorization Server Metadata (RFC8414).
+//
+// https://datatracker.ietf.org/doc/html/rfc5785
+//
+// https://datatracker.ietf.org/doc/html/rfc8414
+func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
 	issuer, err := ctx.ExternalRootURL()
 	if err != nil {
 		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
