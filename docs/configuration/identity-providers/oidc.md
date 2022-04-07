@@ -232,7 +232,7 @@ Allows PKCE `plain` challenges when set to `true`.
 Some OpenID Connect Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
 you to configure the optional parts. We reply with CORS headers when the request includes the Origin header.
 
-##### endpoints
+#### endpoints
 <div markdown="1">
 type: list(string)
 {: .label .label-config .label-purple }
@@ -522,8 +522,8 @@ individual user. Please use the claim `preferred_username` instead._
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
 
-| Claim  |   JWT Type    | Authelia Attribute |      Description       |
-|:------:|:-------------:|:------------------:|:----------------------:|
+| Claim  |   JWT Type    | Authelia Attribute |                                                    Description                                                     |
+|:------:|:-------------:|:------------------:|:------------------------------------------------------------------------------------------------------------------:|
 | groups | array[string] |       groups       | List of user's groups discovered via [authentication](https://www.authelia.com/docs/configuration/authentication/) |
 
 ### email
@@ -585,30 +585,33 @@ an example of the Authelia root URL which is also the OpenID Connect issuer.
 
 These endpoints can be utilized to discover other endpoints and metadata about the Authelia OP.
 
-|   Endpoint    |                              Path                               |
-|:-------------:|:---------------------------------------------------------------:|
-|   Discovery   |    https://auth.example.com/.well-known/openid-configuration    |
-|   Metadata    | https://auth.example.com/.well-known/oauth-authorization-server |
+|                 Endpoint                  |                              Path                               |
+|:-----------------------------------------:|:---------------------------------------------------------------:|
+|        [OpenID Connect Discovery]         |    https://auth.example.com/.well-known/openid-configuration    |
+| [OAuth 2.0 Authorization Server Metadata] | https://auth.example.com/.well-known/oauth-authorization-server |
 
 
 ### Discoverable Endpoints 
 
 These endpoints implement OpenID Connect elements.
 
-|    Endpoint     |                      Path                       |  Discovery Attribute   |
-|:---------------:|:-----------------------------------------------:|:----------------------:|
-|      JWKS       |       https://auth.example.com/jwks.json        |        jwks_uri        |
-| [Authorization] | https://auth.example.com/api/oidc/authorization | authorization_endpoint |
-|     [Token]     |     https://auth.example.com/api/oidc/token     |     token_endpoint     |
-|   [Userinfo]    |   https://auth.example.com/api/oidc/userinfo    |   userinfo_endpoint    |
-| [Introspection] | https://auth.example.com/api/oidc/introspection | introspection_endpoint |
-|  [Revocation]   |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
+|      Endpoint       |                      Path                       |  Discovery Attribute   |
+|:-------------------:|:-----------------------------------------------:|:----------------------:|
+| [JSON Web Key Sets] |       https://auth.example.com/jwks.json        |        jwks_uri        |
+|   [Authorization]   | https://auth.example.com/api/oidc/authorization | authorization_endpoint |
+|       [Token]       |     https://auth.example.com/api/oidc/token     |     token_endpoint     |
+|     [Userinfo]      |   https://auth.example.com/api/oidc/userinfo    |   userinfo_endpoint    |
+|   [Introspection]   | https://auth.example.com/api/oidc/introspection | introspection_endpoint |
+|    [Revocation]     |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
 
+[JSON Web Key Sets]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 [OpenID Connect]: https://openid.net/connect/
-[token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
+[OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
+[OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [Userinfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
+[token lifespan]: https://docs.apigee.com/api-platform/antipatterns/oauth-long-expiration
