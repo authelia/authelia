@@ -12,10 +12,11 @@ import (
 // NewClient creates a new Client.
 func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) {
 	client = &Client{
-		ID:          config.ID,
-		Description: config.Description,
-		Secret:      []byte(config.Secret),
-		Public:      config.Public,
+		ID:               config.ID,
+		Description:      config.Description,
+		Secret:           []byte(config.Secret),
+		SectorIdentifier: config.SectorIdentifier.String(),
+		Public:           config.Public,
 
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,

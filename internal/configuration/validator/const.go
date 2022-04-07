@@ -155,6 +155,12 @@ const (
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
 		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
+	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
@@ -483,10 +489,11 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
 	"identity_providers.oidc.clients[].secret",
+	"identity_providers.oidc.clients[].sector_identifier",
 	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].redirect_uris",
 	"identity_providers.oidc.clients[].authorization_policy",
-	"identity_providers.oidc.clients[].consent_duration",
+	"identity_providers.oidc.clients[].pre_configured_consent_duration",
 	"identity_providers.oidc.clients[].scopes",
 	"identity_providers.oidc.clients[].audience",
 	"identity_providers.oidc.clients[].grant_types",
