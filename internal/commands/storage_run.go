@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"image"
@@ -64,10 +65,11 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
 		"postgres.ssl.key":              "storage.postgres.ssl.key",
 
-		"period":    "totp.period",
-		"digits":    "totp.digits",
-		"algorithm": "totp.algorithm",
-		"issuer":    "totp.issuer",
+		"period":      "totp.period",
+		"digits":      "totp.digits",
+		"algorithm":   "totp.algorithm",
+		"issuer":      "totp.issuer",
+		"secret-size": "totp.secret_size",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -221,27 +223,20 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if secret == "" && config.TOTP.SecretSize < schema.TOTPSecretSizeMinimum {
+		return fmt.Errorf("secret size must not be less than %d but it is configured as %d", schema.TOTPSecretSizeMinimum, config.TOTP.SecretSize)
+	}
+
 	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
 	} else if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
 		return err
 	}
 
-	if secret != "" {
-		c = &model.TOTPConfiguration{
-			Username:  args[0],
-			Issuer:    config.TOTP.Issuer,
-			Algorithm: config.TOTP.Algorithm,
-			Digits:    config.TOTP.Digits,
-			Period:    config.TOTP.Period,
-			Secret:    []byte(secret),
-		}
-	} else {
-		totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-		if c, err = totpProvider.Generate(args[0]); err != nil {
-			return err
-		}
+	if c, err = totpProvider.GenerateCustom(args[0], config.TOTP.Algorithm, secret, config.TOTP.Digits, config.TOTP.Period, config.TOTP.SecretSize); err != nil {
+		return err
 	}
 
 	extraInfo := ""
@@ -290,8 +285,10 @@ func storageTOTPGenerateRunEOptsFromFlags(flags *pflag.FlagSet) (force bool, fil
 		return force, filename, secret, err
 	}
 
-	if secret != "" && len(secret) < 20 {
-		return force, filename, secret, errors.New("secret must be more than 20 characters")
+	secretLength := base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(secret))
+	if secret != "" && secretLength < schema.TOTPSecretSizeMinimum {
+		return force, filename, secret, fmt.Errorf("decoded length of the base32 secret must have "+
+			"a length of more than %d but '%s' has a decoded length of %d", schema.TOTPSecretSizeMinimum, secret, secretLength)
 	}
 
 	return force, filename, secret, nil

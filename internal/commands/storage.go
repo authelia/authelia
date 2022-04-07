@@ -2,6 +2,8 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // NewStorageCmd returns a new storage *cobra.Command.
@@ -107,7 +109,8 @@ func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
 		Args:  cobra.ExactArgs(1),
 	}
 
-	cmd.Flags().String("secret", "", "Optionally set the TOTP shared secret, it's recommended to not set this option unless you're restoring an TOTP config")
+	cmd.Flags().String("secret", "", "Optionally set the TOTP shared secret as base32 encoded bytes (no padding), it's recommended to not set this option unless you're restoring an TOTP config")
+	cmd.Flags().Uint("secret-size", schema.TOTPSecretSizeDefault, "set the TOTP secret size")
 	cmd.Flags().Uint("period", 30, "set the TOTP period")
 	cmd.Flags().Uint("digits", 6, "set the TOTP digits")
 	cmd.Flags().String("algorithm", "SHA1", "set the TOTP algorithm")
