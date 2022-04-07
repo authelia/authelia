@@ -44,3 +44,11 @@ var (
 	// TOTPPossibleAlgorithms is a list of valid TOTP Algorithms.
 	TOTPPossibleAlgorithms = []string{TOTPAlgorithmSHA1, TOTPAlgorithmSHA256, TOTPAlgorithmSHA512}
 )
+
+const (
+	// TOTPSecretSizeDefault is the default secret size.
+	TOTPSecretSizeDefault = 32
+
+	// TOTPSecretSizeMinimum is the minimum secret size.
+	TOTPSecretSizeMinimum = 20
+)

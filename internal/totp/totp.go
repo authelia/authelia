@@ -1,6 +1,8 @@
 package totp
 
 import (
+	"encoding/base32"
+	"fmt"
 	"time"
 
 	"github.com/pquerna/otp"
@@ -32,13 +34,22 @@ type TimeBased struct {
 }
 
 // GenerateCustom generates a TOTP with custom options.
-func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, secretSize uint) (config *model.TOTPConfiguration, err error) {
+func (p TimeBased) GenerateCustom(username, algorithm, secret string, digits, period, secretSize uint) (config *model.TOTPConfiguration, err error) {
 	var key *otp.Key
+
+	var secretData []byte
+
+	if secret != "" {
+		if secretData, err = base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(secret); err != nil {
+			return nil, fmt.Errorf("totp generate failed: error decoding base32 string: %w", err)
+		}
+	}
 
 	opts := totp.GenerateOpts{
 		Issuer:      p.config.Issuer,
 		AccountName: username,
 		Period:      period,
+		Secret:      secretData,
 		SecretSize:  secretSize,
 		Digits:      otp.Digits(digits),
 		Algorithm:   otpStringToAlgo(algorithm),
@@ -63,7 +74,7 @@ func (p TimeBased) GenerateCustom(username, algorithm string, digits, period, se
 
 // Generate generates a TOTP with default options.
 func (p TimeBased) Generate(username string) (config *model.TOTPConfiguration, err error) {
-	return p.GenerateCustom(username, p.config.Algorithm, p.config.Digits, p.config.Period, 32)
+	return p.GenerateCustom(username, p.config.Algorithm, "", p.config.Digits, p.config.Period, p.config.SecretSize)
 }
 
 // Validate the token against the given configuration.
