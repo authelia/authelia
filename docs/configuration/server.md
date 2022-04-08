@@ -263,8 +263,8 @@ Authelia will automatically resize the logo to an appropriate size to present in
 
 The locales folder holds folders of internationalization locales. This folder can be utilized to override these locales.
 They are the names of locales that are returned by the `navigator.langauge` ECMAScript command. These are generally
-those in the [RFC5646 / BCP47 Format](https://datatracker.ietf.org/doc/html/rfc5646) except the name normalized to
-lowercase for consistency ease; for example the `en-US` locale should be in the directory `en-us`.
+those in the [RFC5646 / BCP47 Format](https://datatracker.ietf.org/doc/html/rfc5646) specifically the language codes
+from [Crowdin](https://support.crowdin.com/api/language-codes/).
 
 Each directory has json files which you can explore the format of in the
 [internal/server/locales](https://github.com/authelia/authelia/tree/master/internal/server/locales) directory on
@@ -275,7 +275,7 @@ of current namespaces are below:
 |:---------:|:-------------------:|
 |  portal   | Portal translations |
 
-A full example for the `en-US` locale for the portal namespace is `locales/en-us/portal.json`.
+A full example for the `en-US` locale for the portal namespace is `locales/en-US/portal.json`.
 
 Languages in browsers are supported in two forms. In their language only form such as `en` for English, and in their
 variant form such as `en-AU` for English (Australian). If a user has the browser language `en-AU` we automatically load

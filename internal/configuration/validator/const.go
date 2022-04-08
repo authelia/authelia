@@ -495,6 +495,7 @@ var ValidKeys = []string{
 	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].redirect_uris",
 	"identity_providers.oidc.clients[].authorization_policy",
+	"identity_providers.oidc.clients[].pre_configured_consent_duration",
 	"identity_providers.oidc.clients[].scopes",
 	"identity_providers.oidc.clients[].audience",
 	"identity_providers.oidc.clients[].grant_types",
