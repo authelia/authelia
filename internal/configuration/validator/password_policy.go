@@ -1,33 +1,27 @@
 package validator
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidatePasswordPolicy validates and update Password Policy configuration.
-func ValidatePasswordPolicy(configuration *schema.PasswordPolicyConfiguration, validator *schema.StructValidator) {
-	if !utils.IsBoolCountLessThanN(1, true, configuration.Standard.Enabled, configuration.Zxcvbn.Enabled) {
-		validator.Push(errors.New("password_policy:only one password policy can be enabled at a time"))
+func ValidatePasswordPolicy(config *schema.PasswordPolicyConfiguration, validator *schema.StructValidator) {
+	if !utils.IsBoolCountLessThanN(1, true, config.Standard.Enabled, config.ZXCVBN.Enabled) {
+		validator.Push(fmt.Errorf(errPasswordPolicyMultipleDefined))
 	}
 
-	if configuration.Standard.Enabled {
-		if configuration.Standard.MinLength == 0 {
-			configuration.Standard.MinLength = schema.DefaultPasswordPolicyConfiguration.Standard.MinLength
-		} else if configuration.Standard.MinLength < 0 {
-			validator.Push(errors.New("password_policy: min_length must be > 0"))
+	if config.Standard.Enabled {
+		if config.Standard.MinLength == 0 {
+			config.Standard.MinLength = schema.DefaultPasswordPolicyConfiguration.Standard.MinLength
+		} else if config.Standard.MinLength < 0 {
+			validator.Push(fmt.Errorf(errFmtPasswordPolicyMinLengthNotGreaterThanZero, config.Standard.MinLength))
 		}
 
-		if configuration.Standard.MaxLength == 0 {
-			configuration.Standard.MaxLength = schema.DefaultPasswordPolicyConfiguration.Standard.MaxLength
-		}
-	} else if configuration.Zxcvbn.Enabled {
-		if configuration.Zxcvbn.MinScore == 0 {
-			configuration.Zxcvbn.MinScore = schema.DefaultPasswordPolicyConfiguration.Zxcvbn.MinScore
-		} else if configuration.Zxcvbn.MinScore < 0 || configuration.Zxcvbn.MinScore > 4 {
-			validator.Push(errors.New("min_score must be between 0 and 4"))
+		if config.Standard.MaxLength == 0 {
+			config.Standard.MaxLength = schema.DefaultPasswordPolicyConfiguration.Standard.MaxLength
 		}
 	}
 }

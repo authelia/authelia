@@ -31,9 +31,9 @@ func ValidateKeys(keys []string, prefix string, validator *schema.StructValidato
 			}
 		} else {
 			if strings.HasPrefix(key, prefix) {
-				validator.PushWarning(fmt.Errorf("configuration environment variable not expected: %s", key))
+				validator.PushWarning(fmt.Errorf("configuration environment variable not expectedErrs: %s", key))
 			} else {
-				validator.Push(fmt.Errorf("configuration key not expected: %s", key))
+				validator.Push(fmt.Errorf("configuration key not expectedErrs: %s", key))
 			}
 		}
 	}
