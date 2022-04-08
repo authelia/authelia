@@ -5,8 +5,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// SecondFactorTOTPPost validate the TOTP passcode provided by the user.
-func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
+// TimeBasedOneTimePasswordPOST validate the TOTP passcode provided by the user.
+func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	requestBody := signTOTPRequestBody{}
 
 	if err := ctx.ParseBody(&requestBody); err != nil {

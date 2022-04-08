@@ -440,8 +440,8 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	return
 }
 
-// VerifyGet returns the handler verifying if a request is allowed to go through.
-func VerifyGet(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
+// VerifyGET returns the handler verifying if a request is allowed to go through.
+func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {

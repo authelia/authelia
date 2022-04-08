@@ -4,8 +4,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// StateGet is the handler serving the user state.
-func StateGet(ctx *middlewares.AutheliaCtx) {
+// StateGET is the handler serving the user state.
+func StateGET(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 	stateResponse := StateResponse{
 		Username:              userSession.Username,
