@@ -704,6 +704,59 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	fmt.Printf("Exported User Opaque Identifiers to %s\n", file)
+
+	return nil
+}
+
+func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		file string
+		stat os.FileInfo
+	)
+
+	if file, err = cmd.Flags().GetString("file"); err != nil {
+		return err
+	}
+
+	if stat, err = os.Stat(file); err != nil {
+		return fmt.Errorf("must specify a file that exists but '%s' had an error opening it: %w", file, err)
+	}
+
+	if stat.IsDir() {
+		return fmt.Errorf("must specify a file that exists but '%s' is a directory", file)
+	}
+
+	var (
+		data   []byte
+		export exportUserOpaqueIdentifiers
+	)
+
+	if data, err = os.ReadFile(file); err != nil {
+		return err
+	}
+
+	if err = yaml.Unmarshal(data, &export); err != nil {
+		return err
+	}
+
+	if len(export.Identifiers) == 0 {
+		return fmt.Errorf("can't import a file with no data")
+	}
+
+	provider = getStorageProvider()
+
+	for _, opaqueID := range export.Identifiers {
+		if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
+			return err
+		}
+	}
+
+	fmt.Printf("Imported User Opaque Identifiers from %s\n", file)
+
 	return nil
 }
 
@@ -732,6 +785,7 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 
 	if cmd.Flags().Changed("identifier") {
 		var identifierStr string
+
 		if identifierStr, err = cmd.Flags().GetString("identifier"); err != nil {
 			return err
 		}

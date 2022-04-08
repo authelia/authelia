@@ -70,6 +70,7 @@ func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newStorageUserIdentifiersExportCmd(),
+		newStorageUserIdentifiersImportCmd(),
 		newStorageUserIdentifiersAddCmd(),
 	)
 
@@ -84,6 +85,18 @@ func newStorageUserIdentifiersExportCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML export")
+
+	return cmd
+}
+
+func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "import",
+		Short: "Import the identifiers from a YAML file",
+		RunE:  storageUserIdentifiersImport,
+	}
+
+	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML import")
 
 	return cmd
 }

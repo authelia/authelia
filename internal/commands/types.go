@@ -7,7 +7,3 @@ import (
 type exportUserOpaqueIdentifiers struct {
 	Identifiers []model.UserOpaqueIdentifier `yaml:"identifiers"`
 }
-
-type exportTOTPConfigurations struct {
-	Configurations []model.TOTPConfiguration `yaml:"configurations"`
-}
