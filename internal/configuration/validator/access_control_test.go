@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -215,4 +216,128 @@ func TestShouldReturnCorrectResultsForValidNetworkGroups(t *testing.T) {
 
 	assert.True(t, validNetwork)
 	assert.False(t, invalidNetwork)
+}
+
+func TestValidateDefault2FAMethod(t *testing.T) {
+	testCases := []struct {
+		desc         string
+		have         *schema.Configuration
+		expectedErrs []string
+	}{
+		{
+			desc: "ShouldAllowConfiguredMethodTOTP",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "totp",
+				},
+				DuoAPI: &schema.DuoAPIConfiguration{
+					SecretKey:      "a key",
+					IntegrationKey: "another key",
+					Hostname:       "none",
+				},
+			},
+		},
+		{
+			desc: "ShouldAllowConfiguredMethodWebauthn",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "webauthn",
+				},
+				DuoAPI: &schema.DuoAPIConfiguration{
+					SecretKey:      "a key",
+					IntegrationKey: "another key",
+					Hostname:       "none",
+				},
+			},
+		},
+		{
+			desc: "ShouldAllowConfiguredMethodMobilePush",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "mobile_push",
+				},
+				DuoAPI: &schema.DuoAPIConfiguration{
+					SecretKey:      "a key",
+					IntegrationKey: "another key",
+					Hostname:       "none",
+				},
+			},
+		},
+		{
+			desc: "ShouldNotAllowDisabledMethodTOTP",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "totp",
+				},
+				DuoAPI: &schema.DuoAPIConfiguration{
+					SecretKey:      "a key",
+					IntegrationKey: "another key",
+					Hostname:       "none",
+				},
+				TOTP: schema.TOTPConfiguration{Disable: true},
+			},
+			expectedErrs: []string{
+				"access control: option 'default_2fa_method' is configured as 'totp' but must be one of the following enabled method values: 'webauthn', 'mobile_push'",
+			},
+		},
+		{
+			desc: "ShouldNotAllowDisabledMethodWebauthn",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "webauthn",
+				},
+				DuoAPI: &schema.DuoAPIConfiguration{
+					SecretKey:      "a key",
+					IntegrationKey: "another key",
+					Hostname:       "none",
+				},
+				Webauthn: schema.WebauthnConfiguration{Disable: true},
+			},
+			expectedErrs: []string{
+				"access control: option 'default_2fa_method' is configured as 'webauthn' but must be one of the following enabled method values: 'totp', 'mobile_push'",
+			},
+		},
+		{
+			desc: "ShouldNotAllowDisabledMethodMobilePush",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "mobile_push",
+				},
+			},
+			expectedErrs: []string{
+				"access control: option 'default_2fa_method' is configured as 'mobile_push' but must be one of the following enabled method values: 'totp', 'webauthn'",
+			},
+		},
+		{
+			desc: "ShouldNotAllowInvalidMethodDuo",
+			have: &schema.Configuration{
+				AccessControl: schema.AccessControlConfiguration{
+					Default2FAMethod: "duo",
+				},
+			},
+			expectedErrs: []string{
+				"access control: option 'default_2fa_method' is configured as 'duo' but must be one of the following values: 'totp', 'webauthn', 'mobile_push'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			validateDefault2FAMethod(tc.have, validator)
+
+			assert.Len(t, validator.Warnings(), 0)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.expectedErrs))
+
+			for i, expected := range tc.expectedErrs {
+				t.Run(fmt.Sprintf("Err%d", i+1), func(t *testing.T) {
+					assert.EqualError(t, errs[i], expected)
+				})
+			}
+		})
+	}
 }

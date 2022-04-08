@@ -71,12 +71,14 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 		}
 	}
 
-	if config.AccessControl.Default2FAMethod != "" {
-		validateDefaultMethod(config, validator)
-	}
+	validateDefault2FAMethod(config, validator)
 }
 
-func validateDefaultMethod(config *schema.Configuration, validator *schema.StructValidator) {
+func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AccessControl.Default2FAMethod == "" {
+		return
+	}
+
 	if !utils.IsStringInSlice(config.AccessControl.Default2FAMethod, validDefaultUserSecondFactorMethods) {
 		validator.Push(fmt.Errorf(errFmtAccessControlInvalid2FAMethod, config.AccessControl.Default2FAMethod, strings.Join(validDefaultUserSecondFactorMethods, "', '")))
 
@@ -89,7 +91,7 @@ func validateDefaultMethod(config *schema.Configuration, validator *schema.Struc
 		enabledMethods = append(enabledMethods, "totp")
 	}
 
-	if !config.TOTP.Disable {
+	if !config.Webauthn.Disable {
 		enabledMethods = append(enabledMethods, "webauthn")
 	}
 
