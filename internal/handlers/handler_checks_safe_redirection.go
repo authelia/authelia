@@ -8,8 +8,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// CheckSafeRedirection handler checking whether the redirection to a given URL provided in body is safe.
-func CheckSafeRedirection(ctx *middlewares.AutheliaCtx) {
+// CheckSafeRedirectionPOST handler checking whether the redirection to a given URL provided in body is safe.
+func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	if userSession.AuthenticationLevel == authentication.NotAuthenticated {

@@ -11,8 +11,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SecondFactorDuoDevicesGet handler for retrieving available devices and capabilities from duo api.
-func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
+// DuoDevicesGET handler for retrieving available devices and capabilities from duo api.
+func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		userSession := ctx.GetSession()
 		values := url.Values{}
@@ -78,8 +78,8 @@ func SecondFactorDuoDevicesGet(duoAPI duo.API) middlewares.RequestHandler {
 	}
 }
 
-// SecondFactorDuoDevicePost update the user preferences regarding Duo device and method.
-func SecondFactorDuoDevicePost(ctx *middlewares.AutheliaCtx) {
+// DuoDevicePOST update the user preferences regarding Duo device and method.
+func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 	device := DuoDeviceBody{}
 
 	err := ctx.ParseBody(&device)

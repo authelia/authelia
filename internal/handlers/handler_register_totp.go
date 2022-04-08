@@ -26,8 +26,8 @@ func isTokenUserValidFor2FARegistration(ctx *middlewares.AutheliaCtx, username s
 	return ctx.GetSession().Username == username
 }
 
-// SecondFactorTOTPIdentityStart the handler for initiating the identity validation.
-var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
+// TOTPIdentityStart the handler for initiating the identity validation.
+var TOTPIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
 	MailTitle:             "Register your mobile",
 	MailButtonContent:     "Register",
 	TargetEndpoint:        "/one-time-password/register",
@@ -35,7 +35,7 @@ var SecondFactorTOTPIdentityStart = middlewares.IdentityVerificationStart(middle
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 }, nil)
 
-func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
+func totpIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (
 		config *model.TOTPConfiguration
 		err    error
@@ -62,9 +62,9 @@ func secondFactorTOTPIdentityFinish(ctx *middlewares.AutheliaCtx, username strin
 	}
 }
 
-// SecondFactorTOTPIdentityFinish the handler for finishing the identity validation.
-var SecondFactorTOTPIdentityFinish = middlewares.IdentityVerificationFinish(
+// TOTPIdentityFinish the handler for finishing the identity validation.
+var TOTPIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
 		ActionClaim:          ActionTOTPRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
-	}, secondFactorTOTPIdentityFinish)
+	}, totpIdentityFinish)

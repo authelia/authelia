@@ -10,9 +10,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// FirstFactorPost is the handler performing the first factory.
+// FirstFactorPOST is the handler performing the first factory.
 //nolint:gocyclo // TODO: Consider refactoring time permitting.
-func FirstFactorPost(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
+func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
 
