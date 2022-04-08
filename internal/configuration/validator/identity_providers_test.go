@@ -246,6 +246,34 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
+			Name: "ValidSectorIdentifier",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-valid-sector",
+					Secret: "a-secret",
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					SectorIdentifier: mustParseURL("example.com"),
+				},
+			},
+		},
+		{
+			Name: "ValidSectorIdentifierWithPort",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-valid-sector",
+					Secret: "a-secret",
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					SectorIdentifier: mustParseURL("example.com:2000"),
+				},
+			},
+		},
+		{
 			Name: "InvalidSectorIdentifierInvalidURL",
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{

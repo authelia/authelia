@@ -171,6 +171,10 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 
 func validateOIDCClientSectorIdentifier(client schema.OpenIDConnectClientConfiguration, validator *schema.StructValidator) {
 	if client.SectorIdentifier.String() != "" {
+		if utils.IsURLHostComponent(client.SectorIdentifier) || utils.IsURLHostComponentWithPort(client.SectorIdentifier) {
+			return
+		}
+
 		if client.SectorIdentifier.Scheme != "" {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, client.ID, client.SectorIdentifier.String(), client.SectorIdentifier.Host, "scheme", client.SectorIdentifier.Scheme))
 
