@@ -63,5 +63,5 @@
   "Must be at least {{len}} characters in length": "Must be at least {{len}} characters in length",
   "Must not be more than {{len}} characters in length": "Must not be more than {{len}} characters in length",
   "Consent Request": "Consent Request",
-  "Client ID": "Client ID: {{id}}"
+  "Client ID": "Client ID: {{client_id}}"
 }
