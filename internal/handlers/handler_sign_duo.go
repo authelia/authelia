@@ -12,8 +12,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SecondFactorDuoPost handler for sending a push notification via duo api.
-func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
+// DuoPOST handler for sending a push notification via duo api.
+func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var (
 			requestBody    signDuoRequestBody

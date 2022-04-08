@@ -9,8 +9,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ResetPasswordPost handler for resetting passwords.
-func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
+// ResetPasswordPOST handler for resetting passwords.
+func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	// Those checks unsure that the identity verification process has been initiated and completed successfully

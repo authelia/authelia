@@ -196,7 +196,7 @@ func (s *BasicAuthorizationSuite) TestShouldNotBeAbleToParseBasicAuth() {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpaaaaaaaaaaaaaaaa")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 }
@@ -219,7 +219,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
 }
@@ -242,7 +242,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
 }
@@ -265,7 +265,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
 }
@@ -288,7 +288,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 }
@@ -311,7 +311,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
 }
@@ -335,7 +335,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgOk() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
 }
@@ -347,7 +347,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingNoHeader() 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
@@ -363,7 +363,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader
 	mock.Ctx.Request.Header.Set("Authorization", "")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
@@ -383,7 +383,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPasswo
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
@@ -399,7 +399,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
@@ -422,7 +422,7 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
 		"https://test.example.com", actualStatus, expStatus)
@@ -439,7 +439,7 @@ func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
 		"https://test.example.com", actualStatus, expStatus)
@@ -460,7 +460,7 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
 		"https://test.example.com", actualStatus, expStatus)
@@ -484,7 +484,7 @@ func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	expStatus, actualStatus := 200, mock.Ctx.Response.StatusCode()
 	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
@@ -545,7 +545,7 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
 
-			VerifyGet(verifyGetCfg)(mock.Ctx)
+			VerifyGET(verifyGetCfg)(mock.Ctx)
 			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
 				testCase.URL, testCase.AuthenticationLevel, actualStatus, expStatus)
@@ -584,7 +584,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -617,7 +617,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -646,7 +646,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	// Check the session is still active.
 	newUserSession := mock.Ctx.GetSession()
@@ -679,7 +679,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -718,7 +718,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">Found</a>",
 		string(mock.Ctx.Response.Body()))
@@ -738,7 +738,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">Found</a>",
 		string(mock.Ctx.Response.Body()))
@@ -749,7 +749,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "POST")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=POST\">See Other</a>",
 		string(mock.Ctx.Response.Body()))
@@ -777,7 +777,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	// The resource if forbidden.
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
@@ -806,7 +806,7 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock.Ctx.Request.SetHost("mydomain.com")
 	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">Found</a>",
 		string(mock.Ctx.Response.Body()))
@@ -889,7 +889,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 
 	cfg := verifyGetCfg
 	cfg.RefreshInterval = "disable"
-	verifyGet := VerifyGet(cfg)
+	verifyGet := VerifyGET(cfg)
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
 
@@ -973,7 +973,7 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
 	config := verifyGetCfg
 	config.RefreshInterval = schema.ProfileRefreshDisabled
 
-	VerifyGet(config)(mock.Ctx)
+	VerifyGET(config)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
@@ -1016,7 +1016,7 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
@@ -1031,7 +1031,7 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1)
 
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
 
@@ -1056,7 +1056,7 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	verifyGet := VerifyGet(verifyGetCfg)
+	verifyGet := VerifyGET(verifyGetCfg)
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(2)
 
@@ -1127,7 +1127,7 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
 
-	verifyGet := VerifyGet(verifyGetCfg)
+	verifyGet := VerifyGET(verifyGetCfg)
 
 	mock.Clock.Set(time.Now())
 
@@ -1180,7 +1180,7 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is removed from the session.
@@ -1212,7 +1212,7 @@ func TestShouldCheckValidSessionUsernameHeaderAndReturn200(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, testUsername)
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "", string(mock.Ctx.Response.Body()))
@@ -1236,7 +1236,7 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, "root")
-	VerifyGet(verifyGetCfg)(mock.Ctx)
+	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "Unauthorized", string(mock.Ctx.Response.Body()))

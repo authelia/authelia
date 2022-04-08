@@ -58,7 +58,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result:    enroll,
@@ -117,7 +117,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 }
 
@@ -146,7 +146,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result: deny,
@@ -166,7 +166,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
@@ -195,7 +195,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result:    enroll,
@@ -229,7 +229,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result: enroll,
@@ -267,7 +267,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
 }
 
@@ -323,7 +323,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 }
 
@@ -346,7 +346,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 }
@@ -376,7 +376,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	assert.Equal(s.T(), 401, s.mock.Ctx.Response.StatusCode())
 }
@@ -394,7 +394,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
@@ -446,7 +446,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	assert.Equal(s.T(), 401, s.mock.Ctx.Response.StatusCode())
 }
@@ -477,7 +477,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
@@ -525,7 +525,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: testRedirectionURL,
 	})
@@ -572,7 +572,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -619,7 +619,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: "https://mydomain.local",
 	})
@@ -668,7 +668,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -718,7 +718,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
-	SecondFactorDuoPost(duoMock)(s.mock.Ctx)
+	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 
 	s.Assert().NotEqual(

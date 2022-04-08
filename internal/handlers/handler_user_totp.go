@@ -9,8 +9,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// UserTOTPGet returns the users TOTP configuration.
-func UserTOTPGet(ctx *middlewares.AutheliaCtx) {
+// UserTOTPInfoGET returns the users TOTP configuration.
+func UserTOTPInfoGET(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	config, err := ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username)

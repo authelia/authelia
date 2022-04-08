@@ -390,7 +390,7 @@ func (s *SaveSuite) TearDownTest() {
 
 func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	s.mock.Ctx.Request.SetBody(nil)
-	MethodPreferencePost(s.mock.Ctx)
+	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
 	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
@@ -399,7 +399,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 
 func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\""))
-	MethodPreferencePost(s.mock.Ctx)
+	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
 	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
@@ -408,7 +408,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 
 func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"weird_key\":\"abc\"}"))
-	MethodPreferencePost(s.mock.Ctx)
+	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
 	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
@@ -417,7 +417,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 
 func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	s.mock.Ctx.Request.SetBody([]byte("{\"method\":\"abc\"}"))
-	MethodPreferencePost(s.mock.Ctx)
+	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
 	assert.Equal(s.T(), "unknown or unavailable method 'abc', it should be one of totp, webauthn", s.mock.Hook.LastEntry().Message)
@@ -430,7 +430,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(fmt.Errorf("Failure"))
 
-	MethodPreferencePost(s.mock.Ctx)
+	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
 	assert.Equal(s.T(), "unable to save new preferred 2FA method: Failure", s.mock.Hook.LastEntry().Message)
@@ -443,7 +443,7 @@ func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 		SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("webauthn")).
 		Return(nil)
 
-	MethodPreferencePost(s.mock.Ctx)
+	MethodPreferencePOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
 }
