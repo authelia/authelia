@@ -6,9 +6,10 @@ import (
 
 // AccessControlConfiguration represents the configuration related to ACLs.
 type AccessControlConfiguration struct {
-	DefaultPolicy string       `koanf:"default_policy"`
-	Networks      []ACLNetwork `koanf:"networks"`
-	Rules         []ACLRule    `koanf:"rules"`
+	Default2FAMethod string       `koanf:"default_2fa_method"`
+	DefaultPolicy    string       `koanf:"default_policy"`
+	Networks         []ACLNetwork `koanf:"networks"`
+	Rules            []ACLRule    `koanf:"rules"`
 }
 
 // ACLNetwork represents one ACL network group entry.

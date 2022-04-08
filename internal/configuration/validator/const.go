@@ -174,6 +174,10 @@ const (
 
 // Access Control error constants.
 const (
+	errFmtAccessControlInvalid2FAMethod = "access control: option 'default_2fa_method' is configured as '%s' but must be one of " +
+		"the following values: '%s'"
+	errFmtAccessControlInvalid2FAMethodDisabled = "access control: option 'default_2fa_method' is configured as '%s' " +
+		"but must be one of the following enabled method values: '%s'"
 	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of '%s' but it is " +
 		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access control: 'default_policy' option '%s' is invalid: when " +
@@ -262,11 +266,6 @@ const (
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
-)
-
-const (
-	errFmtDefaultInvalidMethod = "default: option 'user_second_factor_method' is configured as '%s' but must be one of " +
-		"the following values: '%s'"
 )
 
 var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}

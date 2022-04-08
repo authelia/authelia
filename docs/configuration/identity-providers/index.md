@@ -2,7 +2,7 @@
 layout: default
 title: Identity Providers
 parent: Configuration
-nav_order: 5
+nav_order: 4
 has_children: true
 ---
 

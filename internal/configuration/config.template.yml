@@ -97,15 +97,6 @@ log:
   # keep_stdout: false
 
 ##
-## Default Configuration
-##
-default:
-  ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
-  ## disabled. This setting has no effect if the chosen method is disabled in configuration.
-  ## Options are totp, webauthn, mobile_push.
-  user_second_factor_method: ""
-
-##
 ## TOTP Configuration
 ##
 ## Parameters used for TOTP generation.
@@ -403,6 +394,11 @@ password_policy:
 ##
 ## Note: the order of the rules is important. The first policy matching (domain, resource, subject) applies.
 access_control:
+  ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
+  ## disabled. This setting must be a method that is enabled.
+  ## Options are totp, webauthn, mobile_push.
+  default_2fa_method: ""
+
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
   default_policy: deny

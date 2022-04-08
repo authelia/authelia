@@ -21,6 +21,4 @@ type Configuration struct {
 	Server                ServerConfiguration                `koanf:"server"`
 	Webauthn              WebauthnConfiguration              `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration        `koanf:"password_policy"`
-
-	Default DefaultConfiguration `koanf:"default"`
 }

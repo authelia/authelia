@@ -2,7 +2,7 @@
 layout: default
 title: Server
 parent: Configuration
-nav_order: 13
+nav_order: 12
 ---
 
 # Server
