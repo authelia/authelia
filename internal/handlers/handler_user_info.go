@@ -72,8 +72,8 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// MethodPreferencePost update the user preferences regarding 2FA method.
-func MethodPreferencePost(ctx *middlewares.AutheliaCtx) {
+// MethodPreferencePOST update the user preferences regarding 2FA method.
+func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := preferred2FAMethodBody{}
 
 	err := ctx.ParseBody(&bodyJSON)

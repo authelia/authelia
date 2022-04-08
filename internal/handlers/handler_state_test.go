@@ -32,7 +32,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 	err := s.mock.Ctx.SaveSession(userSession)
 	require.NoError(s.T(), err)
 
-	StateGet(s.mock.Ctx)
+	StateGET(s.mock.Ctx)
 
 	type Response struct {
 		Status string
@@ -62,7 +62,7 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	err := s.mock.Ctx.SaveSession(userSession)
 	require.NoError(s.T(), err)
 
-	StateGet(s.mock.Ctx)
+	StateGET(s.mock.Ctx)
 
 	type Response struct {
 		Status string

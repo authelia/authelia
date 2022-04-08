@@ -6,10 +6,10 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20220201180708-96a8851a8448
+	github.com/duosecurity/duo_api_golang v0.0.0-20220407154329-46fb282896c8
 	github.com/fasthttp/router v1.4.8
 	github.com/fasthttp/session/v2 v2.4.9
-	github.com/go-ldap/ldap/v3 v3.4.2
+	github.com/go-ldap/ldap/v3 v3.4.3
 	github.com/go-rod/rod v0.103.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.3.0
@@ -38,7 +38,7 @@ require (
 )
 
 require (
-	github.com/Azure/go-ntlmssp v0.0.0-20200615164410-66371956d46c // indirect
+	github.com/Azure/go-ntlmssp v0.0.0-20211209120228-48547f28849e // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -49,7 +49,7 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-asn1-ber/asn1-ber v1.5.1 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
