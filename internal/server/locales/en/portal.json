@@ -61,5 +61,7 @@
   "Must have at least one number": "Must have at least one number",
   "Must have at least one special character": "Must have at least one special character",
   "Must be at least {{len}} characters in length": "Must be at least {{len}} characters in length",
-  "Must not be more than {{len}} characters in length": "Must not be more than {{len}} characters in length"
+  "Must not be more than {{len}} characters in length": "Must not be more than {{len}} characters in length",
+  "Consent Request": "Consent Request",
+  "Client ID": "Client ID: {{client_id}}"
 }
