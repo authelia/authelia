@@ -18,9 +18,8 @@ func PasswordPolicyConfigurationGet(ctx *middlewares.AutheliaCtx) {
 		policyResponse.RequireUppercase = ctx.Configuration.PasswordPolicy.Standard.RequireUppercase
 		policyResponse.RequireNumber = ctx.Configuration.PasswordPolicy.Standard.RequireNumber
 		policyResponse.RequireSpecial = ctx.Configuration.PasswordPolicy.Standard.RequireSpecial
-	} else if ctx.Configuration.PasswordPolicy.Zxcvbn.Enabled {
+	} else if ctx.Configuration.PasswordPolicy.ZXCVBN.Enabled {
 		policyResponse.Mode = "zxcvbn"
-		policyResponse.MinScore = ctx.Configuration.PasswordPolicy.Zxcvbn.MinScore
 	}
 
 	var err error
