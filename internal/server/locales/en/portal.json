@@ -63,5 +63,7 @@
   "Must be at least {{len}} characters in length": "Must be at least {{len}} characters in length",
   "Must not be more than {{len}} characters in length": "Must not be more than {{len}} characters in length",
   "This saves this consent as a pre-configured consent for future use": "This saves this consent as a pre-configured consent for future use",
-  "Remember Consent": "Remember Consent"
+  "Remember Consent": "Remember Consent",
+  "Consent Request": "Consent Request",
+  "Client ID": "Client ID: {{client_id}}"
 }
