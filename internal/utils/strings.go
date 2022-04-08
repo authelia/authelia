@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -285,6 +286,26 @@ func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 	}
 
 	return joined
+}
+
+// IsURLHostComponent returns true if the provided url.URL that was parsed from a string to a url.URL via url.Parse is
+// just a hostname. This is needed because of the way this function parses such strings.
+func IsURLHostComponent(u url.URL) (isHostComponent bool) {
+	return u.Path != "" && u.Scheme == "" && u.Host == "" && u.RawPath == "" && u.Opaque == "" &&
+		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == ""
+}
+
+// IsURLHostComponentWithPort returns true if the provided url.URL that was parsed from a string to a url.URL via
+// url.Parse is just a hostname with a port. This is needed because of the way this function parses such strings.
+func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
+	if u.Opaque != "" && u.Scheme != "" && u.Host == "" && u.Path == "" && u.RawPath == "" &&
+		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == "" {
+		_, err := strconv.Atoi(u.Opaque)
+
+		return err == nil
+	}
+
+	return false
 }
 
 func init() {
