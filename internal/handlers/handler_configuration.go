@@ -4,8 +4,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// ConfigurationGet get the configuration accessible to authenticated users.
-func ConfigurationGet(ctx *middlewares.AutheliaCtx) {
+// ConfigurationGET get the configuration accessible to authenticated users.
+func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{
 		AvailableMethods: make(MethodList, 0, 3),
 	}

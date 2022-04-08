@@ -12,8 +12,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// SecondFactorWebauthnIdentityStart the handler for initiating the identity validation.
-var SecondFactorWebauthnIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
+// WebauthnIdentityStart the handler for initiating the identity validation.
+var WebauthnIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
 	MailTitle:             "Register your key",
 	MailButtonContent:     "Register",
 	TargetEndpoint:        "/webauthn/register",
@@ -21,8 +21,8 @@ var SecondFactorWebauthnIdentityStart = middlewares.IdentityVerificationStart(mi
 	IdentityRetrieverFunc: identityRetrieverFromSession,
 }, nil)
 
-// SecondFactorWebauthnIdentityFinish the handler for finishing the identity validation.
-var SecondFactorWebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
+// WebauthnIdentityFinish the handler for finishing the identity validation.
+var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
 		ActionClaim:          ActionWebauthnRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
@@ -81,8 +81,8 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 	}
 }
 
-// SecondFactorWebauthnAttestationPOST processes the attestation challenge response from the client.
-func SecondFactorWebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
+// WebauthnAttestationPOST processes the attestation challenge response from the client.
+func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err  error
 		w    *webauthn.WebAuthn
