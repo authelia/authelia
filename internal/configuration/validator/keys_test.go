@@ -54,7 +54,7 @@ func TestAllSpecificErrorKeys(t *testing.T) {
 
 	var uniqueValues []string
 
-	// Setup configKeys and uniqueValues expected.
+	// Setup configKeys and uniqueValues expectedErrs.
 	for key, value := range specificErrorKeys {
 		configKeys = append(configKeys, key)
 

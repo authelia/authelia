@@ -8,7 +8,6 @@ export interface PasswordPolicyConfiguration {
     mode: PasswordPolicyMode;
     min_length: number;
     max_length: number;
-    min_score: number;
     require_uppercase: boolean;
     require_lowercase: boolean;
     require_number: boolean;
