@@ -29,8 +29,8 @@ func TestShouldNotValidateBadKeys(t *testing.T) {
 	errs := val.Errors()
 	require.Len(t, errs, 2)
 
-	assert.EqualError(t, errs[0], "configuration key not expectedErrs: bad_key")
-	assert.EqualError(t, errs[1], "configuration key not expectedErrs: totp.skewy")
+	assert.EqualError(t, errs[0], "configuration key not expected: bad_key")
+	assert.EqualError(t, errs[1], "configuration key not expected: totp.skewy")
 }
 
 func TestShouldNotValidateBadEnvKeys(t *testing.T) {
@@ -45,8 +45,8 @@ func TestShouldNotValidateBadEnvKeys(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	require.Len(t, warns, 2)
 
-	assert.EqualError(t, warns[0], "configuration environment variable not expectedErrs: AUTHELIA__BAD_ENV_KEY")
-	assert.EqualError(t, warns[1], "configuration environment variable not expectedErrs: AUTHELIA_BAD_ENV_KEY")
+	assert.EqualError(t, warns[0], "configuration environment variable not expected: AUTHELIA__BAD_ENV_KEY")
+	assert.EqualError(t, warns[1], "configuration environment variable not expected: AUTHELIA_BAD_ENV_KEY")
 }
 
 func TestAllSpecificErrorKeys(t *testing.T) {
