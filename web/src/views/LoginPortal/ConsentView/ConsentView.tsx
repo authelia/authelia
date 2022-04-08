@@ -85,7 +85,7 @@ const ConsentView = function (props: Props) {
             case "openid":
                 return translate("Use OpenID to verify your identity");
             case "profile":
-                return translate("Access your display name");
+                return translate("Access your profile information");
             case "groups":
                 return translate("Access your group membership");
             case "email":
