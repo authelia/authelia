@@ -102,8 +102,6 @@ type Client struct {
 	SectorIdentifier string
 	Public           bool
 
-	Policy authorization.Level
-
 	Audience      []string
 	Scopes        []string
 	RedirectURIs  []string
@@ -112,6 +110,10 @@ type Client struct {
 	ResponseModes []fosite.ResponseModeType
 
 	UserinfoSigningAlgorithm string
+
+	Policy authorization.Level
+
+	PreConfiguredConsentDuration *time.Duration
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
@@ -132,12 +134,14 @@ type ConsentGetResponseBody struct {
 	ClientDescription string   `json:"client_description"`
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
+	PreConfiguration  bool     `json:"pre_configuration"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
 	ClientID       string `json:"client_id"`
 	AcceptOrReject string `json:"accept_or_reject"`
+	PreConfigure   bool   `json:"pre_configure"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.
