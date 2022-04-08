@@ -49,7 +49,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
@@ -77,7 +77,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"webauthn", "mobile_push"},
@@ -105,7 +105,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvaila
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"totp", "mobile_push"},
@@ -133,7 +133,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"totp", "webauthn"},
@@ -161,7 +161,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{},
@@ -189,7 +189,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllD
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{},

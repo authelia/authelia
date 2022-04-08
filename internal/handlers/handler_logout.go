@@ -16,8 +16,8 @@ type logoutResponseBody struct {
 	SafeTargetURL bool `json:"safeTargetURL"`
 }
 
-// LogoutPost is the handler logging out the user attached to the given cookie.
-func LogoutPost(ctx *middlewares.AutheliaCtx) {
+// LogoutPOST is the handler logging out the user attached to the given cookie.
+func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 	body := logoutBody{}
 	responseBody := logoutResponseBody{SafeTargetURL: false}
 
