@@ -170,7 +170,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, "RS256")
 	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, "none")
 
-	assert.Len(t, disco.ClaimsSupported, 15)
+	assert.Len(t, disco.ClaimsSupported, 16)
+	assert.Contains(t, disco.ClaimsSupported, "amr")
 	assert.Contains(t, disco.ClaimsSupported, "aud")
 	assert.Contains(t, disco.ClaimsSupported, "exp")
 	assert.Contains(t, disco.ClaimsSupported, "iat")
@@ -244,8 +245,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ResponseTypesSupported, "code token id_token")
 	assert.Contains(t, disco.ResponseTypesSupported, "none")
 
-	assert.Len(t, disco.ClaimsSupported, 15)
+	assert.Len(t, disco.ClaimsSupported, 16)
 	assert.Contains(t, disco.ClaimsSupported, "aud")
+	assert.Contains(t, disco.ClaimsSupported, "amr")
 	assert.Contains(t, disco.ClaimsSupported, "exp")
 	assert.Contains(t, disco.ClaimsSupported, "iat")
 	assert.Contains(t, disco.ClaimsSupported, "iss")
