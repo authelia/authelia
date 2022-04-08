@@ -21,7 +21,7 @@ i18n.use(Backend)
         },
         load: "all",
         supportedLngs: ["en", "es", "de"],
-        lowerCaseLng: true,
+        lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
         interpolation: {
             escapeValue: false,
