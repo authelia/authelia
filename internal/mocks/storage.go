@@ -361,6 +361,21 @@ func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifierBySignature(arg0, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserOpaqueIdentifierBySignature", reflect.TypeOf((*MockStorage)(nil).LoadUserOpaqueIdentifierBySignature), arg0, arg1, arg2, arg3)
 }
 
+// LoadUserOpaqueIdentifiers mocks base method.
+func (m *MockStorage) LoadUserOpaqueIdentifiers(arg0 context.Context) ([]model.UserOpaqueIdentifier, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserOpaqueIdentifiers", arg0)
+	ret0, _ := ret[0].([]model.UserOpaqueIdentifier)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserOpaqueIdentifiers indicates an expected call of LoadUserOpaqueIdentifiers.
+func (mr *MockStorageMockRecorder) LoadUserOpaqueIdentifiers(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserOpaqueIdentifiers", reflect.TypeOf((*MockStorage)(nil).LoadUserOpaqueIdentifiers), arg0)
+}
+
 // LoadWebauthnDevices mocks base method.
 func (m *MockStorage) LoadWebauthnDevices(arg0 context.Context, arg1, arg2 int) ([]model.WebauthnDevice, error) {
 	m.ctrl.T.Helper()

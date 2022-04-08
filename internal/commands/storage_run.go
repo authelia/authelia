@@ -11,8 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -650,6 +652,110 @@ func checkStorageSchemaUpToDate(ctx context.Context, provider storage.Provider) 
 	if version != latest {
 		return fmt.Errorf("schema is version %d which is outdated please migrate to version %d in order to use this command or use an older binary", version, latest)
 	}
+
+	return nil
+}
+
+func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		file string
+	)
+
+	if file, err = cmd.Flags().GetString("file"); err != nil {
+		return err
+	}
+
+	_, err = os.Stat(file)
+
+	switch {
+	case err == nil:
+		return fmt.Errorf("must specify a file that doesn't exist but '%s' exists", file)
+	case !os.IsNotExist(err):
+		return fmt.Errorf("error occurred opening '%s': %w", file, err)
+	}
+
+	provider = getStorageProvider()
+
+	var (
+		identifiers []model.UserOpaqueIdentifier
+		export      exportUserOpaqueIdentifiers
+
+		data []byte
+	)
+
+	if identifiers, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
+		return err
+	}
+
+	export = exportUserOpaqueIdentifiers{
+		Identifiers: identifiers,
+	}
+
+	if data, err = yaml.Marshal(&export); err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(file, data, 0600); err != nil {
+		return err
+	}
+
+	fmt.Printf("Exported User Opaque Identifiers to %s\n", file)
+	return nil
+}
+
+func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		service, sector string
+	)
+
+	if service, err = cmd.Flags().GetString("service"); err != nil {
+		return err
+	}
+
+	if sector, err = cmd.Flags().GetString("sector"); err != nil {
+		return err
+	}
+
+	opaqueID := model.UserOpaqueIdentifier{
+		Service:  service,
+		Username: args[0],
+		SectorID: sector,
+	}
+
+	if cmd.Flags().Changed("identifier") {
+		var identifierStr string
+		if identifierStr, err = cmd.Flags().GetString("identifier"); err != nil {
+			return err
+		}
+
+		if opaqueID.Identifier, err = uuid.Parse(identifierStr); err != nil {
+			return err
+		}
+
+		if opaqueID.Identifier.Version() != 4 {
+			return fmt.Errorf("UUID version must be 4 but you provided one with version %d", opaqueID.Identifier.Version())
+		}
+	} else {
+		if opaqueID.Identifier, err = uuid.NewRandom(); err != nil {
+			return err
+		}
+	}
+
+	provider = getStorageProvider()
+
+	if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
+		return err
+	}
+
+	fmt.Printf("Added User Opaque Identifier; service: %s, sector: %s, username: %s, identifier: %s\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
 
 	return nil
 }

@@ -66,6 +66,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlInsertUserOpaqueIdentifier:            fmt.Sprintf(queryFmtInsertUserOpaqueIdentifier, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
+		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
 		sqlInsertOAuth2AuthorizeCodeSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AuthorizeCodeSession),
@@ -180,6 +181,7 @@ type SQLProvider struct {
 	// Table: user_opaque_identifier.
 	sqlInsertUserOpaqueIdentifier            string
 	sqlSelectUserOpaqueIdentifier            string
+	sqlSelectUserOpaqueIdentifiers           string
 	sqlSelectUserOpaqueIdentifierBySignature string
 
 	// Table: migrations.
@@ -347,6 +349,29 @@ func (p *SQLProvider) LoadUserOpaqueIdentifier(ctx context.Context, opaqueUUID u
 	}
 
 	return opaqueID, nil
+}
+
+// LoadUserOpaqueIdentifiers selects an opaque user identifiers from the database.
+func (p *SQLProvider) LoadUserOpaqueIdentifiers(ctx context.Context) (opaqueIDs []model.UserOpaqueIdentifier, err error) {
+	var rows *sqlx.Rows
+
+	if rows, err = p.db.QueryxContext(ctx, p.sqlSelectUserOpaqueIdentifiers); err != nil {
+		return nil, fmt.Errorf("error selecting user opaque identifiers: %w", err)
+	}
+
+	var opaqueID *model.UserOpaqueIdentifier
+
+	for rows.Next() {
+		opaqueID = &model.UserOpaqueIdentifier{}
+
+		if err = rows.StructScan(opaqueID); err != nil {
+			return nil, fmt.Errorf("error selecting user opaque identifiers: error scanning row: %w", err)
+		}
+
+		opaqueIDs = append(opaqueIDs, *opaqueID)
+	}
+
+	return opaqueIDs, nil
 }
 
 // LoadUserOpaqueIdentifierBySignature selects an opaque user identifier from the database given a service name,  sector id, and username.
