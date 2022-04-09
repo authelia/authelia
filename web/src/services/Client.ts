@@ -24,7 +24,7 @@ export async function Get<T = undefined>(path: string): Promise<T> {
     const res = await axios.get<ServiceResponse<T>>(path);
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        // in order for i18n to be used, it is necessary to return the raw message received from the api 
+        // in order for i18n to be used, it is necessary to return the raw message received from the api
         throw new Error(`${hasServiceError(res).message}`);
     }
 
