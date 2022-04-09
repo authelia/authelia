@@ -730,9 +730,6 @@ components:
             max_length:
               type: integer
               description: The maximum password length when using the standard mode.
-            min_score:
-              type: integer
-              description: The minimum password score when using the zxcvbn mode.
             require_uppercase:
               type: boolean
               description: If uppercase characters are required when using the standard mode.

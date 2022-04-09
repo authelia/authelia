@@ -23,7 +23,7 @@ func TestNewPasswordPolicyProvider(t *testing.T) {
 		},
 		{
 			desc:     "ShouldReturnUnconfiguredProviderWhenZxcvbn",
-			have:     schema.PasswordPolicyConfiguration{Zxcvbn: schema.PasswordPolicyZxcvbnParams{Enabled: true}},
+			have:     schema.PasswordPolicyConfiguration{ZXCVBN: schema.PasswordPolicyZXCVBNParams{Enabled: true}},
 			expected: PasswordPolicyProvider{},
 		},
 		{
