@@ -13,7 +13,8 @@ type PasswordPolicyStandardParams struct {
 
 // PasswordPolicyZXCVBNParams represents the configuration related to ZXCVBN parameters of password policy.
 type PasswordPolicyZXCVBNParams struct {
-	Enabled bool `koanf:"enabled"`
+	Enabled  bool `koanf:"enabled"`
+	MinScore int  `koanf:"min_score"`
 }
 
 // PasswordPolicyConfiguration represents the configuration related to password policy.
@@ -30,6 +31,7 @@ var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
 		MaxLength: 0,
 	},
 	ZXCVBN: PasswordPolicyZXCVBNParams{
-		Enabled: false,
+		Enabled:  false,
+		MinScore: 0,
 	},
 }

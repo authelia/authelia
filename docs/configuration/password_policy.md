@@ -39,8 +39,10 @@ This section allows you to enable standard security policies.
 
 #### enabled
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -73,8 +75,10 @@ Determines the maximum allowed password length.
 
 #### require_uppercase
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -83,8 +87,10 @@ Indicates that at least one UPPERCASE letter must be provided as part of the pas
 
 #### require_lowercase
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -93,8 +99,10 @@ Indicates that at least one lowercase letter must be provided as part of the pas
 
 #### require_number
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -103,8 +111,10 @@ Indicates that at least one number must be provided as part of the password.
 
 #### require_special
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -120,8 +130,10 @@ password is.
 
 #### enabled
 <div markdown="1">
-type: bool
+type: boolean
 {: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
@@ -130,4 +142,14 @@ _**Important Note:** only one password policy can be applied at a time._
 
 Enables zxcvbn password policy.
 
+#### min_score
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 0
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
+Configures the minimum zxcvbn score allowed for new passwords.

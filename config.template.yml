@@ -365,6 +365,9 @@ password_policy:
   zxcvbn:
     enabled: false
 
+    ## Configures the minimum score allowed.
+    min_score: 0
+
 ##
 ## Access Control Configuration
 ##

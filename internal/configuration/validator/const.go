@@ -524,6 +524,7 @@ var ValidKeys = []string{
 	"password_policy.standard.require_number",
 	"password_policy.standard.require_special",
 	"password_policy.zxcvbn.enabled",
+	"password_policy.zxcvbn.min_score",
 }
 
 var replacedKeys = map[string]string{
