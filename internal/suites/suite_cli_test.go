@@ -424,7 +424,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=out.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
-	s.Assert().Contains(output, "Error: open out.yml: permission denied")
+	s.Assert().Contains(output, "Error: error occurred writing to file 'out.yml': open out.yml: permission denied")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/tmp/out/1.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
