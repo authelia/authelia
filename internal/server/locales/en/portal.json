@@ -65,5 +65,6 @@
   "This saves this consent as a pre-configured consent for future use": "This saves this consent as a pre-configured consent for future use",
   "Remember Consent": "Remember Consent",
   "Consent Request": "Consent Request",
-  "Client ID": "Client ID: {{client_id}}"
+  "Client ID": "Client ID: {{client_id}}",
+  "There was an issue updating preferred second factor method": "There was an issue updating preferred second factor method"
 }

@@ -14,7 +14,7 @@ i18n.use(Backend)
         backend: {
             loadPath: "/locales/{{lng}}/{{ns}}.json",
         },
-        ns: ["portal"],
+        ns: ["portal", "backend"],
         defaultNS: "portal",
         fallbackLng: {
             default: ["en"],

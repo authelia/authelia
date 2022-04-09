@@ -59,7 +59,8 @@ const ResetPasswordStep2 = function () {
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                translate("There was an issue completing the process. The verification token might have expired"),
+                // translate("There was an issue completing the process. The verification token might have expired"),
+                translate(err.message, { ns: "backend" }),
             );
             setFormDisabled(true);
         }
@@ -94,9 +95,13 @@ const ResetPasswordStep2 = function () {
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+                createErrorNotification(
+                    tranlate("Your supplied password does not meet the password policy requirements."),
+                );
             } else if ((err as Error).message.includes("policy")) {
-                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+                createErrorNotification(
+                    translate("Your supplied password does not meet the password policy requirements."),
+                );
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
