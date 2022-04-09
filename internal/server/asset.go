@@ -10,7 +10,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 //go:embed locales
@@ -48,15 +48,19 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 
 		if v := ctx.UserValue("variant"); v != nil {
 			variant = v.(string)
-			locale = fmt.Sprintf("%s-%s", language, locale)
+			locale = fmt.Sprintf("%s-%s", language, variant)
 		}
 
+		logging.Logger().Infof("Requested Language. Language: %s, Variant: %s, Locale: %s", language, variant, locale)
 		var data []byte
 
 		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
-			if variant != "" && utils.IsStringInSliceFold(language, languages) {
-				data = []byte("{}")
-			}
+			/*
+				if variant != "" && utils.IsStringInSliceFold(language, languages) {
+					data = []byte("{}")
+				}
+
+			*/
 
 			if len(data) == 0 {
 				hfsHandleErr(ctx, err)
