@@ -70,6 +70,9 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
 	}
 
+	session.Claims.Add("azp", session.ClientID)
+	session.Claims.Add("client_id", session.ClientID)
+
 	return session
 }
 
