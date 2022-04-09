@@ -37,6 +37,7 @@ export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
 export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
 
 export const ConfigurationPath = basePath + "/api/configuration";
+export const LocalesConfigurationPath = basePath + "/api/configuration/locales";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
 export interface ErrorResponse {
