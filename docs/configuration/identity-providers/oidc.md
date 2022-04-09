@@ -552,7 +552,9 @@ individual user as per the [Subject Identifier Types] specification. Please use 
 |    iat    |    number     |       _N/A_        |             The time when the token was issued              |
 |    jti    | string(uuid)  |       _N/A_        |     A JWT Identifier in the form of a [RFC4122] UUID V4     |
 |    amr    | array[string] |       _N/A_        | An [RFC8176] list of authentication method reference values |
-
+|    azp    |    string     |    id (client)     |                    The authorized party                     |
+| client_id |    string     |    id (client)     |                        The client id                        |
+    
 ### groups
 
 This scope includes the groups the authentication backend reports the user is a member of in the token.
