@@ -681,8 +681,7 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 	provider = getStorageProvider()
 
 	var (
-		opaqueIDs []model.UserOpaqueIdentifier
-		export    model.UserOpaqueIdentifiersExport
+		export model.UserOpaqueIdentifiersExport
 
 		data []byte
 	)
@@ -691,7 +690,7 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	if len(opaqueIDs) == 0 {
+	if len(export.Identifiers) == 0 {
 		return fmt.Errorf("no data to export")
 	}
 
