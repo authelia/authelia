@@ -695,11 +695,11 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	if data, err = yaml.Marshal(&export); err != nil {
-		return err
+		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
 	}
 
 	if err = os.WriteFile(file, data, 0600); err != nil {
-		return err
+		return fmt.Errorf("error occurred writing to file '%s': %w", file, err)
 	}
 
 	fmt.Printf("Exported %d User Opaque Identifiers to %s\n", len(export.Identifiers), file)
