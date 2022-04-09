@@ -42,7 +42,6 @@ func NewStorageCmd() (cmd *cobra.Command) {
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
 		newStorageEncryptionCmd(),
-		newStorageTOTPCmd(),
 		newStorageUserCmd(),
 	)
 
@@ -57,6 +56,7 @@ func newStorageUserCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newStorageUserIdentifiersCmd(),
+		newStorageTOTPCmd(),
 	)
 
 	return cmd
@@ -64,7 +64,7 @@ func newStorageUserCmd() (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "identifier",
+		Use:   "identifiers",
 		Short: "Manages user opaque identifiers",
 	}
 
@@ -110,7 +110,7 @@ func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().String("identifier", "", "The optional version 4 UUID to use, if not set a random one will be used")
-	cmd.Flags().String("service", "openid_connect", "The service to add the identifier for, valid values are: openid_connect")
+	cmd.Flags().String("service", identifierServiceOpenIDConnect, "The service to add the identifier for, valid values are: openid_connect")
 	cmd.Flags().String("sector", "", "The sector identifier to use (should usually be blank)")
 
 	return cmd

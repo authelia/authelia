@@ -681,18 +681,22 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 	provider = getStorageProvider()
 
 	var (
-		identifiers []model.UserOpaqueIdentifier
-		export      exportUserOpaqueIdentifiers
+		opaqueIDs []model.UserOpaqueIdentifier
+		export    exportUserOpaqueIdentifiers
 
 		data []byte
 	)
 
-	if identifiers, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
+	if opaqueIDs, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
 		return err
 	}
 
+	if len(opaqueIDs) == 0 {
+		return fmt.Errorf("no data to export")
+	}
+
 	export = exportUserOpaqueIdentifiers{
-		Identifiers: identifiers,
+		Identifiers: opaqueIDs,
 	}
 
 	if data, err = yaml.Marshal(&export); err != nil {
@@ -703,7 +707,7 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	fmt.Printf("Exported User Opaque Identifiers to %s\n", file)
+	fmt.Printf("Exported %d User Opaque Identifiers to %s\n", len(export.Identifiers), file)
 
 	return nil
 }
@@ -773,6 +777,12 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if service == "" {
+		service = identifierServiceOpenIDConnect
+	} else if service != identifierServiceOpenIDConnect {
+		return fmt.Errorf("the service name '%s' is invalid, the valid values are: 'openid_connect'", service)
+	}
+
 	if sector, err = cmd.Flags().GetString("sector"); err != nil {
 		return err
 	}
@@ -791,11 +801,11 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		}
 
 		if opaqueID.Identifier, err = uuid.Parse(identifierStr); err != nil {
-			return err
+			return fmt.Errorf("the identifier provided '%s' is invalid as it must be a version 4 UUID but parsing it had an error: %w", identifierStr, err)
 		}
 
 		if opaqueID.Identifier.Version() != 4 {
-			return fmt.Errorf("UUID version must be 4 but you provided one with version %d", opaqueID.Identifier.Version())
+			return fmt.Errorf("the identifier providerd '%s' is a version %d UUID but only version 4 UUID's accepted as identifiers", identifierStr, opaqueID.Identifier.Version())
 		}
 	} else {
 		if opaqueID.Identifier, err = uuid.NewRandom(); err != nil {
@@ -809,7 +819,7 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	fmt.Printf("Added User Opaque Identifier; service: %s, sector: %s, username: %s, identifier: %s\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
+	fmt.Printf("Added User Opaque Identifier:\n\tService: %s\n\tSector: %s\n\tUsername: %s\n\tIdentifier: %s\n\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
 
 	return nil
 }
