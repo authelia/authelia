@@ -418,6 +418,10 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid_connect\n\tSector: \n\tUsername: john\n\tIdentifier: 1097c8f8-83f2-4506-8138-5f40e83a1285\n\n")
 
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/a/no/path/fileout.yml", "--config=/config/configuration.storage.yml"})
+	s.Assert().EqualError(err, "exit status 1")
+	s.Assert().Contains(output, "Error: open out.yml: permission denied")
+
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=out.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: open out.yml: permission denied")
