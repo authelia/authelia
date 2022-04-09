@@ -32,6 +32,6 @@ var DefaultPasswordPolicyConfiguration = PasswordPolicyConfiguration{
 	},
 	ZXCVBN: PasswordPolicyZXCVBNParams{
 		Enabled:  false,
-		MinScore: 0,
+		MinScore: 3,
 	},
 }

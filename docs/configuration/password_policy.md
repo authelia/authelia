@@ -23,6 +23,7 @@ password_policy:
     require_special: false
   zxcvbn:
     enabled: false
+    min_score: 3
 ```
 
 ## Options
@@ -146,10 +147,18 @@ Enables zxcvbn password policy.
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
-default: 0
+default: 3
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
 </div>
 
-Configures the minimum zxcvbn score allowed for new passwords.
+Configures the minimum zxcvbn score allowed for new passwords. There are 5 levels in the zxcvbn score system (taken from [github.com/dropbox/zxcvbn](https://github.com/dropbox/zxcvbn#usage)):
+
+- score 0: too guessable: risky password (guesses < 10^3)
+- score 1: very guessable: protection from throttled online attacks (guesses < 10^6)
+- score 2: somewhat guessable: protection from unthrottled online attacks. (guesses < 10^8)
+- score 3: safely unguessable: moderate protection from offline slow-hash scenario. (guesses < 10^10)
+- score 4: very unguessable: strong protection from offline slow-hash scenario. (guesses >= 10^10)
+
+We do not allow score 0, if you set the `min_score` value to 0 instead the default will be chosen.

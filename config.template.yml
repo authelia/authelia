@@ -366,7 +366,7 @@ password_policy:
     enabled: false
 
     ## Configures the minimum score allowed.
-    min_score: 0
+    min_score: 3
 
 ##
 ## Access Control Configuration
