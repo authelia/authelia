@@ -682,21 +682,17 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 
 	var (
 		opaqueIDs []model.UserOpaqueIdentifier
-		export    exportUserOpaqueIdentifiers
+		export    model.UserOpaqueIdentifiersExport
 
 		data []byte
 	)
 
-	if opaqueIDs, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
+	if export.Identifiers, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
 		return err
 	}
 
 	if len(opaqueIDs) == 0 {
 		return fmt.Errorf("no data to export")
-	}
-
-	export = exportUserOpaqueIdentifiers{
-		Identifiers: opaqueIDs,
 	}
 
 	if data, err = yaml.Marshal(&export); err != nil {
@@ -736,7 +732,7 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 
 	var (
 		data   []byte
-		export exportUserOpaqueIdentifiers
+		export model.UserOpaqueIdentifiersExport
 	)
 
 	if data, err = os.ReadFile(file); err != nil {

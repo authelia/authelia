@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"gopkg.in/yaml.v2"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -403,6 +404,8 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 }
 
 func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
+	_ = os.Mkdir("/tmp/out", 0777)
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=out.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: no data to export")
@@ -427,9 +430,9 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: error inserting user opaque id for user 'john' with opaque id '1097c8f8-83f2-4506-8138-5f40e83a1285':")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/tmp/out.yml", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/tmp/out/1.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Exported 1 User Opaque Identifiers to /tmp/out.yml")
+	s.Assert().Contains(output, "Exported 1 User Opaque Identifiers to /tmp/out/1.yml")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector='openidconnect.net'", "--identifier=b0e17f48-933c-4cba-8509-ee9bfadf8ce5", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
@@ -442,6 +445,46 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector='bad-uuid.com'", "--identifier=asdmklasdm", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: the identifier provided 'asdmklasdm' is invalid as it must be a version 4 UUID but parsing it had an error: invalid UUID length: 10")
+
+	data, err := os.ReadFile("/tmp/out/1.yml")
+	s.Assert().NoError(err)
+
+	var export model.UserOpaqueIdentifiersExport
+
+	s.Assert().NoError(yaml.Unmarshal(data, &export))
+
+	s.Require().Len(export.Identifiers, 1)
+
+	s.Assert().Equal(1, export.Identifiers[0].ID)
+	s.Assert().Equal("1097c8f8-83f2-4506-8138-5f40e83a1285", export.Identifiers[0].Identifier.String())
+	s.Assert().Equal("john", export.Identifiers[0].Username)
+	s.Assert().Equal("", export.Identifiers[0].SectorID)
+	s.Assert().Equal("openid_connect", export.Identifiers[0].Service)
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/tmp/out/2.yml", "--config=/config/configuration.storage.yml"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Exported 2 User Opaque Identifiers to /tmp/out/2.yml")
+
+	export = model.UserOpaqueIdentifiersExport{}
+
+	data, err = os.ReadFile("/tmp/out/2.yml")
+	s.Assert().NoError(err)
+
+	s.Assert().NoError(yaml.Unmarshal(data, &export))
+
+	s.Require().Len(export.Identifiers, 2)
+
+	s.Assert().Equal(1, export.Identifiers[0].ID)
+	s.Assert().Equal("1097c8f8-83f2-4506-8138-5f40e83a1285", export.Identifiers[0].Identifier.String())
+	s.Assert().Equal("john", export.Identifiers[0].Username)
+	s.Assert().Equal("", export.Identifiers[0].SectorID)
+	s.Assert().Equal("openid_connect", export.Identifiers[0].Service)
+
+	s.Assert().Equal(2, export.Identifiers[1].ID)
+	s.Assert().Equal("b0e17f48-933c-4cba-8509-ee9bfadf8ce5", export.Identifiers[1].Identifier.String())
+	s.Assert().Equal("john", export.Identifiers[1].Username)
+	s.Assert().Equal("openidconnect.net", export.Identifiers[1].SectorID)
+	s.Assert().Equal("openid_connect", export.Identifiers[1].Service)
 }
 
 func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {

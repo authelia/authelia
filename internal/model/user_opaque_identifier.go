@@ -31,3 +31,8 @@ type UserOpaqueIdentifier struct {
 
 	Identifier uuid.UUID `db:"identifier" yaml:"identifier"`
 }
+
+// UserOpaqueIdentifiersExport represents a UserOpaqueIdentifier export file.
+type UserOpaqueIdentifiersExport struct {
+	Identifiers []UserOpaqueIdentifier `yaml:"identifiers"`
+}
