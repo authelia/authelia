@@ -14,6 +14,8 @@ i18n.use(Backend)
         backend: {
             loadPath: "/locales/{{lng}}/{{ns}}.json",
         },
+        //  portal: namespace for frontend translations
+        //  backend: namespace for api translations
         ns: ["portal", "backend"],
         defaultNS: "portal",
         fallbackLng: {

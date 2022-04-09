@@ -59,7 +59,7 @@ const ResetPasswordStep2 = function () {
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                // translate("There was an issue completing the process. The verification token might have expired"),
+                // Note: this is an example of how backend messages will be translated
                 translate(err.message, { ns: "backend" }),
             );
             setFormDisabled(true);
