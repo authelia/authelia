@@ -6,7 +6,7 @@ export async function PostWithOptionalResponse<T = undefined>(path: string, body
     const res = await axios.post<ServiceResponse<T>>(path, body);
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        // in order for i18n to be used, it is necessary to return the raw message received from the api 
+        // in order for i18n to be used, it is necessary to return the raw message received from the api
         throw new Error(`${hasServiceError(res).message}`);
     }
     return toData<T>(res);
