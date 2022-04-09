@@ -364,7 +364,6 @@ password_policy:
   ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
   zxcvbn:
     enabled: false
-    min_score: 0
 
 ##
 ## Access Control Configuration

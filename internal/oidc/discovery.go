@@ -30,6 +30,7 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 				ScopeEmail,
 			},
 			ClaimsSupported: []string{
+				"amr",
 				"aud",
 				"exp",
 				"iat",

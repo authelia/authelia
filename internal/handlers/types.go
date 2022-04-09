@@ -120,7 +120,6 @@ type PassworPolicyBody struct {
 	Mode             string `json:"mode"`
 	MinLength        int    `json:"min_length"`
 	MaxLength        int    `json:"max_length"`
-	MinScore         int    `json:"min_score"`
 	RequireUppercase bool   `json:"require_uppercase"`
 	RequireLowercase bool   `json:"require_lowercase"`
 	RequireNumber    bool   `json:"require_number"`
