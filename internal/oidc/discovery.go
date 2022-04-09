@@ -32,6 +32,8 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 			ClaimsSupported: []string{
 				"amr",
 				"aud",
+				"azp",
+				"client_id",
 				"exp",
 				"iat",
 				"iss",
