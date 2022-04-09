@@ -14,47 +14,47 @@ func TestNewPasswordPolicyProvider(t *testing.T) {
 	testCases := []struct {
 		desc     string
 		have     schema.PasswordPolicyConfiguration
-		expected StandardPasswordPolicyProvider
+		expected PasswordPolicyProvider
 	}{
 		{
 			desc:     "ShouldReturnUnconfiguredProvider",
 			have:     schema.PasswordPolicyConfiguration{},
-			expected: StandardPasswordPolicyProvider{},
+			expected: &StandardPasswordPolicyProvider{},
 		},
 		{
-			desc:     "ShouldReturnUnconfiguredProviderWhenZxcvbn",
-			have:     schema.PasswordPolicyConfiguration{ZXCVBN: schema.PasswordPolicyZXCVBNParams{Enabled: true}},
-			expected: StandardPasswordPolicyProvider{},
+			desc:     "ShouldReturnProviderWhenZxcvbn",
+			have:     schema.PasswordPolicyConfiguration{ZXCVBN: schema.PasswordPolicyZXCVBNParams{Enabled: true, MinScore: 10}},
+			expected: &ZXCVBNPasswordPolicyProvider{minScore: 10},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMin",
 			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8}},
-			expected: StandardPasswordPolicyProvider{min: 8},
+			expected: &StandardPasswordPolicyProvider{min: 8},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWitHMinMax",
 			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, MaxLength: 100}},
-			expected: StandardPasswordPolicyProvider{min: 8, max: 100},
+			expected: &StandardPasswordPolicyProvider{min: 8, max: 100},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercase",
 			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true}},
-			expected: StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`)}},
+			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`)}},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercaseUppercase",
 			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true}},
-			expected: StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`)}},
+			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`)}},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercaseUppercaseNumber",
 			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true, RequireNumber: true}},
-			expected: StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`), *regexp.MustCompile(`[0-9]+`)}},
+			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`), *regexp.MustCompile(`[0-9]+`)}},
 		},
 		{
 			desc:     "ShouldReturnConfiguredProviderWithMinLowercaseUppercaseSpecial",
 			have:     schema.PasswordPolicyConfiguration{Standard: schema.PasswordPolicyStandardParams{Enabled: true, MinLength: 8, RequireLowercase: true, RequireUppercase: true, RequireSpecial: true}},
-			expected: StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`), *regexp.MustCompile(`[^a-zA-Z0-9]+`)}},
+			expected: &StandardPasswordPolicyProvider{min: 8, patterns: []regexp.Regexp{*regexp.MustCompile(`[a-z]+`), *regexp.MustCompile(`[A-Z]+`), *regexp.MustCompile(`[^a-zA-Z0-9]+`)}},
 		},
 	}
 
