@@ -45,7 +45,6 @@ specifiers:
   query-string: 7.1.1
   react: 18.0.0
   react-dom: 18.0.0
-  react-ga: 3.3.0
   react-i18next: 11.16.3
   react-loading: 2.0.3
   react-otp-input: 2.4.0
@@ -76,7 +75,6 @@ dependencies:
   query-string: 7.1.1
   react: 18.0.0
   react-dom: 18.0.0_react@18.0.0
-  react-ga: 3.3.0_react@18.0.0
   react-i18next: 11.16.3_67d9cd14f543534febc666d787b5936c
   react-loading: 2.0.3_react@18.0.0
   react-otp-input: 2.4.0_react-dom@18.0.0+react@18.0.0
@@ -6832,15 +6830,6 @@ packages:
       loose-envify: 1.4.0
       react: 18.0.0
       scheduler: 0.21.0
-    dev: false
-
-  /react-ga/3.3.0_react@18.0.0:
-    resolution: {integrity: sha512-o8RScHj6Lb8cwy3GMrVH6NJvL+y0zpJvKtc0+wmH7Bt23rszJmnqEQxRbyrqUzk9DTJIHoP42bfO5rswC9SWBQ==}
-    peerDependencies:
-      prop-types: ^15.6.0
-      react: ^15.6.2 || ^16.0 || ^17
-    dependencies:
-      react: 18.0.0
     dev: false
 
   /react-i18next/11.16.3_67d9cd14f543534febc666d787b5936c:
