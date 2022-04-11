@@ -54,7 +54,7 @@ specifiers:
   typescript: 4.6.3
   vite: 2.9.1
   vite-plugin-eslint: 1.3.0
-  vite-plugin-istanbul: 2.5.1
+  vite-plugin-istanbul: 2.6.1
   vite-plugin-svgr: 1.1.0
   vite-tsconfig-paths: 3.4.1
   zxcvbn: 4.4.2
@@ -116,7 +116,7 @@ devDependencies:
   typescript: 4.6.3
   vite: 2.9.1
   vite-plugin-eslint: 1.3.0_vite@2.9.1
-  vite-plugin-istanbul: 2.5.1
+  vite-plugin-istanbul: 2.6.1
   vite-plugin-svgr: 1.1.0_vite@2.9.1
   vite-tsconfig-paths: 3.4.1_vite@2.9.1
 
@@ -3333,6 +3333,11 @@ packages:
       supports-color: 7.2.0
     dev: true
 
+  /chalk/5.0.1:
+    resolution: {integrity: sha512-Fo07WOYGqMfCWHOzSXOt2CxDbC6skS/jO9ynEcmpANMoPrD+W1r1K6Vx7iNm+AQmETU1Xr2t+n8nzkV9t6xh3w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+    dev: true
+
   /char-regex/1.0.2:
     resolution: {integrity: sha512-kWWXztvZ5SBQV+eRgKFeh8q5sLuZY2+8WUIzlxWVTg+oGwY14qylx1KbKzHd8P6ZYkAg0xyIDU9JMHhyJMZ1jw==}
     engines: {node: '>=10'}
@@ -5306,18 +5311,6 @@ packages:
   /istanbul-lib-coverage/3.2.0:
     resolution: {integrity: sha512-eOeJ5BHCmHYvQK7xt9GkdHuzuCGS1Y6g9Gvnx3Ym33fz/HpLRYxiS0wHNr+m/MBC8B647Xt608vCDEvhl9c6Mw==}
     engines: {node: '>=8'}
-    dev: true
-
-  /istanbul-lib-instrument/4.0.3:
-    resolution: {integrity: sha512-BXgQl9kf4WTCPCCpmFGoJkz/+uhvm7h7PFKUYxh7qarQd3ER33vHG//qaE8eN25l07YqZPpHXU9I09l/RD5aGQ==}
-    engines: {node: '>=8'}
-    dependencies:
-      '@babel/core': 7.17.8
-      '@istanbuljs/schema': 0.1.3
-      istanbul-lib-coverage: 3.2.0
-      semver: 6.3.0
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /istanbul-lib-instrument/5.1.0:
@@ -7962,11 +7955,11 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-istanbul/2.5.1:
-    resolution: {integrity: sha512-5ZR2/haQalUXVqHrjatZ0QKxzF3e0hBiJe6VhjGYxE7Yc4WFs7ZE56oazYB4jnPXvlirOvgLxG0LJQoHFdMxMg==}
+  /vite-plugin-istanbul/2.6.1:
+    resolution: {integrity: sha512-vsbASlmigHwY7cWWPtzkWnJAkKHP9Tvecbq3OtIsnLtve2JEqL2HAc88LaavLSkbQtRgr7+h3KayxNjBe/P+GQ==}
     dependencies:
-      chalk: 4.1.2
-      istanbul-lib-instrument: 4.0.3
+      chalk: 5.0.1
+      istanbul-lib-instrument: 5.1.0
       test-exclude: 6.0.0
     transitivePeerDependencies:
       - supports-color
