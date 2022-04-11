@@ -12,7 +12,7 @@
     "@material-ui/styles": "4.11.5",
     "axios": "0.26.1",
     "classnames": "2.3.1",
-    "i18next": "21.6.15",
+    "i18next": "21.6.16",
     "i18next-browser-languagedetector": "6.1.4",
     "i18next-http-backend": "1.4.0",
     "qrcode.react": "3.0.1",
