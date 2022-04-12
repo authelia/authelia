@@ -294,7 +294,7 @@ func (s *OpenIDConnectStore) MarkJWTUsedForTime(ctx context.Context, jti string,
 // ROPC as per https://datatracker.ietf.org/doc/html/rfc6749#section-4.3.
 func (s *OpenIDConnectStore) Authenticate(_ context.Context, name, secret string) (err error) {
 	if !s.enableGrantROPC {
-		return errors.New("OAuth 2.0 Resource Owner Password Credentials Grants are not enabled")
+		return errors.New("OAuth 2.0 Resource Owner Password Credential Grants are not enabled")
 	}
 
 	var valid bool

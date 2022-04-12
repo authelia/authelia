@@ -758,7 +758,7 @@ notifier:
     # id_token_lifespan: 1h
     # refresh_token_lifespan: 90m
 
-    ## Enables the OAuth2.0 Resource Owner Password Credentials grant.
+    ## Enables the OAuth2.0 Resource Owner Password Credential Grants.
     # enable_grant_ropc: false
 
     ## Enables additional debug messages.
