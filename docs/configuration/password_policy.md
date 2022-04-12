@@ -126,9 +126,6 @@ Indicates that at least one special character must be provided as part of the pa
 
 This password policy enables advanced password strength metering, using [zxcvbn](https://github.com/dropbox/zxcvbn).
 
-Note that this password policy do not restrict the user's entry it just gives the user feedback as to how strong their
-password is.
-
 #### enabled
 <div markdown="1">
 type: boolean
