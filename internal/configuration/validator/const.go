@@ -485,6 +485,7 @@ var ValidKeys = []string{
 	"identity_providers.oidc.access_token_lifespan",
 	"identity_providers.oidc.refresh_token_lifespan",
 	"identity_providers.oidc.authorize_code_lifespan",
+	"identity_providers.oidc.enable_grant_ropc",
 	"identity_providers.oidc.enforce_pkce",
 	"identity_providers.oidc.enable_pkce_plain_challenge",
 	"identity_providers.oidc.enable_client_debug_messages",

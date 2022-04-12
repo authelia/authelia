@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -18,13 +19,21 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-// NewOpenIDConnectStore returns a OpenIDConnectStore when provided with a schema.OpenIDConnectConfiguration and storage.Provider.
-func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider storage.Provider) (store *OpenIDConnectStore) {
+// NewOpenIDConnectStoreProviders returns a OpenIDConnectStoreProviders when provided with the appropriate providers.
+func NewOpenIDConnectStoreProviders(storage storage.Provider, authentication authentication.UserProvider) OpenIDConnectStoreProviders {
+	return OpenIDConnectStoreProviders{
+		authentication: authentication,
+		storage:        storage,
+	}
+}
+
+// NewOpenIDConnectStore returns a OpenIDConnectStore when provided with a schema.OpenIDConnectConfiguration and oidc.OpenIDConnectStoreProviders.
+func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, providers OpenIDConnectStoreProviders) (store *OpenIDConnectStore) {
 	logger := logging.Logger()
 
 	store = &OpenIDConnectStore{
-		provider: provider,
-		clients:  map[string]*Client{},
+		providers: providers,
+		clients:   map[string]*Client{},
 	}
 
 	for _, client := range config.Clients {
@@ -39,14 +48,14 @@ func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider s
 
 // GenerateOpaqueUserID either retrieves or creates an opaque user id from a sectorID and username.
 func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
-	if opaqueID, err = s.provider.LoadUserOpaqueIdentifierBySignature(ctx, "openid", sectorID, username); err != nil {
+	if opaqueID, err = s.providers.storage.LoadUserOpaqueIdentifierBySignature(ctx, "openid", sectorID, username); err != nil {
 		return nil, err
 	} else if opaqueID == nil {
 		if opaqueID, err = model.NewUserOpaqueIdentifier("openid", sectorID, username); err != nil {
 			return nil, err
 		}
 
-		if err = s.provider.SaveUserOpaqueIdentifier(ctx, *opaqueID); err != nil {
+		if err = s.providers.storage.SaveUserOpaqueIdentifier(ctx, *opaqueID); err != nil {
 			return nil, err
 		}
 	}
@@ -95,19 +104,19 @@ func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
 // BeginTX starts a transaction.
 // This implements a portion of fosite storage.Transactional interface.
 func (s *OpenIDConnectStore) BeginTX(ctx context.Context) (c context.Context, err error) {
-	return s.provider.BeginTX(ctx)
+	return s.providers.storage.BeginTX(ctx)
 }
 
 // Commit completes a transaction.
 // This implements a portion of fosite storage.Transactional interface.
 func (s *OpenIDConnectStore) Commit(ctx context.Context) (err error) {
-	return s.provider.Commit(ctx)
+	return s.providers.storage.Commit(ctx)
 }
 
 // Rollback rolls a transaction back.
 // This implements a portion of fosite storage.Transactional interface.
 func (s *OpenIDConnectStore) Rollback(ctx context.Context) (err error) {
-	return s.provider.Rollback(ctx)
+	return s.providers.storage.Rollback(ctx)
 }
 
 // GetClient loads the client by its ID or returns an error if the client does not exist or another error occurred.
@@ -121,7 +130,7 @@ func (s *OpenIDConnectStore) GetClient(_ context.Context, id string) (client fos
 func (s *OpenIDConnectStore) ClientAssertionJWTValid(ctx context.Context, jti string) (err error) {
 	signature := fmt.Sprintf("%x", sha256.Sum256([]byte(jti)))
 
-	blacklistedJTI, err := s.provider.LoadOAuth2BlacklistedJTI(ctx, signature)
+	blacklistedJTI, err := s.providers.storage.LoadOAuth2BlacklistedJTI(ctx, signature)
 
 	switch {
 	case errors.Is(sql.ErrNoRows, err):
@@ -141,7 +150,7 @@ func (s *OpenIDConnectStore) ClientAssertionJWTValid(ctx context.Context, jti st
 func (s *OpenIDConnectStore) SetClientAssertionJWT(ctx context.Context, jti string, exp time.Time) (err error) {
 	blacklistedJTI := model.NewOAuth2BlacklistedJTI(jti, exp)
 
-	return s.provider.SaveOAuth2BlacklistedJTI(ctx, blacklistedJTI)
+	return s.providers.storage.SaveOAuth2BlacklistedJTI(ctx, blacklistedJTI)
 }
 
 // CreateAuthorizeCodeSession stores the authorization request for a given authorization code.
@@ -155,7 +164,7 @@ func (s *OpenIDConnectStore) CreateAuthorizeCodeSession(ctx context.Context, cod
 // ErrInvalidatedAuthorizeCode error.
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *OpenIDConnectStore) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	return s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
+	return s.providers.storage.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
 }
 
 // GetAuthorizeCodeSession hydrates the session based on the given code and returns the authorization request.
@@ -210,7 +219,7 @@ func (s *OpenIDConnectStore) DeleteRefreshTokenSession(ctx context.Context, sign
 // then the authorization server SHOULD also invalidate all access tokens based on the same authorization grant (see Implementation Note).
 // This implements a portion of oauth2.TokenRevocationStorage.
 func (s *OpenIDConnectStore) RevokeRefreshToken(ctx context.Context, requestID string) (err error) {
-	return s.provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
+	return s.providers.storage.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
 // RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://tools.ietf.org/html/rfc7009#section-2.1
@@ -280,12 +289,24 @@ func (s *OpenIDConnectStore) MarkJWTUsedForTime(ctx context.Context, jti string,
 	return s.SetClientAssertionJWT(ctx, jti, exp)
 }
 
+// Authenticate implements an interface required for oauth2.ResourceOwnerPasswordCredentialsGrantStorage to implement
+// ROPC as per https://datatracker.ietf.org/doc/html/rfc6749#section-4.3.
+func (s *OpenIDConnectStore) Authenticate(_ context.Context, name, secret string) (err error) {
+	var valid bool
+
+	if valid, err = s.providers.authentication.CheckUserPassword(name, secret); err == nil && valid {
+		return nil
+	}
+
+	return fosite.ErrNotFound.WithDebug("Invalid credentials")
+}
+
 func (s *OpenIDConnectStore) loadSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string, session fosite.Session) (r fosite.Requester, err error) {
 	var (
 		sessionModel *model.OAuth2Session
 	)
 
-	sessionModel, err = s.provider.LoadOAuth2Session(ctx, sessionType, signature)
+	sessionModel, err = s.providers.storage.LoadOAuth2Session(ctx, sessionType, signature)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -313,15 +334,15 @@ func (s *OpenIDConnectStore) saveSession(ctx context.Context, sessionType storag
 		return err
 	}
 
-	return s.provider.SaveOAuth2Session(ctx, sessionType, *session)
+	return s.providers.storage.SaveOAuth2Session(ctx, sessionType, *session)
 }
 
 func (s *OpenIDConnectStore) revokeSessionBySignature(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) (err error) {
-	return s.provider.RevokeOAuth2Session(ctx, sessionType, signature)
+	return s.providers.storage.RevokeOAuth2Session(ctx, sessionType, signature)
 }
 
 func (s *OpenIDConnectStore) revokeSessionByRequestID(ctx context.Context, sessionType storage.OAuth2SessionType, requestID string) (err error) {
-	if err = s.provider.RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID); err != nil {
+	if err = s.providers.storage.RevokeOAuth2SessionByRequestID(ctx, sessionType, requestID); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return fosite.ErrNotFound

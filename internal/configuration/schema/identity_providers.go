@@ -20,6 +20,8 @@ type OpenIDConnectConfiguration struct {
 	IDTokenLifespan       time.Duration `koanf:"id_token_lifespan"`
 	RefreshTokenLifespan  time.Duration `koanf:"refresh_token_lifespan"`
 
+	EnableGrantROPC bool `koanf:"enable_grant_ropc"`
+
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages"`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy"`
 

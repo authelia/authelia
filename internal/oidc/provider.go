@@ -8,12 +8,11 @@ import (
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storageProvider storage.Provider) (provider OpenIDConnectProvider, err error) {
+func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, providers OpenIDConnectStoreProviders) (provider OpenIDConnectProvider, err error) {
 	provider = OpenIDConnectProvider{
 		Fosite: nil,
 	}
@@ -22,7 +21,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		return provider, nil
 	}
 
-	provider.Store = NewOpenIDConnectStore(config, storageProvider)
+	provider.Store = NewOpenIDConnectStore(config, providers)
 
 	composeConfiguration := &compose.Config{
 		AccessTokenLifespan:            config.AccessTokenLifespan,
@@ -61,12 +60,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		JWTStrategy: provider.KeyManager.Strategy(),
 	}
 
-	provider.Fosite = compose.Compose(
-		composeConfiguration,
-		provider.Store,
-		strategy,
-		PlainTextHasher{},
-
+	factories := []compose.Factory{
 		/*
 			These are the OAuth2 and OpenIDConnect factories. Order is important (the OAuth2 factories at the top must
 			be before the OpenIDConnect factories) and taken directly from fosite.compose.ComposeAllEnabled. The
@@ -88,6 +82,20 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		compose.OAuth2TokenRevocationFactory,
 
 		compose.OAuth2PKCEFactory,
+	}
+
+	if config.EnableGrantROPC {
+		// This inserts the ROPC grant factory at position 4 of the slice (i.e. the 5th factory).
+		factories = append(factories[:5], factories[4:]...)
+		factories[4] = compose.OAuth2ResourceOwnerPasswordCredentialsFactory
+	}
+
+	provider.Fosite = compose.Compose(
+		composeConfiguration,
+		provider.Store,
+		strategy,
+		PlainTextHasher{},
+		factories...,
 	)
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Pairwise())

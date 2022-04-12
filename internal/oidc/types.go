@@ -10,6 +10,7 @@ import (
 	"github.com/ory/herodot"
 	"gopkg.in/square/go-jose.v2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -87,14 +88,20 @@ type OpenIDConnectProvider struct {
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
+// OpenIDConnectStoreProviders just holds other providers the OpenIDConnectStore relies on.
+type OpenIDConnectStoreProviders struct {
+	storage        storage.Provider
+	authentication authentication.UserProvider
+}
+
 // OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface. It maps the following
 // interfaces to the storage.Provider interface:
 // fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type OpenIDConnectStore struct {
-	provider storage.Provider
-	clients  map[string]*Client
+	providers OpenIDConnectStoreProviders
+	clients   map[string]*Client
 }
 
 // Client represents the client internally.
