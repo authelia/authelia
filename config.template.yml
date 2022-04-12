@@ -760,7 +760,7 @@ notifier:
 
     ## Enables the OAuth2.0 Resource Owner Password Credentials grant.
     # enable_grant_ropc: false
-        
+
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
