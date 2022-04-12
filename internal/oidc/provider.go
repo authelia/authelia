@@ -60,7 +60,12 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, provide
 		JWTStrategy: provider.KeyManager.Strategy(),
 	}
 
-	factories := []compose.Factory{
+	provider.Fosite = compose.Compose(
+		composeConfiguration,
+		provider.Store,
+		strategy,
+		PlainTextHasher{},
+
 		/*
 			These are the OAuth2 and OpenIDConnect factories. Order is important (the OAuth2 factories at the top must
 			be before the OpenIDConnect factories) and taken directly from fosite.compose.ComposeAllEnabled. The
@@ -70,7 +75,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, provide
 		compose.OAuth2AuthorizeImplicitFactory,
 		compose.OAuth2ClientCredentialsGrantFactory,
 		compose.OAuth2RefreshTokenGrantFactory,
-		// compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
 		// compose.RFC7523AssertionGrantFactory,.
 
 		compose.OpenIDConnectExplicitFactory,
@@ -82,20 +87,6 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, provide
 		compose.OAuth2TokenRevocationFactory,
 
 		compose.OAuth2PKCEFactory,
-	}
-
-	if config.EnableGrantROPC {
-		// This inserts the ROPC grant factory at position 4 of the slice (i.e. the 5th factory).
-		factories = append(factories[:5], factories[4:]...)
-		factories[4] = compose.OAuth2ResourceOwnerPasswordCredentialsFactory
-	}
-
-	provider.Fosite = compose.Compose(
-		composeConfiguration,
-		provider.Store,
-		strategy,
-		PlainTextHasher{},
-		factories...,
 	)
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Pairwise())

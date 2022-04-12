@@ -100,8 +100,9 @@ type OpenIDConnectStoreProviders struct {
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type OpenIDConnectStore struct {
-	providers OpenIDConnectStoreProviders
-	clients   map[string]*Client
+	providers       OpenIDConnectStoreProviders
+	clients         map[string]*Client
+	enableGrantROPC bool
 }
 
 // Client represents the client internally.
