@@ -91,7 +91,7 @@ const RegisterWebauthn = function () {
     }, [attestation]);
 
     return (
-        <LoginLayout title="Touch Security Key">
+        <LoginLayout title={translate("Touch Security Key")}>
             <div className={style.icon}>
                 <FingerTouchIcon size={64} animated />
             </div>

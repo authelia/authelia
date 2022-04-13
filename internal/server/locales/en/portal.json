@@ -79,5 +79,7 @@
   "There was an issue retrieving user preferences": "There was an issue retrieving user preferences",
   "There was an issue fetching the current user state": "There was an issue fetching the current user state",
   "There was an issue retrieving global configuration": "There was an issue retrieving global configuration",
-  "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct": "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct."
+  "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct": "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.",
+  "Touch Security Key": "Touch Security Key",
+  "Retry": "Retry"
 }

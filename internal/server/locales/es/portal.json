@@ -75,5 +75,7 @@
   "There was an issue retrieving user preferences": "Ha ocurrido un problema al obtener las preferencia del usuario",
   "There was an issue fetching the current user state": "Ha ocurrido un problema al obtener el estado del usuario actual",
   "There was an issue retrieving global configuration": "Ha ocurrido un problema al obtener la configuración global",
-  "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct": "La URL de redirección fue determinada insegura. Verifique que la URL de redirección es correcta."
+  "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct": "La URL de redirección fue determinada insegura. Verifique que la URL de redirección es correcta.",
+  "Touch Security Key": "Presione su llave de seguridad",
+  "Retry": "Reintentar"
 }
