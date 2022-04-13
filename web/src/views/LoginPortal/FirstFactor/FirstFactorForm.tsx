@@ -9,9 +9,12 @@ import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
+import { useAutheliaState } from "@hooks/State";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
+import { AuthenticationLevel } from "@services/State";
 
 export interface Props {
     disabled: boolean;
@@ -41,10 +44,24 @@ const FirstFactorForm = function (props: Props) {
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
     const { t: translate } = useTranslation();
+    const [state, fetchState, ,] = useAutheliaState();
+
+    const redirector = useRedirector();
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);
     }, [usernameRef]);
+
+    useEffect(() => {
+        const timer = setInterval(() => fetchState(), 2000);
+        return () => clearTimeout(timer);
+    }, [fetchState, redirectionURL]);
+
+    useEffect(() => {
+        if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
+            props.onAuthenticationSuccess(redirectionURL);
+        }
+    }, [state, redirector, redirectionURL]);
 
     const disabled = props.disabled;
 
