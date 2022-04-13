@@ -9,7 +9,6 @@ import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
-import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import LoginLayout from "@layouts/LoginLayout";
@@ -46,7 +45,6 @@ const FirstFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
     const [state, fetchState, ,] = useAutheliaState();
 
-    const redirector = useRedirector();
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);
