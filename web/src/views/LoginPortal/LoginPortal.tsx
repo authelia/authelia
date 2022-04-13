@@ -1,5 +1,6 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -34,7 +35,7 @@ export interface Props {
 }
 
 const RedirectionErrorMessage =
-    "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.";
+    "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct";
 
 const LoginPortal = function (props: Props) {
     const navigate = useNavigate();
@@ -50,6 +51,7 @@ const LoginPortal = function (props: Props) {
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
     const redirect = useCallback((url: string) => navigate(url), [navigate]);
+    const { t: translate } = useTranslation();
 
     // Fetch the state when portal is mounted.
     useEffect(() => {
@@ -74,23 +76,23 @@ const LoginPortal = function (props: Props) {
     // Display an error when state fetching fails
     useEffect(() => {
         if (fetchStateError) {
-            createErrorNotification("There was an issue fetching the current user state");
+            createErrorNotification(translate("There was an issue fetching the current user state"));
         }
-    }, [fetchStateError, createErrorNotification]);
+    }, [fetchStateError, createErrorNotification, translate]);
 
     // Display an error when configuration fetching fails
     useEffect(() => {
         if (fetchConfigurationError) {
-            createErrorNotification("There was an issue retrieving global configuration");
+            createErrorNotification(translate("There was an issue retrieving global configuration"));
         }
-    }, [fetchConfigurationError, createErrorNotification]);
+    }, [fetchConfigurationError, createErrorNotification, translate]);
 
     // Display an error when preferences fetching fails
     useEffect(() => {
         if (fetchUserInfoError) {
-            createErrorNotification("There was an issue retrieving user preferences");
+            createErrorNotification(translate("There was an issue retrieving user preferences"));
         }
-    }, [fetchUserInfoError, createErrorNotification]);
+    }, [fetchUserInfoError, createErrorNotification, translate]);
 
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
@@ -111,10 +113,10 @@ const LoginPortal = function (props: Props) {
                     if (res && res.ok) {
                         redirector(redirectionURL);
                     } else {
-                        createErrorNotification(RedirectionErrorMessage);
+                        createErrorNotification(translate(RedirectionErrorMessage));
                     }
                 } catch (err) {
-                    createErrorNotification(RedirectionErrorMessage);
+                    createErrorNotification(translate(RedirectionErrorMessage));
                 }
                 return;
             }
@@ -150,6 +152,7 @@ const LoginPortal = function (props: Props) {
         configuration,
         createErrorNotification,
         redirector,
+        translate,
     ]);
 
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {

@@ -62,5 +62,18 @@
   "Must have at least one special character": "Debe contener al menos un caracter especial",
   "Must be at least {{len}} characters in length": "La longitud mínima es de {{len}} caracteres",
   "Must not be more than {{len}} characters in length": "La longitud máxima es de {{len}} caracteres",
-  "There was an issue updating preferred second factor method": "Ocurrió un error al actualizar el método de segundo factor de autenticación preferido"
+  "There was an issue updating preferred second factor method": "Ocurrió un error al actualizar el método de segundo factor de autenticación preferido",
+  "Your browser does not appear to support the configuration": "Su navegador no parece suportar la configuración",
+  "The attestation challenge was rejected as malformed or incompatible by your browser": "La certificación de desafío fue rechazado como malformado o incompatible por su navegador", 
+  "Your browser does not support the WebAuthN protocol": "Su navegador no soporta el protocolo WebAuthN.",
+  "You cancelled the attestation request": "Ha cancelado la solicitud de certificación.",
+  "Your device does not support user verification or resident keys but this was required": "Su dispositivo no soporta verificación de usuario o llaves residente, pero fue requerida.",
+  "You have registered this device already": "Ya ha registrado este dispositivo",
+  "An unknown error occurred": "Ha ocurrido un error desconocido",
+  "Failed to register your device. The identity verification process might have timed out": "Error al registrar su dispositivo. El proceso de verificación de identidad pudo haber expirado.",
+  "Touch the token on your security key": "Presione el token en su llave de seguridad",
+  "There was an issue retrieving user preferences": "Ha ocurrido un problema al obtener las preferencia del usuario",
+  "There was an issue fetching the current user state": "Ha ocurrido un problema al obtener el estado del usuario actual",
+  "There was an issue retrieving global configuration": "Ha ocurrido un problema al obtener la configuración global",
+  "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct": "La URL de redirección fue determinada insegura. Verifique que la URL de redirección es correcta."
 }

@@ -65,9 +65,9 @@ const ConsentView = function (props: Props) {
 
     useEffect(() => {
         if (fetchUserInfoError) {
-            createErrorNotification("There was an issue retrieving user preferences");
+            createErrorNotification(translate("There was an issue retrieving user preferences"));
         }
-    }, [fetchUserInfoError, createErrorNotification]);
+    }, [fetchUserInfoError, createErrorNotification, translate]);
 
     useEffect(() => {
         if (err) {
