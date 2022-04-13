@@ -55,13 +55,13 @@ const FirstFactorForm = function (props: Props) {
     useEffect(() => {
         const timer = setInterval(() => fetchState(), 2000);
         return () => clearTimeout(timer);
-    }, [fetchState, redirectionURL]);
+    }, [fetchState]);
 
     useEffect(() => {
         if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
             props.onAuthenticationSuccess(redirectionURL);
         }
-    }, [state, redirector, redirectionURL]);
+    }, [state, redirectionURL, props]);
 
     const disabled = props.disabled;
 
