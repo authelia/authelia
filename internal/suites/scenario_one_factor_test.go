@@ -60,6 +60,25 @@ func (s *OneFactorSuite) TestShouldAuthorizeSecretAfterOneFactor() {
 	s.verifySecretAuthorized(s.T(), s.Page)
 }
 
+// TestShouldRealoadAfterOneFactorOnAnotherTab opens two  login pages and do Login in one
+// Expected result: the second tab should redirect to secret.html after some seconds.
+func (s *OneFactorSuite) TestShouldRealoadAfterOneFactorOnAnotherTab() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
+	page2 := s.doCreateTab(s.T(), targetURL)
+	fmt.Printf("url: %v\n", targetURL)
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Page)
+	time.Sleep(5 * time.Second)
+	fmt.Println("esperando segundo tab")
+	s.verifySecretAuthorized(s.T(), page2)
+}
 func (s *OneFactorSuite) TestShouldRedirectToSecondFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer func() {
