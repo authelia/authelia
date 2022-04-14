@@ -52,7 +52,7 @@ const FirstFactorForm = function (props: Props) {
 
     useEffect(() => {
         const timer = setInterval(() => fetchState(), 2000);
-        return () => clearTimeout(timer);
+        return () => clearInterval(timer);
     }, [fetchState]);
 
     useEffect(() => {
