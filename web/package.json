@@ -131,7 +131,7 @@
     "@testing-library/react": "13.0.1",
     "@types/node": "16.11.26",
     "@types/qrcode.react": "1.0.2",
-    "@types/react": "18.0.3",
+    "@types/react": "18.0.4",
     "@types/react-dom": "18.0.0",
     "@types/zxcvbn": "4.4.1",
     "@typescript-eslint/eslint-plugin": "5.19.0",
