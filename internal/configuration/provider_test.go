@@ -228,17 +228,19 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
 	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
 
-	require.Len(t, val.Errors(), 2)
-	assert.Len(t, val.Warnings(), 0)
+	require.Len(t, val.Errors(), 1)
+	require.Len(t, val.Warnings(), 1)
 
 	assert.EqualError(t, val.Errors()[0], "configuration key not expected: loggy_file")
-	assert.EqualError(t, val.Errors()[1], "invalid configuration key 'logs_level' was replaced by 'log.level'")
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'logs_level' is deprecated in 4.7.0 and has been replaced by 'log.level': this has been automatically mapped for you but you will need to adjust your configuration to remove this message")
+
+	assert.Equal(t, "debug", c.Log.Level)
 }
 
 func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {

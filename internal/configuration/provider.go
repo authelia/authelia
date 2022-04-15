@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/providers/confmap"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -29,14 +30,60 @@ func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, 
 		StrictMerge: false,
 	})
 
-	err = loadSources(ko, val, sources...)
-	if err != nil {
+	if err = loadSources(ko, val, sources...); err != nil {
 		return ko.Keys(), err
 	}
 
-	unmarshal(ko, val, path, result)
+	var final *koanf.Koanf
 
-	return ko.Keys(), nil
+	if final, err = remap(val, ko); err != nil {
+		return ko.Keys(), err
+	}
+
+	unmarshal(final, val, path, result)
+
+	return final.Keys(), nil
+}
+
+func remap(val *schema.StructValidator, ko *koanf.Koanf) (final *koanf.Koanf, err error) {
+	keysFinal := make(map[string]interface{})
+
+	keysCurrent := ko.All()
+
+	for key, value := range keysCurrent {
+		if deprecation, ok := deprecations[key]; ok {
+			if !deprecation.AutoMap {
+				val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", deprecation.Key, deprecation.NewKey))
+			} else {
+				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
+					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", deprecation.Key, deprecation.Version.String(), deprecation.NewKey))
+			}
+
+			if !mapHasKey(deprecation.NewKey, keysCurrent) && !mapHasKey(deprecation.NewKey, keysFinal) {
+				keysFinal[deprecation.NewKey] = value
+			}
+
+			continue
+		}
+
+		keysFinal[key] = value
+	}
+
+	final = koanf.New(".")
+
+	if err = final.Load(confmap.Provider(keysFinal, "."), nil); err != nil {
+		return nil, err
+	}
+
+	return final, nil
+}
+
+func mapHasKey(k string, m map[string]interface{}) bool {
+	if _, ok := m[k]; ok {
+		return true
+	}
+
+	return false
 }
 
 func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {

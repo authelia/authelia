@@ -71,12 +71,12 @@ spec:
 
 The following changes occurred in 4.25.0:
 
-|Previous Key                                   |New Key                                        |
-|:---------------------------------------------:|:---------------------------------------------:|
-|authentication_backend.ldap.tls.skip_verify    |authentication_backend.ldap.tls.skip_verify    |
-|authentication_backend.ldap.minimum_tls_version|authentication_backend.ldap.tls.minimum_version|
-|notifier.smtp.disable_verify_cert              |notifier.smtp.tls.skip_verify                  |
-|notifier.smtp.trusted_cert                     |certificates_directory                         |
+|                  Previous Key                   |                     New Key                     |
+|:-----------------------------------------------:|:-----------------------------------------------:|
+|     authentication_backend.ldap.skip_verify     |   authentication_backend.ldap.tls.skip_verify   |
+| authentication_backend.ldap.minimum_tls_version | authentication_backend.ldap.tls.minimum_version |
+|        notifier.smtp.disable_verify_cert        |          notifier.smtp.tls.skip_verify          |
+|           notifier.smtp.trusted_cert            |             certificates_directory              |
 
 _**Please Note:** `certificates_directory` is not a direct replacement for the `notifier.smtp.trusted_cert`, instead
 of being the path to a specific file it is a path to a directory containing certificates trusted by Authelia. This
@@ -86,10 +86,10 @@ affects other services like LDAP as well._
 
 The following changes occurred in 4.7.0:
 
-|Previous Key|New Key  |
-|:----------:|:-------:|
-|logs_level  |log_level|
-|logs_file   |log_file |
+| Previous Key |  New Key  |
+|:------------:|:---------:|
+|  logs_level  | log_level |
+|  logs_file   | log_file  |
 
 _**Please Note:** The new keys also changed in [4.30.0](#4.30.0) so you will need to update them to the new values if you
 are using [4.30.0](#4.30.0) or newer instead of the new keys listed here._
