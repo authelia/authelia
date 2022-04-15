@@ -247,13 +247,13 @@
   },"41": {
     "doc": "Duo Push Notifications",
     "title": "Configuration",
-    "content": "The configuration is as follows: . duo_api: hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl enable_self_enrollment: false . The secret key is shown as an example, you also have the option to set it using an environment variable as described here. ",
+    "content": "The configuration is as follows: . duo_api: disable: false hostname: api-123456789.example.com integration_key: ABCDEF secret_key: 1234567890abcdefghifjkl enable_self_enrollment: false . The secret key is shown as an example, you also have the option to set it using an environment variable as described here. ",
     "url": "/docs/configuration/duo-push-notifications.html#configuration",
     "relUrl": "/configuration/duo-push-notifications.html#configuration"
   },"42": {
     "doc": "Duo Push Notifications",
     "title": "Options",
-    "content": "hostname . type: string . default: “” . required: yes . The Duo API hostname supplied by Duo. integration_key . type: string . default: “” . required: yes . The non-secret Duo integration key. Similar to a client identifier. secret_key . type: string . default: “” . required: yes . The secret Duo key used to verify your application is valid. enable_self_enrollment . type: boolean . default: false . required: no . Enables Duo device self-enrollment from within the Authelia portal. ",
+    "content": "disable: . type: boolean . default: false . required: no . Disables Duo. If the hostname, integration_key, and secret_key are all empty strings or undefined this is automatically true. hostname . type: string . default: “” . required: yes . The Duo API hostname supplied by Duo. integration_key . type: string . default: “” . required: yes . The non-secret Duo integration key. Similar to a client identifier. secret_key . type: string . default: “” . required: yes . The secret Duo key used to verify your application is valid. enable_self_enrollment . type: boolean . default: false . required: no . Enables Duo device self-enrollment from within the Authelia portal. ",
     "url": "/docs/configuration/duo-push-notifications.html#options",
     "relUrl": "/configuration/duo-push-notifications.html#options"
   },"43": {
