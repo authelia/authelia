@@ -24,7 +24,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	if requester, err = ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Access Request failed with error: %+v", rfc)
+		ctx.Logger.Errorf("Access Request failed with error: %s", rfc.GetDescription())
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, requester, err)
 
@@ -47,7 +47,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAccessResponse(ctx, requester); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %+v", requester.GetID(), rfc)
+		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), rfc.GetDescription())
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, requester, err)
 

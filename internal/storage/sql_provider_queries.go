@@ -305,7 +305,7 @@ const (
 		VALUES(?, ?, ?, ?);`
 
 	queryFmtSelectUserOpaqueIdentifier = `
-		SELECT id, sector_id, username, identifier
+		SELECT id, service, sector_id, username, identifier
 		FROM %s
 		WHERE identifier = ?;`
 
@@ -313,4 +313,8 @@ const (
 		SELECT id, service, sector_id, username, identifier
 		FROM %s
 		WHERE service = ? AND sector_id = ? AND username = ?;`
+
+	queryFmtSelectUserOpaqueIdentifiers = `
+		SELECT id, service, sector_id, username, identifier
+		FROM %s;`
 )

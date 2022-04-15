@@ -48,7 +48,7 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 
 		if v := ctx.UserValue("variant"); v != nil {
 			variant = v.(string)
-			locale = fmt.Sprintf("%s-%s", language, locale)
+			locale = fmt.Sprintf("%s-%s", language, variant)
 		}
 
 		var data []byte
