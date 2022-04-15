@@ -54,7 +54,7 @@ specifiers:
   typescript: 4.6.3
   vite: 2.9.5
   vite-plugin-eslint: 1.4.0
-  vite-plugin-istanbul: 2.5.1
+  vite-plugin-istanbul: 2.7.1
   vite-plugin-svgr: 1.1.0
   vite-tsconfig-paths: 3.4.1
   zxcvbn: 4.4.2
@@ -116,7 +116,7 @@ devDependencies:
   typescript: 4.6.3
   vite: 2.9.5
   vite-plugin-eslint: 1.4.0_eslint@8.13.0+vite@2.9.5
-  vite-plugin-istanbul: 2.5.1
+  vite-plugin-istanbul: 2.7.1
   vite-plugin-svgr: 1.1.0_vite@2.9.5
   vite-tsconfig-paths: 3.4.1_vite@2.9.5
 
@@ -5467,18 +5467,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /istanbul-lib-instrument/4.0.3:
-    resolution: {integrity: sha512-BXgQl9kf4WTCPCCpmFGoJkz/+uhvm7h7PFKUYxh7qarQd3ER33vHG//qaE8eN25l07YqZPpHXU9I09l/RD5aGQ==}
-    engines: {node: '>=8'}
-    dependencies:
-      '@babel/core': 7.17.9
-      '@istanbuljs/schema': 0.1.3
-      istanbul-lib-coverage: 3.2.0
-      semver: 6.3.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
   /istanbul-lib-instrument/5.1.0:
     resolution: {integrity: sha512-czwUz525rkOFDJxfKK6mYfIs9zBKILyrZQxjz3ABhjQXhbhFsSbo1HW/BFcsDnfJYJWA6thRR5/TUY2qs5W99Q==}
     engines: {node: '>=8'}
@@ -8080,11 +8068,11 @@ packages:
       vite: 2.9.5
     dev: true
 
-  /vite-plugin-istanbul/2.5.1:
-    resolution: {integrity: sha512-5ZR2/haQalUXVqHrjatZ0QKxzF3e0hBiJe6VhjGYxE7Yc4WFs7ZE56oazYB4jnPXvlirOvgLxG0LJQoHFdMxMg==}
+  /vite-plugin-istanbul/2.7.1:
+    resolution: {integrity: sha512-mIMbXBPFsxlvLrKAbHty7wMNLF3ClKQ6nLssE5eOiy3XXdA3gxpbvIvEIvUtvcWN6phldxk66VMM7oVFfCx/uA==}
     dependencies:
-      chalk: 4.1.2
-      istanbul-lib-instrument: 4.0.3
+      istanbul-lib-instrument: 5.1.0
+      picocolors: 1.0.0
       test-exclude: 6.0.0
     transitivePeerDependencies:
       - supports-color
