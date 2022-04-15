@@ -12,7 +12,7 @@ import (
 
 // ValidateNotifier validates and update notifier configuration.
 func ValidateNotifier(config *schema.NotifierConfiguration, validator *schema.StructValidator) {
-	if config == nil || (config.SMTP == nil && config.FileSystem == nil) {
+	if config.SMTP == nil && config.FileSystem == nil {
 		validator.Push(fmt.Errorf(errFmtNotifierNotConfigured))
 
 		return
