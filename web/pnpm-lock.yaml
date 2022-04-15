@@ -11,7 +11,7 @@ specifiers:
   '@material-ui/icons': 4.11.3
   '@material-ui/styles': 4.11.5
   '@testing-library/jest-dom': 5.16.4
-  '@testing-library/react': 13.1.0
+  '@testing-library/react': 13.1.1
   '@types/node': 16.11.27
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.5
@@ -86,7 +86,7 @@ devDependencies:
   '@commitlint/cli': 16.2.3
   '@commitlint/config-conventional': 16.2.1
   '@testing-library/jest-dom': 5.16.4
-  '@testing-library/react': 13.1.0_react-dom@18.0.0+react@18.0.0
+  '@testing-library/react': 13.1.1_react-dom@18.0.0+react@18.0.0
   '@types/node': 16.11.27
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.5
@@ -2480,8 +2480,8 @@ packages:
       redent: 3.0.0
     dev: true
 
-  /@testing-library/react/13.1.0_react-dom@18.0.0+react@18.0.0:
-    resolution: {integrity: sha512-neStnDZdhkvZNNmPhhhi8+BXg3YCvjNmd8yGdr44VLVcFUDPForwokJWpDRCh3DvuX/M37Pt94fLwkM7aNut/A==}
+  /@testing-library/react/13.1.1_react-dom@18.0.0+react@18.0.0:
+    resolution: {integrity: sha512-8mirlAa0OKaUvnqnZF6MdAh2tReYA2KtWVw1PKvaF5EcCZqgK5pl8iF+3uW90JdG5Ua2c2c2E2wtLdaug3dsVg==}
     engines: {node: '>=12'}
     peerDependencies:
       react: ^18.0.0
