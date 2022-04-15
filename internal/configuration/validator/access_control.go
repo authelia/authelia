@@ -70,38 +70,6 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 			}
 		}
 	}
-
-	validateDefault2FAMethod(config, validator)
-}
-
-func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.AccessControl.Default2FAMethod == "" {
-		return
-	}
-
-	if !utils.IsStringInSlice(config.AccessControl.Default2FAMethod, validDefaultUserSecondFactorMethods) {
-		validator.Push(fmt.Errorf(errFmtAccessControlInvalid2FAMethod, config.AccessControl.Default2FAMethod, strings.Join(validDefaultUserSecondFactorMethods, "', '")))
-
-		return
-	}
-
-	var enabledMethods []string
-
-	if !config.TOTP.Disable {
-		enabledMethods = append(enabledMethods, "totp")
-	}
-
-	if !config.Webauthn.Disable {
-		enabledMethods = append(enabledMethods, "webauthn")
-	}
-
-	if config.DuoAPI != nil {
-		enabledMethods = append(enabledMethods, "mobile_push")
-	}
-
-	if !utils.IsStringInSlice(config.AccessControl.Default2FAMethod, enabledMethods) {
-		validator.Push(fmt.Errorf(errFmtAccessControlInvalid2FAMethodDisabled, config.AccessControl.Default2FAMethod, strings.Join(enabledMethods, "', '")))
-	}
 }
 
 // ValidateRules validates an ACL Rule configuration.

@@ -13,7 +13,6 @@ nav_order: 1
 
 ```yaml
 access_control:
-  default_2fa_method: totp
   default_policy: deny
   networks:
   - name: internal
@@ -41,27 +40,6 @@ access_control:
 ```
 
 ## Options
-
-### default_2fa_method
-<div markdown="1">
-type: string
-{: .label .label-config .label-purple } 
-default: ""
-{: .label .label-config .label-blue }
-required: no
-{: .label .label-config .label-green }
-</div>
-
-Sets the default second factor method for users. This must be blank or one of the enabled methods. New users will by 
-default have this method selected for them. In addition if this was configured to `webauthn` and a user had the `totp`
-method, and the `totp` method was disabled in the configuration, the users' method would automatically update to the 
-`webauthn` method.
-
-Options are:
-
-- totp
-- webauthn
-- mobile_push
 
 ### default_policy
 <div markdown="1">

@@ -174,10 +174,6 @@ const (
 
 // Access Control error constants.
 const (
-	errFmtAccessControlInvalid2FAMethod = "access control: option 'default_2fa_method' is configured as '%s' but must be one of " +
-		"the following values: '%s'"
-	errFmtAccessControlInvalid2FAMethodDisabled = "access control: option 'default_2fa_method' is configured as '%s' " +
-		"but must be one of the following enabled method values: '%s'"
 	errFmtAccessControlDefaultPolicyValue = "access control: option 'default_policy' must be one of '%s' but it is " +
 		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access control: 'default_policy' option '%s' is invalid: when " +
@@ -265,6 +261,11 @@ const (
 		TODO (cont): The main consideration is making sure we do not overwrite the destination key name if it already exists.
 	*/
 
+	errFmtInvalidDefault2FAMethod = "option 'default_2fa_method' is configured as '%s' but must be one of " +
+		"the following values: '%s'"
+	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' is configured as '%s' " +
+		"but must be one of the following enabled method values: '%s'"
+
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
 	errFmtLoggingLevelInvalid = "log: option 'level' must be one of '%s' but it is configured as '%s'"
@@ -292,7 +293,7 @@ var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HT
 
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
 
-var validDefaultUserSecondFactorMethods = []string{"totp", "webauthn", "mobile_push"}
+var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
@@ -309,6 +310,7 @@ var ValidKeys = []string{
 	"certificates_directory",
 	"theme",
 	"default_redirection_url",
+	"default_2fa_method",
 	"jwt_secret",
 
 	// Default keys.

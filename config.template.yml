@@ -27,6 +27,11 @@ jwt_secret: a_very_important_secret
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
 default_redirection_url: https://home.example.com/
 
+## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
+## disabled. This setting must be a method that is enabled.
+## Options are totp, webauthn, mobile_push.
+default_2fa_method: ""
+
 ##
 ## Server Configuration
 ##
@@ -396,11 +401,6 @@ password_policy:
 ##
 ## Note: the order of the rules is important. The first policy matching (domain, resource, subject) applies.
 access_control:
-  ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
-  ## disabled. This setting must be a method that is enabled.
-  ## Options are totp, webauthn, mobile_push.
-  default_2fa_method: ""
-
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
   default_policy: deny

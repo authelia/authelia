@@ -33,6 +33,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 		}
 	}
 
+	validateDefault2FAMethod(config, validator)
+
 	ValidateTheme(config, validator)
 
 	ValidateLog(config, validator)
@@ -62,4 +64,34 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateNTP(config, validator)
 
 	ValidatePasswordPolicy(&config.PasswordPolicy, validator)
+}
+
+func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Default2FAMethod == "" {
+		return
+	}
+
+	if !utils.IsStringInSlice(config.Default2FAMethod, validDefault2FAMethods) {
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, config.Default2FAMethod, strings.Join(validDefault2FAMethods, "', '")))
+
+		return
+	}
+
+	var enabledMethods []string
+
+	if !config.TOTP.Disable {
+		enabledMethods = append(enabledMethods, "totp")
+	}
+
+	if !config.Webauthn.Disable {
+		enabledMethods = append(enabledMethods, "webauthn")
+	}
+
+	if config.DuoAPI != nil {
+		enabledMethods = append(enabledMethods, "mobile_push")
+	}
+
+	if !utils.IsStringInSlice(config.Default2FAMethod, enabledMethods) {
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, config.Default2FAMethod, strings.Join(enabledMethods, "', '")))
+	}
 }
