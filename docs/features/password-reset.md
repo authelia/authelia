@@ -8,7 +8,7 @@ nav_order: 4
 # Password Reset
 
 **Authelia** provides a workflow to let users reset their password when they lose it.
-To disable reset password functionality please see the [configuration docs](../configuration/authentication/index.md#disable_reset_password).
+To disable reset password functionality please see the [configuration docs](../configuration/authentication/index.md#disable).
 
 A simple click on `Reset password?` for starting the process. Note that resetting a
 password requires a new identity verification using the e-mail of the user.

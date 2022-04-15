@@ -18,13 +18,13 @@ func NewSemanticVersion(input string) (version SemanticVersion) {
 			version.Minor, _ = strconv.Atoi(submatch[i])
 		case "Patch":
 			version.Patch, _ = strconv.Atoi(submatch[i])
-		case "PreRelease", "Metadata":
+		case semverRegexpGroupPreRelease, "Metadata":
 			val := make([]string, 0)
 			if submatch[i] != "" {
 				val = strings.Split(submatch[i], ".")
 			}
 
-			if name == "PreRelease" {
+			if name == semverRegexpGroupPreRelease {
 				version.PreRelease = val
 			} else {
 				version.Metadata = val

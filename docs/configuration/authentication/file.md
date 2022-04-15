@@ -18,7 +18,10 @@ file in the configuration file.
 
 ```yaml
 authentication_backend:
-  disable_reset_password: false
+  refresh_interval: 5m
+  password_reset:
+    disable: false
+    custom_url: ""
   file:
     path: /config/users.yml
     password:

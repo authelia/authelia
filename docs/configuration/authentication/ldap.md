@@ -12,8 +12,10 @@ nav_order: 2
 ## Configuration
 ```yaml
 authentication_backend:
-  disable_reset_password: false
   refresh_interval: 5m
+  password_reset:
+    disable: false
+    custom_url: ""
   ldap:
     implementation: custom
     url: ldap://127.0.0.1

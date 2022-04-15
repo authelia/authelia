@@ -207,7 +207,7 @@ To configure mutual TLS, please refer to [this document](../configuration/server
 ### Reset Password
 
 It's possible to disable the reset password functionality and is an optional adjustment to consider for anyone wanting
-to increase security. See the [configuration](../configuration/authentication/index.md#disable_reset_password) for more 
+to increase security. See the [configuration](../configuration/authentication/index.md#disable) for more 
 information.
 
 ### Session security

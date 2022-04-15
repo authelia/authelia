@@ -23,3 +23,7 @@ const (
 )
 
 var reSemanticVersion = regexp.MustCompile(`^v?(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)(\-(?P<PreRelease>[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*))?(\+(?P<Metadata>[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*))?$`)
+
+const (
+	semverRegexpGroupPreRelease = "PreRelease"
+)

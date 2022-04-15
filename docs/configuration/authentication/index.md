@@ -17,8 +17,8 @@ There are two ways to store the users along with their password:
 
 ```yaml
 authentication_backend:
-  disable_reset_password: false
   password_reset:
+    disable: false
     custom_url: ""
   file: {}
   ldap: {}
@@ -26,7 +26,9 @@ authentication_backend:
 
 ## Options
 
-### disable_reset_password
+### password_reset
+
+### disable
 <div markdown="1">
 type: boolean
 {: .label .label-config .label-purple } 
@@ -37,8 +39,6 @@ required: no
 </div>
 
 This setting controls if users can reset their password from the web frontend or not.
-
-### password_reset
 
 #### custom_url
 <div markdown="1">

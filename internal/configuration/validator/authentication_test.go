@@ -233,9 +233,9 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateCompleteConfigura
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsInvalid() {
 	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "ldap", Host: "google.com"}
-	suite.config.DisableResetPassword = true
+	suite.config.PasswordReset.Disable = true
 
-	suite.Assert().True(suite.config.DisableResetPassword)
+	suite.Assert().True(suite.config.PasswordReset.Disable)
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -244,7 +244,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsI
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: password_reset: option 'custom_url' is configured to 'ldap://google.com' which has the scheme 'ldap' but the scheme must be either 'http' or 'https'")
 
-	suite.Assert().True(suite.config.DisableResetPassword)
+	suite.Assert().True(suite.config.PasswordReset.Disable)
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURLIsValid() {
@@ -258,16 +258,16 @@ func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURL
 
 func (suite *FileBasedAuthenticationBackend) TestShouldConfigureDisableResetPasswordWhenCustomURL() {
 	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "https", Host: "google.com"}
-	suite.config.DisableResetPassword = true
+	suite.config.PasswordReset.Disable = true
 
-	suite.Assert().True(suite.config.DisableResetPassword)
+	suite.Assert().True(suite.config.PasswordReset.Disable)
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().False(suite.config.DisableResetPassword)
+	suite.Assert().False(suite.config.PasswordReset.Disable)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateDefaultImplementationAndUsernameAttribute() {

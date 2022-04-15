@@ -446,7 +446,7 @@ var ValidKeys = []string{
 	"regulation.ban_time",
 
 	// Authentication Backend Keys.
-	"authentication_backend.disable_reset_password",
+	"authentication_backend.password_reset.disable",
 	"authentication_backend.password_reset.custom_url",
 	"authentication_backend.refresh_interval",
 
