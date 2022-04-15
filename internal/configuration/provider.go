@@ -60,7 +60,11 @@ func remap(val *schema.StructValidator, ko *koanf.Koanf) (final *koanf.Koanf, er
 			}
 
 			if !mapHasKey(deprecation.NewKey, keysCurrent) && !mapHasKey(deprecation.NewKey, keysFinal) {
-				keysFinal[deprecation.NewKey] = value
+				if deprecation.MapFunc != nil {
+					keysFinal[deprecation.NewKey] = deprecation.MapFunc(value)
+				} else {
+					keysFinal[deprecation.NewKey] = value
+				}
 			}
 
 			continue
