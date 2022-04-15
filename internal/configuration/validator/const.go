@@ -244,8 +244,9 @@ const (
 )
 
 const (
-	errFmtPasswordPolicyMinLengthNotGreaterThanZero = "password_policy: standard: option 'min_length' must be greater than 0 but is configured as %d"
-	errPasswordPolicyMultipleDefined                = "password_policy: only a single password policy mechanism can be specified"
+	errPasswordPolicyMultipleDefined                        = "password_policy: only a single password policy mechanism can be specified"
+	errFmtPasswordPolicyStandardMinLengthNotGreaterThanZero = "password_policy: standard: option 'min_length' must be greater than 0 but is configured as %d"
+	errFmtPasswordPolicyZXCVBNMinScoreInvalid               = "password_policy: zxcvbn: option 'min_score' is invalid: must be between 1 and 4 but it's configured as %d"
 )
 
 // Error constants.
@@ -524,6 +525,7 @@ var ValidKeys = []string{
 	"password_policy.standard.require_number",
 	"password_policy.standard.require_special",
 	"password_policy.zxcvbn.enabled",
+	"password_policy.zxcvbn.min_score",
 }
 
 var replacedKeys = map[string]string{

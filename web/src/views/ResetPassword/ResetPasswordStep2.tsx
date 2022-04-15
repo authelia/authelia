@@ -32,6 +32,7 @@ const ResetPasswordStep2 = function () {
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
         min_length: 8,
+        min_score: 0,
         require_lowercase: false,
         require_number: false,
         require_special: false,
