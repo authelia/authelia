@@ -65,8 +65,6 @@ var keysTemplate = template.Must(template.New("keys").Parse(`// Code generated b
 // Run the following command to generate this file:
 // 		go run ./cmd/authelia-scripts gen
 //
-// Last generated at {{ .Timestamp }}.
-//
 
 package schema 
 

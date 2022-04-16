@@ -3,8 +3,6 @@
 // Run the following command to generate this file:
 // 		go run ./cmd/authelia-scripts gen
 //
-// Last generated at 2022-04-16 14:27:23.0071782 +1000 AEST m=+0.053453601.
-//
 
 package schema
 
@@ -194,4 +192,5 @@ var Keys = []string{
 	"password_policy.standard.require_number",
 	"password_policy.standard.require_special",
 	"password_policy.zxcvbn.enabled",
+	"password_policy.zxcvbn.min_score",
 }
