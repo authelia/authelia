@@ -33,7 +33,7 @@ func newDefaultConfig() schema.Configuration {
 	config.Storage.Local = &schema.LocalStorageConfiguration{
 		Path: "abc",
 	}
-	config.Notifier = &schema.NotifierConfiguration{
+	config.Notifier = schema.NotifierConfiguration{
 		FileSystem: &schema.FileSystemNotifierConfiguration{
 			Filename: "/tmp/file",
 		},
@@ -49,7 +49,8 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)
 
-	config.Notifier = nil
+	config.Notifier.SMTP = nil
+	config.Notifier.FileSystem = nil
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
@@ -169,7 +170,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodTOTP",
 			have: &schema.Configuration{
 				Default2FAMethod: "totp",
-				DuoAPI: &schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPIConfiguration{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -180,7 +181,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodWebauthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
-				DuoAPI: &schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPIConfiguration{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -191,7 +192,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldAllowConfiguredMethodMobilePush",
 			have: &schema.Configuration{
 				Default2FAMethod: "mobile_push",
-				DuoAPI: &schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPIConfiguration{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -202,7 +203,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodTOTP",
 			have: &schema.Configuration{
 				Default2FAMethod: "totp",
-				DuoAPI: &schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPIConfiguration{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",
@@ -217,7 +218,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodWebauthn",
 			have: &schema.Configuration{
 				Default2FAMethod: "webauthn",
-				DuoAPI: &schema.DuoAPIConfiguration{
+				DuoAPI: schema.DuoAPIConfiguration{
 					SecretKey:      "a key",
 					IntegrationKey: "another key",
 					Hostname:       "none",

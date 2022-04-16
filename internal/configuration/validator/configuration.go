@@ -39,6 +39,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateLog(config, validator)
 
+	ValidateDuo(config, validator)
+
 	ValidateTOTP(config, validator)
 
 	ValidateWebauthn(config, validator)
@@ -57,7 +59,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateStorage(config.Storage, validator)
 
-	ValidateNotifier(config.Notifier, validator)
+	ValidateNotifier(&config.Notifier, validator)
 
 	ValidateIdentityProviders(&config.IdentityProviders, validator)
 
@@ -87,7 +89,7 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 		enabledMethods = append(enabledMethods, "webauthn")
 	}
 
-	if config.DuoAPI != nil {
+	if !config.DuoAPI.Disable {
 		enabledMethods = append(enabledMethods, "mobile_push")
 	}
 

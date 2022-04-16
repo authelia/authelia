@@ -21,6 +21,7 @@ section of the configuration.
 The configuration is as follows:
 ```yaml
 duo_api:
+  disable: false
   hostname: api-123456789.example.com
   integration_key: ABCDEF
   secret_key: 1234567890abcdefghifjkl
@@ -31,6 +32,19 @@ The secret key is shown as an example, you also have the option to set it using 
 variable as described [here](./secrets.md).
 
 ## Options
+
+### disable:
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple } 
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
+
+Disables Duo. If the hostname, integration_key, and secret_key are all empty strings or undefined this is automatically 
+true.
 
 ### hostname
 <div markdown="1">
