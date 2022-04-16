@@ -249,6 +249,10 @@ const (
 	errFmtPasswordPolicyZXCVBNMinScoreInvalid               = "password_policy: zxcvbn: option 'min_score' is invalid: must be between 1 and 4 but it's configured as %d"
 )
 
+const (
+	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it is missing"
+)
+
 // Error constants.
 const (
 	/*

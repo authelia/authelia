@@ -87,7 +87,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	resetPasswordCustomURL := config.AuthenticationBackend.PasswordReset.CustomURL.String()
 
 	duoSelfEnrollment := f
-	if config.DuoAPI != nil {
+	if !config.DuoAPI.Disable {
 		duoSelfEnrollment = strconv.FormatBool(config.DuoAPI.EnableSelfEnrollment)
 	}
 
@@ -184,7 +184,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
-	if config.DuoAPI != nil {
+	if !config.DuoAPI.Disable {
 		var duoAPI duo.API
 		if os.Getenv("ENVIRONMENT") == dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(

@@ -80,7 +80,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	bufHTML := new(bytes.Buffer)
 
 	disableHTML := false
-	if ctx.Configuration.Notifier != nil && ctx.Configuration.Notifier.SMTP != nil {
+	if ctx.Configuration.Notifier.SMTP != nil {
 		disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
 	}
 
