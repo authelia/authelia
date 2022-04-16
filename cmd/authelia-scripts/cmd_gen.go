@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewRunGenCmd implements the code generation cobra command.
@@ -24,26 +23,12 @@ func NewRunGenCmd() (cmd *cobra.Command) {
 		RunE: runGenE,
 	}
 
-	cmd.Flags().String("diff", "", "Sets the diff location if necessary")
-
 	return cmd
 }
 
 func runGenE(cmd *cobra.Command, args []string) (err error) {
 	if err = genConfigurationKeys(); err != nil {
 		return err
-	}
-
-	var diff string
-
-	if diff, err = cmd.Flags().GetString("diff"); err != nil {
-		return err
-	}
-
-	if diff != "" {
-		if err = utils.Command("git", "diff", "--output", diff).Run(); err != nil {
-			return err
-		}
 	}
 
 	return nil
