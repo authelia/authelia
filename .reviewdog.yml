@@ -1,5 +1,9 @@
 ---
 runner:
+  authelia:
+    cmd: go run ./cmd/authelia-scripts gen && git --no-pager diff
+    format: diff
+    level: error
   golangci:
     cmd: golangci-lint run
     errorformat:
