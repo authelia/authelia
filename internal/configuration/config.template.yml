@@ -158,6 +158,7 @@ webauthn:
 ## Parameters used to contact the Duo API. Those are generated when you protect an application of type
 ## "Partner Auth API" in the management panel.
 duo_api:
+  disable: false
   hostname: api-123456789.example.com
   integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html

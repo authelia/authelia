@@ -32,7 +32,7 @@ func newDefaultConfig() schema.Configuration {
 	config.Storage.Local = &schema.LocalStorageConfiguration{
 		Path: "abc",
 	}
-	config.Notifier = &schema.NotifierConfiguration{
+	config.Notifier = schema.NotifierConfiguration{
 		FileSystem: &schema.FileSystemNotifierConfiguration{
 			Filename: "/tmp/file",
 		},
@@ -48,7 +48,8 @@ func TestShouldEnsureNotifierConfigIsProvided(t *testing.T) {
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 0)
 
-	config.Notifier = nil
+	config.Notifier.SMTP = nil
+	config.Notifier.FileSystem = nil
 
 	ValidateConfiguration(&config, validator)
 	require.Len(t, validator.Errors(), 1)
