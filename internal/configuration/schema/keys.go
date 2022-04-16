@@ -183,7 +183,6 @@ var Keys = []string{
 	"webauthn.display_name",
 	"webauthn.attestation_conveyance_preference",
 	"webauthn.user_verification",
-	"webauthn.timeout",
 	"password_policy.standard.enabled",
 	"password_policy.standard.min_length",
 	"password_policy.standard.max_length",
