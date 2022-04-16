@@ -16,7 +16,7 @@ func ValidateKeys(keys []string, prefix string, validator *schema.StructValidato
 	for _, key := range keys {
 		expectedKey := reKeyReplacer.ReplaceAllString(key, "[]")
 
-		if utils.IsStringInSlice(expectedKey, ValidKeys) {
+		if utils.IsStringInSlice(expectedKey, schema.Keys) {
 			continue
 		}
 

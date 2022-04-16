@@ -42,7 +42,7 @@ func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, 
 
 	unmarshal(final, val, path, result)
 
-	return final.Keys(), nil
+	return getAllKoanfKeys(final), nil
 }
 
 func remap(val *schema.StructValidator, ko *koanf.Koanf) (final *koanf.Koanf, err error) {
