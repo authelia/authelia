@@ -233,6 +233,7 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			desc: "ShouldNotAllowDisabledMethodMobilePush",
 			have: &schema.Configuration{
 				Default2FAMethod: "mobile_push",
+				DuoAPI:           schema.DuoAPIConfiguration{Disable: true},
 			},
 			expectedErrs: []string{
 				"option 'default_2fa_method' is configured as 'mobile_push' but must be one of the following enabled method values: 'totp', 'webauthn'",
