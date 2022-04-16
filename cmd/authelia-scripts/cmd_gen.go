@@ -66,7 +66,7 @@ var keysTemplate = template.Must(template.New("keys").Parse(`// Code generated b
 // 		go run ./cmd/authelia-scripts gen
 //
 
-package schema 
+package schema
 
 // Keys represents the detected schema keys.
 var Keys = []string{
