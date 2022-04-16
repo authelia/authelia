@@ -327,6 +327,7 @@ var ValidKeys = []string{
 	"server.disable_healthcheck",
 	"server.tls.key",
 	"server.tls.certificate",
+	"server.tls.client_certificates",
 	"server.headers.csp_template",
 
 	// TOTP Keys.
@@ -346,6 +347,7 @@ var ValidKeys = []string{
 	"webauthn.timeout",
 
 	// DUO API Keys.
+	"duo_api.disable",
 	"duo_api.hostname",
 	"duo_api.enable_self_enrollment",
 	"duo_api.secret_key",
@@ -496,7 +498,7 @@ var ValidKeys = []string{
 	"identity_providers.oidc.minimum_parameter_entropy",
 	"identity_providers.oidc.cors.endpoints",
 	"identity_providers.oidc.cors.allowed_origins",
-	"identity_providers.oidc.cors.enable_origins_from_clients",
+	"identity_providers.oidc.cors.allowed_origins_from_client_redirect_uris",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[].id",
 	"identity_providers.oidc.clients[].description",
