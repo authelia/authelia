@@ -1117,7 +1117,7 @@
   },"186": {
     "doc": "Portainer",
     "title": "OIDC Integrations: Portainer",
-    "content": "community/oidc-integrations/portainer.md . Note these setting have been tested with authelia v4.33.2 and Portainer-CE 2.11.0 . ",
+    "content": "community/oidc-integrations/portainer.md . Note these setting have been tested with authelia v4.34.6 and Portainer (CE and EE) 2.12.2 . ",
     "url": "/docs/community/oidc-integrations/portainer.html#oidc-integrations-portainer",
     "relUrl": "/community/oidc-integrations/portainer.html#oidc-integrations-portainer"
   },"187": {
@@ -1129,7 +1129,7 @@
   },"188": {
     "doc": "Portainer",
     "title": "Portainer config",
-    "content": "To setup Authelia as SSO provider in portainer go to Settings &gt; Authentication and select Authentication method OAuth and Provider Custom and make sure automatic user provision is turned so users get automatically created. Note make sure that Redirect URL matches exacty the redirect_uris in authelia config. Also us preferred_username as the User identifier which makes sure the portianer user and authelia user have the same username. ",
+    "content": "To setup Authelia as SSO provider in portainer go to Settings &gt; Authentication and select Authentication method OAuth and Provider Custom and make sure automatic user provision is turned so users get automatically created. Note make sure that Redirect URL matches exacty the redirect_uris in authelia config. Use preferred_username as the User identifier which makes sure the portianer user and authelia user have the same username. Scopes should be openid profile groups email do not use commas . ",
     "url": "/docs/community/oidc-integrations/portainer.html#portainer-config",
     "relUrl": "/community/oidc-integrations/portainer.html#portainer-config"
   },"189": {
