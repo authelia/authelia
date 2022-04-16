@@ -7,7 +7,13 @@ import (
 )
 
 // NewSemanticVersion creates a SemanticVersion from a string.
-func NewSemanticVersion(input string) (version SemanticVersion) {
+func NewSemanticVersion(input string) (version *SemanticVersion, err error) {
+	if !reSemanticVersion.MatchString(input) {
+		return nil, fmt.Errorf("the input '%s' failed to match the semantic version pattern", input)
+	}
+
+	version = &SemanticVersion{}
+
 	submatch := reSemanticVersion.FindStringSubmatch(input)
 
 	for i, name := range reSemanticVersion.SubexpNames() {
@@ -19,10 +25,11 @@ func NewSemanticVersion(input string) (version SemanticVersion) {
 		case "Patch":
 			version.Patch, _ = strconv.Atoi(submatch[i])
 		case semverRegexpGroupPreRelease, "Metadata":
-			val := make([]string, 0)
-			if submatch[i] != "" {
-				val = strings.Split(submatch[i], ".")
+			if submatch[i] == "" {
+				continue
 			}
+
+			val := strings.Split(submatch[i], ".")
 
 			if name == semverRegexpGroupPreRelease {
 				version.PreRelease = val
@@ -32,7 +39,7 @@ func NewSemanticVersion(input string) (version SemanticVersion) {
 		}
 	}
 
-	return version
+	return version, nil
 }
 
 // SemanticVersion represents a semantic 2.0 version.
@@ -70,22 +77,44 @@ func (v SemanticVersion) Equal(version SemanticVersion) (equals bool) {
 
 // GreaterThan returns true if this SemanticVersion is greater than the provided SemanticVersion.
 func (v SemanticVersion) GreaterThan(version SemanticVersion) (gt bool) {
+	if v.Major > version.Major {
+		return true
+	}
+
+	if v.Major == version.Major && v.Minor > version.Minor {
+		return true
+	}
+
+	if v.Major == version.Major && v.Minor == version.Minor && v.Patch > version.Patch {
+		return true
+	}
+
+	return false
+}
+
+// LessThan returns true if this SemanticVersion is less than the provided SemanticVersion.
+func (v SemanticVersion) LessThan(version SemanticVersion) (gt bool) {
 	if v.Major < version.Major {
-		return false
+		return true
 	}
 
 	if v.Major == version.Major && v.Minor < version.Minor {
-		return false
+		return true
 	}
 
 	if v.Major == version.Major && v.Minor == version.Minor && v.Patch < version.Patch {
-		return false
+		return true
 	}
 
-	return true
+	return false
 }
 
-// GreaterThanOrEqual returns true if this SemanticVersion is greater than the provided SemanticVersion.
+// GreaterThanOrEqual returns true if this SemanticVersion is greater than or equal to the provided SemanticVersion.
 func (v SemanticVersion) GreaterThanOrEqual(version SemanticVersion) (ge bool) {
-	return v.GreaterThan(version) || v.Equal(version)
+	return v.Equal(version) || v.GreaterThan(version)
+}
+
+// LessThanOrEqual returns true if this SemanticVersion is less than or equal to the provided SemanticVersion.
+func (v SemanticVersion) LessThanOrEqual(version SemanticVersion) (ge bool) {
+	return v.Equal(version) || v.LessThan(version)
 }
