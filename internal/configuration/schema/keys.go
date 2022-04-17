@@ -12,6 +12,7 @@ var Keys = []string{
 	"certificates_directory",
 	"jwt_secret",
 	"default_redirection_url",
+	"default_2fa_method",
 	"log.level",
 	"log.format",
 	"log.file_path",

@@ -39,7 +39,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		changed bool
 	)
 
-	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods()); changed {
+	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods(), ctx.Configuration.Default2FAMethod); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
 			ctx.Error(fmt.Errorf("unable to save user two factor method: %v", err), messageOperationFailed)
 			return
