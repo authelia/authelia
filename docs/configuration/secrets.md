@@ -28,21 +28,21 @@ Here is the list of the environment variables which are considered secrets and c
 secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
 other configuration using the environment but instead of loading a file the value of the environment variable is used.
 
-|Configuration Key                                |Environment Variable                                    |
-|:-----------------------------------------------:|:------------------------------------------------------:|
-|tls_key                                          |AUTHELIA_TLS_KEY_FILE                                   |
-|jwt_secret                                       |AUTHELIA_JWT_SECRET_FILE                                |
-|duo_api.secret_key                               |AUTHELIA_DUO_API_SECRET_KEY_FILE                        |
-|session.secret                                   |AUTHELIA_SESSION_SECRET_FILE                            |
-|session.redis.password                           |AUTHELIA_SESSION_REDIS_PASSWORD_FILE                    |
-|session.redis.high_availability.sentinel_password|AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE |
-|storage.encryption_key                           |AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE                    |
-|storage.mysql.password                           |AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE                    |
-|storage.postgres.password                        |AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE                 |
-|notifier.smtp.password                           |AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE                    |
-|authentication_backend.ldap.password             |AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE      |
-|identity_providers.oidc.issuer_private_key       |AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE|
-|identity_providers.oidc.hmac_secret              |AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE       |
+|                 Configuration Key                 |                   Environment Variable                   |
+|:-------------------------------------------------:|:--------------------------------------------------------:|
+|                      tls_key                      |                  AUTHELIA_TLS_KEY_FILE                   |
+|                    jwt_secret                     |                 AUTHELIA_JWT_SECRET_FILE                 |
+|                duo_api.secret_key                 |             AUTHELIA_DUO_API_SECRET_KEY_FILE             |
+|                  session.secret                   |               AUTHELIA_SESSION_SECRET_FILE               |
+|              session.redis.password               |           AUTHELIA_SESSION_REDIS_PASSWORD_FILE           |
+| session.redis.high_availability.sentinel_password | AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE  |
+|              storage.encryption_key               |           AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE           |
+|              storage.mysql.password               |           AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE           |
+|             storage.postgres.password             |         AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE          |
+|              notifier.smtp.password               |           AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE           |
+|       authentication_backend.ldap.password        |    AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE    |
+|    identity_providers.oidc.issuer_private_key     | AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE |
+|        identity_providers.oidc.hmac_secret        |    AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE     |
 
 ## Secrets in configuration file
 

@@ -42,8 +42,76 @@ func NewStorageCmd() (cmd *cobra.Command) {
 		newStorageMigrateCmd(),
 		newStorageSchemaInfoCmd(),
 		newStorageEncryptionCmd(),
+		newStorageUserCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageUserCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "user",
+		Short: "Manages user settings",
+	}
+
+	cmd.AddCommand(
+		newStorageUserIdentifiersCmd(),
 		newStorageTOTPCmd(),
 	)
+
+	return cmd
+}
+
+func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "identifiers",
+		Short: "Manages user opaque identifiers",
+	}
+
+	cmd.AddCommand(
+		newStorageUserIdentifiersExportCmd(),
+		newStorageUserIdentifiersImportCmd(),
+		newStorageUserIdentifiersAddCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageUserIdentifiersExportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "export",
+		Short: "Export the identifiers to a YAML file",
+		RunE:  storageUserIdentifiersExport,
+	}
+
+	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML export")
+
+	return cmd
+}
+
+func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "import",
+		Short: "Import the identifiers from a YAML file",
+		RunE:  storageUserIdentifiersImport,
+	}
+
+	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML import")
+
+	return cmd
+}
+
+func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "add [username]",
+		Short: "Add an identifiers to the database",
+		Args:  cobra.ExactArgs(1),
+		RunE:  storageUserIdentifiersAdd,
+	}
+
+	cmd.Flags().String("identifier", "", "The optional version 4 UUID to use, if not set a random one will be used")
+	cmd.Flags().String("service", identifierServiceOpenIDConnect, "The service to add the identifier for, valid values are: openid_connect")
+	cmd.Flags().String("sector", "", "The sector identifier to use (should usually be blank)")
 
 	return cmd
 }
@@ -103,7 +171,7 @@ func newStorageTOTPCmd() (cmd *cobra.Command) {
 
 func newStorageTOTPGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "generate username",
+		Use:   "generate [username]",
 		Short: "Generate a TOTP configuration for a user",
 		RunE:  storageTOTPGenerateRunE,
 		Args:  cobra.ExactArgs(1),

@@ -111,3 +111,7 @@ const (
 var (
 	errNoStorageProvider = errors.New("no storage provider configured")
 )
+
+const (
+	identifierServiceOpenIDConnect = "openid_connect"
+)
