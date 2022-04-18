@@ -12,6 +12,7 @@ it("renders without crashing", () => {
             policy={{
                 max_length: 0,
                 min_length: 4,
+                min_score: 0,
                 require_lowercase: false,
                 require_number: false,
                 require_special: false,
@@ -29,6 +30,7 @@ it("renders adjusted height without crashing", () => {
             policy={{
                 max_length: 0,
                 min_length: 4,
+                min_score: 0,
                 require_lowercase: false,
                 require_number: false,
                 require_special: false,

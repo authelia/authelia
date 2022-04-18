@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
 // NewYAMLFileSource returns a Source configured to load from a specified YAML path. If there is an issue accessing this
@@ -75,7 +74,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
-	keyMap, ignoredKeys := getEnvConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
+	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
 }
@@ -109,7 +108,7 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err
 
 // Load the Source into the SecretsSource koanf.Koanf.
 func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
-	keyMap := getSecretConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
+	keyMap := getSecretConfigMap(schema.Keys, s.prefix, s.delimiter)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
 }

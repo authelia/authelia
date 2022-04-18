@@ -2,7 +2,7 @@
 layout: default
 title: Webauthn
 parent: Configuration
-nav_order: 16
+nav_order: 17
 ---
 
 The Webauthn section has tunable options for the Webauthn implementation.
