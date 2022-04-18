@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
+func TestUserInfo_SetDefaultMethod(t *testing.T) {
 	none := "none"
 
-	testName := func(i int, have UserInfo, availableMethods []string) string {
+	testName := func(i int, have UserInfo, methods []string, fallback string) string {
 		method := have.Method
 
 		if method == "" {
@@ -37,18 +37,25 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 		}
 
 		available := none
-		if len(availableMethods) != 0 {
-			available = strings.Join(availableMethods, " ")
+		if len(methods) != 0 {
+			available = strings.Join(methods, " ")
 		}
 
-		return fmt.Sprintf("%d/method %s%s/available methods %s", i+1, method, has, available)
+		if fallback != "" {
+			fallback = "/fallback " + fallback
+		}
+
+		return fmt.Sprintf("%d/method %s%s/available methods %s%s", i+1, method, has, available, fallback)
 	}
 
 	testCases := []struct {
-		have             UserInfo
-		availableMethods []string
-		changed          bool
-		want             UserInfo
+		have UserInfo
+		want UserInfo
+
+		methods  []string
+		fallback string
+
+		changed bool
 	}{
 		{
 			have: UserInfo{
@@ -57,14 +64,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
-			availableMethods: []string{SecondFactorMethodWebauthn, SecondFactorMethodDuo},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodWebauthn,
 				HasDuo:      true,
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
+			methods: []string{SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -72,14 +79,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
-			availableMethods: []string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodTOTP,
 				HasDuo:      true,
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
+			methods: []string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -88,14 +95,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
-			availableMethods: []string{SecondFactorMethodTOTP},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodTOTP,
 				HasDuo:      true,
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
+			methods: []string{SecondFactorMethodTOTP},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -104,14 +111,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
-			availableMethods: []string{SecondFactorMethodTOTP},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodTOTP,
 				HasDuo:      false,
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
+			methods: []string{SecondFactorMethodTOTP},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -120,14 +127,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
-			availableMethods: []string{SecondFactorMethodWebauthn},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodWebauthn,
 				HasDuo:      false,
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
+			methods: []string{SecondFactorMethodWebauthn},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -136,14 +143,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
-			availableMethods: []string{SecondFactorMethodDuo},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodDuo,
 				HasDuo:      false,
 				HasTOTP:     false,
 				HasWebauthn: false,
 			},
+			methods: []string{SecondFactorMethodDuo},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -152,14 +159,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
-			availableMethods: []string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo},
-			changed:          false,
 			want: UserInfo{
 				Method:      SecondFactorMethodWebauthn,
 				HasDuo:      false,
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
+			methods: []string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			changed: false,
 		},
 		{
 			have: UserInfo{
@@ -168,14 +175,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
-			availableMethods: []string{SecondFactorMethodWebauthn, SecondFactorMethodDuo},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodWebauthn,
 				HasDuo:      false,
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
+			methods: []string{SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -184,14 +191,14 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
-			availableMethods: []string{SecondFactorMethodDuo},
-			changed:          true,
 			want: UserInfo{
 				Method:      SecondFactorMethodDuo,
 				HasDuo:      false,
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
+			methods: []string{SecondFactorMethodDuo},
+			changed: true,
 		},
 		{
 			have: UserInfo{
@@ -200,20 +207,104 @@ func TestUserInfo_SetDefaultMethod_ShouldConfigureConfigDefault(t *testing.T) {
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
-			availableMethods: nil,
-			changed:          false,
 			want: UserInfo{
 				Method:      "",
 				HasDuo:      false,
 				HasTOTP:     true,
 				HasWebauthn: true,
 			},
+			methods: nil,
+			changed: false,
+		},
+		{
+			have: UserInfo{
+				Method:      "",
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			want: UserInfo{
+				Method:      SecondFactorMethodDuo,
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			methods:  []string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			fallback: SecondFactorMethodDuo,
+			changed:  true,
+		},
+		{
+			have: UserInfo{
+				Method:      "",
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			want: UserInfo{
+				Method:      SecondFactorMethodTOTP,
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			methods:  []string{SecondFactorMethodTOTP, SecondFactorMethodWebauthn},
+			fallback: SecondFactorMethodDuo,
+			changed:  true,
+		},
+		{
+			have: UserInfo{
+				Method:      SecondFactorMethodTOTP,
+				HasDuo:      true,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			want: UserInfo{
+				Method:      SecondFactorMethodDuo,
+				HasDuo:      true,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			methods: []string{SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			changed: true,
+		},
+		{
+			have: UserInfo{
+				Method:      SecondFactorMethodTOTP,
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			want: UserInfo{
+				Method:      SecondFactorMethodWebauthn,
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			methods:  []string{SecondFactorMethodWebauthn, SecondFactorMethodDuo},
+			fallback: SecondFactorMethodWebauthn,
+			changed:  true,
+		},
+		{
+			have: UserInfo{
+				Method:      SecondFactorMethodWebauthn,
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			want: UserInfo{
+				Method:      SecondFactorMethodDuo,
+				HasDuo:      false,
+				HasTOTP:     false,
+				HasWebauthn: false,
+			},
+			methods:  []string{SecondFactorMethodTOTP, SecondFactorMethodDuo},
+			fallback: SecondFactorMethodDuo,
+			changed:  true,
 		},
 	}
 
 	for i, tc := range testCases {
-		t.Run(testName(i, tc.have, tc.availableMethods), func(t *testing.T) {
-			changed := tc.have.SetDefaultPreferred2FAMethod(tc.availableMethods)
+		t.Run(testName(i, tc.have, tc.methods, tc.fallback), func(t *testing.T) {
+			changed := tc.have.SetDefaultPreferred2FAMethod(tc.methods, tc.fallback)
 
 			assert.Equal(t, tc.changed, changed)
 			assert.Equal(t, tc.want, tc.have)

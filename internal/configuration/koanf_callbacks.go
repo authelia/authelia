@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -25,7 +24,7 @@ func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string, pr
 		formattedKey := strings.TrimPrefix(key, prefix)
 		formattedKey = strings.ReplaceAll(strings.ToLower(formattedKey), delimiter, constDelimiter)
 
-		if utils.IsStringInSlice(formattedKey, validator.ValidKeys) {
+		if utils.IsStringInSlice(formattedKey, schema.Keys) {
 			return formattedKey, value
 		}
 
@@ -64,7 +63,7 @@ func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValid
 		if includeValidKeys {
 			formattedKey := strings.ReplaceAll(flag.Name, "-", "_")
 
-			if utils.IsStringInSlice(formattedKey, validator.ValidKeys) {
+			if utils.IsStringInSlice(formattedKey, schema.Keys) {
 				return formattedKey, flag.Value.String()
 			}
 		}

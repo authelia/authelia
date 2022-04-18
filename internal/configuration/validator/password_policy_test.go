@@ -33,7 +33,8 @@ func TestValidatePasswordPolicy(t *testing.T) {
 					MinLength: -1,
 				},
 				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
-					Enabled: true,
+					Enabled:  true,
+					MinScore: 3,
 				},
 			},
 			expectedErrs: []string{
@@ -65,7 +66,8 @@ func TestValidatePasswordPolicy(t *testing.T) {
 			},
 			expected: &schema.PasswordPolicyConfiguration{
 				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
-					Enabled: true,
+					Enabled:  true,
+					MinScore: 3,
 				},
 			},
 		},
@@ -84,6 +86,42 @@ func TestValidatePasswordPolicy(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "ShouldRaiseErrorsZXCVBNTooLow",
+			have: &schema.PasswordPolicyConfiguration{
+				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+					Enabled:  true,
+					MinScore: -1,
+				},
+			},
+			expected: &schema.PasswordPolicyConfiguration{
+				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+					Enabled:  true,
+					MinScore: -1,
+				},
+			},
+			expectedErrs: []string{
+				"password_policy: zxcvbn: option 'min_score' is invalid: must be between 1 and 4 but it's configured as -1",
+			},
+		},
+		{
+			desc: "ShouldRaiseErrorsZXCVBNTooHigh",
+			have: &schema.PasswordPolicyConfiguration{
+				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+					Enabled:  true,
+					MinScore: 5,
+				},
+			},
+			expected: &schema.PasswordPolicyConfiguration{
+				ZXCVBN: schema.PasswordPolicyZXCVBNParams{
+					Enabled:  true,
+					MinScore: 5,
+				},
+			},
+			expectedErrs: []string{
+				"password_policy: zxcvbn: option 'min_score' is invalid: must be between 1 and 4 but it's configured as 5",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -99,6 +137,7 @@ func TestValidatePasswordPolicy(t *testing.T) {
 			assert.Equal(t, tc.expected.Standard.RequireSpecial, tc.have.Standard.RequireSpecial)
 			assert.Equal(t, tc.expected.Standard.RequireUppercase, tc.have.Standard.RequireUppercase)
 			assert.Equal(t, tc.expected.Standard.RequireLowercase, tc.have.Standard.RequireLowercase)
+			assert.Equal(t, tc.expected.ZXCVBN.MinScore, tc.have.ZXCVBN.MinScore)
 
 			errs := validator.Errors()
 			require.Len(t, errs, len(tc.expectedErrs))

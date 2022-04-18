@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ValidateIdentityProviders validates and update IdentityProviders configuration.
+// ValidateIdentityProviders validates and updates the IdentityProviders configuration.
 func ValidateIdentityProviders(config *schema.IdentityProvidersConfiguration, validator *schema.StructValidator) {
 	validateOIDC(config.OIDC, validator)
 }

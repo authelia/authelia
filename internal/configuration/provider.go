@@ -36,7 +36,7 @@ func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, 
 
 	unmarshal(ko, val, path, result)
 
-	return ko.Keys(), nil
+	return getAllKoanfKeys(ko), nil
 }
 
 func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {

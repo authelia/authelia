@@ -10,7 +10,7 @@ nav_order: 1
 
 {{ page.path }}
 
-**Note** these setting have been tested with authelia `v4.33.2` and Portainer-CE `2.11.0`
+**Note** these setting have been tested with authelia `v4.34.6` and Portainer (CE and EE) `2.12.2`
 
 ## Authelia config
 
@@ -37,7 +37,7 @@ identity_providers:
 
 To setup Authelia as SSO provider in portainer go to **Settings > Authentication** and select **Authentication method** OAuth and **Provider** Custom and make sure automatic user provision is turned so users get automatically created.
 
-**Note** make sure that Redirect URL matches exacty the redirect_uris in authelia config. Also us `preferred_username` as the User identifier which makes sure the portianer user and authelia user have the same username.
+**Note** make sure that Redirect URL matches exacty the redirect_uris in authelia config. Use `preferred_username` as the User identifier which makes sure the portianer user and authelia user have the same username. Scopes should be `openid profile groups email` **do not use commas**
 
 <p align="center">
   <a href="../../images/portainer.gif" target="_blank"><img src="../../images/portainer.gif" width="736"></a>

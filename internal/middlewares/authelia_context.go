@@ -67,7 +67,7 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 		methods = append(methods, model.SecondFactorMethodWebauthn)
 	}
 
-	if ctx.Configuration.DuoAPI != nil {
+	if !ctx.Configuration.DuoAPI.Disable {
 		methods = append(methods, model.SecondFactorMethodDuo)
 	}
 

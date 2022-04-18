@@ -17,11 +17,20 @@ func ValidatePasswordPolicy(config *schema.PasswordPolicyConfiguration, validato
 		if config.Standard.MinLength == 0 {
 			config.Standard.MinLength = schema.DefaultPasswordPolicyConfiguration.Standard.MinLength
 		} else if config.Standard.MinLength < 0 {
-			validator.Push(fmt.Errorf(errFmtPasswordPolicyMinLengthNotGreaterThanZero, config.Standard.MinLength))
+			validator.Push(fmt.Errorf(errFmtPasswordPolicyStandardMinLengthNotGreaterThanZero, config.Standard.MinLength))
 		}
 
 		if config.Standard.MaxLength == 0 {
 			config.Standard.MaxLength = schema.DefaultPasswordPolicyConfiguration.Standard.MaxLength
+		}
+	}
+
+	if config.ZXCVBN.Enabled {
+		switch {
+		case config.ZXCVBN.MinScore == 0:
+			config.ZXCVBN.MinScore = schema.DefaultPasswordPolicyConfiguration.ZXCVBN.MinScore
+		case config.ZXCVBN.MinScore < 0, config.ZXCVBN.MinScore > 4:
+			validator.Push(fmt.Errorf(errFmtPasswordPolicyZXCVBNMinScoreInvalid, config.ZXCVBN.MinScore))
 		}
 	}
 }

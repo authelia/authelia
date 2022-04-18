@@ -27,6 +27,11 @@ jwt_secret: a_very_important_secret
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
 default_redirection_url: https://home.example.com/
 
+## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
+## disabled. This setting must be a method that is enabled.
+## Options are totp, webauthn, mobile_push.
+default_2fa_method: ""
+
 ##
 ## Server Configuration
 ##
@@ -158,6 +163,7 @@ webauthn:
 ## Parameters used to contact the Duo API. Those are generated when you protect an application of type
 ## "Partner Auth API" in the management panel.
 duo_api:
+  disable: false
   hostname: api-123456789.example.com
   integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -364,6 +370,9 @@ password_policy:
   ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
   zxcvbn:
     enabled: false
+
+    ## Configures the minimum score allowed.
+    min_score: 3
 
 ##
 ## Access Control Configuration
