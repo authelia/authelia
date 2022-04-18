@@ -17,11 +17,11 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.15.0
-	github.com/jmoiron/sqlx v1.3.4
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf v1.4.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.4.3
-	github.com/ory/fosite v0.42.1
+	github.com/ory/fosite v0.42.2
 	github.com/ory/herodot v0.9.13
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
