@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-import { Snackbar } from "@mui/material";
+import { Alert, Snackbar } from "@mui/material";
 
-import ColoredSnackbarContent from "@components/ColoredSnackbarContent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 
@@ -32,11 +31,9 @@ const NotificationBar = function (props: Props) {
                 onExited: () => setTmpNotification(null),
             }}
         >
-            <ColoredSnackbarContent
-                className="notification"
-                level={tmpNotification ? tmpNotification.level : "info"}
-                message={tmpNotification ? tmpNotification.message : ""}
-            />
+            <Alert severity={tmpNotification ? tmpNotification.level : "success"}>
+                {tmpNotification ? tmpNotification.message : ""}
+            </Alert>
         </Snackbar>
     );
 };
