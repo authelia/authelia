@@ -79,9 +79,3 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]] && [[ "${BUILDKITE_B
     done
   done
 fi
-
-if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
-  echo "--- :go: Force module index update"
-  rm go.mod go.sum
-  go get github.com/authelia/authelia/v4
-fi
