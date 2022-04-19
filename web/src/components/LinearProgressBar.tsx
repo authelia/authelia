@@ -6,7 +6,7 @@ import makeStyles from "@mui/styles/makeStyles";
 
 export interface Props {
     value: number;
-    height?: number;
+    height?: string | number;
     className?: string;
     style?: CSSProperties;
 }
