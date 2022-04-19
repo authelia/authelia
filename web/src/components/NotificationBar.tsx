@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
 
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 
 export interface Props {
     onClose: () => void;
+}
+
+type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
+
+function NotificationBarTransition(props: NotificationBarTransitionProps) {
+    return <Slide {...props} direction={"down"} />;
 }
 
 const NotificationBar = function (props: Props) {
@@ -27,6 +33,7 @@ const NotificationBar = function (props: Props) {
             anchorOrigin={{ vertical: "top", horizontal: "right" }}
             autoHideDuration={tmpNotification ? tmpNotification.timeout * 1000 : 10000}
             onClose={props.onClose}
+            TransitionComponent={NotificationBarTransition}
             TransitionProps={{
                 onExited: () => setTmpNotification(null),
             }}
