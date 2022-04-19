@@ -14,7 +14,7 @@ const NotificationBar = function (props: Props) {
     const { notification } = useNotifications();
 
     useEffect(() => {
-        if (notification && notification !== null) {
+        if (notification) {
             setTmpNotification(notification);
         }
     }, [notification, setTmpNotification]);
@@ -31,9 +31,13 @@ const NotificationBar = function (props: Props) {
                 onExited: () => setTmpNotification(null),
             }}
         >
-            <Alert severity={tmpNotification ? tmpNotification.level : "success"}>
-                {tmpNotification ? tmpNotification.message : ""}
-            </Alert>
+            {tmpNotification ? (
+                <Alert severity={tmpNotification.level} variant={"filled"}>
+                    {tmpNotification.message}
+                </Alert>
+            ) : (
+                <Alert severity={"success"} variant={"filled"} />
+            )}
         </Snackbar>
     );
 };
