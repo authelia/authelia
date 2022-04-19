@@ -12,7 +12,7 @@ export interface Props {
 type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
 
 function NotificationBarTransition(props: NotificationBarTransitionProps) {
-    return <Slide {...props} direction={"down"} />;
+    return <Slide {...props} direction={"left"} />;
 }
 
 const NotificationBar = function (props: Props) {
