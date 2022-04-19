@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Grid, Typography, useTheme } from "@material-ui/core";
+import { Grid, Typography, useTheme } from "@mui/material";
 import ReactLoading from "react-loading";
 
 export interface Props {

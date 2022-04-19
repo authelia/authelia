@@ -1,5 +1,6 @@
 import React, { useEffect, Fragment, ReactNode, useState } from "react";
 
+import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
 import {
     Button,
     Grid,
@@ -9,11 +10,10 @@ import {
     ListItemText,
     Tooltip,
     Typography,
-    makeStyles,
     Checkbox,
     FormControlLabel,
-} from "@material-ui/core";
-import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
+} from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 

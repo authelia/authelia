@@ -1,6 +1,7 @@
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
-import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
+import { Grid, Button, FormControlLabel, Checkbox, Link } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -196,6 +197,7 @@ const FirstFactorForm = function (props: Props) {
                             component="button"
                             onClick={handleResetPasswordClick}
                             className={style.resetLink}
+                            underline="hover"
                         >
                             {translate("Reset password?")}
                         </Link>

@@ -1,12 +1,13 @@
 import React from "react";
 
-import { makeStyles, SnackbarContent } from "@material-ui/core";
-import { amber, green } from "@material-ui/core/colors";
-import { SnackbarContentProps } from "@material-ui/core/SnackbarContent";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import ErrorIcon from "@material-ui/icons/Error";
-import InfoIcon from "@material-ui/icons/Info";
-import WarningIcon from "@material-ui/icons/Warning";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
+import WarningIcon from "@mui/icons-material/Warning";
+import { SnackbarContent } from "@mui/material";
+import { amber, green } from "@mui/material/colors";
+import { SnackbarContentProps } from "@mui/material/SnackbarContent";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 
 const variantIcon = {
