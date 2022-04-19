@@ -3,8 +3,9 @@ lockfileVersion: 5.3
 specifiers:
   '@commitlint/cli': 16.2.3
   '@commitlint/config-conventional': 16.2.1
-  '@emotion/react': ^11.9.0
-  '@emotion/styled': ^11.8.1
+  '@emotion/cache': 11.7.1
+  '@emotion/react': 11.9.0
+  '@emotion/styled': 11.8.1
   '@fortawesome/fontawesome-svg-core': 6.1.1
   '@fortawesome/free-regular-svg-icons': 6.1.1
   '@fortawesome/free-solid-svg-icons': 6.1.1
@@ -62,6 +63,7 @@ specifiers:
   zxcvbn: 4.4.2
 
 dependencies:
+  '@emotion/cache': 11.7.1
   '@emotion/react': 11.9.0_@types+react@18.0.5+react@18.0.0
   '@emotion/styled': 11.8.1_04780a0aa92a2187cfa4f37702da5815
   '@fortawesome/fontawesome-svg-core': 6.1.1

@@ -3,8 +3,9 @@
   "version": "4.35.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.9.0",
-    "@emotion/styled": "^11.8.1",
+    "@emotion/cache": "11.7.1",
+    "@emotion/react": "11.9.0",
+    "@emotion/styled": "11.8.1",
     "@fortawesome/fontawesome-svg-core": "6.1.1",
     "@fortawesome/free-regular-svg-icons": "6.1.1",
     "@fortawesome/free-solid-svg-icons": "6.1.1",

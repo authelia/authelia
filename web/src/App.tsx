@@ -1,7 +1,9 @@
 import React, { useState, useEffect, Suspense } from "react";
 
+import createCache from "@emotion/cache";
+import { CacheProvider } from "@emotion/react";
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
-import { CssBaseline, ThemeProvider, Theme, StyledEngineProvider } from "@mui/material";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
@@ -51,9 +53,20 @@ function Theme() {
     }
 }
 
-const App: React.FC = () => {
+export interface Props {
+    nonce?: string;
+}
+
+const App: React.FC<Props> = (props: Props) => {
     const [notification, setNotification] = useState(null as Notification | null);
     const [theme, setTheme] = useState(Theme());
+
+    const cache = createCache({
+        key: "authelia",
+        nonce: props.nonce,
+        prepend: true,
+    });
+
     useEffect(() => {
         if (getTheme() === "auto") {
             const query = window.matchMedia("(prefers-color-scheme: dark)");
@@ -66,7 +79,7 @@ const App: React.FC = () => {
         }
     }, []);
     return (
-        <StyledEngineProvider injectFirst>
+        <CacheProvider value={cache}>
             <ThemeProvider theme={theme}>
                 <Suspense fallback={<BaseLoadingPage message={"Loading"} />}>
                     <CssBaseline />
@@ -96,7 +109,7 @@ const App: React.FC = () => {
                     </NotificationsContext.Provider>
                 </Suspense>
             </ThemeProvider>
-        </StyledEngineProvider>
+        </CacheProvider>
     );
 };
 
