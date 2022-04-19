@@ -1,7 +1,7 @@
 import React, { Fragment } from "react";
 
 import { Tooltip, Typography } from "@mui/material";
-import { Variant } from "@mui/material/styles";
+import { Variant } from "@mui/material/styles/createTypography";
 import { CSSProperties } from "@mui/styles";
 
 export interface Props {
