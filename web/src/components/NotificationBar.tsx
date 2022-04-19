@@ -32,11 +32,11 @@ const NotificationBar = function (props: Props) {
             }}
         >
             {tmpNotification ? (
-                <Alert severity={tmpNotification.level} variant={"filled"}>
+                <Alert severity={tmpNotification.level} variant={"filled"} elevation={6} className={"notification"}>
                     {tmpNotification.message}
                 </Alert>
             ) : (
-                <Alert severity={"success"} variant={"filled"} />
+                <Alert severity={"success"} elevation={6} variant={"filled"} className={"notification"} />
             )}
         </Snackbar>
     );
