@@ -6,7 +6,7 @@ const Light = createTheme({
         loadingBar: "#000",
     },
     palette: {
-        mode: "dark",
+        mode: "light",
         primary: {
             light: "#a6d4fa",
             main: "#1976d2",
@@ -45,7 +45,7 @@ const Light = createTheme({
             disabledBackground: "rgba(0, 0, 0, 0.12)",
         },
         background: {
-            default: "#fff",
+            default: "#fafafa",
             paper: "#fff",
         },
         divider: "rgba(0, 0, 0, 0.12)",
