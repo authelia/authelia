@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-import { Grid, Container, Link } from "@mui/material";
+import { Grid, Container, Link, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 
@@ -69,7 +69,7 @@ const LoginLayout = function (props: Props) {
 
 export default LoginLayout;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         minHeight: "90vh",
         textAlign: "center",

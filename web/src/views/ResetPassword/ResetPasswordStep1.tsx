@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Grid, Button } from "@mui/material";
+import { Grid, Button, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -84,7 +84,7 @@ const ResetPasswordStep1 = function () {
 
 export default ResetPasswordStep1;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),

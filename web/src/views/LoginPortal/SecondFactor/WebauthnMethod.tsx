@@ -1,6 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, useTheme } from "@mui/material";
+import { Button, Theme, useTheme } from "@mui/material";
 import { CSSProperties } from "@mui/styles";
 import makeStyles from "@mui/styles/makeStyles";
 
@@ -172,7 +172,7 @@ const WebauthnMethod = function (props: Props) {
 
 export default WebauthnMethod;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         display: "inline-block",
     },

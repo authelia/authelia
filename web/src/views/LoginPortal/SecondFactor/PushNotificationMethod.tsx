@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useRef, useState, ReactNode } from "react";
 
-import { Button } from "@mui/material";
+import { Button, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import FailureIcon from "@components/FailureIcon";
@@ -229,7 +229,7 @@ const PushNotificationMethod = function (props: Props) {
 
 export default PushNotificationMethod;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         width: "64px",
         height: "64px",

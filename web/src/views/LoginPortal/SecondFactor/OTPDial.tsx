@@ -1,5 +1,6 @@
 import React, { Fragment } from "react";
 
+import { Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import OtpInput from "react-otp-input";
@@ -45,7 +46,7 @@ const OTPDial = function (props: Props) {
 
 export default OTPDial;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     timeProgress: {},
     register: {
         marginTop: theme.spacing(),

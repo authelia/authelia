@@ -12,6 +12,7 @@ import {
     Typography,
     Checkbox,
     FormControlLabel,
+    Theme,
 } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -220,7 +221,7 @@ const ConsentView = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     container: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),

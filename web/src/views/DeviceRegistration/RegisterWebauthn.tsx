@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, Typography } from "@mui/material";
+import { Button, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -101,7 +101,7 @@ const RegisterWebauthn = function () {
 
 export default RegisterWebauthn;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),

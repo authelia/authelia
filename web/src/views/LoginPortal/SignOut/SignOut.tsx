@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from "react";
 
-import { Typography } from "@mui/material";
+import { Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
@@ -64,7 +64,7 @@ const SignOut = function (props: Props) {
 
 export default SignOut;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     typo: {
         padding: theme.spacing(),
     },

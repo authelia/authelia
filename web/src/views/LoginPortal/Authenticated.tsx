@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Typography } from "@mui/material";
+import { Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
@@ -21,7 +21,7 @@ const Authenticated = function () {
 
 export default Authenticated;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     iconContainer: {
         marginBottom: theme.spacing(2),
         flex: "0 0 100%",

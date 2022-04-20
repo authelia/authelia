@@ -1,7 +1,7 @@
 import React from "react";
 
-import { LinearProgress } from "@mui/material";
-import { CSSProperties, DefaultTheme, useTheme } from "@mui/styles";
+import { LinearProgress, Theme } from "@mui/material";
+import { CSSProperties } from "@mui/styles";
 import makeStyles from "@mui/styles/makeStyles";
 
 export interface Props {
@@ -12,7 +12,7 @@ export interface Props {
 }
 
 const LinearProgressBar = function (props: Props) {
-    const styles = makeStyles((theme) => ({
+    const styles = makeStyles((theme: Theme) => ({
         progressRoot: {
             height: props.height ? props.height : theme.spacing(),
         },

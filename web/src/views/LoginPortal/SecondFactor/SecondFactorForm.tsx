@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { Grid, Button } from "@mui/material";
+import { Grid, Button, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
@@ -160,7 +160,7 @@ const SecondFactorForm = function (props: Props) {
 
 export default SecondFactorForm;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     methodContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",

@@ -1,6 +1,6 @@
 import React, { ReactNode, Fragment } from "react";
 
-import { Typography, Link, useTheme } from "@mui/material";
+import { Typography, Link, useTheme, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -77,7 +77,7 @@ const DefaultMethodContainer = function (props: Props) {
 
 export default DefaultMethodContainer;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     container: {
         height: "200px",
     },

@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useState } from "react";
 
 import { IconDefinition, faCopy, faKey, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Typography, Button, IconButton, Link, CircularProgress, TextField } from "@mui/material";
+import { Typography, Button, IconButton, Link, CircularProgress, TextField, Theme } from "@mui/material";
 import { red } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
@@ -144,7 +144,7 @@ const RegisterOneTimePassword = function () {
 
 export default RegisterOneTimePassword;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),

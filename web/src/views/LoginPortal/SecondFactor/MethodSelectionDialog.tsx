@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-import { Dialog, Grid, DialogContent, Button, DialogActions, Typography, useTheme } from "@mui/material";
+import { Dialog, Grid, DialogContent, Button, DialogActions, Typography, useTheme, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
@@ -68,7 +68,7 @@ const MethodSelectionDialog = function (props: Props) {
 
 export default MethodSelectionDialog;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         textAlign: "center",
     },
@@ -83,7 +83,7 @@ interface MethodItemProps {
 }
 
 function MethodItem(props: MethodItemProps) {
-    const style = makeStyles((theme) => ({
+    const style = makeStyles((theme: Theme) => ({
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),

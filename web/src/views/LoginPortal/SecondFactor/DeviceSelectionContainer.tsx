@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 
-import { Typography, Grid, Button, Container } from "@mui/material";
+import { Typography, Grid, Button, Container, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -103,7 +103,7 @@ interface DeviceItemProps {
 function DeviceItem(props: DeviceItemProps) {
     const className = "device-option-" + props.id;
     const idName = "device-" + props.device.id;
-    const style = makeStyles((theme) => ({
+    const style = makeStyles((theme: Theme) => ({
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),
@@ -148,7 +148,7 @@ interface MethodItemProps {
 function MethodItem(props: MethodItemProps) {
     const className = "method-option-" + props.id;
     const idName = "method-" + props.method;
-    const style = makeStyles((theme) => ({
+    const style = makeStyles((theme: Theme) => ({
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),

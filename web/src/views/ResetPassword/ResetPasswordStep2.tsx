@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, Grid, IconButton, InputAdornment } from "@mui/material";
+import { Button, Grid, IconButton, InputAdornment, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -195,7 +195,7 @@ const ResetPasswordStep2 = function () {
 
 export default ResetPasswordStep2;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),

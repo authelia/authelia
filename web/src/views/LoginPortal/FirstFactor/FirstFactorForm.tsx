@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
-import { Grid, Button, FormControlLabel, Checkbox, Link } from "@mui/material";
+import { Grid, Button, FormControlLabel, Checkbox, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -210,7 +210,7 @@ const FirstFactorForm = function (props: Props) {
 
 export default FirstFactorForm;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     actionRow: {
         display: "flex",
         flexDirection: "row",
