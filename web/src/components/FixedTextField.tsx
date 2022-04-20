@@ -32,7 +32,6 @@ export default FixedTextField;
 
 const useStyles = (theme: Theme): StylesProperties => ({
     label: {
-        backgroundColor: theme.palette.background.default,
         paddingLeft: theme.spacing(0.1),
         paddingRight: theme.spacing(0.1),
     },
