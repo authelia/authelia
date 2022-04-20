@@ -7,6 +7,14 @@ declare module "@mui/material/styles" {
             loadingBar: React.CSSProperties["color"];
         };
     }
+
+    interface ThemeOptions {
+        custom?: {
+            icon?: React.CSSProperties["color"];
+            loadingBar?: React.CSSProperties["color"];
+        };
+    }
+
     interface DeprecatedThemeOptions {
         custom: {
             icon: React.CSSProperties["color"];
