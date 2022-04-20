@@ -1,8 +1,10 @@
 import React from "react";
 
-import { Theme, useTheme } from "@mui/material";
+import { useTheme } from "@mui/material";
+import { Theme } from "@mui/material/styles";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
-import { CSSProperties } from "@mui/styles";
+
+import { StylesProperties } from "@models/StylesProperties";
 
 /**
  * This component fixes outlined TextField
@@ -28,7 +30,7 @@ const FixedTextField = function (props: TextFieldProps) {
 
 export default FixedTextField;
 
-const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
+const useStyles = (theme: Theme): StylesProperties => ({
     label: {
         backgroundColor: theme.palette.background.default,
         paddingLeft: theme.spacing(0.1),

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
+import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
+import { StylesProperties } from "@models/StylesProperties";
 
 export interface Props {
     value: string;
@@ -13,20 +13,13 @@ export interface Props {
 }
 
 const PasswordMeter = function (props: Props) {
+    const { t: translate } = useTranslation();
+    const styles = useStyles();
+
     const [progressColor] = useState(["#D32F2F", "#FF5722", "#FFEB3B", "#AFB42B", "#62D32F"]);
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
-    const { t: translate } = useTranslation();
-    const style = makeStyles((theme) => ({
-        progressBar: {
-            height: "5px",
-            marginTop: "2px",
-            backgroundColor: "red",
-            width: "50%",
-            transition: "width .5s linear",
-        },
-    }))();
 
     useEffect(() => {
         const password = props.value;
@@ -108,9 +101,9 @@ const PasswordMeter = function (props: Props) {
 
     return (
         <div style={{ width: "100%" }}>
-            <div
+            <Box
                 title={feedback}
-                className={classnames(style.progressBar)}
+                sx={styles.progressBar}
                 style={{
                     width: `${(passwordScore + 1) * (100 / maxScores)}%`,
                     backgroundColor: progressColor[passwordScore],
@@ -125,3 +118,13 @@ PasswordMeter.defaultProps = {
 };
 
 export default PasswordMeter;
+
+const useStyles = (): StylesProperties => ({
+    progressBar: {
+        height: "5px",
+        marginTop: "2px",
+        backgroundColor: "red",
+        width: "50%",
+        transition: "width .5s linear",
+    },
+});
