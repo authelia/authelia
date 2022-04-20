@@ -45,7 +45,7 @@ const Light = createTheme({
             disabledBackground: "rgba(0, 0, 0, 0.12)",
         },
         background: {
-            default: "#fafafa",
+            default: "#fff",
             paper: "#fff",
         },
         divider: "rgba(0, 0, 0, 0.12)",
