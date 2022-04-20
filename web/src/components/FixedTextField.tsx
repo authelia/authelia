@@ -1,7 +1,8 @@
 import React from "react";
 
+import { Theme, useTheme } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
-import makeStyles from "@mui/styles/makeStyles";
+import { CSSProperties } from "@mui/styles";
 
 /**
  * This component fixes outlined TextField
@@ -10,16 +11,15 @@ import makeStyles from "@mui/styles/makeStyles";
  * @param props the TextField props
  */
 const FixedTextField = function (props: TextFieldProps) {
-    const style = useStyles();
+    const theme = useTheme();
+    const styles = useStyles(theme);
+
     return (
         <TextField
             {...props}
             InputLabelProps={{
-                classes: {
-                    root: style.label,
-                },
+                sx: styles.label,
             }}
-            inputProps={{ autoCapitalize: props.autoCapitalize }}
         >
             {props.children}
         </TextField>
@@ -28,10 +28,10 @@ const FixedTextField = function (props: TextFieldProps) {
 
 export default FixedTextField;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme: Theme): { [key: string]: CSSProperties } => ({
     label: {
         backgroundColor: theme.palette.background.default,
         paddingLeft: theme.spacing(0.1),
         paddingRight: theme.spacing(0.1),
     },
-}));
+});

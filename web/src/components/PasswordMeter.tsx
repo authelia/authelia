@@ -17,7 +17,7 @@ const PasswordMeter = function (props: Props) {
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     const style = makeStyles((theme) => ({
         progressBar: {
             height: "5px",
