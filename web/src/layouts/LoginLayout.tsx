@@ -19,15 +19,15 @@ export interface Props {
 }
 
 const LoginLayout = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const logo = getLogoOverride() ? (
-        <img src="./static/media/logo.png" alt="Logo" className={style.icon} />
+        <img src="./static/media/logo.png" alt="Logo" className={styles.icon} />
     ) : (
-        <UserSvg className={style.icon} />
+        <UserSvg className={styles.icon} />
     );
     return (
-        <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
-            <Container maxWidth="xs" className={style.rootContainer}>
+        <Grid id={props.id} className={styles.root} container spacing={0} alignItems="center" justifyContent="center">
+            <Container maxWidth="xs" className={styles.rootContainer}>
                 <Grid container>
                     <Grid item xs={12}>
                         {logo}
@@ -46,7 +46,7 @@ const LoginLayout = function (props: Props) {
                             />
                         </Grid>
                     ) : null}
-                    <Grid item xs={12} className={style.body}>
+                    <Grid item xs={12} className={styles.body}>
                         {props.children}
                     </Grid>
                     {props.showBrand ? (
@@ -54,7 +54,7 @@ const LoginLayout = function (props: Props) {
                             <Link
                                 href="https://github.com/authelia/authelia"
                                 target="_blank"
-                                className={style.poweredBy}
+                                className={styles.poweredBy}
                                 underline="hover"
                             >
                                 Powered by Authelia

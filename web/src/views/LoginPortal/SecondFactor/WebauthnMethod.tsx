@@ -39,7 +39,7 @@ export interface Props {
 const WebauthnMethod = function (props: Props) {
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
-    const style = useStyles();
+    const styles = useStyles();
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
@@ -163,7 +163,7 @@ const WebauthnMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <div className={style.icon}>
+            <div className={styles.icon}>
                 <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
             </div>
         </MethodContainer>

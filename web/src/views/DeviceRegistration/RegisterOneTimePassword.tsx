@@ -19,7 +19,7 @@ import { completeTOTPRegistrationProcess } from "@services/RegisterDevice";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterOneTimePassword = function () {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
     // The secret retrieved from the API is all is ok.
@@ -73,7 +73,7 @@ const RegisterOneTimePassword = function () {
     function SecretButton(text: string | undefined, action: string, icon: IconDefinition) {
         return (
             <IconButton
-                className={style.secretButtons}
+                className={styles.secretButtons}
                 color="primary"
                 onClick={() => {
                     navigator.clipboard.writeText(`${text}`);
@@ -85,28 +85,28 @@ const RegisterOneTimePassword = function () {
             </IconButton>
         );
     }
-    const qrcodeFuzzyStyle = isLoading || hasErrored ? style.fuzzy : undefined;
+    const qrcodeFuzzyStyle = isLoading || hasErrored ? styles.fuzzy : undefined;
 
     return (
         <LoginLayout title={translate("Scan QR Code")}>
-            <div className={style.root}>
-                <div className={style.googleAuthenticator}>
-                    <Typography className={style.googleAuthenticatorText}>
+            <div className={styles.root}>
+                <div className={styles.googleAuthenticator}>
+                    <Typography className={styles.googleAuthenticatorText}>
                         {translate("Need Google Authenticator?")}
                     </Typography>
                     <AppStoreBadges
                         iconSize={128}
                         targetBlank
-                        className={style.googleAuthenticatorBadges}
+                        className={styles.googleAuthenticatorBadges}
                         googlePlayLink={GoogleAuthenticator.googlePlay}
                         appleStoreLink={GoogleAuthenticator.appleStore}
                     />
                 </div>
-                <div className={classnames(qrcodeFuzzyStyle, style.qrcodeContainer)}>
+                <div className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
                     <Link href={secretURL} underline="hover">
-                        <QRCode value={secretURL} className={style.qrcode} size={256} />
-                        {!hasErrored && isLoading ? <CircularProgress className={style.loader} size={128} /> : null}
-                        {hasErrored ? <FontAwesomeIcon className={style.failureIcon} icon={faTimesCircle} /> : null}
+                        <QRCode value={secretURL} className={styles.qrcode} size={256} />
+                        {!hasErrored && isLoading ? <CircularProgress className={styles.loader} size={128} /> : null}
+                        {hasErrored ? <FontAwesomeIcon className={styles.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
                 </div>
                 <div>
@@ -114,7 +114,7 @@ const RegisterOneTimePassword = function () {
                         <TextField
                             id="secret-url"
                             label={translate("Secret")}
-                            className={style.secret}
+                            className={styles.secret}
                             value={secretURL}
                             InputProps={{
                                 readOnly: true,
@@ -131,7 +131,7 @@ const RegisterOneTimePassword = function () {
                 <Button
                     variant="contained"
                     color="primary"
-                    className={style.doneButton}
+                    className={styles.doneButton}
                     onClick={handleDoneClick}
                     disabled={isLoading}
                 >

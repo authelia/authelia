@@ -13,7 +13,7 @@ import { performAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const RegisterWebauthn = function () {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
     const { createErrorNotification } = useNotifications();
@@ -85,10 +85,10 @@ const RegisterWebauthn = function () {
 
     return (
         <LoginLayout title="Touch Security Key">
-            <div className={style.icon}>
+            <div className={styles.icon}>
                 <FingerTouchIcon size={64} animated />
             </div>
-            <Typography className={style.instruction}>Touch the token on your security key</Typography>
+            <Typography className={styles.instruction}>Touch the token on your security key</Typography>
             <Button color="primary" onClick={handleBackClick}>
                 Retry
             </Button>

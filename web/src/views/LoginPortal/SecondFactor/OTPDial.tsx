@@ -20,11 +20,11 @@ export interface Props {
 }
 
 const OTPDial = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
 
     return (
         <IconWithContext icon={<Icon state={props.state} period={props.period} />}>
-            <span className={style.otpInput} id="otp-input">
+            <span className={styles.otpInput} id="otp-input">
                 <OtpInput
                     shouldAutoFocus
                     onChange={props.onChange}
@@ -33,7 +33,10 @@ const OTPDial = function (props: Props) {
                     isDisabled={props.state === State.InProgress || props.state === State.Success}
                     isInputNum
                     hasErrored={props.state === State.Failure}
-                    inputStyle={classnames(style.otpDigitInput, props.state === State.Failure ? style.inputError : "")}
+                    inputStyle={classnames(
+                        styles.otpDigitInput,
+                        props.state === State.Failure ? styles.inputError : "",
+                    )}
                 />
             </span>
         </IconWithContext>

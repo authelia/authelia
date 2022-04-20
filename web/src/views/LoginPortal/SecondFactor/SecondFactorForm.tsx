@@ -36,7 +36,7 @@ export interface Props {
 }
 
 const SecondFactorForm = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
@@ -107,7 +107,7 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </Grid>
-                <Grid item xs={12} className={style.methodContainer}>
+                <Grid item xs={12} className={styles.methodContainer}>
                     <Routes>
                         <Route
                             path={SecondFactorTOTPSubRoute}

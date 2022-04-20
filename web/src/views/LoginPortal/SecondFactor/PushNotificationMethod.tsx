@@ -41,7 +41,7 @@ export interface Props {
 }
 
 const PushNotificationMethod = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
@@ -217,7 +217,7 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={fetchDuoDevicesFunc}
             onRegisterClick={() => window.open(enroll_url, "_blank")}
         >
-            <div className={style.icon}>{icon}</div>
+            <div className={styles.icon}>{icon}</div>
             <div className={state !== State.Failure ? "hidden" : ""}>
                 <Button color="secondary" onClick={signInFunc}>
                     Retry

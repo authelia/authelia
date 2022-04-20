@@ -19,7 +19,7 @@ export interface Props {
 }
 
 const MethodSelectionDialog = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const theme = useTheme();
     const { t: translate } = useTranslation();
 
@@ -28,7 +28,7 @@ const MethodSelectionDialog = function (props: Props) {
     );
 
     return (
-        <Dialog open={props.open} className={style.root} onClose={props.onClose}>
+        <Dialog open={props.open} className={styles.root} onClose={props.onClose}>
             <DialogContent>
                 <Grid container justifyContent="center" spacing={1} id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP) ? (

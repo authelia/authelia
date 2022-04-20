@@ -14,7 +14,7 @@ export interface Props {
 }
 
 const AuthenticatedView = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
@@ -30,7 +30,7 @@ const AuthenticatedView = function (props: Props) {
                         {translate("Logout")}
                     </Button>
                 </Grid>
-                <Grid item xs={12} className={style.mainContainer}>
+                <Grid item xs={12} className={styles.mainContainer}>
                     <Authenticated />
                 </Grid>
             </Grid>

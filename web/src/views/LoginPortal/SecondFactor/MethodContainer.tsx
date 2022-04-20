@@ -28,7 +28,7 @@ export interface Props {
 }
 
 const DefaultMethodContainer = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const { t: translate } = useTranslation();
     const registerMessage = props.registered
         ? props.title === "Push Notification"
@@ -57,8 +57,8 @@ const DefaultMethodContainer = function (props: Props) {
     return (
         <div id={props.id}>
             <Typography variant="h6">{props.title}</Typography>
-            <div className={classnames(style.container, stateClass)} id="2fa-container">
-                <div className={style.containerFlex}>{container}</div>
+            <div className={classnames(styles.container, stateClass)} id="2fa-container">
+                <div className={styles.containerFlex}>{container}</div>
             </div>
             {props.onSelectClick && props.registered ? (
                 <Link component="button" id="selection-link" onClick={props.onSelectClick} underline="hover">

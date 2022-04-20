@@ -27,7 +27,7 @@ export interface Props {
 }
 
 const FirstFactorForm = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
@@ -151,7 +151,7 @@ const FirstFactorForm = function (props: Props) {
                     />
                 </Grid>
                 {props.rememberMe ? (
-                    <Grid item xs={12} className={classnames(style.actionRow)}>
+                    <Grid item xs={12} className={classnames(styles.actionRow)}>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -173,7 +173,7 @@ const FirstFactorForm = function (props: Props) {
                                     color="primary"
                                 />
                             }
-                            className={style.rememberMe}
+                            className={styles.rememberMe}
                             label={translate("Remember me")}
                         />
                     </Grid>
@@ -191,12 +191,12 @@ const FirstFactorForm = function (props: Props) {
                     </Button>
                 </Grid>
                 {props.resetPassword ? (
-                    <Grid item xs={12} className={classnames(style.actionRow, style.flexEnd)}>
+                    <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
                         <Link
                             id="reset-password-button"
                             component="button"
                             onClick={handleResetPasswordClick}
-                            className={style.resetLink}
+                            className={styles.resetLink}
                             underline="hover"
                         >
                             {translate("Reset password?")}

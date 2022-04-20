@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-import { Box } from "@mui/material";
+import { Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
+import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
-import { StylesProperties } from "@models/StylesProperties";
 
 export interface Props {
     value: string;
@@ -101,9 +102,9 @@ const PasswordMeter = function (props: Props) {
 
     return (
         <div style={{ width: "100%" }}>
-            <Box
+            <div
                 title={feedback}
-                sx={styles.progressBar}
+                className={classnames(styles.progressBar)}
                 style={{
                     width: `${(passwordScore + 1) * (100 / maxScores)}%`,
                     backgroundColor: progressColor[passwordScore],
@@ -119,7 +120,7 @@ PasswordMeter.defaultProps = {
 
 export default PasswordMeter;
 
-const useStyles = (): StylesProperties => ({
+const useStyles = makeStyles((theme: Theme) => ({
     progressBar: {
         height: "5px",
         marginTop: "2px",
@@ -127,4 +128,4 @@ const useStyles = (): StylesProperties => ({
         width: "50%",
         transition: "width .5s linear",
     },
-});
+}));

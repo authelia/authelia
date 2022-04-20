@@ -17,7 +17,7 @@ export interface Props {}
 
 const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
-    const style = useStyles();
+    const styles = useStyles();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
     const redirector = useRedirector();
@@ -57,7 +57,7 @@ const SignOut = function (props: Props) {
 
     return (
         <LoginLayout title={translate("Sign out")}>
-            <Typography className={style.typo}>{translate("You're being signed out and redirected")}...</Typography>
+            <Typography className={styles.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </LoginLayout>
     );
 };

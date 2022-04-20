@@ -12,7 +12,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
-    const style = useStyles();
+    const styles = useStyles();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
@@ -43,7 +43,7 @@ const ResetPasswordStep1 = function () {
 
     return (
         <LoginLayout title={translate("Reset password")} id="reset-password-step1-stage">
-            <Grid container className={style.root} spacing={2}>
+            <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="username-textfield"
