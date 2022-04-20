@@ -16,7 +16,6 @@ specifiers:
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.1.1
   '@types/node': 16.11.27
-  '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.5
   '@types/react-dom': 18.0.1
   '@types/zxcvbn': 4.4.1
@@ -94,7 +93,6 @@ devDependencies:
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.1.1_react-dom@18.0.0+react@18.0.0
   '@types/node': 16.11.27
-  '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.5
   '@types/react-dom': 18.0.1
   '@types/zxcvbn': 4.4.1
@@ -2807,12 +2805,6 @@ packages:
 
   /@types/prop-types/15.7.4:
     resolution: {integrity: sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==}
-
-  /@types/qrcode.react/1.0.2:
-    resolution: {integrity: sha512-I9Oq5Cjlkgy3Tw7krCnCXLw2/zMhizkTere49OOcta23tkvH0xBTP0yInimTh0gstLRtb8Ki9NZVujE5UI6ffQ==}
-    dependencies:
-      '@types/react': 18.0.5
-    dev: true
 
   /@types/react-dom/18.0.1:
     resolution: {integrity: sha512-jCwTXvHtRLiyVvKm9aEdHXs8rflVOGd5Sl913JZrPshfXjn8NYsTNZOz70bCsA31IR0TOqwi3ad+X4tSCBoMTw==}

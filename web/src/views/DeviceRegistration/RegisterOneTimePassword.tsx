@@ -6,7 +6,7 @@ import { Typography, Button, IconButton, Link, CircularProgress, TextField, Them
 import { red } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
-import QRCode from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -104,7 +104,7 @@ const RegisterOneTimePassword = function () {
                 </div>
                 <div className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
                     <Link href={secretURL} underline="hover">
-                        <QRCode value={secretURL} className={styles.qrcode} size={256} />
+                        <QRCodeSVG value={secretURL} className={styles.qrcode} size={256} />
                         {!hasErrored && isLoading ? <CircularProgress className={styles.loader} size={128} /> : null}
                         {hasErrored ? <FontAwesomeIcon className={styles.failureIcon} icon={faTimesCircle} /> : null}
                     </Link>
