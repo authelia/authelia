@@ -6,7 +6,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20220407154329-46fb282896c8
+	github.com/duosecurity/duo_api_golang v0.0.0-20220418153707-d1ee6485238b
 	github.com/fasthttp/router v1.4.8
 	github.com/fasthttp/session/v2 v2.4.9
 	github.com/go-ldap/ldap/v3 v3.4.3
@@ -20,7 +20,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf v1.4.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/mitchellh/mapstructure v1.4.3
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ory/fosite v0.42.2
 	github.com/ory/herodot v0.9.13
 	github.com/otiai10/copy v1.7.0
