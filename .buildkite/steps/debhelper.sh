@@ -20,9 +20,9 @@ sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' -
 -e 's/CARCH/MAKEDEB_DPKG_ARCHITECTURE/g' PKGBUILD
 
 if [[ "${PACKAGE}" == "amd64" ]]; then
-  docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && makedeb"
+  docker run --rm -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 elif [[ "${PACKAGE}" == "armhf" ]]; then
-  docker run --rm --platform linux/arm/v7 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb -A"
+  docker run --rm --platform linux/arm/v7 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 else
   docker run --rm --platform linux/arm64 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 fi
