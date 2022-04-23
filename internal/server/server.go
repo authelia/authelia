@@ -87,7 +87,7 @@ func CreateServer(config schema.Configuration, providers middlewares.Providers) 
 }
 
 // CreateMetricsServer creates a metrics server.
-func CreateMetricsServer(config schema.ServerMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
+func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
 	if listener, err = config.Address.Listener(); err != nil {
 		return nil, nil, err
 	}

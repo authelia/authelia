@@ -78,7 +78,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	doStartupChecks(config, &providers)
 
 	if providers.Metrics != nil {
-		metricsServer, metricsListener, err := server.CreateMetricsServer(config.Server.Metrics)
+		metricsServer, metricsListener, err := server.CreateMetricsServer(config.Telemetry.Metrics)
 
 		switch err {
 		case nil:

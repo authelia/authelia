@@ -75,7 +75,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 	ppolicyProvider := middlewares.NewPasswordPolicyProvider(config.PasswordPolicy)
 
 	var metricsProvider metrics.Provider
-	if config.Server.Metrics.Enabled {
+	if config.Telemetry.Metrics.Enabled {
 		metricsProvider = metrics.NewPrometheus()
 	}
 

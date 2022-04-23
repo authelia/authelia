@@ -118,7 +118,7 @@ func (p *Prometheus) register() {
 	p.auth1FACounter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
-			Name:      "authentication_first_factor",
+			Name:      "authentication_first_factor_total",
 			Help:      "The number of 1FA authentications processed.",
 		},
 		[]string{"success", "banned"},
@@ -127,7 +127,7 @@ func (p *Prometheus) register() {
 	p.auth2FACounter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
-			Name:      "authentication_second_factor",
+			Name:      "authentication_second_factor_total",
 			Help:      "The number of 2FA authentications processed.",
 		},
 		[]string{"success", "banned", "method"},
