@@ -28,7 +28,7 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	if requester, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Authorization Request failed with error: %s", rfc.GetDescription())
+		ctx.Logger.Errorf("Authorization Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
 
@@ -107,7 +107,7 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, requester, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %s", requester.GetID(), clientID, rfc.GetDescription())
+		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
 
