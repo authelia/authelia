@@ -77,9 +77,26 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers)
 
-	s, listener := server.CreateServer(*config, providers)
+	if providers.Metrics != nil {
+		metricsServer, metricsListener, err := server.CreateMetricsServer(config.Server.Metrics)
 
-	logger.Fatal(s.Serve(listener))
+		switch err {
+		case nil:
+			providers.Metrics.Start()
+
+			go func() {
+				logger.Fatal(metricsServer.Serve(metricsListener))
+			}()
+		default:
+			providers.Metrics = nil
+
+			logger.Errorf("Failed to start metrics server: %v", err)
+		}
+	}
+
+	defaultServer, listener := server.CreateServer(*config, providers)
+
+	logger.Fatal(defaultServer.Serve(listener))
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {

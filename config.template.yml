@@ -68,6 +68,14 @@ server:
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
   disable_healthcheck: false
 
+  ## Metrics configures the Prometheus Metrics exporter.
+  metrics:
+    ## Enable Metrics.
+    enabled: false
+
+    ## The address to listen on for metrics. This should be on a different port to the main server.port value.
+    address: '0.0.0.0:9961'
+
   ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
   tls:
     ## The path to the DER base64/PEM format private key.

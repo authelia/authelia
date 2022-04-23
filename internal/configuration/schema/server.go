@@ -1,5 +1,9 @@
 package schema
 
+import (
+	"net"
+)
+
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
 	Host               string `koanf:"host"`
@@ -14,6 +18,13 @@ type ServerConfiguration struct {
 
 	TLS     ServerTLSConfiguration     `koanf:"tls"`
 	Headers ServerHeadersConfiguration `koanf:"headers"`
+	Metrics ServerMetricsConfig        `koanf:"metrics"`
+}
+
+// ServerMetricsConfig represents the server metrics.
+type ServerMetricsConfig struct {
+	Enabled bool    `koanf:"enabled"`
+	Address Address `koanf:"address"`
 }
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
@@ -34,4 +45,7 @@ var DefaultServerConfiguration = ServerConfiguration{
 	Port:            9091,
 	ReadBufferSize:  4096,
 	WriteBufferSize: 4096,
+	Metrics: ServerMetricsConfig{
+		Address: NewAddress("tcp", net.ParseIP("0.0.0.0"), 9961),
+	},
 }

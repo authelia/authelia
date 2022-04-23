@@ -359,3 +359,12 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 
 	fasthttp.ReleaseURI(u)
 }
+
+// RecordAuthentication records authentication metrics.
+func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method string) {
+	if ctx.Providers.Metrics == nil {
+		return
+	}
+
+	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
+}

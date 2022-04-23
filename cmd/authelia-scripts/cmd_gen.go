@@ -109,6 +109,7 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(regexp.Regexp{}),
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
+	reflect.TypeOf(schema.Address{}),
 }
 
 func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {

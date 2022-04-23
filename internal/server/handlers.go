@@ -9,8 +9,10 @@ import (
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -141,8 +143,10 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 
 	r.GET("/api/configuration/password-policy", middleware(handlers.PasswordPolicyConfigurationGet))
 
-	r.GET("/api/verify", middleware(handlers.VerifyGET(config.AuthenticationBackend)))
-	r.HEAD("/api/verify", middleware(handlers.VerifyGET(config.AuthenticationBackend)))
+	metricsVRMW := middlewares.NewMetricsVerifyRequestMiddleware(providers.Metrics)
+
+	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
 	r.POST("/api/checks/safe-redirection", middleware(handlers.CheckSafeRedirectionPOST))
 
@@ -303,5 +307,17 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		handler = middlewares.StripPathMiddleware(config.Server.Path, handler)
 	}
 
+	handler = middlewares.Wrap(middlewares.NewMetricsRequestMiddleware(providers.Metrics), handler)
+
 	return handler
+}
+
+func getMetricsHandler() fasthttp.RequestHandler {
+	r := router.New()
+
+	r.GET("/metrics", fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
+
+	r.HandleMethodNotAllowed = true
+
+	return r.Handler
 }

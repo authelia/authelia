@@ -15,21 +15,22 @@ import (
 )
 
 // CreateServer Create Authelia's internal webserver with the given configuration and providers.
-func CreateServer(config schema.Configuration, providers middlewares.Providers) (*fasthttp.Server, net.Listener) {
-	server := &fasthttp.Server{
+func CreateServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener) {
+	logger := logging.Logger()
+
+	handler := getHandler(config, providers)
+
+	server = &fasthttp.Server{
 		ErrorHandler:          handlerError(),
-		Handler:               getHandler(config, providers),
+		Handler:               handler,
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.ReadBufferSize,
 		WriteBufferSize:       config.Server.WriteBufferSize,
 	}
 
-	logger := logging.Logger()
-
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
 
 	var (
-		listener         net.Listener
 		err              error
 		connectionType   string
 		connectionScheme string
@@ -83,4 +84,19 @@ func CreateServer(config schema.Configuration, providers middlewares.Providers) 
 	}
 
 	return server, listener
+}
+
+// CreateMetricsServer creates a metrics server.
+func CreateMetricsServer(config schema.ServerMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
+	if listener, err = config.Address.Listener(); err != nil {
+		return nil, nil, err
+	}
+
+	server = &fasthttp.Server{
+		ErrorHandler:          handlerError(),
+		NoDefaultServerHeader: true,
+		Handler:               getMetricsHandler(),
+	}
+
+	return server, listener, nil
 }

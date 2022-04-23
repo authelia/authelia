@@ -57,6 +57,12 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 		config.Server.Port = schema.DefaultServerConfiguration.Port
 	}
 
+	if config.Server.Metrics.Enabled {
+		if config.Server.Metrics.Address.String() == "" {
+			config.Server.Metrics.Address = schema.DefaultServerConfiguration.Metrics.Address
+		}
+	}
+
 	ValidateServerTLS(config, validator)
 
 	switch {
