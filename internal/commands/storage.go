@@ -71,6 +71,7 @@ func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageUserIdentifiersExportCmd(),
 		newStorageUserIdentifiersImportCmd(),
+		newStorageUserIdentifiersGenerateCmd(),
 		newStorageUserIdentifiersAddCmd(),
 	)
 
@@ -97,6 +98,20 @@ func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML import")
+
+	return cmd
+}
+
+func newStorageUserIdentifiersGenerateCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "generate",
+		Short: "Generate opaque identifiers in bulk",
+		RunE:  storageUserIdentifiersGenerate,
+	}
+
+	cmd.Flags().StringSlice("users", nil, "The list of users to generate the opaque identifiers for")
+	cmd.Flags().StringSlice("services", []string{"openid_connect"}, "The list of services to generate the opaque identifiers for, valid values are: openid_connect")
+	cmd.Flags().StringSlice("sectors", []string{""}, "The list of services to generate the opaque identifiers for, valid values are: openid_connect")
 
 	return cmd
 }
