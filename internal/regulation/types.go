@@ -31,5 +31,5 @@ type Context interface {
 
 // MetricsRecorder represents the methods used to record regulation.
 type MetricsRecorder interface {
-	RecordAuthentication(success, banned bool, method string)
+	RecordAuthentication(success, banned bool, authType string)
 }

@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -45,9 +44,9 @@ func (p *Prometheus) RecordVerifyRequest(statusCode string) {
 }
 
 // RecordAuthentication takes the success and regulated booleans and a method string to record the authentication metrics.
-func (p *Prometheus) RecordAuthentication(success, banned bool, method string) {
-	switch method {
-	case "1FA", "":
+func (p *Prometheus) RecordAuthentication(success, banned bool, authType string) {
+	switch authType {
+	case "1fa", "":
 		if p.auth1FACounter == nil {
 			return
 		}
@@ -58,7 +57,7 @@ func (p *Prometheus) RecordAuthentication(success, banned bool, method string) {
 			return
 		}
 
-		p.auth2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), strings.ToLower(method)).Inc()
+		p.auth2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), authType).Inc()
 	}
 }
 

@@ -2,6 +2,7 @@ package regulation
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -23,7 +24,7 @@ func NewRegulator(config schema.RegulationConfiguration, provider storage.Regula
 // Mark an authentication attempt.
 // We split Mark and Regulate in order to avoid timing attacks.
 func (r *Regulator) Mark(ctx Context, successful, banned bool, username, requestURI, requestMethod, authType string) error {
-	ctx.RecordAuthentication(successful, banned, requestMethod)
+	ctx.RecordAuthentication(successful, banned, strings.ToLower(authType))
 
 	return r.storageProvider.AppendAuthenticationLog(ctx, model.AuthenticationAttempt{
 		Time:          r.clock.Now(),
