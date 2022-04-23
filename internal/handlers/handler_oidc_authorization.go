@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -62,14 +61,16 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 	userSession := ctx.GetSession()
 
-	var subject uuid.UUID
+	var subject model.NullUUID
 
-	if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
+	if userSession.Username != "" {
+		if subject.UUID, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
 
-		return
+			return
+		}
 	}
 
 	var (

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -17,10 +16,14 @@ import (
 )
 
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, subject model.NullUUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	if userSession.ConsentChallengeID != nil {
 		return handleOIDCAuthorizationConsentWithChallengeID(ctx, rootURI, client, userSession, rw, r, requester)
+	}
+
+	if !subject.Valid {
+		return handleOIDCAuthorizationConsentGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
 	}
 
 	return handleOIDCAuthorizationConsentOrGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
@@ -45,6 +48,24 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		}
 
 		return nil, true
+	}
+
+	if !consent.Subject.Valid {
+		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
+
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
+
+			return nil, true
+		}
+
+		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, *consent); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred updating consent session subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
+
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not update the consent session subject."))
+
+			return nil, true
+		}
 	}
 
 	if consent.Responded() {
@@ -85,7 +106,7 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 }
 
 func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, subject model.NullUUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		rows             *storage.ConsentSessionRows
@@ -93,7 +114,7 @@ func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, root
 		err              error
 	)
 
-	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionsPreConfigured(ctx, client.GetID(), subject); err != nil {
+	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionsPreConfigured(ctx, client.GetID(), subject.UUID); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 	}
 
@@ -118,6 +139,14 @@ func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, root
 	if consent != nil && consent.HasExactGrants(scopes, audience) && consent.CanGrant() {
 		return consent, false
 	}
+
+	return handleOIDCAuthorizationConsentGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
+}
+
+func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
+	userSession session.UserSession, subject model.NullUUID,
+	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	var err error
 
 	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
