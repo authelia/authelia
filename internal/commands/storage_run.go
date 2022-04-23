@@ -806,7 +806,11 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 		sectors = append(sectors, "")
 	}
 
-	var newIDs []model.UserOpaqueIdentifier
+	if !utils.IsStringSliceContainsAll(services, validIdentifierServices) {
+		return fmt.Errorf("one or more the service names '%s' is invalid, the valid values are: '%s'", strings.Join(services, "', '"), strings.Join(validIdentifierServices, "', '"))
+	}
+
+	var added, duplicates int
 
 	for _, service := range services {
 		for _, sector := range sectors {
@@ -818,6 +822,8 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 				}
 
 				if containsIdentifier(identifier, identifiers) {
+					duplicates++
+
 					continue
 				}
 
@@ -826,18 +832,16 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 					return fmt.Errorf("failed to generate a uuid: %w", err)
 				}
 
-				newIDs = append(newIDs, identifier)
+				if err = provider.SaveUserOpaqueIdentifier(ctx, identifier); err != nil {
+					return fmt.Errorf("failed to save identifier: %w", err)
+				}
+
+				added++
 			}
 		}
 	}
 
-	for _, id := range newIDs {
-		if err = provider.SaveUserOpaqueIdentifier(ctx, id); err != nil {
-			return fmt.Errorf("failed to save identifier: %w", err)
-		}
-	}
-
-	fmt.Printf("Successfully added %d opaque identifiers\n", len(newIDs))
+	fmt.Printf("Successfully added %d opaque identifiers and %d duplicates were skipped\n", added, duplicates)
 
 	return nil
 }
@@ -857,8 +861,8 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 
 	if service == "" {
 		service = identifierServiceOpenIDConnect
-	} else if service != identifierServiceOpenIDConnect {
-		return fmt.Errorf("the service name '%s' is invalid, the valid values are: 'openid_connect'", service)
+	} else if !utils.IsStringInSlice(service, validIdentifierServices) {
+		return fmt.Errorf("the service name '%s' is invalid, the valid values are: '%s'", service, strings.Join(validIdentifierServices, "', '"))
 	}
 
 	if sector, err = cmd.Flags().GetString("sector"); err != nil {
