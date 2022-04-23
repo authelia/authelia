@@ -31,6 +31,7 @@ module.exports = {
                 "golangci-lint",
                 "handlers",
                 "logging",
+                "metrics",
                 "middlewares",
                 "mocks",
                 "model",

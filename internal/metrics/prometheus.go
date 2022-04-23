@@ -113,6 +113,4 @@ func (p *Prometheus) register() {
 		},
 		[]string{"success", "banned", "method"},
 	)
-
-	prometheus.MustRegister(p.reqCounter, p.reqDuration, p.reqVerifyCounter, p.auth1FACounter, p.auth2FACounter)
 }
