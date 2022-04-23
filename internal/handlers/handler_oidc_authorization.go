@@ -71,6 +71,8 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 			return
 		}
+
+		subject.Valid = true
 	}
 
 	var (
