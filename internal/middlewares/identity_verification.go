@@ -24,7 +24,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		success := false
 
 		if delayFunc != nil {
-			defer delayFunc(ctx.Logger, requestTime, &success)
+			defer delayFunc(ctx, requestTime, &success)
 		}
 
 		identity, err := args.IdentityRetrieverFunc(ctx)

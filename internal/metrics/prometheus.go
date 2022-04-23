@@ -17,6 +17,7 @@ func NewPrometheus() (provider *Prometheus) {
 
 // Prometheus is a middleware for recording prometheus metrics.
 type Prometheus struct {
+	authDuration     *prometheus.HistogramVec
 	reqDuration      *prometheus.HistogramVec
 	reqCounter       *prometheus.CounterVec
 	reqVerifyCounter *prometheus.CounterVec
@@ -61,12 +62,31 @@ func (p *Prometheus) RecordAuthentication(success, banned bool, authType string)
 	}
 }
 
+// RecordAuthenticationDuration takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
+func (p *Prometheus) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
+	if p.authDuration == nil {
+		return
+	}
+
+	p.authDuration.WithLabelValues(strconv.FormatBool(success)).Observe(elapsed.Seconds())
+}
+
 // Start the metrics recording process.
 func (p *Prometheus) Start() {
 	p.register()
 }
 
 func (p *Prometheus) register() {
+	p.authDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Subsystem: "authelia",
+			Name:      "authentication_duration_seconds",
+			Help:      "The time an authentication attempt takes in seconds.",
+			Buckets:   []float64{.0005, .00075, .001, .005, .01, .025, .05, .075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 5, 10, 15, 30, 60},
+		},
+		[]string{"success"},
+	)
+
 	p.reqDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Subsystem: "authelia",
@@ -101,7 +121,7 @@ func (p *Prometheus) register() {
 			Name:      "authentication_first_factor",
 			Help:      "The number of 1FA authentications processed.",
 		},
-		[]string{"success", "regulated"},
+		[]string{"success", "banned"},
 	)
 
 	p.auth2FACounter = promauto.NewCounterVec(

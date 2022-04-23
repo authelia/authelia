@@ -150,7 +150,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 
 	r.POST("/api/checks/safe-redirection", middleware(handlers.CheckSafeRedirectionPOST))
 
-	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second)
+	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
 
 	r.POST("/api/firstfactor", middleware(handlers.FirstFactorPOST(delayFunc)))
 	r.POST("/api/logout", middleware(handlers.LogoutPOST))
