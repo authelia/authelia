@@ -62,6 +62,8 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 			return nil, true
 		}
 
+		consent.Subject.Valid = true
+
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, *consent); err != nil {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred updating consent session subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
 
