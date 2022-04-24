@@ -406,8 +406,7 @@ func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent mode
 
 // SaveOAuth2ConsentSessionSubject updates an OAuth2.0 consent session with the subject.
 func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionSubject, consent.Subject, consent.ID)
-	if err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionSubject, consent.Subject, consent.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session subject with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject, err)
 	}
 
@@ -416,8 +415,7 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, conse
 
 // SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session with the response.
 func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, authorized bool) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.ExpiresAt, consent.GrantedScopes, consent.GrantedAudience, consent.ID)
-	if err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.ExpiresAt, consent.GrantedScopes, consent.GrantedAudience, consent.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session (authorized  '%t') with id '%d' and challenge id '%s' for subject '%s': %w", authorized, consent.ID, consent.ChallengeID, consent.Subject, err)
 	}
 
