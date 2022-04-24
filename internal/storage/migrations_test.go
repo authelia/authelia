@@ -32,10 +32,10 @@ func TestShouldObtainCorrectDownMigrations(t *testing.T) {
 	migrations, err := loadMigrations(providerSQLite, ver, 0)
 	require.NoError(t, err)
 
-	assert.Len(t, migrations, ver-1)
+	assert.Len(t, migrations, ver)
 
 	for i := 0; i < len(migrations); i++ {
-		assert.Equal(t, ver-(i+1), migrations[i].Version)
+		assert.Equal(t, ver-i, migrations[i].Version)
 	}
 }
 

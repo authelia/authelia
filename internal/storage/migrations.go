@@ -155,7 +155,7 @@ func skipMigration(providerName string, up bool, target, prior int, migration *m
 			return true
 		}
 
-		if migration.Version <= target || migration.Version >= prior {
+		if migration.Version <= target || migration.Version > prior {
 			// Skip the migration if we want to go down and the migration version is less than or equal to the target
 			// or greater than the previous version.
 			return true
