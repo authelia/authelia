@@ -71,6 +71,7 @@ func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageUserIdentifiersExportCmd(),
 		newStorageUserIdentifiersImportCmd(),
+		newStorageUserIdentifiersGenerateCmd(),
 		newStorageUserIdentifiersAddCmd(),
 	)
 
@@ -101,6 +102,20 @@ func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
+func newStorageUserIdentifiersGenerateCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "generate",
+		Short: "Generate opaque identifiers in bulk",
+		RunE:  storageUserIdentifiersGenerate,
+	}
+
+	cmd.Flags().StringSlice("users", nil, "The list of users to generate the opaque identifiers for")
+	cmd.Flags().StringSlice("services", []string{identifierServiceOpenIDConnect}, "The list of services to generate the opaque identifiers for, valid values are: openid")
+	cmd.Flags().StringSlice("sectors", []string{""}, "The list of sectors to generate identifiers for")
+
+	return cmd
+}
+
 func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "add [username]",
@@ -110,7 +125,7 @@ func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().String("identifier", "", "The optional version 4 UUID to use, if not set a random one will be used")
-	cmd.Flags().String("service", identifierServiceOpenIDConnect, "The service to add the identifier for, valid values are: openid_connect")
+	cmd.Flags().String("service", identifierServiceOpenIDConnect, "The service to add the identifier for, valid values are: openid")
 	cmd.Flags().String("sector", "", "The sector identifier to use (should usually be blank)")
 
 	return cmd

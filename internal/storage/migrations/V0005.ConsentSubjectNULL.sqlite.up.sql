@@ -2,6 +2,10 @@ PRAGMA foreign_keys=off;
 
 BEGIN TRANSACTION;
 
+DELETE FROM oauth2_consent_session WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
+DELETE FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect');
+DELETE FROM user_opaque_identifier WHERE service <> 'openid';
+
 ALTER TABLE oauth2_consent_session RENAME TO _bkp_UP_V0005_oauth2_consent_session;
 
 CREATE TABLE IF NOT EXISTS oauth2_consent_session (
@@ -25,8 +29,8 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-INSERT INTO oauth2_consent_session (id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
-SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+INSERT INTO oauth2_consent_session (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
+SELECT challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
 FROM _bkp_UP_V0005_oauth2_consent_session
 ORDER BY id;
 
@@ -63,8 +67,8 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-INSERT INTO oauth2_authorization_code_session (id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
-SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
+INSERT INTO oauth2_authorization_code_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_authorization_code_session
 ORDER BY id;
 
@@ -105,8 +109,8 @@ CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-INSERT INTO oauth2_access_token_session (id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
-SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
+INSERT INTO oauth2_access_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_access_token_session
 ORDER BY id;
 
@@ -147,8 +151,8 @@ CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-INSERT INTO oauth2_refresh_token_session (id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
-SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
+INSERT INTO oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_refresh_token_session
 ORDER BY id;
 
@@ -189,8 +193,8 @@ CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-INSERT INTO oauth2_pkce_request_session (id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
-SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
+INSERT INTO oauth2_pkce_request_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_pkce_request_session
 ORDER BY id;
 
@@ -231,8 +235,8 @@ CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-INSERT INTO oauth2_openid_connect_session (id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
-SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
+INSERT INTO oauth2_openid_connect_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_openid_connect_session
 ORDER BY id;
 
