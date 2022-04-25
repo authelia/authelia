@@ -412,9 +412,9 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=webauthn", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
-	s.Assert().Contains(output, "Error: the service name 'webauthn' is invalid, the valid values are: 'openid_connect'")
+	s.Assert().Contains(output, "Error: the service name 'webauthn' is invalid, the valid values are: 'openid'")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid_connect\n\tSector: \n\tUsername: john\n\tIdentifier: 1097c8f8-83f2-4506-8138-5f40e83a1285\n\n")
 
@@ -434,27 +434,27 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: must specify a file that doesn't exist but '/tmp/out/1.yml' exists")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: error inserting user opaque id for user 'john' with opaque id '1097c8f8-83f2-4506-8138-5f40e83a1285':")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector=''", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector=''", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: error inserting user opaque id for user 'john' with opaque id")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector='openidconnect.com'", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='openidconnect.com'", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: error inserting user opaque id for user 'john' with opaque id '1097c8f8-83f2-4506-8138-5f40e83a1285':")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector='openidconnect.net'", "--identifier=b0e17f48-933c-4cba-8509-ee9bfadf8ce5", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='openidconnect.net'", "--identifier=b0e17f48-933c-4cba-8509-ee9bfadf8ce5", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid_connect\n\tSector: openidconnect.net\n\tUsername: john\n\tIdentifier: b0e17f48-933c-4cba-8509-ee9bfadf8ce5\n\n")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector='bad-uuid.com'", "--identifier=d49564dc-b7a1-11ec-8429-fcaa147128ea", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=d49564dc-b7a1-11ec-8429-fcaa147128ea", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: the identifier providerd 'd49564dc-b7a1-11ec-8429-fcaa147128ea' is a version 1 UUID but only version 4 UUID's accepted as identifiers")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid_connect", "--sector='bad-uuid.com'", "--identifier=asdmklasdm", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=asdmklasdm", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Contains(output, "Error: the identifier provided 'asdmklasdm' is invalid as it must be a version 4 UUID but parsing it had an error: invalid UUID length: 10")
 
