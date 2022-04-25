@@ -2,6 +2,9 @@ PRAGMA foreign_keys=off;
 
 BEGIN TRANSACTION;
 
+DELETE FROM oauth2_consent_session WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
+DELETE FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect');
+
 ALTER TABLE oauth2_consent_session RENAME TO _bkp_UP_V0005_oauth2_consent_session;
 
 CREATE TABLE IF NOT EXISTS oauth2_consent_session (
