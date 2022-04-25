@@ -416,7 +416,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid_connect\n\tSector: \n\tUsername: john\n\tIdentifier: 1097c8f8-83f2-4506-8138-5f40e83a1285\n\n")
+	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid\n\tSector: \n\tUsername: john\n\tIdentifier: 1097c8f8-83f2-4506-8138-5f40e83a1285\n\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/a/no/path/fileout.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
@@ -448,7 +448,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='openidconnect.net'", "--identifier=b0e17f48-933c-4cba-8509-ee9bfadf8ce5", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid_connect\n\tSector: openidconnect.net\n\tUsername: john\n\tIdentifier: b0e17f48-933c-4cba-8509-ee9bfadf8ce5\n\n")
+	s.Assert().Contains(output, "Added User Opaque Identifier:\n\tService: openid\n\tSector: openidconnect.net\n\tUsername: john\n\tIdentifier: b0e17f48-933c-4cba-8509-ee9bfadf8ce5\n\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=d49564dc-b7a1-11ec-8429-fcaa147128ea", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
@@ -471,7 +471,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Assert().Equal("1097c8f8-83f2-4506-8138-5f40e83a1285", export.Identifiers[0].Identifier.String())
 	s.Assert().Equal("john", export.Identifiers[0].Username)
 	s.Assert().Equal("", export.Identifiers[0].SectorID)
-	s.Assert().Equal("openid_connect", export.Identifiers[0].Service)
+	s.Assert().Equal("openid", export.Identifiers[0].Service)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file=/tmp/out/2.yml", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
@@ -490,13 +490,13 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Assert().Equal("1097c8f8-83f2-4506-8138-5f40e83a1285", export.Identifiers[0].Identifier.String())
 	s.Assert().Equal("john", export.Identifiers[0].Username)
 	s.Assert().Equal("", export.Identifiers[0].SectorID)
-	s.Assert().Equal("openid_connect", export.Identifiers[0].Service)
+	s.Assert().Equal("openid", export.Identifiers[0].Service)
 
 	s.Assert().Equal(2, export.Identifiers[1].ID)
 	s.Assert().Equal("b0e17f48-933c-4cba-8509-ee9bfadf8ce5", export.Identifiers[1].Identifier.String())
 	s.Assert().Equal("john", export.Identifiers[1].Username)
 	s.Assert().Equal("openidconnect.net", export.Identifiers[1].SectorID)
-	s.Assert().Equal("openid_connect", export.Identifiers[1].Service)
+	s.Assert().Equal("openid", export.Identifiers[1].Service)
 }
 
 func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
