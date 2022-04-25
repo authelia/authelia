@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base32"
 	"errors"
 	"fmt"
@@ -759,6 +760,92 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
+func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []model.UserOpaqueIdentifier) bool {
+	for i := 0; i < len(identifiers); i++ {
+		if identifier.Service == identifiers[i].Service && identifier.SectorID == identifiers[i].SectorID && identifier.Username == identifiers[i].Username {
+			return true
+		}
+	}
+
+	return false
+}
+
+func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		users, services, sectors []string
+	)
+
+	provider = getStorageProvider()
+
+	identifiers, err := provider.LoadUserOpaqueIdentifiers(ctx)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("can't load the existing identifiers: %w", err)
+	}
+
+	if users, err = cmd.Flags().GetStringSlice("users"); err != nil {
+		return err
+	}
+
+	if services, err = cmd.Flags().GetStringSlice("services"); err != nil {
+		return err
+	}
+
+	if sectors, err = cmd.Flags().GetStringSlice("sectors"); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		return fmt.Errorf("must supply at least one user")
+	}
+
+	if len(sectors) == 0 {
+		sectors = append(sectors, "")
+	}
+
+	if !utils.IsStringSliceContainsAll(services, validIdentifierServices) {
+		return fmt.Errorf("one or more the service names '%s' is invalid, the valid values are: '%s'", strings.Join(services, "', '"), strings.Join(validIdentifierServices, "', '"))
+	}
+
+	var added, duplicates int
+
+	for _, service := range services {
+		for _, sector := range sectors {
+			for _, username := range users {
+				identifier := model.UserOpaqueIdentifier{
+					Service:  service,
+					SectorID: sector,
+					Username: username,
+				}
+
+				if containsIdentifier(identifier, identifiers) {
+					duplicates++
+
+					continue
+				}
+
+				identifier.Identifier, err = uuid.NewRandom()
+				if err != nil {
+					return fmt.Errorf("failed to generate a uuid: %w", err)
+				}
+
+				if err = provider.SaveUserOpaqueIdentifier(ctx, identifier); err != nil {
+					return fmt.Errorf("failed to save identifier: %w", err)
+				}
+
+				added++
+			}
+		}
+	}
+
+	fmt.Printf("Successfully added %d opaque identifiers and %d duplicates were skipped\n", added, duplicates)
+
+	return nil
+}
+
 func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
@@ -774,8 +861,8 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 
 	if service == "" {
 		service = identifierServiceOpenIDConnect
-	} else if service != identifierServiceOpenIDConnect {
-		return fmt.Errorf("the service name '%s' is invalid, the valid values are: 'openid_connect'", service)
+	} else if !utils.IsStringInSlice(service, validIdentifierServices) {
+		return fmt.Errorf("the service name '%s' is invalid, the valid values are: '%s'", service, strings.Join(validIdentifierServices, "', '"))
 	}
 
 	if sector, err = cmd.Flags().GetString("sector"); err != nil {

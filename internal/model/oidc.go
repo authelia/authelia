@@ -17,7 +17,7 @@ import (
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
-func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+func NewOAuth2ConsentSession(subject NullUUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
 		Subject:           subject,
@@ -86,7 +86,7 @@ type OAuth2ConsentSession struct {
 	ID          int       `db:"id"`
 	ChallengeID uuid.UUID `db:"challenge_id"`
 	ClientID    string    `db:"client_id"`
-	Subject     uuid.UUID `db:"subject"`
+	Subject     NullUUID  `db:"subject"`
 
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`

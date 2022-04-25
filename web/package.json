@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.35.0",
+  "version": "4.35.1",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "6.1.1",
@@ -138,7 +138,7 @@
     "@vitejs/plugin-react": "1.3.1",
     "esbuild": "0.14.38",
     "esbuild-jest": "0.5.0",
-    "eslint": "8.13.0",
+    "eslint": "8.14.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.5",
