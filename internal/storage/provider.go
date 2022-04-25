@@ -47,6 +47,7 @@ type Provider interface {
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
 
 	SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
 	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, rejection bool) (err error)
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)
