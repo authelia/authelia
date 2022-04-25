@@ -518,6 +518,20 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionResponse(arg0, arg1, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionResponse", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionResponse), arg0, arg1, arg2)
 }
 
+// SaveOAuth2ConsentSessionSubject mocks base method.
+func (m *MockStorage) SaveOAuth2ConsentSessionSubject(arg0 context.Context, arg1 model.OAuth2ConsentSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionSubject", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2ConsentSessionSubject indicates an expected call of SaveOAuth2ConsentSessionSubject.
+func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionSubject(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionSubject", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionSubject), arg0, arg1)
+}
+
 // SaveOAuth2Session mocks base method.
 func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 model.OAuth2Session) error {
 	m.ctrl.T.Helper()
