@@ -4,6 +4,7 @@ BEGIN TRANSACTION;
 
 DELETE FROM oauth2_consent_session WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
 DELETE FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect');
+DELETE FROM user_opaque_identifier WHERE service <> 'openid';
 
 ALTER TABLE oauth2_consent_session RENAME TO _bkp_UP_V0005_oauth2_consent_session;
 
