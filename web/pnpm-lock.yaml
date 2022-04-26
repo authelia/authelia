@@ -52,7 +52,7 @@ specifiers:
   react-router-dom: 6.3.0
   react-test-renderer: 18.0.0
   typescript: 4.6.3
-  vite: 2.9.5
+  vite: 2.9.6
   vite-plugin-eslint: 1.6.0
   vite-plugin-istanbul: 2.7.1
   vite-plugin-svgr: 1.1.0
@@ -114,11 +114,11 @@ devDependencies:
   prettier: 2.6.2
   react-test-renderer: 18.0.0_react@18.0.0
   typescript: 4.6.3
-  vite: 2.9.5
-  vite-plugin-eslint: 1.6.0_eslint@8.14.0+vite@2.9.5
+  vite: 2.9.6
+  vite-plugin-eslint: 1.6.0_eslint@8.14.0+vite@2.9.6
   vite-plugin-istanbul: 2.7.1
-  vite-plugin-svgr: 1.1.0_vite@2.9.5
-  vite-tsconfig-paths: 3.4.1_vite@2.9.5
+  vite-plugin-svgr: 1.1.0_vite@2.9.6
+  vite-tsconfig-paths: 3.4.1_vite@2.9.6
 
 packages:
 
@@ -7301,14 +7301,6 @@ packages:
       glob: 7.2.0
     dev: true
 
-  /rollup/2.70.1:
-    resolution: {integrity: sha512-CRYsI5EuzLbXdxC6RnYhOuRdtz4bhejPMSWjsFLfVM/7w/85n2szZv6yExqUXsBdz5KT8eoubeyDUDjhLHEslA==}
-    engines: {node: '>=10.0.0'}
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
   /rollup/2.70.2:
     resolution: {integrity: sha512-EitogNZnfku65I1DD5Mxe8JYRUCy0hkK5X84IlDtUs+O6JRMpRciXTzyCUuX11b5L5pvjH+OmFXiQ3XjabcXgg==}
     engines: {node: '>=10.0.0'}
@@ -8077,7 +8069,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.6.0_eslint@8.14.0+vite@2.9.5:
+  /vite-plugin-eslint/1.6.0_eslint@8.14.0+vite@2.9.6:
     resolution: {integrity: sha512-knoNx2jksnqSO645OGgA++xQigTfA+CgvoeJV6554y5DOc+mXbwUm4oR6ijycsD5IrPMDEnwj3NqnFTgjAAJCQ==}
     peerDependencies:
       eslint: '>=7'
@@ -8086,7 +8078,7 @@ packages:
       '@rollup/pluginutils': 4.2.1
       eslint: 8.14.0
       rollup: 2.70.2
-      vite: 2.9.5
+      vite: 2.9.6
     dev: true
 
   /vite-plugin-istanbul/2.7.1:
@@ -8099,18 +8091,18 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/1.1.0_vite@2.9.5:
+  /vite-plugin-svgr/1.1.0_vite@2.9.6:
     resolution: {integrity: sha512-fuwfRpUoMBX3wr47JVt4b4xpMYujONDGyDwZFE4JuohVTJovJ4VCNeAb3//mzdRxdzeHEfJuedpoHTvwPsqisA==}
     peerDependencies:
       vite: ^2.6.0
     dependencies:
       '@svgr/core': 6.2.1
-      vite: 2.9.5
+      vite: 2.9.6
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.4.1_vite@2.9.5:
+  /vite-tsconfig-paths/3.4.1_vite@2.9.6:
     resolution: {integrity: sha512-SgK3/pnTuJ3i+gMSAWLR6VCPSw26bnxawrmXGvCDjJgk8MAQgmbCrFrAzfwbwZBXSqSuvWEuX04Wt73qJKx8fQ==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -8119,13 +8111,13 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.2
       tsconfig-paths: 3.14.1
-      vite: 2.9.5
+      vite: 2.9.6
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/2.9.5:
-    resolution: {integrity: sha512-dvMN64X2YEQgSXF1lYabKXw3BbN6e+BL67+P3Vy4MacnY+UzT1AfkHiioFSi9+uiDUiaDy7Ax/LQqivk6orilg==}
+  /vite/2.9.6:
+    resolution: {integrity: sha512-3IffdrByHW95Yjv0a13TQOQfJs7L5dVlSPuTt432XLbRMriWbThqJN2k/IS6kXn5WY4xBLhK9XoaWay1B8VzUw==}
     engines: {node: '>=12.2.0'}
     hasBin: true
     peerDependencies:
@@ -8143,7 +8135,7 @@ packages:
       esbuild: 0.14.38
       postcss: 8.4.12
       resolve: 1.22.0
-      rollup: 2.70.1
+      rollup: 2.70.2
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
