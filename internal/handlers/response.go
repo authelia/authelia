@@ -68,6 +68,8 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	consent.Subject.Valid = true
+
 	var preConsent *model.OAuth2ConsentSession
 
 	if preConsent, err = getOIDCPreConfiguredConsentFromClientAndConsent(ctx, client, consent); err != nil {
