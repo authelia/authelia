@@ -13,7 +13,7 @@ type LDAPConnection interface {
 
 	Search(searchRequest *ldap.SearchRequest) (*ldap.SearchResult, error)
 	Modify(modifyRequest *ldap.ModifyRequest) error
-	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (*ldap.PasswordModifyResult, error)
+	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (result *ldap.PasswordModifyResult, err error)
 	StartTLS(config *tls.Config) error
 }
 
@@ -48,9 +48,8 @@ func (lc *LDAPConnectionImpl) Modify(modifyRequest *ldap.ModifyRequest) error {
 }
 
 // PasswordModify modifies an ldap objects password.
-func (lc *LDAPConnectionImpl) PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) error {
-	_, err := lc.conn.PasswordModify(pwdModifyRequest)
-	return err
+func (lc *LDAPConnectionImpl) PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (result *ldap.PasswordModifyResult, err error) {
+	return lc.conn.PasswordModify(pwdModifyRequest)
 }
 
 // StartTLS requests the LDAP server upgrades to TLS encryption.

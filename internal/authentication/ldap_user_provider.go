@@ -43,21 +43,21 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(configuration schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
-	provider = newLDAPUserProvider(*configuration.LDAP, configuration.DisableResetPassword, certPool, nil)
+func NewLDAPUserProvider(config schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
+	provider = newLDAPUserProvider(*config.LDAP, config.DisableResetPassword, certPool, nil)
 
 	return provider
 }
 
-func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
-	if configuration.TLS == nil {
-		configuration.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPConnectionFactory) (provider *LDAPUserProvider) {
+	if config.TLS == nil {
+		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
 
-	tlsConfig := utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool)
+	tlsConfig := utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool)
 
 	var dialOpts = []ldap.DialOpt{
-		ldap.DialWithDialer(&net.Dialer{Timeout: configuration.Timeout}),
+		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
 	}
 
 	if tlsConfig != nil {
@@ -69,7 +69,7 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	}
 
 	provider = &LDAPUserProvider{
-		configuration:        configuration,
+		configuration:        config,
 		tlsConfig:            tlsConfig,
 		dialOpts:             dialOpts,
 		log:                  logging.Logger(),
@@ -83,28 +83,32 @@ func newLDAPUserProvider(configuration schema.LDAPAuthenticationBackendConfigura
 	return provider
 }
 
-func (p *LDAPUserProvider) connect(userDN string, password string) (LDAPConnection, error) {
-	conn, err := p.connectionFactory.DialURL(p.configuration.URL, p.dialOpts...)
+func (p *LDAPUserProvider) connectCustom(url, userDN, password string, opts ...ldap.DialOpt) (conn LDAPConnection, err error) {
+	conn, err = p.connectionFactory.DialURL(url, opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	if p.configuration.StartTLS {
-		if err := conn.StartTLS(p.tlsConfig); err != nil {
+		if err = conn.StartTLS(p.tlsConfig); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := conn.Bind(userDN, password); err != nil {
+	if err = conn.Bind(userDN, password); err != nil {
 		return nil, err
 	}
 
 	return conn, nil
 }
 
+func (p *LDAPUserProvider) connect() (LDAPConnection, error) {
+	return p.connectCustom(p.configuration.URL, p.configuration.User, p.configuration.Password, p.dialOpts...)
+}
+
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password string) (bool, error) {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
+	conn, err := p.connect()
 	if err != nil {
 		return false, err
 	}
@@ -115,7 +119,7 @@ func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password stri
 		return false, err
 	}
 
-	userConn, err := p.connect(profile.DN, password)
+	userConn, err := p.connectCustom(p.configuration.URL, profile.DN, password, p.dialOpts...)
 	if err != nil {
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
@@ -230,7 +234,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 
 // GetDetails retrieve the groups a user belongs to.
 func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error) {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
+	conn, err := p.connect()
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +284,7 @@ func (p *LDAPUserProvider) GetDetails(inputUsername string) (*UserDetails, error
 
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword string) error {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
+	conn, err := p.connect()
 	if err != nil {
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
@@ -300,7 +304,28 @@ func (p *LDAPUserProvider) UpdatePassword(inputUsername string, newPassword stri
 			newPassword,
 		)
 
-		_, err = conn.PasswordModify(modifyRequest)
+		var result *ldap.PasswordModifyResult
+
+		result, err = conn.PasswordModify(modifyRequest)
+
+		if err != nil {
+			lerr, ok := err.(*ldap.Error)
+			if !ok || lerr.ResultCode != ldap.LDAPResultReferral {
+				break
+			}
+
+			p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", result.Referral)
+
+			rconn, rerr := p.connectCustom(result.Referral, p.configuration.User, p.configuration.Password, p.dialOpts...)
+			if rerr != nil {
+				p.log.Errorf("Failed to connect during referred password modify request: %v", rerr)
+				break
+			}
+
+			_, err = rconn.PasswordModify(modifyRequest)
+
+			rconn.Close()
+		}
 	case p.configuration.Implementation == schema.LDAPImplementationActiveDirectory:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 		utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)

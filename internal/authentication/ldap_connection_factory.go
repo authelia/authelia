@@ -18,11 +18,6 @@ func NewLDAPConnectionFactoryImpl() *LDAPConnectionFactoryImpl {
 }
 
 // DialURL creates a connection from an LDAP URL when successful.
-func (lcf *LDAPConnectionFactoryImpl) DialURL(addr string, opts ...ldap.DialOpt) (LDAPConnection, error) {
-	conn, err := ldap.DialURL(addr, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
+func (lcf *LDAPConnectionFactoryImpl) DialURL(addr string, opts ...ldap.DialOpt) (conn LDAPConnection, err error) {
+	return ldap.DialURL(addr, opts...)
 }

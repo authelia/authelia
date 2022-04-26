@@ -24,7 +24,9 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 
 	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
-			URL: "ldap://127.0.0.1:389",
+			URL:      "ldap://127.0.0.1:389",
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
 		},
 		false,
 		nil,
@@ -40,7 +42,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind)
 
-	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
+	_, err := ldapClient.connect()
 
 	require.NoError(t, err)
 }
@@ -54,7 +56,9 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
-			URL: "ldaps://127.0.0.1:389",
+			URL:      "ldaps://127.0.0.1:389",
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
 		},
 		false,
 		nil,
@@ -70,7 +74,7 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind)
 
-	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
+	_, err := ldapClient.connect()
 
 	require.NoError(t, err)
 }

@@ -10,7 +10,7 @@ import (
 
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
+	conn, err := p.connect()
 	if err != nil {
 		return err
 	}
