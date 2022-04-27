@@ -187,7 +187,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -196,6 +196,10 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 						{
 							Name:   ldapSupportedExtensionAttribute,
 							Values: []string{ldapOIDPasswdModifyExtension},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
 						},
 					},
 				},
@@ -212,7 +216,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 	assert.True(t, ldapClient.supportExtensionPasswdModify)
 }
 
-func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
+func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -244,7 +248,7 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -252,6 +256,72 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
+
+	err := ldapClient.StartupCheck()
+	assert.NoError(t, err)
+
+	assert.True(t, ldapClient.supportControlTypeMicrosoftServerPolicyHints)
+	assert.True(t, ldapClient.supportControlTypeMicrosoftServerPolicyHintsDeprecated)
+}
+
+func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
 							Values: []string{},
 						},
 					},
@@ -267,6 +337,8 @@ func TestShouldNotEnablePasswdModifyExtension(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
+	assert.False(t, ldapClient.supportControlTypeMicrosoftServerPolicyHints)
+	assert.False(t, ldapClient.supportControlTypeMicrosoftServerPolicyHintsDeprecated)
 }
 
 func TestShouldReturnCheckServerConnectError(t *testing.T) {
@@ -334,7 +406,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(nil, errors.New("could not perform the search"))
 
 	connClose := mockConn.EXPECT().Close()
@@ -688,7 +760,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -697,6 +769,10 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 						{
 							Name:   ldapSupportedExtensionAttribute,
 							Values: []string{ldapOIDPasswdModifyExtension},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
 						},
 					},
 				},
@@ -795,7 +871,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -803,6 +879,10 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
 							Values: []string{},
 						},
 					},
@@ -899,7 +979,7 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockConn.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -907,6 +987,10 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
 							Values: []string{},
 						},
 					},

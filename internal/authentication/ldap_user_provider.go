@@ -17,16 +17,18 @@ import (
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
-	config            schema.LDAPAuthenticationBackendConfiguration
-	tlsConfig         *tls.Config
-	dialOpts          []ldap.DialOpt
-	log               *logrus.Logger
-	connectionFactory LDAPConnectionFactory
+	config    schema.LDAPAuthenticationBackendConfiguration
+	tlsConfig *tls.Config
+	dialOpts  []ldap.DialOpt
+	log       *logrus.Logger
+	factory   LDAPConnectionFactory
 
 	disableResetPassword bool
 
 	// Automatically detected ldap features.
-	supportExtensionPasswdModify bool
+	supportExtensionPasswdModify                           bool
+	supportControlTypeMicrosoftServerPolicyHints           bool
+	supportControlTypeMicrosoftServerPolicyHintsDeprecated bool
 
 	// Dynamically generated users values.
 	usersBaseDN                 string
@@ -72,7 +74,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, d
 		tlsConfig:            tlsConfig,
 		dialOpts:             dialOpts,
 		log:                  logging.Logger(),
-		connectionFactory:    factory,
+		factory:              factory,
 		disableResetPassword: disableResetPassword,
 	}
 
@@ -194,16 +196,23 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 
 		err = p.pwdModify(conn, modifyRequest)
 	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
+		switch {
+		case p.supportControlTypeMicrosoftServerPolicyHints:
+			controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType})
+		case p.supportControlTypeMicrosoftServerPolicyHintsDeprecated:
+			controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType})
+		}
+
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
 		// The password needs to be enclosed in quotes
 		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
 		pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", password))
-		modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
+		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
 		err = conn.Modify(modifyRequest)
 	default:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
-		modifyRequest.Replace("userPassword", []string{password})
+		modifyRequest.Replace(ldapAttributeUserPassword, []string{password})
 
 		err = conn.Modify(modifyRequest)
 	}
@@ -220,7 +229,7 @@ func (p *LDAPUserProvider) connect() (LDAPConnection, error) {
 }
 
 func (p *LDAPUserProvider) connectCustom(url, userDN, password string, opts ...ldap.DialOpt) (conn LDAPConnection, err error) {
-	if conn, err = p.connectionFactory.DialURL(url, opts...); err != nil {
+	if conn, err = p.factory.DialURL(url, opts...); err != nil {
 		return nil, fmt.Errorf("dial failed with error: %w", err)
 	}
 

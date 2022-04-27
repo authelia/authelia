@@ -22,6 +22,17 @@ const (
 )
 
 const (
+	ldapSupportedControlAttribute                          = "supportedControl"
+	ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType = "1.2.840.113556.1.4.2066" // https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/4add7bce-e502-4e0f-9d69-1a3f153713e2
+	ldapOIDMicrosoftServerPolicyHintsControlType           = "1.2.840.113556.1.4.2239" // https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/49751d58-8115-4277-8faf-64c83a5f658f
+)
+
+const (
+	ldapAttributeUnicodePwd   = "unicodePwd"
+	ldapAttributeUserPassword = "userPassword"
+)
+
+const (
 	ldapPlaceholderInput             = "{input}"
 	ldapPlaceholderDistinguishedName = "{dn}"
 	ldapPlaceholderUsername          = "{username}"

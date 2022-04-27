@@ -22,7 +22,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	defer conn.Close()
 
 	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
+		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
 
 	if searchResult, err = conn.Search(searchRequest); err != nil {
 		return err
@@ -34,7 +34,19 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 
 	// Iterate the attribute values to see what the server supports.
 	for _, attr := range searchResult.Entries[0].Attributes {
-		if attr.Name == ldapSupportedExtensionAttribute {
+		switch attr.Name {
+		case ldapSupportedControlAttribute:
+			p.log.Tracef("LDAP Supported Control Type OIDs: %s", strings.Join(attr.Values, ", "))
+
+			for _, oid := range attr.Values {
+				switch oid {
+				case ldapOIDMicrosoftServerPolicyHintsControlType:
+					p.supportControlTypeMicrosoftServerPolicyHints = true
+				case ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType:
+					p.supportControlTypeMicrosoftServerPolicyHintsDeprecated = true
+				}
+			}
+		case ldapSupportedExtensionAttribute:
 			p.log.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
 
 			for _, oid := range attr.Values {
