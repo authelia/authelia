@@ -828,6 +828,354 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+	mockConnReferral := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			PermitReferrals:      true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	pwdModifyRequest := ldap.NewPasswordModifyRequest(
+		"uid=test,dc=example,dc=com",
+		"",
+		"password",
+	)
+
+	dialURLOIDs := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(mockConnReferral, nil)
+
+	connBindOIDs := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connBindReferral := mockConnReferral.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDPasswdModifyExtension},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	connCloseOIDs := mockConn.EXPECT().Close()
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	connCloseReferral := mockConnReferral.EXPECT().Close()
+
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	passwdModify := mockConn.EXPECT().
+		PasswordModify(pwdModifyRequest).
+		Return(&ldap.PasswordModifyResult{
+			Referral: "ldap://192.168.0.1",
+		}, &ldap.Error{
+			ResultCode: ldap.LDAPResultReferral,
+		})
+
+	passwdModifyReferral := mockConnReferral.EXPECT().
+		PasswordModify(pwdModifyRequest).
+		Return(nil, nil)
+
+	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, dialURLReferral, connBindReferral, passwdModifyReferral, connCloseReferral, connClose)
+
+	err := ldapClient.StartupCheck()
+	require.NoError(t, err)
+
+	err = ldapClient.UpdatePassword("john", "password")
+	require.NoError(t, err)
+}
+
+func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			Implementation:       "activedirectory",
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "sAMAccountName",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "cn={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+	pwdEncoded, _ := utf16.NewEncoder().String("\"password\"")
+
+	modifyRequest := ldap.NewModifyRequest(
+		"cn=test,dc=example,dc=com",
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+	)
+
+	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
+
+	dialURLOIDs := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBindOIDs := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	connCloseOIDs := mockConn.EXPECT().Close()
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "cn=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	passwdModify := mockConn.EXPECT().
+		Modify(modifyRequest).
+		Return(nil)
+
+	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
+
+	err := ldapClient.StartupCheck()
+	require.NoError(t, err)
+
+	err = ldapClient.UpdatePassword("john", "password")
+	require.NoError(t, err)
+}
+
+func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPConnectionFactory(ctrl)
+	mockConn := NewMockLDAPConnection(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			Implementation:       "activedirectory",
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "sAMAccountName",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "cn={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+	pwdEncoded, _ := utf16.NewEncoder().String("\"password\"")
+
+	modifyRequest := ldap.NewModifyRequest(
+		"cn=test,dc=example,dc=com",
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType}},
+	)
+
+	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
+
+	dialURLOIDs := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBindOIDs := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockConn.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	connCloseOIDs := mockConn.EXPECT().Close()
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockConn, nil)
+
+	connBind := mockConn.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockConn.EXPECT().Close()
+
+	searchProfile := mockConn.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "cn=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	passwdModify := mockConn.EXPECT().
+		Modify(modifyRequest).
+		Return(nil)
+
+	gomock.InOrder(dialURLOIDs, connBindOIDs, searchOIDs, connCloseOIDs, dialURL, connBind, searchProfile, passwdModify, connClose)
+
+	err := ldapClient.StartupCheck()
+	require.NoError(t, err)
+
+	err = ldapClient.UpdatePassword("john", "password")
+	require.NoError(t, err)
+}
+
 func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
