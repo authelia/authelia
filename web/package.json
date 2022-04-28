@@ -152,7 +152,7 @@
     "jest": "28.0.2",
     "jest-environment-jsdom": "28.0.2",
     "jest-transform-stub": "2.0.0",
-    "jest-watch-typeahead": "1.0.0",
+    "jest-watch-typeahead": "1.1.0",
     "prettier": "2.6.2",
     "react-test-renderer": "18.1.0",
     "typescript": "4.6.3",
