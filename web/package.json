@@ -149,7 +149,7 @@
     "eslint-plugin-react": "7.29.4",
     "eslint-plugin-react-hooks": "4.5.0",
     "husky": "7.0.4",
-    "jest": "27.5.1",
+    "jest": "28.0.2",
     "jest-transform-stub": "2.0.0",
     "jest-watch-typeahead": "1.0.0",
     "prettier": "2.6.2",
