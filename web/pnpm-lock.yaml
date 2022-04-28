@@ -20,7 +20,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': 5.21.0
   '@typescript-eslint/parser': 5.21.0
   '@vitejs/plugin-react': 1.3.1
-  axios: 0.27.1
+  axios: 0.27.2
   classnames: 2.3.1
   esbuild: 0.14.38
   esbuild-jest: 0.5.0
@@ -68,7 +68,7 @@ dependencies:
   '@material-ui/core': 4.12.4_47ae209ab5c2ea051c9a2540426c6b2f
   '@material-ui/icons': 4.11.3_a57fc03bc540fa91250de51c73a9121a
   '@material-ui/styles': 4.11.5_47ae209ab5c2ea051c9a2540426c6b2f
-  axios: 0.27.1
+  axios: 0.27.2
   classnames: 2.3.1
   i18next: 21.6.16
   i18next-browser-languagedetector: 6.1.4
@@ -3202,8 +3202,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios/0.27.1:
-    resolution: {integrity: sha512-ePNMai55xo5GsXajb/k756AqZqpqeDaGwGcdvbZLSSELbbYwsIn2jNmGfUPEwd8j/yu4OoMstLLIVa4t0MneEA==}
+  /axios/0.27.2:
+    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
       follow-redirects: 1.14.9
       form-data: 4.0.0
