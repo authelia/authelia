@@ -45,6 +45,9 @@ steps:
 
   - label: ":docker: Build Image [coverage]"
     command: "authelia-scripts docker build --container=coverage"
+    retry:
+      manual:
+        permit_on_passed: true
     agents:
       build: "linux-coverage"
     artifact_paths:
