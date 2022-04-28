@@ -171,7 +171,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the memeber is not
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 

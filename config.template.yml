@@ -313,7 +313,7 @@ authentication_backend:
     ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
     # display_name_attribute: displayName
 
-    ## Follow referrals returned by the server. This is especially useful for environments were read-only servers exist.
+    ## Follow referrals returned by the server. This is especially useful for environments where read-only servers exist.
     permit_referrals: false
 
     ## The username and password of the admin user.
