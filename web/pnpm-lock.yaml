@@ -1,8 +1,8 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@commitlint/cli': 16.2.3
-  '@commitlint/config-conventional': 16.2.1
+  '@commitlint/cli': 16.2.4
+  '@commitlint/config-conventional': 16.2.4
   '@fortawesome/fontawesome-svg-core': 6.1.1
   '@fortawesome/free-regular-svg-icons': 6.1.1
   '@fortawesome/free-solid-svg-icons': 6.1.1
@@ -84,8 +84,8 @@ dependencies:
   zxcvbn: 4.4.2
 
 devDependencies:
-  '@commitlint/cli': 16.2.3
-  '@commitlint/config-conventional': 16.2.1
+  '@commitlint/cli': 16.2.4
+  '@commitlint/config-conventional': 16.2.4
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.1.1_react-dom@18.1.0+react@18.1.0
   '@types/node': 16.11.31
@@ -1652,14 +1652,14 @@ packages:
       minimist: 1.2.6
     dev: true
 
-  /@commitlint/cli/16.2.3:
-    resolution: {integrity: sha512-VsJBQLvhhlOgEfxs/Z5liYuK0dXqLE5hz1VJzLBxiOxG31kL/X5Q4OvK292BmO7IGZcm1yJE3XQPWSiFaEHbWA==}
+  /@commitlint/cli/16.2.4:
+    resolution: {integrity: sha512-rbvqvz9JI+uiKxV2nH65BtSU01fsADd3bxe9fWtO3rM0c+CI/H9FfzKkDLvSRmXjvk1G2/wXlCGeqO9IBT4X9g==}
     engines: {node: '>=v12'}
     hasBin: true
     dependencies:
       '@commitlint/format': 16.2.1
-      '@commitlint/lint': 16.2.1
-      '@commitlint/load': 16.2.3
+      '@commitlint/lint': 16.2.4
+      '@commitlint/load': 16.2.4
       '@commitlint/read': 16.2.1
       '@commitlint/types': 16.2.1
       lodash: 4.17.21
@@ -1671,8 +1671,8 @@ packages:
       - '@swc/wasm'
     dev: true
 
-  /@commitlint/config-conventional/16.2.1:
-    resolution: {integrity: sha512-cP9gArx7gnaj4IqmtCIcHdRjTYdRUi6lmGE+lOzGGjGe45qGOS8nyQQNvkNy2Ey2VqoSWuXXkD8zCUh6EHf1Ww==}
+  /@commitlint/config-conventional/16.2.4:
+    resolution: {integrity: sha512-av2UQJa3CuE5P0dzxj/o/B9XVALqYzEViHrMXtDrW9iuflrqCStWBAioijppj9URyz6ONpohJKAtSdgAOE0gkA==}
     engines: {node: '>=v12'}
     dependencies:
       conventional-changelog-conventionalcommits: 4.6.3
@@ -1707,26 +1707,26 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@commitlint/is-ignored/16.2.1:
-    resolution: {integrity: sha512-exl8HRzTIfb1YvDJp2b2HU5z1BT+9tmgxR2XF0YEzkMiCIuEKh+XLeocPr1VcvAKXv3Cmv5X/OfNRp+i+/HIhQ==}
+  /@commitlint/is-ignored/16.2.4:
+    resolution: {integrity: sha512-Lxdq9aOAYCOOOjKi58ulbwK/oBiiKz+7Sq0+/SpFIEFwhHkIVugvDvWjh2VRBXmRC/x5lNcjDcYEwS/uYUvlYQ==}
     engines: {node: '>=v12'}
     dependencies:
       '@commitlint/types': 16.2.1
-      semver: 7.3.5
+      semver: 7.3.7
     dev: true
 
-  /@commitlint/lint/16.2.1:
-    resolution: {integrity: sha512-fNINQ3X2ZqsCkNB3Z0Z8ElmhewqrS3gy2wgBTx97BkcjOWiyPAGwDJ752hwrsUnWAVBRztgw826n37xPzxsOgg==}
+  /@commitlint/lint/16.2.4:
+    resolution: {integrity: sha512-AUDuwOxb2eGqsXbTMON3imUGkc1jRdtXrbbohiLSCSk3jFVXgJLTMaEcr39pR00N8nE9uZ+V2sYaiILByZVmxQ==}
     engines: {node: '>=v12'}
     dependencies:
-      '@commitlint/is-ignored': 16.2.1
+      '@commitlint/is-ignored': 16.2.4
       '@commitlint/parse': 16.2.1
-      '@commitlint/rules': 16.2.1
+      '@commitlint/rules': 16.2.4
       '@commitlint/types': 16.2.1
     dev: true
 
-  /@commitlint/load/16.2.3:
-    resolution: {integrity: sha512-Hb4OUlMnBUK6UxJEZ/VJ5k0LocIS7PtEMbRXEAA7eSpOgORIFexC4K/RaRpVd5UTtu3M0ST3ddPPijF9rdW6nw==}
+  /@commitlint/load/16.2.4:
+    resolution: {integrity: sha512-HjANm3/29ROV+zt4yfaY/K6gpr9Dbzgtlp0kSwZGW0poDXlD/yqVYgPQ6JolJzZii5FUz5R4yVLC15hVL/w60w==}
     engines: {node: '>=v12'}
     dependencies:
       '@commitlint/config-validator': 16.2.1
@@ -1781,8 +1781,8 @@ packages:
       resolve-global: 1.0.0
     dev: true
 
-  /@commitlint/rules/16.2.1:
-    resolution: {integrity: sha512-ZFezJXQaBBso+BOTre/+1dGCuCzlWVaeLiVRGypI53qVgPMzQqZhkCcrxBFeqB87qeyzr4A4EoG++IvITwwpIw==}
+  /@commitlint/rules/16.2.4:
+    resolution: {integrity: sha512-rK5rNBIN2ZQNQK+I6trRPK3dWa0MtaTN4xnwOma1qxa4d5wQMQJtScwTZjTJeallFxhOgbNOgr48AMHkdounVg==}
     engines: {node: '>=v12'}
     dependencies:
       '@commitlint/ensure': 16.2.1
@@ -2896,7 +2896,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.5
+      semver: 7.3.7
       tsutils: 3.21.0_typescript@4.6.3
       typescript: 4.6.3
     transitivePeerDependencies:
@@ -6032,7 +6032,7 @@ packages:
       jest-util: 28.0.2
       natural-compare: 1.4.0
       pretty-format: 28.0.2
-      semver: 7.3.5
+      semver: 7.3.7
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -6681,7 +6681,7 @@ packages:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.8.1
-      semver: 7.3.5
+      semver: 7.3.7
       validate-npm-package-license: 3.0.4
     dev: true
 
@@ -7499,6 +7499,14 @@ packages:
 
   /semver/7.3.5:
     resolution: {integrity: sha512-PoeGJYh8HK4BTO/a9Tf6ZG3veo/A7ZVsYrSA6J8ny9nb3B1VrpkuN+z9OE5wfE5p6H4LchYZsegiQgbJD94ZFQ==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      lru-cache: 6.0.0
+    dev: true
+
+  /semver/7.3.7:
+    resolution: {integrity: sha512-QlYTucUYOews+WeEujDoEGziz4K6c47V/Bd+LjSSYcA94p+DmINdf7ncaUinThfvZyu13lN9OY1XDxt8C0Tw0g==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
