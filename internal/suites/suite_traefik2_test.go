@@ -60,6 +60,10 @@ func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
+func (s *Traefik2Suite) TestXAlwaysFail() {
+	s.T().Fail()
+}
+
 func TestTraefik2Suite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
