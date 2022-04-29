@@ -3,6 +3,8 @@ version: '3'
 services:
   authelia-backend:
     image: authelia:dist
+    volumes:
+      - '../..:/authelia'
     labels:
       # Traefik 1.x
       - 'traefik.frontend.rule=Host:login.example.com;PathPrefix:/api,/locales'
@@ -13,9 +15,10 @@ services:
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
       - 'traefik.http.services.authelia_backend.passHostHeader=true'
-    volumes:
-      - '../..:/authelia'
+    healthcheck:
+      disable: true
     environment:
+      - AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
       - ENVIRONMENT=dev
     restart: always
     networks:

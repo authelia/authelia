@@ -28,7 +28,10 @@ services:
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
       - 'traefik.http.services.authelia_backend.loadbalancer.server.scheme=https'
+    healthcheck:
+      disable: true
     environment:
+      - AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
       - ENVIRONMENT=dev
     networks:
       authelianet:

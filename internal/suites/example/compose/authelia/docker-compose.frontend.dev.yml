@@ -22,7 +22,10 @@ services:
       - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'
+    healthcheck:
+      disable: true
     environment:
+      - AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
       - VITE_PUBLIC_URL=${PathPrefix}
     networks:
       - authelianet

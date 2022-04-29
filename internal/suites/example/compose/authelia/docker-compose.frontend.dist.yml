@@ -13,6 +13,10 @@ services:
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
       - 'traefik.http.routers.authelia_frontend.tls=true'
       - 'traefik.http.services.authelia_frontend.loadbalancer.server.port=3000'
+    healthcheck:
+      disable: true
+    environment:
+      - AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
     networks:
       - authelianet
     expose:
