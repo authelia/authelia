@@ -141,7 +141,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		0, 0, false, filter, p.groupsAttributes, nil,
 	)
 
-	if searchResult, err = conn.Search(searchRequest); err != nil {
+	if searchResult, err = p.search(conn, searchRequest); err != nil {
 		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
 	}
 
@@ -237,6 +237,42 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, opts ...l
 	return conn, nil
 }
 
+func (p *LDAPUserProvider) search(conn LDAPConnection, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
+	searchResult, err = conn.Search(searchRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	if !p.config.PermitReferrals {
+		return searchResult, nil
+	}
+
+	var (
+		connReferral         LDAPConnection
+		searchResultReferral *ldap.SearchResult
+	)
+
+	for i := 0; i < len(searchResult.Referrals); i++ {
+		if connReferral, err = p.connectCustom(searchResult.Referrals[i], p.config.User, p.config.Password, p.dialOpts...); err != nil {
+			p.log.Errorf("Error occurred following search result referreal when connnecting to '%s': %+v", searchResult.Referrals[i], err)
+
+			continue
+		}
+
+		if searchResultReferral, err = connReferral.Search(searchRequest); err != nil {
+			p.log.Errorf("Error occurred following search result referreal when searching on '%s': %+v", searchResult.Referrals[i], err)
+
+			continue
+		}
+
+		if len(searchResultReferral.Entries) != 0 {
+			searchResult.Entries = append(searchResult.Entries, searchResultReferral.Entries...)
+		}
+	}
+
+	return searchResult, nil
+}
+
 func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter string) {
 	filter = p.config.UsersFilter
 
@@ -259,24 +295,25 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 		1, 0, false, userFilter, p.usersAttributes, nil,
 	)
 
-	sr, err := conn.Search(searchRequest)
-	if err != nil {
+	var searchResult *ldap.SearchResult
+
+	if searchResult, err = p.search(conn, searchRequest); err != nil {
 		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", inputUsername, err)
 	}
 
-	if len(sr.Entries) == 0 {
+	if len(searchResult.Entries) == 0 {
 		return nil, ErrUserNotFound
 	}
 
-	if len(sr.Entries) > 1 {
+	if len(searchResult.Entries) > 1 {
 		return nil, fmt.Errorf("multiple users %s found", inputUsername)
 	}
 
 	userProfile := ldapUserProfile{
-		DN: sr.Entries[0].DN,
+		DN: searchResult.Entries[0].DN,
 	}
 
-	for _, attr := range sr.Entries[0].Attributes {
+	for _, attr := range searchResult.Entries[0].Attributes {
 		if attr.Name == p.config.DisplayNameAttribute {
 			userProfile.DisplayName = attr.Values[0]
 		}
@@ -329,8 +366,7 @@ func (p *LDAPUserProvider) pwdModify(conn LDAPConnection, mr *ldap.PasswordModif
 	var result *ldap.PasswordModifyResult
 
 	if result, err = conn.PasswordModify(mr); err != nil {
-		lerr, ok := err.(*ldap.Error)
-		if !ok || lerr.ResultCode != ldap.LDAPResultReferral || !p.config.PermitReferrals {
+		if !p.shouldLookupReferral(err) {
 			return err
 		}
 
@@ -349,6 +385,19 @@ func (p *LDAPUserProvider) pwdModify(conn LDAPConnection, mr *ldap.PasswordModif
 	}
 
 	return err
+}
+
+func (p *LDAPUserProvider) shouldLookupReferral(err error) bool {
+	if !p.config.PermitReferrals {
+		return false
+	}
+
+	lerr, ok := err.(*ldap.Error)
+	if !ok || lerr.ResultCode != ldap.LDAPResultReferral {
+		return false
+	}
+
+	return true
 }
 
 func ldapEscape(inputUsername string) string {
