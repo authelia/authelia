@@ -10,12 +10,18 @@ import (
 
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
-	err := usernameElement.Input(username)
-	require.NoError(t, err)
+
+	for i := 0; i < len(username); i++ {
+		_ = usernameElement.MustPress(rune(username[i]))
+	}
 
 	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	err = passwordElement.Input(password)
-	require.NoError(t, err)
+
+	for i := 0; i < len(password); i++ {
+		_ = passwordElement.MustPress(rune(password[i]))
+	}
+
+	var err error
 
 	if keepMeLoggedIn {
 		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
