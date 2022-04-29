@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -18,6 +19,18 @@ func init() {
 		"internal/suites/example/compose/smtp/docker-compose.yml",
 		"internal/suites/example/compose/httpbin/docker-compose.yml",
 	})
+
+	if os.Getenv("CI") == t {
+		dockerEnvironment = NewDockerEnvironment([]string{
+			"internal/suites/docker-compose.yml",
+			"internal/suites/HAProxy/docker-compose.yml",
+			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+			"internal/suites/example/compose/haproxy/docker-compose.yml",
+			"internal/suites/example/compose/smtp/docker-compose.yml",
+			"internal/suites/example/compose/httpbin/docker-compose.yml",
+		})
+	}
 
 	setup := func(suitePath string) error {
 		if err := dockerEnvironment.Up(); err != nil {
