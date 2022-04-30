@@ -288,6 +288,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://itjamie.com"><img src="https://avatars.githubusercontent.com/u/1613241?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jamie (Bear) Murphy </b></sub></a><br /><a href="https://github.com/authelia/authelia/pulls?q=is%3Apr+reviewed-by%3AITJamie" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/Beanow"><img src="https://avatars.githubusercontent.com/u/497556?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robin van Boven</b></sub></a><br /><a href="#security-Beanow" title="Security">🛡️</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="http://www.cybertrol.com"><img src="https://avatars.githubusercontent.com/u/1178293?v=4?s=100" width="100px;" alt=""/><br /><sub><b>alphabet5</b></sub></a><br /><a href="#ideas-alphabet5" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
