@@ -651,7 +651,7 @@
         "code",
         "translation"
       ]
-    }, 
+    },
     {
       "login": "protvis74",
       "name": "protvis74",
@@ -660,6 +660,7 @@
       "contributions": [
         "translation"
       ]
+    }
   ],
   "contributorsPerLine": 7
 }
