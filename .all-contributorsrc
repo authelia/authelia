@@ -669,6 +669,15 @@
       "contributions": [
         "review"
       ]
+    },
+    {
+      "login": "Beanow",
+      "name": "Robin van Boven",
+      "avatar_url": "https://avatars.githubusercontent.com/u/497556?v=4",
+      "profile": "https://github.com/Beanow",
+      "contributions": [
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7
