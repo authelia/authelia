@@ -60,12 +60,14 @@ func init() {
 
 		fmt.Println(backendLogs)
 
-		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
-		if err != nil {
-			return err
-		}
+		if os.Getenv("CI") != t {
+			frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
+			if err != nil {
+				return err
+			}
 
-		fmt.Println(frontendLogs)
+			fmt.Println(frontendLogs)
+		}
 
 		oidcClientLogs, err := dockerEnvironment.Logs("oidc-client", nil)
 		if err != nil {

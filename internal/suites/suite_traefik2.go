@@ -50,12 +50,28 @@ func init() {
 
 		fmt.Println(backendLogs)
 
-		frontendLogs, err := traefik2DockerEnvironment.Logs("authelia-frontend", nil)
+		if os.Getenv("CI") != t {
+			frontendLogs, err := traefik2DockerEnvironment.Logs("authelia-frontend", nil)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(frontendLogs)
+		}
+
+		redisLogs, err := traefik2DockerEnvironment.Logs("redis", nil)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(frontendLogs)
+		fmt.Println(redisLogs)
+
+		traefikLogs, err := traefik2DockerEnvironment.Logs("traefik", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(traefikLogs)
 
 		return nil
 	}
