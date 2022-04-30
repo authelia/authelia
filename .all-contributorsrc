@@ -660,6 +660,15 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "ITJamie",
+      "name": "Jamie (Bear) Murphy ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1613241?v=4",
+      "profile": "http://itjamie.com",
+      "contributions": [
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7
