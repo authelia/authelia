@@ -113,5 +113,9 @@ var (
 )
 
 const (
-	identifierServiceOpenIDConnect = "openid_connect"
+	identifierServiceOpenIDConnect = "openid"
+)
+
+var (
+	validIdentifierServices = []string{identifierServiceOpenIDConnect}
 )

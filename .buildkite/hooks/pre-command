@@ -10,6 +10,10 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.pnpm-store .
 fi
 
+if [[ "${BUILDKITE_STEP_KEY}" =~ build-deb-package-(arm64|armhf) && "${BUILDKITE_AGENT_NAME}" =~ sauron* ]]; then
+  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+fi
+
 if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
   buildkite-agent artifact download "authelia-linux-${ARCH}.tar.gz" .
 fi

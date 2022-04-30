@@ -1,4 +1,7 @@
 {
+  "constraints": {
+    "go": "1.17"
+  },
   "extends": [
     "config:base",
     ":semanticCommitTypeAll(build)",
@@ -55,6 +58,6 @@
     }
   ],
   "postUpdateOptions": [
-      "gomodTidy"
+      "gomodTidy1.17"
   ]
 }
