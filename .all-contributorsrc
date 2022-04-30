@@ -696,6 +696,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "adriang-90",
+      "name": "Adrian Gąsior",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60886162?v=4",
+      "profile": "https://github.com/adriang-90",
+      "contributions": [
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7
