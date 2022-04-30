@@ -290,6 +290,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="http://www.cybertrol.com"><img src="https://avatars.githubusercontent.com/u/1178293?v=4?s=100" width="100px;" alt=""/><br /><sub><b>alphabet5</b></sub></a><br /><a href="#ideas-alphabet5" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/rjmidau"><img src="https://avatars.githubusercontent.com/u/8134995?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robert Meredith</b></sub></a><br /><a href="#ideas-rjmidau" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
