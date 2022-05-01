@@ -8,6 +8,7 @@ services:
       - 'traefik.frontend.rule=Host:login.example.com'
       - 'traefik.protocol=https'
       # Traefik 2.x
+      - 'traefik.enable=true'
       - 'traefik.http.routers.authelia_backend.rule=Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.authelia_backend.entrypoints=https'
       - 'traefik.http.routers.authelia_backend.tls=true'
