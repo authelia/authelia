@@ -16,13 +16,13 @@ services:
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'  # yamllint disable-line rule:line-length
     command:
+      - '--accesslog=true'
       - '--api'
       - '--providers.docker=true'
       - '--entrypoints.https=true'
       - '--entrypoints.https.address=:8080'
       - '--log=true'
       - '--log.level=DEBUG'
-      - '--log.filepath=/var/log/traefik.log'
       - '--serversTransport.insecureSkipVerify=true'
     networks:
       authelianet:
