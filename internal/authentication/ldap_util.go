@@ -9,6 +9,10 @@ import (
 )
 
 func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
+	if needle == nil || len(haystack) == 0 {
+		return false
+	}
+
 	for i := 0; i < len(haystack); i++ {
 		if haystack[i].DN == needle.DN {
 			return true
@@ -34,6 +38,10 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 
 	switch e := err.(type) {
 	case *ldap.Error:
+		if e.Packet == nil {
+			return "", false
+		}
+
 		if len(e.Packet.Children) < 2 {
 			return "", false
 		}

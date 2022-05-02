@@ -9,6 +9,56 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestLDAPEntriesContainsEntry(t *testing.T) {
+	testCases := []struct {
+		description string
+		have        []*ldap.Entry
+		lookingFor  *ldap.Entry
+		expected    bool
+	}{
+		{
+			description: "ShouldNotMatchNil",
+			have: []*ldap.Entry{
+				{DN: "test"},
+			},
+			lookingFor: nil,
+			expected:   false,
+		},
+		{
+			description: "ShouldMatch",
+			have: []*ldap.Entry{
+				{DN: "test"},
+			},
+			lookingFor: &ldap.Entry{DN: "test"},
+			expected:   true,
+		},
+		{
+			description: "ShouldMatchWhenMultiple",
+			have: []*ldap.Entry{
+				{DN: "False"},
+				{DN: "test"},
+			},
+			lookingFor: &ldap.Entry{DN: "test"},
+			expected:   true,
+		},
+		{
+			description: "ShouldNotMatchDifferent",
+			have: []*ldap.Entry{
+				{DN: "False"},
+				{DN: "test"},
+			},
+			lookingFor: &ldap.Entry{DN: "not a result"},
+			expected:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.Equal(t, tc.expected, ldapEntriesContainsEntry(tc.lookingFor, tc.have))
+		})
+	}
+}
+
 func TestLDAPGetReferral(t *testing.T) {
 	testCases := []struct {
 		description      string
@@ -21,6 +71,12 @@ func TestLDAPGetReferral(t *testing.T) {
 			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: &testBERPacketReferral},
 			expectedReferral: "ldap://192.168.0.1",
 			expectedOK:       true,
+		},
+		{
+			description:      "ShouldNotGetNilPacket",
+			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: nil},
+			expectedReferral: "",
+			expectedOK:       false,
 		},
 		{
 			description:      "ShouldNotGetInvalidPacketWithNoObjectDescriptor",
