@@ -25,4 +25,22 @@ type ldapUserProfile struct {
 	Username    string
 }
 
+// LDAPSupportedFeatures represents features which a server may support which are implemented in code.
+type LDAPSupportedFeatures struct {
+	Extensions   LDAPSupportedExtensions
+	ControlTypes LDAPSupportedControlTypes
+}
+
+// LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
+type LDAPSupportedExtensions struct {
+	TLS           bool
+	PwdModifyExOp bool
+}
+
+// LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
+type LDAPSupportedControlTypes struct {
+	MsftPwdPolHints           bool
+	MsftPwdPolHintsDeprecated bool
+}
+
 var utf16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)

@@ -25,10 +25,8 @@ type LDAPUserProvider struct {
 
 	disableResetPassword bool
 
-	// Automatically detected ldap features.
-	supportExtensionPasswdModify                           bool
-	supportControlTypeMicrosoftServerPolicyHints           bool
-	supportControlTypeMicrosoftServerPolicyHintsDeprecated bool
+	// Automatically detected LDAP features.
+	features LDAPSupportedFeatures
 
 	// Dynamically generated users values.
 	usersBaseDN                 string
@@ -187,14 +185,14 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	var controls []ldap.Control
 
 	switch {
-	case p.supportControlTypeMicrosoftServerPolicyHints:
-		controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType})
-	case p.supportControlTypeMicrosoftServerPolicyHintsDeprecated:
-		controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType})
+	case p.features.ControlTypes.MsftPwdPolHints:
+		controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints})
+	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
+		controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHintsDeprecated})
 	}
 
 	switch {
-	case p.supportExtensionPasswdModify:
+	case p.features.Extensions.PwdModifyExOp:
 		pwdModifyRequest := ldap.NewPasswordModifyRequest(
 			profile.DN,
 			"",

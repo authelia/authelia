@@ -195,7 +195,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify, ldapOIDExtensionTransportLayerSecurity},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -213,7 +213,77 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 	err := ldapClient.StartupCheck()
 	assert.NoError(t, err)
 
-	assert.True(t, ldapClient.supportExtensionPasswdModify)
+	assert.True(t, ldapClient.features.Extensions.PwdModifyExOp)
+	assert.True(t, ldapClient.features.Extensions.TLS)
+
+	assert.False(t, ldapClient.features.ControlTypes.MsftPwdPolHints)
+	assert.False(t, ldapClient.features.ControlTypes.MsftPwdPolHintsDeprecated)
+}
+
+func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			UsersFilter:          "(|({username_attribute}={input})({mail_attribute}={input}))",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			Password:             "password",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	searchOIDs := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPasswdModify, ldapOIDExtensionTransportLayerSecurity},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+				{},
+			},
+		}, nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
+
+	err := ldapClient.StartupCheck()
+	assert.NoError(t, err)
+
+	assert.False(t, ldapClient.features.Extensions.PwdModifyExOp)
+	assert.False(t, ldapClient.features.Extensions.TLS)
+
+	assert.False(t, ldapClient.features.ControlTypes.MsftPwdPolHints)
+	assert.False(t, ldapClient.features.ControlTypes.MsftPwdPolHintsDeprecated)
 }
 
 func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
@@ -260,7 +330,7 @@ func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -274,8 +344,11 @@ func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
 	err := ldapClient.StartupCheck()
 	assert.NoError(t, err)
 
-	assert.True(t, ldapClient.supportControlTypeMicrosoftServerPolicyHints)
-	assert.True(t, ldapClient.supportControlTypeMicrosoftServerPolicyHintsDeprecated)
+	assert.False(t, ldapClient.features.Extensions.PwdModifyExOp)
+	assert.False(t, ldapClient.features.Extensions.TLS)
+
+	assert.True(t, ldapClient.features.ControlTypes.MsftPwdPolHints)
+	assert.True(t, ldapClient.features.ControlTypes.MsftPwdPolHintsDeprecated)
 }
 
 func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
@@ -336,9 +409,11 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
 	err := ldapClient.StartupCheck()
 	assert.NoError(t, err)
 
-	assert.False(t, ldapClient.supportExtensionPasswdModify)
-	assert.False(t, ldapClient.supportControlTypeMicrosoftServerPolicyHints)
-	assert.False(t, ldapClient.supportControlTypeMicrosoftServerPolicyHintsDeprecated)
+	assert.False(t, ldapClient.features.Extensions.PwdModifyExOp)
+	assert.False(t, ldapClient.features.Extensions.TLS)
+
+	assert.False(t, ldapClient.features.ControlTypes.MsftPwdPolHints)
+	assert.False(t, ldapClient.features.ControlTypes.MsftPwdPolHintsDeprecated)
 }
 
 func TestShouldReturnCheckServerConnectError(t *testing.T) {
@@ -371,7 +446,7 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 	err := ldapClient.StartupCheck()
 	assert.EqualError(t, err, "dial failed with error: could not connect")
 
-	assert.False(t, ldapClient.supportExtensionPasswdModify)
+	assert.False(t, ldapClient.features.Extensions.PwdModifyExOp)
 }
 
 func TestShouldReturnCheckServerSearchError(t *testing.T) {
@@ -416,7 +491,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 	err := ldapClient.StartupCheck()
 	assert.EqualError(t, err, "could not perform the search")
 
-	assert.False(t, ldapClient.supportExtensionPasswdModify)
+	assert.False(t, ldapClient.features.Extensions.PwdModifyExOp)
 }
 
 type SearchRequestMatcher struct {
@@ -945,7 +1020,7 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1012,7 +1087,7 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1181,7 +1256,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1208,7 +1283,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -1292,7 +1367,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1319,7 +1394,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -1420,7 +1495,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1447,7 +1522,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -1539,7 +1614,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1566,7 +1641,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -1671,7 +1746,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1698,7 +1773,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -1804,7 +1879,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1912,7 +1987,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2039,7 +2114,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2152,7 +2227,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2270,7 +2345,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDPasswdModifyExtension},
+							Values: []string{ldapOIDExtensionPasswdModify},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2383,7 +2458,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 
 	modifyRequest := ldap.NewModifyRequest(
 		"cn=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
@@ -2409,7 +2484,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsControlType, ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},
@@ -2494,7 +2569,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 
 	modifyRequest := ldap.NewModifyRequest(
 		"cn=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType}},
+		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHintsDeprecated}},
 	)
 
 	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
@@ -2520,7 +2595,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
-							Values: []string{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType},
+							Values: []string{ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
 						},
 					},
 				},

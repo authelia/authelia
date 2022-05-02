@@ -10,10 +10,7 @@ import (
 
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	var (
-		client       ldap.Client
-		searchResult *ldap.SearchResult
-	)
+	var client ldap.Client
 
 	if client, err = p.connect(); err != nil {
 		return err
@@ -21,44 +18,11 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 
 	defer client.Close()
 
-	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
-
-	if searchResult, err = client.Search(searchRequest); err != nil {
+	if p.features, err = p.getServerSupportedFeatures(client); err != nil {
 		return err
 	}
 
-	if len(searchResult.Entries) != 1 {
-		return nil
-	}
-
-	// Iterate the attribute values to see what the server supports.
-	for _, attr := range searchResult.Entries[0].Attributes {
-		switch attr.Name {
-		case ldapSupportedControlAttribute:
-			p.log.Tracef("LDAP Supported Control Type OIDs: %s", strings.Join(attr.Values, ", "))
-
-			for _, oid := range attr.Values {
-				switch oid {
-				case ldapOIDMicrosoftServerPolicyHintsControlType:
-					p.supportControlTypeMicrosoftServerPolicyHints = true
-				case ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType:
-					p.supportControlTypeMicrosoftServerPolicyHintsDeprecated = true
-				}
-			}
-		case ldapSupportedExtensionAttribute:
-			p.log.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
-
-			for _, oid := range attr.Values {
-				if oid == ldapOIDPasswdModifyExtension {
-					p.supportExtensionPasswdModify = true
-					break
-				}
-			}
-		}
-	}
-
-	if !p.supportExtensionPasswdModify && !p.disableResetPassword &&
+	if !p.features.Extensions.PwdModifyExOp && !p.disableResetPassword &&
 		p.config.Implementation != schema.LDAPImplementationActiveDirectory {
 		p.log.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
@@ -66,6 +30,35 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	}
 
 	return nil
+}
+
+func (p *LDAPUserProvider) getServerSupportedFeatures(client ldap.Client) (features LDAPSupportedFeatures, err error) {
+	var (
+		searchRequest *ldap.SearchRequest
+		searchResult  *ldap.SearchResult
+	)
+
+	searchRequest = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
+		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
+
+	if searchResult, err = client.Search(searchRequest); err != nil {
+		return features, err
+	}
+
+	if len(searchResult.Entries) != 1 {
+		p.log.Errorf("The LDAP Server did not respond appropriately to a RootDSE search. This may result in reduced functionality.")
+
+		return features, nil
+	}
+
+	var controlTypeOIDs, extensionOIDs []string
+
+	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(searchResult.Entries[0])
+
+	p.log.Warnf("LDAP Supported OIDs. Extensions: %s. Control Types: %s.",
+		strings.Join(extensionOIDs, ", "), strings.Join(controlTypeOIDs, ", "))
+
+	return features, nil
 }
 
 func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {

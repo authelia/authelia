@@ -22,6 +22,37 @@ func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
 	return false
 }
 
+func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensionOIDs []string, features LDAPSupportedFeatures) {
+	for _, attr := range entry.Attributes {
+		switch attr.Name {
+		case ldapSupportedControlAttribute:
+			controlTypeOIDs = attr.Values
+
+			for _, oid := range attr.Values {
+				switch oid {
+				case ldapOIDControlMicrosoftServerPolicyHints:
+					features.ControlTypes.MsftPwdPolHints = true
+				case ldapOIDControlMicrosoftServerPolicyHintsDeprecated:
+					features.ControlTypes.MsftPwdPolHintsDeprecated = true
+				}
+			}
+		case ldapSupportedExtensionAttribute:
+			extensionOIDs = attr.Values
+
+			for _, oid := range attr.Values {
+				switch oid {
+				case ldapOIDExtensionPasswdModify:
+					features.Extensions.PwdModifyExOp = true
+				case ldapOIDExtensionTransportLayerSecurity:
+					features.Extensions.TLS = true
+				}
+			}
+		}
+	}
+
+	return controlTypeOIDs, extensionOIDs, features
+}
+
 func ldapEscape(inputUsername string) string {
 	inputUsername = ldap.EscapeFilter(inputUsername)
 	for _, c := range specialLDAPRunes {
