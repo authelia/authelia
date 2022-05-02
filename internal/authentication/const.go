@@ -26,7 +26,7 @@ const (
 	// OID Reference: http://oidref.com/1.3.6.1.4.1.4203.1.11.1
 	//
 	// See the linked documents for more information.
-	ldapOIDExtensionPasswdModify = "1.3.6.1.4.1.4203.1.11.1"
+	ldapOIDExtensionPwdModifyExOp = "1.3.6.1.4.1.4203.1.11.1"
 
 	// LDAP Extension OID: Transport Layer Security.
 	//

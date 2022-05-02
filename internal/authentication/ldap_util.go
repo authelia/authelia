@@ -41,7 +41,7 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensi
 
 			for _, oid := range attr.Values {
 				switch oid {
-				case ldapOIDExtensionPasswdModify:
+				case ldapOIDExtensionPwdModifyExOp:
 					features.Extensions.PwdModifyExOp = true
 				case ldapOIDExtensionTransportLayerSecurity:
 					features.Extensions.TLS = true

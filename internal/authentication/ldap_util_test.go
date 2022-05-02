@@ -9,6 +9,78 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
+	testCases := []struct {
+		description                        string
+		haveControlOIDs, haveExtensionOIDs []string
+		expected                           LDAPSupportedFeatures
+	}{
+		{
+			description:       "ShouldReturnExtensionPwdModifyExOp",
+			haveControlOIDs:   []string{},
+			haveExtensionOIDs: []string{ldapOIDExtensionPwdModifyExOp},
+			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{PwdModifyExOp: true}},
+		},
+		{
+			description:       "ShouldReturnExtensionTLS",
+			haveControlOIDs:   []string{},
+			haveExtensionOIDs: []string{ldapOIDExtensionTransportLayerSecurity},
+			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{TLS: true}},
+		},
+		{
+			description:       "ShouldReturnExtensionAll",
+			haveControlOIDs:   []string{},
+			haveExtensionOIDs: []string{ldapOIDExtensionTransportLayerSecurity, ldapOIDExtensionPwdModifyExOp},
+			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{TLS: true, PwdModifyExOp: true}},
+		},
+		{
+			description:       "ShouldReturnControlMsftPPolHints",
+			haveControlOIDs:   []string{ldapOIDControlMicrosoftServerPolicyHints},
+			haveExtensionOIDs: []string{},
+			expected:          LDAPSupportedFeatures{ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true}},
+		},
+		{
+			description:       "ShouldReturnControlMsftPPolHintsDeprecated",
+			haveControlOIDs:   []string{ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
+			haveExtensionOIDs: []string{},
+			expected:          LDAPSupportedFeatures{ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHintsDeprecated: true}},
+		},
+		{
+			description:       "ShouldReturnControlAll",
+			haveControlOIDs:   []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
+			haveExtensionOIDs: []string{},
+			expected:          LDAPSupportedFeatures{ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true}},
+		},
+		{
+			description:       "ShouldReturnExtensionAndControlAll",
+			haveControlOIDs:   []string{ldapOIDControlMicrosoftServerPolicyHints, ldapOIDControlMicrosoftServerPolicyHintsDeprecated},
+			haveExtensionOIDs: []string{ldapOIDExtensionTransportLayerSecurity, ldapOIDExtensionPwdModifyExOp},
+			expected: LDAPSupportedFeatures{
+				ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true},
+				Extensions:   LDAPSupportedExtensions{TLS: true, PwdModifyExOp: true},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			entry := &ldap.Entry{
+				DN: "",
+				Attributes: []*ldap.EntryAttribute{
+					{Name: ldapSupportedExtensionAttribute, Values: tc.haveExtensionOIDs},
+					{Name: ldapSupportedControlAttribute, Values: tc.haveControlOIDs},
+				},
+			}
+
+			actualControlOIDs, actualExtensionOIDs, actual := ldapGetFeatureSupportFromEntry(entry)
+
+			assert.Equal(t, tc.haveExtensionOIDs, actualExtensionOIDs)
+			assert.Equal(t, tc.haveControlOIDs, actualControlOIDs)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
 func TestLDAPEntriesContainsEntry(t *testing.T) {
 	testCases := []struct {
 		description string

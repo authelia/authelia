@@ -195,7 +195,7 @@ func TestShouldCheckLDAPServerExtensions(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify, ldapOIDExtensionTransportLayerSecurity},
+							Values: []string{ldapOIDExtensionPwdModifyExOp, ldapOIDExtensionTransportLayerSecurity},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -260,7 +260,7 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t 
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify, ldapOIDExtensionTransportLayerSecurity},
+							Values: []string{ldapOIDExtensionPwdModifyExOp, ldapOIDExtensionTransportLayerSecurity},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1020,7 +1020,7 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1087,7 +1087,7 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1879,7 +1879,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -1987,7 +1987,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2114,7 +2114,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2227,7 +2227,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
@@ -2345,7 +2345,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 					Attributes: []*ldap.EntryAttribute{
 						{
 							Name:   ldapSupportedExtensionAttribute,
-							Values: []string{ldapOIDExtensionPasswdModify},
+							Values: []string{ldapOIDExtensionPwdModifyExOp},
 						},
 						{
 							Name:   ldapSupportedControlAttribute,
