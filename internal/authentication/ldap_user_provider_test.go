@@ -24,7 +24,9 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 
 	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
-			URL: "ldap://127.0.0.1:389",
+			URL:      "ldap://127.0.0.1:389",
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
 		},
 		false,
 		nil,
@@ -40,7 +42,7 @@ func TestShouldCreateRawConnectionWhenSchemeIsLDAP(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind)
 
-	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
+	_, err := ldapClient.connect()
 
 	require.NoError(t, err)
 }
@@ -54,7 +56,9 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 	ldapClient := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackendConfiguration{
-			URL: "ldaps://127.0.0.1:389",
+			URL:      "ldaps://127.0.0.1:389",
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
 		},
 		false,
 		nil,
@@ -70,41 +74,28 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 	gomock.InOrder(dialURL, connBind)
 
-	_, err := ldapClient.connect("cn=admin,dc=example,dc=com", "password")
+	_, err := ldapClient.connect()
 
 	require.NoError(t, err)
 }
 
 func TestEscapeSpecialCharsFromUserInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockFactory := NewMockLDAPConnectionFactory(ctrl)
-
-	ldapClient := newLDAPUserProvider(
-		schema.LDAPAuthenticationBackendConfiguration{
-			URL: "ldaps://127.0.0.1:389",
-		},
-		false,
-		nil,
-		mockFactory)
-
 	// No escape.
-	assert.Equal(t, "xyz", ldapClient.ldapEscape("xyz"))
+	assert.Equal(t, "xyz", ldapEscape("xyz"))
 
 	// Escape.
-	assert.Equal(t, "test\\,abc", ldapClient.ldapEscape("test,abc"))
-	assert.Equal(t, "test\\5cabc", ldapClient.ldapEscape("test\\abc"))
-	assert.Equal(t, "test\\2aabc", ldapClient.ldapEscape("test*abc"))
-	assert.Equal(t, "test \\28abc\\29", ldapClient.ldapEscape("test (abc)"))
-	assert.Equal(t, "test\\#abc", ldapClient.ldapEscape("test#abc"))
-	assert.Equal(t, "test\\+abc", ldapClient.ldapEscape("test+abc"))
-	assert.Equal(t, "test\\<abc", ldapClient.ldapEscape("test<abc"))
-	assert.Equal(t, "test\\>abc", ldapClient.ldapEscape("test>abc"))
-	assert.Equal(t, "test\\;abc", ldapClient.ldapEscape("test;abc"))
-	assert.Equal(t, "test\\\"abc", ldapClient.ldapEscape("test\"abc"))
-	assert.Equal(t, "test\\=abc", ldapClient.ldapEscape("test=abc"))
-	assert.Equal(t, "test\\,\\5c\\28abc\\29", ldapClient.ldapEscape("test,\\(abc)"))
+	assert.Equal(t, "test\\,abc", ldapEscape("test,abc"))
+	assert.Equal(t, "test\\5cabc", ldapEscape("test\\abc"))
+	assert.Equal(t, "test\\2aabc", ldapEscape("test*abc"))
+	assert.Equal(t, "test \\28abc\\29", ldapEscape("test (abc)"))
+	assert.Equal(t, "test\\#abc", ldapEscape("test#abc"))
+	assert.Equal(t, "test\\+abc", ldapEscape("test+abc"))
+	assert.Equal(t, "test\\<abc", ldapEscape("test<abc"))
+	assert.Equal(t, "test\\>abc", ldapEscape("test>abc"))
+	assert.Equal(t, "test\\;abc", ldapEscape("test;abc"))
+	assert.Equal(t, "test\\\"abc", ldapEscape("test\"abc"))
+	assert.Equal(t, "test\\=abc", ldapEscape("test=abc"))
+	assert.Equal(t, "test\\,\\5c\\28abc\\29", ldapEscape("test,\\(abc)"))
 }
 
 func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
@@ -306,7 +297,7 @@ func TestShouldReturnCheckServerConnectError(t *testing.T) {
 		Return(mockConn, errors.New("could not connect"))
 
 	err := ldapClient.StartupCheck()
-	assert.EqualError(t, err, "could not connect")
+	assert.EqualError(t, err, "dial failed with error: could not connect")
 
 	assert.False(t, ldapClient.supportExtensionPasswdModify)
 }
@@ -1105,7 +1096,7 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 	valid, err := ldapClient.CheckUserPassword("john", "password")
 
 	assert.False(t, valid)
-	require.EqualError(t, err, "authentication failed. Cause: invalid username or password")
+	require.EqualError(t, err, "authentication failed. Cause: bind failed with error: invalid username or password")
 }
 
 func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
@@ -1215,8 +1206,8 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
 
-	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayName={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.configuration.UsersFilter)
-	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.configuration.GroupsFilter)
+	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayName={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.config.UsersFilter)
+	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.config.GroupsFilter)
 	assert.Equal(t, "ou=users,dc=example,dc=com", ldapClient.usersBaseDN)
 	assert.Equal(t, "ou=groups,dc=example,dc=com", ldapClient.groupsBaseDN)
 }
@@ -1342,5 +1333,5 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 	gomock.InOrder(dialURL, connStartTLS)
 
 	_, err := ldapClient.GetDetails("john")
-	assert.EqualError(t, err, "LDAP Result Code 200 \"Network Error\": ldap: already encrypted")
+	assert.EqualError(t, err, "starttls failed with error: LDAP Result Code 200 \"Network Error\": ldap: already encrypted")
 }
