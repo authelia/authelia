@@ -7,7 +7,7 @@ package authentication
 import (
 	reflect "reflect"
 
-	ldap "github.com/go-ldap/ldap/v3"
+	v3 "github.com/go-ldap/ldap/v3"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,14 +35,14 @@ func (m *MockLDAPClientFactory) EXPECT() *MockLDAPClientFactoryMockRecorder {
 }
 
 // DialURL mocks base method.
-func (m *MockLDAPClientFactory) DialURL(arg0 string, arg1 ...ldap.DialOpt) (ldap.Client, error) {
+func (m *MockLDAPClientFactory) DialURL(arg0 string, arg1 ...v3.DialOpt) (LDAPClient, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DialURL", varargs...)
-	ret0, _ := ret[0].(ldap.Client)
+	ret0, _ := ret[0].(LDAPClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

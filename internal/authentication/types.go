@@ -1,13 +1,32 @@
 package authentication
 
 import (
+	"crypto/tls"
+	"time"
+
 	"github.com/go-ldap/ldap/v3"
 	"golang.org/x/text/encoding/unicode"
 )
 
 // LDAPClientFactory an interface of factory of ldap clients.
 type LDAPClientFactory interface {
-	DialURL(addr string, opts ...ldap.DialOpt) (client ldap.Client, err error)
+	DialURL(addr string, opts ...ldap.DialOpt) (client LDAPClient, err error)
+}
+
+// LDAPClient is a cut down version of the ldap.Client interface with just the methods we use.
+//
+// Methods added to this interface that have a direct correlation with one from ldap.Client should have the same signature.
+type LDAPClient interface {
+	Close()
+	StartTLS(*tls.Config) error
+	SetTimeout(time.Duration)
+
+	Bind(username, password string) error
+
+	Modify(*ldap.ModifyRequest) error
+	PasswordModify(*ldap.PasswordModifyRequest) (*ldap.PasswordModifyResult, error)
+
+	Search(*ldap.SearchRequest) (*ldap.SearchResult, error)
 }
 
 // UserDetails represent the details retrieved for a given user.

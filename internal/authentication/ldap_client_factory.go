@@ -13,6 +13,6 @@ func NewProductionLDAPClientFactory() *ProductionLDAPClientFactory {
 }
 
 // DialURL creates a client from an LDAP URL when successful.
-func (f *ProductionLDAPClientFactory) DialURL(addr string, opts ...ldap.DialOpt) (client ldap.Client, err error) {
+func (f *ProductionLDAPClientFactory) DialURL(addr string, opts ...ldap.DialOpt) (client LDAPClient, err error) {
 	return ldap.DialURL(addr, opts...)
 }

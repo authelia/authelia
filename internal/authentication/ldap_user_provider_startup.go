@@ -10,7 +10,7 @@ import (
 
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	var client ldap.Client
+	var client LDAPClient
 
 	if client, err = p.connect(); err != nil {
 		return err
@@ -43,7 +43,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	return nil
 }
 
-func (p *LDAPUserProvider) getServerSupportedFeatures(client ldap.Client) (features LDAPSupportedFeatures, err error) {
+func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (features LDAPSupportedFeatures, err error) {
 	var (
 		searchRequest *ldap.SearchRequest
 		searchResult  *ldap.SearchResult

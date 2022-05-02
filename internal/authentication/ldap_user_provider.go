@@ -85,7 +85,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, d
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (valid bool, err error) {
 	var (
-		client, clientUser ldap.Client
+		client, clientUser LDAPClient
 		profile            *ldapUserProfile
 	)
 
@@ -111,7 +111,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 // GetDetails retrieve the groups a user belongs to.
 func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var (
-		client  ldap.Client
+		client  LDAPClient
 		profile *ldapUserProfile
 	)
 
@@ -168,7 +168,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error) {
 	var (
-		client  ldap.Client
+		client  LDAPClient
 		profile *ldapUserProfile
 	)
 
@@ -222,11 +222,11 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	return nil
 }
 
-func (p *LDAPUserProvider) connect() (client ldap.Client, err error) {
+func (p *LDAPUserProvider) connect() (client LDAPClient, err error) {
 	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
 }
 
-func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS bool, opts ...ldap.DialOpt) (client ldap.Client, err error) {
+func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS bool, opts ...ldap.DialOpt) (client LDAPClient, err error) {
 	if client, err = p.factory.DialURL(url, opts...); err != nil {
 		return nil, fmt.Errorf("dial failed with error: %w", err)
 	}
@@ -248,7 +248,7 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS 
 	return client, nil
 }
 
-func (p *LDAPUserProvider) search(client ldap.Client, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
+func (p *LDAPUserProvider) search(client LDAPClient, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
 	if searchResult, err = client.Search(searchRequest); err != nil {
 		if referral, ok := p.getReferral(err); ok {
 			if searchResult == nil {
@@ -278,7 +278,7 @@ func (p *LDAPUserProvider) search(client ldap.Client, searchRequest *ldap.Search
 
 func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
 	var (
-		client ldap.Client
+		client LDAPClient
 		result *ldap.SearchResult
 	)
 
@@ -311,7 +311,7 @@ func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, se
 	return nil
 }
 
-func (p *LDAPUserProvider) getUserProfile(client ldap.Client, username string) (profile *ldapUserProfile, err error) {
+func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (profile *ldapUserProfile, err error) {
 	userFilter := p.resolveUsersFilter(username)
 
 	// Search for the given username.
@@ -408,7 +408,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUse
 	return filter, nil
 }
 
-func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.ModifyRequest) (err error) {
+func (p *LDAPUserProvider) modify(client LDAPClient, modifyRequest *ldap.ModifyRequest) (err error) {
 	if err = client.Modify(modifyRequest); err != nil {
 		var (
 			referral string
@@ -422,7 +422,7 @@ func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.Modify
 		p.log.Debugf("Attempting Modify on referred URL %s", referral)
 
 		var (
-			clientRef ldap.Client
+			clientRef LDAPClient
 			errRef    error
 		)
 
@@ -442,7 +442,7 @@ func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.Modify
 	return nil
 }
 
-func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
+func (p *LDAPUserProvider) pwdModify(client LDAPClient, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
 	if _, err = client.PasswordModify(pwdModifyRequest); err != nil {
 		var (
 			referral string
@@ -456,7 +456,7 @@ func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.
 		p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", referral)
 
 		var (
-			clientRef ldap.Client
+			clientRef LDAPClient
 			errRef    error
 		)
 
