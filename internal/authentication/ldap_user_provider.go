@@ -246,8 +246,8 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS 
 	return client, nil
 }
 
-func (p *LDAPUserProvider) search(conn LDAPConnection, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
-	searchResult, err = conn.Search(searchRequest)
+func (p *LDAPUserProvider) search(client ldap.Client, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
+	searchResult, err = client.Search(searchRequest)
 	if err != nil {
 		if referral, ok := p.getReferral(err); ok {
 			if errReferral := p.searchReferral(referral, searchRequest, searchResult); errReferral != nil {

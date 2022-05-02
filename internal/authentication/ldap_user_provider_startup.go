@@ -11,20 +11,20 @@ import (
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
 	var (
-		conn         LDAPConnection
+		client       ldap.Client
 		searchResult *ldap.SearchResult
 	)
 
-	if conn, err = p.connect(); err != nil {
+	if client, err = p.connect(); err != nil {
 		return err
 	}
 
-	defer conn.Close()
+	defer client.Close()
 
 	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
 
-	if searchResult, err = conn.Search(searchRequest); err != nil {
+	if searchResult, err = client.Search(searchRequest); err != nil {
 		return err
 	}
 
