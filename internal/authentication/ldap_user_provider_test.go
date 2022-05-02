@@ -2938,6 +2938,45 @@ func TestShouldCheckValidUserPassword(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestShouldNotCheckValidUserPasswordWithConnectError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(&ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("invalid username or password")})
+
+	gomock.InOrder(dialURL, bind, mockClient.EXPECT().Close())
+
+	valid, err := ldapClient.CheckUserPassword("john", "password")
+
+	assert.False(t, valid)
+	assert.EqualError(t, err, "bind failed with error: LDAP Result Code 49 \"Invalid Credentials\": invalid username or password")
+}
+
 func TestShouldCheckInvalidUserPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -2997,7 +3036,7 @@ func TestShouldCheckInvalidUserPassword(t *testing.T) {
 		mockClient.EXPECT().
 			Bind(gomock.Eq("uid=test,dc=example,dc=com"), gomock.Eq("password")).
 			Return(errors.New("invalid username or password")),
-		mockClient.EXPECT().Close(),
+		mockClient.EXPECT().Close().Times(2),
 	)
 
 	valid, err := ldapClient.CheckUserPassword("john", "password")
@@ -3237,7 +3276,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 		StartTLS(ldapClient.tlsConfig).
 		Return(errors.New("LDAP Result Code 200 \"Network Error\": ldap: already encrypted"))
 
-	gomock.InOrder(dialURL, connStartTLS)
+	gomock.InOrder(dialURL, connStartTLS, mockClient.EXPECT().Close())
 
 	_, err := ldapClient.GetDetails("john")
 	assert.EqualError(t, err, "starttls failed with error: LDAP Result Code 200 \"Network Error\": ldap: already encrypted")

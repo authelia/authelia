@@ -233,11 +233,15 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS 
 
 	if startTLS {
 		if err = client.StartTLS(p.tlsConfig); err != nil {
+			client.Close()
+
 			return nil, fmt.Errorf("starttls failed with error: %w", err)
 		}
 	}
 
 	if err = client.Bind(userDN, password); err != nil {
+		client.Close()
+
 		return nil, fmt.Errorf("bind failed with error: %w", err)
 	}
 
