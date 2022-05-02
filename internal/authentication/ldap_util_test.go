@@ -9,6 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestLDAPGetFeatureSupportFromNilEntry(t *testing.T) {
+	control, extension, feature := ldapGetFeatureSupportFromEntry(nil)
+	assert.Len(t, control, 0)
+	assert.Len(t, extension, 0)
+	assert.Equal(t, LDAPSupportedFeatures{}, feature)
+}
+
 func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
 	testCases := []struct {
 		description                        string

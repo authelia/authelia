@@ -23,6 +23,10 @@ func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
 }
 
 func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensionOIDs []string, features LDAPSupportedFeatures) {
+	if entry == nil {
+		return controlTypeOIDs, extensionOIDs, features
+	}
+	
 	for _, attr := range entry.Attributes {
 		switch attr.Name {
 		case ldapSupportedControlAttribute:
