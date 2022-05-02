@@ -26,7 +26,7 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensi
 	if entry == nil {
 		return controlTypeOIDs, extensionOIDs, features
 	}
-	
+
 	for _, attr := range entry.Attributes {
 		switch attr.Name {
 		case ldapSupportedControlAttribute:

@@ -891,6 +891,132 @@ func TestShouldReturnUsernameFromLDAPWithReferrals(t *testing.T) {
 	assert.Equal(t, details.Username, "John")
 }
 
+func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+	mockClientReferral := NewMockLDAPClient(ctrl)
+	mockClientReferralAlt := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+			PermitReferrals:      true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchGroups := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(createSearchResultWithAttributeValues("group1", "group2"), nil)
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries:   []*ldap.Entry{},
+			Referrals: []string{"ldap://192.168.2.1"},
+		}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+
+	dialURLReferral := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.2.1"), gomock.Any()).
+		Return(mockClientReferral, nil)
+
+	connBindReferral := mockClientReferral.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connCloseReferral := mockClientReferral.EXPECT().Close()
+
+	searchProfileReferral := mockClientReferral.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dialURLReferralAlt := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://192.168.0.1"), gomock.Any()).
+		Return(mockClientReferralAlt, nil)
+
+	connBindReferralAlt := mockClientReferralAlt.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connCloseReferralAlt := mockClientReferralAlt.EXPECT().Close()
+
+	searchProfileReferralAlt := mockClientReferralAlt.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, dialURLReferral, connBindReferral, searchProfileReferral, connCloseReferral, dialURLReferralAlt, connBindReferralAlt, searchProfileReferralAlt, connCloseReferralAlt, searchGroups, connClose)
+
+	details, err := ldapClient.GetDetails("john")
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
+	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
+	assert.Equal(t, details.DisplayName, "John Doe")
+	assert.Equal(t, details.Username, "John")
+}
+
 func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -2519,8 +2645,8 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 							Values: []string{"test@example.com"},
 						},
 						{
-							Name:   "uid",
-							Values: []string{"John"},
+							Name:   "sAMAccountName",
+							Values: []string{"john"},
 						},
 					},
 				},
@@ -2537,7 +2663,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 	require.NoError(t, err)
 
 	err = ldapClient.UpdatePassword("john", "password")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
 
 func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(t *testing.T) {
@@ -2630,8 +2756,8 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 							Values: []string{"test@example.com"},
 						},
 						{
-							Name:   "uid",
-							Values: []string{"John"},
+							Name:   "sAMAccountName",
+							Values: []string{"john"},
 						},
 					},
 				},
@@ -2741,8 +2867,8 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 							Values: []string{"test@example.com"},
 						},
 						{
-							Name:   "uid",
-							Values: []string{"John"},
+							Name:   "sAMAccountName",
+							Values: []string{"john"},
 						},
 					},
 				},
@@ -2868,6 +2994,349 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 
 	err = ldapClient.UpdatePassword("john", "password")
 	require.NoError(t, err)
+}
+
+func TestShouldReturnErrorWhenMultipleUsernameAttributes(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John", "Jacob"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john")
+
+	assert.Nil(t, profile)
+	assert.EqualError(t, err, "user 'john' has 2 values for for attribute 'uid' but the attribute must be a single value attribute")
+}
+
+func TestShouldReturnErrorWhenZeroUsernameAttributes(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john")
+
+	assert.Nil(t, profile)
+	assert.EqualError(t, err, "user 'john' must have value for attribute 'uid'")
+}
+
+func TestShouldReturnErrorWhenUsernameAttributeNotReturned(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "uid={input}",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john")
+
+	assert.Nil(t, profile)
+	assert.EqualError(t, err, "user 'john' must have value for attribute 'uid'")
+}
+
+func TestShouldReturnErrorWhenMultipleUsersFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "(|(uid={input})(uid=*))",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=test,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+				{
+					DN: "uid=sam,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"sam"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john")
+
+	assert.Nil(t, profile)
+	assert.EqualError(t, err, "there were 2 users found when searching for 'john' but there should only be 1")
+}
+
+func TestShouldReturnErrorWhenNoDN(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "(|(uid={input})(uid=*))",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"test@example.com"},
+						},
+						{
+							Name:   "uid",
+							Values: []string{"John"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john")
+
+	assert.Nil(t, profile)
+	assert.EqualError(t, err, "user 'john' must have a distinguished name but the result returned an empty distinguished name")
 }
 
 func TestShouldCheckValidUserPassword(t *testing.T) {

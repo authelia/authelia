@@ -83,7 +83,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, d
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
-func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password string) (valid bool, err error) {
+func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (valid bool, err error) {
 	var (
 		client, clientUser ldap.Client
 		profile            *ldapUserProfile
@@ -95,7 +95,7 @@ func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password stri
 
 	defer client.Close()
 
-	if profile, err = p.getUserProfile(client, inputUsername); err != nil {
+	if profile, err = p.getUserProfile(client, username); err != nil {
 		return false, err
 	}
 
@@ -251,17 +251,21 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS 
 func (p *LDAPUserProvider) search(client ldap.Client, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
 	if searchResult, err = client.Search(searchRequest); err != nil {
 		if referral, ok := p.getReferral(err); ok {
-			if errReferral := p.searchReferral(referral, searchRequest, searchResult); errReferral != nil {
-				return nil, err
+			if searchResult == nil {
+				searchResult = &ldap.SearchResult{
+					Referrals: []string{referral},
+				}
+			} else {
+				searchResult.Referrals = append(searchResult.Referrals, referral)
 			}
-
-			return searchResult, nil
 		}
-
-		return nil, err
 	}
 
 	if !p.config.PermitReferrals || len(searchResult.Referrals) == 0 {
+		if err != nil {
+			return nil, err
+		}
+
 		return searchResult, nil
 	}
 
@@ -288,10 +292,6 @@ func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.S
 		return fmt.Errorf("error occurred performing search on referred LDAP server '%s': %w", referral, err)
 	}
 
-	if len(result.Entries) == 0 {
-		return err
-	}
-
 	for i := 0; i < len(result.Entries); i++ {
 		if !ldapEntriesContainsEntry(result.Entries[i], searchResult.Entries) {
 			searchResult.Entries = append(searchResult.Entries, result.Entries[i])
@@ -311,8 +311,8 @@ func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, se
 	return nil
 }
 
-func (p *LDAPUserProvider) getUserProfile(client ldap.Client, inputUsername string) (profile *ldapUserProfile, err error) {
-	userFilter := p.resolveUsersFilter(inputUsername)
+func (p *LDAPUserProvider) getUserProfile(client ldap.Client, username string) (profile *ldapUserProfile, err error) {
+	userFilter := p.resolveUsersFilter(username)
 
 	// Search for the given username.
 	searchRequest := ldap.NewSearchRequest(
@@ -323,7 +323,7 @@ func (p *LDAPUserProvider) getUserProfile(client ldap.Client, inputUsername stri
 	var searchResult *ldap.SearchResult
 
 	if searchResult, err = p.search(client, searchRequest); err != nil {
-		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", inputUsername, err)
+		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", username, err)
 	}
 
 	if len(searchResult.Entries) == 0 {
@@ -331,7 +331,7 @@ func (p *LDAPUserProvider) getUserProfile(client ldap.Client, inputUsername stri
 	}
 
 	if len(searchResult.Entries) > 1 {
-		return nil, fmt.Errorf("multiple users %s found", inputUsername)
+		return nil, fmt.Errorf("there were %d users found when searching for '%s' but there should only be 1", len(searchResult.Entries), username)
 	}
 
 	userProfile := ldapUserProfile{
@@ -339,37 +339,45 @@ func (p *LDAPUserProvider) getUserProfile(client ldap.Client, inputUsername stri
 	}
 
 	for _, attr := range searchResult.Entries[0].Attributes {
-		if attr.Name == p.config.DisplayNameAttribute {
+		switch attr.Name {
+		case p.config.DisplayNameAttribute:
 			userProfile.DisplayName = attr.Values[0]
-		}
-
-		if attr.Name == p.config.MailAttribute {
+		case p.config.MailAttribute:
 			userProfile.Emails = attr.Values
-		}
+		case p.config.UsernameAttribute:
+			attrs := len(attr.Values)
 
-		if attr.Name == p.config.UsernameAttribute {
-			if len(attr.Values) != 1 {
-				return nil, fmt.Errorf("user '%s' cannot have multiple value for attribute '%s'",
-					inputUsername, p.config.UsernameAttribute)
+			switch attrs {
+			case 1:
+				userProfile.Username = attr.Values[0]
+			case 0:
+				return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
+					username, p.config.UsernameAttribute)
+			default:
+				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
+					username, attrs, p.config.UsernameAttribute)
 			}
-
-			userProfile.Username = attr.Values[0]
 		}
 	}
 
+	if userProfile.Username == "" {
+		return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
+			username, p.config.UsernameAttribute)
+	}
+
 	if userProfile.DN == "" {
-		return nil, fmt.Errorf("no DN has been found for user %s", inputUsername)
+		return nil, fmt.Errorf("user '%s' must have a distinguished name but the result returned an empty distinguished name", username)
 	}
 
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter string) {
+func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
 	filter = p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(inputUsername))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(username))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)
@@ -377,12 +385,12 @@ func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter stri
 	return filter
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
+func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
 	filter = p.config.GroupsFilter
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(inputUsername))
+		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(username))
 	}
 
 	if profile != nil {

@@ -7,7 +7,7 @@ import (
 
 // LDAPClientFactory an interface of factory of ldap clients.
 type LDAPClientFactory interface {
-	DialURL(addr string, opts ...ldap.DialOpt) (ldap.Client, error)
+	DialURL(addr string, opts ...ldap.DialOpt) (client ldap.Client, err error)
 }
 
 // UserDetails represent the details retrieved for a given user.
