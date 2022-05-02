@@ -225,22 +225,12 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 }
 
 func (p *LDAPUserProvider) connect() (client ldap.Client, err error) {
-	if len(p.dialOpts) != 0 {
-		return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
-	}
-
-	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS)
+	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
 }
 
 func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS bool, opts ...ldap.DialOpt) (client ldap.Client, err error) {
-	if len(opts) != 0 {
-		if client, err = p.factory.DialURL(url, opts...); err != nil {
-			return nil, fmt.Errorf("dial failed with error: %w", err)
-		}
-	} else {
-		if client, err = p.factory.DialURL(url); err != nil {
-			return nil, fmt.Errorf("dial failed with error: %w", err)
-		}
+	if client, err = p.factory.DialURL(url, opts...); err != nil {
+		return nil, fmt.Errorf("dial failed with error: %w", err)
 	}
 
 	if startTLS {
