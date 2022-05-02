@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"crypto/tls"
-	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"golang.org/x/text/encoding/unicode"
@@ -19,7 +18,6 @@ type LDAPClientFactory interface {
 type LDAPClient interface {
 	Close()
 	StartTLS(*tls.Config) error
-	SetTimeout(time.Duration)
 
 	Bind(username, password string) error
 

@@ -7,7 +7,6 @@ package authentication
 import (
 	tls "crypto/tls"
 	reflect "reflect"
-	time "time"
 
 	ldap "github.com/go-ldap/ldap/v3"
 	gomock "github.com/golang/mock/gomock"
@@ -104,18 +103,6 @@ func (m *MockLDAPClient) Search(arg0 *ldap.SearchRequest) (*ldap.SearchResult, e
 func (mr *MockLDAPClientMockRecorder) Search(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockLDAPClient)(nil).Search), arg0)
-}
-
-// SetTimeout mocks base method.
-func (m *MockLDAPClient) SetTimeout(arg0 time.Duration) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetTimeout", arg0)
-}
-
-// SetTimeout indicates an expected call of SetTimeout.
-func (mr *MockLDAPClientMockRecorder) SetTimeout(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTimeout", reflect.TypeOf((*MockLDAPClient)(nil).SetTimeout), arg0)
 }
 
 // StartTLS mocks base method.
