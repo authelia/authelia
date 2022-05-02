@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -19,6 +20,19 @@ func init() {
 		"internal/suites/example/compose/oidc-client/docker-compose.yml",
 		"internal/suites/example/compose/redis/docker-compose.yml",
 	})
+
+	if os.Getenv("CI") == t {
+		dockerEnvironment = NewDockerEnvironment([]string{
+			"internal/suites/docker-compose.yml",
+			"internal/suites/OIDCTraefik/docker-compose.yml",
+			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+			"internal/suites/example/compose/traefik2/docker-compose.yml",
+			"internal/suites/example/compose/smtp/docker-compose.yml",
+			"internal/suites/example/compose/oidc-client/docker-compose.yml",
+			"internal/suites/example/compose/redis/docker-compose.yml",
+		})
+	}
 
 	setup := func(suitePath string) error {
 		// TODO(c.michaud): use version in tags for oidc-client but in the meantime we pull the image to make sure it's
@@ -46,12 +60,14 @@ func init() {
 
 		fmt.Println(backendLogs)
 
-		frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
-		if err != nil {
-			return err
-		}
+		if os.Getenv("CI") != t {
+			frontendLogs, err := dockerEnvironment.Logs("authelia-frontend", nil)
+			if err != nil {
+				return err
+			}
 
-		fmt.Println(frontendLogs)
+			fmt.Println(frontendLogs)
+		}
 
 		oidcClientLogs, err := dockerEnvironment.Logs("oidc-client", nil)
 		if err != nil {
