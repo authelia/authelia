@@ -14,13 +14,14 @@ type LDAPConnectionFactory interface {
 
 // LDAPConnection interface representing a connection to the ldap.
 type LDAPConnection interface {
-	Bind(username, password string) error
+	Bind(username, password string) (err error)
 	Close()
+	StartTLS(config *tls.Config) (err error)
 
-	Search(searchRequest *ldap.SearchRequest) (*ldap.SearchResult, error)
-	Modify(modifyRequest *ldap.ModifyRequest) error
+	Search(searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error)
+
+	Modify(modifyRequest *ldap.ModifyRequest) (err error)
 	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (result *ldap.PasswordModifyResult, err error)
-	StartTLS(config *tls.Config) error
 }
 
 // UserDetails represent the details retrieved for a given user.

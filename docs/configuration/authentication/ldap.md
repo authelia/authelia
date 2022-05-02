@@ -96,7 +96,6 @@ Enables use of the LDAP StartTLS process which is not commonly used. You should 
 it. The initial connection will be over plain text, and Authelia will try to upgrade it with the LDAP server. LDAPS
 URL's are slightly more secure.
 
-
 ### tls
 Controls the TLS connection validation process. You can see how to configure the tls
 section [here](../index.md#tls-configuration).
@@ -118,13 +117,14 @@ user searches and [additional_groups_dn](#additional_groups_dn) for groups searc
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-required: no
-{: .label .label-config .label-green }
+required: yes
+{: .label .label-config .label-red }
 </div>
 
-The LDAP attribute that maps to the username in Authelia. The default value is dependent on the [implementation](#implementation),
-refer to the [attribute defaults](#attribute-defaults) for more information.
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
 
+The LDAP attribute that maps to the username in Authelia.
 
 ### additional_users_dn
 <div markdown="1">
@@ -140,18 +140,31 @@ exactly which OU to get users from for either security or performance reasons. F
 `ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer
 to the [attribute defaults](#attribute-defaults) for more information.
 
-
 ### users_filter
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-required: no
-{: .label .label-config .label-green }
+required: yes
+{: .label .label-config .label-red }
 </div>
 
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
 The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
-The default value is dependent on the [implementation](#implementation), refer to the
-[attribute defaults](#attribute-defaults) for more information.
+
+### group_name_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
+The LDAP attribute that is used by Authelia to determine the group name.
 
 ### additional_groups_dn
 <div markdown="1">
@@ -167,11 +180,14 @@ Similar to [additional_users_dn](#additional_users_dn) but it applies to group s
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-required: no
-{: .label .label-config .label-green }
+required: yes
+{: .label .label-config .label-red }
 </div>
 
-Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the memeber is not
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 
@@ -185,11 +201,14 @@ required: yes
 {: .label .label-config .label-red }
 </div>
 
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
 The attribute to retrieve which contains the users email addresses. This is important for the device registration and
 password reset processes.
-The user must have an email address in order for Authelia to perform
-identity verification when a user attempts to reset their password or
-register a second factor device.
+
+The user must have an email address in order for Authelia to perform identity verification when a user attempts to reset
+their password or register a second factor device.
 
 ### display_name_attribute
 <div markdown="1">
@@ -198,6 +217,9 @@ type: string
 required: yes
 {: .label .label-config .label-red }
 </div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
 
 The attribute to retrieve which is shown on the Web UI to the user when they log in.
 
@@ -211,8 +233,9 @@ required: no
 {: .label .label-config .label-red }
 </div>
 
-Permits following referrals. This is useful if you have read-only servers in your deployment and need to follow referrals
-for modify actions.
+Permits following referrals. This is useful if you have read-only servers in your architecture and thus require 
+referrals to be followed when performing write operations. This is only implemented for password modifications, if you
+need this for searches please open a GitHub issue or contact us.
 
 ### user
 The distinguished name of the user paired with the password to bind with for lookup and password change operations.
@@ -274,7 +297,8 @@ makes sure that value is not 0 which means the password requires changing at the
 
 _**Note:**_ The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as
 `(&(objectCategory=person)(objectClass=user))` except that the former is more performant, you can read more about this
-and other Active Directory filters on the [TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
+and other Active Directory filters on the 
+[TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
 
 ## Refresh Interval
 This setting takes a [duration notation](../index.md#duration-notation-format) that sets the max frequency

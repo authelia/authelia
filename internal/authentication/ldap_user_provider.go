@@ -101,7 +101,7 @@ func (p *LDAPUserProvider) CheckUserPassword(inputUsername string, password stri
 		return false, err
 	}
 
-	if connUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.dialOpts...); err != nil {
+	if connUser, err = p.connectCustom(p.config.URL, profile.DN, password, p.config.StartTLS, p.dialOpts...); err != nil {
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 
@@ -143,7 +143,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		0, 0, false, filter, p.groupsAttributes, nil,
 	)
 
-	if searchResult, err = conn.Search(searchRequest); err != nil {
+	if searchResult, err = p.search(conn, searchRequest); err != nil {
 		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
 	}
 
@@ -188,33 +188,26 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 
 	switch {
 	case p.supportExtensionPasswdModify:
-		modifyRequest := ldap.NewPasswordModifyRequest(
+		pwdModifyRequest := ldap.NewPasswordModifyRequest(
 			profile.DN,
 			"",
 			password,
 		)
 
-		err = p.pwdModify(conn, modifyRequest)
+		err = p.pwdModify(conn, pwdModifyRequest)
 	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
-		switch {
-		case p.supportControlTypeMicrosoftServerPolicyHints:
-			controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsControlType})
-		case p.supportControlTypeMicrosoftServerPolicyHintsDeprecated:
-			controls = append(controls, &controlMicrosoftServerPolicyHints{ldapOIDMicrosoftServerPolicyHintsDeprecatedControlType})
-		}
-
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
 		// The password needs to be enclosed in quotes
 		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
 		pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", password))
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
-		err = conn.Modify(modifyRequest)
+		err = p.modify(conn, modifyRequest)
 	default:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
 		modifyRequest.Replace(ldapAttributeUserPassword, []string{password})
 
-		err = conn.Modify(modifyRequest)
+		err = p.modify(conn, modifyRequest)
 	}
 
 	if err != nil {
@@ -225,15 +218,15 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 }
 
 func (p *LDAPUserProvider) connect() (LDAPConnection, error) {
-	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.dialOpts...)
+	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
 }
 
-func (p *LDAPUserProvider) connectCustom(url, userDN, password string, opts ...ldap.DialOpt) (conn LDAPConnection, err error) {
+func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS bool, opts ...ldap.DialOpt) (conn LDAPConnection, err error) {
 	if conn, err = p.factory.DialURL(url, opts...); err != nil {
 		return nil, fmt.Errorf("dial failed with error: %w", err)
 	}
 
-	if p.config.StartTLS {
+	if startTLS {
 		if err = conn.StartTLS(p.tlsConfig); err != nil {
 			return nil, fmt.Errorf("starttls failed with error: %w", err)
 		}
@@ -246,17 +239,66 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, opts ...l
 	return conn, nil
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter string) {
-	filter = p.config.UsersFilter
+func (p *LDAPUserProvider) search(conn LDAPConnection, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
+	searchResult, err = conn.Search(searchRequest)
+	if err != nil {
+		if referral, ok := p.getReferral(err); ok {
+			if errReferral := p.searchReferral(referral, searchRequest, searchResult); errReferral != nil {
+				return nil, err
+			}
 
-	if p.usersFilterReplacementInput {
-		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(inputUsername))
+			return searchResult, nil
+		}
+
+		return nil, err
 	}
 
-	p.log.Tracef("Detected user filter is %s", filter)
+	if !p.config.PermitReferrals || len(searchResult.Referrals) == 0 {
+		return searchResult, nil
+	}
 
-	return filter
+	p.searchReferrals(searchRequest, searchResult)
+
+	return searchResult, nil
+}
+
+func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
+	var (
+		conn   LDAPConnection
+		result *ldap.SearchResult
+	)
+
+	if conn, err = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); err != nil {
+		p.log.Errorf("Failed to connect during referred search request (referred to %s): %v", referral, err)
+
+		return err
+	}
+
+	defer conn.Close()
+
+	if result, err = conn.Search(searchRequest); err != nil {
+		p.log.Errorf("Failed to perform search operation during referred search request (referred to %s): %v", referral, err)
+
+		return err
+	}
+
+	if len(result.Entries) == 0 {
+		return err
+	}
+
+	for i := 0; i < len(result.Entries); i++ {
+		if !ldapEntriesContainsEntry(result.Entries[i], searchResult.Entries) {
+			searchResult.Entries = append(searchResult.Entries, result.Entries[i])
+		}
+	}
+
+	return nil
+}
+
+func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) {
+	for i := 0; i < len(searchResult.Referrals); i++ {
+		_ = p.searchReferral(searchResult.Referrals[i], searchRequest, searchResult)
+	}
 }
 
 func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername string) (profile *ldapUserProfile, err error) {
@@ -268,24 +310,25 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 		1, 0, false, userFilter, p.usersAttributes, nil,
 	)
 
-	sr, err := conn.Search(searchRequest)
-	if err != nil {
+	var searchResult *ldap.SearchResult
+
+	if searchResult, err = p.search(conn, searchRequest); err != nil {
 		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", inputUsername, err)
 	}
 
-	if len(sr.Entries) == 0 {
+	if len(searchResult.Entries) == 0 {
 		return nil, ErrUserNotFound
 	}
 
-	if len(sr.Entries) > 1 {
+	if len(searchResult.Entries) > 1 {
 		return nil, fmt.Errorf("multiple users %s found", inputUsername)
 	}
 
 	userProfile := ldapUserProfile{
-		DN: sr.Entries[0].DN,
+		DN: searchResult.Entries[0].DN,
 	}
 
-	for _, attr := range sr.Entries[0].Attributes {
+	for _, attr := range searchResult.Entries[0].Attributes {
 		if attr.Name == p.config.DisplayNameAttribute {
 			userProfile.DisplayName = attr.Values[0]
 		}
@@ -311,6 +354,19 @@ func (p *LDAPUserProvider) getUserProfile(conn LDAPConnection, inputUsername str
 	return &userProfile, nil
 }
 
+func (p *LDAPUserProvider) resolveUsersFilter(inputUsername string) (filter string) {
+	filter = p.config.UsersFilter
+
+	if p.usersFilterReplacementInput {
+		// The {input} placeholder is replaced by the username input.
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(inputUsername))
+	}
+
+	p.log.Tracef("Detected user filter is %s", filter)
+
+	return filter
+}
+
 func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
 	filter = p.config.GroupsFilter
 
@@ -334,37 +390,78 @@ func (p *LDAPUserProvider) resolveGroupsFilter(inputUsername string, profile *ld
 	return filter, nil
 }
 
-func (p *LDAPUserProvider) pwdModify(conn LDAPConnection, mr *ldap.PasswordModifyRequest) (err error) {
-	var result *ldap.PasswordModifyResult
+func (p *LDAPUserProvider) modify(conn LDAPConnection, modifyRequest *ldap.ModifyRequest) (err error) {
+	if err = conn.Modify(modifyRequest); err != nil {
+		var (
+			referral string
+			ok       bool
+		)
 
-	if result, err = conn.PasswordModify(mr); err != nil {
-		lerr, ok := err.(*ldap.Error)
-		if !ok || lerr.ResultCode != ldap.LDAPResultReferral || !p.config.PermitReferrals {
+		if referral, ok = p.getReferral(err); !ok {
 			return err
 		}
 
-		p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", result.Referral)
+		p.log.Debugf("Attempting Modify on referred URL %s", referral)
 
-		connReferral, errReferral := p.connectCustom(result.Referral, p.config.User, p.config.Password, p.dialOpts...)
-		if errReferral != nil {
-			p.log.Errorf("Failed to connect during password modify request (referred to %s): %v", result.Referral, errReferral)
+		var (
+			connReferral LDAPConnection
+			errReferral  error
+		)
+
+		if connReferral, errReferral = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); errReferral != nil {
+			p.log.Errorf("Failed to connect during referred modify request (referred to %s): %v", referral, errReferral)
 
 			return err
 		}
 
-		_, err = connReferral.PasswordModify(mr)
+		defer connReferral.Close()
 
-		connReferral.Close()
+		if errReferral = connReferral.Modify(modifyRequest); errReferral != nil {
+			p.log.Errorf("Failed to perform modify operation during referred modify request (referred to %s): %v", referral, errReferral)
+		}
 	}
 
 	return err
 }
 
-func ldapEscape(inputUsername string) string {
-	inputUsername = ldap.EscapeFilter(inputUsername)
-	for _, c := range specialLDAPRunes {
-		inputUsername = strings.ReplaceAll(inputUsername, string(c), fmt.Sprintf("\\%c", c))
+func (p *LDAPUserProvider) pwdModify(conn LDAPConnection, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
+	if _, err = conn.PasswordModify(pwdModifyRequest); err != nil {
+		var (
+			referral string
+			ok       bool
+		)
+
+		if referral, ok = p.getReferral(err); !ok {
+			return err
+		}
+
+		p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", referral)
+
+		var (
+			connReferral LDAPConnection
+			errReferral  error
+		)
+
+		if connReferral, errReferral = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); errReferral != nil {
+			p.log.Errorf("Failed to connect during referred password modify request (referred to %s): %v", referral, errReferral)
+
+			return err
+		}
+
+		defer connReferral.Close()
+
+		if _, errReferral = connReferral.PasswordModify(pwdModifyRequest); errReferral != nil {
+			p.log.Errorf("Failed to perform modify operation during referred modify request (referred to %s): %v", referral, errReferral)
+		}
 	}
 
-	return inputUsername
+	return err
+}
+
+func (p *LDAPUserProvider) getReferral(err error) (referral string, ok bool) {
+	if !p.config.PermitReferrals {
+		return "", false
+	}
+
+	return ldapGetReferral(err)
 }
