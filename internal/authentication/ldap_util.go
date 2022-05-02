@@ -38,6 +38,10 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 			return "", false
 		}
 
+		if e.Packet.Children[1].Tag != ber.TagObjectDescriptor {
+			return "", false
+		}
+
 		for i := 0; i < len(e.Packet.Children[1].Children); i++ {
 			if e.Packet.Children[1].Children[i].Tag != ber.TagBitString || len(e.Packet.Children[1].Children[i].Children) < 1 {
 				continue

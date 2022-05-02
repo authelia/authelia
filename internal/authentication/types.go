@@ -7,9 +7,9 @@ import (
 	"golang.org/x/text/encoding/unicode"
 )
 
-// LDAPConnectionFactory an interface of factory of ldap connections.
-type LDAPConnectionFactory interface {
-	DialURL(addr string, opts ...ldap.DialOpt) (LDAPConnection, error)
+// LDAPClientFactory an interface of factory of ldap clients.
+type LDAPClientFactory interface {
+	DialURL(addr string, opts ...ldap.DialOpt) (ldap.Client, error)
 }
 
 // LDAPConnection interface representing a connection to the ldap.
