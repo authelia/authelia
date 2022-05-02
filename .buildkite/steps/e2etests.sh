@@ -7,6 +7,8 @@ cat << EOF
     command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --failfast --headless"
     retry:
       automatic: true
+      manual:
+        permit_on_passed: true
 EOF
 if [[ "${SUITE_NAME}" = "ActiveDirectory" ]]; then
 cat << EOF
