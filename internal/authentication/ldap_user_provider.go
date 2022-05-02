@@ -247,8 +247,7 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS 
 }
 
 func (p *LDAPUserProvider) search(client ldap.Client, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
-	searchResult, err = client.Search(searchRequest)
-	if err != nil {
+	if searchResult, err = client.Search(searchRequest); err != nil {
 		if referral, ok := p.getReferral(err); ok {
 			if errReferral := p.searchReferral(referral, searchRequest, searchResult); errReferral != nil {
 				return nil, err
@@ -264,7 +263,9 @@ func (p *LDAPUserProvider) search(client ldap.Client, searchRequest *ldap.Search
 		return searchResult, nil
 	}
 
-	p.searchReferrals(searchRequest, searchResult)
+	if err = p.searchReferrals(searchRequest, searchResult); err != nil {
+		return nil, err
+	}
 
 	return searchResult, nil
 }
@@ -276,17 +277,13 @@ func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.S
 	)
 
 	if client, err = p.connectCustom(referral, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...); err != nil {
-		p.log.Errorf("Failed to connect during referred search request (referred to %s): %v", referral, err)
-
-		return err
+		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %w", referral, err)
 	}
 
 	defer client.Close()
 
 	if result, err = client.Search(searchRequest); err != nil {
-		p.log.Errorf("Failed to perform search operation during referred search request (referred to %s): %v", referral, err)
-
-		return err
+		return fmt.Errorf("error occurred performing search on referred LDAP server '%s': %w", referral, err)
 	}
 
 	if len(result.Entries) == 0 {
@@ -302,10 +299,14 @@ func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.S
 	return nil
 }
 
-func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) {
+func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
 	for i := 0; i < len(searchResult.Referrals); i++ {
-		_ = p.searchReferral(searchResult.Referrals[i], searchRequest, searchResult)
+		if err = p.searchReferral(searchResult.Referrals[i], searchRequest, searchResult); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func (p *LDAPUserProvider) getUserProfile(client ldap.Client, inputUsername string) (profile *ldapUserProfile, err error) {
