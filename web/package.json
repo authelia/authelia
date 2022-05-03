@@ -2,6 +2,20 @@
   "name": "authelia",
   "version": "4.35.1",
   "private": true,
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@types/react": "18",
+        "react": "18",
+        "react-dom": "18"
+      },
+      "ignoreMissing": [
+        "@babel/plugin-syntax-flow",
+        "@babel/plugin-transform-react-jsx",
+        "prop-types"
+      ]
+    }
+  },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "6.1.1",
     "@fortawesome/free-regular-svg-icons": "6.1.1",
