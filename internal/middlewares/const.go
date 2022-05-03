@@ -57,7 +57,7 @@ var (
 	headerValueSameOrigin              = []byte("SAMEORIGIN")
 	headerValueNoCache                 = []byte("no-cache")
 	headerValueNoStore                 = []byte("no-store")
-	headerValueXSSDisabled             = []byte("0")
+	headerValueXSSModeBlock            = []byte("1; mode=block")
 	headerValueCohort                  = []byte("interest-cohort=()")
 )
 
