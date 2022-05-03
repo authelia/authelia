@@ -33,7 +33,12 @@ var (
 
 	headerXContentTypeOptions = []byte(fasthttp.HeaderXContentTypeOptions)
 	headerReferrerPolicy      = []byte(fasthttp.HeaderReferrerPolicy)
-	headerPermissionsPolicy   = []byte("Permissions-Policy")
+	headerXFrameOptions       = []byte(fasthttp.HeaderXFrameOptions)
+	headerPragma              = []byte(fasthttp.HeaderPragma)
+	headerCacheControl        = []byte(fasthttp.HeaderCacheControl)
+	headerXXSSProtection      = []byte(fasthttp.HeaderXXSSProtection)
+
+	headerPermissionsPolicy = []byte("Permissions-Policy")
 )
 
 var (
@@ -47,6 +52,10 @@ var (
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
+	headerValueSameOrigin              = []byte("SAMEORIGIN")
+	headerValueNoCache                 = []byte("no-cache")
+	headerValueNoStore                 = []byte("no-store")
+	headerValueXSSDisabled             = []byte("0")
 	headerValueCohort                  = []byte("interest-cohort=()")
 )
 
