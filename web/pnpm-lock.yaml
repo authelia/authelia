@@ -56,7 +56,7 @@ specifiers:
   vite: 2.9.7
   vite-plugin-eslint: 1.6.0
   vite-plugin-istanbul: 2.7.2
-  vite-plugin-svgr: 2.0.0
+  vite-plugin-svgr: 2.1.0
   vite-tsconfig-paths: 3.4.1
   zxcvbn: 4.4.2
 
@@ -119,7 +119,7 @@ devDependencies:
   vite: 2.9.7
   vite-plugin-eslint: 1.6.0_eslint@8.14.0+vite@2.9.7
   vite-plugin-istanbul: 2.7.2
-  vite-plugin-svgr: 2.0.0_vite@2.9.7
+  vite-plugin-svgr: 2.1.0_vite@2.9.7
   vite-tsconfig-paths: 3.4.1_vite@2.9.7
 
 packages:
@@ -313,7 +313,7 @@ packages:
     resolution: {integrity: sha512-SLLb0AAn6PkUeAfKJCCOl9e1R53pQlGAfc4y4XuMRZfqeMYLE0dM1LMhqbGAlGQY0lfw5/ohoYWAe9V1yibRag==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.17.0
+      '@babel/types': 7.17.10
     dev: true
 
   /@babel/helper-explode-assignable-expression/7.16.7:
@@ -363,7 +363,7 @@ packages:
       '@babel/helper-validator-identifier': 7.16.7
       '@babel/template': 7.16.7
       '@babel/traverse': 7.17.9
-      '@babel/types': 7.17.0
+      '@babel/types': 7.17.10
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -422,7 +422,7 @@ packages:
     resolution: {integrity: sha512-xbWoy/PFoxSWazIToT9Sif+jJTlrMcndIsaOKvTA6u7QEo7ilkRZpjew18/W3c7nm8fXdUDXh02VXTbZ0pGDNw==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.17.0
+      '@babel/types': 7.17.10
     dev: true
 
   /@babel/helper-validator-identifier/7.16.7:
@@ -2604,7 +2604,7 @@ packages:
     resolution: {integrity: sha512-WEOTgRsbYkvA/KCsDwVEGkd7WAr1e3g31VHQ8zy5gul/V1qKullU/BU5I68X5v7V3GnB9eotmom4v5a5gjxorw==}
     dependencies:
       '@babel/parser': 7.17.9
-      '@babel/types': 7.17.0
+      '@babel/types': 7.17.10
       '@types/babel__generator': 7.6.4
       '@types/babel__template': 7.4.1
       '@types/babel__traverse': 7.14.2
@@ -8171,8 +8171,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.0.0_vite@2.9.7:
-    resolution: {integrity: sha512-nxu542CRXLqAsI7Ebw5EMHFpLp1yb0ix+DTCVAIRz09+YREkOY8sDr2Jl5yKaKSOA3UQnW4yf6Vg4DhArJCvyA==}
+  /vite-plugin-svgr/2.1.0_vite@2.9.7:
+    resolution: {integrity: sha512-3J19p8pmGfRt297yvc8Fd36+0AC0sLgA/gZYQDjotNAhv3CmSTQyviXIrDbwiRFVrsZjSlHJH1vca7OGFmjDcA==}
     peerDependencies:
       vite: ^2.6.0
     dependencies:
