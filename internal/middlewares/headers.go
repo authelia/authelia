@@ -13,9 +13,16 @@ func SecurityHeaders(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 		ctx.Response.Header.SetBytesKV(headerXFrameOptions, headerValueSAMEORIGIN)
 		ctx.Response.Header.SetBytesKV(headerXXSSProtection, headerValueXSSDisabled)
 
+		next(ctx)
+	}
+}
+
+// SecurityHeadersCORB middleware adds several modern recommended security headers with safe values.
+func SecurityHeadersCORB(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
 		ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueSameOrigin)
 		ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueRequireCORP)
-		ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOriginAllowPopups)
+		ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueUnsafeNone)
 
 		next(ctx)
 	}
