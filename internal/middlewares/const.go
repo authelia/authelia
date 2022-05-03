@@ -40,6 +40,10 @@ var (
 	headerContentSecurityPolicy = []byte(fasthttp.HeaderContentSecurityPolicy)
 
 	headerPermissionsPolicy = []byte("Permissions-Policy")
+
+	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
+	headerCrossOriginOpenerPolicy   = []byte("Cross-Origin-Opener-Policy")
+	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
 )
 
 var (
@@ -54,11 +58,14 @@ var (
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
-	headerValueSameOrigin              = []byte("SAMEORIGIN")
+	headerValueSAMEORIGIN              = []byte("SAMEORIGIN")
 	headerValueNoCache                 = []byte("no-cache")
 	headerValueNoStore                 = []byte("no-store")
 	headerValueXSSDisabled             = []byte("0")
 	headerValueCohort                  = []byte("interest-cohort=()")
+
+	headerValueRequireCORP = []byte("require-corp")
+	headerValueSameOrigin  = []byte("same-origin")
 )
 
 var (
