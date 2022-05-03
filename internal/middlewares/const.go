@@ -30,6 +30,10 @@ var (
 	headerAccessControlMaxAge           = []byte(fasthttp.HeaderAccessControlMaxAge)
 	headerAccessControlRequestHeaders   = []byte(fasthttp.HeaderAccessControlRequestHeaders)
 	headerAccessControlRequestMethod    = []byte(fasthttp.HeaderAccessControlRequestMethod)
+
+	headerXContentTypeOptions = []byte(fasthttp.HeaderXContentTypeOptions)
+	headerReferrerPolicy      = []byte(fasthttp.HeaderReferrerPolicy)
+	headerPermissionsPolicy   = []byte("Permissions-Policy")
 )
 
 var (
@@ -40,6 +44,10 @@ var (
 	headerValueVaryWildcard   = []byte("Accept-Encoding")
 	headerValueOriginWildcard = []byte("*")
 	headerValueZero           = []byte("0")
+
+	headerValueNoSniff                 = []byte("nosniff")
+	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
+	headerValueCohort                  = []byte("interest-cohort=()")
 )
 
 var (
