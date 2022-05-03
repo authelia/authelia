@@ -22,6 +22,11 @@ const (
 )
 
 const (
+	ldapAttributeUnicodePwd   = "unicodePwd"
+	ldapAttributeUserPassword = "userPassword"
+)
+
+const (
 	ldapPlaceholderInput             = "{input}"
 	ldapPlaceholderDistinguishedName = "{dn}"
 	ldapPlaceholderUsername          = "{username}"
