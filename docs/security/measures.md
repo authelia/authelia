@@ -268,7 +268,7 @@ Prevents Authelia rendering in a `frame`, `iframe`, `embed`, or `object` element
 **Endpoints:** All
 
 We disable this as this feature is not present in any modern browser and could introduce vulnerabilities if enabled at
-all. Going forward CORS, CORP, CORB, and COEP are the standards for browser centric site security. See the
+all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
 
 #### Permissions-Policy

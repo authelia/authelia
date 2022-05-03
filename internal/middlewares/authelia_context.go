@@ -53,8 +53,8 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers,
 			next(autheliaCtx)
 		}
 
-		for _, middleware := range middlewares {
-			bridge = middleware(bridge)
+		for i := len(middlewares) - 1; i >= 0; i-- {
+			bridge = middlewares[i](bridge)
 		}
 
 		return bridge

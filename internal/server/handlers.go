@@ -102,8 +102,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 
 	commonMiddlewares := []middlewares.StandardMiddleware{middlewares.LogRequest, middlewares.SecurityHeaders}
 	if config.Server.Path != "" {
-		commonMiddlewares = append(commonMiddlewares[:1], commonMiddlewares[0:]...)
-		commonMiddlewares[0] = middlewares.StripPath(config.Server.Path)
+		commonMiddlewares = append([]middlewares.StandardMiddleware{middlewares.StripPath(config.Server.Path)}, commonMiddlewares...)
 	}
 
 	middleware := middlewares.AutheliaMiddleware(config, providers, commonMiddlewares...)
