@@ -173,7 +173,7 @@
     "vite": "2.9.7",
     "vite-plugin-eslint": "1.6.0",
     "vite-plugin-istanbul": "2.7.2",
-    "vite-plugin-svgr": "2.0.0",
+    "vite-plugin-svgr": "2.1.0",
     "vite-tsconfig-paths": "3.4.1"
   }
 }
