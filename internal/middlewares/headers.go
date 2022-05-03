@@ -21,6 +21,8 @@ func SecurityHeaders(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 func SecurityHeadersCSPNone(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPNone)
+
+		next(ctx)
 	}
 }
 
