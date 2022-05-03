@@ -101,8 +101,6 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
 		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Claims)
-	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with headers: %+v",
-		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Headers)
 
 	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, requester, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
