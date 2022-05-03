@@ -101,7 +101,6 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	handlerLocales := newLocalesEmbeddedHandler()
 
 	middleware := middlewares.AutheliaMiddleware(config, providers, middlewares.SecurityHeaders)
-	middlewareAPI := middlewares.AutheliaMiddleware(config, providers, middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore)
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods("OPTIONS", "GET").
@@ -134,6 +133,11 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	for _, file := range swaggerFiles {
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
+
+	middlewareAPI := middlewares.AutheliaMiddleware(
+		config, providers,
+		middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone,
+	)
 
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
