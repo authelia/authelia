@@ -14,12 +14,12 @@ func NewDockerSuite() *DockerSuite {
 	return &DockerSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *DockerSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *DockerSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *DockerSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *DockerSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func TestDockerSuite(t *testing.T) {
