@@ -7,7 +7,7 @@ import (
 	"golang.org/x/text/encoding/unicode"
 )
 
-// LDAPClientFactory an interface of factory of ldap clients.
+// LDAPClientFactory an interface of factory of LDAP clients.
 type LDAPClientFactory interface {
 	DialURL(addr string, opts ...ldap.DialOpt) (client LDAPClient, err error)
 }
@@ -17,14 +17,14 @@ type LDAPClientFactory interface {
 // Methods added to this interface that have a direct correlation with one from ldap.Client should have the same signature.
 type LDAPClient interface {
 	Close()
-	StartTLS(*tls.Config) error
+	StartTLS(config *tls.Config) (err error)
 
-	Bind(username, password string) error
+	Bind(username, password string) (err error)
 
-	Modify(*ldap.ModifyRequest) error
-	PasswordModify(*ldap.PasswordModifyRequest) (*ldap.PasswordModifyResult, error)
+	Modify(modifyRequest *ldap.ModifyRequest) (err error)
+	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (pwdModifyResult *ldap.PasswordModifyResult, err error)
 
-	Search(*ldap.SearchRequest) (*ldap.SearchResult, error)
+	Search(searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error)
 }
 
 // UserDetails represent the details retrieved for a given user.

@@ -4,17 +4,17 @@ import (
 	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
-type controlMicrosoftServerPolicyHints struct {
+type controlMsftServerPolicyHints struct {
 	oid string
 }
 
 // GetControlType implements ldap.Control.
-func (c *controlMicrosoftServerPolicyHints) GetControlType() string {
+func (c *controlMsftServerPolicyHints) GetControlType() string {
 	return c.oid
 }
 
 // Encode implements ldap.Control.
-func (c *controlMicrosoftServerPolicyHints) Encode() (packet *ber.Packet) {
+func (c *controlMsftServerPolicyHints) Encode() (packet *ber.Packet) {
 	seq := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "PolicyHintsRequestValue")
 	seq.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, 1, "Flags"))
 
@@ -31,6 +31,6 @@ func (c *controlMicrosoftServerPolicyHints) Encode() (packet *ber.Packet) {
 }
 
 // String implements ldap.Control.
-func (c *controlMicrosoftServerPolicyHints) String() string {
+func (c *controlMsftServerPolicyHints) String() string {
 	return "Enforce the password history length constraint (MS-SAMR section 3.1.1.7.1) during password set: " + c.GetControlType()
 }

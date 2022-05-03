@@ -1382,7 +1382,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1493,7 +1493,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1621,7 +1621,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1740,7 +1740,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -1872,7 +1872,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 
 	modifyRequest := ldap.NewModifyRequest(
 		"uid=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	pwdEncoded, _ := utf16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", "password"))
@@ -2584,7 +2584,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 
 	modifyRequest := ldap.NewModifyRequest(
 		"cn=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints}},
 	)
 
 	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
@@ -2695,7 +2695,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 
 	modifyRequest := ldap.NewModifyRequest(
 		"cn=test,dc=example,dc=com",
-		[]ldap.Control{&controlMicrosoftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHintsDeprecated}},
+		[]ldap.Control{&controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHintsDeprecated}},
 	)
 
 	modifyRequest.Replace("unicodePwd", []string{pwdEncoded})
