@@ -100,10 +100,8 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	commonMiddlewares := []middlewares.StandardMiddleware{middlewares.LogRequest, middlewares.SecurityHeaders}
-
-	middleware := middlewares.AutheliaMiddleware(config, providers, commonMiddlewares...)
-	middlewareAPI := middlewares.AutheliaMiddleware(config, providers, append(commonMiddlewares, middlewares.SecurityHeadersNoStore)...)
+	middleware := middlewares.AutheliaMiddleware(config, providers, middlewares.SecurityHeaders)
+	middlewareAPI := middlewares.AutheliaMiddleware(config, providers, middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore)
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods("OPTIONS", "GET").
@@ -302,8 +300,8 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	r.MethodNotAllowed = handlerMethodNotAllowed
 
 	if config.Server.Path != "" {
-		return middlewares.StripPath(config.Server.Path)(r.Handler)
+		return middlewares.StripPath(config.Server.Path)(middlewares.LogRequest(r.Handler))
 	}
 
-	return r.Handler
+	return middlewares.LogRequest(r.Handler)
 }
