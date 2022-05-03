@@ -64,8 +64,9 @@ var (
 	headerValueXSSDisabled             = []byte("0")
 	headerValueCohort                  = []byte("interest-cohort=()")
 
-	headerValueRequireCORP = []byte("require-corp")
-	headerValueSameOrigin  = []byte("same-origin")
+	headerValueRequireCORP           = []byte("require-corp")
+	headerValueSameOrigin            = []byte("same-origin")
+	headerValueSameOriginAllowPopups = []byte("same-origin-allow-popups")
 )
 
 var (

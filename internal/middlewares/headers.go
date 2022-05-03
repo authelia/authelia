@@ -15,7 +15,7 @@ func SecurityHeaders(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 		ctx.Response.Header.SetBytesKV(headerCrossOriginResourcePolicy, headerValueSameOrigin)
 		ctx.Response.Header.SetBytesKV(headerCrossOriginEmbedderPolicy, headerValueRequireCORP)
-		ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOrigin)
+		ctx.Response.Header.SetBytesKV(headerCrossOriginOpenerPolicy, headerValueSameOriginAllowPopups)
 
 		next(ctx)
 	}
