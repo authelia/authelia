@@ -116,13 +116,13 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		r.GET("/"+f, handlerPublicHTML)
 	}
 
-	r.GET("/favicon.ico", middlewares.AssetOverrideMiddleware(config.Server.AssetPath, 0, handlerPublicHTML))
-	r.GET("/static/media/logo.png", middlewares.AssetOverrideMiddleware(config.Server.AssetPath, 2, handlerPublicHTML))
+	r.GET("/favicon.ico", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
 	// Locales.
-	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(config.Server.AssetPath, 0, handlerLocales))
-	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverrideMiddleware(config.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
 	r.GET("/api/", middleware(serveSwaggerHandler))
@@ -298,9 +298,9 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handlerMethodNotAllowed
 
-	handler := middlewares.LogRequestMiddleware(r.Handler)
+	handler := middlewares.LogRequest(middlewares.SecurityHeaders(r.Handler))
 	if config.Server.Path != "" {
-		handler = middlewares.StripPathMiddleware(config.Server.Path, handler)
+		handler = middlewares.StripPath(config.Server.Path, handler)
 	}
 
 	return handler
