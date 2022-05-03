@@ -226,7 +226,7 @@ func (p *LDAPUserProvider) connect() (client LDAPClient, err error) {
 	return p.connectCustom(p.config.URL, p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
 }
 
-func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS bool, opts ...ldap.DialOpt) (client LDAPClient, err error) {
+func (p *LDAPUserProvider) connectCustom(url, username, password string, startTLS bool, opts ...ldap.DialOpt) (client LDAPClient, err error) {
 	if client, err = p.factory.DialURL(url, opts...); err != nil {
 		return nil, fmt.Errorf("dial failed with error: %w", err)
 	}
@@ -239,7 +239,13 @@ func (p *LDAPUserProvider) connectCustom(url, userDN, password string, startTLS 
 		}
 	}
 
-	if err = client.Bind(userDN, password); err != nil {
+	if password == "" {
+		err = client.UnauthenticatedBind(username)
+	} else {
+		err = client.Bind(username, password)
+	}
+
+	if err != nil {
 		client.Close()
 
 		return nil, fmt.Errorf("bind failed with error: %w", err)

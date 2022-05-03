@@ -26,7 +26,8 @@ type LDAPAuthenticationBackendConfiguration struct {
 	MailAttribute        string `koanf:"mail_attribute"`
 	DisplayNameAttribute string `koanf:"display_name_attribute"`
 
-	PermitReferrals bool `koanf:"permit_referrals"`
+	PermitReferrals           bool `koanf:"permit_referrals"`
+	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind"`
 
 	User     string `koanf:"user"`
 	Password string `koanf:"password"`
