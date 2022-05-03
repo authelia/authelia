@@ -101,9 +101,6 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	handlerLocales := newLocalesEmbeddedHandler()
 
 	commonMiddlewares := []middlewares.StandardMiddleware{middlewares.LogRequest, middlewares.SecurityHeaders}
-	if config.Server.Path != "" {
-		commonMiddlewares = append([]middlewares.StandardMiddleware{middlewares.StripPath(config.Server.Path)}, commonMiddlewares...)
-	}
 
 	middleware := middlewares.AutheliaMiddleware(config, providers, commonMiddlewares...)
 	middlewareAPI := middlewares.AutheliaMiddleware(config, providers, append(commonMiddlewares, middlewares.SecurityHeadersNoStore)...)
@@ -303,6 +300,10 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handlerMethodNotAllowed
+
+	if config.Server.Path != "" {
+		return middlewares.StripPath(config.Server.Path)(r.Handler)
+	}
 
 	return r.Handler
 }
