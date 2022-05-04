@@ -1,12 +1,12 @@
 package authentication
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // StartupCheck implements the startup check provider interface.
@@ -67,8 +67,18 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 
 	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(searchResult.Entries[0])
 
-	p.log.Warnf("LDAP Supported OIDs. Extensions: %s. Control Types: %s.",
-		strings.Join(extensionOIDs, ", "), strings.Join(controlTypeOIDs, ", "))
+	builder := strings.Builder{}
+
+	builder.WriteString("LDAP Supported OIDs.")
+	if len(controlTypeOIDs) != 0 {
+		builder.WriteString(fmt.Sprintf(" Control Types: %s.", strings.Join(controlTypeOIDs, ", ")))
+	}
+
+	if len(extensionOIDs) != 0 {
+		builder.WriteString(fmt.Sprintf(" Extensions: %s.", strings.Join(extensionOIDs, ", ")))
+	}
+
+	p.log.Debug(builder.String())
 
 	return features, nil
 }
