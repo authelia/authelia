@@ -14,12 +14,12 @@ func NewTraefikSuite() *TraefikSuite {
 	return &TraefikSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *TraefikSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *TraefikSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *TraefikSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *TraefikSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func (s *TraefikSuite) TestRedirectionURLScenario() {
