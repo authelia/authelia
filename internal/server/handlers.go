@@ -135,10 +135,9 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
-	middlewareAPI := middlewares.NewBridgeBuilder(config, providers).WithMiddlewares(
-		middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB,
-		middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone,
-	).Build()
+	middlewareAPI := middlewares.NewBridgeBuilder(config, providers).
+		WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		Build()
 
 	middleware1FA := middlewares.NewBridgeBuilder(config, providers).
 		WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
