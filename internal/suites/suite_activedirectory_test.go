@@ -14,12 +14,12 @@ func NewActiveDirectorySuite() *ActiveDirectorySuite {
 	return &ActiveDirectorySuite{RodSuite: new(RodSuite)}
 }
 
-func (s *ActiveDirectorySuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *ActiveDirectorySuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *ActiveDirectorySuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *ActiveDirectorySuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func (s *ActiveDirectorySuite) TestResetPassword() {
