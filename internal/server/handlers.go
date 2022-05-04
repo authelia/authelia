@@ -100,9 +100,8 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	builder := middlewares.NewBridgeBuilder(config, providers)
-
-	middleware := builder.WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB).Build()
+	middleware := middlewares.NewBridgeBuilder(config, providers).
+		WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods("OPTIONS", "GET").
@@ -136,7 +135,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
-	middlewareAPI := builder.WithMiddlewares(
+	middlewareAPI := middlewares.NewBridgeBuilder(config, providers).WithMiddlewares(
 		middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB,
 		middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone,
 	).Build()
@@ -219,7 +218,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
-		middlewareOIDC := builder.WithMiddlewares(
+		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,
 		).Build()
 
