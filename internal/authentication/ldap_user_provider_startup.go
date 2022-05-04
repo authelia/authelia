@@ -6,6 +6,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // StartupCheck implements the startup check provider interface.
