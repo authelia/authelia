@@ -140,15 +140,20 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone,
 	).Build()
 
+	middleware1FA := middlewares.NewBridgeBuilder(config, providers).
+		WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithAutheliaMiddlewares(middlewares.Require1FA).
+		Build()
+
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
-	r.GET("/api/configuration", middlewareAPI(middlewares.Require1FA(handlers.ConfigurationGET)))
+	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
 
 	r.GET("/api/configuration/password-policy", middlewareAPI(handlers.PasswordPolicyConfigurationGet))
 
-	r.GET("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
 	r.HEAD("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
+	r.GET("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
@@ -167,26 +172,26 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	}
 
 	// Information about the user.
-	r.GET("/api/user/info", middlewareAPI(middlewares.Require1FA(handlers.UserInfoGET)))
-	r.POST("/api/user/info", middlewareAPI(middlewares.Require1FA(handlers.UserInfoPOST)))
-	r.POST("/api/user/info/2fa_method", middlewareAPI(middlewares.Require1FA(handlers.MethodPreferencePOST)))
+	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
+	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
+	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
-		r.GET("/api/user/info/totp", middlewareAPI(middlewares.Require1FA(handlers.UserTOTPInfoGET)))
-		r.POST("/api/secondfactor/totp/identity/start", middlewareAPI(middlewares.Require1FA(handlers.TOTPIdentityStart)))
-		r.POST("/api/secondfactor/totp/identity/finish", middlewareAPI(middlewares.Require1FA(handlers.TOTPIdentityFinish)))
-		r.POST("/api/secondfactor/totp", middlewareAPI(middlewares.Require1FA(handlers.TimeBasedOneTimePasswordPOST)))
+		r.GET("/api/user/info/totp", middleware1FA(handlers.UserTOTPInfoGET))
+		r.POST("/api/secondfactor/totp/identity/start", middleware1FA(handlers.TOTPIdentityStart))
+		r.POST("/api/secondfactor/totp/identity/finish", middleware1FA(handlers.TOTPIdentityFinish))
+		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
 	}
 
 	if !config.Webauthn.Disable {
 		// Webauthn Endpoints.
-		r.POST("/api/secondfactor/webauthn/identity/start", middlewareAPI(middlewares.Require1FA(handlers.WebauthnIdentityStart)))
-		r.POST("/api/secondfactor/webauthn/identity/finish", middlewareAPI(middlewares.Require1FA(handlers.WebauthnIdentityFinish)))
-		r.POST("/api/secondfactor/webauthn/attestation", middlewareAPI(middlewares.Require1FA(handlers.WebauthnAttestationPOST)))
+		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
+		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
+		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnAttestationPOST))
 
-		r.GET("/api/secondfactor/webauthn/assertion", middlewareAPI(middlewares.Require1FA(handlers.WebauthnAssertionGET)))
-		r.POST("/api/secondfactor/webauthn/assertion", middlewareAPI(middlewares.Require1FA(handlers.WebauthnAssertionPOST)))
+		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionGET))
+		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionPOST))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
@@ -204,9 +209,9 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 				config.DuoAPI.Hostname, ""))
 		}
 
-		r.GET("/api/secondfactor/duo_devices", middlewareAPI(middlewares.Require1FA(handlers.DuoDevicesGET(duoAPI))))
-		r.POST("/api/secondfactor/duo", middlewareAPI(middlewares.Require1FA(handlers.DuoPOST(duoAPI))))
-		r.POST("/api/secondfactor/duo_device", middlewareAPI(middlewares.Require1FA(handlers.DuoDevicePOST)))
+		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
+		r.POST("/api/secondfactor/duo", middleware1FA(handlers.DuoPOST(duoAPI)))
+		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
 	if config.Server.EnablePprof {
