@@ -27,7 +27,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	}
 	nextCalled := false
 
-	builder := middlewares.NewBridgeBuilder(&configuration, providers)
+	builder := middlewares.NewBridgeBuilder(configuration, providers)
 
 	middleware := builder.Build()
 

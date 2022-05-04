@@ -51,12 +51,12 @@ type AutheliaMiddleware = func(next RequestHandler) RequestHandler
 // Middleware represents a fasthttp middleware.
 type Middleware = func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 
-// RequestHandlerBridge bridge a AutheliaCtx handle to a RequestHandler handler.
-type RequestHandlerBridge = func(RequestHandler) fasthttp.RequestHandler
+// Bridge bridge a AutheliaCtx handle to a RequestHandler handler.
+type Bridge = func(RequestHandler) fasthttp.RequestHandler
 
-// BridgeBuilder is used to build a RequestHandlerBridge.
+// BridgeBuilder is used to build a Bridge.
 type BridgeBuilder struct {
-	config              *schema.Configuration
+	config              schema.Configuration
 	providers           Providers
 	middlewares         []Middleware
 	autheliaMiddlewares []AutheliaMiddleware

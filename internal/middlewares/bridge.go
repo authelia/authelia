@@ -7,7 +7,7 @@ import (
 )
 
 // NewBridgeBuilder creates a new BridgeBuilder.
-func NewBridgeBuilder(config *schema.Configuration, providers Providers) *BridgeBuilder {
+func NewBridgeBuilder(config schema.Configuration, providers Providers) *BridgeBuilder {
 	return &BridgeBuilder{
 		config:    config,
 		providers: providers,
@@ -15,7 +15,7 @@ func NewBridgeBuilder(config *schema.Configuration, providers Providers) *Bridge
 }
 
 // WithConfig sets the schema.Configuration used with this BridgeBuilder.
-func (b *BridgeBuilder) WithConfig(config *schema.Configuration) *BridgeBuilder {
+func (b *BridgeBuilder) WithConfig(config schema.Configuration) *BridgeBuilder {
 	b.config = config
 
 	return b
@@ -42,15 +42,11 @@ func (b *BridgeBuilder) WithAutheliaMiddlewares(middlewares ...AutheliaMiddlewar
 	return b
 }
 
-// Build and return the RequestHandlerBridge configured by this BridgeBuilder.
-func (b *BridgeBuilder) Build() RequestHandlerBridge {
-	if b.config == nil {
-		b.config = &schema.Configuration{}
-	}
-
+// Build and return the Bridge configured by this BridgeBuilder.
+func (b *BridgeBuilder) Build() Bridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {
 		bridge := func(ctx *fasthttp.RequestCtx) {
-			autheliaCtx, err := NewAutheliaCtx(ctx, *b.config, b.providers)
+			autheliaCtx, err := NewAutheliaCtx(ctx, b.config, b.providers)
 			if err != nil {
 				autheliaCtx.Error(err, messageOperationFailed)
 				return

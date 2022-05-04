@@ -100,7 +100,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	builder := middlewares.NewBridgeBuilder(&config, providers)
+	builder := middlewares.NewBridgeBuilder(config, providers)
 
 	middleware := builder.WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersCORB).Build()
 

@@ -562,7 +562,7 @@ func Test_CORSMiddleware_AsMiddleware(t *testing.T) {
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, "GET")
 
-	middleware := NewBridgeBuilder(&schema.Configuration{}, Providers{}).Build()
+	middleware := NewBridgeBuilder(schema.Configuration{}, Providers{}).Build()
 
 	cors := NewCORSPolicyBuilder().WithAllowedMethods("GET", "OPTIONS")
 
