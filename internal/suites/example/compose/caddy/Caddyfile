@@ -15,6 +15,7 @@
 login.example.com:8080 {
     tls internal
     log
+    request_header X-Forwarded-Host {hostport}
     route {
         reverse_proxy /.well-known/* authelia-backend:9091 {
             import tls-transport
