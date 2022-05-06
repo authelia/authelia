@@ -23,25 +23,50 @@ Below you will find commented examples of the following configuration:
 * Authelia portal
 * Protected endpoint (Nextcloud)
 
-### Basic example
+### Basic examples
 
 This example is the preferred example for integration with Caddy. There is an [advanced example](#advanced-example) but
 we _**strongly urge**_ anyone who needs to use this for a particular reason to either reach out to us or Caddy for support
 to ensure the basic example covers your use case in a secure way.
 
+
+#### Subdomain
+
 ```Caddyfile
 authelia.example.com {
-        log
         reverse_proxy authelia:9091
 }
 
 nextcloud.example.com {
-        log
         forward_auth authelia:9091 {
                 uri /api/verify?rd=https://authelia.example.com
                 copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
         }
         reverse_proxy nextcloud:80
+}
+```
+
+#### Subpath
+
+```Caddyfile
+example.com {
+        @authelia {
+            path /authelia /authelia/*
+        }
+        handle @authelia {
+                reverse_proxy authelia:9091
+        }
+        
+        @nextcloud {
+            path /nextcloud /nextcloud/*
+        }
+        handle @nextcloud {
+                forward_auth authelia:9091 {
+                        uri /api/verify?rd=https://example.com/authelia
+                        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+                }
+                reverse_proxy nextcloud:80
+        }
 }
 ```
 
@@ -54,12 +79,10 @@ _**Important:** Making a mistake when configuring the advanced example could lea
 
 ```Caddyfile
 authelia.example.com {
-        log
         reverse_proxy authelia:9091
 }
 
 nextcloud.example.com {
-        log
         route {
                 reverse_proxy authelia:9091 {
                         method GET
