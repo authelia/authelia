@@ -1,7 +1,21 @@
 {
   "name": "authelia",
-  "version": "4.35.1",
+  "version": "4.35.2",
   "private": true,
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@types/react": "18",
+        "react": "18",
+        "react-dom": "18"
+      },
+      "ignoreMissing": [
+        "@babel/plugin-syntax-flow",
+        "@babel/plugin-transform-react-jsx",
+        "prop-types"
+      ]
+    }
+  },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "6.1.1",
     "@fortawesome/free-regular-svg-icons": "6.1.1",
@@ -19,7 +33,7 @@
     "query-string": "7.1.1",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "react-i18next": "11.16.7",
+    "react-i18next": "11.16.8",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
     "react-router-dom": "6.3.0",
@@ -127,15 +141,15 @@
     "@commitlint/cli": "16.2.4",
     "@commitlint/config-conventional": "16.2.4",
     "@testing-library/jest-dom": "5.16.4",
-    "@testing-library/react": "13.1.1",
-    "@types/node": "16.11.32",
+    "@testing-library/react": "13.2.0",
+    "@types/node": "16.11.33",
     "@types/qrcode.react": "1.0.2",
     "@types/react": "18.0.8",
     "@types/react-dom": "18.0.3",
     "@types/zxcvbn": "4.4.1",
-    "@typescript-eslint/eslint-plugin": "5.21.0",
-    "@typescript-eslint/parser": "5.21.0",
-    "@vitejs/plugin-react": "1.3.1",
+    "@typescript-eslint/eslint-plugin": "5.22.0",
+    "@typescript-eslint/parser": "5.22.0",
+    "@vitejs/plugin-react": "1.3.2",
     "esbuild": "0.14.38",
     "esbuild-jest": "0.5.0",
     "eslint": "8.14.0",
@@ -156,10 +170,10 @@
     "prettier": "2.6.2",
     "react-test-renderer": "18.1.0",
     "typescript": "4.6.4",
-    "vite": "2.9.6",
+    "vite": "2.9.8",
     "vite-plugin-eslint": "1.6.0",
-    "vite-plugin-istanbul": "2.7.2",
-    "vite-plugin-svgr": "1.1.0",
+    "vite-plugin-istanbul": "2.7.3",
+    "vite-plugin-svgr": "2.1.0",
     "vite-tsconfig-paths": "3.4.1"
   }
 }

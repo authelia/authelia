@@ -14,12 +14,12 @@ func NewPostgresSuite() *PostgresSuite {
 	return &PostgresSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *PostgresSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *PostgresSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *PostgresSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *PostgresSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func TestPostgresSuite(t *testing.T) {
