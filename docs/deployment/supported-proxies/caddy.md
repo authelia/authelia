@@ -20,12 +20,32 @@ Below you will find commented examples of the following configuration:
 
 ### Basic example
 
-The basic example is coming soon!
+This example is the preferred example for integration with Caddy. There is an [advanced example](#advanced-example) but
+we _**strongly urge**_ anyone who needs to use this for a particular reason to either reach out to us or Caddy for support
+to ensure the basic example covers your use case in a secure way.
+
+```Caddyfile
+authelia.example.com {
+        log
+        reverse_proxy authelia:9091
+}
+
+nextcloud.example.com {
+        log
+        forward_auth authelia:9091 {
+                uri /api/verify?rd=https://authelia.example.com
+                copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+        }
+        reverse_proxy nextcloud:80
+}
+```
 
 ## Advanced example
 
 The advanced example allows for more flexible customization, however the [basic example](#basic-example) should be
 preferred in _most_ situations. If you are unsure of what you're doing please don't use this method.
+
+_**Important:** Making a mistake when configuring the advanced example could lead to authentication bypass or errors._
 
 ```Caddyfile
 authelia.example.com {
