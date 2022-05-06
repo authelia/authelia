@@ -35,7 +35,7 @@ specifiers:
   eslint-plugin-react: 7.29.4
   eslint-plugin-react-hooks: 4.5.0
   husky: 7.0.4
-  i18next: 21.6.16
+  i18next: 21.7.1
   i18next-browser-languagedetector: 6.1.4
   i18next-http-backend: 1.4.0
   jest: 28.0.3
@@ -70,14 +70,14 @@ dependencies:
   '@material-ui/styles': 4.11.5_i6xcbgvvylvakhe2evaee3dlf4
   axios: 0.27.2
   classnames: 2.3.1
-  i18next: 21.6.16
+  i18next: 21.7.1
   i18next-browser-languagedetector: 6.1.4
   i18next-http-backend: 1.4.0
   qrcode.react: 3.0.1_react@18.1.0
   query-string: 7.1.1
   react: 18.1.0
   react-dom: 18.1.0_react@18.1.0
-  react-i18next: 11.16.8_47hlnquejirkg3ammbyc66ijei
+  react-i18next: 11.16.8_2xmduy7g43rnjce2rgborrjowa
   react-loading: 2.0.3_react@18.1.0
   react-otp-input: 2.4.0_ef5jwxihqo6n7gxfmzogljlgcm
   react-router-dom: 6.3.0_ef5jwxihqo6n7gxfmzogljlgcm
@@ -5241,8 +5241,8 @@ packages:
       - encoding
     dev: false
 
-  /i18next/21.6.16:
-    resolution: {integrity: sha512-xJlzrVxG9CyAGsbMP1aKuiNr1Ed2m36KiTB7hjGMG2Zo4idfw3p9THUEu+GjBwIgEZ7F11ZbCzJcfv4uyfKNuw==}
+  /i18next/21.7.1:
+    resolution: {integrity: sha512-uNt0BM+HV7wgWrrTE+Z4qinQFTONB21hK3I5V/LayhquPv78WchnO4hjF2PWY/OZocahHBDbzbe0/o1rp/RcWQ==}
     dependencies:
       '@babel/runtime': 7.17.8
     dev: false
@@ -7070,7 +7070,7 @@ packages:
       scheduler: 0.22.0
     dev: false
 
-  /react-i18next/11.16.8_47hlnquejirkg3ammbyc66ijei:
+  /react-i18next/11.16.8_2xmduy7g43rnjce2rgborrjowa:
     resolution: {integrity: sha512-uuhSuwY0iMOPV9HUsN1OC4cGCrATPvzZ1O8UfvLR+imz/XjPmfDgZM1e4dPS0Suc2+aCQqJ0FmWP891lUkB2Cg==}
     peerDependencies:
       i18next: '>= 19.0.0'
@@ -7086,7 +7086,7 @@ packages:
       '@babel/runtime': 7.17.8
       html-escaper: 2.0.2
       html-parse-stringify: 3.0.1
-      i18next: 21.6.16
+      i18next: 21.7.1
       react: 18.1.0
       react-dom: 18.1.0_react@18.1.0
     dev: false
