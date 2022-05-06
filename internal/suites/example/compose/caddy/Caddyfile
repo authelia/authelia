@@ -1,86 +1,65 @@
 (tls-transport) {
-	transport http {
-		tls
-		tls_insecure_skip_verify
-	}
+        transport http {
+                tls
+                tls_insecure_skip_verify
+        }
 }
 
 :8085 {
-	log
-	reverse_proxy authelia-backend:9091 {
-		import tls-transport
-	}
+        log
+        reverse_proxy authelia-backend:9091 {
+                import tls-transport
+        }
 }
 
 login.example.com:8080 {
-	tls internal
-	log
-	route {
-		reverse_proxy /.well-known/* authelia-backend:9091 {
-			import tls-transport
-		}
+        tls internal
+        log
+        route {
+                reverse_proxy /.well-known/* authelia-backend:9091 {
+                        import tls-transport
+                }
 
-		reverse_proxy /api/* authelia-backend:9091 {
-			import tls-transport
-		}
+                reverse_proxy /api/* authelia-backend:9091 {
+                        import tls-transport
+                }
 
-		reverse_proxy /locales/* authelia-backend:9091 {
-			import tls-transport
-		}
+                reverse_proxy /locales/* authelia-backend:9091 {
+                        import tls-transport
+                }
 
-		reverse_proxy /jwks.json authelia-backend:9091 {
-			import tls-transport
-		}
+                reverse_proxy /jwks.json authelia-backend:9091 {
+                        import tls-transport
+                }
 
-		reverse_proxy authelia-frontend:3000 :8085 {
-			lb_policy first
-			lb_try_duration 5s
-			lb_try_interval 250ms
+                reverse_proxy authelia-frontend:3000 :8085 {
+                        lb_policy first
+                        lb_try_duration 5s
+                        lb_try_interval 250ms
 
-			fail_duration 10s
-			max_fails 1
-			unhealthy_status 5xx
-			unhealthy_request_count 1
-		}
-	}
+                        fail_duration 10s
+                        max_fails 1
+                        unhealthy_status 5xx
+                        unhealthy_request_count 1
+                }
+        }
 }
 
 mail.example.com:8080 {
-	tls internal
-	log
-	reverse_proxy smtp:1080
+        tls internal
+        log
+        reverse_proxy smtp:1080
 }
 
 *.example.com:8080 {
-	tls internal
-	log
-	route {
-		reverse_proxy authelia-backend:9091 {
-			import tls-transport
+        tls internal
+        log
+        forward_auth authelia-backend:9091 {
+                uri /api/verify?rd=https://login.example.com:8080
+                copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+                import tls-transport
+        }
 
-			method GET
-			rewrite "/api/verify?rd=https://login.example.com:8080"
-
-			header_up X-Forwarded-Method {method}
-			header_up X-Forwarded-Uri {uri}
-
-			@good status 2xx
-			handle_response @good {
-				request_header Remote-User {http.reverse_proxy.header.Remote-User}
-				request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-				request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
-				request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
-			}
-
-			@denied status 1xx 3xx 4xx 5xx
-			handle_response @denied {
-				copy_response_headers {
-					exclude Connection Keep-Alive Te Trailers Transfer-Encoding Upgrade
-				}
-			}
-		}
-
-		reverse_proxy /headers httpbin:8000
-		reverse_proxy nginx-backend
-	}
+        reverse_proxy /headers httpbin:8000
+        reverse_proxy nginx-backend
 }
