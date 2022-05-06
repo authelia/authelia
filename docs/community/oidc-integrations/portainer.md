@@ -28,6 +28,9 @@ identity_providers:
         audience: []
         scopes:
           - openid
+          - profile
+          - groups
+          - email
         redirect_uris:
           - https://portainer.example.com
         userinfo_signing_algorithm: none
