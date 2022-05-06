@@ -1129,7 +1129,7 @@
   },"188": {
     "doc": "Portainer",
     "title": "Authelia config",
-    "content": "The specific client config for portainer. identity_providers: oidc: clients: - id: portainer_client_id description: Some description you want to shown on the Authelia consent page secret: some secret string which should also be entered in the portainer config public: false authorization_policy: two_factor audience: [] scopes: - openid redirect_uris: - https://portainer.example.com userinfo_signing_algorithm: none . ",
+    "content": "The specific client config for portainer. identity_providers: oidc: clients: - id: portainer_client_id description: Some description you want to shown on the Authelia consent page secret: some secret string which should also be entered in the portainer config public: false authorization_policy: two_factor audience: [] scopes: - openid - profile - groups - email redirect_uris: - https://portainer.example.com userinfo_signing_algorithm: none . ",
     "url": "/docs/community/oidc-integrations/portainer.html#authelia-config",
     "relUrl": "/community/oidc-integrations/portainer.html#authelia-config"
   },"189": {
