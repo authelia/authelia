@@ -94,10 +94,12 @@ nextcloud.example.com {
 			##   2. Copy the relevant headers from the auth request and provide them to the backend.
 			@good status 2xx
 			handle_response @good {
-				request_header Remote-User {http.reverse_proxy.header.Remote-User}
-				request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-				request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
-				request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
+				request_header {
+					Remote-User {http.reverse_proxy.header.Remote-User}
+					Remote-Groups {http.reverse_proxy.header.Remote-Groups}
+					Remote-Name {http.reverse_proxy.header.Remote-Name}
+					Remote-Email {http.reverse_proxy.header.Remote-Email}
+				}
 			}
 
 			## If the auth request:
