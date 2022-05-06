@@ -55,7 +55,7 @@ specifiers:
   typescript: 4.6.4
   vite: 2.9.8
   vite-plugin-eslint: 1.6.0
-  vite-plugin-istanbul: 2.7.2
+  vite-plugin-istanbul: 2.7.3
   vite-plugin-svgr: 2.1.0
   vite-tsconfig-paths: 3.4.1
   zxcvbn: 4.4.2
@@ -118,7 +118,7 @@ devDependencies:
   typescript: 4.6.4
   vite: 2.9.8
   vite-plugin-eslint: 1.6.0_eslint@8.14.0+vite@2.9.8
-  vite-plugin-istanbul: 2.7.2
+  vite-plugin-istanbul: 2.7.3
   vite-plugin-svgr: 2.1.0_vite@2.9.8
   vite-tsconfig-paths: 3.4.1_vite@2.9.8
 
@@ -5576,7 +5576,7 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       '@babel/core': 7.17.10
-      '@babel/parser': 7.17.9
+      '@babel/parser': 7.17.10
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.0
       semver: 6.3.0
@@ -8161,8 +8161,8 @@ packages:
       vite: 2.9.8
     dev: true
 
-  /vite-plugin-istanbul/2.7.2:
-    resolution: {integrity: sha512-FreeZqK1aGzy61i4lO81OKIOyb1YDxu4e3pitTdfDVc6IAUJcxC5x2aNtMPimV18Lyt7+Qhl0iwUphF5YT25Tg==}
+  /vite-plugin-istanbul/2.7.3:
+    resolution: {integrity: sha512-IYCVKko3SInmsuS1Pymw0M6We4N1RZUlf2hB34/mKkG52IHelaP3oN5AKUFUywgglpx/Gs9H5CK+sxnMbEfT0g==}
     dependencies:
       istanbul-lib-instrument: 5.1.0
       picocolors: 1.0.0
