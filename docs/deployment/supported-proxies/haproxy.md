@@ -3,7 +3,7 @@ layout: default
 title: HAProxy
 parent: Proxy Integration
 grand_parent: Deployment
-nav_order: 1
+nav_order: 2
 ---
 
 # HAProxy
