@@ -50,16 +50,12 @@ nextcloud.example.com {
 
 ```Caddyfile
 example.com {
-        @authelia {
-            path /authelia /authelia/*
-        }
+        @authelia path /authelia /authelia/*
         handle @authelia {
                 reverse_proxy authelia:9091
         }
         
-        @nextcloud {
-            path /nextcloud /nextcloud/*
-        }
+        @nextcloud path /nextcloud /nextcloud/*
         handle @nextcloud {
                 forward_auth authelia:9091 {
                         uri /api/verify?rd=https://example.com/authelia
