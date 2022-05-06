@@ -2,7 +2,7 @@
 version: '3'
 services:
   caddy:
-    build: ./example/compose/caddy/
+    image: caddy:2.5.1-alpine
     volumes:
       - ./example/compose/caddy/Caddyfile:/etc/caddy/Caddyfile
     networks:
