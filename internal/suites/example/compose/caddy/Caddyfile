@@ -64,14 +64,7 @@ mail.example.com:8080 {
             header_up X-Forwarded-Method {method}
             header_up X-Forwarded-Uri {uri}
 
-            @good status 200
-            @bad status 5xx
-
-            @needs-auth {
-                header Location *
-                status 302 303 401
-            }
-
+            @good status 2xx
             handle_response @good {
                 request_header Remote-User {http.reverse_proxy.header.Remote-User}
                 request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
@@ -79,14 +72,12 @@ mail.example.com:8080 {
                 request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
             }
 
-            handle_response @needs-auth {
-                respond "" {http.reverse_proxy.status_code}
-                header Location {http.reverse_proxy.header.Location}
-            }
-
-            handle_response @bad {
-                error {http.reverse_proxy.status_text} {http.reverse_proxy.status_code}
-            }
+            @denied status 1xx 3xx 4xx 5xx
+			handle_response @denied {
+                copy_response_headers {
+                    exclude Connection Keep-Alive Te Trailers Transfer-Encoding Upgrade
+                }
+			}
         }
 
         reverse_proxy /headers httpbin:8000
