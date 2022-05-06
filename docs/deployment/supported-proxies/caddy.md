@@ -34,15 +34,15 @@ to ensure the basic example covers your use case in a secure way.
 
 ```Caddyfile
 authelia.example.com {
-        reverse_proxy authelia:9091
+	reverse_proxy authelia:9091
 }
 
 nextcloud.example.com {
-        forward_auth authelia:9091 {
-                uri /api/verify?rd=https://authelia.example.com
-                copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-        }
-        reverse_proxy nextcloud:80
+	forward_auth authelia:9091 {
+		uri /api/verify?rd=https://authelia.example.com
+		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+	}
+	reverse_proxy nextcloud:80
 }
 ```
 
@@ -50,19 +50,19 @@ nextcloud.example.com {
 
 ```Caddyfile
 example.com {
-        @authelia path /authelia /authelia/*
-        handle @authelia {
-                reverse_proxy authelia:9091
-        }
-        
-        @nextcloud path /nextcloud /nextcloud/*
-        handle @nextcloud {
-                forward_auth authelia:9091 {
-                        uri /api/verify?rd=https://example.com/authelia
-                        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-                }
-                reverse_proxy nextcloud:80
-        }
+	@authelia path /authelia /authelia/*
+	handle @authelia {
+		reverse_proxy authelia:9091
+	}
+	
+	@nextcloud path /nextcloud /nextcloud/*
+	handle @nextcloud {
+		forward_auth authelia:9091 {
+			uri /api/verify?rd=https://example.com/authelia
+			copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+		}
+		reverse_proxy nextcloud:80
+	}
 }
 ```
 
@@ -75,49 +75,49 @@ _**Important:** Making a mistake when configuring the advanced example could lea
 
 ```Caddyfile
 authelia.example.com {
-        reverse_proxy authelia:9091
+	reverse_proxy authelia:9091
 }
 
 nextcloud.example.com {
-        route {
-                reverse_proxy authelia:9091 {
-                        method GET
-                        rewrite "/api/verify?rd=https://authelia.example.com"
+	route {
+		reverse_proxy authelia:9091 {
+			method GET
+			rewrite "/api/verify?rd=https://authelia.example.com"
 
-                        header_up X-Forwarded-Method {method}
-                        header_up X-Forwarded-Uri {uri}
+			header_up X-Forwarded-Method {method}
+			header_up X-Forwarded-Uri {uri}
 
-                        ## If the auth request:
-                        ##   1. Responds with a status code IN the 200-299 range.
-                        ## Then:
-                        ##   1. Proxy the request to the backend.
-                        ##   2. Copy the relevant headers from the auth request and provide them to the backend.
-                        @good status 2xx
-                        handle_response @good {
-                                request_header Remote-User {http.reverse_proxy.header.Remote-User}
-                                request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-                                request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
-                                request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
-                        }
+			## If the auth request:
+			##   1. Responds with a status code IN the 200-299 range.
+			## Then:
+			##   1. Proxy the request to the backend.
+			##   2. Copy the relevant headers from the auth request and provide them to the backend.
+			@good status 2xx
+			handle_response @good {
+				request_header Remote-User {http.reverse_proxy.header.Remote-User}
+				request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
+				request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
+				request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
+			}
 
-                        ## If the auth request:
-                        ##   1. Responds with a status code NOT IN the 200-299 range.
-                        ## Then:
-                        ##   1. Respond with the status code of the auth request.
-                        ##   1. Copy the response except for several headers.
-                        @denied {
-                                status 1xx 3xx 4xx 5xx
-                        }
-                        handle_response @denied {
-                                copy_response
-                                copy_response_headers {
-                                        exclude Connection Keep-Alive Te Trailers Transfer-Encoding Upgrade
-                                }
-                        }
-                }
+			## If the auth request:
+			##   1. Responds with a status code NOT IN the 200-299 range.
+			## Then:
+			##   1. Respond with the status code of the auth request.
+			##   1. Copy the response except for several headers.
+			@denied {
+				status 1xx 3xx 4xx 5xx
+			}
+			handle_response @denied {
+				copy_response
+				copy_response_headers {
+					exclude Connection Keep-Alive Te Trailers Transfer-Encoding Upgrade
+				}
+			}
+		}
 
-                reverse_proxy nextcloud:80
-        }
+		reverse_proxy nextcloud:80
+	}
 }
 ```
 
