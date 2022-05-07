@@ -133,7 +133,7 @@
   },"22": {
     "doc": "Caddy",
     "title": "Caddy",
-    "content": "Caddy is a reverse proxy supported by Authelia. _Important: Caddy officially supports the forward auth flow in version 2.5.1 and greater. You must be using this version in order to use either Caddyfile. Authelia offers integration support for the official forward auth integration method Caddy provides, we can’t reasonably be expected to offer support for all of the different plugins that exist. ",
+    "content": "Caddy is a reverse proxy supported by Authelia. Important: Caddy officially supports the forward auth flow in version 2.5.1 and greater. You must be using this version in order to use either Caddyfile. Authelia offers integration support for the official forward auth integration method Caddy provides, we can’t reasonably be expected to offer support for all of the different plugins that exist. ",
     "url": "/docs/deployment/supported-proxies/caddy.html",
     "relUrl": "/deployment/supported-proxies/caddy.html"
   },"23": {
