@@ -87,6 +87,15 @@ log:
   file_path: /config/authelia.log
 ```
 
+If you include the value `%d` in the filename it will replace this value with a datetime in the following format:
+
+`2020-01-30T154500Z`
+
+```yaml
+log:
+  file_path: /config/authelia.%d.log
+```
+
 ### keep_stdout
 <div markdown="1">
 type: boolean
