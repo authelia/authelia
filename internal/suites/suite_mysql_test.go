@@ -14,12 +14,12 @@ func NewMySQLSuite() *MySQLSuite {
 	return &MySQLSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *MySQLSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *MySQLSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *MySQLSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *MySQLSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func TestMySQLSuite(t *testing.T) {

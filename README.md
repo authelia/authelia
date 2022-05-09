@@ -89,15 +89,15 @@ Docker or on top of [Kubernetes].
 <p align="center">
   <img src="./docs/images/logos/nginx.png" height="50"/>
   <img src="./docs/images/logos/traefik.png" height="50"/>
+  <img src="./docs/images/logos/caddy.png" height="50"/>
   <img src="./docs/images/logos/haproxy.png" height="50"/>  
-  <img src="./docs/images/logos/kubernetes.png" height="50"/> 
+  <img src="./docs/images/logos/kubernetes.png" height="50"/>
 </p>
 
 ***Help Wanted:*** Assistance would be appreciated in getting Authelia working with
-[Caddy](https://caddyserver.com/) and [Envoy](https://www.envoyproxy.io/).
+[Envoy](https://www.envoyproxy.io/).
 
 <p align="center">
-  <img src="./docs/images/logos/caddy.png" height="50"/>
   <img src="./docs/images/logos/envoy.png" height="50"/>
 </p>
 
