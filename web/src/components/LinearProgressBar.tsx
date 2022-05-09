@@ -1,14 +1,12 @@
 import React from "react";
 
 import { LinearProgress, Theme } from "@mui/material";
-import { CSSProperties } from "@mui/styles";
 import makeStyles from "@mui/styles/makeStyles";
 
 export interface Props {
     value: number;
     height?: string | number;
     className?: string;
-    style?: CSSProperties;
 }
 
 const LinearProgressBar = function (props: Props) {
@@ -23,7 +21,6 @@ const LinearProgressBar = function (props: Props) {
 
     return (
         <LinearProgress
-            style={props.style as React.CSSProperties}
             variant="determinate"
             classes={{
                 root: styles.progressRoot,

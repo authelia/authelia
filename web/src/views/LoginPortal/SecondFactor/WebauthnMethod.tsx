@@ -1,7 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, Theme, useTheme } from "@mui/material";
-import { CSSProperties } from "@mui/styles";
 import makeStyles from "@mui/styles/makeStyles";
 
 import FailureIcon from "@components/FailureIcon";
@@ -189,16 +188,18 @@ function Icon(props: IconProps) {
     const state = props.state as State;
     const theme = useTheme();
 
-    const progressBarStyle: CSSProperties = {
-        marginTop: theme.spacing(),
-    };
+    const styles = makeStyles((theme: Theme) => ({
+        progressBar: {
+            marginTop: theme.spacing(),
+        },
+    }))();
 
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
             className={state === State.WaitTouch ? undefined : "hidden"}
         >
-            <LinearProgressBar value={props.timer} style={progressBarStyle} height={theme.spacing(2)} />
+            <LinearProgressBar value={props.timer} className={styles.progressBar} height={theme.spacing(2)} />
         </IconWithContext>
     );
 

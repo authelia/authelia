@@ -1,6 +1,6 @@
 import React, { ReactNode, Fragment } from "react";
 
-import { Typography, Link, useTheme, Theme } from "@mui/material";
+import { Typography, Link, Theme, Box } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -90,6 +90,16 @@ const useStyles = makeStyles((theme: Theme) => ({
         alignContent: "center",
         justifyContent: "center",
     },
+    containerMethod: {
+        marginBottom: theme.spacing(2),
+    },
+    info: {
+        marginBottom: theme.spacing(2),
+        flex: "0 0 100%",
+    },
+    infoTypography: {
+        color: "#5858ff",
+    },
 }));
 
 interface NotRegisteredContainerProps {
@@ -99,16 +109,17 @@ interface NotRegisteredContainerProps {
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const { t: translate } = useTranslation();
-    const theme = useTheme();
+    const styles = useStyles();
+
     return (
         <Fragment>
-            <div style={{ marginBottom: theme.spacing(2), flex: "0 0 100%" }}>
+            <Box className={styles.info}>
                 <InformationIcon />
-            </div>
-            <Typography style={{ color: "#5858ff" }}>
+            </Box>
+            <Typography className={styles.infoTypography}>
                 {translate("The resource you're attempting to access requires two-factor authentication")}
             </Typography>
-            <Typography style={{ color: "#5858ff" }}>
+            <Typography className={styles.infoTypography}>
                 {props.title === "Push Notification"
                     ? props.duoSelfEnrollment
                         ? translate("Register your first device by clicking on the link below")
@@ -125,10 +136,11 @@ interface MethodContainerProps {
 }
 
 function MethodContainer(props: MethodContainerProps) {
-    const theme = useTheme();
+    const styles = useStyles();
+
     return (
         <Fragment>
-            <div style={{ marginBottom: theme.spacing(2) }}>{props.children}</div>
+            <Box className={styles.containerMethod}>{props.children}</Box>
             <Typography>{props.explanation}</Typography>
         </Fragment>
     );
