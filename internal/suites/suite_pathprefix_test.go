@@ -14,12 +14,12 @@ func NewPathPrefixSuite() *PathPrefixSuite {
 	return &PathPrefixSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *PathPrefixSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *PathPrefixSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *PathPrefixSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *PathPrefixSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func (s *PathPrefixSuite) TestCustomHeaders() {

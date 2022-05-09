@@ -267,12 +267,12 @@ func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
 	suite.Run(s.T(), NewStandaloneWebDriverSuite())
 }
 
-func (s *StandaloneSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *StandaloneSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *StandaloneSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *StandaloneSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func (s *StandaloneSuite) TestBypassPolicyScenario() {

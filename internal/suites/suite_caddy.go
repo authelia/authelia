@@ -6,16 +6,16 @@ import (
 	"time"
 )
 
-var traefikSuiteName = "Traefik"
+var caddySuiteName = "Caddy"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/docker-compose.yml",
-		"internal/suites/Traefik/docker-compose.yml",
+		"internal/suites/Caddy/docker-compose.yml",
 		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/traefik/docker-compose.yml",
+		"internal/suites/example/compose/caddy/docker-compose.yml",
 		"internal/suites/example/compose/smtp/docker-compose.yml",
 		"internal/suites/example/compose/httpbin/docker-compose.yml",
 	})
@@ -23,10 +23,10 @@ func init() {
 	if os.Getenv("CI") == t {
 		dockerEnvironment = NewDockerEnvironment([]string{
 			"internal/suites/docker-compose.yml",
-			"internal/suites/Traefik/docker-compose.yml",
+			"internal/suites/Caddy/docker-compose.yml",
 			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-			"internal/suites/example/compose/traefik/docker-compose.yml",
+			"internal/suites/example/compose/caddy/docker-compose.yml",
 			"internal/suites/example/compose/smtp/docker-compose.yml",
 			"internal/suites/example/compose/httpbin/docker-compose.yml",
 		})
@@ -37,7 +37,7 @@ func init() {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment, traefikSuiteName)
+		return waitUntilAutheliaIsReady(dockerEnvironment, caddySuiteName)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -57,6 +57,13 @@ func init() {
 			fmt.Println(frontendLogs)
 		}
 
+		caddyLogs, err := dockerEnvironment.Logs("caddy", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(caddyLogs)
+
 		return nil
 	}
 
@@ -65,7 +72,7 @@ func init() {
 		return err
 	}
 
-	GlobalRegistry.Register(traefikSuiteName, Suite{
+	GlobalRegistry.Register(caddySuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,

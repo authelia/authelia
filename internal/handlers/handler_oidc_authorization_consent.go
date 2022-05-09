@@ -117,9 +117,9 @@ func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, root
 		err error
 	)
 
-	scopes, audience := getExpectedScopesAndAudience(requester)
+	scopes, audience := getOIDCExpectedScopesAndAudienceFromRequest(requester)
 
-	if consent, err = getOIDCPreconfiguredConsent(ctx, client.GetID(), subject.UUID, scopes, audience); err != nil {
+	if consent, err = getOIDCPreConfiguredConsent(ctx, client.GetID(), subject.UUID, scopes, audience); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not lookup the consent session."))
@@ -182,16 +182,32 @@ func handleOIDCAuthorizationConsentRedirect(destination string, client *oidc.Cli
 	http.Redirect(rw, r, destination, http.StatusFound)
 }
 
-func getExpectedScopesAndAudience(requester fosite.Requester) (scopes, audience []string) {
-	audience = requester.GetRequestedAudience()
-	if !utils.IsStringInSlice(requester.GetClient().GetID(), audience) {
-		audience = append(audience, requester.GetClient().GetID())
-	}
-
-	return requester.GetRequestedScopes(), audience
+func getOIDCExpectedScopesAndAudienceFromRequest(requester fosite.Requester) (scopes, audience []string) {
+	return getOIDCExpectedScopesAndAudience(requester.GetClient().GetID(), requester.GetRequestedScopes(), requester.GetRequestedAudience())
 }
 
-func getOIDCPreconfiguredConsent(ctx *middlewares.AutheliaCtx, clientID string, subject uuid.UUID, scopes, audience []string) (consent *model.OAuth2ConsentSession, err error) {
+func getOIDCExpectedScopesAndAudience(clientID string, scopes, audience []string) (expectedScopes, expectedAudience []string) {
+	if !utils.IsStringInSlice(clientID, audience) {
+		audience = append(audience, clientID)
+	}
+
+	return scopes, audience
+}
+
+func getOIDCPreConfiguredConsentFromClientAndConsent(ctx *middlewares.AutheliaCtx, client fosite.Client, consent *model.OAuth2ConsentSession) (preConfigConsent *model.OAuth2ConsentSession, err error) {
+	if consent == nil || !consent.Subject.Valid {
+		return nil, fmt.Errorf("invalid consent provided for pre-configured consent lookup")
+	}
+
+	scopes, audience := getOIDCExpectedScopesAndAudience(client.GetID(), consent.RequestedScopes, consent.RequestedAudience)
+
+	// We can skip this error as it's handled at the authorization endpoint.
+	preConfigConsent, _ = getOIDCPreConfiguredConsent(ctx, client.GetID(), consent.Subject.UUID, scopes, audience)
+
+	return preConfigConsent, nil
+}
+
+func getOIDCPreConfiguredConsent(ctx *middlewares.AutheliaCtx, clientID string, subject uuid.UUID, scopes, audience []string) (consent *model.OAuth2ConsentSession, err error) {
 	var (
 		rows *storage.ConsentSessionRows
 	)

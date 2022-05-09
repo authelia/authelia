@@ -9,14 +9,15 @@ require (
 	github.com/duosecurity/duo_api_golang v0.0.0-20220428205559-fa137a8ef05b
 	github.com/fasthttp/router v1.4.8
 	github.com/fasthttp/session/v2 v2.4.9
+	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-ldap/ldap/v3 v3.4.3
-	github.com/go-rod/rod v0.103.0
+	github.com/go-rod/rod v0.106.5
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.3.1
 	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
-	github.com/jackc/pgx/v4 v4.16.0
+	github.com/jackc/pgx/v4 v4.16.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/knadh/koanf v1.4.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
@@ -51,7 +52,6 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
@@ -60,7 +60,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.12.0 // indirect
+	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
@@ -91,8 +91,8 @@ require (
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/ysmood/goob v0.3.1 // indirect
-	github.com/ysmood/gson v0.6.4 // indirect
+	github.com/ysmood/goob v0.4.0 // indirect
+	github.com/ysmood/gson v0.7.1 // indirect
 	github.com/ysmood/leakless v0.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/mod v0.5.0 // indirect

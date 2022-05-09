@@ -10,8 +10,12 @@ import (
 
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	conn, err := p.connect(p.configuration.User, p.configuration.Password)
-	if err != nil {
+	var (
+		conn         LDAPConnection
+		searchResult *ldap.SearchResult
+	)
+
+	if conn, err = p.connect(); err != nil {
 		return err
 	}
 
@@ -20,17 +24,16 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
 
-	sr, err := conn.Search(searchRequest)
-	if err != nil {
+	if searchResult, err = conn.Search(searchRequest); err != nil {
 		return err
 	}
 
-	if len(sr.Entries) != 1 {
+	if len(searchResult.Entries) != 1 {
 		return nil
 	}
 
 	// Iterate the attribute values to see what the server supports.
-	for _, attr := range sr.Entries[0].Attributes {
+	for _, attr := range searchResult.Entries[0].Attributes {
 		if attr.Name == ldapSupportedExtensionAttribute {
 			p.log.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
 
@@ -40,13 +43,11 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 					break
 				}
 			}
-
-			break
 		}
 	}
 
 	if !p.supportExtensionPasswdModify && !p.disableResetPassword &&
-		p.configuration.Implementation != schema.LDAPImplementationActiveDirectory {
+		p.config.Implementation != schema.LDAPImplementationActiveDirectory {
 		p.log.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
 			"attribute when users reset their password via Authelia.")
@@ -56,27 +57,27 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 }
 
 func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{username_attribute}", p.configuration.UsernameAttribute)
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{mail_attribute}", p.configuration.MailAttribute)
-	p.configuration.UsersFilter = strings.ReplaceAll(p.configuration.UsersFilter, "{display_name_attribute}", p.configuration.DisplayNameAttribute)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, "{username_attribute}", p.config.UsernameAttribute)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, "{mail_attribute}", p.config.MailAttribute)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, "{display_name_attribute}", p.config.DisplayNameAttribute)
 
-	p.log.Tracef("Dynamically generated users filter is %s", p.configuration.UsersFilter)
+	p.log.Tracef("Dynamically generated users filter is %s", p.config.UsersFilter)
 
 	p.usersAttributes = []string{
-		p.configuration.DisplayNameAttribute,
-		p.configuration.MailAttribute,
-		p.configuration.UsernameAttribute,
+		p.config.DisplayNameAttribute,
+		p.config.MailAttribute,
+		p.config.UsernameAttribute,
 	}
 
-	if p.configuration.AdditionalUsersDN != "" {
-		p.usersBaseDN = p.configuration.AdditionalUsersDN + "," + p.configuration.BaseDN
+	if p.config.AdditionalUsersDN != "" {
+		p.usersBaseDN = p.config.AdditionalUsersDN + "," + p.config.BaseDN
 	} else {
-		p.usersBaseDN = p.configuration.BaseDN
+		p.usersBaseDN = p.config.BaseDN
 	}
 
 	p.log.Tracef("Dynamically generated users BaseDN is %s", p.usersBaseDN)
 
-	if strings.Contains(p.configuration.UsersFilter, ldapPlaceholderInput) {
+	if strings.Contains(p.config.UsersFilter, ldapPlaceholderInput) {
 		p.usersFilterReplacementInput = true
 	}
 
@@ -86,26 +87,26 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 
 func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
 	p.groupsAttributes = []string{
-		p.configuration.GroupNameAttribute,
+		p.config.GroupNameAttribute,
 	}
 
-	if p.configuration.AdditionalGroupsDN != "" {
-		p.groupsBaseDN = ldap.EscapeFilter(p.configuration.AdditionalGroupsDN + "," + p.configuration.BaseDN)
+	if p.config.AdditionalGroupsDN != "" {
+		p.groupsBaseDN = ldap.EscapeFilter(p.config.AdditionalGroupsDN + "," + p.config.BaseDN)
 	} else {
-		p.groupsBaseDN = p.configuration.BaseDN
+		p.groupsBaseDN = p.config.BaseDN
 	}
 
 	p.log.Tracef("Dynamically generated groups BaseDN is %s", p.groupsBaseDN)
 
-	if strings.Contains(p.configuration.GroupsFilter, ldapPlaceholderInput) {
+	if strings.Contains(p.config.GroupsFilter, ldapPlaceholderInput) {
 		p.groupsFilterReplacementInput = true
 	}
 
-	if strings.Contains(p.configuration.GroupsFilter, ldapPlaceholderUsername) {
+	if strings.Contains(p.config.GroupsFilter, ldapPlaceholderUsername) {
 		p.groupsFilterReplacementUsername = true
 	}
 
-	if strings.Contains(p.configuration.GroupsFilter, ldapPlaceholderDistinguishedName) {
+	if strings.Contains(p.config.GroupsFilter, ldapPlaceholderDistinguishedName) {
 		p.groupsFilterReplacementDN = true
 	}
 

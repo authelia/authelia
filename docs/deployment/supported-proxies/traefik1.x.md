@@ -3,7 +3,7 @@ layout: default
 title: Traefik 1.x
 parent: Proxy Integration
 grand_parent: Deployment
-nav_order: 3
+nav_order: 4
 ---
 
 # Traefik
