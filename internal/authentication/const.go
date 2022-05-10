@@ -71,6 +71,10 @@ const (
 	ldapPlaceholderUsername          = "{username}"
 )
 
+const (
+	none = "none"
+)
+
 // CryptAlgo the crypt representation of an algorithm used in the prefix of the hash.
 type CryptAlgo string
 

@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -67,18 +66,17 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 
 	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(searchResult.Entries[0])
 
-	builder := strings.Builder{}
+	controlTypes, extensions := none, none
 
-	builder.WriteString("LDAP Supported OIDs.")
 	if len(controlTypeOIDs) != 0 {
-		builder.WriteString(fmt.Sprintf(" Control Types: %s.", strings.Join(controlTypeOIDs, ", ")))
+		controlTypes = strings.Join(controlTypeOIDs, ", ")
 	}
 
 	if len(extensionOIDs) != 0 {
-		builder.WriteString(fmt.Sprintf(" Extensions: %s.", strings.Join(extensionOIDs, ", ")))
+		extensions = strings.Join(extensionOIDs, ", ")
 	}
 
-	p.log.Debug(builder.String())
+	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
 
 	return features, nil
 }
