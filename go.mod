@@ -11,7 +11,7 @@ require (
 	github.com/fasthttp/session/v2 v2.4.9
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-ldap/ldap/v3 v3.4.3
-	github.com/go-rod/rod v0.106.5
+	github.com/go-rod/rod v0.106.6
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.3.1
 	github.com/golang-jwt/jwt/v4 v4.4.1
@@ -27,7 +27,7 @@ require (
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
-	github.com/simia-tech/crypt v0.5.0
+	github.com/simia-tech/crypt v0.5.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
@@ -94,7 +94,7 @@ require (
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/gson v0.7.1 // indirect
 	github.com/ysmood/leakless v0.7.0 // indirect
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
+	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
