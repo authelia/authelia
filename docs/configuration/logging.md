@@ -87,9 +87,10 @@ log:
   file_path: /config/authelia.log
 ```
 
-If you include the value `%d` in the filename it will replace this value with a datetime in the following format:
+If you include the value `%d` in the filename it will replace this value with a date time indicative of the time
+the logger was initialized in the following format:
 
-`2020-01-30T154500Z`
+`2006-02-01T150405Z`
 
 ```yaml
 log:
