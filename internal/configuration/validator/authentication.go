@@ -124,9 +124,7 @@ func validateLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendC
 
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-	}
-
-	if config.TLS.MinimumVersion == "" {
+	} else if config.TLS.MinimumVersion == "" {
 		config.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
 	}
 

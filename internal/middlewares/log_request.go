@@ -4,8 +4,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// LogRequestMiddleware logs the query that is being treated.
-func LogRequestMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+// LogRequest logs the query that is being treated.
+func LogRequest(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		autheliaCtx := &AutheliaCtx{RequestCtx: ctx}
 		logger := NewRequestLogger(autheliaCtx)

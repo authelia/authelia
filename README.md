@@ -16,7 +16,7 @@
   [![Matrix](https://img.shields.io/matrix/authelia-support:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://matrix.to/#/#support:authelia.com)
 
 **Authelia** is an open-source authentication and authorization server providing two-factor authentication and single 
-sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx], [Traefik] 
+sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx], [Traefik], [caddy] 
 or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's portal for
 authentication.
 
@@ -83,21 +83,21 @@ If you want to know more about the roadmap, follow [Roadmap](https://www.autheli
 
 ## Proxy support
 
-Authelia works in combination with [nginx], [Traefik] or [HAProxy]. It can be deployed on bare metal with
+Authelia works in combination with [nginx], [Traefik], [caddy] or [HAProxy]. It can be deployed on bare metal with
 Docker or on top of [Kubernetes].
 
 <p align="center">
   <img src="./docs/images/logos/nginx.png" height="50"/>
   <img src="./docs/images/logos/traefik.png" height="50"/>
+  <img src="./docs/images/logos/caddy.png" height="50"/>
   <img src="./docs/images/logos/haproxy.png" height="50"/>  
-  <img src="./docs/images/logos/kubernetes.png" height="50"/> 
+  <img src="./docs/images/logos/kubernetes.png" height="50"/>
 </p>
 
 ***Help Wanted:*** Assistance would be appreciated in getting Authelia working with
-[Caddy](https://caddyserver.com/) and [Envoy](https://www.envoyproxy.io/).
+[Envoy](https://www.envoyproxy.io/).
 
 <p align="center">
-  <img src="./docs/images/logos/caddy.png" height="50"/>
   <img src="./docs/images/logos/envoy.png" height="50"/>
 </p>
 
@@ -285,6 +285,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/bgh-github"><img src="https://avatars.githubusercontent.com/u/99472455?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bgh-github</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=bgh-github" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/mind-ar"><img src="https://avatars.githubusercontent.com/u/10672208?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Manuel Nuñez</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=mind-ar" title="Code">💻</a> <a href="#translation-mind-ar" title="Translation">🌍</a></td>
     <td align="center"><a href="https://github.com/protvis74"><img src="https://avatars.githubusercontent.com/u/50554836?v=4?s=100" width="100px;" alt=""/><br /><sub><b>protvis74</b></sub></a><br /><a href="#translation-protvis74" title="Translation">🌍</a></td>
+    <td align="center"><a href="http://itjamie.com"><img src="https://avatars.githubusercontent.com/u/1613241?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jamie (Bear) Murphy </b></sub></a><br /><a href="https://github.com/authelia/authelia/pulls?q=is%3Apr+reviewed-by%3AITJamie" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/Beanow"><img src="https://avatars.githubusercontent.com/u/497556?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robin van Boven</b></sub></a><br /><a href="#security-Beanow" title="Security">🛡️</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="http://www.cybertrol.com"><img src="https://avatars.githubusercontent.com/u/1178293?v=4?s=100" width="100px;" alt=""/><br /><sub><b>alphabet5</b></sub></a><br /><a href="#ideas-alphabet5" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/rjmidau"><img src="https://avatars.githubusercontent.com/u/8134995?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robert Meredith</b></sub></a><br /><a href="#ideas-rjmidau" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/adriang-90"><img src="https://avatars.githubusercontent.com/u/60886162?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Adrian Gąsior</b></sub></a><br /><a href="#security-adriang-90" title="Security">🛡️</a></td>
   </tr>
 </table>
 
@@ -360,6 +367,7 @@ for providing us with free licenses to their great tools.
 [config.template.yml]: ./config.template.yml
 [nginx]: https://www.nginx.com/
 [Traefik]: https://traefik.io/
+[caddy]: https://caddyserver.com/
 [HAProxy]: https://www.haproxy.org/
 [Docker]: https://docker.com/
 [Kubernetes]: https://kubernetes.io/

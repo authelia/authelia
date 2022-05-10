@@ -7,8 +7,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// AssetOverrideMiddleware allows overriding and serving of specific embedded assets from disk.
-func AssetOverrideMiddleware(root string, strip int, next fasthttp.RequestHandler) fasthttp.RequestHandler {
+// AssetOverride allows overriding and serving of specific embedded assets from disk.
+func AssetOverride(root string, strip int, next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		if root == "" {
 			next(ctx)

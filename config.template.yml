@@ -313,6 +313,10 @@ authentication_backend:
     ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
     # display_name_attribute: displayName
 
+    ## Follow referrals returned by the server.
+    ## This is especially useful for environments where read-only servers exist. Only implemented for write operations.
+    permit_referrals: false
+
     ## The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
