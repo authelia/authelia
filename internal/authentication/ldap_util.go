@@ -34,9 +34,9 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensi
 
 			for _, oid := range attr.Values {
 				switch oid {
-				case ldapOIDControlMicrosoftServerPolicyHints:
+				case ldapOIDControlMsftServerPolicyHints:
 					features.ControlTypes.MsftPwdPolHints = true
-				case ldapOIDControlMicrosoftServerPolicyHintsDeprecated:
+				case ldapOIDControlMsftServerPolicyHintsDeprecated:
 					features.ControlTypes.MsftPwdPolHintsDeprecated = true
 				}
 			}
@@ -47,7 +47,7 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensi
 				switch oid {
 				case ldapOIDExtensionPwdModifyExOp:
 					features.Extensions.PwdModifyExOp = true
-				case ldapOIDExtensionTransportLayerSecurity:
+				case ldapOIDExtensionTLS:
 					features.Extensions.TLS = true
 				}
 			}

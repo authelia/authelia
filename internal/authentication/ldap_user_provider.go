@@ -186,9 +186,9 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 
 	switch {
 	case p.features.ControlTypes.MsftPwdPolHints:
-		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHints})
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
 	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
-		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMicrosoftServerPolicyHintsDeprecated})
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
 	}
 
 	switch {

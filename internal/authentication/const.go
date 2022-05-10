@@ -35,7 +35,7 @@ const (
 	// OID Reference: https://oidref.com/1.3.6.1.4.1.1466.20037
 	//
 	// See the linked documents for more information.
-	ldapOIDExtensionTransportLayerSecurity = "1.3.6.1.4.1.1466.20037"
+	ldapOIDExtensionTLS = "1.3.6.1.4.1.1466.20037"
 )
 
 const (
@@ -43,21 +43,21 @@ const (
 
 	// LDAP Control OID: Microsoft Password Policy Hints.
 	//
-	// MS ADTS: https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/49751d58-8115-4277-8faf-64c83a5f658f
+	// MS ADTS: https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/4add7bce-e502-4e0f-9d69-1a3f153713e2
 	//
 	// OID Reference: https://oidref.com/1.2.840.113556.1.4.2239
 	//
 	// See the linked documents for more information.
-	ldapOIDControlMicrosoftServerPolicyHints = "1.2.840.113556.1.4.2239"
+	ldapOIDControlMsftServerPolicyHints = "1.2.840.113556.1.4.2239"
 
 	// LDAP Control OID: Microsoft Password Policy Hints (deprecated).
 	//
-	// MS ADTS: https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/4add7bce-e502-4e0f-9d69-1a3f153713e2
+	// MS ADTS: https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/49751d58-8115-4277-8faf-64c83a5f658f
 	//
 	// OID Reference: https://oidref.com/1.2.840.113556.1.4.2066
 	//
 	// See the linked documents for more information.
-	ldapOIDControlMicrosoftServerPolicyHintsDeprecated = "1.2.840.113556.1.4.2066"
+	ldapOIDControlMsftServerPolicyHintsDeprecated = "1.2.840.113556.1.4.2066"
 )
 
 const (
@@ -69,6 +69,10 @@ const (
 	ldapPlaceholderInput             = "{input}"
 	ldapPlaceholderDistinguishedName = "{dn}"
 	ldapPlaceholderUsername          = "{username}"
+)
+
+const (
+	none = "none"
 )
 
 // CryptAlgo the crypt representation of an algorithm used in the prefix of the hash.

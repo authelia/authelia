@@ -66,8 +66,17 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 
 	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(searchResult.Entries[0])
 
-	p.log.Warnf("LDAP Supported OIDs. Extensions: %s. Control Types: %s.",
-		strings.Join(extensionOIDs, ", "), strings.Join(controlTypeOIDs, ", "))
+	controlTypes, extensions := none, none
+
+	if len(controlTypeOIDs) != 0 {
+		controlTypes = strings.Join(controlTypeOIDs, ", ")
+	}
+
+	if len(extensionOIDs) != 0 {
+		extensions = strings.Join(extensionOIDs, ", ")
+	}
+
+	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
 
 	return features, nil
 }
