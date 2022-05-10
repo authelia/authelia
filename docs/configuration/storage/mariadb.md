@@ -10,6 +10,20 @@ nav_order: 1
 
 The MySQL storage provider also serves as a MariaDB provider.
 
+## Version support
+
+We recommend using the latest version of MariaDB that is officially supported by the MariaDB developers. We also suggest
+checking out [PostgreSQL](postgres.md) as an alternative.
+
+The oldest version of MariaDB that has been tested is 10.6. If using 10.6 you may be required to adjust the 
+`explicit_defaults_for_timestamp` setting. This will be evident when the container starts with an error similar to
+`Error 1067: Invalid default value for 'exp'`. You can adjust this setting in the mysql.cnf file like so:
+
+```cnf
+[mysqld]
+explicit_defaults_for_timestamp = 1
+```
+
 ## Configuration
 
 ```yaml
