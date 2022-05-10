@@ -651,7 +651,7 @@
         "code",
         "translation"
       ]
-    }, 
+    },
     {
       "login": "protvis74",
       "name": "protvis74",
@@ -660,6 +660,52 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "ITJamie",
+      "name": "Jamie (Bear) Murphy ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1613241?v=4",
+      "profile": "http://itjamie.com",
+      "contributions": [
+        "review"
+      ]
+    },
+    {
+      "login": "Beanow",
+      "name": "Robin van Boven",
+      "avatar_url": "https://avatars.githubusercontent.com/u/497556?v=4",
+      "profile": "https://github.com/Beanow",
+      "contributions": [
+        "security"
+      ]
+    },
+    {
+      "login": "alphabet5",
+      "name": "alphabet5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1178293?v=4",
+      "profile": "http://www.cybertrol.com",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "rjmidau",
+      "name": "Robert Meredith",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8134995?v=4",
+      "profile": "https://github.com/rjmidau",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "adriang-90",
+      "name": "Adrian Gąsior",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60886162?v=4",
+      "profile": "https://github.com/adriang-90",
+      "contributions": [
+        "security"
+      ]
+    }
   ],
   "contributorsPerLine": 7
 }

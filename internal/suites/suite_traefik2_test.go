@@ -17,16 +17,20 @@ func NewTraefik2Suite() *Traefik2Suite {
 	return &Traefik2Suite{RodSuite: new(RodSuite)}
 }
 
-func (s *Traefik2Suite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *Traefik2Suite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *Traefik2Suite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *Traefik2Suite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func (s *Traefik2Suite) TestCustomHeaders() {
 	suite.Run(s.T(), NewCustomHeadersScenario())
+}
+
+func (s *Traefik2Suite) TestResetPasswordScenario() {
+	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
 func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {

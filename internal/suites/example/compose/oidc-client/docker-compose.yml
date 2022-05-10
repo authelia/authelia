@@ -11,6 +11,7 @@ services:
     expose:
       - 8080
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.oidc.rule=Host(`oidc.example.com`)'
       - 'traefik.http.routers.oidc.priority=150'
       - 'traefik.http.routers.oidc.tls=true'

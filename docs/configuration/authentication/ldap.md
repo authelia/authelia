@@ -32,6 +32,7 @@ authentication_backend:
     group_name_attribute: cn
     mail_attribute: mail
     display_name_attribute: displayName
+    permit_referrals: false
     user: CN=admin,DC=example,DC=com
     password: password
 ```
@@ -95,7 +96,6 @@ Enables use of the LDAP StartTLS process which is not commonly used. You should 
 it. The initial connection will be over plain text, and Authelia will try to upgrade it with the LDAP server. LDAPS
 URL's are slightly more secure.
 
-
 ### tls
 Controls the TLS connection validation process. You can see how to configure the tls
 section [here](../index.md#tls-configuration).
@@ -117,13 +117,14 @@ user searches and [additional_groups_dn](#additional_groups_dn) for groups searc
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
-required: no
-{: .label .label-config .label-green }
+required: yes
+{: .label .label-config .label-red }
 </div>
 
-The LDAP attribute that maps to the username in Authelia. The default value is dependent on the [implementation](#implementation),
-refer to the [attribute defaults](#attribute-defaults) for more information.
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
 
+The LDAP attribute that maps to the username in Authelia.
 
 ### additional_users_dn
 <div markdown="1">
@@ -139,8 +140,33 @@ exactly which OU to get users from for either security or performance reasons. F
 `ou=users,ou=people,dc=example,dc=com`. The default value is dependent on the [implementation](#implementation), refer
 to the [attribute defaults](#attribute-defaults) for more information.
 
-
 ### users_filter
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
+The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
+
+### group_name_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
+The LDAP attribute that is used by Authelia to determine the group name.
+
+### additional_groups_dn
 <div markdown="1">
 type: string
 {: .label .label-config .label-purple }
@@ -148,29 +174,68 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
-The default value is dependent on the [implementation](#implementation), refer to the
-[attribute defaults](#attribute-defaults) for more information.
-
-### additional_groups_dn
 Similar to [additional_users_dn](#additional_users_dn) but it applies to group searches.
 
 ### groups_filter
-Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the memeber is not
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
+Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
 using the following filter which is currently only tested against Microsoft Active Directory:
 
 `(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
 ### mail_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
 The attribute to retrieve which contains the users email addresses. This is important for the device registration and
 password reset processes.
-The user must have an email address in order for Authelia to perform
-identity verification when a user attempts to reset their password or
-register a second factor device.
+
+The user must have an email address in order for Authelia to perform identity verification when a user attempts to reset
+their password or register a second factor device.
 
 ### display_name_attribute
+<div markdown="1">
+type: string
+{: .label .label-config .label-purple }
+required: yes
+{: .label .label-config .label-red }
+</div>
+
+_**Note:** While this option is required, an [implementation](#implementation) may set a default value implicitly
+negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information._
+
 The attribute to retrieve which is shown on the Web UI to the user when they log in.
+
+### permit_referrals
+<div markdown="1">
+type: boolean
+{: .label .label-config .label-purple }
+default: false
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-red }
+</div>
+
+Permits following referrals. This is useful if you have read-only servers in your architecture and thus require 
+referrals to be followed when performing write operations. This is only implemented for password modifications, if you
+need this for searches please open a GitHub issue or contact us.
 
 ### user
 The distinguished name of the user paired with the password to bind with for lookup and password change operations.
@@ -191,20 +256,20 @@ search.
 
 #### Users filter replacements
 
-|Placeholder             |Phase  |Replacement                                                     |
-|:----------------------:|:-----:|:--------------------------------------------------------------:|
-|{username_attribute}    |startup|The configured username attribute                               |
-|{mail_attribute}        |startup|The configured mail attribute                                   |
-|{display_name_attribute}|startup|The configured display name attribute                           |
-|{input}                 |search |The input into the username field                               |
+|       Placeholder        |  Phase  |              Replacement              |
+|:------------------------:|:-------:|:-------------------------------------:|
+|   {username_attribute}   | startup |   The configured username attribute   |
+|     {mail_attribute}     | startup |     The configured mail attribute     |
+| {display_name_attribute} | startup | The configured display name attribute |
+|         {input}          | search  |   The input into the username field   |
 
 #### Groups filter replacements
 
-|Placeholder             |Phase  |Replacement                                                                |
-|:----------------------:|:-----:|:-------------------------------------------------------------------------:|
-|{input}                 |search |The input into the username field                                          |
-|{username}              |search |The username from the profile lookup obtained from the username attribute  |
-|{dn}                    |search |The distinguished name from the profile lookup                             |
+| Placeholder | Phase  |                                Replacement                                |
+|:-----------:|:------:|:-------------------------------------------------------------------------:|
+|   {input}   | search |                     The input into the username field                     |
+| {username}  | search | The username from the profile lookup obtained from the username attribute |
+|    {dn}     | search |              The distinguished name from the profile lookup               |
 
 ### Defaults
 The below tables describes the current attribute defaults for each implementation.
@@ -213,10 +278,10 @@ The below tables describes the current attribute defaults for each implementatio
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is
 described by the Username column.
 
-|Implementation |Username      |Display Name|Mail |Group Name|
-|:-------------:|:------------:|:----------:|:---:|:--------:|
-|custom         |n/a           |displayName |mail |cn        |
-|activedirectory|sAMAccountName|displayName |mail |cn        |
+| Implementation  |    Username    | Display Name | Mail | Group Name |
+|:---------------:|:--------------:|:------------:|:----:|:----------:|
+|     custom      |      n/a       | displayName  | mail |     cn     |
+| activedirectory | sAMAccountName | displayName  | mail |     cn     |
 
 #### Filter defaults
 The filters are probably the most important part to get correct when setting up LDAP.
@@ -225,14 +290,15 @@ filters that accomplish this as an example (more examples would be appreciated).
 userAccountControl filter checks that the account is not disabled and the pwdLastSet
 makes sure that value is not 0 which means the password requires changing at the next login.
 
-|Implementation |Users Filter  |Groups Filter|
-|:-------------:|:------------:|:-----------:|
-|custom         |n/a           |n/a          |
-|activedirectory|(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))|(&(member={dn})(objectClass=group)(objectCategory=group))|
+| Implementation  |                                                                          Users Filter                                                                           |                       Groups Filter                       |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------:|
+|     custom      |                                                                               n/a                                                                               |                            n/a                            |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(objectClass=group)(objectCategory=group)) |
 
 _**Note:**_ The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as
 `(&(objectCategory=person)(objectClass=user))` except that the former is more performant, you can read more about this
-and other Active Directory filters on the [TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
+and other Active Directory filters on the 
+[TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
 
 ## Refresh Interval
 This setting takes a [duration notation](../index.md#duration-notation-format) that sets the max frequency

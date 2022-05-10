@@ -26,7 +26,7 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	coverageDir := "../../web/.nyc_output"
 	now := time.Now()
 
-	resp, err := page.Eval("JSON.stringify(window.__coverage__)")
+	resp, err := page.Eval("() => JSON.stringify(window.__coverage__)")
 	if err != nil {
 		log.Fatal(err)
 	}
