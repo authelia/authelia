@@ -10,50 +10,75 @@ import (
 
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	var (
-		conn         LDAPConnection
-		searchResult *ldap.SearchResult
-	)
+	var client LDAPClient
 
-	if conn, err = p.connect(); err != nil {
+	if client, err = p.connect(); err != nil {
 		return err
 	}
 
-	defer conn.Close()
+	defer client.Close()
 
-	searchRequest := ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute}, nil)
-
-	if searchResult, err = conn.Search(searchRequest); err != nil {
+	if p.features, err = p.getServerSupportedFeatures(client); err != nil {
 		return err
 	}
 
-	if len(searchResult.Entries) != 1 {
-		return nil
-	}
-
-	// Iterate the attribute values to see what the server supports.
-	for _, attr := range searchResult.Entries[0].Attributes {
-		if attr.Name == ldapSupportedExtensionAttribute {
-			p.log.Tracef("LDAP Supported Extension OIDs: %s", strings.Join(attr.Values, ", "))
-
-			for _, oid := range attr.Values {
-				if oid == ldapOIDPasswdModifyExtension {
-					p.supportExtensionPasswdModify = true
-					break
-				}
-			}
-		}
-	}
-
-	if !p.supportExtensionPasswdModify && !p.disableResetPassword &&
+	if !p.features.Extensions.PwdModifyExOp && !p.disableResetPassword &&
 		p.config.Implementation != schema.LDAPImplementationActiveDirectory {
 		p.log.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
 			"attribute when users reset their password via Authelia.")
 	}
 
+	if p.features.Extensions.TLS && !p.config.StartTLS && !strings.HasPrefix(p.config.URL, "ldaps://") {
+		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly" +
+			"recommend enabling the StartTLS option or using the scheme 'ldaps://' to secure connections with your" +
+			"LDAP Server.")
+	}
+
+	if !p.features.Extensions.TLS && p.config.StartTLS {
+		p.log.Info("Your LDAP Server does not appear to support TLS but you enabled StartTLS which may result" +
+			"in an error.")
+	}
+
 	return nil
+}
+
+func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (features LDAPSupportedFeatures, err error) {
+	var (
+		searchRequest *ldap.SearchRequest
+		searchResult  *ldap.SearchResult
+	)
+
+	searchRequest = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
+		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
+
+	if searchResult, err = client.Search(searchRequest); err != nil {
+		return features, err
+	}
+
+	if len(searchResult.Entries) != 1 {
+		p.log.Errorf("The LDAP Server did not respond appropriately to a RootDSE search. This may result in reduced functionality.")
+
+		return features, nil
+	}
+
+	var controlTypeOIDs, extensionOIDs []string
+
+	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(searchResult.Entries[0])
+
+	controlTypes, extensions := none, none
+
+	if len(controlTypeOIDs) != 0 {
+		controlTypes = strings.Join(controlTypeOIDs, ", ")
+	}
+
+	if len(extensionOIDs) != 0 {
+		extensions = strings.Join(extensionOIDs, ", ")
+	}
+
+	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
+
+	return features, nil
 }
 
 func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
