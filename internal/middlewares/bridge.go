@@ -50,9 +50,7 @@ func (b *BridgeBuilder) Build() Bridge {
 		}
 
 		bridge := func(requestCtx *fasthttp.RequestCtx) {
-			ctx := NewAutheliaCtx(requestCtx, b.config, b.providers)
-
-			next(ctx)
+			next(NewAutheliaCtx(requestCtx, b.config, b.providers))
 		}
 
 		for i := len(b.middlewares) - 1; i >= 0; i-- {
