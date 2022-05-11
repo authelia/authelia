@@ -45,18 +45,14 @@ func (b *BridgeBuilder) WithAutheliaMiddlewares(middlewares ...AutheliaMiddlewar
 // Build and return the Bridge configured by this BridgeBuilder.
 func (b *BridgeBuilder) Build() Bridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {
-		bridge := func(ctx *fasthttp.RequestCtx) {
-			autheliaCtx, err := NewAutheliaCtx(ctx, b.config, b.providers)
-			if err != nil {
-				autheliaCtx.Error(err, messageOperationFailed)
-				return
-			}
+		bridge := func(requestCTX *fasthttp.RequestCtx) {
+			ctx := NewAutheliaCtx(requestCTX, b.config, b.providers)
 
 			for i := len(b.autheliaMiddlewares) - 1; i >= 0; i-- {
 				next = b.autheliaMiddlewares[i](next)
 			}
 
-			next(autheliaCtx)
+			next(ctx)
 		}
 
 		for i := len(b.middlewares) - 1; i >= 0; i-- {

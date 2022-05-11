@@ -29,15 +29,15 @@ func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
 }
 
 // NewAutheliaCtx instantiate an AutheliaCtx out of a RequestCtx.
-func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration, providers Providers) (*AutheliaCtx, error) {
-	autheliaCtx := new(AutheliaCtx)
-	autheliaCtx.RequestCtx = ctx
-	autheliaCtx.Providers = providers
-	autheliaCtx.Configuration = configuration
-	autheliaCtx.Logger = NewRequestLogger(autheliaCtx)
-	autheliaCtx.Clock = utils.RealClock{}
+func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Configuration, providers Providers) (ctx *AutheliaCtx) {
+	ctx = new(AutheliaCtx)
+	ctx.RequestCtx = requestCTX
+	ctx.Providers = providers
+	ctx.Configuration = configuration
+	ctx.Logger = NewRequestLogger(ctx)
+	ctx.Clock = utils.RealClock{}
 
-	return autheliaCtx, nil
+	return ctx
 }
 
 // AvailableSecondFactorMethods returns the available 2FA methods.
