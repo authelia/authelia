@@ -293,6 +293,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/rjmidau"><img src="https://avatars.githubusercontent.com/u/8134995?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robert Meredith</b></sub></a><br /><a href="#ideas-rjmidau" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/adriang-90"><img src="https://avatars.githubusercontent.com/u/60886162?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Adrian Gąsior</b></sub></a><br /><a href="#security-adriang-90" title="Security">🛡️</a></td>
     <td align="center"><a href="http://jamesw.link/me"><img src="https://avatars.githubusercontent.com/u/8067792?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James White</b></sub></a><br /><a href="#question-jamesmacwhite" title="Answering Questions">💬</a></td>
+    <td align="center"><a href="https://www.zxlim.xyz"><img src="https://avatars.githubusercontent.com/u/19372079?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Zhao Xiang Lim</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=zxlim" title="Documentation">📖</a></td>
   </tr>
 </table>
 
