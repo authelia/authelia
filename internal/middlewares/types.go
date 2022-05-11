@@ -51,15 +51,16 @@ type AutheliaMiddleware = func(next RequestHandler) RequestHandler
 // Middleware represents a fasthttp middleware.
 type Middleware = func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 
-// Bridge bridge a AutheliaCtx handle to a RequestHandler handler.
+// Bridge represents the func signature that returns a fasthttp.RequestHandler given a RequestHandler allowing it to
+// bridge between the two handlers.
 type Bridge = func(RequestHandler) fasthttp.RequestHandler
 
 // BridgeBuilder is used to build a Bridge.
 type BridgeBuilder struct {
-	config              schema.Configuration
-	providers           Providers
-	middlewares         []Middleware
-	autheliaMiddlewares []AutheliaMiddleware
+	config          schema.Configuration
+	providers       Providers
+	preMiddlewares  []Middleware
+	postMiddlewares []AutheliaMiddleware
 }
 
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase

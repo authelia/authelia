@@ -28,16 +28,17 @@ func (b *BridgeBuilder) WithProviders(providers Providers) *BridgeBuilder {
 	return b
 }
 
-// WithMiddlewares sets the Middleware's used with this BridgeBuilder.
-func (b *BridgeBuilder) WithMiddlewares(middlewares ...Middleware) *BridgeBuilder {
-	b.middlewares = middlewares
+// WithPreMiddlewares sets the Middleware's used with this BridgeBuilder which are applied before the actual Bridge.
+func (b *BridgeBuilder) WithPreMiddlewares(middlewares ...Middleware) *BridgeBuilder {
+	b.preMiddlewares = middlewares
 
 	return b
 }
 
-// WithAutheliaMiddlewares sets the AutheliaMiddleware's used with this BridgeBuilder.
-func (b *BridgeBuilder) WithAutheliaMiddlewares(middlewares ...AutheliaMiddleware) *BridgeBuilder {
-	b.autheliaMiddlewares = middlewares
+// WithPostMiddlewares sets the AutheliaMiddleware's used with this BridgeBuilder which are applied after the actual
+// Bridge.
+func (b *BridgeBuilder) WithPostMiddlewares(middlewares ...AutheliaMiddleware) *BridgeBuilder {
+	b.postMiddlewares = middlewares
 
 	return b
 }
@@ -45,16 +46,16 @@ func (b *BridgeBuilder) WithAutheliaMiddlewares(middlewares ...AutheliaMiddlewar
 // Build and return the Bridge configured by this BridgeBuilder.
 func (b *BridgeBuilder) Build() Bridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {
-		for i := len(b.autheliaMiddlewares) - 1; i >= 0; i-- {
-			next = b.autheliaMiddlewares[i](next)
+		for i := len(b.postMiddlewares) - 1; i >= 0; i-- {
+			next = b.postMiddlewares[i](next)
 		}
 
 		bridge := func(requestCtx *fasthttp.RequestCtx) {
 			next(NewAutheliaCtx(requestCtx, b.config, b.providers))
 		}
 
-		for i := len(b.middlewares) - 1; i >= 0; i-- {
-			bridge = b.middlewares[i](bridge)
+		for i := len(b.preMiddlewares) - 1; i >= 0; i-- {
+			bridge = b.preMiddlewares[i](bridge)
 		}
 
 		return bridge

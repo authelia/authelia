@@ -101,7 +101,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	handlerLocales := newLocalesEmbeddedHandler()
 
 	middleware := middlewares.NewBridgeBuilder(config, providers).
-		WithMiddlewares(middlewares.SecurityHeaders).Build()
+		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods("OPTIONS", "GET").
@@ -136,12 +136,12 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	}
 
 	middlewareAPI := middlewares.NewBridgeBuilder(config, providers).
-		WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		Build()
 
 	middleware1FA := middlewares.NewBridgeBuilder(config, providers).
-		WithMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithAutheliaMiddlewares(middlewares.Require1FA).
+		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
@@ -222,7 +222,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
-		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithMiddlewares(
+		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,
 		).Build()
 
