@@ -3,6 +3,10 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
+import { getBasePath } from "@utils/BasePath";
+
+const basePath = getBasePath();
+
 i18n.use(Backend)
     .use(LanguageDetector)
     .use(initReactI18next)
@@ -12,7 +16,7 @@ i18n.use(Backend)
             lookupQuerystring: "lng",
         },
         backend: {
-            loadPath: "/locales/{{lng}}/{{ns}}.json",
+            loadPath: basePath + "/locales/{{lng}}/{{ns}}.json",
         },
         ns: ["portal"],
         defaultNS: "portal",
