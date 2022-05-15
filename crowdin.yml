@@ -1,5 +1,3 @@
----
 files:
   - source: /internal/server/locales/en/*
     translation: /internal/server/locales/%locale_with_underscore%/%original_file_name%
-...
