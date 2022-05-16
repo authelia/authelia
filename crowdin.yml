@@ -1,6 +1,6 @@
 ---
 pull_request_title: "i18n: update translations"
-commit_message: "i18n: update %two_letters_code% translation for %original_file_name%"
+commit_message: "i18n: update translation for %original_file_name% (%language%)"
 append_commit_message: false
 files:
   - source: /internal/server/locales/en/*
