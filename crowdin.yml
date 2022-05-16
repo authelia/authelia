@@ -1,12 +1,11 @@
 ---
 pull_request_title: "i18n: update translations"
+commit_message: "i18n: update %two_letters_code% translation for %original_file_name%"
+append_commit_message: false
+base_path: /internal/server/locales
 files:
-  # - source: /internal/server/locales/en/*
-  #   translation: /internal/server/locales/%locale%/%original_file_name%
-  #   skip_untranslated_strings: true
-  #   skip_untranslated_files: true
-  - source: /internal/server/locales/en/*
-    translation: /internal/server/locales/%locale_with_underscore%/%original_file_name%
+  - source: /en/*
+    translation: /%two_letters_code%/%original_file_name%
     skip_untranslated_strings: true
     skip_untranslated_files: true
 ...
