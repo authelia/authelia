@@ -87,7 +87,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-Controls the hashing algorithm used for hashing new passwords. Value must be one of `argon2id` or `sha512.
+Controls the hashing algorithm used for hashing new passwords. Value must be one of `argon2id` or `sha512`.
 
 
 #### iterations
