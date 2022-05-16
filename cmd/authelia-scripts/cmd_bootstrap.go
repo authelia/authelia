@@ -100,6 +100,18 @@ func createTemporaryDirectory() {
 	}
 }
 
+func createPNPMDirectory() {
+	home := os.Getenv("HOME")
+	if home != "" {
+		bootstrapPrintln("creating ", home+"/.pnpm-store")
+		err := os.MkdirAll(home+"/.pnpm-store", 0755)
+
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func bootstrapPrintln(args ...interface{}) {
 	a := make([]interface{}, 0)
 	a = append(a, "[BOOTSTRAP]")
@@ -230,6 +242,7 @@ func Bootstrap(cobraCmd *cobra.Command, args []string) {
 	}
 
 	createTemporaryDirectory()
+	createPNPMDirectory()
 
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
