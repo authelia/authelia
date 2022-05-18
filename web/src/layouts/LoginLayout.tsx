@@ -28,7 +28,7 @@ const LoginLayout = function (props: Props) {
     const { t: translate } = useTranslation();
     useEffect(() => {
         document.title = `${translate("Login")} - Authelia`;
-    }, []);
+    }, [translate]);
     return (
         <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
             <Container maxWidth="xs" className={style.rootContainer}>
