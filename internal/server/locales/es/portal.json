@@ -61,5 +61,9 @@
   "Must have at least one number": "Debe contener al menos un número",
   "Must have at least one special character": "Debe contener al menos un caracter especial",
   "Must be at least {{len}} characters in length": "La longitud mínima es de {{len}} caracteres",
-  "Must not be more than {{len}} characters in length": "La longitud máxima es de {{len}} caracteres"
+  "Must not be more than {{len}} characters in length": "La longitud máxima es de {{len}} caracteres",
+  "This saves this consent as a pre-configured consent for future use": "This saves this consent as a pre-configured consent for future use",
+  "Remember Consent": "Remember Consent",
+  "Consent Request": "Consent Request",
+  "Client ID": "Client ID: {{client_id}}"
 }
