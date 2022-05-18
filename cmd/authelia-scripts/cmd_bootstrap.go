@@ -103,7 +103,7 @@ func createTemporaryDirectory() {
 func createPNPMDirectory() {
 	home := os.Getenv("HOME")
 	if home != "" {
-		bootstrapPrintln("creating ", home+"/.pnpm-store")
+		bootstrapPrintln("Creating ", home+"/.pnpm-store")
 		err := os.MkdirAll(home+"/.pnpm-store", 0755)
 
 		if err != nil {
