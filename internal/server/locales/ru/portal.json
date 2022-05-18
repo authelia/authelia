@@ -35,7 +35,7 @@
   "Secret": "Секрет",
   "Security Key - WebAuthN": "Сектретный ключ - WebAuthN",
   "Select a Device": "Выберите устройство",
-  "Sign in": "Регистрироваться",
+  "Sign in": "Авторизация",
   "Sign out": "Выход",
   "The resource you're attempting to access requires two-factor authentication": "Ресурс, к которому вы пытаетесь получить доступ, требует двухфакторной аутентификации.",
   "There was a problem initiating the registration process": "Возникла проблема с началом процесса регистрации",
