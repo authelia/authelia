@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 
 import { Grid, makeStyles, Container, Link } from "@material-ui/core";
 import { grey } from "@material-ui/core/colors";
@@ -26,7 +26,9 @@ const LoginLayout = function (props: Props) {
         <UserSvg className={style.icon} />
     );
     const { t: translate } = useTranslation();
-    document.title = `${translate("Login")} - Authelia`;
+    useEffect(() => {
+        document.title = `${translate("Login")} - Authelia`;
+    }, []);
     return (
         <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
             <Container maxWidth="xs" className={style.rootContainer}>
