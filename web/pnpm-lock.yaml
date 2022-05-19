@@ -54,7 +54,7 @@ specifiers:
   react-test-renderer: 18.1.0
   typescript: 4.6.4
   vite: 2.9.9
-  vite-plugin-eslint: 1.6.0
+  vite-plugin-eslint: 1.6.1
   vite-plugin-istanbul: 2.7.3
   vite-plugin-svgr: 2.1.0
   vite-tsconfig-paths: 3.4.1
@@ -117,7 +117,7 @@ devDependencies:
   react-test-renderer: 18.1.0_react@18.1.0
   typescript: 4.6.4
   vite: 2.9.9
-  vite-plugin-eslint: 1.6.0_eslint@8.15.0+vite@2.9.9
+  vite-plugin-eslint: 1.6.1_eslint@8.15.0+vite@2.9.9
   vite-plugin-istanbul: 2.7.3
   vite-plugin-svgr: 2.1.0_vite@2.9.9
   vite-tsconfig-paths: 3.4.1_vite@2.9.9
@@ -2642,6 +2642,17 @@ packages:
     resolution: {integrity: sha512-K2waXdXBi2302XUdcHcR1jCeU0LL4TD9HRs/gk0N2Xvrht+G/BfJa4QObBQZfhMdxiCpV3COl5Nfq4uKTeTnJA==}
     dependencies:
       '@babel/types': 7.17.10
+    dev: true
+
+  /@types/eslint/8.4.2:
+    resolution: {integrity: sha512-Z1nseZON+GEnFjJc04sv4NSALGjhFwy6K0HXt7qsn5ArfAKtb63dXNJHf+1YW6IpOIYRBGUbu3GwJdj8DGnCjA==}
+    dependencies:
+      '@types/estree': 0.0.51
+      '@types/json-schema': 7.0.11
+    dev: true
+
+  /@types/estree/0.0.51:
+    resolution: {integrity: sha512-CuPgU6f3eT/XgKKPqKd/gLZV1Xmvf1a2R5POBOGQa6uv82xpls89HU5zKeVoyR8XzHd1RGNOlQlvUe3CFkjWNQ==}
     dev: true
 
   /@types/graceful-fs/4.1.5:
@@ -8356,13 +8367,14 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.6.0_eslint@8.15.0+vite@2.9.9:
-    resolution: {integrity: sha512-knoNx2jksnqSO645OGgA++xQigTfA+CgvoeJV6554y5DOc+mXbwUm4oR6ijycsD5IrPMDEnwj3NqnFTgjAAJCQ==}
+  /vite-plugin-eslint/1.6.1_eslint@8.15.0+vite@2.9.9:
+    resolution: {integrity: sha512-wXwGJ222zjlllHmmPXX6oSU8DbmYjnA6HHBYbOLT8WAc73j4/YAtBQHCVSoHOTPiT4TPzsuZSvputWwc86BweQ==}
     peerDependencies:
       eslint: '>=7'
       vite: ^2.0.0
     dependencies:
       '@rollup/pluginutils': 4.2.1
+      '@types/eslint': 8.4.2
       eslint: 8.15.0
       rollup: 2.70.2
       vite: 2.9.9
