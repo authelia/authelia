@@ -69,6 +69,7 @@ This is a list of the key features of Authelia:
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their 
   [Swag](https://docs.linuxserver.io/general/swag) container as well as a 
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
+* Compatible with [caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth) directive.
 * Kubernetes Support:
   * Compatible with the [ingress-nginx](https://github.com/kubernetes/ingress-nginx), the 
     [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/), and the 
