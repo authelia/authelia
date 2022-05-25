@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@commitlint/cli': 17.0.0
+  '@commitlint/cli': 17.0.1
   '@commitlint/config-conventional': 17.0.0
   '@fortawesome/fontawesome-svg-core': 6.1.1
   '@fortawesome/free-regular-svg-icons': 6.1.1
@@ -84,7 +84,7 @@ dependencies:
   zxcvbn: 4.4.2
 
 devDependencies:
-  '@commitlint/cli': 17.0.0
+  '@commitlint/cli': 17.0.1
   '@commitlint/config-conventional': 17.0.0
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.2.0_ef5jwxihqo6n7gxfmzogljlgcm
@@ -1697,8 +1697,8 @@ packages:
       minimist: 1.2.6
     dev: true
 
-  /@commitlint/cli/17.0.0:
-    resolution: {integrity: sha512-Np6slCdVVG1XwMvwbZrXIzS1INPAD5QmN4L6al04AmCd4nAPU63gxgxC5Mz0Fmx7va23Uvb0S7yEFV1JPhvPUQ==}
+  /@commitlint/cli/17.0.1:
+    resolution: {integrity: sha512-5xT1G5pnynR0tk/ms8Ji7yr9lZCeQs4GLVVtyK/gw20w+enoLTVuRKKY9zg88hy9FoCycc/W8iip2xv3c8payg==}
     engines: {node: '>=v14'}
     hasBin: true
     dependencies:
@@ -1707,6 +1707,7 @@ packages:
       '@commitlint/load': 17.0.0
       '@commitlint/read': 17.0.0
       '@commitlint/types': 17.0.0
+      execa: 5.1.1
       lodash: 4.17.21
       resolve-from: 5.0.0
       resolve-global: 1.0.0
