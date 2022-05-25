@@ -28,7 +28,7 @@
     "classnames": "2.3.1",
     "i18next": "21.8.4",
     "i18next-browser-languagedetector": "6.1.4",
-    "i18next-http-backend": "1.4.0",
+    "i18next-http-backend": "1.4.1",
     "qrcode.react": "3.0.2",
     "query-string": "7.1.1",
     "react": "18.1.0",
