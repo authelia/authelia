@@ -57,7 +57,7 @@ specifiers:
   vite-plugin-eslint: 1.6.1
   vite-plugin-istanbul: 2.7.3
   vite-plugin-svgr: 2.1.0
-  vite-tsconfig-paths: 3.4.1
+  vite-tsconfig-paths: 3.5.0
   zxcvbn: 4.4.2
 
 dependencies:
@@ -120,7 +120,7 @@ devDependencies:
   vite-plugin-eslint: 1.6.1_eslint@8.16.0+vite@2.9.9
   vite-plugin-istanbul: 2.7.3
   vite-plugin-svgr: 2.1.0_vite@2.9.9
-  vite-tsconfig-paths: 3.4.1_vite@2.9.9
+  vite-tsconfig-paths: 3.5.0_vite@2.9.9
 
 packages:
 
@@ -8183,6 +8183,14 @@ packages:
       strip-bom: 3.0.0
     dev: true
 
+  /tsconfig-paths/4.0.0:
+    resolution: {integrity: sha512-SLBg2GBKlR6bVtMgJJlud/o3waplKtL7skmLkExomIiaAtLGtVsoXIqP3SYdjbcH9lq/KVv7pMZeCBpLYOit6Q==}
+    dependencies:
+      json5: 2.2.1
+      minimist: 1.2.6
+      strip-bom: 3.0.0
+    dev: true
+
   /tslib/1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
     dev: true
@@ -8400,15 +8408,15 @@ packages:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.4.1_vite@2.9.9:
-    resolution: {integrity: sha512-SgK3/pnTuJ3i+gMSAWLR6VCPSw26bnxawrmXGvCDjJgk8MAQgmbCrFrAzfwbwZBXSqSuvWEuX04Wt73qJKx8fQ==}
+  /vite-tsconfig-paths/3.5.0_vite@2.9.9:
+    resolution: {integrity: sha512-NKIubr7gXgh/3uniQaOytSg+aKWPrjquP6anAy+zCWEn6h9fB8z2/qdlfQrTgZWaXJ2pHVlllrSdRZltHn9P4g==}
     peerDependencies:
       vite: '>2.0.0-0'
     dependencies:
       debug: 4.3.4
       globrex: 0.1.2
       recrawl-sync: 2.2.2
-      tsconfig-paths: 3.14.1
+      tsconfig-paths: 4.0.0
       vite: 2.9.9
     transitivePeerDependencies:
       - supports-color
