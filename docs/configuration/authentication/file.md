@@ -149,13 +149,13 @@ You can use Authelia binary or docker image to generate the hash of any password
 hash-password command has many tunable options, you can view them with the
 `authelia hash-password --help` command. For example if you wanted to improve the entropy
 you could generate a 16 byte salt and provide it with the `--salt` flag.
-Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must
+Example: `authelia hash-password --salt abcdefghijklhijl -- 'yourpassword'`. For argon2id the salt must
 always be valid for base64 decoding (characters a through z, A through Z, 0 through 9, and +/).
 
 Passwords passed to `hash-password` should be single quoted if using special characters to prevent parameter substitution.
 For instance to generate a hash with the docker image just run:
 
-    $ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
+    $ docker run authelia/authelia:latest authelia hash-password -- 'yourpassword'
     Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
 You may also use the `--config` flag to point to your existing configuration. When used, the values defined in the config will be used instead.
@@ -166,7 +166,7 @@ Full CLI Help Documentation:
 Hash a password to be used in file-based users database. Default algorithm is argon2id.
 
 Usage:
-  authelia hash-password [password] [flags]
+  authelia hash-password [flags] -- <password>
 
 Flags:
   -h, --help              help for hash-password
