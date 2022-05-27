@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.35.5",
+  "version": "4.35.6",
   "private": true,
   "pnpm": {
     "peerDependencyRules": {
@@ -26,9 +26,9 @@
     "@material-ui/styles": "4.11.5",
     "axios": "0.27.2",
     "classnames": "2.3.1",
-    "i18next": "21.8.2",
+    "i18next": "21.8.4",
     "i18next-browser-languagedetector": "6.1.4",
-    "i18next-http-backend": "1.4.0",
+    "i18next-http-backend": "1.4.1",
     "qrcode.react": "3.0.2",
     "query-string": "7.1.1",
     "react": "18.1.0",
@@ -138,21 +138,21 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "17.0.0",
+    "@commitlint/cli": "17.0.1",
     "@commitlint/config-conventional": "17.0.0",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "13.2.0",
     "@types/node": "16.11.36",
     "@types/qrcode.react": "1.0.2",
     "@types/react": "18.0.9",
-    "@types/react-dom": "18.0.4",
+    "@types/react-dom": "18.0.5",
     "@types/zxcvbn": "4.4.1",
-    "@typescript-eslint/eslint-plugin": "5.25.0",
-    "@typescript-eslint/parser": "5.25.0",
+    "@typescript-eslint/eslint-plugin": "5.26.0",
+    "@typescript-eslint/parser": "5.26.0",
     "@vitejs/plugin-react": "1.3.2",
     "esbuild": "0.14.39",
     "esbuild-jest": "0.5.0",
-    "eslint": "8.15.0",
+    "eslint": "8.16.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.5",
@@ -160,7 +160,7 @@
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-jsx-a11y": "6.5.1",
     "eslint-plugin-prettier": "4.0.0",
-    "eslint-plugin-react": "7.29.4",
+    "eslint-plugin-react": "7.30.0",
     "eslint-plugin-react-hooks": "4.5.0",
     "husky": "8.0.1",
     "jest": "28.1.0",
@@ -169,11 +169,11 @@
     "jest-watch-typeahead": "1.1.0",
     "prettier": "2.6.2",
     "react-test-renderer": "18.1.0",
-    "typescript": "4.6.4",
+    "typescript": "4.7.2",
     "vite": "2.9.9",
-    "vite-plugin-eslint": "1.6.0",
+    "vite-plugin-eslint": "1.6.1",
     "vite-plugin-istanbul": "2.7.3",
     "vite-plugin-svgr": "2.1.0",
-    "vite-tsconfig-paths": "3.4.1"
+    "vite-tsconfig-paths": "3.5.0"
   }
 }
