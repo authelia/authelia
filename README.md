@@ -69,6 +69,7 @@ This is a list of the key features of Authelia:
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their 
   [Swag](https://docs.linuxserver.io/general/swag) container as well as a 
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
+* Compatible with [caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth) directive.
 * Kubernetes Support:
   * Compatible with the [ingress-nginx](https://github.com/kubernetes/ingress-nginx), the 
     [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/), and the 
@@ -295,6 +296,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://jamesw.link/me"><img src="https://avatars.githubusercontent.com/u/8067792?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James White</b></sub></a><br /><a href="#question-jamesmacwhite" title="Answering Questions">💬</a></td>
     <td align="center"><a href="https://www.zxlim.xyz"><img src="https://avatars.githubusercontent.com/u/19372079?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Zhao Xiang Lim</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=zxlim" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/Auzborn123"><img src="https://avatars.githubusercontent.com/u/42992103?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Auzborn123</b></sub></a><br /><a href="#translation-Auzborn123" title="Translation">🌍</a></td>
+    <td align="center"><a href="https://github.com/SvanGlan"><img src="https://avatars.githubusercontent.com/u/106152205?v=4?s=100" width="100px;" alt=""/><br /><sub><b>SvanGlan</b></sub></a><br /><a href="#translation-SvanGlan" title="Translation">🌍</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/HannesJo0139"><img src="https://avatars.githubusercontent.com/u/42114183?v=4?s=100" width="100px;" alt=""/><br /><sub><b>HannesJo0139</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=HannesJo0139" title="Documentation">📖</a></td>
   </tr>
 </table>
 

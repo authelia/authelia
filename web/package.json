@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.35.5",
+  "version": "4.35.6",
   "private": true,
   "pnpm": {
     "peerDependencyRules": {
