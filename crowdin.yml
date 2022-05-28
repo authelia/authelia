@@ -4,6 +4,13 @@ commit_message: "i18n: update translation for %original_file_name% (%language%)"
 append_commit_message: false
 files:
   - source: /internal/server/locales/en/*
-    translation: /internal/server/locales/%two_letters_code%/%original_file_name%
+    translation: /internal/server/locales/%locale%/%original_file_name%
     skip_untranslated_files: true
+    languages_mapping:
+        locale:
+            "de-DE": de
+            "en-EN": en
+            "es-ES": es
+            "fr-FR": fr
+            "ru-RU": ru
 ...
