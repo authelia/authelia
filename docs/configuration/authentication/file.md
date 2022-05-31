@@ -233,12 +233,12 @@ This table is adapted from [RFC9106 Parameter Choice]:
 
 |  Situation  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
 |:-----------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
-| Low Memory  |       3        |        4        |    64MB    |    16     |    32    |
-| Recommended |       1        |        4        |    2GB     |    16     |    32    |
+| Low Memory  |       3        |        4        |     64     |    16     |    32    |
+| Recommended |       1        |        4        |     2      |    16     |    32    |
 
 #### Examples for specific systems
 
-_**Important:** These paramters are deprecated and we recommend reading the
+_**Important:** These parameters are deprecated and we recommend reading the
 [recommended parameters](#recommended-parameters-argon2id) instead._
 
 These examples have been tested against a single system to make sure they roughly take 0.5 seconds each. Your results
