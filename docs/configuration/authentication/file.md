@@ -234,22 +234,7 @@ This table is adapted from [RFC9106 Parameter Choice]:
 |  Situation  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
 |:-----------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
 | Low Memory  |       3        |        4        |     64     |    16     |    32    |
-| Recommended |       1        |        4        |     2      |    16     |    32    |
-
-#### Examples for specific systems
-
-_**Important:** These parameters are deprecated and we recommend reading the
-[recommended parameters](#recommended-parameters-argon2id) instead._
-
-These examples have been tested against a single system to make sure they roughly take 0.5 seconds each. Your results
-may vary depending on individual specification and utilization, but they are a good guide to get started.
-
-|     System      | Iterations | Parallelism | Memory |
-|:---------------:|:----------:|:-----------:|:------:|
-| Raspberry Pi 2  |     1      |      8      |   64   |
-| Raspberry Pi 3  |     1      |      8      |  128   |
-| Raspberry Pi 4  |     1      |      8      |  128   |
-| Intel G5 i5 NUC |     1      |      8      |  1024  |
+| Recommended |       1        |        4        |    2048    |    16     |    32    |
 
 ## Argon2 Links
 
