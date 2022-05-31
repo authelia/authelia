@@ -29,7 +29,6 @@ authentication_backend:
       memory: 64
 ```
 
-
 ## Format
 
 The format of the users file is as follows.
@@ -100,7 +99,7 @@ required: no
 
 Controls the number of hashing iterations done by the other hashing settings.
 
-When using `argon2id` the minimum is 1, which is also the recommended value.
+When using `argon2id` the minimum is 3, which is also the recommended value.
 
 When using `sha512` the minimum is 1000, and 50000 is the recommended value.
 
@@ -123,7 +122,7 @@ and there is no documented reason why you'd set it to anything other than this, 
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
-default: 8
+default: 1
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -134,12 +133,19 @@ which affects the effective cost of hashing.
 
 
 #### memory
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 32
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 This setting is specific to `argon2id` and unused with `sha512`. Sets the amount of memory allocated to a single
 password hashing action. This memory is released by go after the hashing process completes, however the operating system
 may not reclaim it until it needs the memory which may make Authelia appear to be using more memory than it technically
 is.
-
 
 ## Passwords
 
@@ -169,14 +175,15 @@ Usage:
   authelia hash-password [flags] -- <password>
 
 Flags:
+  -c, --config strings    Configuration files
   -h, --help              help for hash-password
-  -i, --iterations int    set the number of hashing iterations (default 1)
+  -i, --iterations int    set the number of hashing iterations (default 3)
   -k, --key-length int    [argon2id] set the key length param (default 32)
   -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 64)
-  -p, --parallelism int   [argon2id] set the parallelism param (default 8)
+  -p, --parallelism int   [argon2id] set the parallelism param (default 4)
   -s, --salt string       set the salt string
   -l, --salt-length int   set the auto-generated salt length (default 16)
-  -z, --sha512            use sha512 as the algorithm (defaults iterations to 50000, change with -i)
+  -z, --sha512            use sha512 as the algorithm (changes iterations to 50000, change with -i)
 ```
 
 ### Password hash algorithm
@@ -221,25 +228,39 @@ parameters below, or for a more in depth understanding see the referenced docume
 [Argon2 links](./file.md#argon2-links).
 
 
+#### Recommended Parameters: Argon2id
+
+This table is adapted from [RFC9106 Parameter Choice]
+|  Situation  | Iterations | Parallelism | Memory | Salt Size | Key Size |
+|:-----------:|:----------:|:-----------:|:------:|:---------:|:--------:|
+| Low Memory  |     3      |      4      |  64MB  |    16     |    32    |
+| Recommended |     1      |      4      |  2GB   |    16     |    32    |
+
 #### Examples for specific systems
 
-These examples have been tested against a single system to make sure they roughly take
-0.5 seconds each. Your results may vary depending on individual specification and
-utilization, but they are a good guide to get started. You should however read the
-linked documents in [Argon2 links](./file.md#argon2-links).
+_**Important:** These paramters are deprecated and we recommend reading the
+[recommended parameters](#recommended-parameters-argon2id) instead._
 
-|    System     |Iterations|Parallelism|Memory |
-|:------------: |:--------:|:---------:|:-----:|
-|Raspberry Pi 2 |    1     |     8     |    64 |
-|Raspberry Pi 3 |    1     |     8     |   128 |
-|Raspberry Pi 4 |    1     |     8     |   128 |
-|Intel G5 i5 NUC|    1     |     8     |  1024 |
+These examples have been tested against a single system to make sure they roughly take 0.5 seconds each. Your results
+may vary depending on individual specification and utilization, but they are a good guide to get started.
+
+
+
+
+|     System      | Iterations | Parallelism | Memory |
+|:---------------:|:----------:|:-----------:|:------:|
+| Raspberry Pi 2  |     1      |      8      |   64   |
+| Raspberry Pi 3  |     1      |      8      |  128   |
+| Raspberry Pi 4  |     1      |      8      |  128   |
+| Intel G5 i5 NUC |     1      |      8      |  1024  |
 
 
 ## Argon2 Links
 
-[How to choose the right parameters for Argon2](https://www.twelve21.io/how-to-choose-the-right-parameters-for-argon2/)
+- [Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
+- Argon2 Specification [RFC9106]
+- [OWASP Password Storage Cheatsheet]
 
-[Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
-
-[IETF Draft](https://tools.ietf.org/id/draft-irtf-cfrg-argon2-09.html)
+[RFC9106]: https://www.rfc-editor.org/rfc/rfc9106.html
+[RFC9106 Parameter Choice]: https://www.rfc-editor.org/rfc/rfc9106.html#section-4
+[OWASP Password Storage Cheatsheet]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
