@@ -23,9 +23,10 @@ authentication_backend:
     path: /config/users.yml
     password:
       algorithm: argon2id
-      iterations: 1
+      iterations: 3
       salt_length: 16
-      parallelism: 8
+      key_length: 32
+      parallelism: 4
       memory: 64
 ```
 
@@ -99,9 +100,9 @@ required: no
 
 Controls the number of hashing iterations done by the other hashing settings.
 
-When using `argon2id` the minimum is 3, which is also the recommended value.
+When using `argon2id` the minimum is 3, which is also the recommended and default value.
 
-When using `sha512` the minimum is 1000, and 50000 is the recommended value.
+When using `sha512` the minimum is 1000, and 50000 is the recommended and default value.
 
 
 #### salt_length
@@ -122,7 +123,7 @@ and there is no documented reason why you'd set it to anything other than this, 
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
-default: 1
+default: 4
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -136,7 +137,7 @@ which affects the effective cost of hashing.
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
-default: 32
+default: 64
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -216,7 +217,6 @@ If this is not desirable we recommend investigating the following options in ord
 2. adjusting the [memory](#memory) parameter
 3. changing the [algorithm](#algorithm)
 
-
 ### Password hash algorithm tuning
 
 All algorithm tuning for Argon2id is supported. The only configuration variables that affect
@@ -227,14 +227,14 @@ to cater for a reasonable system, if you're unsure about which settings to tune,
 parameters below, or for a more in depth understanding see the referenced documentation in
 [Argon2 links](./file.md#argon2-links).
 
-
 #### Recommended Parameters: Argon2id
 
-This table is adapted from [RFC9106 Parameter Choice]
-|  Situation  | Iterations | Parallelism | Memory | Salt Size | Key Size |
-|:-----------:|:----------:|:-----------:|:------:|:---------:|:--------:|
-| Low Memory  |     3      |      4      |  64MB  |    16     |    32    |
-| Recommended |     1      |      4      |  2GB   |    16     |    32    |
+This table is adapted from [RFC9106 Parameter Choice]:
+
+|  Situation  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
+|:-----------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
+| Low Memory  |       3        |        4        |    64MB    |    16     |    32    |
+| Recommended |       1        |        4        |    2GB     |    16     |    32    |
 
 #### Examples for specific systems
 
@@ -244,16 +244,12 @@ _**Important:** These paramters are deprecated and we recommend reading the
 These examples have been tested against a single system to make sure they roughly take 0.5 seconds each. Your results
 may vary depending on individual specification and utilization, but they are a good guide to get started.
 
-
-
-
 |     System      | Iterations | Parallelism | Memory |
 |:---------------:|:----------:|:-----------:|:------:|
 | Raspberry Pi 2  |     1      |      8      |   64   |
 | Raspberry Pi 3  |     1      |      8      |  128   |
 | Raspberry Pi 4  |     1      |      8      |  128   |
 | Intel G5 i5 NUC |     1      |      8      |  1024  |
-
 
 ## Argon2 Links
 
