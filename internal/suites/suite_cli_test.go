@@ -85,7 +85,7 @@ func (s *CLISuite) TestShouldFailValidateConfig() {
 func (s *CLISuite) TestShouldHashPasswordArgon2id() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "hash-password", "test", "-m", "32", "-s", "test1234"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Password hash: $argon2id$v=19$m=32768,t=1,p=8")
+	s.Assert().Contains(output, "Password hash: $argon2id$v=19$m=32768,t=3,p=4$")
 }
 
 func (s *CLISuite) TestShouldHashPasswordSHA512() {

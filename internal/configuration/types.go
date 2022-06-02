@@ -40,3 +40,9 @@ type CommandLineSource struct {
 	flags    *pflag.FlagSet
 	callback func(flag *pflag.Flag) (string, interface{})
 }
+
+// MapSource loads configuration from the command line flags.
+type MapSource struct {
+	m     map[string]interface{}
+	koanf *koanf.Koanf
+}
