@@ -88,7 +88,7 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 		return err
 	}
 
-	_, err = fmt.Fprintf(f, indexDocs, now.Format("2006-01-02T15:04:05-07:00"), "cli-"+name)
+	_, err = fmt.Fprintf(f, indexDocs, name, now.Format("2006-01-02T15:04:05-07:00"), "cli-"+name)
 
 	return err
 }
@@ -111,7 +111,7 @@ func linker(input string) string {
 }
 
 const indexDocs = `---
-title: "authelia"
+title: "%s"
 description: ""
 lead: ""
 date: 2022-01-18T20:00:32+01:00
