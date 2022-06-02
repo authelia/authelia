@@ -59,18 +59,18 @@ For example, to modify the `IdentityVerification` HTML template, if your `templa
 you would create the `/config/email_templates/IdentityVerification.html` file.
 
 _**Note:** you may configure this directory and add only add the templates you wish to override, any templates not
-supplied in this folder will utilize the default templates._ 
+supplied in this folder will utilize the default templates._
 
 
 In template files, you can use the following variables:
 
-|     Placeholder      |      Templates       |                                                                  Description                                                                  |
-|:--------------------:|:--------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
-|   `{{ .LinkURL }}`   | IdentityVerification |                                          The URL of the used with the IdentityVerification template.                                          |
-|  `{{ .LinkText }}`   | IdentityVerification |                                 The display value for the IdentityVerification button intended for the link.                                  |
-|    `{{ .Title }}`    |         All          | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step |
-| `{{ .DisplayName }}` |         All          |                                                     The name of the user, i.e. `John Doe`                                                     |
-|  `{{ .RemoteIP }}`   |         All          |                                           The remote IP address that initiated the request or event                                           |
+|                Placeholder                |      Templates       |                                                                  Description                                                                  |
+|:-----------------------------------------:|:--------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
+|   `{% raw %}{{ .LinkURL }}{% endraw %}`   | IdentityVerification |                                          The URL of the used with the IdentityVerification template.                                          |
+|  `{% raw %}{{ .LinkText }}{% endraw %}`   | IdentityVerification |                                 The display value for the IdentityVerification button intended for the link.                                  |
+|    `{% raw %}{{ .Title }}{% endraw %}`    |         All          | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step |
+| `{% raw %}{{ .DisplayName }}{% endraw %}` |         All          |                                                     The name of the user, i.e. `John Doe`                                                     |
+|  `{% raw %}{{ .RemoteIP }}{% endraw %}`   |         All          |                                           The remote IP address that initiated the request or event                                           |
 
 #### Examples
 
@@ -85,7 +85,7 @@ This is a basic example:
 </body>
 ```
 
-Some Additional examples for specific purposes can be found in the 
+Some Additional examples for specific purposes can be found in the
 [examples directory on GitHub](https://github.com/authelia/authelia/tree/master/examples/templates/notifications).
 
 ### filesystem
