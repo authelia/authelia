@@ -24,7 +24,7 @@ i18n.use(Backend)
             default: ["en"],
         },
         load: "all",
-        supportedLngs: ["en", "de", "es", "fr", "ru", "sv"],
+        supportedLngs: ["en", "de", "es", "fr", "ru", "sv", "zh-TW"],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
         interpolation: {
