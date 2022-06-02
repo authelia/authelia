@@ -43,11 +43,23 @@ func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if err = genCLIDocWriteIndex(root, "authelia"); err != nil {
+		return err
+	}
+
 	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(root, "authelia-scripts")); err != nil {
 		return err
 	}
 
+	if err = genCLIDocWriteIndex(root, "authelia-scripts"); err != nil {
+		return err
+	}
+
 	if err = genCLIDoc(newRootCmd(), filepath.Join(root, "authelia-gen")); err != nil {
+		return err
+	}
+
+	if err = genCLIDocWriteIndex(root, "authelia-gen"); err != nil {
 		return err
 	}
 
@@ -68,6 +80,53 @@ func genCLIDoc(cmd *cobra.Command, path string) (err error) {
 	return nil
 }
 
+func genCLIDocWriteIndex(path, name string) (err error) {
+	now := time.Now()
+
+	f, err := os.Create(filepath.Join(path, name, "_index.md"))
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(f, indexDocs, now.Format("2006-01-02T15:04:05-07:00"), "cli-"+name)
+
+	return err
+}
+
+func prepend(input string) string {
+	now := time.Now()
+
+	pathz := strings.Split(strings.Replace(input, ".md", "", 1), "\\")
+	parts := strings.Split(pathz[len(pathz)-1], "_")
+
+	cmd := parts[0]
+
+	args := strings.Join(parts, " ")
+
+	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format("2006-01-02T15:04:05-07:00"), "cli-"+cmd, 130)
+}
+
+func linker(input string) string {
+	return input
+}
+
+const indexDocs = `---
+title: "authelia"
+description: ""
+lead: ""
+date: 2022-01-18T20:00:32+01:00
+lastmod: %s
+draft: false
+images: []
+menu:
+  reference:
+    parent: "cli"
+    identifier: "%s"
+weight: 999
+toc: true
+---
+`
+
 const prefixDocs = `---
 title: "%s"
 description: "%s"
@@ -84,23 +143,3 @@ toc: true
 ---
 
 `
-
-func prepend(input string) string {
-	fmt.Printf("prepending: %s\n", input)
-
-	now := time.Now()
-
-	pathz := strings.Split(strings.Replace(input, ".md", "", 1), "\\")
-	parts := strings.Split(pathz[len(pathz)-1], "_")
-
-	cmd := parts[0]
-
-	args := strings.Join(parts, " ")
-
-	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format("2006-01-02T15:04:05-07:00"), "cli-"+cmd, 130)
-}
-
-func linker(input string) string {
-	fmt.Printf("linking: %s\n", input)
-	return input
-}
