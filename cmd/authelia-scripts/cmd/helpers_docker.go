@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"github.com/authelia/authelia/v4/internal/utils"
