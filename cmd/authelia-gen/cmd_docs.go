@@ -11,7 +11,8 @@ func newDocsCmd() *cobra.Command {
 		RunE:  docsRunE,
 	}
 
-	cmd.AddCommand(newDocsCLICmd())
+	cmd.PersistentFlags().StringP("cwd", "C", "", "Sets the CWD for git commands")
+	cmd.AddCommand(newDocsCLICmd(), newDocsTimeCmd())
 
 	return cmd
 }
