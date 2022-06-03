@@ -88,7 +88,13 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 		return err
 	}
 
-	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), "cli-"+name)
+	weight := 900
+
+	if name == "authelia" {
+		weight = 320
+	}
+
+	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), "cli-"+name, weight)
 
 	return err
 }
@@ -103,7 +109,12 @@ func prepend(input string) string {
 
 	args := strings.Join(parts, " ")
 
-	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), "cli-"+cmd, 130)
+	weight := 330
+	if len(parts) == 1 {
+		weight = 320
+	}
+
+	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), "cli-"+cmd, weight)
 }
 
 func linker(input string) string {
@@ -122,7 +133,7 @@ menu:
   reference:
     parent: "cli"
     identifier: "%s"
-weight: 999
+weight: %d
 toc: true
 ---
 `
