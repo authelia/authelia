@@ -57,7 +57,6 @@ if [[ "${BUILD_DUO}" == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
     trigger: "integration-duo"
-    async: true
     build:
       message: "${BUILDKITE_MESSAGE}"
       commit: "${BUILDKITE_COMMIT}"
@@ -73,7 +72,6 @@ if [[ "${BUILD_HAPROXY}" == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-haproxy]"
     trigger: "integration-haproxy"
-    async: true
     build:
       message: "${BUILDKITE_MESSAGE}"
       commit: "${BUILDKITE_COMMIT}"
