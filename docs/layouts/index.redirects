@@ -55,7 +55,7 @@
 /docs/features/first-factor.html                    /overview/authentication/first-factor/
 /docs/features/2fa/                                 /overview/authentication/introduction/
 /docs/features/2fa/one-time-password.html           /overview/authentication/one-time-password/
-/features/2fa/security-key.html                     /overview/authentication/webauthn-security-key/
+/docs/features/2fa/security-key                     /overview/authentication/webauthn-security-key/
 /docs/features/2fa/push-notifications.html          /overview/authentication/push-notification/
 # /docs/features/single-factor.html
 /docs/features/password-policy.html                 /overview/authentication/password-policy/
