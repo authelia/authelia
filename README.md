@@ -3,7 +3,7 @@
 </p>
 
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?logo=buildkite&style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/authelia/authelia?logo=go&style=flat-square)](https://goreportcard.com/report/github.com/authelia/authelia)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/authelia/authelia/v4?logo=go&style=flat-square)](https://goreportcard.com/report/github.com/authelia/authelia/v4)
   [![Docker Tag](https://img.shields.io/docker/v/authelia/authelia/latest?logo=docker&style=flat-square&color=blue&sort=semver)](https://hub.docker.com/r/authelia/authelia/tags)
   [![Docker Size](https://img.shields.io/docker/image-size/authelia/authelia/latest?logo=docker&style=flat-square&color=blue&sort=semver)](https://hub.docker.com/r/authelia/authelia/tags)
   [![GitHub Release](https://img.shields.io/github/release/authelia/authelia.svg?logo=github&style=flat-square&color=blue)](https://github.com/authelia/authelia/releases)
@@ -16,9 +16,9 @@
   [![Matrix](https://img.shields.io/matrix/authelia-support:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://matrix.to/#/#support:authelia.com)
 
 **Authelia** is an open-source authentication and authorization server providing two-factor authentication and single
-sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx], [Traefik], [caddy]
-or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's portal for
-authentication.
+sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx],
+[Traefik], [caddy] or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's
+portal for authentication.
 
 Documentation is available at [https://www.authelia.com/](https://www.authelia.com/).
 
@@ -70,7 +70,8 @@ This is a list of the key features of Authelia:
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their
   [Swag](https://docs.linuxserver.io/general/swag) container as well as a
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
-* Compatible with [caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth) directive.
+* Compatible with [caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
+  directive.
 * Kubernetes Support:
   * Compatible with the [ingress-nginx](https://github.com/kubernetes/ingress-nginx), the
     [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/), and the
@@ -148,12 +149,14 @@ For more information about [security](https://www.authelia.com/information/secur
 ## Contact Options
 
 Several contact options exist for our community, the primary one being [Matrix](#matrix). These are in addition to
-[GitHub issues](https://github.com/authelia/authelia/issues) for creating a [new issue](https://github.com/authelia/authelia/issues/new/choose).
+[GitHub issues](https://github.com/authelia/authelia/issues) for creating a
+[new issue](https://github.com/authelia/authelia/issues/new/choose).
 
 ### Matrix
 
-Community members are invited to join the [Matrix Space](https://matrix.to/#/#community:authelia.com) which includes both
-the [Support Room](https://matrix.to/#/#support:authelia.com) and the [Contributing Room](https://matrix.to/#/#contributing:authelia.com).
+Community members are invited to join the [Matrix Space](https://matrix.to/#/#community:authelia.com) which includes
+both the [Support Room](https://matrix.to/#/#support:authelia.com) and the
+[Contributing Room](https://matrix.to/#/#contributing:authelia.com).
 
 - The core team members are identified as administrators in the Space and individual Rooms.
 - All channels are linked to [Discord](#discord).
@@ -345,8 +348,8 @@ Companies contributing to Authelia will have a specical mention below. [[Become 
 
 #### Balto
 
-Thank you to [<img src="./docs/static/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/) for
-hosting our apt repository.
+Thank you to [<img src="./docs/static/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
+for hosting our apt repository.
 
 #### JetBrains
 
