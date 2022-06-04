@@ -16,7 +16,7 @@ func init() {
 		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
 		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
-		"internal/suites/example/compose/duo-api/docker-compose.yml",
+		"internal/suites/example/compose/duo-api/docker-compose.{}.yml",
 	})
 
 	setup := func(suitePath string) error {
