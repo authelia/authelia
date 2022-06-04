@@ -143,7 +143,7 @@ You need to generate an app password in order to use Gmail SMTP servers. The pro
 notifier:
   smtp:
     username: myaccount@gmail.com
-    # Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     password: yourapppassword
     sender: admin@example.com
     host: smtp.gmail.com

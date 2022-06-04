@@ -53,5 +53,5 @@ module.exports = {
         ],
     },
     defaultIgnores: true,
-    helpUrl: "https://www.authelia.com/docs/contributing/commitmsg-guidelines.html",
+    helpUrl: "https://www.authelia.com/contributing/development/guidelines-commit-message/",
 };
