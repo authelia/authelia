@@ -11,8 +11,6 @@ menu:
     parent: "prologue"
 weight: 130
 toc: false
-aliases:
-  - /docs/home/supported-proxies.html
 ---
 
 The following table is a support matrix for Authelia features and specific reverse proxies.
