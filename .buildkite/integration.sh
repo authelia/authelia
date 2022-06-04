@@ -22,6 +22,9 @@ if [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-duo" ]]; then
 elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-haproxy" ]]; then
   DIRECTORY="internal/suites/example/compose/haproxy"
   GROUP="haproxy-deployments"
+elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-samba" ]]; then
+  DIRECTORY="internal/suites/example/compose/samba"
+  GROUP="samba-deployments"
 fi
 
 cat << EOF
