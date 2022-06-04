@@ -12,6 +12,7 @@ menu:
 weight: 103300
 toc: true
 aliases:
+  - /c/totp
   - /docs/configuration/one-time-password.html
 ---
 

@@ -12,7 +12,7 @@ menu:
 weight: 311
 toc: true
 aliases:
-  - /l/proxy
+  - /i/proxy
   - /docs/home/supported-proxies.html
 ---
 

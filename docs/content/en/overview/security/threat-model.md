@@ -12,6 +12,7 @@ menu:
 weight: 430
 toc: false
 aliases:
+  - /o/threatmodel
   - /docs/security/threat-model.html
 ---
 

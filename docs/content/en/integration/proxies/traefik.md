@@ -12,7 +12,7 @@ menu:
 weight: 360
 toc: true
 aliases:
-  - /l/traefik
+  - /i/traefik
   - /docs/deployment/supported-proxies/traefik2.x.html
 ---
 

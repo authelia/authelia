@@ -11,6 +11,8 @@ menu:
     parent: "prologue"
 weight: 100200
 toc: true
+aliases:
+  - /c/common
 ---
 
 ## Duration Notation Format

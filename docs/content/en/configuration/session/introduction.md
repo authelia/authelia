@@ -12,6 +12,7 @@ menu:
 weight: 105100
 toc: true
 aliases:
+  - /c/session
   - /docs/configuration/session/
 ---
 

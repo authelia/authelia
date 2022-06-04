@@ -12,6 +12,7 @@ menu:
 weight: 102100
 toc: true
 aliases:
+  - /c/1fa
   - /docs/configuration/authentication/
 ---
 

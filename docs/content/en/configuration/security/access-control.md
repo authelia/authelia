@@ -12,6 +12,7 @@ menu:
 weight: 104200
 toc: true
 aliases:
+  - /c/acl
   - /docs/configuration/access-control.html
 ---
 

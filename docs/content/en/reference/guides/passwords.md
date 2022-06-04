@@ -11,6 +11,8 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+aliases:
+  - /r/passwords
 ---
 
 ## User / Password File

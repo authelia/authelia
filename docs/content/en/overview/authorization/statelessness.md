@@ -12,6 +12,7 @@ menu:
 weight: 390
 toc: false
 aliases:
+  - /t/statelessness
   - /docs/features/statelessness.html
 ---
 

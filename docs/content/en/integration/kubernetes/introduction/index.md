@@ -12,7 +12,7 @@ menu:
 weight: 510
 toc: true
 aliases:
-  - /l/k8s
+  - /i/k8s
 ---
 
 {{< figure src="kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" >}}

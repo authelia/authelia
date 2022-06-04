@@ -12,6 +12,7 @@ menu:
 weight: 101400
 toc: true
 aliases:
+  - /c/secrets
   - /docs/configuration/secrets.html
 ---
 

@@ -12,7 +12,7 @@ menu:
 weight: 340
 toc: true
 aliases:
-  - /l/haproxy
+  - /i/haproxy
   - /docs/deployment/supported-proxies/haproxy.html
 ---
 

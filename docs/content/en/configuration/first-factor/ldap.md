@@ -12,6 +12,7 @@ menu:
 weight: 102200
 toc: true
 aliases:
+  - /c/ldap
   - /docs/configuration/authentication/ldap.html
 ---
 

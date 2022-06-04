@@ -12,6 +12,7 @@ menu:
 weight: 199200
 toc: true
 aliases:
+  - /c/server
   - /docs/configuration/server.html
 ---
 

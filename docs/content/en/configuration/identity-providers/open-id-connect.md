@@ -12,6 +12,7 @@ menu:
 weight: 106200
 toc: true
 aliases:
+  - /c/oidc
   - /docs/configuration/identity-providers/oidc.html
 ---
 

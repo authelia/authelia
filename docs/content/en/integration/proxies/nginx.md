@@ -12,7 +12,7 @@ menu:
 weight: 350
 toc: true
 aliases:
-  - /l/nginx
+  - /i/nginx
   - /docs/deployment/supported-proxies/nginx.html
 ---
 

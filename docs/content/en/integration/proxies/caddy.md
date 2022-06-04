@@ -12,7 +12,7 @@ menu:
 weight: 320
 toc: true
 aliases:
-  - /l/caddy
+  - /i/caddy
   - /docs/deployment/supported-proxies/caddy.html
 ---
 
