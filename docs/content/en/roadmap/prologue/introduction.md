@@ -11,6 +11,8 @@ menu:
     parent: "prologue"
 weight: 110
 toc: true
+aliases:
+  - /docs/roadmap/
 ---
 
 The Authelia team consists of 3 globally distributed developers working actively on improving Authelia in our spare time

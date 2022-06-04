@@ -11,6 +11,8 @@ menu:
     parent: "security"
 weight: 104200
 toc: true
+aliases:
+  - /docs/configuration/access-control.html
 ---
 
 ## Configuration

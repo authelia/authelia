@@ -11,6 +11,8 @@ menu:
     parent: "miscellaneous"
 weight: 199400
 toc: true
+aliases:
+  - /docs/configuration/logging.html
 ---
 
 The logging section tunes the logging settings.

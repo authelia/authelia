@@ -11,6 +11,8 @@ menu:
     parent: "development"
 weight: 240
 toc: true
+aliases:
+  - /docs/contributing/suites.html
 ---
 
 __Authelia__ is a single component in interaction with many others in a complete ecosystem. Consequently, testing the

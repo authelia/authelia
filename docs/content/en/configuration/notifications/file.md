@@ -11,6 +11,8 @@ menu:
     parent: "notifications"
 weight: 108300
 toc: true
+aliases:
+  - /docs/configuration/notifier/filesystem.html
 ---
 
 It is recommended in a production environment that you do not use the file notification system, and that it should only

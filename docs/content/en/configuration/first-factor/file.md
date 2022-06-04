@@ -11,6 +11,8 @@ menu:
     parent: "first-factor"
 weight: 102300
 toc: true
+aliases:
+  - /docs/configuration/authentication/file.html
 ---
 
 ## Configuration

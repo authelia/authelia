@@ -11,6 +11,8 @@ menu:
     parent: "authorization"
 weight: 310
 toc: false
+aliases:
+  - /docs/features/access-control.html
 ---
 
 __Authelia__ allows to define a fine-grained rule-based access control policies. This list of rules is tested against

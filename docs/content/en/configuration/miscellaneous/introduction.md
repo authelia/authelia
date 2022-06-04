@@ -11,6 +11,9 @@ menu:
     parent: "miscellaneous"
 weight: 199100
 toc: true
+aliases:
+  - /docs/configuration/miscellaneous.html
+  - /docs/configuration/theme.html
 ---
 
 ## Configuration

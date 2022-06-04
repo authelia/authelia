@@ -11,6 +11,8 @@ menu:
     parent: "miscellaneous"
 weight: 199200
 toc: true
+aliases:
+  - /docs/configuration/server.html
 ---
 
 ## Configuration

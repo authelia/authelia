@@ -11,6 +11,8 @@ menu:
     parent: "identity-providers"
 weight: 106100
 toc: true
+aliases:
+  - /docs/configuration/identity-providers/
 ---
 
 ## OpenID Connect

@@ -11,6 +11,8 @@ menu:
     parent: "identity-providers"
 weight: 106200
 toc: true
+aliases:
+  - /docs/configuration/identity-providers/oidc.html
 ---
 
 __Authelia__ currently supports the [OpenID Connect] OP role as a [__beta__](../../roadmap/active/openid-connect.md)

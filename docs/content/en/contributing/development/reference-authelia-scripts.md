@@ -11,6 +11,8 @@ menu:
     parent: "development"
 weight: 290
 toc: true
+aliases:
+  - /docs/contributing/authelia-scripts.html
 ---
 
 __Authelia__ comes with a set of dedicated scripts to perform a broad range of operations such as building the

@@ -11,6 +11,8 @@ menu:
     parent: "session"
 weight: 105100
 toc: true
+aliases:
+  - /docs/configuration/session/
 ---
 
 __Authelia__ relies on session cookies to authenticate users. When the user visits a website of the protected domain

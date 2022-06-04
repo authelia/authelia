@@ -11,6 +11,8 @@ menu:
     parent: "proxies"
 weight: 352
 toc: true
+aliases:
+  - /l/npm
 ---
 
 [NGINX Proxy Manager] is supported by __Authelia__. It's a [NGINX] proxy with a configuration UI.

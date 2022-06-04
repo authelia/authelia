@@ -11,6 +11,13 @@ menu:
     parent: "information"
 weight: 100
 toc: true
+aliases:
+  - /code-of-conduct
+  - /code-of-conduct.html
+  - /conduct
+  - /conduct.html
+  - /coc
+  - /coc.html
 ---
 
 ## Our Pledge

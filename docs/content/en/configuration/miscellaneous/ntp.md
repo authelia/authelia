@@ -11,6 +11,8 @@ menu:
     parent: "miscellaneous"
 weight: 199300
 toc: true
+aliases:
+  - /docs/configuration/ntp.html
 ---
 
 Authelia has the ability to check the system time against an NTP server. Currently this only occurs at startup. This

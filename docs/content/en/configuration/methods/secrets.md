@@ -11,6 +11,8 @@ menu:
     parent: "methods"
 weight: 101400
 toc: true
+aliases:
+  - /docs/configuration/secrets.html
 ---
 
 Configuration of *Authelia* requires several secrets and passwords. Even if they can be set in the configuration file or

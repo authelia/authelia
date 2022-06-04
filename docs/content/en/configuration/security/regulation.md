@@ -11,6 +11,8 @@ menu:
     parent: "security"
 weight: 104300
 toc: true
+aliases:
+  - /docs/configuration/regulation.html
 ---
 
 

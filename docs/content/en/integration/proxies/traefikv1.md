@@ -11,6 +11,8 @@ menu:
     parent: "proxies"
 weight: 361
 toc: true
+aliases:
+  - /docs/deployment/supported-proxies/traefik1.x.html
 ---
 
 [Traefik] v1 is a reverse proxy supported by __Authelia__.

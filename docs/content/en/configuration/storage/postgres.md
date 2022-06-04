@@ -11,6 +11,8 @@ menu:
     parent: "storage"
 weight: 107400
 toc: true
+aliases:
+  - /docs/configuration/storage/postgres.html
 ---
 
 ## Version support

@@ -11,6 +11,9 @@ menu:
     parent: "proxies"
 weight: 320
 toc: true
+aliases:
+  - /l/caddy
+  - /docs/deployment/supported-proxies/caddy.html
 ---
 
 [Caddy] is a reverse proxy supported by __Authelia__.

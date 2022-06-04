@@ -10,6 +10,11 @@ menu:
     parent: "information"
 weight: 110
 toc: true
+aliases:
+  - /privacy-policy
+  - /privacy-policy.html
+  - /privacy
+  - /privacy.html
 ---
 
 __TLDR__: We do not use cookies and we do not collect any personal data.

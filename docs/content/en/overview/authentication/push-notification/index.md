@@ -11,6 +11,8 @@ menu:
     parent: "authentication"
 weight: 250
 toc: true
+aliases:
+  - /docs/features/2fa/push-notifications.html
 ---
 
 Mobile Pusn notifications are a really convenient and trendy method to perform 2FA. When 2FA is required Authelia sends

@@ -11,6 +11,8 @@ menu:
     parent: "security"
 weight: 104400
 toc: true
+aliases:
+  - /docs/configuration/password_policy.html
 ---
 
 *Authelia* allows administrators to configure an enforced password policy.

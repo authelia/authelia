@@ -11,6 +11,8 @@ menu:
     parent: "development"
 weight: 230
 toc: true
+aliases:
+  - /docs/contributing/style-guide.html
 ---
 
 This is a general guide to the code style we aim to abide by. This is by no means an exhaustive list and we're

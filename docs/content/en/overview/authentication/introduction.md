@@ -11,6 +11,8 @@ menu:
     parent: "prologue"
 weight: 210
 toc: false
+aliases:
+  - /docs/features/2fa/
 ---
 
 Multi-Factor Authentication or MFA as a concept is separated into three major categories. These categories are:

@@ -11,6 +11,8 @@ menu:
     parent: "security"
 weight: 430
 toc: false
+aliases:
+  - /docs/security/threat-model.html
 ---
 
 The design goals for Authelia is to protect access to applications by collaborating with reverse proxies to prevent

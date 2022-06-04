@@ -11,6 +11,9 @@ menu:
     parent: "proxies"
 weight: 350
 toc: true
+aliases:
+  - /l/nginx
+  - /docs/deployment/supported-proxies/nginx.html
 ---
 
 [NGINX] is a reverse proxy supported by __Authelia__.

@@ -11,6 +11,8 @@ menu:
     parent: "storage"
 weight: 107200
 toc: true
+aliases:
+  - /docs/configuration/storage/migrations.html
 ---
 
 Storage migrations are important for keeping your database compatible with Authelia. Authelia will automatically upgrade

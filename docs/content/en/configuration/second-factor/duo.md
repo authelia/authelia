@@ -11,6 +11,8 @@ menu:
     parent: "second-factor"
 weight: 103200
 toc: true
+aliases:
+  - /docs/configuration/duo-push-notifications.html
 ---
 
 Authelia supports mobile push notifications relying on [Duo].

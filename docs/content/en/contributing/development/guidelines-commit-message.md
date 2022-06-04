@@ -11,6 +11,8 @@ menu:
     parent: "development"
 weight: 231
 toc: true
+aliases:
+  - /docs/contributing/commitmsg-guidelines.html
 ---
 
 The reasons for these conventions are as follows:

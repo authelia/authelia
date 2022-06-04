@@ -11,6 +11,8 @@ menu:
     parent: "active"
 weight: 221
 toc: true
+aliases:
+  - /docs/roadmap/oidc.html
 ---
 
 We have decided to implement [OpenID Connect] as a beta feature, it's suggested you only utilize it for testing and

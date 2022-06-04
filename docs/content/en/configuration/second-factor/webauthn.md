@@ -11,6 +11,8 @@ menu:
     parent: "second-factor"
 weight: 103400
 toc: true
+aliases:
+  - /docs/configuration/webauthn.html
 ---
 
 ## Configuration

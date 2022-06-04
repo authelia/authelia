@@ -11,6 +11,8 @@ menu:
     parent: "notifications"
 weight: 108200
 toc: true
+aliases:
+  - /docs/configuration/notifier/smtp.html
 ---
 
 

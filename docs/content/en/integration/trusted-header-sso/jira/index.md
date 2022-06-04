@@ -12,6 +12,8 @@ menu:
 weight: 420
 toc: true
 community: true
+aliases:
+  - /docs/community/using-remote-user-header-for-sso-with-jira.html
 ---
 
 ## Introduction

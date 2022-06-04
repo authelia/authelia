@@ -11,6 +11,8 @@ menu:
     parent: "first-factor"
 weight: 102200
 toc: true
+aliases:
+  - /docs/configuration/authentication/ldap.html
 ---
 
 ## Configuration

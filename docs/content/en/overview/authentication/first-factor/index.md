@@ -11,6 +11,8 @@ menu:
     parent: "authentication"
 weight: 220
 toc: true
+aliases:
+  - /docs/features/first-factor.html
 ---
 
 {{< figure src="1FA.png" caption="An example of the first factor sign in portal" alt="First Factor Authentication View" width=400 >}}

@@ -11,6 +11,8 @@ menu:
     parent: "prologue"
 weight: 110
 toc: true
+aliases:
+  - /docs/contributing/
 ---
 
 Contributions to __Authelia__ have four main forms:

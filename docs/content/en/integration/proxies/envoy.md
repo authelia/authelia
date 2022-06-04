@@ -11,6 +11,8 @@ menu:
     parent: "proxies"
 weight: 330
 toc: true
+aliases:
+  - /l/envoy
 ---
 
 [Envoy] is probably supported by __Authelia__.

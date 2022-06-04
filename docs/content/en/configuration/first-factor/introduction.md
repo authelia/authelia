@@ -11,6 +11,8 @@ menu:
     parent: "first-factor"
 weight: 102100
 toc: true
+aliases:
+  - /docs/configuration/authentication/
 ---
 
 There are two ways to integrate *Authelia* with an authentication backend:

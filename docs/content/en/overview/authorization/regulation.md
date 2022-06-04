@@ -11,6 +11,8 @@ menu:
     parent: "authorization"
 weight: 320
 toc: false
+aliases:
+  - /docs/features/regulation.html
 ---
 
 __Authelia__ takes the security of users very seriously and comes with a way to avoid brute-forcing the first factor

@@ -11,6 +11,9 @@ menu:
     parent: "storage"
 weight: 107600
 toc: true
+aliases:
+  - /docs/configuration/storage/mariadb.html
+  - /docs/configuration/storage/mysql.html
 ---
 
 ## Version support

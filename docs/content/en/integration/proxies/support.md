@@ -11,6 +11,8 @@ menu:
     parent: "proxies"
 weight: 311
 toc: true
+aliases:
+  - /l/proxy
 ---
 
 |         Proxy         |                      [Standard](#standard)                       |                              [Kubernetes](#kubernetes)                               |    [XHR Redirect](#xhr-redirect)     |  [Request Method](#request-method)   |

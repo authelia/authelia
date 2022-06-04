@@ -11,6 +11,8 @@ menu:
     parent: "development"
 weight: 240
 toc: true
+aliases:
+  - /docs/contributing/build-and-dev.html
 ---
 
 __Authelia__ is built a [React] frontend user portal bundled in a [go] application which acts as basic webserver for

@@ -11,6 +11,8 @@ menu:
     parent: "second-factor"
 weight: 103300
 toc: true
+aliases:
+  - /docs/configuration/one-time-password.html
 ---
 
 The OTP method *Authelia* uses is the Time-Based One-Time Password Algorithm (TOTP) [RFC6238] which is an extension of

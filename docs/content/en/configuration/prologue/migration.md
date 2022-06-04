@@ -11,6 +11,8 @@ menu:
     parent: "prologue"
 weight: 100300
 toc: true
+aliases:
+  - /docs/configuration/migration.html
 ---
 
 This section documents changes in the configuration which may require manual migration by the administrator. Typically

@@ -11,6 +11,8 @@ menu:
     parent: "authentication"
 weight: 260
 toc: true
+aliases:
+  - /docs/features/password-policy.html
 ---
 
 Password policy enforces the security by requiring the users to use strong passwords.

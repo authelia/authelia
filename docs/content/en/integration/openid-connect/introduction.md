@@ -11,6 +11,8 @@ menu:
     parent: "openid-connect"
 weight: 610
 toc: true
+aliases:
+  - /docs/community/oidc-integrations.html
 ---
 
 Authelia supports [OpenID Connect] as part of an open beta. This section details implementation specifics that can be

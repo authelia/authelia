@@ -11,6 +11,8 @@ menu:
     parent: "authorization"
 weight: 390
 toc: false
+aliases:
+  - /docs/features/statelessness.html
 ---
 
 __Authelia__ supports operating as a stateless application. This is incredibly important when running in highly

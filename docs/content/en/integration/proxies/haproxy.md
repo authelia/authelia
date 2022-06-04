@@ -11,6 +11,9 @@ menu:
     parent: "proxies"
 weight: 340
 toc: true
+aliases:
+  - /l/haproxy
+  - /docs/deployment/supported-proxies/haproxy.html
 ---
 
 [HAProxy] is a reverse proxy supported by __Authelia__.

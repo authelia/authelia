@@ -11,6 +11,8 @@ menu:
     parent: "prologue"
 weight: 120
 toc: false
+aliases:
+  - /docs/home/architecture.html
 ---
 
 __Authelia__ is a companion of reverse proxies like Traefik (see [supported proxies](../supported-proxies.md) for a full

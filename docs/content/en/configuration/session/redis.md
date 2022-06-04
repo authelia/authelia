@@ -11,6 +11,8 @@ menu:
     parent: "session"
 weight: 105200
 toc: true
+aliases:
+  - /docs/configuration/session/redis.html
 ---
 
 This is a session provider. By default Authelia uses an in-memory provider. Not configuring redis leaves Authelia

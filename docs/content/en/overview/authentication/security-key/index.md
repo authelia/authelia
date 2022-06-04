@@ -11,6 +11,8 @@ menu:
     parent: "authentication"
 weight: 240
 toc: true
+aliases:
+  - /docs/features/2fa/security-key
 ---
 
 __Authelia__ supports hardware-based second factors leveraging [FIDO2]&nbsp;[WebAuthn] compatible security keys like

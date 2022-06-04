@@ -11,6 +11,8 @@ menu:
     parent: "security"
 weight: 410
 toc: false
+aliases:
+  - /docs/security/
 ---
 
 The __Authelia__ team takes security very seriously. Because __Authelia__ is intended as a security product a lot of

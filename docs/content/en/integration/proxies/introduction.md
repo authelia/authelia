@@ -11,6 +11,8 @@ menu:
     parent: "proxies"
 weight: 310
 toc: true
+aliases:
+  - /l/proxies
 ---
 
 __Authelia__ works in collaboration with several reverse proxies. In this section you will find the documentation of the

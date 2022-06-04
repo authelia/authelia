@@ -11,6 +11,8 @@ menu:
     parent: "proxies"
 weight: 351
 toc: true
+aliases:
+  - /l/swag
 ---
 
 [SWAG] is a reverse proxy supported by __Authelia__. It's an [NGINX] proxy container with bundled configurations to make

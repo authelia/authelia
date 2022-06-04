@@ -11,6 +11,8 @@ menu:
     parent: "security"
 weight: 420
 toc: false
+aliases:
+  - /docs/security/measures.html
 ---
 
 ## Protection against cookie theft

@@ -11,6 +11,8 @@ menu:
     parent: "storage"
 weight: 107500
 toc: true
+aliases:
+  - /docs/configuration/storage/sqlite.html
 ---
 
 If you don't have a SQL server, you can use [SQLite](https://en.wikipedia.org/wiki/SQLite).
