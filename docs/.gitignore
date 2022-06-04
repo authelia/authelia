@@ -1,4 +1,5 @@
-_site
-.sass-cache
-.jekyll-metadata
-.jekyll-cache
+node_modules
+public
+resources
+.netlify
+.hugo_build.lock

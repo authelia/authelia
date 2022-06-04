@@ -1,0 +1,48 @@
+figure {
+  margin: 2rem 0;
+}
+
+.figure-caption {
+  margin: 0.25rem 0 0.75rem;
+}
+
+figure.wide {
+  margin: 2rem -1.5rem;
+}
+
+figure.wide .figure-caption {
+  margin: 0.25rem 1.5rem 0.75rem;
+}
+
+@include media-breakpoint-up(md) {
+  figure.wide {
+    margin: 2rem -2.5rem;
+  }
+
+  figure.wide .figure-caption {
+    margin: 0.25rem 2.5rem 0.75rem;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  figure.wide {
+    margin: 2rem -5rem;
+  }
+
+  figure.wide .figure-caption {
+    margin: 0.25rem 5rem 0.75rem;
+  }
+}
+
+.blur-up {
+  filter: blur(5px);
+}
+
+.blur-up.lazyloaded {
+  filter: unset;
+}
+
+.img-simple {
+  margin-top: 0.375rem;
+  margin-bottom: 1.25rem;
+}

@@ -1,0 +1,125 @@
+{{- range $p := .Site.Pages -}}
+{{- range .Aliases }}
+{{ . }} {{ $p.RelPermalink -}}
+{{- end }}
+{{- end -}}
+
+# /docs/1.0/prologue/   /docs/1.0/prologue/introduction/
+# /docs/1.0/help/       /docs/1.0/help/how-to-update/
+# /docs/1.0/            /docs/1.0/prologue/introduction/
+# /docs/                /docs/1.0/prologue/introduction/
+#
+# /docs/0.1/*           https://v0-1-0--doks-versioning-poc.netlify.app/docs/0.1/:splat  200
+# /docs/0.2/*           https://v0-2-0--doks-versioning-poc.netlify.app/docs/0.2/:splat  200
+
+## Hot Links
+/l/nginx                /integration/proxies/nginx/
+/l/swag                 /integration/proxies/swag/
+/l/npm                  /integration/proxies/nginx-proxy-manager/
+/l/caddy                /integration/proxies/caddy/
+/l/traefik              /integration/proxies/traefik/
+/l/haproxy              /integration/proxies/haproxy/
+/l/envoy                /integration/proxies/envoy/
+/l/proxies              /integration/proxies/introduction/
+/l/proxy                /integration/proxies/support/
+/l/k8s                  /integration/kubernetes/introduction/
+/l/charts               https://charts.authelia.com
+/l/translate            https://translate.authelia.com
+/l/github               https://github.com/authelia/authelia
+/l/bug                  https://github.com/authelia/authelia/issues/new?assignees=&labels=Possible+Bug&template=bug_report.md
+/l/fr                   https://github.com/authelia/authelia/issues/new?assignees=&labels=Feature+Request&template=feature_request.md
+
+## Common Links
+/contact                /information/contact/
+/contact.html           /information/contact/
+
+/security               /information/security/
+/security.html          /information/security/
+
+/privacy-policy         /information/privacy-policy/
+/privacy-policy.html    /information/privacy-policy/
+/privacy                /information/privacy-policy/
+/privacy.html           /information/privacy-policy/
+
+/code-of-conduct        /information/code-of-conduct/
+/code-of-conduct.html   /information/code-of-conduct/
+/conduct                /information/code-of-conduct/
+/conduct.html           /information/code-of-conduct/
+/coc                    /information/code-of-conduct/
+/coc.html               /information/code-of-conduct/
+
+## The following maps the old site to the new one.
+/docs/						                                  /
+/docs/home/architecture.html                        /overview/prologue/architecture/
+/docs/home/supported-proxies.html                   /overview/prologue/supported-proxies/
+/docs/features/first-factor.html                    /overview/authentication/first-factor/
+/docs/features/2fa/                                 /overview/authentication/introduction/
+/docs/features/2fa/one-time-password.html           /overview/authentication/one-time-password/
+/features/2fa/security-key.html                     /overview/authentication/webauthn-security-key/
+/docs/features/2fa/push-notifications.html          /overview/authentication/push-notification/
+# /docs/features/single-factor.html
+/docs/features/password-policy.html                 /overview/authentication/password-policy/
+# /docs/features/password-reset.html
+/docs/features/access-control.html                  /overview/authorization/access-control/
+/docs/features/regulation.html                      /overview/authorization/regulation/
+/docs/features/statelessness.html                   /overview/authorization/statelessness/
+# /docs/features/logout.html
+/docs/configuration/access-control.html             /configuration/security/access-control/
+/docs/configuration/authentication/                 /configuration/first-factor/introduction/
+/docs/configuration/authentication/file.html        /configuration/first-factor/file/
+/docs/configuration/authentication/ldap.html        /configuration/first-factor/ldap/
+/docs/configuration/duo-push-notifications.html     /configuration/second-factor/duo/
+/docs/configuration/identity-providers/             /configuration/identity-providers/introduction/
+/docs/configuration/identity-providers/oidc.html    /configuration/identity-providers/open-id-connect/
+/docs/configuration/logging.html                    /configuration/miscellaneous/logging/
+/docs/configuration/migration.html                  /configuration/prologue/migration/
+/docs/configuration/miscellaneous.html              /configuration/miscellaneous/introduction/
+/docs/configuration/notifier/filesystem.html        /configuration/notifications/file/
+/docs/configuration/notifier/smtp.html              /configuration/notifications/smtp/
+/docs/configuration/ntp.html                        /configuration/miscellaneous/ntp/
+/docs/configuration/regulation.html                 /configuration/security/regulation/
+/docs/configuration/secrets.html                    /configuration/methods/secrets/
+/docs/configuration/server.html                     /configuration/miscellaneous/server/
+/docs/configuration/session/                        /configuration/session/introduction/
+/docs/configuration/session/redis.html              /configuration/session/redis/
+/docs/configuration/storage/                        /configuration/storage/introduction/
+/docs/configuration/storage/migrations.html         /configuration/storage/migrations/
+/docs/configuration/storage/mariadb.html            /configuration/storage/mysql/
+/docs/configuration/storage/mysql.html              /configuration/storage/mysql/
+/docs/configuration/storage/postgres.html           /configuration/storage/postgres/
+/docs/configuration/storage/sqlite.html             /configuration/storage/sqlite/
+/docs/configuration/theme.html                      /configuration/miscellaneous/introduction/
+/docs/configuration/one-time-password.html          /configuration/second-factor/time-based-one-time-password/
+/docs/configuration/webauthn.html                   /configuration/second-factor/webauthn/
+/docs/configuration/password_policy.html            /configuration/security/password-policy/
+# /docs/deployment/deployment-lite.html
+# /docs/deployment/deployment-ha.html
+# /docs/deployment/deployment-kubernetes.html
+/docs/deployment/supported-proxies/caddy.html       /integration/proxies/caddy/
+/docs/deployment/supported-proxies/haproxy.html     /integration/proxies/haproxy/
+/docs/deployment/supported-proxies/nginx.html       /integration/proxies/nginx/
+/docs/deployment/supported-proxies/traefik1.x.html  /integration/proxies/traefik/
+/docs/deployment/supported-proxies/traefik2.x.html  /integration/proxies/traefikv1/
+/docs/security/                                     /overview/security/introduction/
+/docs/security/measures.html                        /overview/security/measures/
+/docs/security/threat-model.html                    /overview/security/threat-model/
+/docs/contributing/                                 /contributing/prologue/introduction/
+/docs/contributing/build-and-dev.html               /contributing/development/build-and-test/
+/docs/contributing/authelia-scripts.html            /contributing/development/reference-authelia-scripts/
+/docs/contributing/commitmsg-guidelines.html        /contributing/development/guidelines-commit-message/
+/docs/contributing/style-guide.html                 /contributing/development/guidelines-style/
+/docs/contributing/suites.html                      /contributing/development/integration-suites/
+/docs/contributing/translations.html                /contributing/prologue/translations/
+# /docs/faq.html
+/docs/roadmap/                                      /roadmap/prologue/introduction/
+/docs/roadmap/oidc.html                             /roadmap/active/openid-connect/
+# /docs/about-us.html
+# /docs/community/
+# /docs/community/two-factor-basic-auth.html
+/docs/community/using-remote-user-header-for-sso-with-jira.html   /integration/trusted-header-sso/jira/
+# /docs/community/additional-resources.html
+# /docs/community/example-of-authelia-lite-on-docker-swarm.html
+/docs/community/oidc-integrations.html                            /integration/openid-connect/introduction/
+/docs/community/oidc-integrations/portainer.html                  /integration/openid-connect/portainer/
+/docs/community/oidc-integrations/proxmox.html                    /integration/openid-connect/proxmox/
+# /docs/community/django-integration.html

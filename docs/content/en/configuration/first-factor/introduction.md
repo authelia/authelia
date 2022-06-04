@@ -1,0 +1,62 @@
+---
+title: "First Factor"
+description: "Configuring Authelia First Factor Authentication."
+lead: "Authelia uses a username and password for a first factor method. This section describes configuring this."
+date: 2022-03-20T12:52:27+11:00
+lastmod: 2022-06-03T10:43:55+10:00
+draft: false
+images: []
+menu:
+  configuration:
+    parent: "first-factor"
+weight: 102100
+toc: true
+---
+
+There are two ways to integrate *Authelia* with an authentication backend:
+
+* [LDAP](ldap.md): users are stored in remote servers like [OpenLDAP], [OpenDJ], [FreeIPA], or
+  [Microsoft Active Directory].
+* [File](file.md): users are stored in [YAML] file with a hashed version of their password.
+
+## Configuration
+
+```yaml
+authentication_backend:
+  disable_reset_password: false
+  password_reset:
+    custom_url: ""
+  file: {}
+  ldap: {}
+```
+
+## Options
+
+### disable_reset_password
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+This setting controls if users can reset their password from the web frontend or not.
+
+### password_reset
+
+#### custom_url
+
+{{< confkey type="string" required="no" >}}
+
+The custom password reset URL. This replaces the inbuilt password reset functionality and disables the endpoints if
+this is configured to anything other than nothing or an empty string.
+
+### file
+
+The [file](file.md) authentication provider.
+
+### ldap
+
+The [LDAP](ldap.md) authentication provider.
+
+[OpenLDAP]: https://www.openldap.org/
+[OpenDJ]: https://www.openidentityplatform.org/opendj
+[FreeIPA]: https://www.freeipa.org/
+[Microsoft Active Directory]: https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/ad-ds-getting-started
+[YAML]: https://yaml.org/
