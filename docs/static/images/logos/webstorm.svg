@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="70px" height="70px" viewBox="0 0 70 70" style="enable-background:new 0 0 70 70;" xml:space="preserve">
+<g>
+	<g>
+		<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="25.0676" y1="1.4599" x2="43.1829" y2="66.675">
+			<stop  offset="0.2849" style="stop-color:#00CDD7"/>
+			<stop  offset="0.9409" style="stop-color:#2086D7"/>
+		</linearGradient>
+		<polygon style="fill:url(#SVGID_1_);" points="9.4,63.3 0,7.3 17.5,0.1 28.6,6.7 38.8,1.2 60.1,9.4 48.1,70 		"/>
+		<linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="30.7199" y1="9.7343" x2="61.365" y2="54.6713">
+			<stop  offset="0.1398" style="stop-color:#FFF045"/>
+			<stop  offset="0.3656" style="stop-color:#00CDD7"/>
+		</linearGradient>
+		<polygon style="fill:url(#SVGID_2_);" points="70,23.7 61,1.4 44.6,0 19.3,24.3 26.1,55.6 38.8,64.6 70,46 62.3,31.7 		"/>
+		<linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="61.0819" y1="15.2899" x2="65.1065" y2="29.5436">
+			<stop  offset="0.2849" style="stop-color:#00CDD7"/>
+			<stop  offset="0.9409" style="stop-color:#2086D7"/>
+		</linearGradient>
+		<polygon style="fill:url(#SVGID_3_);" points="56,20.4 62.3,31.7 70,23.7 64.4,9.8 		"/>
+	</g>
+	<g>
+		<g>
+			<rect x="13.4" y="13.4" style="fill:#000000;" width="43.2" height="43.2"/>
+			<rect x="17.5" y="48.5" style="fill:#FFFFFF;" width="16.2" height="2.7"/>
+			<path style="fill:#FFFFFF;" d="M38.7,34.3l2.3-2.8c1.6,1.3,3.3,2.2,5.3,2.2c1.6,0,2.5-0.6,2.5-1.7v-0.1c0-1-0.6-1.5-3.6-2.3
+				c-3.6-0.9-5.8-1.9-5.8-5.5v-0.1c0-3.3,2.6-5.4,6.2-5.4c2.6,0,4.8,0.8,6.6,2.3l-2,3c-1.6-1.1-3.1-1.8-4.6-1.8
+				c-1.5,0-2.3,0.7-2.3,1.6v0.1c0,1.2,0.8,1.6,3.8,2.4c3.6,1,5.6,2.3,5.6,5.4v0.1c0,3.6-2.7,5.6-6.5,5.6
+				C43.5,37.2,40.8,36.2,38.7,34.3"/>
+		</g>
+		<polygon style="fill:#FFFFFF;" points="35.2,19 32.5,29.4 29.5,19 26.5,19 23.4,29.4 20.7,19 16.6,19 21.7,36.9 25,36.9 28,26.5 
+			30.9,36.9 34.3,36.9 39.4,19 		"/>
+	</g>
+</g>
+</svg>
