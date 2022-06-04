@@ -1,0 +1,8 @@
+---
+version: '3'
+services:
+  duo-api:
+    image: authelia/integration-duo
+    networks:
+      - authelianet
+...

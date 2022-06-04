@@ -24,6 +24,28 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   buildkite-agent artifact download "authelia-image-${DEFAULT_ARCH}*" .
   zstdcat "authelia-image-${DEFAULT_ARCH}.tar.zst" | docker load
   docker tag authelia/authelia authelia:dist
+
+  if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
+    if [[ "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
+      sed -i "s/integration-duo/integration-duo:renovate/" internal/suites/example/compose/duo-api/docker-compose.dist.yml
+  	elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
+      sed -i "s/integration-duo/integration-duo:${BUILDKITE_BRANCH}/" internal/suites/example/compose/duo-api/docker-compose.dist.yml
+    elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
+      sed -i "s/integration-duo/integration-duo:PR${BUILDKITE_PULL_REQUEST}/" internal/suites/example/compose/duo-api/docker-compose.dist.yml
+    fi
+  elif [[ "${BUILD_HAPROXY}" == "true" ]] && [[ "${SUITE}" == "HAProxy" ]]; then
+    if [[ "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
+      sed -i "s/integration-haproxy/integration-haproxy:renovate/" internal/suites/example/compose/haproxy/docker-compose.yml
+  	elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
+  	  sed -i "s/integration-haproxy/integration-haproxy:${BUILDKITE_BRANCH}/" internal/suites/example/compose/haproxy/docker-compose.yml
+  	elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
+  	  sed -i "s/integration-haproxy/integration-haproxy:PR${BUILDKITE_PULL_REQUEST}/" internal/suites/example/compose/haproxy/docker-compose.yml
+  	fi
+  fi
+fi
+
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy" ]]; then
+  echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]]; then
