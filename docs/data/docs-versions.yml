@@ -1,3 +1,4 @@
+---
 # - group: v1.x
 #   baseurl: "https://getbootstrap.com"
 #   description: "Every minor and patch release from v1 is listed below."
@@ -58,3 +59,4 @@
   description: "Every minor and patch release from v1 is listed below. Last update was v1.0.0."
   versions:
     - v: "1.0"
+...
