@@ -7,21 +7,24 @@ import (
 	"golang.org/x/text/encoding/unicode"
 )
 
-// LDAPConnectionFactory an interface of factory of ldap connections.
-type LDAPConnectionFactory interface {
-	DialURL(addr string, opts ...ldap.DialOpt) (LDAPConnection, error)
+// LDAPClientFactory an interface of factory of LDAP clients.
+type LDAPClientFactory interface {
+	DialURL(addr string, opts ...ldap.DialOpt) (client LDAPClient, err error)
 }
 
-// LDAPConnection interface representing a connection to the ldap.
-type LDAPConnection interface {
-	Bind(username, password string) (err error)
+// LDAPClient is a cut down version of the ldap.Client interface with just the methods we use.
+//
+// Methods added to this interface that have a direct correlation with one from ldap.Client should have the same signature.
+type LDAPClient interface {
 	Close()
 	StartTLS(config *tls.Config) (err error)
 
-	Search(searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error)
+	Bind(username, password string) (err error)
 
 	Modify(modifyRequest *ldap.ModifyRequest) (err error)
-	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (result *ldap.PasswordModifyResult, err error)
+	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (pwdModifyResult *ldap.PasswordModifyResult, err error)
+
+	Search(searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error)
 }
 
 // UserDetails represent the details retrieved for a given user.
@@ -37,6 +40,24 @@ type ldapUserProfile struct {
 	Emails      []string
 	DisplayName string
 	Username    string
+}
+
+// LDAPSupportedFeatures represents features which a server may support which are implemented in code.
+type LDAPSupportedFeatures struct {
+	Extensions   LDAPSupportedExtensions
+	ControlTypes LDAPSupportedControlTypes
+}
+
+// LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
+type LDAPSupportedExtensions struct {
+	TLS           bool
+	PwdModifyExOp bool
+}
+
+// LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
+type LDAPSupportedControlTypes struct {
+	MsftPwdPolHints           bool
+	MsftPwdPolHintsDeprecated bool
 }
 
 var utf16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
