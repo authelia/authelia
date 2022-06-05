@@ -12,7 +12,7 @@ specifiers:
   '@material-ui/styles': 4.11.5
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.3.0
-  '@types/jest': 28.1.0
+  '@types/jest': 28.1.1
   '@types/node': 16.11.38
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.11
@@ -89,7 +89,7 @@ devDependencies:
   '@commitlint/config-conventional': 17.0.2
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.3.0_ef5jwxihqo6n7gxfmzogljlgcm
-  '@types/jest': 28.1.0
+  '@types/jest': 28.1.1
   '@types/node': 16.11.38
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.11
@@ -2680,8 +2680,8 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest/28.1.0:
-    resolution: {integrity: sha512-ITfF6JJIl9zbEi2k6NmhNE/BiDqfsI/ceqfvdaWaPbcrCpYyyRq4KtDQIWh6vQUru6SqwppODiom/Zhid+np6A==}
+  /@types/jest/28.1.1:
+    resolution: {integrity: sha512-C2p7yqleUKtCkVjlOur9BWVA4HgUQmEj/HWCt5WzZ5mLXrWnyIfl0wGuArc+kBXsy0ZZfLp+7dywB4HtSVYGVA==}
     dependencies:
       jest-matcher-utils: 27.5.1
       pretty-format: 27.5.1
@@ -2765,7 +2765,7 @@ packages:
   /@types/testing-library__jest-dom/5.14.3:
     resolution: {integrity: sha512-oKZe+Mf4ioWlMuzVBaXQ9WDnEm1+umLx0InILg+yvZVBBDmzV5KfZyLrCvadtWcx8+916jLmHafcmqqffl+iIw==}
     dependencies:
-      '@types/jest': 28.1.0
+      '@types/jest': 28.1.1
     dev: true
 
   /@types/tough-cookie/4.0.2:
