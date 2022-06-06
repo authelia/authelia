@@ -62,10 +62,10 @@
   "Must have at least one special character": "Debe tener por lo menos un carácter especial",
   "Must be at least {{len}} characters in length": "La longitud mínima es de {{len}} caracteres",
   "Must not be more than {{len}} characters in length": "La longitud máxima es de {{len}} caracteres",
-  "Powered by": "Desarrollado por",
-  "Login":"Iniciar Sesión"
   "This saves this consent as a pre-configured consent for future use": "Esto guarda este consentimiento como consentimiento preconfigurado para uso futuro",
   "Remember Consent": "Recordar consentimiento",
   "Consent Request": "Solicitud de consentimiento",
-  "Client ID": "ID de cliente: {{client_id}}"
+  "Client ID": "ID de cliente: {{client_id}}",
+  "Powered by": "Desarrollado por",
+  "Login":"Iniciar Sesión"
 }
