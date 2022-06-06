@@ -75,9 +75,23 @@ Logs can be stored in a file when file path is provided. Otherwise logs are writ
 level to `debug` or `trace` this will generate large amount of log entries. Administrators will need to ensure that
 they rotate and/or truncate the logs over time to prevent significant long-term disk usage.
 
+If you include the value `%d` in the filename it will replace this value with a date time indicative of the time
+the logger was initialized using `2006-02-01T150405Z` as the format.
+
+#### File Path Examples
+
+__Standard Example:__
+
 ```yaml
 log:
   file_path: /config/authelia.log
+```
+
+__Date Time Example:__
+
+```yaml
+log:
+  file_path: /config/authelia.%d.log
 ```
 
 ### keep_stdout

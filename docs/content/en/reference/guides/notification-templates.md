@@ -21,10 +21,10 @@ This guide is effectively documents the usage of the
 
 ## Template Names
 
-|       Template       |                                           Description                                           |
-|:--------------------:|:-----------------------------------------------------------------------------------------------:|
-| IdentityVerification |                  Template used when registering devices or resetting passwords                  |
-|    PasswordReset     | Template used to send the notification to users when their password has successfully been reset |
+|       Template       |                                    Description                                    |
+|:--------------------:|:---------------------------------------------------------------------------------:|
+| IdentityVerification | Used to render notifications sent when registering devices or resetting passwords |
+|    PasswordReset     |    Used to render notifications sent when password has successfully been reset    |
 
 For example, to modify the `IdentityVerification` HTML template, if your
 [template_path](../../configuration/notifications/introduction.md#template_path) was configured as
@@ -35,13 +35,13 @@ HTML `IdentityVerification` template.
 
 In template files, you can use the following placeholders which are automatically injected into the templates:
 
-|     Placeholder      |      Templates       |                                                                  Description                                                                  |
-|:--------------------:|:--------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
-|   `{{ .LinkURL }}`   | IdentityVerification |                                          The URL of the used with the IdentityVerification template.                                          |
-|  `{{ .LinkText }}`   | IdentityVerification |                                 The display value for the IdentityVerification button intended for the link.                                  |
-|    `{{ .Title }}`    |         All          | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step |
-| `{{ .DisplayName }}` |         All          |                                                     The name of the user, i.e. `John Doe`                                                     |
-|  `{{ .RemoteIP }}`   |         All          |                                           The remote IP address that initiated the request or event                                           |
+|     Placeholder      |      Templates       |                                                                  Description                                                                   |
+|:--------------------:|:--------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|   `{{ .LinkURL }}`   | IdentityVerification |                                            The URL associated with the notification if applicable.                                             |
+|  `{{ .LinkText }}`   | IdentityVerification |                                 The display value for the URL associated with the notification if applicable.                                  |
+|    `{{ .Title }}`    |         All          | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step. |
+| `{{ .DisplayName }}` |         All          |                                                     The name of the user, i.e. `John Doe`                                                      |
+|  `{{ .RemoteIP }}`   |         All          |                                      The remote IP address (client) that initiated the request or event.                                       |
 
 ## Examples
 

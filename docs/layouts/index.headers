@@ -6,5 +6,4 @@
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin
   Feature-Policy: geolocation 'self'
-  Cache-Control: public, max-age=31536000
   Access-Control-Allow-Origin: *

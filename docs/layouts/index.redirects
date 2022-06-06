@@ -1,8 +1,8 @@
-{{ range $p := .Site.Pages -}}
-{{- range .Aliases -}}
+{{- range $p := .Site.Pages -}}
+{{- range .Aliases }}
 {{ . }} {{ $p.RelPermalink }}
-{{ end -}}
-{{ end -}}
+{{- end }}
+{{- end }}
 
 ## Short Links
 /l/charts               https://charts.authelia.com

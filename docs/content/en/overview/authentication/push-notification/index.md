@@ -1,7 +1,7 @@
 ---
 title: "Duo / Mobile Push"
-description: "Authelia utilizes WebAuthn security keys as one of it's second factor authentication methods."
-lead: "Authelia utilizes WebAuthn security keys as one of it's second first authentication methods."
+description: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
+lead: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
 date: 2022-03-20T22:52:38+11:00
 lastmod: 2022-06-03T10:43:55+10:00
 draft: false
@@ -46,10 +46,6 @@ Now that Authelia is configured, pass the first factor and select the Push notif
 
 You should now receive a notification on your mobile phone with all the details about the authentication request. In
 case you have multiple devices available, you will be asked to select your preferred device.
-
-## Limitation
-
-Users must be enrolled via the Duo Admin panel, they cannot enroll a device from __Authelia__ yet.
 
 ## FAQ
 
