@@ -51,8 +51,10 @@ Determines the NTP version supported. Valid values are 3 or 4.
 
 {{< confkey type="duration" default="3s" required="no" >}}
 
-This is used to tune the acceptable desync from the time reported from the NTP server. This uses our
-[duration notation](../prologue/common.md#duration-notation-format) format.
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+This is used to tune the acceptable desync from the time reported from the NTP server.
 
 ### disable_startup_check
 

@@ -40,7 +40,10 @@ The number of failed login attempts before a user may be banned. Setting this op
 
 {{< confkey type="duration " default="2m" required="no" >}}
 
-The period of time in [duration notation format](../prologue/common.md#duration-notation-format) analyzed for failed attempts. For
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+The period of time analyzed for failed attempts. For
 example if you set `max_retries` to 3 and `find_time` to `2m` this means the user must have 3 failed logins in
 2 minutes.
 
@@ -48,5 +51,8 @@ example if you set `max_retries` to 3 and `find_time` to `2m` this means the use
 
 {{< confkey type="duration" default="5m" required="no" >}}
 
-The period of time in [duration notation format](../prologue/common.md#duration-notation-format) the user is banned for after meeting
-the `max_retries` and `find_time` configuration. After this duration the account will be able to login again.
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+The period of time the user is banned for after meeting the `max_retries` and `find_time` configuration. After this
+duration the account will be able to login again.

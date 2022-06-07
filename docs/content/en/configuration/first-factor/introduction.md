@@ -26,14 +26,20 @@ There are two ways to integrate *Authelia* with an authentication backend:
 
 ```yaml
 authentication_backend:
+  refresh_interval: 5m
   disable_reset_password: false
   password_reset:
     custom_url: ""
-  file: {}
-  ldap: {}
 ```
 
 ## Options
+
+### refresh_interval
+
+{{< confkey type="duration" default="5m" required="no" >}}
+
+This setting controls the interval at which details are refreshed from the backend. Particularly useful for
+[LDAP](#ldap).
 
 ### disable_reset_password
 

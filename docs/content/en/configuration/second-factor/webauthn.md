@@ -81,8 +81,10 @@ Available Options:
 
 {{< confkey type="duration" default="60s" required="no" >}}
 
-This adjusts the requested timeout for a WebAuthn interaction. The period of time is in
-[duration notation format](../prologue/common.md#duration-notation-format).
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+This adjusts the requested timeout for a WebAuthn interaction.
 
 ## FAQ
 

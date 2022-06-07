@@ -20,8 +20,6 @@ aliases:
 
 ```yaml
 authentication_backend:
-  disable_reset_password: false
-  refresh_interval: 5m
   ldap:
     implementation: custom
     url: ldap://127.0.0.1
@@ -264,20 +262,8 @@ and other Active Directory filters on the [TechNet wiki](https://social.technet.
 
 ## Refresh Interval
 
-This setting takes a [duration notation](../prologue/common.md#duration-notation-format) that sets the max frequency for
-how often Authelia contacts the backend to verify the user still exists and that the groups stored in the session are up
-to date. This allows us to destroy sessions when the user no longer matches the user_filter, or deny access to resources
-as they are removed from groups.
-
-In addition to the duration notation, you may provide the value `always` or `disable`. Setting to `always` is the same
-as setting it to 0 which will refresh on every request, `disable` turns the feature off, which is not recommended. This
-completely prevents Authelia from refreshing this information, and it would only be refreshed when the user session gets
-destroyed by other means like inactivity, session expiration or logging out and in.
-
-This value can be any value including 0, setting it to 0 would automatically refresh the session on every single
-request. This means Authelia will have to contact the LDAP backend every time an element on a page loads which could be
-substantially costly. It's a trade-off between load and security that you should adapt according to your own security
-policy.
+It's recommended you either use the default [refresh interval](./introduction.md#refresh_interval) or configure this to
+a value low enough to refresh the user groups and status (deleted, disabled, etc) to adequately secure your environment.
 
 ## Important notes
 

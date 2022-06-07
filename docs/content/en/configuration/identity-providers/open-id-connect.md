@@ -318,11 +318,13 @@ The authorization policy for this client: either `one_factor` or `two_factor`.
 
 #### pre_configured_consent_duration
 
-{{< confkey type="string (duration)" required="no" >}}
+{{< confkey type="duration" required="no" >}}
 
-Configuring this enables users of this client to remember their consent as a pre-configured consent. The value is period
-of time is in [duration notation format](../prologue/common.md#duration-notation-format). The period of time dictates
-how long a users choice to remember the pre-configured consent lasts.
+*__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
+the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
+
+Configuring this enables users of this client to remember their consent as a pre-configured consent. The period of time
+dictates how long a users choice to remember the pre-configured consent lasts.
 
 Pre-configured consents are only valid if the subject, client id are exactly the same and the requested scopes/audience
 match exactly with the granted scopes/audience.
