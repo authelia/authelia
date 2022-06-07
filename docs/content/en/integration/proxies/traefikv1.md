@@ -9,7 +9,7 @@ images: []
 menu:
   integration:
     parent: "proxies"
-weight: 361
+weight: 371
 toc: true
 aliases:
   - /docs/deployment/supported-proxies/traefik1.x.html

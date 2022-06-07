@@ -9,7 +9,7 @@ images: []
 menu:
   integration:
     parent: "proxies"
-weight: 360
+weight: 370
 toc: true
 aliases:
   - /i/traefik
