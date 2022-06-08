@@ -41,9 +41,9 @@ func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration
 }
 
 // AutheliaMiddleware is wrapping the RequestCtx into an AutheliaCtx providing Authelia related objects.
-func AutheliaMiddleware(configuration schema.Configuration, providers Providers) RequestHandlerBridge {
+func AutheliaMiddleware(configuration schema.Configuration, providers Providers, middlewares ...StandardMiddleware) RequestHandlerBridge {
 	return func(next RequestHandler) fasthttp.RequestHandler {
-		return func(ctx *fasthttp.RequestCtx) {
+		bridge := func(ctx *fasthttp.RequestCtx) {
 			autheliaCtx, err := NewAutheliaCtx(ctx, configuration, providers)
 			if err != nil {
 				autheliaCtx.Error(err, messageOperationFailed)
@@ -52,6 +52,12 @@ func AutheliaMiddleware(configuration schema.Configuration, providers Providers)
 
 			next(autheliaCtx)
 		}
+
+		for i := len(middlewares) - 1; i >= 0; i-- {
+			bridge = middlewares[i](bridge)
+		}
+
+		return bridge
 	}
 }
 

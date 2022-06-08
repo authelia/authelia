@@ -14,12 +14,12 @@ func NewHAProxySuite() *HAProxySuite {
 	return &HAProxySuite{RodSuite: new(RodSuite)}
 }
 
-func (s *HAProxySuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *HAProxySuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *HAProxySuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *HAProxySuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func (s *HAProxySuite) TestCustomHeaders() {

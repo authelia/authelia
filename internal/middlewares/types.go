@@ -50,6 +50,9 @@ type RequestHandler = func(*AutheliaCtx)
 // Middleware represent an Authelia middleware.
 type Middleware = func(RequestHandler) RequestHandler
 
+// StandardMiddleware represents a fasthttp middleware.
+type StandardMiddleware = func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
+
 // RequestHandlerBridge bridge a AutheliaCtx handle to a RequestHandler handler.
 type RequestHandlerBridge = func(RequestHandler) fasthttp.RequestHandler
 

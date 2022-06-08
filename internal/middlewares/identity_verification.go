@@ -49,15 +49,14 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		claims := verification.ToIdentityVerificationClaim()
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		ss, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
 
+		ss, err := token.SignedString([]byte(ctx.Configuration.JWTSecret))
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
-		err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, verification)
-		if err != nil {
+		if err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, verification); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
@@ -77,32 +76,24 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
 		}
 
+		data := map[string]interface{}{
+			"Title":       args.MailTitle,
+			"LinkURL":     link,
+			"LinkText":    args.MailButtonContent,
+			"DisplayName": identity.DisplayName,
+			"RemoteIP":    ctx.RemoteIP().String(),
+		}
+
 		if !disableHTML {
-			htmlParams := map[string]interface{}{
-				"Title":       args.MailTitle,
-				"LinkURL":     link,
-				"LinkText":    args.MailButtonContent,
-				"DisplayName": identity.DisplayName,
-				"RemoteIP":    ctx.RemoteIP().String(),
-			}
-
-			err = templates.EmailIdentityVerificationHTML.Execute(bufHTML, htmlParams)
-
-			if err != nil {
+			if err = templates.EmailIdentityVerificationHTML.Execute(bufHTML, data); err != nil {
 				ctx.Error(err, messageOperationFailed)
 				return
 			}
 		}
 
 		bufText := new(bytes.Buffer)
-		textParams := map[string]interface{}{
-			"LinkURL":     link,
-			"DisplayName": identity.DisplayName,
-		}
 
-		err = templates.EmailIdentityVerificationPlainText.Execute(bufText, textParams)
-
-		if err != nil {
+		if err = templates.EmailIdentityVerificationPlainText.Execute(bufText, data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
@@ -110,9 +101,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, bufText.String(), bufHTML.String())
-
-		if err != nil {
+		if err = ctx.Providers.Notifier.Send(identity.Email, args.MailTitle, bufText.String(), bufHTML.String()); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

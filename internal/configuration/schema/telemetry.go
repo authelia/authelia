@@ -15,6 +15,7 @@ type TelemetryMetricsConfig struct {
 	Address Address `koanf:"address"`
 }
 
+// DefaultTelemetryConfig is the default telemetry configuration.
 var DefaultTelemetryConfig = TelemetryConfig{
 	Metrics: TelemetryMetricsConfig{
 		Address: NewAddress("tcp", net.ParseIP("0.0.0.0"), 9961),

@@ -2,12 +2,26 @@
 
 set +u
 
+INTEGRATION() {
+  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:renovate/" "${FILE}"
+  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:${BUILDKITE_BRANCH}/" "${FILE}"
+  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:PR${BUILDKITE_PULL_REQUEST}/" "${FILE}"
+  fi
+}
+
 if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   cd web && pnpm install && cd ../
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.pnpm-store .
+fi
+
+if [[ "${BUILDKITE_STEP_KEY}" =~ build-deb-package-(arm64|armhf) && "${BUILDKITE_AGENT_NAME}" =~ sauron* ]]; then
+  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 fi
 
 if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
@@ -20,6 +34,24 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   buildkite-agent artifact download "authelia-image-${DEFAULT_ARCH}*" .
   zstdcat "authelia-image-${DEFAULT_ARCH}.tar.zst" | docker load
   docker tag authelia/authelia authelia:dist
+
+  if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
+    CONTAINER="integration-duo"
+    FILE="internal/suites/example/compose/duo-api/docker-compose.yml"
+    INTEGRATION
+  elif [[ "${BUILD_HAPROXY}" == "true" ]] && [[ "${SUITE}" == "HAProxy" ]]; then
+    CONTAINER="integration-haproxy"
+    FILE="internal/suites/example/compose/haproxy/docker-compose.yml"
+    INTEGRATION
+  elif [[ "${BUILD_SAMBA}" == "true" ]] && [[ "${SUITE}" == "ActiveDirectory" ]]; then
+      CONTAINER="integration-samba"
+      FILE="internal/suites/example/compose/samba/docker-compose.yml"
+      INTEGRATION
+  fi
+fi
+
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy" ]]; then
+  echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]]; then

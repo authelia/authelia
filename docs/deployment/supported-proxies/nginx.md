@@ -3,7 +3,7 @@ layout: default
 title: NGINX
 parent: Proxy Integration
 grand_parent: Deployment
-nav_order: 2
+nav_order: 3
 ---
 
 # NGINX

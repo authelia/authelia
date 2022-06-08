@@ -53,63 +53,68 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendC
 	if config.Password == nil {
 		config.Password = &schema.DefaultPasswordConfiguration
 	} else {
-		// Salt Length.
-		switch {
-		case config.Password.SaltLength == 0:
-			config.Password.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
-		case config.Password.SaltLength < 8:
-			validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordSaltLength, config.Password.SaltLength))
-		}
-
-		switch config.Password.Algorithm {
-		case "":
-			config.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
-			fallthrough
-		case hashArgon2id:
-			validateFileAuthenticationBackendArgon2id(config, validator)
-		case hashSHA512:
-			validateFileAuthenticationBackendSHA512(config)
-		default:
-			validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Password.Algorithm))
-		}
-
-		if config.Password.Iterations < 1 {
-			validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidIterations, config.Password.Iterations))
-		}
+		ValidatePasswordConfiguration(config.Password, validator)
 	}
 }
 
-func validateFileAuthenticationBackendSHA512(config *schema.FileAuthenticationBackendConfiguration) {
-	// Iterations (time).
-	if config.Password.Iterations == 0 {
-		config.Password.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
+// ValidatePasswordConfiguration validates the file auth backend password configuration.
+func ValidatePasswordConfiguration(config *schema.PasswordConfiguration, validator *schema.StructValidator) {
+	// Salt Length.
+	switch {
+	case config.SaltLength == 0:
+		config.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
+	case config.SaltLength < 8:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordSaltLength, config.SaltLength))
+	}
+
+	switch config.Algorithm {
+	case "":
+		config.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
+		fallthrough
+	case hashArgon2id:
+		validateFileAuthenticationBackendArgon2id(config, validator)
+	case hashSHA512:
+		validateFileAuthenticationBackendSHA512(config)
+	default:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm))
+	}
+
+	if config.Iterations < 1 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidIterations, config.Iterations))
 	}
 }
-func validateFileAuthenticationBackendArgon2id(config *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+
+func validateFileAuthenticationBackendSHA512(config *schema.PasswordConfiguration) {
 	// Iterations (time).
-	if config.Password.Iterations == 0 {
-		config.Password.Iterations = schema.DefaultPasswordConfiguration.Iterations
+	if config.Iterations == 0 {
+		config.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
+	}
+}
+func validateFileAuthenticationBackendArgon2id(config *schema.PasswordConfiguration, validator *schema.StructValidator) {
+	// Iterations (time).
+	if config.Iterations == 0 {
+		config.Iterations = schema.DefaultPasswordConfiguration.Iterations
 	}
 
 	// Parallelism.
-	if config.Password.Parallelism == 0 {
-		config.Password.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
-	} else if config.Password.Parallelism < 1 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidParallelism, config.Password.Parallelism))
+	if config.Parallelism == 0 {
+		config.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
+	} else if config.Parallelism < 1 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidParallelism, config.Parallelism))
 	}
 
 	// Memory.
-	if config.Password.Memory == 0 {
-		config.Password.Memory = schema.DefaultPasswordConfiguration.Memory
-	} else if config.Password.Memory < config.Password.Parallelism*8 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidMemory, config.Password.Parallelism, config.Password.Parallelism*8, config.Password.Memory))
+	if config.Memory == 0 {
+		config.Memory = schema.DefaultPasswordConfiguration.Memory
+	} else if config.Memory < config.Parallelism*8 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidMemory, config.Parallelism, config.Parallelism*8, config.Memory))
 	}
 
 	// Key Length.
-	if config.Password.KeyLength == 0 {
-		config.Password.KeyLength = schema.DefaultPasswordConfiguration.KeyLength
-	} else if config.Password.KeyLength < 16 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength, config.Password.KeyLength))
+	if config.KeyLength == 0 {
+		config.KeyLength = schema.DefaultPasswordConfiguration.KeyLength
+	} else if config.KeyLength < 16 {
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength, config.KeyLength))
 	}
 }
 
@@ -124,9 +129,7 @@ func validateLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendC
 
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-	}
-
-	if config.TLS.MinimumVersion == "" {
+	} else if config.TLS.MinimumVersion == "" {
 		config.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
 	}
 
