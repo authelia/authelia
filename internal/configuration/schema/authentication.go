@@ -67,22 +67,22 @@ type PasswordResetAuthenticationBackendConfiguration struct {
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
 var DefaultPasswordConfiguration = PasswordConfiguration{
-	Iterations:  1,
+	Iterations:  3,
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   argon2id,
 	Memory:      64,
-	Parallelism: 8,
+	Parallelism: 4,
 }
 
 // DefaultCIPasswordConfiguration represents the default configuration related to Argon2id hashing for CI.
 var DefaultCIPasswordConfiguration = PasswordConfiguration{
-	Iterations:  1,
+	Iterations:  3,
 	KeyLength:   32,
 	SaltLength:  16,
 	Algorithm:   argon2id,
 	Memory:      64,
-	Parallelism: 8,
+	Parallelism: 4,
 }
 
 // DefaultPasswordSHA512Configuration represents the default configuration related to SHA512 hashing.

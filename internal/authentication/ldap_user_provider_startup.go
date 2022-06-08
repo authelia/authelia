@@ -6,6 +6,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // StartupCheck implements the startup check provider interface.
@@ -88,10 +89,16 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 
 	p.log.Tracef("Dynamically generated users filter is %s", p.config.UsersFilter)
 
-	p.usersAttributes = []string{
-		p.config.DisplayNameAttribute,
-		p.config.MailAttribute,
-		p.config.UsernameAttribute,
+	if !utils.IsStringInSlice(p.config.UsernameAttribute, p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, p.config.UsernameAttribute)
+	}
+
+	if !utils.IsStringInSlice(p.config.MailAttribute, p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, p.config.MailAttribute)
+	}
+
+	if !utils.IsStringInSlice(p.config.DisplayNameAttribute, p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, p.config.DisplayNameAttribute)
 	}
 
 	if p.config.AdditionalUsersDN != "" {
