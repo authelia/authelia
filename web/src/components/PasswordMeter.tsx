@@ -20,15 +20,6 @@ const PasswordMeter = function (props: Props) {
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
-    const style = makeStyles((theme) => ({
-        progressBar: {
-            height: "5px",
-            marginTop: "2px",
-            backgroundColor: "red",
-            width: "50%",
-            transition: "width .5s linear",
-        },
-    }))();
 
     useEffect(() => {
         const password = props.value;
