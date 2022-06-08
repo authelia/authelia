@@ -2,8 +2,9 @@
 version: '3'
 services:
   duo-api:
-    build:
-      context: ./example/compose/duo-api
+    image: authelia/integration-duo
+    volumes:
+      - ./example/compose/duo-api/duo_api.js:/usr/app/src/duo_api.js
     networks:
       - authelianet
 ...
