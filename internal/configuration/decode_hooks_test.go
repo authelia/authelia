@@ -585,7 +585,7 @@ func TestStringToRegexpFunc(t *testing.T) {
 		},
 	}
 
-	hook := configuration.StringToRegexpFunc()
+	hook := configuration.StringToRegexpHookFunc()
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -698,7 +698,7 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 		},
 	}
 
-	hook := configuration.StringToRegexpFunc()
+	hook := configuration.StringToRegexpHookFunc()
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {

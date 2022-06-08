@@ -166,8 +166,8 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToRegexpFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
-func StringToRegexpFunc() mapstructure.DecodeHookFuncType {
+// StringToRegexpHookFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
+func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
 		var ptr bool
 

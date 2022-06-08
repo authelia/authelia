@@ -10,7 +10,7 @@ import (
 )
 
 var kindImageName = "authelia-kind-proxy"
-var dockerCmdLine = fmt.Sprintf("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml run --rm %s", kindImageName)
+var dockerCmdLine = fmt.Sprintf("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml run -T --rm %s", kindImageName)
 
 // Kind used for running kind commands.
 type Kind struct{}

@@ -2,8 +2,9 @@
 version: '3'
 services:
   sambaldap:
-    build:
-      context: ./example/compose/samba
+    image: authelia/integration-samba
+    volumes:
+      - ./example/compose/samba/init.sh:/init.sh
     cap_add:
       - SYS_ADMIN
     hostname: ldap.example.com

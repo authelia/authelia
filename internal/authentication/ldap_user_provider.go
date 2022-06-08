@@ -339,14 +339,9 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 	}
 
 	for _, attr := range searchResult.Entries[0].Attributes {
-		switch attr.Name {
-		case p.config.DisplayNameAttribute:
-			userProfile.DisplayName = attr.Values[0]
-		case p.config.MailAttribute:
-			userProfile.Emails = attr.Values
-		case p.config.UsernameAttribute:
-			attrs := len(attr.Values)
+		attrs := len(attr.Values)
 
+		if attr.Name == p.config.UsernameAttribute {
 			switch attrs {
 			case 1:
 				userProfile.Username = attr.Values[0]
@@ -357,6 +352,18 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
 					username, attrs, p.config.UsernameAttribute)
 			}
+		}
+
+		if attrs == 0 {
+			continue
+		}
+
+		if attr.Name == p.config.MailAttribute {
+			userProfile.Emails = attr.Values
+		}
+
+		if attr.Name == p.config.DisplayNameAttribute {
+			userProfile.DisplayName = attr.Values[0]
 		}
 	}
 

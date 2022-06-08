@@ -545,6 +545,222 @@ func TestShouldEscapeUserInput(t *testing.T) {
 	assert.EqualError(t, err, "user not found")
 }
 
+func TestShouldReturnEmailWhenAttributeSameAsUsername(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "mail",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "(&({username_attribute}={input})(objectClass=inetOrgPerson))",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	assert.Equal(t, []string{"mail", "displayName"}, ldapClient.usersAttributes)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(NewSearchRequestMatcher("(&(mail=john@example.com)(objectClass=inetOrgPerson))")).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "mail",
+							Values: []string{"john@example.com"},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{"John Doe"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john@example.com")
+
+	assert.NoError(t, err)
+	require.NotNil(t, profile)
+
+	assert.Equal(t, "uid=john,dc=example,dc=com", profile.DN)
+	assert.Equal(t, "john@example.com", profile.Username)
+	assert.Equal(t, "John Doe", profile.DisplayName)
+
+	require.Len(t, profile.Emails, 1)
+	assert.Equal(t, "john@example.com", profile.Emails[0])
+}
+
+func TestShouldReturnUsernameAndBlankDisplayNameWhenAttributesTheSame(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "uid",
+			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	assert.Equal(t, []string{"uid", "mail"}, ldapClient.usersAttributes)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(NewSearchRequestMatcher("(&(|(uid=john@example.com)(mail=john@example.com))(objectClass=inetOrgPerson))")).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{"john@example.com"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john@example.com")
+
+	assert.NoError(t, err)
+	require.NotNil(t, profile)
+
+	assert.Equal(t, "uid=john,dc=example,dc=com", profile.DN)
+	assert.Equal(t, "john", profile.Username)
+	assert.Equal(t, "john", profile.DisplayName)
+
+	require.Len(t, profile.Emails, 1)
+	assert.Equal(t, "john@example.com", profile.Emails[0])
+}
+
+func TestShouldReturnBlankEmailAndDisplayNameWhenAttrsLenZero(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	ldapClient := newLDAPUserProvider(
+		schema.LDAPAuthenticationBackendConfiguration{
+			URL:                  "ldap://127.0.0.1:389",
+			User:                 "cn=admin,dc=example,dc=com",
+			Password:             "password",
+			UsernameAttribute:    "uid",
+			MailAttribute:        "mail",
+			DisplayNameAttribute: "displayName",
+			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=inetOrgPerson))",
+			AdditionalUsersDN:    "ou=users",
+			BaseDN:               "dc=example,dc=com",
+		},
+		false,
+		nil,
+		mockFactory)
+
+	assert.Equal(t, []string{"uid", "mail", "displayName"}, ldapClient.usersAttributes)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	bind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	search := mockClient.EXPECT().
+		Search(NewSearchRequestMatcher("(&(|(uid=john@example.com)(mail=john@example.com))(objectClass=inetOrgPerson))")).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	gomock.InOrder(dialURL, bind, search)
+
+	client, err := ldapClient.connect()
+	assert.NoError(t, err)
+
+	profile, err := ldapClient.getUserProfile(client, "john@example.com")
+
+	assert.NoError(t, err)
+	require.NotNil(t, profile)
+
+	assert.Equal(t, "uid=john,dc=example,dc=com", profile.DN)
+	assert.Equal(t, "john", profile.Username)
+	assert.Equal(t, "", profile.DisplayName)
+
+	assert.Len(t, profile.Emails, 0)
+}
+
 func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -568,6 +784,8 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 		false,
 		nil,
 		mockFactory)
+
+	assert.Equal(t, []string{"uid", "mail", "displayName"}, ldapClient.usersAttributes)
 
 	assert.True(t, ldapClient.usersFilterReplacementInput)
 
