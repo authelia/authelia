@@ -149,7 +149,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 
 	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
 
-	r.GET("/api/configuration/password-policy", middlewareAPI(handlers.PasswordPolicyConfigurationGet))
+	r.GET("/api/configuration/password-policy", middlewareAPI(handlers.PasswordPolicyConfigurationGET))
 
 	r.GET("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
 	r.HEAD("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
