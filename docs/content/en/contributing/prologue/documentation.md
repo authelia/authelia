@@ -84,39 +84,44 @@ This section documents each of the fields that we commonly use.
 
 #### title
 
-Configures the `<title />` element, the first `<h1 />` element, and the [Open Graph Protocol] `og:title` value.
+String. Configures the `<title />` element, the first `<h1 />` element, and the [Open Graph Protocol] `og:title` value.
 
 #### description
 
-Configures the and the [Open Graph Protocol] `og:description` value.
+String. Configures the and the [Open Graph Protocol] `og:description` value.
 
 #### lead
 
-Configures the first paragraph of a page which occurs directly after the [title](#title).
+String. Configures the first paragraph of a page which occurs directly after the [title](#title).
 
 #### date
 
-Configures the [Open Graph Protocol] `og:article:published_time` value. Also used in the [Blog](../../blog).
+Timestamp. Configures the [Open Graph Protocol] `og:article:published_time` value. Also used in the [Blog](../../blog).
 
 #### lastmod
 
-Configures the [Open Graph Protocol] `og:article:modified_time` value.
+Timestamp. Configures the [Open Graph Protocol] `og:article:modified_time` value.
 
 #### draft
 
-Configures the visibility of a page. If it's set to `true` it is invisible.
+Boolean. Configures the visibility of a page. If it's set to `true` it is invisible.
 
 #### menu
 
-Configures the menu linkage.
+Dictionary. Configures the menu linkage.
 
 #### weight
 
-Configures the position in the menu and the order in which pagination occurs.
+Integer. Configures the position in the menu and the order in which pagination occurs.
 
 #### toc
 
-Enables or disables the Table of Contents or `On This Page` section.
+Boolean. Enables or disables the Table of Contents or `On This Page` section.
+
+#### community
+
+Boolean. Enables or disables the Community page header. This value only has an effect in the Integration section at this
+stage.
 
 [docs folder on GitHub]: https://github.com/authelia/authelia/tree/master/docs
 [Hugo]: https://gohugo.io/
