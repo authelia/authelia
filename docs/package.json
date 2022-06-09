@@ -50,7 +50,7 @@
     "highlight.js": "11.5.1",
     "hugo-installer": "3.1.0",
     "instant.page": "5.1.0",
-    "katex": "0.15.6",
+    "katex": "0.16.0",
     "lazysizes": "5.3.2",
     "markdownlint-cli2": "0.4.0",
     "netlify-plugin-submit-sitemap": "0.3.0",
@@ -59,7 +59,7 @@
     "postcss-cli": "9.1.0",
     "purgecss-whitelister": "2.4.0",
     "shx": "0.3.4",
-    "stylelint": "14.8.5",
+    "stylelint": "14.9.0",
     "stylelint-config-standard-scss": "3.0.0"
   },
   "otherDependencies": {

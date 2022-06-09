@@ -25,7 +25,7 @@
   package = "netlify-plugin-submit-sitemap"
 
 	[plugins.inputs]
-    baseUrl = "https://doks.netlify.app/"
+    baseUrl = "https://www.authelia.com/"
     sitemapPath = "/sitemap.xml"
     ignorePeriod = 0
     providers = [
