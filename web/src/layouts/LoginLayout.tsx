@@ -1,7 +1,8 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 
 import { Grid, makeStyles, Container, Link } from "@material-ui/core";
 import { grey } from "@material-ui/core/colors";
+import { useTranslation } from "react-i18next";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import TypographyWithTooltip from "@components/TypographyWithTootip";
@@ -24,6 +25,10 @@ const LoginLayout = function (props: Props) {
     ) : (
         <UserSvg className={style.icon} />
     );
+    const { t: translate } = useTranslation();
+    useEffect(() => {
+        document.title = `${translate("Login")} - Authelia`;
+    }, [translate]);
     return (
         <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
             <Container maxWidth="xs" className={style.rootContainer}>
@@ -55,7 +60,7 @@ const LoginLayout = function (props: Props) {
                                 target="_blank"
                                 className={style.poweredBy}
                             >
-                                Powered by Authelia
+                                {translate("Powered by")} Authelia
                             </Link>
                         </Grid>
                     ) : null}
