@@ -1,7 +1,7 @@
 [build]
   publish = "public"
   functions = "functions"
-  ignore = "git diff --quiet HEAD^ HEAD -- docs/"
+  ignore = "git diff --quiet HEAD^ HEAD"
 
 [build.environment]
   NODE_VERSION = "17.8.0"
