@@ -15,6 +15,8 @@ const (
 
 	// ActionResetPassword is the string representation of the action for which the token has been produced.
 	ActionResetPassword = "ResetPassword"
+
+	// Example change outside docs.
 )
 
 var (
