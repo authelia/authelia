@@ -54,7 +54,7 @@ specifiers:
   react-router-dom: 6.3.0
   react-test-renderer: 18.1.0
   typescript: 4.7.3
-  vite: 2.9.10
+  vite: 2.9.12
   vite-plugin-eslint: 1.6.1
   vite-plugin-istanbul: 2.8.0
   vite-plugin-svgr: 2.1.0
@@ -118,11 +118,11 @@ devDependencies:
   prettier: 2.6.2
   react-test-renderer: 18.1.0_react@18.1.0
   typescript: 4.7.3
-  vite: 2.9.10
-  vite-plugin-eslint: 1.6.1_eslint@8.17.0+vite@2.9.10
+  vite: 2.9.12
+  vite-plugin-eslint: 1.6.1_eslint@8.17.0+vite@2.9.12
   vite-plugin-istanbul: 2.8.0
-  vite-plugin-svgr: 2.1.0_vite@2.9.10
-  vite-tsconfig-paths: 3.5.0_vite@2.9.10
+  vite-plugin-svgr: 2.1.0_vite@2.9.12
+  vite-tsconfig-paths: 3.5.0_vite@2.9.12
 
 packages:
 
@@ -8368,7 +8368,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.6.1_eslint@8.17.0+vite@2.9.10:
+  /vite-plugin-eslint/1.6.1_eslint@8.17.0+vite@2.9.12:
     resolution: {integrity: sha512-wXwGJ222zjlllHmmPXX6oSU8DbmYjnA6HHBYbOLT8WAc73j4/YAtBQHCVSoHOTPiT4TPzsuZSvputWwc86BweQ==}
     peerDependencies:
       eslint: '>=7'
@@ -8378,7 +8378,7 @@ packages:
       '@types/eslint': 8.4.2
       eslint: 8.17.0
       rollup: 2.70.2
-      vite: 2.9.10
+      vite: 2.9.12
     dev: true
 
   /vite-plugin-istanbul/2.8.0:
@@ -8391,18 +8391,18 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.1.0_vite@2.9.10:
+  /vite-plugin-svgr/2.1.0_vite@2.9.12:
     resolution: {integrity: sha512-3J19p8pmGfRt297yvc8Fd36+0AC0sLgA/gZYQDjotNAhv3CmSTQyviXIrDbwiRFVrsZjSlHJH1vca7OGFmjDcA==}
     peerDependencies:
       vite: ^2.6.0
     dependencies:
       '@svgr/core': 6.2.1
-      vite: 2.9.10
+      vite: 2.9.12
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.5.0_vite@2.9.10:
+  /vite-tsconfig-paths/3.5.0_vite@2.9.12:
     resolution: {integrity: sha512-NKIubr7gXgh/3uniQaOytSg+aKWPrjquP6anAy+zCWEn6h9fB8z2/qdlfQrTgZWaXJ2pHVlllrSdRZltHn9P4g==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -8411,13 +8411,13 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.2
       tsconfig-paths: 4.0.0
-      vite: 2.9.10
+      vite: 2.9.12
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/2.9.10:
-    resolution: {integrity: sha512-TwZRuSMYjpTurLqXspct+HZE7ONiW9d+wSWgvADGxhDPPyoIcNywY+RX4ng+QpK30DCa1l/oZgi2PLZDibhzbQ==}
+  /vite/2.9.12:
+    resolution: {integrity: sha512-suxC36dQo9Rq1qMB2qiRorNJtJAdxguu5TMvBHOc/F370KvqAe9t48vYp+/TbPKRNrMh/J55tOUmkuIqstZaew==}
     engines: {node: '>=12.2.0'}
     hasBin: true
     peerDependencies:
