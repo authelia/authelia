@@ -153,7 +153,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 
 	r.GET("/api/configuration/password-policy", middlewareAPI(handlers.PasswordPolicyConfigurationGET))
 
-	metricsVRMW := middlewares.NewMetricsVerifyRequestMiddleware(providers.Metrics)
+	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
 	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
@@ -321,7 +321,7 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		handler = middlewares.StripPath(config.Server.Path)(handler)
 	}
 
-	handler = middlewares.Wrap(middlewares.NewMetricsRequestMiddleware(providers.Metrics), handler)
+	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)
 
 	return handler
 }

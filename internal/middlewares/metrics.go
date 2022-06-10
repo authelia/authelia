@@ -9,8 +9,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/metrics"
 )
 
-// NewMetricsRequestMiddleware returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
-func NewMetricsRequestMiddleware(metrics metrics.Recorder) (middleware Basic) {
+// NewMetricsRequest returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
+func NewMetricsRequest(metrics metrics.Recorder) (middleware Basic) {
 	if metrics == nil {
 		return nil
 	}
@@ -29,8 +29,8 @@ func NewMetricsRequestMiddleware(metrics metrics.Recorder) (middleware Basic) {
 	}
 }
 
-// NewMetricsVerifyRequestMiddleware returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
-func NewMetricsVerifyRequestMiddleware(metrics metrics.Recorder) (middleware Basic) {
+// NewMetricsVerifyRequest returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
+func NewMetricsVerifyRequest(metrics metrics.Recorder) (middleware Basic) {
 	if metrics == nil {
 		return nil
 	}
