@@ -4,8 +4,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// PasswordPolicyConfigurationGet get the password policy configuration.
-func PasswordPolicyConfigurationGet(ctx *middlewares.AutheliaCtx) {
+// PasswordPolicyConfigurationGET get the password policy configuration.
+func PasswordPolicyConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	policyResponse := PassworPolicyBody{
 		Mode: "disabled",
 	}
