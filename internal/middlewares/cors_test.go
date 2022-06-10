@@ -562,13 +562,13 @@ func Test_CORSMiddleware_AsMiddleware(t *testing.T) {
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestHeaders, "X-Example-Header")
 	ctx.Request.Header.SetBytesK(headerAccessControlRequestMethod, "GET")
 
-	autheliaMiddleware := AutheliaMiddleware(schema.Configuration{}, Providers{})
+	middleware := NewBridgeBuilder(schema.Configuration{}, Providers{}).Build()
 
 	cors := NewCORSPolicyBuilder().WithAllowedMethods("GET", "OPTIONS")
 
 	policy := cors.Build()
 
-	route := policy.Middleware(autheliaMiddleware(testNilHandler))
+	route := policy.Middleware(middleware(testNilHandler))
 
 	route(ctx)
 
