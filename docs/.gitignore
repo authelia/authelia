@@ -3,3 +3,4 @@ public
 resources
 .netlify
 .hugo_build.lock
+!content/*/reference/cli/authelia

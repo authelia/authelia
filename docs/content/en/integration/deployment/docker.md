@@ -80,6 +80,33 @@ networks:
     name: net
 ```
 
+#### Running the Proxy on the Host Instead of in a Container
+
+If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
+configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
+users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
+architectural choice our users make and you should expect to do your own research to figure this out where possible.
+
+The example below includes the additional `ports` option which must be added in order to allow communication to
+*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
+[Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
+localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
+
+```yaml
+services:
+  authelia:
+    container_name: authelia
+    image: docker.io/authelia/authelia:latest
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    ports:
+      - "127.0.0.1:9091:9091"
+```
+
 ### Bundles
 
 To use the bundles we recommend first cloning the git repository and checking out the latest release on a Linux Desktop:
@@ -98,7 +125,7 @@ process:
 1. Perform the commands in [the bundles section](#bundles).
 2. Run the `cd examples/compose/lite` command.
 3. Edit `users_database.yml` and either change the username of the `authelia` user, or
-   [generate a new password](../../configuration/first-factor/file.md#passwords), or both. The default password is
+   [generate a new password](../../reference/guides/passwords.md#passwords), or both. The default password is
    `authelia`.
 4. Edit the `configuration.yml` and `docker-compose.yml` with your respective domains and secrets.
 5. Run `docker compose up -d` or `docker-compose up -d`.
