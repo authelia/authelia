@@ -17,8 +17,8 @@ import (
 // CreateServer Create Authelia's internal webserver with the given configuration and providers.
 func CreateServer(config schema.Configuration, providers middlewares.Providers) (*fasthttp.Server, net.Listener) {
 	server := &fasthttp.Server{
-		ErrorHandler:          handlerError(),
-		Handler:               getHandler(config, providers),
+		ErrorHandler:          handleError(),
+		Handler:               handleRouter(config, providers),
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.ReadBufferSize,
 		WriteBufferSize:       config.Server.WriteBufferSize,

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
 	"github.com/valyala/fasthttp/pprofhandler"
@@ -23,9 +25,7 @@ import (
 )
 
 // Replacement for the default error handler in fasthttp.
-func handlerError() func(ctx *fasthttp.RequestCtx, err error) {
-	logger := logging.Logger()
-
+func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
 
 	getRemoteIP := func(ctx *fasthttp.RequestCtx) string {
@@ -41,26 +41,43 @@ func handlerError() func(ctx *fasthttp.RequestCtx, err error) {
 	}
 
 	return func(ctx *fasthttp.RequestCtx, err error) {
+		var (
+			statusCode int
+			message    string
+		)
+
 		switch e := err.(type) {
 		case *fasthttp.ErrSmallBuffer:
-			logger.Tracef("Request was too large to handle from client %s. Response Code %d.", getRemoteIP(ctx), fasthttp.StatusRequestHeaderFieldsTooLarge)
-			ctx.Error("request header too large", fasthttp.StatusRequestHeaderFieldsTooLarge)
+			statusCode = fasthttp.StatusRequestHeaderFieldsTooLarge
+			message = "Request from client exceeded the server buffer sizes."
 		case *net.OpError:
 			if e.Timeout() {
-				logger.Tracef("Request timeout occurred while handling from client %s: %s. Response Code %d.", getRemoteIP(ctx), ctx.RequestURI(), fasthttp.StatusRequestTimeout)
-				ctx.Error("request timeout", fasthttp.StatusRequestTimeout)
+				statusCode = fasthttp.StatusRequestTimeout
+				message = "Request timeout occurred while handling request from client."
 			} else {
-				logger.Tracef("An unknown error occurred while handling a request from client %s: %s. Response Code %d.", getRemoteIP(ctx), ctx.RequestURI(), fasthttp.StatusBadRequest)
-				ctx.Error("error when parsing request", fasthttp.StatusBadRequest)
+				statusCode = fasthttp.StatusBadRequest
+				message = "An unknown network error occurred while handling a request from client."
 			}
 		default:
-			logger.Tracef("An unknown error occurred while handling a request from client %s: %s. Response Code %d.", getRemoteIP(ctx), ctx.RequestURI(), fasthttp.StatusBadRequest)
-			ctx.Error("error when parsing request", fasthttp.StatusBadRequest)
+			statusCode = fasthttp.StatusBadRequest
+			message = "An unknown error occurred while handling a request from client."
 		}
+
+		logging.Logger().WithFields(logrus.Fields{
+			"method":      string(ctx.Method()),
+			"path":        string(ctx.Path()),
+			"remote_ip":   getRemoteIP(ctx),
+			"status_code": statusCode,
+		}).WithError(err).Error(message)
+
+		ctx.Response.Reset()
+		ctx.SetStatusCode(statusCode)
+		ctx.SetContentType("text/plain; charset=utf-8")
+		ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 	}
 }
 
-func handlerNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		path := strings.ToLower(string(ctx.Path()))
 
@@ -76,11 +93,11 @@ func handlerNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
-func handlerMethodNotAllowed(ctx *fasthttp.RequestCtx) {
+func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 	handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
 }
 
-func getHandler(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
+func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.DisableResetPassword)
 
@@ -307,10 +324,10 @@ func getHandler(config schema.Configuration, providers middlewares.Providers) fa
 		r.POST("/api/oidc/revoke", policyCORSRevocation.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
 	}
 
-	r.NotFound = handlerNotFound(middleware(serveIndexHandler))
+	r.NotFound = handleNotFound(middleware(serveIndexHandler))
 
 	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = handlerMethodNotAllowed
+	r.MethodNotAllowed = handleMethodNotAllowed
 
 	if config.Server.Path != "" {
 		return middlewares.StripPath(config.Server.Path)(middlewares.LogRequest(r.Handler))
