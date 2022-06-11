@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/authelia/authelia/v4/internal/commands"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -131,7 +130,7 @@ func NewRootCmd() *cobra.Command {
 		cobraCommands = append(cobraCommands, command)
 	}
 
-	cobraCommands = append(cobraCommands, commands.NewHashPasswordCmd(), commands.NewCertificatesCmd(), commands.NewRSACmd(), xflagsCmd)
+	cobraCommands = append(cobraCommands, xflagsCmd)
 
 	var rootCmd = &cobra.Command{Use: "authelia-scripts"}
 
