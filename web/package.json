@@ -33,7 +33,7 @@
     "query-string": "7.1.1",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "react-i18next": "11.17.0",
+    "react-i18next": "11.17.1",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
     "react-router-dom": "6.3.0",
@@ -171,9 +171,9 @@
     "prettier": "2.6.2",
     "react-test-renderer": "18.1.0",
     "typescript": "4.7.3",
-    "vite": "2.9.10",
+    "vite": "2.9.12",
     "vite-plugin-eslint": "1.6.1",
-    "vite-plugin-istanbul": "2.7.3",
+    "vite-plugin-istanbul": "2.8.0",
     "vite-plugin-svgr": "2.1.0",
     "vite-tsconfig-paths": "3.5.0"
   }
