@@ -194,12 +194,13 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL *url.URL, isBasicAuth bool, username string, method []byte) {
 	var (
 		statusCode            int
-		redirectionURL        string
+		redirectionURL        *url.URL
 		friendlyUsername      string
 		friendlyRequestMethod string
+		err                   error
 	)
 
 	switch username {
@@ -210,16 +211,13 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	}
 
 	if isBasicAuth {
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), friendlyUsername)
+		ctx.Logger.Infof("Access to %s is not authorized to user '%s', responding with status code 401 and WWW-Authenticate header", targetURL.String(), friendlyUsername)
 		ctx.ReplyUnauthorized()
 		ctx.Response.Header.Add("WWW-Authenticate", "Basic realm=\"Authentication required\"")
 
 		return
 	}
 
-	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-	// endpoint to provide the URL of the login portal. The target URL of the user
-	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
 	rm := string(method)
 
@@ -230,17 +228,12 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		friendlyRequestMethod = rm
 	}
 
-	if rd != "" {
-		switch rm {
-		case "":
-			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		default:
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
-		}
+	if redirectionURL, err = getRedirectionURL(rd, rm, targetURL); err != nil {
+		ctx.Logger.Errorf("Error occurred building redirection URL from rd '%s', rm '%s', and targetURL '%s': %+v", rd, rm, targetURL, err)
 	}
 
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || rd == "":
+	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch rm {
@@ -251,13 +244,39 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		}
 	}
 
-	if redirectionURL != "" {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL, statusCode)
+	if redirectionURL != nil {
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user '%s', responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user '%s', responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
 	}
+}
+
+func getRedirectionURL(rd, rm string, targetURL *url.URL) (redirectionURL *url.URL, err error) {
+	if rd == "" {
+		return nil, nil
+	}
+
+	if rd, err = url.QueryUnescape(rd); err != nil {
+		return nil, err
+	}
+
+	if redirectionURL, err = url.Parse(rd); err != nil {
+		return nil, err
+	}
+
+	values := url.Values{}
+
+	values.Set("rd", targetURL.String())
+
+	if rm != "" {
+		values.Set("rm", rm)
+	}
+
+	redirectionURL.RawQuery = values.Encode()
+
+	return redirectionURL, nil
 }
 
 func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, username string) error {
