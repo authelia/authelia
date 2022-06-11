@@ -1,8 +1,13 @@
 package main
 
 import (
+	"embed"
+
 	"github.com/spf13/cobra"
 )
+
+//go:embed templates/*
+var templatesFS embed.FS
 
 func main() {
 	if err := newRootCmd().Execute(); err != nil {
