@@ -64,9 +64,7 @@ alertDismissable = true
 alertText = "Help us improve Authelia by taking this <a class=\"alert-link stretched-link\" href=\"https://forms.gle/aVw6J9jcez97EAhD6\">10 second survey.</a>"
 
 # Edit Page
-# repoHost [Github | Gitea | GitLab | Bitbucket | BitbucketServer ] is used for building the edit link based on git hoster
 repoHost = "GitHub"
-#repoHost = "Gitea"
 docsRepo = "https://github.com/authelia/authelia"
 docsRepoBranch = "master"
 docsRepoSubPath = "docs"
