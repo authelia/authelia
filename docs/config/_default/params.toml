@@ -69,7 +69,7 @@ docsRepo = "https://github.com/authelia/authelia"
 docsRepoBranch = "master"
 docsRepoSubPath = "docs"
 editPage = true
-lastMod = false
+lastMod = true
 
 [options]
   lazySizes = true
