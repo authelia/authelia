@@ -3,7 +3,6 @@ title: "Documentation"
 description: "Information on contributing documentation to the Authelia project."
 lead: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
 date: 2022-05-19T14:18:33+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:
@@ -60,7 +59,6 @@ title: "A Page Title"
 description: "This is a description of the page."
 lead: "This is a page lead."
 date: 2022-03-19T04:53:05+00:00
-lastmod: 2022-03-19T04:53:05+00:00
 draft: false
 menu:
   development:
@@ -97,10 +95,6 @@ String. Configures the first paragraph of a page which occurs directly after the
 #### date
 
 Timestamp. Configures the [Open Graph Protocol] `og:article:published_time` value. Also used in the [Blog](../../blog).
-
-#### lastmod
-
-Timestamp. Configures the [Open Graph Protocol] `og:article:modified_time` value.
 
 #### draft
 

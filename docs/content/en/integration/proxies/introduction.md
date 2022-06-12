@@ -3,7 +3,6 @@ title: "Proxies"
 description: "An integration guide for Authelia and several supported reverse proxies"
 lead: "An introduction into integrating Authelia with a reverse proxy."
 date: 2022-03-20T20:23:41+11:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

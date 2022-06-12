@@ -3,7 +3,6 @@ title: "Duo / Mobile Push"
 description: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
 lead: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
 date: 2022-03-20T22:52:38+11:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

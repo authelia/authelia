@@ -3,7 +3,6 @@ title: "NGINX Ingress"
 description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 lead: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 date: 2022-05-15T13:52:27+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

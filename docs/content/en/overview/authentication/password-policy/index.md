@@ -3,7 +3,6 @@ title: "Password Policy"
 description: "Authelia implements a password policy feature."
 lead: "Authelia implements a password policy feature."
 date: 2022-04-12T14:40:22+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

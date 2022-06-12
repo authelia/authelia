@@ -3,7 +3,6 @@ title: "OpenID Connect"
 description: "Authelia OpenID Connect Implementation"
 lead: "The OpenID Connect Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
 date: 2022-03-20T12:52:27+11:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

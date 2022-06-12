@@ -3,7 +3,6 @@ title: "Security"
 description: "An overview introduction into Authelia's security features."
 lead: "An overview introduction into Authelia's security features."
 date: 2022-05-13T12:34:15+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

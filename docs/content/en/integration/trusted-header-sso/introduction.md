@@ -3,7 +3,6 @@ title: "Trusted Header SSO"
 description: "Trusted Header SSO Integration"
 lead: "An introduction into integrating Authelia with an application which implements authentication via trusted headers."
 date: 2022-05-15T13:52:27+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

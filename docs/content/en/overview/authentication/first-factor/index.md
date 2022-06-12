@@ -3,7 +3,6 @@ title: "First Factor"
 description: "Authelia utilizes the standard username and password combination for first factor authentication."
 lead: "Authelia utilizes the standard username and password combination for first factor authentication."
 date: 2022-03-20T12:52:27+11:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

@@ -3,7 +3,6 @@ title: "Skipper"
 description: "An integration guide for Authelia and the Skipper reverse proxy"
 lead: "A guide on integrating Authelia with the Skipper reverse proxy."
 date: 2022-05-15T13:52:27+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

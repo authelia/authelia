@@ -2,8 +2,7 @@
 title: "authelia storage user totp export"
 description: "Reference for the authelia storage user totp export command."
 lead: ""
-date: 2022-05-30T06:42:39+10:00
-lastmod: 2022-06-12T19:41:09+10:00
+date: 2022-05-31T11:13:56+10:00
 draft: false
 images: []
 menu:

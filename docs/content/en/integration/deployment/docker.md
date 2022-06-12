@@ -3,7 +3,6 @@ title: "Docker"
 description: "A guide on installing Authelia in Docker."
 lead: "This is one of the primary ways we deliver Authelia to users and the recommended path."
 date: 2022-05-27T22:24:38+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

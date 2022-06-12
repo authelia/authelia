@@ -3,7 +3,6 @@ title: "Caddy"
 description: "An integration guide for Authelia and the Caddy reverse proxy"
 lead: "A guide on integrating Authelia with the Caddy reverse proxy."
 date: 2022-05-13T12:06:00+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:

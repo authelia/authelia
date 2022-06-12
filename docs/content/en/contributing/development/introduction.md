@@ -3,7 +3,6 @@ title: "Development"
 description: "An introduction into contributing to the Authelia project via development."
 lead: "An introduction into contributing to the Authelia project via development."
 date: 2022-05-15T13:52:27+10:00
-lastmod: 2022-06-03T10:43:55+10:00
 draft: false
 images: []
 menu:
