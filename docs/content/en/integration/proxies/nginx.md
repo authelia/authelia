@@ -75,7 +75,6 @@ the configuration for TLS or SSL but is not included as part of the examples.
 ```nginx
 server {
     listen 80;
-
     server_name auth.example.com;
 
     return 301 https://$server_name$request_uri;
@@ -83,7 +82,6 @@ server {
 
 server {
     listen 443 ssl http2;
-
     server_name auth.example.com;
 
     include /config/nginx/ssl.conf;
@@ -104,7 +102,6 @@ server {
 ```nginx
 server {
     listen 80;
-
     server_name nextcloud.example.com;
 
     return 301 https://$server_name$request_uri;
@@ -112,11 +109,9 @@ server {
 
 server {
     listen 443 ssl http2;
-
     server_name nextcloud.example.com;
 
     include /config/nginx/ssl.conf;
-
     include /config/nginx/authelia-location.conf;
 
     location / {
@@ -144,7 +139,6 @@ The [Authelia Portal](#authelia-portal) configuration can be reused for this exa
 ```nginx
 server {
     listen 80;
-
     server_name nextcloud.example.com;
 
     return 301 https://$server_name$request_uri;
@@ -152,11 +146,9 @@ server {
 
 server {
     listen 443 ssl http2;
-
     server_name nextcloud.example.com;
 
     include /config/nginx/ssl.conf;
-
     include /config/nginx/authelia-location-basic.conf; # Use the "basic" endpoint
 
     location / {
