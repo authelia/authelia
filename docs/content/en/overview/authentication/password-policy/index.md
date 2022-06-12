@@ -15,7 +15,7 @@ aliases:
   - /docs/features/password-policy.html
 ---
 
-Password policy enforces the security by requiring the users to use strong passwords.
+Password policy enforces security by requiring the users to use strong passwords.
 
 Currently, two methods are supported:
 

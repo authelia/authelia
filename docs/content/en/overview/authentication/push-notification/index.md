@@ -15,8 +15,8 @@ aliases:
   - /docs/features/2fa/push-notifications.html
 ---
 
-Mobile Pusn notifications are a really convenient and trendy method to perform 2FA. When 2FA is required Authelia sends
-a notification is sent directly to an application on your mobile phone where you can instantly choose to accept or deny.
+Mobile Push notifications are a really convenient and trendy method to perform 2FA. When 2FA is required Authelia sends
+a notification directly to an application on your mobile phone where you can instantly choose to accept or deny.
 
 Authelia leverages [Duo] third party to provide this feature.
 

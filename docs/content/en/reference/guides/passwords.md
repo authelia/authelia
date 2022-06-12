@@ -57,14 +57,14 @@ You can use Authelia binary or docker image to generate the hash of any password
 tunable options, you can view them with the `authelia hash-password --help` command. For example if you wanted to
 improve the entropy you could generate a 16 byte salt and provide it with the `--salt` flag.
 
-Example: `authelia hash-password --salt abcdefghijklhijl -- "password"`.
+Example: `authelia hash-password --salt abcdefghijklhijl -- 'password'`.
 
 Passwords passed to [hash-password] should be single quoted if using special characters to prevent parameter
 substitution. In addition the password should be the last parameter, and should be after a `--`. For instance to
 generate a hash with the docker image just run:
 
 ```bash
-$ docker run authelia/authelia:latest authelia hash-password -- "password"
+$ docker run authelia/authelia:latest authelia hash-password -- 'password'
 Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 ```
 
@@ -90,7 +90,7 @@ all algorithms. The main cost type measurements are:
 * Memory
 
 *__Important Note:__ When using algorithms that use a memory cost like [Argon2] it should be noted that this memory is
-released by go after the hashing process completes, however the operating system may not reclaim the memory until a
+released by Go after the hashing process completes, however the operating system may not reclaim the memory until a
 later time such as when the system is experiencing memory pressure which may cause the appearance of more memory being
 in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be reclaimed as
 long as another hashing calculation is not still utilizing it.*

@@ -143,7 +143,7 @@ Should be implemented alongside [Dynamic Client Registration](#openid-connect-dy
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect] website for the [Front-Channel Logout] specification.
+See the [OpenID Connect] website for the [OpenID Connect Front-Channel Logout] specification.
 
 Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration).
 

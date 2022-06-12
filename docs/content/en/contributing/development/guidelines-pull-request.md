@@ -24,7 +24,7 @@ processing merges into the [master] branch.
 ## Squash Merge
 
 Every [Pull Request] will be squash merged into [master]. This requires the [Pull Request] branch to be up-to-date with
-the [master] branch. As such
+the [master] branch.
 
 ## Review
 

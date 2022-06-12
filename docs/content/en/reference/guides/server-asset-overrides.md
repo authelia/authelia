@@ -13,7 +13,7 @@ weight: 220
 toc: true
 ---
 
-This guide is effectively documents the usage of the
+This guide effectively documents the usage of the
 [asset_path](../../configuration/miscellaneous/server.md#asset_path) server configuration option.
 
 ## Structure
@@ -31,7 +31,7 @@ This guide is effectively documents the usage of the
 |:-------------------:|:-----------:|:---------:|:-------------:|
 |       Favicon       | favicon.ico |    No     |      N/A      |
 |        Logo         |  logo.png   |    No     |      N/A      |
-| Translation Locales |   locales   |    Yes    | see [locales] |
+| Translation Locales |   locales   |    Yes    | see [locales](#locales) |
 
 ## locales
 

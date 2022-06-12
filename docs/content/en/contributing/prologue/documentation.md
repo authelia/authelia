@@ -16,7 +16,7 @@ toc: true
 ## Introduction
 
 The website is built on [Hugo] using the [Doks] theme. [Hugo] is a powerful website building tool which allows several
-simple workflows for developers as well as numerous handy features like [Shortodes] which allow building reusable
+simple workflows for developers as well as numerous handy features like [Shortcodes] which allow building reusable
 parameterized sections of content.
 
 ## Making a Change
@@ -125,7 +125,7 @@ stage.
 
 [docs folder on GitHub]: https://github.com/authelia/authelia/tree/master/docs
 [Hugo]: https://gohugo.io/
-[Shortodes]: https://gohugo.io/content-management/shortcodes/
+[Shortcodes]: https://gohugo.io/content-management/shortcodes/
 [Doks]: https://getdoks.org/
 [Markdown]: https://www.markdownguide.org/
 [git]: https://git-scm.com/

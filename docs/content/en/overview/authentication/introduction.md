@@ -21,7 +21,7 @@ Multi-Factor Authentication or MFA as a concept is separated into three major ca
 * something you have
 * something you are
 
-Modern best security practice dictates that using multiple of these categories is the necessary for security. Users are
+Modern best security practice dictates that using multiple of these categories is necessary for security. Users are
 unreliable and simple usernames and passwords are not sufficient for security.
 
 __Authelia__ enables primarily two-factor authentication. These methods offered come in two forms:

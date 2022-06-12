@@ -16,7 +16,7 @@ toc: true
 Authelia uses templates to generate the HTML and plaintext emails sent via the notification service. Each template has
 two extensions; `.html` for HTML templates, and `.txt` for plaintext templates.
 
-This guide is effectively documents the usage of the
+This guide effectively documents the usage of the
 [template_path](../../configuration/notifications/introduction.md#template_path) notification configuration option.
 
 ## Template Names

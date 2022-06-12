@@ -28,7 +28,7 @@ due to how important or difficult to implement they are.
 
 {{< roadmap-status stage="complete" version="v4.34.0" >}}
 
-Implement [WebAuthn] as a replacement for [FIDO U2F] with [FIDO U2F] backwards compatibility.
+Implement [WebAuthn] as a replacement for [FIDO U2F] with backwards compatibility.
 
 |                       Setting                        |     Value      |                                                                Effect                                                                |
 |:----------------------------------------------------:|:--------------:|:------------------------------------------------------------------------------------------------------------------------------------:|

@@ -17,7 +17,7 @@ decisions are made with security being the priority.
 
 __Authelia__ follows the
 [coordinated vulnerability disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure) model when
-dealing with security vulnerabilities. This was previously known as `responsible disclosure`. We strongly urge anyone
+dealing with security vulnerabilities. This was previously known as responsible disclosure. We strongly urge anyone
 reporting vulnerabilities to __Authelia__ or any other project to follow this model as it is considered as a best
 practice by many in the security industry.
 

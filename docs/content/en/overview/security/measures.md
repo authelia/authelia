@@ -59,7 +59,7 @@ the added effect of creating an additional delay for all authentication attempts
 attack will take, this combined with regulation greatly delays brute-force attacks and the effectiveness of them in
 general.
 
-## Protections against password cracking (file authentication provider)
+## Protections against password cracking (File authentication provider)
 
 Authelia implements a variety of measures to prevent an attacker cracking passwords if they somehow obtain the file used
 by the file authentication provider, this is unrelated to LDAP auth.
