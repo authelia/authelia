@@ -18,8 +18,10 @@ aliases:
 
 ## Tested Versions
 
-* Authelia: v4.34.6
-* Portainer (CE and EE): 2.12.2
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [Portainer] CE and EE
+  * 2.12.2
 
 ## Before You Begin
 
@@ -83,5 +85,6 @@ which will operate with the above example:
 
 * [Portainer OAuth Documentation](https://docs.portainer.io/admin/settings/authentication/oauth)
 
+[Authelia]: https://www.authelia.com
 [Portainer]: https://www.portainer.io/
 [OpenID Connect]: ../../openid-connect/introduction.md

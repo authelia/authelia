@@ -16,7 +16,8 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
+* [Authelia]
+  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
 
 ## Before You Begin
 
@@ -77,6 +78,7 @@ which will operate with the above example:
 
 * [Cloudflare Zero Trust Generic OIDC Documentation](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/generic-oidc/)
 
+[Authelia]: https://www.authelia.com
 [Cloudflare]: https://www.cloudflare.com/
 [Cloudflare Zero Trust]: https://www.cloudflare.com/products/zero-trust/
 [OpenID Connect]: ../../openid-connect/introduction.md

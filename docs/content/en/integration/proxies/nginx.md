@@ -64,9 +64,10 @@ Below you will find commented examples of the following configuration:
 ### Standard Example
 
 This example is for using the __Authelia__ portal redirection flow on a specific endpoint. It requires you to have the
-[authelia-location.conf](#authelia-locationconf) and
-[authelia-authrequest.conf](#authelia-authrequestconf) snippets. In the example these files exist in the
-`/config/nginx/` directory.
+[authelia-location.conf](#authelia-locationconf),
+[authelia-authrequest.conf](#authelia-authrequestconf), and [proxy.conf](#proxyconf) snippets. In the example these
+files exist in the `/config/nginx/` directory. The `/config/nginx/ssl.conf` snippet is expected to have
+the configuration for TLS or SSL but is not included as part of the examples.
 
 #### Authelia Portal
 
@@ -132,9 +133,10 @@ server {
 ### HTTP Basic Authentication Example
 
 This example is for using HTTP basic auth on a specific endpoint. It is based on the full example above. It requires you
-to have the [authelia-location-basic.conf](#authelia-location-basicconf) and
-[authelia-authrequest-basic.conf](#authelia-authrequest-basicconf) snippets. In the example these files exist in the
-`/config/nginx/` directory.
+to have the [authelia-location-basic.conf](#authelia-location-basicconf),
+[authelia-authrequest-basic.conf](#authelia-authrequest-basicconf), and [proxy.conf](#proxyconf) snippets. In the
+example these files exist in the `/config/nginx/` directory. The `/config/nginx/ssl.conf` snippet is expected to have
+the configuration for TLS or SSL but is not included as part of the examples.
 
 The [Authelia Portal](#authelia-portal) configuration can be reused for this example as such it isn't repeated.
 

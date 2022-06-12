@@ -18,8 +18,10 @@ aliases:
 
 ## Tested Versions
 
-* Authelia: v4.33.2
-* Proxmox: 7.1-10
+* [Authelia]
+  * [v4.35.6](https://github.com/authelia/authelia/releases/tag/v4.35.6)
+* [Proxmox]
+  * 7.1-10
 
 ## Before You Begin
 
@@ -79,5 +81,6 @@ which will operate with the above example:
 
 * [Proxmox User Management Documentation](https://pve.proxmox.com/wiki/User_Management)
 
+[Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/
 [OpenID Connect]: ../../openid-connect/introduction.md

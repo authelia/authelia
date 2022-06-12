@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* Harbor: 2.5.0
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [Harbor]
+  * 2.5.0
 
 ## Before You Begin
 
@@ -82,5 +84,6 @@ which will operate with the above example:
 
 * [Harbor OpenID Connect Provider Documentation](https://goharbor.io/docs/2.5.0/administration/configure-authentication/oidc-auth/)
 
+[Authelia]: https://www.authelia.com
 [Harbor]: https://goharbor.io/
 [OpenID Connect]: ../../openid-connect/introduction.md

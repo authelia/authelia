@@ -15,7 +15,7 @@ aliases:
   - /docs/features/2fa/security-key
 ---
 
-__Authelia__ supports hardware-based second factors leveraging [FIDO2]&nbsp;[WebAuthn] compatible security keys like
+__Authelia__ supports hardware-based second factors leveraging [FIDO2] [WebAuthn] compatible security keys like
 [YubiKey]'s.
 
 Security keys are among the most secure second factor. This method is already supported by many major applications and
@@ -63,8 +63,8 @@ date, supports [WebAuthn], and that the feature is not disabled if the option is
 ### Can my FIDO U2F device operate with Authelia?
 
 At the present time there is no plan to support [FIDO U2F] within Authelia. We do implement a backwards compatible appid
-extension within __Authelia__ however this only works for devices registered before the upgrade to the [FIDO2]&nbsp;[WebAuthn]
-protocol.
+extension within __Authelia__ however this only works for devices registered before the upgrade to the [FIDO2]
+[WebAuthn] protocol.
 
 If there was sufficient interest in supporting registration of old U2F / FIDO devices in __Authelia__ we would consider
 adding support for this after or at the same time of the multi-device enhancements.

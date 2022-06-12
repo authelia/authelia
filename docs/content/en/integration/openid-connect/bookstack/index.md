@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.33.2
-* BookStack: 20.10
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [BookStack]
+  * 20.10
 
 ## Before You Begin
 
@@ -72,5 +74,6 @@ which will operate with the above example:
 
 * [BookStack OpenID Connect Documentation](https://www.bookstackapp.com/docs/admin/oidc-auth/)
 
+[Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/
 [OpenID Connect]: ../../openid-connect/introduction.md

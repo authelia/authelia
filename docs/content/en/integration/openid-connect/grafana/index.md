@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* Grafana: 8.0.0
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [Grafana]
+  * 8.0.0
 
 ## Before You Begin
 
@@ -83,5 +85,6 @@ which will operate with the above example:
 
 * [Grafana OAuth Documentation](https://grafana.com/docs/grafana/latest/auth/generic-oauth/)
 
+[Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/
 [OpenID Connect]: ../../openid-connect/introduction.md

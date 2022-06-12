@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* GitLab CE: 14.0.1
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [GitLab] CE
+  * 14.0.1
 
 ## Before You Begin
 
@@ -90,5 +92,6 @@ which will operate with the above example:
 
 * [GitLab OpenID Connect OmniAuth Documentation](https://docs.gitlab.com/ee/administration/auth/oidc.html)
 
+[Authelia]: https://www.authelia.com
 [GitLab]: https://about.gitlab.com/
 [OpenID Connect]: ../../openid-connect/introduction.md

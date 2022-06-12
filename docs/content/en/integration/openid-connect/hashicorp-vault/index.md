@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* HashiCorp Vault: 1.8.1
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [HashiCorp Vault]
+  * 1.8.1
 
 ## Before You Begin
 
@@ -66,5 +68,6 @@ which will operate with the above example:
 * [HashiCorp Vault JWT/OIDC Auth Documentation](https://www.vaultproject.io/docs/auth/jwt)
 * [HashiCorp Vault OpenID Connect Providers Documentation](https://www.vaultproject.io/docs/auth/jwt/oidc_providers)
 
+[Authelia]: https://www.authelia.com
 [HashiCorp Vault]: https://www.vaultproject.io/
 [OpenID Connect]: ../../openid-connect/introduction.md

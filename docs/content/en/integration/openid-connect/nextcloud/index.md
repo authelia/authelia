@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* Nextcloud: 22.1.0
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [Nextcloud]
+  * 22.1.0
 
 ## Before You Begin
 
@@ -102,6 +104,7 @@ which will operate with the above example:
 * [Nextcloud OpenID Connect Login app]
 * [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
 
+[Authelia]: https://www.authelia.com
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [OpenID Connect]: ../../openid-connect/introduction.md

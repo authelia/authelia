@@ -16,8 +16,10 @@ community: true
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* Seafile: 9.0.4
+* [Authelia]
+  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+* [Seafile] Server
+  * 9.0.4
 
 ## Before You Begin
 
@@ -87,5 +89,6 @@ which will operate with the above example:
 
 * [Seafile OAuth Authentication Documentation](https://manual.seafile.com/deploy/oauth/)
 
+[Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/
 [OpenID Connect]: ../../openid-connect/introduction.md
