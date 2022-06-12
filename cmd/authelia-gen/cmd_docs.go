@@ -12,7 +12,7 @@ func newDocsCmd() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringP("cwd", "C", "", "Sets the CWD for git commands")
-	cmd.AddCommand(newDocsCLICmd(), newDocsTimeCmd())
+	cmd.AddCommand(newDocsCLICmd(), newDocsDateCmd())
 
 	return cmd
 }

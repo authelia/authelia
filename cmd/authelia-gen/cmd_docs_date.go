@@ -15,11 +15,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func newDocsTimeCmd() *cobra.Command {
+func newDocsDateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "time",
-		Short: "Generate doc timestamps",
-		RunE:  docsTimeRunE,
+		Use:   "date",
+		Short: "Generate doc dates",
+		RunE:  docsDateRunE,
 	}
 
 	cmd.Flags().StringP("directory", "d", "./docs/content", "The directory to modify")
@@ -29,7 +29,7 @@ func newDocsTimeCmd() *cobra.Command {
 	return cmd
 }
 
-func docsTimeRunE(cmd *cobra.Command, args []string) (err error) {
+func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		dir, cwd, commitUtil, commitSince, commitFilter string
 	)
@@ -54,7 +54,7 @@ func docsTimeRunE(cmd *cobra.Command, args []string) (err error) {
 		commitFilter = fmt.Sprintf("%s...%s", commitUtil, commitSince)
 	}
 
-	err = filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+	return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -81,26 +81,19 @@ func docsTimeRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 
 		var (
-			lastmod, date time.Time
+			date time.Time
 		)
-
-		if value, ok := frontmatter["lastmod"]; ok {
-			lastmod = value.(time.Time)
-		}
 
 		if value, ok := frontmatter["date"]; ok {
 			date = value.(time.Time)
 		}
 
 		dateGit := getDateFromGit(cwd, abs, commitFilter)
-		lastmodGit := getLastmodFromGit(cwd, abs, commitFilter)
 
-		replaceDates(abs, date, lastmod, dateGit, lastmodGit)
+		replaceDates(abs, date, dateGit)
 
 		return nil
 	})
-
-	return err
 }
 
 var newline = []byte("\n")
@@ -123,24 +116,6 @@ func getDateFromGit(cwd, path, commitFilter string) *time.Time {
 	return getTimeFromGitCmd(exec.Command("git", args...))
 }
 
-func getLastmodFromGit(cwd, path, commitFilter string) *time.Time {
-	var args []string
-
-	if len(cwd) != 0 {
-		args = append(args, "-C", cwd)
-	}
-
-	args = append(args, "log")
-
-	if len(commitFilter) != 0 {
-		args = append(args, commitFilter)
-	}
-
-	args = append(args, "-1", "--follow", "--pretty=format:%cD", "--", path)
-
-	return getTimeFromGitCmd(exec.Command("git", args...))
-}
-
 func getTimeFromGitCmd(cmd *exec.Cmd) *time.Time {
 	var (
 		output []byte
@@ -159,7 +134,7 @@ func getTimeFromGitCmd(cmd *exec.Cmd) *time.Time {
 	return &t
 }
 
-func replaceDates(path string, date, lastmod time.Time, dateGit, lastmodGit *time.Time) {
+func replaceDates(path string, date time.Time, dateGit *time.Time) {
 	f, err := os.Open(path)
 	if err != nil {
 		return
@@ -169,21 +144,14 @@ func replaceDates(path string, date, lastmod time.Time, dateGit, lastmodGit *tim
 
 	scanner := bufio.NewScanner(f)
 
-	var dateGitLine, lastmodGitLine string
+	var dateGitLine string
 
 	dateLine := fmt.Sprintf("date: %s", date.Format(dateFmtYAML))
-	lastmodLine := fmt.Sprintf("lastmod: %s", lastmod.Format(dateFmtYAML))
 
 	if dateGit != nil {
 		dateGitLine = fmt.Sprintf("date: %s", dateGit.Format(dateFmtYAML))
 	} else {
 		dateGitLine = dateLine
-	}
-
-	if lastmodGit != nil {
-		lastmodGitLine = fmt.Sprintf("lastmod: %s", lastmodGit.Format(dateFmtYAML))
-	} else {
-		lastmodGitLine = lastmodLine
 	}
 
 	found := 0
@@ -198,9 +166,6 @@ func replaceDates(path string, date, lastmod time.Time, dateGit, lastmodGit *tim
 				frontmatter++
 			case frontmatter != 0 && strings.HasPrefix(scanner.Text(), "date: "):
 				buf.WriteString(dateGitLine)
-				found++
-			case frontmatter != 0 && strings.HasPrefix(scanner.Text(), "lastmod: "):
-				buf.WriteString(lastmodGitLine)
 				found++
 			default:
 				buf.Write(scanner.Bytes())
