@@ -19,7 +19,7 @@ aliases:
 [HAProxy] is a reverse proxy supported by __Authelia__.
 
 *__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These are guides showing a suggested setup only and you need to understand the proxy
+method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
