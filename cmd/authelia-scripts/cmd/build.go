@@ -12,56 +12,114 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func buildAutheliaBinary(xflags []string, buildkite bool) {
+func newBuildCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "build",
+		Short:   cmdBuildShort,
+		Long:    cmdBuildLong,
+		Example: cmdBuildExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdBuildRun,
+	}
+
+	return cmd
+}
+
+func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
+	branch := os.Getenv("BUILDKITE_BRANCH")
+
+	if strings.HasPrefix(branch, "renovate/") {
+		buildFrontend(branch)
+		log.Info("Skip building Authelia for deps...")
+		os.Exit(0)
+	}
+
+	log.Info("Building Authelia...")
+
+	cmdCleanRun(cobraCmd, args)
+
+	xflags, err := getXFlags(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Debug("Creating `" + OutputDir + "` directory")
+
+	if err = os.MkdirAll(OutputDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Debug("Building Authelia frontend...")
+	buildFrontend(branch)
+
+	log.Debug("Building swagger-ui frontend...")
+	buildSwagger()
+
+	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
+
 	if buildkite {
-		var wg sync.WaitGroup
+		log.Info("Building Authelia Go binaries with gox...")
 
-		s := time.Now()
-
-		wg.Add(2)
-
-		go func() {
-			defer wg.Done()
-
-			cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
-
-			cmd.Env = append(os.Environ(),
-				"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
-				"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
-
-			err := cmd.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		go func() {
-			defer wg.Done()
-
-			cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
-				"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
-
-			err := cmd.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		wg.Wait()
-
-		e := time.Since(s)
-
-		log.Debugf("Binary compilation completed in %s.", e)
+		buildAutheliaBinaryGOX(xflags)
 	} else {
-		cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
+		log.Info("Building Authelia Go binary...")
+
+		buildAutheliaBinaryGO(xflags)
+	}
+
+	cleanAssets()
+}
+
+func buildAutheliaBinaryGOX(xflags []string) {
+	var wg sync.WaitGroup
+
+	s := time.Now()
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
 
 		cmd.Env = append(os.Environ(),
-			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
+			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
+			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
 
 		err := cmd.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
+			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
+
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	wg.Wait()
+
+	e := time.Since(s)
+
+	log.Debugf("Binary compilation completed in %s.", e)
+}
+
+func buildAutheliaBinaryGO(xflags []string) {
+	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+"/authelia", "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
+
+	cmd.Env = append(os.Environ(),
+		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -132,48 +190,4 @@ func cleanAssets() {
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// Build build Authelia.
-func Build(cobraCmd *cobra.Command, args []string) {
-	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
-	branch := os.Getenv("BUILDKITE_BRANCH")
-
-	if strings.HasPrefix(branch, "renovate/") {
-		buildFrontend(branch)
-		log.Info("Skip building Authelia for deps...")
-		os.Exit(0)
-	}
-
-	log.Info("Building Authelia...")
-
-	Clean(cobraCmd, args)
-
-	xflags, err := getXFlags(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Debug("Creating `" + OutputDir + "` directory")
-	err = os.MkdirAll(OutputDir, os.ModePerm)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Debug("Building Authelia frontend...")
-	buildFrontend(branch)
-
-	log.Debug("Building swagger-ui frontend...")
-	buildSwagger()
-
-	if buildkite {
-		log.Debug("Building Authelia Go binaries with gox...")
-	} else {
-		log.Debug("Building Authelia Go binary...")
-	}
-
-	buildAutheliaBinary(xflags, buildkite)
-
-	cleanAssets()
 }

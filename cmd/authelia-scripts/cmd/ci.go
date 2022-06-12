@@ -7,12 +7,23 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// RunCI run the CI scripts.
-func RunCI(cmd *cobra.Command, args []string) {
+func newCICmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "ci",
+		Short:   cmdCIShort,
+		Long:    cmdCILong,
+		Example: cmdCIExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdCIRun,
+	}
+
+	return cmd
+}
+
+func cmdCIRun(cmd *cobra.Command, _ []string) {
 	log.Info("=====> Build stage <=====")
 
-	buildkite, _ := cmd.Flags().GetBool("buildkite")
-	if buildkite {
+	if buildkite, _ := cmd.Flags().GetBool("buildkite"); buildkite {
 		if err := utils.CommandWithStdout("authelia-scripts", "--log-level", "debug", "--buildkite", "build").Run(); err != nil {
 			log.Fatal(err)
 		}

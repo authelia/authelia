@@ -23,8 +23,103 @@ var ignoredSuffixes = regexp.MustCompile("alpha|beta")
 var publicRepo = regexp.MustCompile(`.*:.*`)
 var tags = dockerTags.FindStringSubmatch(ciTag)
 
-func init() {
-	DockerBuildCmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
+func newDockerCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "docker",
+		Short:   cmdDockerShort,
+		Long:    cmdDockerLong,
+		Example: cmdDockerExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdDockerBuildRun,
+	}
+
+	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd())
+
+	return cmd
+}
+
+func newDockerBuildCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "build",
+		Short:   cmdDockerBuildShort,
+		Long:    cmdDockerBuildLong,
+		Example: cmdDockerBuildExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdDockerBuildRun,
+	}
+
+	cmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
+
+	return cmd
+}
+
+func newDockerPushManifestCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "push-manifest",
+		Short:   cmdDockerPushManifestShort,
+		Long:    cmdDockerPushManifestLong,
+		Example: cmdDockerPushManifestExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdDockerPushManifestRun,
+	}
+
+	return cmd
+}
+
+func cmdDockerBuildRun(_ *cobra.Command, _ []string) {
+	log.Infof("Building Docker image %s...", DockerImageName)
+	checkContainerIsSupported(container)
+	err := dockerBuildOfficialImage(container)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	docker := &Docker{}
+	err = docker.Tag(IntermediateDockerImageName, DockerImageName)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
+	docker := &Docker{}
+
+	switch {
+	case ciTag != "":
+		if len(tags) == 4 {
+			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
+			login(docker, dockerhub)
+			login(docker, ghcr)
+			deployManifest(docker, tags[1])
+			publishDockerReadme(docker)
+
+			if !ignoredSuffixes.MatchString(ciTag) {
+				deployManifest(docker, tags[2])
+				deployManifest(docker, tags[3])
+				deployManifest(docker, "latest")
+				publishDockerReadme(docker)
+			}
+		} else {
+			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
+		}
+	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
+		login(docker, dockerhub)
+		login(docker, ghcr)
+		deployManifest(docker, ciBranch)
+	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
+		login(docker, dockerhub)
+		login(docker, ghcr)
+		deployManifest(docker, "PR"+ciPullRequest)
+	case ciBranch == masterTag && ciPullRequest == stringFalse:
+		login(docker, dockerhub)
+		login(docker, ghcr)
+		deployManifest(docker, "master")
+		publishDockerReadme(docker)
+	default:
+		log.Info("Docker manifest will not be published")
+	}
 }
 
 func checkContainerIsSupported(container string) {
@@ -49,37 +144,6 @@ func dockerBuildOfficialImage(arch string) error {
 
 	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
 		strings.Join(flags, " "))
-}
-
-// DockerBuildCmd Command for building docker image of Authelia.
-var DockerBuildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "Build the docker image of Authelia",
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Infof("Building Docker image %s...", DockerImageName)
-		checkContainerIsSupported(container)
-		err := dockerBuildOfficialImage(container)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		docker := &Docker{}
-		err = docker.Tag(IntermediateDockerImageName, DockerImageName)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-	},
-}
-
-// DockerManifestCmd Command for pushing Authelia docker manifest to DockerHub.
-var DockerManifestCmd = &cobra.Command{
-	Use:   "push-manifest",
-	Short: "Publish Authelia docker manifest to Docker Hub",
-	Run: func(cmd *cobra.Command, args []string) {
-		publishDockerManifest()
-	},
 }
 
 func login(docker *Docker, registry string) {
@@ -119,45 +183,6 @@ func deployManifest(docker *Docker, tag string) {
 
 	if err := docker.Manifest(dockerhub, ghcr); err != nil {
 		log.Fatal(err)
-	}
-}
-
-func publishDockerManifest() {
-	docker := &Docker{}
-
-	switch {
-	case ciTag != "":
-		if len(tags) == 4 {
-			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
-			login(docker, dockerhub)
-			login(docker, ghcr)
-			deployManifest(docker, tags[1])
-			publishDockerReadme(docker)
-
-			if !ignoredSuffixes.MatchString(ciTag) {
-				deployManifest(docker, tags[2])
-				deployManifest(docker, tags[3])
-				deployManifest(docker, "latest")
-				publishDockerReadme(docker)
-			}
-		} else {
-			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
-		}
-	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
-		login(docker, dockerhub)
-		login(docker, ghcr)
-		deployManifest(docker, ciBranch)
-	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
-		login(docker, dockerhub)
-		login(docker, ghcr)
-		deployManifest(docker, "PR"+ciPullRequest)
-	case ciBranch == masterTag && ciPullRequest == stringFalse:
-		login(docker, dockerhub)
-		login(docker, ghcr)
-		deployManifest(docker, "master")
-		publishDockerReadme(docker)
-	default:
-		log.Info("Docker manifest will not be published")
 	}
 }
 

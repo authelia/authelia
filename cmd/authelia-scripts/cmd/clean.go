@@ -7,8 +7,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Clean artifacts built and installed by authelia-scripts.
-func Clean(cobraCmd *cobra.Command, args []string) {
+func newCleanCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "clean",
+		Short:   cmdCleanShort,
+		Long:    cmdCleanLong,
+		Example: cmdCleanExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdCleanRun,
+	}
+
+	return cmd
+}
+
+func cmdCleanRun(_ *cobra.Command, _ []string) {
 	log.Debug("Removing `" + OutputDir + "` directory")
 	err := os.RemoveAll(OutputDir)
 

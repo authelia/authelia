@@ -17,92 +17,156 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ErrNotAvailableSuite error raised when suite is not available.
-var ErrNotAvailableSuite = errors.New("unavailable suite")
+var (
+	runningSuiteFile   = ".suite"
+	failfast, headless bool
+	testPattern        string
+)
 
-// ErrNoRunningSuite error raised when no suite is running.
-var ErrNoRunningSuite = errors.New("no running suite")
+func newSuitesCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "suites",
+		Short:   cmdSuitesShort,
+		Long:    cmdSuitesLong,
+		Example: cmdSuitesExample,
+		Run:     cmdSuitesListRun,
+		Args:    cobra.NoArgs,
+	}
 
-// runningSuiteFile name of the file containing the currently running suite.
-var runningSuiteFile = ".suite"
+	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd())
 
-var failfast bool
-var headless bool
-var testPattern string
-
-func init() {
-	SuitesTestCmd.Flags().BoolVar(&failfast, "failfast", false, "Stops tests on first failure")
-	SuitesTestCmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
-	SuitesTestCmd.Flags().StringVar(&testPattern, "test", "", "The single test to run")
+	return cmd
 }
 
-// SuitesListCmd Command for listing the available suites.
-var SuitesListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List available suites.",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(strings.Join(listSuites(), "\n"))
-	},
-	Args: cobra.ExactArgs(0),
+func newSuitesListCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "list",
+		Short:   cmdSuitesListShort,
+		Long:    cmdSuitesListLong,
+		Example: cmdSuitesListExample,
+		Run:     cmdSuitesListRun,
+		Args:    cobra.NoArgs,
+	}
+
+	return cmd
 }
 
-// SuitesSetupCmd Command to setup a suite environment.
-var SuitesSetupCmd = &cobra.Command{
-	Use:   "setup [suite]",
-	Short: "Setup a Go suite environment. Suites can be listed using the list command.",
-	Run: func(cmd *cobra.Command, args []string) {
-		providedSuite := args[0]
+func newSuitesSetupCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "setup [suite]",
+		Short:   cmdSuitesSetupShort,
+		Long:    cmdSuitesSetupLong,
+		Example: cmdSuitesSetupExample,
+		Run:     cmdSuitesSetupRun,
+		Args:    cobra.MaximumNArgs(1),
+	}
+
+	return cmd
+}
+
+func newSuitesTeardownCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "teardown [suite]",
+		Short:   cmdSuitesTeardownShort,
+		Long:    cmdSuitesTeardownLong,
+		Example: cmdSuitesTeardownExample,
+		Run:     cmdSuitesTeardownRun,
+		Args:    cobra.MaximumNArgs(1),
+	}
+
+	return cmd
+}
+
+func newSuitesTestCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "test [suite]",
+		Short:   cmdSuitesTestShort,
+		Long:    cmdSuitesTestLong,
+		Example: cmdSuitesTestExample,
+		Run:     cmdSuitesTestRun,
+		Args:    cobra.MaximumNArgs(1),
+	}
+
+	cmd.Flags().BoolVar(&failfast, "failfast", false, "Stops tests on first failure")
+	cmd.Flags().BoolVar(&headless, "headless", false, "Run tests in headless mode")
+	cmd.Flags().StringVar(&testPattern, "test", "", "The single test to run")
+
+	return cmd
+}
+
+func cmdSuitesListRun(_ *cobra.Command, _ []string) {
+	fmt.Println(strings.Join(listSuites(), "\n"))
+}
+
+func cmdSuitesSetupRun(_ *cobra.Command, args []string) {
+	providedSuite := args[0]
+	runningSuite, err := getRunningSuite()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if runningSuite != "" && runningSuite != providedSuite {
+		log.Fatal("A suite is already running")
+	}
+
+	if err := setupSuite(providedSuite); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func cmdSuitesTeardownRun(_ *cobra.Command, args []string) {
+	var suiteName string
+	if len(args) == 1 {
+		suiteName = args[0]
+	} else {
 		runningSuite, err := getRunningSuite()
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if runningSuite != "" && runningSuite != providedSuite {
-			log.Fatal("A suite is already running")
+		if runningSuite == "" {
+			log.Fatal(ErrNoRunningSuite)
 		}
+		suiteName = runningSuite
+	}
 
-		if err := setupSuite(providedSuite); err != nil {
-			log.Fatal(err)
-		}
-	},
-	Args: cobra.ExactArgs(1),
+	if err := teardownSuite(suiteName); err != nil {
+		log.Fatal(err)
+	}
 }
 
-// SuitesTeardownCmd Command for tearing down a suite environment.
-var SuitesTeardownCmd = &cobra.Command{
-	Use:   "teardown [suite]",
-	Short: "Teardown a Go suite environment. Suites can be listed using the list command.",
-	Run: func(cmd *cobra.Command, args []string) {
-		var suiteName string
-		if len(args) == 1 {
-			suiteName = args[0]
-		} else {
-			runningSuite, err := getRunningSuite()
+func cmdSuitesTestRun(_ *cobra.Command, args []string) {
+	runningSuite, err := getRunningSuite()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-			if err != nil {
+	// If suite(s) are provided as argument.
+	if len(args) >= 1 {
+		suiteArg := args[0]
+
+		if runningSuite != "" && suiteArg != runningSuite {
+			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite(s) to be tested (" + suiteArg + "). Shutdown running suite and retry"))
+		}
+
+		if err := runMultipleSuitesTests(strings.Split(suiteArg, ","), runningSuite == ""); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if runningSuite != "" {
+			fmt.Println("Running suite (" + runningSuite + ") detected. Run tests of that suite")
+			if err := runSuiteTests(runningSuite, false); err != nil {
 				log.Fatal(err)
 			}
-
-			if runningSuite == "" {
-				log.Fatal(ErrNoRunningSuite)
+		} else {
+			fmt.Println("No suite provided therefore all suites will be tested")
+			if err := runAllSuites(); err != nil {
+				log.Fatal(err)
 			}
-			suiteName = runningSuite
 		}
-
-		if err := teardownSuite(suiteName); err != nil {
-			log.Fatal(err)
-		}
-	},
-	Args: cobra.MaximumNArgs(1),
-}
-
-// SuitesTestCmd Command for testing a suite.
-var SuitesTestCmd = &cobra.Command{
-	Use:   "test [suite]",
-	Short: "Test a suite. Suites can be listed using the list command.",
-	Run:   testSuite,
-	Args:  cobra.MaximumNArgs(1),
+	}
 }
 
 func listSuites() []string {
@@ -114,9 +178,9 @@ func listSuites() []string {
 }
 
 func checkSuiteAvailable(suite string) error {
-	suites := listSuites()
+	suiteNames := listSuites()
 
-	for _, s := range suites {
+	for _, s := range suiteNames {
 		if s == suite {
 			return nil
 		}
@@ -216,38 +280,6 @@ func setupSuite(suiteName string) error {
 func teardownSuite(suiteName string) error {
 	log.Infof("Tear down environment for suite %s...", suiteName)
 	return runSuiteSetupTeardown("teardown", suiteName)
-}
-
-func testSuite(cmd *cobra.Command, args []string) {
-	runningSuite, err := getRunningSuite()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// If suite(s) are provided as argument.
-	if len(args) >= 1 {
-		suiteArg := args[0]
-
-		if runningSuite != "" && suiteArg != runningSuite {
-			log.Fatal(errors.New("Running suite (" + runningSuite + ") is different than suite(s) to be tested (" + suiteArg + "). Shutdown running suite and retry"))
-		}
-
-		if err := runMultipleSuitesTests(strings.Split(suiteArg, ","), runningSuite == ""); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if runningSuite != "" {
-			fmt.Println("Running suite (" + runningSuite + ") detected. Run tests of that suite")
-			if err := runSuiteTests(runningSuite, false); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			fmt.Println("No suite provided therefore all suites will be tested")
-			if err := runAllSuites(); err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
 }
 
 func getRunningSuite() (string, error) {

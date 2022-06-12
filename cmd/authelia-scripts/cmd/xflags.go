@@ -8,18 +8,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	xflagsCmd.Flags().StringP("build", "b", "0", "Sets the BuildNumber flag value")
-	xflagsCmd.Flags().StringP("extra", "e", "", "Sets the BuildExtra flag value")
+func newXFlagsCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "xflags",
+		Short:   cmdXFlagsShort,
+		Long:    cmdXFlagsLong,
+		Example: cmdXFlagsExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdXFlagsRun,
+	}
+
+	cmd.Flags().StringP("build", "b", "0", "Sets the BuildNumber flag value")
+	cmd.Flags().StringP("extra", "e", "", "Sets the BuildExtra flag value")
+
+	return cmd
 }
 
-var xflagsCmd = &cobra.Command{
-	Use:   "xflags",
-	Run:   runXFlags,
-	Short: "Generate X LDFlags for building Authelia",
-}
-
-func runXFlags(cobraCmd *cobra.Command, _ []string) {
+func cmdXFlagsRun(cobraCmd *cobra.Command, _ []string) {
 	build, err := cobraCmd.Flags().GetString("build")
 	if err != nil {
 		log.Fatal(err)

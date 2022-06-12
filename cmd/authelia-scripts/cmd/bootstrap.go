@@ -12,10 +12,53 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// HostEntry represents an entry in /etc/hosts.
-type HostEntry struct {
-	Domain string
-	IP     string
+func newBootstrapCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "bootstrap",
+		Short:   cmdBootstrapShort,
+		Long:    cmdBootstrapLong,
+		Example: cmdBootstrapExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdBootstrapRun,
+	}
+
+	return cmd
+}
+
+func cmdBootstrapRun(_ *cobra.Command, _ []string) {
+	bootstrapPrintln("Checking command installation...")
+	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download/package-manager/ or download installer from https://nodejs.org/en/download/")
+	checkCommandExist("pnpm", "Follow installation guidelines from https://pnpm.io/installation")
+	checkCommandExist("docker", "Follow installation guidelines from https://docs.docker.com/get-docker/")
+	checkCommandExist("docker-compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
+
+	bootstrapPrintln("Getting versions of tools")
+	readVersions()
+
+	bootstrapPrintln("Checking if GOPATH is set")
+
+	goPathFound := false
+
+	for _, v := range os.Environ() {
+		if strings.HasPrefix(v, "GOPATH=") {
+			goPathFound = true
+			break
+		}
+	}
+
+	if !goPathFound {
+		log.Fatal("GOPATH is not set")
+	}
+
+	createTemporaryDirectory()
+	createPNPMDirectory()
+
+	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
+	prepareHostsFile()
+
+	fmt.Println()
+	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
+	bootstrapPrintln("More details at https://github.com/authelia/authelia/blob/master/docs/getting-started.md")
 }
 
 var hostEntries = []HostEntry{
@@ -78,9 +121,8 @@ func runCommand(cmd string, args ...string) {
 func checkCommandExist(cmd string, resolutionHint string) {
 	fmt.Print("Checking if '" + cmd + "' command is installed...")
 	command := exec.Command("bash", "-c", "command -v "+cmd) //nolint:gosec // Used only in development.
-	err := command.Run()
 
-	if err != nil {
+	if command.Run() != nil {
 		msg := "[ERROR] You must install " + cmd + " on your machine."
 		if resolutionHint != "" {
 			msg += fmt.Sprintf(" %s", resolutionHint)
@@ -213,41 +255,4 @@ func readVersions() {
 	readVersion("pnpm", "--version")
 	readVersion("docker", "--version")
 	readVersion("docker-compose", "version")
-}
-
-// Bootstrap bootstrap authelia dev environment.
-func Bootstrap(cobraCmd *cobra.Command, args []string) {
-	bootstrapPrintln("Checking command installation...")
-	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download/package-manager/ or download installer from https://nodejs.org/en/download/")
-	checkCommandExist("pnpm", "Follow installation guidelines from https://pnpm.io/installation")
-	checkCommandExist("docker", "Follow installation guidelines from https://docs.docker.com/get-docker/")
-	checkCommandExist("docker-compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
-
-	bootstrapPrintln("Getting versions of tools")
-	readVersions()
-
-	bootstrapPrintln("Checking if GOPATH is set")
-
-	goPathFound := false
-
-	for _, v := range os.Environ() {
-		if strings.HasPrefix(v, "GOPATH=") {
-			goPathFound = true
-			break
-		}
-	}
-
-	if !goPathFound {
-		log.Fatal("GOPATH is not set")
-	}
-
-	createTemporaryDirectory()
-	createPNPMDirectory()
-
-	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
-	prepareHostsFile()
-
-	fmt.Println()
-	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
-	bootstrapPrintln("More details at https://github.com/authelia/authelia/blob/master/docs/getting-started.md")
 }
