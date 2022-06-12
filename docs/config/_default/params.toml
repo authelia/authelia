@@ -16,16 +16,15 @@ domainTLD = "authelia.com"
 titleHome = "Authelia"
 
 ## Twitter Cards
-# twitterSite = "@getdoks"
-# twitterCreator = "@henkverlinde"
+# twitterSite = ""
+# twitterCreator = ""
 
 ## JSON-LD
-# schemaType = "Person"
 schemaType = "Organization"
 schemaName = "Authelia"
 schemaAuthor = "Authelia"
-# schemaAuthorTwitter = "https://twitter.com/henkverlinde"
-# schemaAuthorLinkedIn = "https://www.linkedin.com/in/henkverlinde/"
+# schemaAuthorTwitter = ""
+# schemaAuthorLinkedIn = ""
 schemaAuthorGitHub = "https://github.com/authelia"
 schemaLocale = "en-US"
 schemaLogo = "logo-doks.png"
@@ -34,7 +33,7 @@ schemaLogoHeight = 512
 schemaImage = "doks.png"
 schemaImageWidth = 1280
 schemaImageHeight = 640
-# schemaTwitter = "https://twitter.com/getdoks"
+# schemaTwitter = ""
 # schemaLinkedIn = ""
 schemaGitHub = "https://github.com/authelia/authelia"
 schemaSection = "blog"
@@ -62,11 +61,12 @@ copyRight = "Copyright © 2016-%s Authelia"
 # Alert
 alert = true
 alertDismissable = true
-# alertText = "Introducing the Doks child theme, several DX + UX updates, and more! <a class=\"alert-link stretched-link\" href=\"https://getdoks.org/blog/doks-v0.2/\" target=\"_blank\" rel=\"noopener\">Check out Doks v0.2</a>"
 alertText = "Help us improve Authelia by taking this <a class=\"alert-link stretched-link\" href=\"https://forms.gle/aVw6J9jcez97EAhD6\">10 second survey.</a>"
 
 # Edit Page
+# repoHost [Github | Gitea | GitLab | Bitbucket | BitbucketServer ] is used for building the edit link based on git hoster
 repoHost = "GitHub"
+#repoHost = "Gitea"
 docsRepo = "https://github.com/authelia/authelia"
 docsRepoBranch = "master"
 docsRepoSubPath = "docs"
