@@ -39,7 +39,7 @@ func newAccessControlCheckCommand() (cmd *cobra.Command) {
 		RunE:    accessControlCheckRunE,
 	}
 
-	cmdWithConfigFlags(cmd, false, []string{"config.yml"})
+	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
 
 	cmd.Flags().String("url", "", "the url of the object")
 	cmd.Flags().String("method", "GET", "the HTTP method of the object")
