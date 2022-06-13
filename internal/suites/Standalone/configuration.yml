@@ -11,6 +11,10 @@ server:
     certificate: /config/ssl/cert.pem
     key: /config/ssl/key.pem
 
+telemetry:
+  metrics:
+    enabled: true
+
 log:
   level: debug
 

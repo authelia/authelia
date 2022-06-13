@@ -248,7 +248,9 @@ func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 
 // SetStatusCodeResponse writes a response status code and an appropriate body on either a
 // *fasthttp.RequestCtx or *middlewares.AutheliaCtx.
-func SetStatusCodeResponse(ctx responseWriter, statusCode int) {
+func SetStatusCodeResponse(ctx *fasthttp.RequestCtx, statusCode int) {
+	ctx.Response.Reset()
+	ctx.SetContentTypeBytes(headerContentTypeValueDefault)
 	ctx.SetStatusCode(statusCode)
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }
