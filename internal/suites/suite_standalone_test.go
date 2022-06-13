@@ -282,7 +282,13 @@ func (s *StandaloneSuite) TestShouldRecordMetrics() {
 
 	body, err := io.ReadAll(res.Body)
 	s.Require().NoError(err)
-	s.Assert().Contains(string(body), "abcdef")
+
+	metrics := string(body)
+
+	s.Assert().Contains(metrics, "authelia_request_duration_seconds_bucket{")
+	s.Assert().Contains(metrics, "authelia_request_duration_seconds_sum{")
+	s.Assert().Contains(metrics, "go_gc_cycles_forced_gc_cycles_total")
+	s.Assert().Contains(metrics, "go_gc_cycles_total_gc_cycles_total")
 }
 
 func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
