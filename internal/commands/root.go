@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -77,26 +78,65 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers)
 
-	if providers.Metrics != nil {
-		metricsServer, metricsListener, err := server.CreateMetricsServer(config.Telemetry.Metrics)
+	runServers(config, providers, logger)
+}
 
-		switch err {
-		case nil:
-			providers.Metrics.Start()
+func runServers(config *schema.Configuration, providers middlewares.Providers, logger *logrus.Logger) {
+	wg := new(sync.WaitGroup)
 
-			go func() {
-				logger.Fatal(metricsServer.Serve(metricsListener))
-			}()
-		default:
-			providers.Metrics = nil
+	wg.Add(2)
 
-			logger.Errorf("Failed to start metrics server: %v", err)
+	go func() {
+		err := startDefaultServer(config, providers)
+		if err != nil {
+			logger.Fatal(err)
 		}
+
+		wg.Done()
+	}()
+
+	go func() {
+		err := startMetricsServer(config, providers)
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}()
+
+	wg.Wait()
+}
+
+func startDefaultServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
+	svr, listener, err := server.CreateDefaultServer(*config, providers)
+
+	switch err {
+	case nil:
+		if err = svr.Serve(listener); err != nil {
+			return fmt.Errorf("error occurred during default server operation: %w", err)
+		}
+	default:
+		return fmt.Errorf("error occurred during default server startup: %w", err)
 	}
 
-	defaultServer, listener := server.CreateServer(*config, providers)
+	return nil
+}
 
-	logger.Fatal(defaultServer.Serve(listener))
+func startMetricsServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
+	if providers.Metrics == nil {
+		return nil
+	}
+
+	svr, listener, err := server.CreateMetricsServer(config.Telemetry.Metrics)
+
+	switch err {
+	case nil:
+		if err = svr.Serve(listener); err != nil {
+			return fmt.Errorf("error occurred during metrics server operation: %w", err)
+		}
+	default:
+		return fmt.Errorf("error occurred during metrics server startup: %w", err)
+	}
+
+	return nil
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {

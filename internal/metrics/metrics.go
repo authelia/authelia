@@ -9,8 +9,7 @@ import (
 // Provider implementation.
 type Provider interface {
 	Recorder
-
-	Start()
+	regulation.MetricsRecorder
 }
 
 // Recorder of metrics.
@@ -18,6 +17,4 @@ type Recorder interface {
 	RecordRequest(statusCode, requestMethod string, elapsed time.Duration)
 	RecordVerifyRequest(statusCode string)
 	RecordAuthenticationDuration(success bool, elapsed time.Duration)
-
-	regulation.MetricsRecorder
 }

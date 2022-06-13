@@ -12,6 +12,8 @@ import (
 func NewPrometheus() (provider *Prometheus) {
 	provider = &Prometheus{}
 
+	provider.register()
+
 	return provider
 }
 
@@ -69,11 +71,6 @@ func (p *Prometheus) RecordAuthenticationDuration(success bool, elapsed time.Dur
 	}
 
 	p.authDuration.WithLabelValues(strconv.FormatBool(success)).Observe(elapsed.Seconds())
-}
-
-// Start the metrics recording process.
-func (p *Prometheus) Start() {
-	p.register()
 }
 
 func (p *Prometheus) register() {
