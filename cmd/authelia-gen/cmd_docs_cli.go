@@ -125,8 +125,7 @@ const indexDocs = `---
 title: "%s"
 description: ""
 lead: ""
-date: 2022-01-18T20:00:32+01:00
-lastmod: %s
+date: %s
 draft: false
 images: []
 menu:
@@ -142,8 +141,7 @@ const prefixDocs = `---
 title: "%s"
 description: "%s"
 lead: "%s"
-date: 2022-05-30T06:42:39+10:00
-lastmod: %s
+date: %s
 draft: false
 images: []
 menu:
