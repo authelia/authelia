@@ -59,6 +59,6 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
 const (
-	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; img-src 'self' data:; object-src 'none'; style-src 'self' 'nonce-%s'; base-uri 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'"
+	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
 	cspNoncePlaceholder = "${NONCE}"
 )
