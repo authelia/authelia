@@ -340,6 +340,7 @@ authelia rsa generate --dir ./out`
 
 	cmdAutheliaHashPasswordLong = `Hash a password to be used in file-based users database.`
 
+	//nolint:gosec // This is an example.
 	cmdAutheliaHashPasswordExample = `authelia hash-password -- 'mypass'
 authelia hash-password --sha512 -- 'mypass'
 authelia hash-password --iterations=4 -- 'mypass'
