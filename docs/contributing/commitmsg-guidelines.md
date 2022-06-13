@@ -76,7 +76,6 @@ The scope should be the name of the package affected
 * duo
 * handlers
 * logging
-* metrics
 * middlewares
 * mocks
 * model
