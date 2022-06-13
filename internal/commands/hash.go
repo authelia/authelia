@@ -12,8 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
-// NewHashPasswordCmd returns a new Hash Password Cmd.
-func NewHashPasswordCmd() (cmd *cobra.Command) {
+func newHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "hash-password [flags] -- <password>",
 		Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",

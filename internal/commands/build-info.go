@@ -12,8 +12,8 @@ import (
 func newBuildInfoCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:   "build-info",
-		Short: "Show the build information of Authelia",
-		Long:  buildLong,
+		Short: cmdAutheliaBuildInfoShort,
+		Long:  cmdAutheliaBuildInfoLong,
 		RunE:  cmdBuildInfoRunE,
 		Args:  cobra.NoArgs,
 	}

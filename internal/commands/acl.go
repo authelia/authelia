@@ -17,8 +17,10 @@ import (
 
 func newAccessControlCommand() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "access-control",
-		Short: "Helpers for the access control system",
+		Use:     "access-control",
+		Short:   cmdAutheliaAccessControlShort,
+		Long:    cmdAutheliaAccessControlLong,
+		Example: cmdAutheliaAccessControlExample,
 	}
 
 	cmd.AddCommand(
@@ -30,10 +32,11 @@ func newAccessControlCommand() (cmd *cobra.Command) {
 
 func newAccessControlCheckCommand() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "check-policy",
-		Short: "Checks a request against the access control rules to determine what policy would be applied",
-		Long:  accessControlPolicyCheckLong,
-		RunE:  accessControlCheckRunE,
+		Use:     "check-policy",
+		Short:   cmdAutheliaAccessControlCheckPolicyShort,
+		Long:    cmdAutheliaAccessControlCheckPolicyLong,
+		Example: cmdAutheliaAccessControlCheckPolicyExample,
+		RunE:    accessControlCheckRunE,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{"config.yml"})
