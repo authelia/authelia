@@ -14,10 +14,12 @@ import (
 
 func newHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "hash-password [flags] -- <password>",
-		Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",
-		Args:  cobra.MinimumNArgs(1),
-		RunE:  cmdHashPasswordRunE,
+		Use:     "hash-password [flags] -- <password>",
+		Short:   cmdAutheliaHashPasswordShort,
+		Long:    cmdAutheliaHashPasswordLong,
+		Example: cmdAutheliaHashPasswordExample,
+		Args:    cobra.MinimumNArgs(1),
+		RunE:    cmdHashPasswordRunE,
 	}
 
 	cmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordSHA512Configuration.Iterations))

@@ -42,6 +42,7 @@ This could be vital in debugging if you're not using a particular
 tagged build of Authelia. It's suggested to provide it along with
 your issue.
 `
+	cmdAutheliaBuildInfoExample = `authelia build-info`
 
 	cmdAutheliaAccessControlShort = "Helpers for the access control system"
 
@@ -334,6 +335,17 @@ This subcommand allows generating an RSA keypair.`
 
 	cmdAutheliaRSAGenerateExample = `authelia rsa generate
 authelia rsa generate --dir ./out`
+
+	cmdAutheliaHashPasswordShort = "Hash a password to be used in file-based users database."
+
+	cmdAutheliaHashPasswordLong = `Hash a password to be used in file-based users database.`
+
+	cmdAutheliaHashPasswordExample = `authelia hash-password -- 'mypass'
+authelia hash-password --sha512 -- 'mypass'
+authelia hash-password --iterations=4 -- 'mypass'
+authelia hash-password --memory=128 -- 'mypass'
+authelia hash-password --parallelism=1 -- 'mypass'
+authelia hash-password --key-length=64 -- 'mypass'`
 )
 
 const (
