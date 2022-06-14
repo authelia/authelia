@@ -102,6 +102,21 @@ log:
   # keep_stdout: false
 
 ##
+## Telemetry Configuration
+##
+telemetry:
+
+  ##
+  ## Metrics Configuration
+  ##
+  metrics:
+    ## Enable Metrics.
+    enabled: false
+
+    ## The address to listen on for metrics. This should be on a different port to the main server.port value.
+    address: '0.0.0.0:9959'
+
+##
 ## TOTP Configuration
 ##
 ## Parameters used for TOTP generation.

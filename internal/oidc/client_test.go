@@ -41,6 +41,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, fosite.ResponseModeFormPost, exampleClient.ResponseModes[1])
 	assert.Equal(t, fosite.ResponseModeQuery, exampleClient.ResponseModes[2])
 	assert.Equal(t, fosite.ResponseModeFragment, exampleClient.ResponseModes[3])
+	assert.Equal(t, authorization.TwoFactor, exampleClient.Policy)
 }
 
 func TestIsAuthenticationLevelSufficient(t *testing.T) {

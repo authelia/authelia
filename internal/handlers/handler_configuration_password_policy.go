@@ -6,7 +6,7 @@ import (
 
 // PasswordPolicyConfigurationGET get the password policy configuration.
 func PasswordPolicyConfigurationGET(ctx *middlewares.AutheliaCtx) {
-	policyResponse := PassworPolicyBody{
+	policyResponse := PasswordPolicyBody{
 		Mode: "disabled",
 	}
 
