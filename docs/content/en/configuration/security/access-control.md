@@ -23,16 +23,16 @@ access_control:
   networks:
   - name: internal
     networks:
-    - 10.0.0.0/8
-    - 172.16.0.0/12
-    - 192.168.0.0/18
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/18'
   rules:
   - domain: 'private.example.com'
     domain_regex: '^(\d+\-)?priv-img.example.com$'
     policy: one_factor
     networks:
-    - internal
-    - 1.1.1.1
+    - 'internal'
+    - '1.1.1.1'
     subject:
     - ['user:adam']
     - ['user:fred']
@@ -264,15 +264,15 @@ access_control:
   - domain: example.com
     policy: two_factor
     subject:
-    - "user:john"
-    - ["group:admin", "group:app-name"]
-    - "group:super-admin"
+    - 'user:john'
+    - ['group:admin', 'group:app-name']
+    - 'group:super-admin'
   - domain: example.com
     policy: two_factor
     subject:
-    - ["user:john"]
-    - ["group:admin", "group:app-name"]
-    - ["group:super-admin"]
+    - ['user:john']
+    - ['group:admin', 'group:app-name']
+    - ['group:super-admin']
 ```
 
 *Matches when the user is in the `super-admin` group. All rules in this list are effectively the same rule just
@@ -283,15 +283,15 @@ access_control:
   rules:
   - domain: example.com
     policy: one_factor
-    subject: "group:super-admin"
+    subject: 'group:super-admin'
   - domain: example.com
     policy: one_factor
     subject:
-    - "group:super-admin"
+    - 'group:super-admin'
   - domain: example.com
     policy: one_factor
     subject:
-    - ["group:super-admin"]
+    - ['group:super-admin']
 ```
 
 #### methods
@@ -363,22 +363,22 @@ access_control:
   networks:
   - name: internal
     networks:
-      - 10.0.0.0/8
-      - 172.16.0.0/12
-      - 192.168.0.0/18
+      - '10.0.0.0/8'
+      - '172.16.0.0/12'
+      - '192.168.0.0/18'
   rules:
   - domain: secure.example.com
     policy: one_factor
     networks:
-    - 10.0.0.0/8
-    - 172.16.0.0/12
-    - 192.168.0.0/18
-    - 112.134.145.167/32
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/18'
+    - '112.134.145.167/32'
   - domain: secure.example.com
     policy: one_factor
     networks:
-    - internal
-    - 112.134.145.167/32
+    - 'internal'
+    - '112.134.145.167/32'
   - domain: secure.example.com
     policy: two_factor
 ```
@@ -466,8 +466,8 @@ access_control:
   networks:
     - name: internal
       networks:
-        - 10.10.0.0/16
-        - 192.168.2.0/24
+        - '10.10.0.0/16'
+        - '192.168.2.0/24'
     - name: VPN
       networks: 10.9.0.0/16
   rules:
@@ -482,10 +482,10 @@ access_control:
     - domain: 'secure.example.com'
       policy: one_factor
       networks:
-        - internal
-        - VPN
-        - 192.168.1.0/24
-        - 10.0.0.1
+        - 'internal'
+        - 'VPN'
+        - '192.168.1.0/24'
+        - '10.0.0.1'
 
     - domain:
       - 'secure.example.com'
