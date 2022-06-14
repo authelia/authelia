@@ -52,7 +52,7 @@ specifiers:
   react-loading: 2.0.3
   react-otp-input: 2.4.0
   react-router-dom: 6.3.0
-  react-test-renderer: 18.1.0
+  react-test-renderer: 18.2.0
   typescript: 4.7.3
   vite: 2.9.12
   vite-plugin-eslint: 1.6.1
@@ -116,7 +116,7 @@ devDependencies:
   jest-transform-stub: 2.0.0
   jest-watch-typeahead: 1.1.0_jest@28.1.1
   prettier: 2.7.0
-  react-test-renderer: 18.1.0_react@18.2.0
+  react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.7.3
   vite: 2.9.12
   vite-plugin-eslint: 1.6.1_eslint@8.17.0+vite@2.9.12
@@ -7169,7 +7169,7 @@ packages:
       '@jest/schemas': 28.0.2
       ansi-regex: 5.0.1
       ansi-styles: 5.2.0
-      react-is: 18.1.0
+      react-is: 18.2.0
     dev: true
 
   /prompts/2.4.2:
@@ -7271,8 +7271,8 @@ packages:
   /react-is/17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  /react-is/18.1.0:
-    resolution: {integrity: sha512-Fl7FuabXsJnV5Q1qIOQwx/sagGF18kogb4gpfcG4gjLBWO0WDiiz1ko/ExayuxE7InyQkBLkxRFG5oxY6Uu3Kg==}
+  /react-is/18.2.0:
+    resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
     dev: true
 
   /react-loading/2.0.3_react@18.2.0:
@@ -7330,18 +7330,18 @@ packages:
     dependencies:
       object-assign: 4.1.1
       react: 18.2.0
-      react-is: 18.1.0
+      react-is: 18.2.0
     dev: true
 
-  /react-test-renderer/18.1.0_react@18.2.0:
-    resolution: {integrity: sha512-OfuueprJFW7h69GN+kr4Ywin7stcuqaYAt1g7airM5cUgP0BoF5G5CXsPGmXeDeEkncb2fqYNECO4y18sSqphg==}
+  /react-test-renderer/18.2.0_react@18.2.0:
+    resolution: {integrity: sha512-JWD+aQ0lh2gvh4NM3bBM42Kx+XybOxCpgYK7F8ugAlpaTSnWsX+39Z4XkOykGZAHrjwwTZT3x3KxswVWxHPUqA==}
     peerDependencies:
-      react: ^18.1.0 || 18
+      react: ^18.2.0 || 18
     dependencies:
       react: 18.2.0
-      react-is: 18.1.0
+      react-is: 18.2.0
       react-shallow-renderer: 16.15.0_react@18.2.0
-      scheduler: 0.22.0
+      scheduler: 0.23.0
     dev: true
 
   /react-transition-group/4.4.2_biqbaboplfbrettd7655fr4n2y:
@@ -7629,12 +7629,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       xmlchars: 2.2.0
-    dev: true
-
-  /scheduler/0.22.0:
-    resolution: {integrity: sha512-6QAm1BgQI88NPYymgGQLCZgvep4FyePDWFpXVK+zNSUgHwlqpJy8VEh8Et0KxTACS4VWwMousBElAZOH9nkkoQ==}
-    dependencies:
-      loose-envify: 1.4.0
     dev: true
 
   /scheduler/0.23.0:
