@@ -7,6 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -34,6 +35,7 @@ type Providers struct {
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
 	OpenIDConnect   oidc.OpenIDConnectProvider
+	Metrics         metrics.Provider
 	NTP             *ntp.Provider
 	UserProvider    authentication.UserProvider
 	StorageProvider storage.Provider
@@ -62,6 +64,9 @@ type BridgeBuilder struct {
 	preMiddlewares  []Middleware
 	postMiddlewares []AutheliaMiddleware
 }
+
+// Basic represents a middleware applied to a fasthttp.RequestHandler.
+type Basic func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase
 // of the identity verification process.
