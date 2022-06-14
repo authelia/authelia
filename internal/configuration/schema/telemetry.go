@@ -18,6 +18,6 @@ type TelemetryMetricsConfig struct {
 // DefaultTelemetryConfig is the default telemetry configuration.
 var DefaultTelemetryConfig = TelemetryConfig{
 	Metrics: TelemetryMetricsConfig{
-		Address: NewAddress("tcp", net.ParseIP("0.0.0.0"), 9961),
+		Address: NewAddress("tcp", net.ParseIP("0.0.0.0"), 9959),
 	},
 }
