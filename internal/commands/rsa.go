@@ -13,9 +13,11 @@ import (
 // NewRSACmd returns a new RSA Cmd.
 func NewRSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "rsa",
-		Short: "Commands related to rsa keypair generation",
-		Args:  cobra.NoArgs,
+		Use:     "rsa",
+		Short:   cmdAutheliaRSAShort,
+		Long:    cmdAutheliaRSALong,
+		Example: cmdAutheliaRSAExample,
+		Args:    cobra.NoArgs,
 	}
 
 	cmd.AddCommand(newRSAGenerateCmd())
@@ -25,10 +27,12 @@ func NewRSACmd() (cmd *cobra.Command) {
 
 func newRSAGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "generate",
-		Short: "Generate a RSA keypair",
-		Args:  cobra.NoArgs,
-		Run:   cmdRSAGenerateRun,
+		Use:     "generate",
+		Short:   cmdAutheliaRSAGenerateShort,
+		Long:    cmdAutheliaRSAGenerateLong,
+		Example: cmdAutheliaRSAGenerateExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdRSAGenerateRun,
 	}
 
 	cmd.Flags().StringP("dir", "d", "", "Target directory where the keypair will be stored")

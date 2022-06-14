@@ -23,9 +23,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmd = &cobra.Command{
 		Use:     "authelia",
+		Short:   fmt.Sprintf(fmtCmdAutheliaShort, version),
+		Long:    fmt.Sprintf(fmtCmdAutheliaLong, version),
 		Example: cmdAutheliaExample,
-		Short:   fmt.Sprintf("authelia %s", version),
-		Long:    fmt.Sprintf(fmtAutheliaLong, version),
 		Version: version,
 		Args:    cobra.NoArgs,
 		PreRun:  newCmdWithConfigPreRun(true, true, true),
@@ -36,11 +36,10 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newBuildInfoCmd(),
-		NewCertificatesCmd(),
-		newCompletionCmd(),
-		NewHashPasswordCmd(),
+		newCertificatesCmd(),
+		newHashPasswordCmd(),
 		NewRSACmd(),
-		NewStorageCmd(),
+		newStorageCmd(),
 		newValidateConfigCmd(),
 		newAccessControlCommand(),
 	)
