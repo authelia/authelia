@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net"
 	"os"
 	"strconv"
@@ -14,9 +15,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// CreateServer Create Authelia's internal webserver with the given configuration and providers.
-func CreateServer(config schema.Configuration, providers middlewares.Providers) (*fasthttp.Server, net.Listener) {
-	server := &fasthttp.Server{
+// CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
+func CreateDefaultServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
+	server = &fasthttp.Server{
 		ErrorHandler:          handleError(),
 		Handler:               handleRouter(config, providers),
 		NoDefaultServerHeader: true,
@@ -24,13 +25,9 @@ func CreateServer(config schema.Configuration, providers middlewares.Providers) 
 		WriteBufferSize:       config.Server.WriteBufferSize,
 	}
 
-	logger := logging.Logger()
-
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
 
 	var (
-		listener         net.Listener
-		err              error
 		connectionType   string
 		connectionScheme string
 	)
@@ -39,16 +36,17 @@ func CreateServer(config schema.Configuration, providers middlewares.Providers) 
 		connectionType, connectionScheme = "TLS", schemeHTTPS
 
 		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
-			logger.Fatalf("unable to load certificate: %v", err)
+			return nil, nil, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
 		}
 
 		if len(config.Server.TLS.ClientCertificates) > 0 {
 			caCertPool := x509.NewCertPool()
 
+			var cert []byte
+
 			for _, path := range config.Server.TLS.ClientCertificates {
-				cert, err := os.ReadFile(path)
-				if err != nil {
-					logger.Fatalf("Cannot read client TLS certificate %s: %s", path, err)
+				if cert, err = os.ReadFile(path); err != nil {
+					return nil, nil, fmt.Errorf("unable to load tls client certificate '%s': %w", path, err)
 				}
 
 				caCertPool.AppendCertsFromPEM(cert)
@@ -61,20 +59,22 @@ func CreateServer(config schema.Configuration, providers middlewares.Providers) 
 		}
 
 		if listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone()); err != nil {
-			logger.Fatalf("Error initializing listener: %s", err)
+			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
 		}
 	} else {
 		connectionType, connectionScheme = "non-TLS", schemeHTTP
 
 		if listener, err = net.Listen("tcp", address); err != nil {
-			logger.Fatalf("Error initializing listener: %s", err)
+			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
 		}
 	}
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Host,
 		config.Server.Path, config.Server.Port); err != nil {
-		logger.Fatalf("Could not configure healthcheck: %v", err)
+		return nil, nil, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
+
+	logger := logging.Logger()
 
 	if config.Server.Path == "" {
 		logger.Infof("Initializing server for %s connections on '%s' path '/'", connectionType, listener.Addr().String())
@@ -82,5 +82,20 @@ func CreateServer(config schema.Configuration, providers middlewares.Providers) 
 		logger.Infof("Initializing server for %s connections on '%s' paths '/' and '%s'", connectionType, listener.Addr().String(), config.Server.Path)
 	}
 
-	return server, listener
+	return server, listener, nil
+}
+
+// CreateMetricsServer creates a metrics server.
+func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
+	if listener, err = config.Address.Listener(); err != nil {
+		return nil, nil, err
+	}
+
+	server = &fasthttp.Server{
+		ErrorHandler:          handleError(),
+		NoDefaultServerHeader: true,
+		Handler:               handleMetrics(),
+	}
+
+	return server, listener, nil
 }
