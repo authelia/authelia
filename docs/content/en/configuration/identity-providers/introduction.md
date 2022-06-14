@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "identity-providers"
-weight: 106100
+weight: 190100
 toc: true
 aliases:
   - /docs/configuration/identity-providers/

@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "notifications"
-weight: 108200
+weight: 107200
 toc: true
 aliases:
   - /docs/configuration/notifier/smtp.html

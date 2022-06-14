@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "storage"
-weight: 107100
+weight: 106100
 toc: true
 aliases:
   - /docs/configuration/storage/

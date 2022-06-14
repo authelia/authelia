@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "notifications"
-weight: 108300
+weight: 107300
 toc: true
 aliases:
   - /docs/configuration/notifier/filesystem.html

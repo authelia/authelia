@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "notifications"
-weight: 108100
+weight: 107100
 toc: true
 ---
 

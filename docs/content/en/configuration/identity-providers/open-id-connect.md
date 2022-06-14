@@ -8,7 +8,7 @@ images: []
 menu:
   configuration:
     parent: "identity-providers"
-weight: 106200
+weight: 190200
 toc: true
 aliases:
   - /c/oidc

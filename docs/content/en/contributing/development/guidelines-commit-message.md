@@ -82,6 +82,7 @@ commit messages).
 * duo
 * handlers
 * logging
+* metrics
 * middlewares
 * mocks
 * model
