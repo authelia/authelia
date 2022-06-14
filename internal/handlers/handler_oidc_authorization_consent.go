@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -105,7 +107,7 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		return consent, false
 	}
 
-	handleOIDCAuthorizationConsentRedirect(rootURI, client, userSession, rw, r)
+	handleOIDCAuthorizationConsentRedirect(ctx, rootURI, client, userSession, rw, r, requester)
 
 	return consent, true
 }
@@ -169,15 +171,22 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, rootUR
 		return nil, true
 	}
 
-	handleOIDCAuthorizationConsentRedirect(rootURI, client, userSession, rw, r)
+	handleOIDCAuthorizationConsentRedirect(ctx, rootURI, client, userSession, rw, r, requester)
 
 	return consent, true
 }
 
-func handleOIDCAuthorizationConsentRedirect(destination string, client *oidc.Client, userSession session.UserSession, rw http.ResponseWriter, r *http.Request) {
+func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, destination string, client *oidc.Client,
+	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) {
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is sufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToPolicy(client.Policy))
+
 		destination = fmt.Sprintf("%s/consent", destination)
+	} else {
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is insufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToPolicy(client.Policy))
 	}
+
+	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected to '%s'", requester.GetID(), client.GetID(), destination)
 
 	http.Redirect(rw, r, destination, http.StatusFound)
 }
