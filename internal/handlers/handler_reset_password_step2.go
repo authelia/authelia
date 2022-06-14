@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// ResetPasswordPost handler for resetting passwords.
-func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
+// ResetPasswordPOST handler for resetting passwords.
+func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
 	// Those checks unsure that the identity verification process has been initiated and completed successfully
@@ -19,6 +21,8 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	username := *userSession.PasswordResetUsername
+
 	var requestBody resetPasswordStep2RequestBody
 	err := ctx.ParseBody(&requestBody)
 
@@ -27,9 +31,12 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	err = ctx.Providers.UserProvider.UpdatePassword(*userSession.PasswordResetUsername, requestBody.Password)
+	if err = ctx.Providers.PasswordPolicy.Check(requestBody.Password); err != nil {
+		ctx.Error(err, messagePasswordWeak)
+		return
+	}
 
-	if err != nil {
+	if err = ctx.Providers.UserProvider.UpdatePassword(username, requestBody.Password); err != nil {
 		switch {
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
@@ -41,16 +48,72 @@ func ResetPasswordPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Password of user %s has been reset", *userSession.PasswordResetUsername)
+	ctx.Logger.Debugf("Password of user %s has been reset", username)
 
 	// Reset the request.
 	userSession.PasswordResetUsername = nil
-	err = ctx.SaveSession(userSession)
 
-	if err != nil {
+	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Error(fmt.Errorf("unable to update password reset state: %s", err), messageOperationFailed)
 		return
 	}
 
-	ctx.ReplyOK()
+	// Send Notification.
+	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
+	if err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if len(userInfo.Emails) == 0 {
+		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", username))
+		ctx.ReplyOK()
+
+		return
+	}
+
+	bufHTML := new(bytes.Buffer)
+
+	disableHTML := false
+	if ctx.Configuration.Notifier.SMTP != nil {
+		disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
+	}
+
+	data := map[string]interface{}{
+		"Title":       "Password changed successfully",
+		"DisplayName": userInfo.DisplayName,
+		"RemoteIP":    ctx.RemoteIP().String(),
+	}
+
+	if !disableHTML {
+		err = templates.EmailPasswordResetHTML.Execute(bufHTML, data)
+
+		if err != nil {
+			ctx.Logger.Error(err)
+			ctx.ReplyOK()
+
+			return
+		}
+	}
+
+	bufText := new(bytes.Buffer)
+
+	if err = templates.EmailPasswordResetPlainText.Execute(bufText, data); err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
+		username, userInfo.Emails[0])
+
+	if err = ctx.Providers.Notifier.Send(userInfo.Emails[0], "Password changed successfully", bufText.String(), bufHTML.String()); err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
 }

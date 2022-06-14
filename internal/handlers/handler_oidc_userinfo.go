@@ -11,14 +11,18 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+// OpenIDConnectUserinfo handles GET/POST requests to the OpenID Connect 1.0 UserInfo endpoint.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		tokenType fosite.TokenType
 		requester fosite.AccessRequester
-		client    *oidc.InternalClient
+		client    *oidc.Client
 		err       error
 	)
 
@@ -51,13 +55,13 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		return
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.Store.GetInternalClient(clientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(clientID); err != nil {
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHint("Unable to assert type of client")))
 
 		return
 	}
 
-	claims := requester.GetSession().(*oidc.OpenIDSession).IDTokenClaims().ToMap()
+	claims := requester.GetSession().(*model.OpenIDSession).IDTokenClaims().ToMap()
 	delete(claims, "jti")
 	delete(claims, "sid")
 	delete(claims, "at_hash")
@@ -97,7 +101,7 @@ func oidcUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *htt
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not generate JWT ID."))
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not generate JTI."))
 
 			return
 		}

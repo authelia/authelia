@@ -44,8 +44,6 @@ const (
 	testLDAPURL       = "ldap://ldap"
 	testLDAPUser      = "user"
 	testModeDisabled  = "disable"
-	testTLSCert       = "/tmp/cert.pem"
-	testTLSKey        = "/tmp/key.pem"
 	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
@@ -54,6 +52,9 @@ const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
 	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
+	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
+	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
+	errFmtNotifierTemplateLoad                    = "notifier: error loading template '%s': %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required "
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 )
@@ -66,6 +67,8 @@ const (
 		"backend is configured"
 	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
 		"it must be either a duration notation or one of 'disable', or 'always': %w"
+	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
+		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
@@ -101,9 +104,10 @@ const (
 
 // TOTP Error constants.
 const (
-	errFmtTOTPInvalidAlgorithm = "totp: option 'algorithm' must be one of '%s' but it is configured as '%s'"
-	errFmtTOTPInvalidPeriod    = "totp: option 'period' option must be 15 or more but it is configured as '%d'"
-	errFmtTOTPInvalidDigits    = "totp: option 'digits' must be 6 or 8 but it is configured as '%d'"
+	errFmtTOTPInvalidAlgorithm  = "totp: option 'algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtTOTPInvalidPeriod     = "totp: option 'period' option must be 15 or more but it is configured as '%d'"
+	errFmtTOTPInvalidDigits     = "totp: option 'digits' must be 6 or 8 but it is configured as '%d'"
+	errFmtTOTPInvalidSecretSize = "totp: option 'secret_size' must be %d or higher but it is configured as '%d'" //nolint:gosec
 )
 
 // Storage Error constants.
@@ -111,7 +115,7 @@ const (
 	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
 	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' must is required"
 	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint: gosec
+	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
 	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
 	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
 )
@@ -120,10 +124,14 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey = "identity_providers: oidc: option 'issuer_private_key' is required"
-
+	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
+
+	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
+	errFmtOIDCCORSInvalidOriginWildcard            = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself"
+	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
+	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of '%s'"
 
 	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: one or more clients have the same id but all client" +
 		"id's must be unique"
@@ -148,6 +156,12 @@ const (
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
 		"'userinfo_signing_algorithm' must be one of '%s' but it is configured as '%s'"
+	errFmtOIDCClientInvalidSectorIdentifier = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
+	errFmtOIDCClientInvalidSectorIdentifierHost = "identity_providers: oidc: client '%s': option " +
+		"'sector_identifier' with value '%s': must be a URL with only the host component but appears to be invalid"
 	errFmtOIDCServerInsecureParameterEntropy = "openid connect provider: SECURITY ISSUE - minimum parameter entropy is " +
 		"configured to an unsafe value, it should be above 8 but it's configured to %d"
 )
@@ -169,16 +183,17 @@ const (
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
 	errFmtAccessControlRuleNoDomains = "access control: rule %s: rule is invalid: must have the option " +
-		"'domain' configured"
+		"'domain' or 'domain_regex' configured"
 	errFmtAccessControlRuleInvalidPolicy = "access control: rule %s: rule 'policy' option '%s' " +
 		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
 	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
 		"https://www.authelia.com/docs/configuration/access-control.html#bypass"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
+		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
-	errFmtAccessControlRuleResourceInvalid = "access control: rule %s: 'resources' option '%s' is " +
-		"invalid: %w"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
@@ -216,12 +231,26 @@ const (
 
 // Server Error constants.
 const (
-	errFmtServerTLSCert = "server: tls: option 'key' must also be accompanied by option 'certificate'"
-	errFmtServerTLSKey  = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCert                           = "server: tls: option 'key' must also be accompanied by option 'certificate'"
+	errFmtServerTLSKey                            = "server: tls: option 'certificate' must also be accompanied by option 'key'"
+	errFmtServerTLSCertFileDoesNotExist           = "server: tls: file path %s provided in 'certificate' does not exist"
+	errFmtServerTLSKeyFileDoesNotExist            = "server: tls: file path %s provided in 'key' does not exist"
+	errFmtServerTLSClientAuthCertFileDoesNotExist = "server: tls: client_certificates: certificates: file path %s does not exist"
+	errFmtServerTLSClientAuthNoAuth               = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
 	errFmtServerBufferSize           = "server: option '%s_buffer_size' must be above 0 but it is configured as '%d'"
+)
+
+const (
+	errPasswordPolicyMultipleDefined                        = "password_policy: only a single password policy mechanism can be specified"
+	errFmtPasswordPolicyStandardMinLengthNotGreaterThanZero = "password_policy: standard: option 'min_length' must be greater than 0 but is configured as %d"
+	errFmtPasswordPolicyZXCVBNMinScoreInvalid               = "password_policy: zxcvbn: option 'min_score' is invalid: must be between 1 and 4 but it's configured as %d"
+)
+
+const (
+	errFmtDuoMissingOption = "duo_api: option '%s' is required when duo is enabled but it is missing"
 )
 
 // Error constants.
@@ -235,6 +264,11 @@ const (
 		TODO: Create a method from within Koanf to automatically remap deprecated keys and produce warnings.
 		TODO (cont): The main consideration is making sure we do not overwrite the destination key name if it already exists.
 	*/
+
+	errFmtInvalidDefault2FAMethod = "option 'default_2fa_method' is configured as '%s' but must be one of " +
+		"the following values: '%s'"
+	errFmtInvalidDefault2FAMethodDisabled = "option 'default_2fa_method' is configured as '%s' " +
+		"but must be one of the following enabled method values: '%s'"
 
 	errFmtReplacedConfigurationKey = "invalid configuration key '%s' was replaced by '%s'"
 
@@ -256,227 +290,22 @@ var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
 var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
-var validACLRuleMethods = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
+
+var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+
+var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
-
-// ValidKeys is a list of valid keys that are not secret names. For the sake of consistency please place any secret in
-// the secret names map and reuse it in relevant sections.
-var ValidKeys = []string{
-	// Root Keys.
-	"certificates_directory",
-	"theme",
-	"default_redirection_url",
-	"jwt_secret",
-
-	// Log keys.
-	"log.level",
-	"log.format",
-	"log.file_path",
-	"log.keep_stdout",
-
-	// Server Keys.
-	"server.host",
-	"server.port",
-	"server.read_buffer_size",
-	"server.write_buffer_size",
-	"server.path",
-	"server.asset_path",
-	"server.enable_pprof",
-	"server.enable_expvars",
-	"server.disable_healthcheck",
-	"server.tls.key",
-	"server.tls.certificate",
-	"server.headers.csp_template",
-
-	// TOTP Keys.
-	"totp.disable",
-	"totp.issuer",
-	"totp.algorithm",
-	"totp.digits",
-	"totp.period",
-	"totp.skew",
-
-	// Webauthn Keys.
-	"webauthn.disable",
-	"webauthn.display_name",
-	"webauthn.attestation_conveyance_preference",
-	"webauthn.user_verification",
-	"webauthn.timeout",
-
-	// DUO API Keys.
-	"duo_api.hostname",
-	"duo_api.enable_self_enrollment",
-	"duo_api.secret_key",
-	"duo_api.integration_key",
-
-	// Access Control Keys.
-	"access_control.default_policy",
-	"access_control.networks",
-	"access_control.networks[].name",
-	"access_control.networks[].networks",
-	"access_control.rules",
-	"access_control.rules[].domain",
-	"access_control.rules[].methods",
-	"access_control.rules[].networks",
-	"access_control.rules[].subject",
-	"access_control.rules[].policy",
-	"access_control.rules[].resources",
-
-	// Session Keys.
-	"session.name",
-	"session.domain",
-	"session.secret",
-	"session.same_site",
-	"session.expiration",
-	"session.inactivity",
-	"session.remember_me_duration",
-
-	// Redis Session Keys.
-	"session.redis.host",
-	"session.redis.port",
-	"session.redis.username",
-	"session.redis.password",
-	"session.redis.database_index",
-	"session.redis.maximum_active_connections",
-	"session.redis.minimum_idle_connections",
-	"session.redis.tls.minimum_version",
-	"session.redis.tls.skip_verify",
-	"session.redis.tls.server_name",
-	"session.redis.high_availability.sentinel_name",
-	"session.redis.high_availability.sentinel_username",
-	"session.redis.high_availability.sentinel_password",
-	"session.redis.high_availability.nodes",
-	"session.redis.high_availability.nodes[].host",
-	"session.redis.high_availability.nodes[].port",
-	"session.redis.high_availability.route_by_latency",
-	"session.redis.high_availability.route_randomly",
-
-	// Storage Keys.
-	"storage.encryption_key",
-
-	// Local Storage Keys.
-	"storage.local.path",
-
-	// MySQL Storage Keys.
-	"storage.mysql.host",
-	"storage.mysql.port",
-	"storage.mysql.database",
-	"storage.mysql.username",
-	"storage.mysql.password",
-	"storage.mysql.timeout",
-
-	// PostgreSQL Storage Keys.
-	"storage.postgres.host",
-	"storage.postgres.port",
-	"storage.postgres.database",
-	"storage.postgres.username",
-	"storage.postgres.password",
-	"storage.postgres.timeout",
-	"storage.postgres.schema",
-	"storage.postgres.ssl.mode",
-	"storage.postgres.ssl.root_certificate",
-	"storage.postgres.ssl.certificate",
-	"storage.postgres.ssl.key",
-
-	"storage.postgres.sslmode", // Deprecated. TODO: Remove in v4.36.0.
-
-	// FileSystem Notifier Keys.
-	"notifier.filesystem.filename",
-	"notifier.disable_startup_check",
-
-	// SMTP Notifier Keys.
-	"notifier.smtp.host",
-	"notifier.smtp.port",
-	"notifier.smtp.timeout",
-	"notifier.smtp.username",
-	"notifier.smtp.password",
-	"notifier.smtp.identifier",
-	"notifier.smtp.sender",
-	"notifier.smtp.subject",
-	"notifier.smtp.startup_check_address",
-	"notifier.smtp.disable_require_tls",
-	"notifier.smtp.disable_html_emails",
-	"notifier.smtp.tls.minimum_version",
-	"notifier.smtp.tls.skip_verify",
-	"notifier.smtp.tls.server_name",
-
-	// Regulation Keys.
-	"regulation.max_retries",
-	"regulation.find_time",
-	"regulation.ban_time",
-
-	// Authentication Backend Keys.
-	"authentication_backend.disable_reset_password",
-	"authentication_backend.refresh_interval",
-
-	// LDAP Authentication Backend Keys.
-	"authentication_backend.ldap.implementation",
-	"authentication_backend.ldap.url",
-	"authentication_backend.ldap.timeout",
-	"authentication_backend.ldap.base_dn",
-	"authentication_backend.ldap.username_attribute",
-	"authentication_backend.ldap.additional_users_dn",
-	"authentication_backend.ldap.users_filter",
-	"authentication_backend.ldap.additional_groups_dn",
-	"authentication_backend.ldap.groups_filter",
-	"authentication_backend.ldap.group_name_attribute",
-	"authentication_backend.ldap.mail_attribute",
-	"authentication_backend.ldap.display_name_attribute",
-	"authentication_backend.ldap.user",
-	"authentication_backend.ldap.password",
-	"authentication_backend.ldap.start_tls",
-	"authentication_backend.ldap.tls.minimum_version",
-	"authentication_backend.ldap.tls.skip_verify",
-	"authentication_backend.ldap.tls.server_name",
-
-	// File Authentication Backend Keys.
-	"authentication_backend.file.path",
-	"authentication_backend.file.password.algorithm",
-	"authentication_backend.file.password.iterations",
-	"authentication_backend.file.password.key_length",
-	"authentication_backend.file.password.salt_length",
-	"authentication_backend.file.password.memory",
-	"authentication_backend.file.password.parallelism",
-
-	// Identity Provider Keys.
-	"identity_providers.oidc.hmac_secret",
-	"identity_providers.oidc.issuer_private_key",
-	"identity_providers.oidc.id_token_lifespan",
-	"identity_providers.oidc.access_token_lifespan",
-	"identity_providers.oidc.refresh_token_lifespan",
-	"identity_providers.oidc.authorize_code_lifespan",
-	"identity_providers.oidc.enforce_pkce",
-	"identity_providers.oidc.enable_pkce_plain_challenge",
-	"identity_providers.oidc.enable_client_debug_messages",
-	"identity_providers.oidc.minimum_parameter_entropy",
-	"identity_providers.oidc.clients",
-	"identity_providers.oidc.clients[].id",
-	"identity_providers.oidc.clients[].description",
-	"identity_providers.oidc.clients[].public",
-	"identity_providers.oidc.clients[].secret",
-	"identity_providers.oidc.clients[].redirect_uris",
-	"identity_providers.oidc.clients[].authorization_policy",
-	"identity_providers.oidc.clients[].scopes",
-	"identity_providers.oidc.clients[].audience",
-	"identity_providers.oidc.clients[].grant_types",
-	"identity_providers.oidc.clients[].response_types",
-	"identity_providers.oidc.clients[].response_modes",
-	"identity_providers.oidc.clients[].userinfo_signing_algorithm",
-
-	// NTP keys.
-	"ntp.address",
-	"ntp.version",
-	"ntp.max_desync",
-	"ntp.disable_startup_check",
-	"ntp.disable_failure",
-}
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

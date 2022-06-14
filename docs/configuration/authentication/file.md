@@ -23,12 +23,12 @@ authentication_backend:
     path: /config/users.yml
     password:
       algorithm: argon2id
-      iterations: 1
+      iterations: 3
       salt_length: 16
-      parallelism: 8
+      key_length: 32
+      parallelism: 4
       memory: 64
 ```
-
 
 ## Format
 
@@ -87,7 +87,7 @@ required: no
 {: .label .label-config .label-green }
 </div>
 
-Controls the hashing algorithm used for hashing new passwords. Value must be one of `argon2id` or `sha512.
+Controls the hashing algorithm used for hashing new passwords. Value must be one of `argon2id` or `sha512`.
 
 
 #### iterations
@@ -100,9 +100,9 @@ required: no
 
 Controls the number of hashing iterations done by the other hashing settings.
 
-When using `argon2id` the minimum is 1, which is also the recommended value.
+When using `argon2id` the minimum is 3, which is also the recommended and default value.
 
-When using `sha512` the minimum is 1000, and 50000 is the recommended value.
+When using `sha512` the minimum is 1000, and 50000 is the recommended and default value.
 
 
 #### salt_length
@@ -123,7 +123,7 @@ and there is no documented reason why you'd set it to anything other than this, 
 <div markdown="1">
 type: integer
 {: .label .label-config .label-purple }
-default: 8
+default: 4
 {: .label .label-config .label-blue }
 required: no
 {: .label .label-config .label-green }
@@ -134,12 +134,19 @@ which affects the effective cost of hashing.
 
 
 #### memory
+<div markdown="1">
+type: integer
+{: .label .label-config .label-purple }
+default: 64
+{: .label .label-config .label-blue }
+required: no
+{: .label .label-config .label-green }
+</div>
 
 This setting is specific to `argon2id` and unused with `sha512`. Sets the amount of memory allocated to a single
 password hashing action. This memory is released by go after the hashing process completes, however the operating system
 may not reclaim it until it needs the memory which may make Authelia appear to be using more memory than it technically
 is.
-
 
 ## Passwords
 
@@ -149,13 +156,13 @@ You can use Authelia binary or docker image to generate the hash of any password
 hash-password command has many tunable options, you can view them with the
 `authelia hash-password --help` command. For example if you wanted to improve the entropy
 you could generate a 16 byte salt and provide it with the `--salt` flag.
-Example: `authelia hash-password --salt abcdefghijklhijl`. For argon2id the salt must
+Example: `authelia hash-password --salt abcdefghijklhijl -- 'yourpassword'`. For argon2id the salt must
 always be valid for base64 decoding (characters a through z, A through Z, 0 through 9, and +/).
 
 Passwords passed to `hash-password` should be single quoted if using special characters to prevent parameter substitution.
 For instance to generate a hash with the docker image just run:
 
-    $ docker run authelia/authelia:latest authelia hash-password 'yourpassword'
+    $ docker run authelia/authelia:latest authelia hash-password -- 'yourpassword'
     Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
 
 You may also use the `--config` flag to point to your existing configuration. When used, the values defined in the config will be used instead.
@@ -166,17 +173,18 @@ Full CLI Help Documentation:
 Hash a password to be used in file-based users database. Default algorithm is argon2id.
 
 Usage:
-  authelia hash-password [password] [flags]
+  authelia hash-password [flags] -- <password>
 
 Flags:
+  -c, --config strings    Configuration files
   -h, --help              help for hash-password
-  -i, --iterations int    set the number of hashing iterations (default 1)
+  -i, --iterations int    set the number of hashing iterations (default 3)
   -k, --key-length int    [argon2id] set the key length param (default 32)
   -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 64)
-  -p, --parallelism int   [argon2id] set the parallelism param (default 8)
+  -p, --parallelism int   [argon2id] set the parallelism param (default 4)
   -s, --salt string       set the salt string
   -l, --salt-length int   set the auto-generated salt length (default 16)
-  -z, --sha512            use sha512 as the algorithm (defaults iterations to 50000, change with -i)
+  -z, --sha512            use sha512 as the algorithm (changes iterations to 50000, change with -i)
 ```
 
 ### Password hash algorithm
@@ -209,7 +217,6 @@ If this is not desirable we recommend investigating the following options in ord
 2. adjusting the [memory](#memory) parameter
 3. changing the [algorithm](#algorithm)
 
-
 ### Password hash algorithm tuning
 
 All algorithm tuning for Argon2id is supported. The only configuration variables that affect
@@ -220,26 +227,21 @@ to cater for a reasonable system, if you're unsure about which settings to tune,
 parameters below, or for a more in depth understanding see the referenced documentation in
 [Argon2 links](./file.md#argon2-links).
 
+#### Recommended Parameters: Argon2id
 
-#### Examples for specific systems
+This table is adapted from [RFC9106 Parameter Choice]:
 
-These examples have been tested against a single system to make sure they roughly take
-0.5 seconds each. Your results may vary depending on individual specification and
-utilization, but they are a good guide to get started. You should however read the
-linked documents in [Argon2 links](./file.md#argon2-links).
-
-|    System     |Iterations|Parallelism|Memory |
-|:------------: |:--------:|:---------:|:-----:|
-|Raspberry Pi 2 |    1     |     8     |    64 |
-|Raspberry Pi 3 |    1     |     8     |   128 |
-|Raspberry Pi 4 |    1     |     8     |   128 |
-|Intel G5 i5 NUC|    1     |     8     |  1024 |
-
+|  Situation  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
+|:-----------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
+| Low Memory  |       3        |        4        |     64     |    16     |    32    |
+| Recommended |       1        |        4        |    2048    |    16     |    32    |
 
 ## Argon2 Links
 
-[How to choose the right parameters for Argon2](https://www.twelve21.io/how-to-choose-the-right-parameters-for-argon2/)
+- [Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
+- Argon2 Specification [RFC9106]
+- [OWASP Password Storage Cheatsheet]
 
-[Go Documentation](https://godoc.org/golang.org/x/crypto/argon2)
-
-[IETF Draft](https://tools.ietf.org/id/draft-irtf-cfrg-argon2-09.html)
+[RFC9106]: https://www.rfc-editor.org/rfc/rfc9106.html
+[RFC9106 Parameter Choice]: https://www.rfc-editor.org/rfc/rfc9106.html#section-4
+[OWASP Password Storage Cheatsheet]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

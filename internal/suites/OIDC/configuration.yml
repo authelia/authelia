@@ -58,6 +58,7 @@ notifier:
 
 identity_providers:
   oidc:
+    enable_client_debug_messages: true
     hmac_secret: IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm
     issuer_private_key: |
       -----BEGIN RSA PRIVATE KEY-----
@@ -90,7 +91,7 @@ identity_providers:
     clients:
       - id: oidc-tester-app
         secret: foobar
-        policy: two_factor
+        authorization_policy: two_factor
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
       # This client is used for testing purpose. As of now, the app must be protected by ACLs

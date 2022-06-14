@@ -14,12 +14,12 @@ func NewMariaDBSuite() *MariaDBSuite {
 	return &MariaDBSuite{RodSuite: new(RodSuite)}
 }
 
-func (s *MariaDBSuite) TestOneFactorScenario() {
-	suite.Run(s.T(), NewOneFactorScenario())
+func (s *MariaDBSuite) Test1FAScenario() {
+	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *MariaDBSuite) TestTwoFactorScenario() {
-	suite.Run(s.T(), NewTwoFactorScenario())
+func (s *MariaDBSuite) Test2FAScenario() {
+	suite.Run(s.T(), New2FAScenario())
 }
 
 func TestMariaDBSuite(t *testing.T) {

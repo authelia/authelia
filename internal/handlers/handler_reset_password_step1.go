@@ -28,8 +28,9 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}
 
 	return &session.Identity{
-		Username: requestBody.Username,
-		Email:    details.Emails[0],
+		Username:    requestBody.Username,
+		Email:       details.Emails[0],
+		DisplayName: details.DisplayName,
 	}, nil
 }
 
@@ -41,7 +42,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	TargetEndpoint:        "/reset-password/step2",
 	ActionClaim:           ActionResetPassword,
 	IdentityRetrieverFunc: identityRetrieverFromStorage,
-}, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500))
+}, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500, false))
 
 func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 	userSession := ctx.GetSession()

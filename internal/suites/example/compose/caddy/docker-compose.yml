@@ -1,0 +1,11 @@
+---
+version: '3'
+services:
+  caddy:
+    image: caddy:2.5.1-alpine
+    volumes:
+      - ./example/compose/caddy/Caddyfile:/etc/caddy/Caddyfile
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.100
+...

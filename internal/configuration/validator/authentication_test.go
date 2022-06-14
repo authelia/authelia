@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
@@ -58,8 +59,8 @@ func (suite *FileBasedAuthenticationBackend) SetupTest() {
 func (suite *FileBasedAuthenticationBackend) TestShouldValidateCompleteConfiguration() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenNoPathProvided() {
@@ -67,7 +68,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenNoPathProvi
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: option 'path' is required")
@@ -79,7 +80,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenMemoryNotMo
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'memory' must at least be parallelism multiplied by 8 when using algorithm 'argon2id' with parallelism 2 it should be at least 16 but it is configured as '8'")
@@ -97,7 +98,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultPasswordConfiguration.KeyLength, suite.config.File.Password.KeyLength)
@@ -115,7 +116,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultPasswordSHA512Configuration.KeyLength, suite.config.File.Password.KeyLength)
@@ -130,7 +131,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenKeyLengthTo
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'key_length' must be 16 or more when using algorithm 'argon2id' but it is configured as '1'")
@@ -141,7 +142,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthT
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'salt_length' must be 2 or more but it is configured a '-1'")
@@ -152,7 +153,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorith
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'algorithm' must be either 'argon2id' or 'sha512' but it is configured as 'bogus'")
@@ -163,7 +164,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenIterationsT
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'iterations' must be 1 or more but it is configured as '-1'")
@@ -174,7 +175,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenParallelism
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '-1'")
@@ -189,8 +190,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultValues() {
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultPasswordConfiguration.Algorithm, suite.config.File.Password.Algorithm)
 	suite.Assert().Equal(schema.DefaultPasswordConfiguration.Iterations, suite.config.File.Password.Iterations)
@@ -226,8 +227,47 @@ func (suite *LDAPAuthenticationBackendSuite) SetupTest() {
 func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateCompleteConfiguration() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenResetURLIsInvalid() {
+	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "ldap", Host: "google.com"}
+	suite.config.DisableResetPassword = true
+
+	suite.Assert().True(suite.config.DisableResetPassword)
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: password_reset: option 'custom_url' is configured to 'ldap://google.com' which has the scheme 'ldap' but the scheme must be either 'http' or 'https'")
+
+	suite.Assert().True(suite.config.DisableResetPassword)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURLIsValid() {
+	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "https", Host: "google.com"}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldConfigureDisableResetPasswordWhenCustomURL() {
+	suite.config.PasswordReset.CustomURL = url.URL{Scheme: "https", Host: "google.com"}
+	suite.config.DisableResetPassword = true
+
+	suite.Assert().True(suite.config.DisableResetPassword)
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().False(suite.config.DisableResetPassword)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateDefaultImplementationAndUsernameAttribute() {
@@ -238,8 +278,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateDefaultImplementa
 	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.config.LDAP.Implementation)
 
 	suite.Assert().Equal(suite.config.LDAP.UsernameAttribute, schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute)
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementationIsInvalidMSAD() {
@@ -247,7 +287,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory'")
@@ -257,7 +297,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvi
 	suite.config.LDAP.URL = ""
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'url' is required")
@@ -268,7 +308,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenUserNotProv
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'user' is required")
@@ -279,7 +319,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenPasswordNot
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'password' is required")
@@ -290,7 +330,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotPr
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'base_dn' is required")
@@ -301,7 +341,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter(
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'groups_filter' is required")
@@ -312,7 +352,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnEmptyUsersFilter()
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' is required")
@@ -323,8 +363,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotRaiseOnEmptyUsernameAt
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval() {
@@ -332,7 +372,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: option 'refresh_interval' is configured to 'blah' but it must be either a duration notation or one of 'disable', or 'always': could not parse 'blah' as a duration")
@@ -341,8 +381,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnBadRefreshInterval
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultImplementation() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.LDAPImplementationCustom, suite.config.LDAP.Implementation)
 }
@@ -353,7 +393,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorOnBadFilterPlac
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().True(suite.validator.HasErrors())
 
 	suite.Require().Len(suite.validator.Errors(), 4)
@@ -366,8 +406,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorOnBadFilterPlac
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttribute() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("cn", suite.config.LDAP.GroupNameAttribute)
 }
@@ -375,8 +415,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultGroupNameAttrib
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("mail", suite.config.LDAP.MailAttribute)
 }
@@ -384,8 +424,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultMailAttribute()
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttribute() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("displayName", suite.config.LDAP.DisplayNameAttribute)
 }
@@ -393,8 +433,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultDisplayNameAttr
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultRefreshInterval() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("5m", suite.config.RefreshInterval)
 }
@@ -404,7 +444,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain enclosing parenthesis: '{username_attribute}={input}' should probably be '({username_attribute}={input})'")
@@ -415,7 +455,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseWhenGroupsFilterDoes
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'groups_filter' must contain enclosing parenthesis: 'cn={input}' should probably be '(cn={input})'")
@@ -425,7 +465,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseWhenUsersFilterDoesN
 	suite.config.LDAP.UsersFilter = "(&({mail_attribute}={input})(objectClass=person))"
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{username_attribute}' but it is required")
@@ -436,7 +476,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'users_filter' must contain the placeholder '{input}' but it is required")
@@ -447,8 +487,8 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersi
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion, suite.config.LDAP.TLS.MinimumVersion)
 }
@@ -460,7 +500,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue()
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option 'minimum_tls_version' is invalid: SSL2.0: supplied tls version isn't supported")
@@ -491,8 +531,8 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(
 		schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout,

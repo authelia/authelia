@@ -14,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -28,30 +29,34 @@ func NewRequestLogger(ctx *AutheliaCtx) *logrus.Entry {
 }
 
 // NewAutheliaCtx instantiate an AutheliaCtx out of a RequestCtx.
-func NewAutheliaCtx(ctx *fasthttp.RequestCtx, configuration schema.Configuration, providers Providers) (*AutheliaCtx, error) {
-	autheliaCtx := new(AutheliaCtx)
-	autheliaCtx.RequestCtx = ctx
-	autheliaCtx.Providers = providers
-	autheliaCtx.Configuration = configuration
-	autheliaCtx.Logger = NewRequestLogger(autheliaCtx)
-	autheliaCtx.Clock = utils.RealClock{}
+func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Configuration, providers Providers) (ctx *AutheliaCtx) {
+	ctx = new(AutheliaCtx)
+	ctx.RequestCtx = requestCTX
+	ctx.Providers = providers
+	ctx.Configuration = configuration
+	ctx.Logger = NewRequestLogger(ctx)
+	ctx.Clock = utils.RealClock{}
 
-	return autheliaCtx, nil
+	return ctx
 }
 
-// AutheliaMiddleware is wrapping the RequestCtx into an AutheliaCtx providing Authelia related objects.
-func AutheliaMiddleware(configuration schema.Configuration, providers Providers) RequestHandlerBridge {
-	return func(next RequestHandler) fasthttp.RequestHandler {
-		return func(ctx *fasthttp.RequestCtx) {
-			autheliaCtx, err := NewAutheliaCtx(ctx, configuration, providers)
-			if err != nil {
-				autheliaCtx.Error(err, messageOperationFailed)
-				return
-			}
+// AvailableSecondFactorMethods returns the available 2FA methods.
+func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
+	methods = make([]string, 0, 3)
 
-			next(autheliaCtx)
-		}
+	if !ctx.Configuration.TOTP.Disable {
+		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
+
+	if !ctx.Configuration.Webauthn.Disable {
+		methods = append(methods, model.SecondFactorMethodWebauthn)
+	}
+
+	if !ctx.Configuration.DuoAPI.Disable {
+		methods = append(methods, model.SecondFactorMethodDuo)
+	}
+
+	return methods
 }
 
 // Error reply with an error and display the stack trace in the logs.
@@ -338,4 +343,13 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%s</a>", utils.StringHTMLEscape(string(u.FullURI())), fasthttp.StatusMessage(statusCode)))
 
 	fasthttp.ReleaseURI(u)
+}
+
+// RecordAuthentication records authentication metrics.
+func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method string) {
+	if ctx.Providers.Metrics == nil {
+		return
+	}
+
+	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
 }

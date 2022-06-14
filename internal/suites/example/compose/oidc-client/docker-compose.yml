@@ -2,7 +2,7 @@
 version: '3'
 services:
   oidc-client:
-    image: ghcr.io/authelia/oidc-tester-app:master-2a82ab3
+    image: ghcr.io/authelia/oidc-tester-app:master-01ff268
     command: /entrypoint.sh
     depends_on:
       - authelia-backend
@@ -11,6 +11,7 @@ services:
     expose:
       - 8080
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.oidc.rule=Host(`oidc.example.com`)'
       - 'traefik.http.routers.oidc.priority=150'
       - 'traefik.http.routers.oidc.tls=true'

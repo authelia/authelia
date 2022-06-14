@@ -55,6 +55,7 @@
     }
   ],
   "postUpdateOptions": [
-      "gomodTidy"
+      "gomodTidy",
+      "gomodNoMassage"
   ]
 }

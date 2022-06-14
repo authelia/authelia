@@ -3,9 +3,9 @@ package validator
 import (
 	"fmt"
 	"net"
-	"regexp"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -13,12 +13,6 @@ import (
 // IsPolicyValid check if policy is valid.
 func IsPolicyValid(policy string) (isValid bool) {
 	return utils.IsStringInSlice(policy, validACLRulePolicies)
-}
-
-// IsResourceValid check if a resource is valid.
-func IsResourceValid(resource string) (err error) {
-	_, err = regexp.Compile(resource)
-	return err
 }
 
 // IsSubjectValid check if a subject is valid.
@@ -95,7 +89,7 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 	for i, rule := range config.AccessControl.Rules {
 		rulePosition := i + 1
 
-		if len(rule.Domains) == 0 {
+		if len(rule.Domains)+len(rule.DomainsRegex) == 0 {
 			validator.Push(fmt.Errorf(errFmtAccessControlRuleNoDomains, ruleDescriptor(rulePosition, rule)))
 		}
 
@@ -105,14 +99,25 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 
 		validateNetworks(rulePosition, rule, config.AccessControl, validator)
 
-		validateResources(rulePosition, rule, validator)
-
 		validateSubjects(rulePosition, rule, validator)
 
 		validateMethods(rulePosition, rule, validator)
 
-		if rule.Policy == policyBypass && len(rule.Subjects) != 0 {
-			validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(rulePosition, rule)))
+		if rule.Policy == policyBypass {
+			validateBypass(rulePosition, rule, validator)
+		}
+	}
+}
+
+func validateBypass(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+	if len(rule.Subjects) != 0 {
+		validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(rulePosition, rule)))
+	}
+
+	for _, pattern := range rule.DomainsRegex {
+		if utils.IsStringSliceContainsAny(authorization.IdentitySubexpNames, pattern.SubexpNames()) {
+			validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex, ruleDescriptor(rulePosition, rule)))
+			return
 		}
 	}
 }
@@ -123,14 +128,6 @@ func validateNetworks(rulePosition int, rule schema.ACLRule, config schema.Acces
 			if !IsNetworkGroupValid(config, network) {
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleNetworksInvalid, ruleDescriptor(rulePosition, rule), network))
 			}
-		}
-	}
-}
-
-func validateResources(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
-	for _, resource := range rule.Resources {
-		if err := IsResourceValid(resource); err != nil {
-			validator.Push(fmt.Errorf(errFmtAccessControlRuleResourceInvalid, ruleDescriptor(rulePosition, rule), resource, err))
 		}
 	}
 }
@@ -147,8 +144,8 @@ func validateSubjects(rulePosition int, rule schema.ACLRule, validator *schema.S
 
 func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
 	for _, method := range rule.Methods {
-		if !utils.IsStringInSliceFold(method, validACLRuleMethods) {
-			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLRuleMethods, "', '")))
+		if !utils.IsStringInSliceFold(method, validACLHTTPMethodVerbs) {
+			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLHTTPMethodVerbs, "', '")))
 		}
 	}
 }

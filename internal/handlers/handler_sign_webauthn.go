@@ -11,8 +11,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// SecondFactorWebauthnAssertionGET handler starts the assertion ceremony.
-func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
+// WebauthnAssertionGET handler starts the assertion ceremony.
+func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w    *webauthn.WebAuthn
 		user *model.WebauthnUser
@@ -78,8 +78,8 @@ func SecondFactorWebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// SecondFactorWebauthnAssertionPOST handler completes the assertion ceremony after verifying the challenge.
-func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
+// WebauthnAssertionPOST handler completes the assertion ceremony after verifying the challenge.
+func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err error
 		w   *webauthn.WebAuthn
@@ -185,8 +185,9 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
-	userSession.Webauthn = nil
+	userSession.SetTwoFactorWebauthn(ctx.Clock.Now(),
+		assertionResponse.Response.AuthenticatorData.Flags.UserPresent(),
+		assertionResponse.Response.AuthenticatorData.Flags.UserVerified())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the assertion challenge and authentication time", regulation.AuthTypeWebauthn, userSession.Username, err)
@@ -196,7 +197,7 @@ func SecondFactorWebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, requestBody.TargetURL)

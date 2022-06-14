@@ -9,7 +9,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+// OpenIDConnectTokenPOST handles POST requests to the OpenID Connect 1.0 Token endpoint.
+//
+// https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		requester fosite.AccessRequester
 		responder fosite.AccessResponder
@@ -21,7 +24,7 @@ func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.R
 	if requester, err = ctx.Providers.OpenIDConnect.Fosite.NewAccessRequest(ctx, req, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Access Request failed with error: %+v", rfc)
+		ctx.Logger.Errorf("Access Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, requester, err)
 
@@ -44,7 +47,7 @@ func oidcToken(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.R
 	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAccessResponse(ctx, requester); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
-		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %+v", requester.GetID(), rfc)
+		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), rfc.WithExposeDebug(true).GetDescription())
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAccessError(rw, requester, err)
 

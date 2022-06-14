@@ -1,11 +1,57 @@
 package utils
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestStringSplitDelimitedEscaped(t *testing.T) {
+	testCases := []struct {
+		desc, have string
+		delimiter  rune
+		want       []string
+	}{
+		{desc: "ShouldSplitNormalString", have: "abc,123,456", delimiter: ',', want: []string{"abc", "123", "456"}},
+		{desc: "ShouldSplitEscapedString", have: "a\\,bc,123,456", delimiter: ',', want: []string{"a,bc", "123", "456"}},
+		{desc: "ShouldSplitEscapedStringPipe", have: "a\\|bc|123|456", delimiter: '|', want: []string{"a|bc", "123", "456"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			actual := StringSplitDelimitedEscaped(tc.have, tc.delimiter)
+
+			assert.Equal(t, tc.want, actual)
+		})
+	}
+}
+
+func TestStringJoinDelimitedEscaped(t *testing.T) {
+	testCases := []struct {
+		desc, want string
+		delimiter  rune
+		have       []string
+	}{
+		{desc: "ShouldJoinNormalStringSlice", have: []string{"abc", "123", "456"}, delimiter: ',', want: "abc,123,456"},
+		{desc: "ShouldJoinEscapeNeededStringSlice", have: []string{"abc", "1,23", "456"}, delimiter: ',', want: "abc,1\\,23,456"},
+		{desc: "ShouldJoinEscapeNeededStringSlicePipe", have: []string{"abc", "1|23", "456"}, delimiter: '|', want: "abc|1\\|23|456"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			actual := StringJoinDelimitedEscaped(tc.have, tc.delimiter)
+
+			assert.Equal(t, tc.want, actual)
+
+			// Ensure splitting again also works fine.
+			split := StringSplitDelimitedEscaped(actual, tc.delimiter)
+
+			assert.Equal(t, tc.have, split)
+		})
+	}
+}
 
 func TestShouldNotGenerateSameRandomString(t *testing.T) {
 	randomStringOne := RandomString(10, AlphaNumericCharacters, false)
@@ -170,4 +216,99 @@ func TestIsStringSliceContainsAny(t *testing.T) {
 
 	assert.False(t, IsStringSliceContainsAny(needles, haystackOne))
 	assert.True(t, IsStringSliceContainsAny(needles, haystackTwo))
+}
+
+func TestStringSliceURLConversionFuncs(t *testing.T) {
+	urls := URLsFromStringSlice([]string{"https://google.com", "abc", "%*()@#$J(@*#$J@#($H"})
+
+	require.Len(t, urls, 2)
+	assert.Equal(t, "https://google.com", urls[0].String())
+	assert.Equal(t, "abc", urls[1].String())
+
+	strs := StringSliceFromURLs(urls)
+
+	require.Len(t, strs, 2)
+	assert.Equal(t, "https://google.com", strs[0])
+	assert.Equal(t, "abc", strs[1])
+}
+
+func TestIsURLInSlice(t *testing.T) {
+	urls := URLsFromStringSlice([]string{"https://google.com", "https://example.com"})
+
+	google, err := url.Parse("https://google.com")
+	assert.NoError(t, err)
+
+	microsoft, err := url.Parse("https://microsoft.com")
+	assert.NoError(t, err)
+
+	example, err := url.Parse("https://example.com")
+	assert.NoError(t, err)
+
+	assert.True(t, IsURLInSlice(*google, urls))
+	assert.False(t, IsURLInSlice(*microsoft, urls))
+	assert.True(t, IsURLInSlice(*example, urls))
+}
+
+func TestOriginFromURL(t *testing.T) {
+	google, err := url.Parse("https://google.com/abc?a=123#five")
+	assert.NoError(t, err)
+
+	origin := OriginFromURL(*google)
+	assert.Equal(t, "https://google.com", origin.String())
+}
+
+func TestJoinAndCanonicalizeHeaders(t *testing.T) {
+	result := JoinAndCanonicalizeHeaders([]byte(", "), "x-example-ONE", "X-EGG-Two")
+
+	assert.Equal(t, []byte("X-Example-One, X-Egg-Two"), result)
+}
+
+func TestIsURLHostComponent(t *testing.T) {
+	testCases := []struct {
+		desc, have           string
+		expectedA, expectedB bool
+	}{
+		{
+			desc:      "ShouldBeFalseWithScheme",
+			have:      "https://google.com",
+			expectedA: false, expectedB: false,
+		},
+		{
+			desc:      "ShouldBeTrueForHostComponentButFalseForWithPort",
+			have:      "google.com",
+			expectedA: true, expectedB: false,
+		},
+		{
+			desc:      "ShouldBeFalseForHostComponentButTrueForWithPort",
+			have:      "google.com:8000",
+			expectedA: false, expectedB: true,
+		},
+		{
+			desc:      "ShouldBeFalseWithPath",
+			have:      "google.com:8000/path",
+			expectedA: false, expectedB: false,
+		},
+		{
+			desc:      "ShouldBeFalseWithFragment",
+			have:      "google.com:8000#test",
+			expectedA: false, expectedB: false,
+		},
+		{
+			desc:      "ShouldBeFalseWithQuery",
+			have:      "google.com:8000?test=1",
+			expectedA: false, expectedB: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			u, err := url.Parse(tc.have)
+
+			require.NoError(t, err)
+			require.NotNil(t, u)
+
+			assert.Equal(t, tc.expectedA, IsURLHostComponent(*u))
+			assert.Equal(t, tc.expectedB, IsURLHostComponentWithPort(*u))
+		})
+	}
 }

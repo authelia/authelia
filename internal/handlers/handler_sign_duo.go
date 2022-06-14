@@ -12,8 +12,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SecondFactorDuoPost handler for sending a push notification via duo api.
-func SecondFactorDuoPost(duoAPI duo.API) middlewares.RequestHandler {
+// DuoPOST handler for sending a push notification via duo api.
+func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var (
 			requestBody    signDuoRequestBody
@@ -255,7 +255,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
+	userSession.SetTwoFactorDuo(ctx.Clock.Now())
 
 	err = ctx.SaveSession(userSession)
 	if err != nil {
@@ -266,7 +266,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, targetURL)

@@ -34,14 +34,14 @@ func (suite *NotifierSuite) SetupTest() {
 func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() {
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.config.SMTP = nil
 
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
@@ -52,7 +52,7 @@ func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() 
 func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.config.FileSystem = &schema.FileSystemNotifierConfiguration{
 		Filename: "test",
@@ -60,7 +60,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
@@ -74,8 +74,8 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("example.com", suite.config.SMTP.TLS.ServerName)
 	suite.Assert().Equal("TLS1.2", suite.config.SMTP.TLS.MinimumVersion)
@@ -90,8 +90,8 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("google.com", suite.config.SMTP.TLS.ServerName)
 	suite.Assert().Equal("TLS1.1", suite.config.SMTP.TLS.MinimumVersion)
@@ -102,15 +102,15 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 	suite.config.FileSystem = nil
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.config.SMTP.Host = ""
 	suite.config.SMTP.Port = 0
 
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().True(suite.validator.HasErrors())
 
 	errors := suite.validator.Errors()
@@ -126,7 +126,7 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
 
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
 
 	suite.Assert().Len(suite.validator.Errors(), 1)
@@ -144,14 +144,14 @@ func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 	}
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
-	suite.Assert().False(suite.validator.HasErrors())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.config.FileSystem.Filename = ""
 
 	ValidateNotifier(&suite.config, suite.validator)
 
-	suite.Assert().False(suite.validator.HasWarnings())
+	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
 
 	suite.Assert().Len(suite.validator.Errors(), 1)

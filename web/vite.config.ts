@@ -7,7 +7,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // @ts-ignore
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, "env");
+    const env = loadEnv(mode, ".");
     const isCoverage = process.env.VITE_COVERAGE === "true";
     const sourcemap = isCoverage ? "inline" : undefined;
 
@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
               exclude: ["node_modules"],
               extension: [".js", ".jsx", ".ts", ".tsx"],
               checkProd: false,
+              forceBuildInstrument: true,
               requireEnv: true,
           })
         : undefined;
@@ -37,6 +38,7 @@ export default defineConfig(({ mode }) => {
         build: {
             sourcemap,
             outDir: "../internal/server/public_html",
+            emptyOutDir: true,
             assetsDir: "static",
             rollupOptions: {
                 output: {

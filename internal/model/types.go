@@ -1,11 +1,42 @@
 package model
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
 	"fmt"
 	"net"
+
+	"github.com/google/uuid"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+// NullUUID is a nullable uuid.UUID.
+type NullUUID struct {
+	uuid.UUID
+	Valid bool
+}
+
+// Value is the NullUUID implementation of the databases/sql driver.Valuer.
+func (u NullUUID) Value() (value driver.Value, err error) {
+	if !u.Valid {
+		return nil, nil
+	}
+
+	return u.UUID.Value()
+}
+
+// Scan is the NullUUID implementation of the sql.Scanner.
+func (u *NullUUID) Scan(src interface{}) (err error) {
+	if src == nil {
+		u.UUID, u.Valid = uuid.UUID{}, false
+
+		return nil
+	}
+
+	return u.UUID.Scan(src)
+}
 
 // NewIP easily constructs a new IP.
 func NewIP(value net.IP) (ip IP) {
@@ -149,4 +180,27 @@ func (b *Base64) Scan(src interface{}) (err error) {
 // StartupCheck represents a provider that has a startup check.
 type StartupCheck interface {
 	StartupCheck() (err error)
+}
+
+// StringSlicePipeDelimited is a string slice that is stored in the database delimited by pipes.
+type StringSlicePipeDelimited []string
+
+// Scan is the StringSlicePipeDelimited implementation of the sql.Scanner.
+func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
+	var nullStr sql.NullString
+
+	if err = nullStr.Scan(value); err != nil {
+		return err
+	}
+
+	if nullStr.Valid {
+		*s = utils.StringSplitDelimitedEscaped(nullStr.String, '|')
+	}
+
+	return nil
+}
+
+// Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
+func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
+	return utils.StringJoinDelimitedEscaped(s, '|'), nil
 }

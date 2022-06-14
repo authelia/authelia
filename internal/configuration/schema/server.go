@@ -8,8 +8,8 @@ type ServerConfiguration struct {
 	AssetPath          string `koanf:"asset_path"`
 	ReadBufferSize     int    `koanf:"read_buffer_size"`
 	WriteBufferSize    int    `koanf:"write_buffer_size"`
-	EnablePprof        bool   `koanf:"enable_endpoint_pprof"`
-	EnableExpvars      bool   `koanf:"enable_endpoint_expvars"`
+	EnablePprof        bool   `koanf:"enable_pprof"`
+	EnableExpvars      bool   `koanf:"enable_expvars"`
 	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
 	TLS     ServerTLSConfiguration     `koanf:"tls"`
@@ -18,8 +18,9 @@ type ServerConfiguration struct {
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
 type ServerTLSConfiguration struct {
-	Certificate string `koanf:"certificate"`
-	Key         string `koanf:"key"`
+	Certificate        string   `koanf:"certificate"`
+	Key                string   `koanf:"key"`
+	ClientCertificates []string `koanf:"client_certificates"`
 }
 
 // ServerHeadersConfiguration represents the customization of the http server headers.

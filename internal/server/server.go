@@ -1,213 +1,101 @@
 package server
 
 import (
-	"embed"
-	"io/fs"
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
-	"time"
 
-	duoapi "github.com/duosecurity/duo_api_golang"
-	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/expvarhandler"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/duo"
-	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-//go:embed public_html
-var assets embed.FS
-
-func registerRoutes(configuration schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	autheliaMiddleware := middlewares.AutheliaMiddleware(configuration, providers)
-	rememberMe := strconv.FormatBool(configuration.Session.RememberMeDuration != schema.RememberMeDisabled)
-	resetPassword := strconv.FormatBool(!configuration.AuthenticationBackend.DisableResetPassword)
-
-	duoSelfEnrollment := f
-	if configuration.DuoAPI != nil {
-		duoSelfEnrollment = strconv.FormatBool(configuration.DuoAPI.EnableSelfEnrollment)
+// CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
+func CreateDefaultServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
+	server = &fasthttp.Server{
+		ErrorHandler:          handleError(),
+		Handler:               handleRouter(config, providers),
+		NoDefaultServerHeader: true,
+		ReadBufferSize:        config.Server.ReadBufferSize,
+		WriteBufferSize:       config.Server.WriteBufferSize,
 	}
 
-	embeddedPath, _ := fs.Sub(assets, "public_html")
-	embeddedFS := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
 
-	https := configuration.Server.TLS.Key != "" && configuration.Server.TLS.Certificate != ""
+	var (
+		connectionType   string
+		connectionScheme string
+	)
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, configuration.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, configuration.Session.Name, configuration.Theme, https)
+	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
+		connectionType, connectionScheme = "TLS", schemeHTTPS
 
-	r := router.New()
-	r.GET("/", autheliaMiddleware(serveIndexHandler))
-	r.OPTIONS("/", autheliaMiddleware(handleOPTIONS))
-
-	r.GET("/api/", autheliaMiddleware(serveSwaggerHandler))
-	r.GET("/api/"+apiFile, autheliaMiddleware(serveSwaggerAPIHandler))
-
-	for _, f := range rootFiles {
-		r.GET("/"+f, middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
-	}
-
-	r.GET("/static/{filepath:*}", middlewares.AssetOverrideMiddleware(configuration.Server.AssetPath, embeddedFS))
-	r.ANY("/api/{filepath:*}", embeddedFS)
-
-	r.GET("/api/health", autheliaMiddleware(handlers.HealthGet))
-	r.GET("/api/state", autheliaMiddleware(handlers.StateGet))
-
-	r.GET("/api/configuration", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.ConfigurationGet)))
-
-	r.GET("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
-	r.HEAD("/api/verify", autheliaMiddleware(handlers.VerifyGet(configuration.AuthenticationBackend)))
-
-	r.POST("/api/checks/safe-redirection", autheliaMiddleware(handlers.CheckSafeRedirection))
-
-	r.POST("/api/firstfactor", autheliaMiddleware(handlers.FirstFactorPost(middlewares.TimingAttackDelay(10, 250, 85, time.Second))))
-	r.POST("/api/logout", autheliaMiddleware(handlers.LogoutPost))
-
-	// Only register endpoints if forgot password is not disabled.
-	if !configuration.AuthenticationBackend.DisableResetPassword {
-		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", autheliaMiddleware(
-			handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", autheliaMiddleware(
-			handlers.ResetPasswordIdentityFinish))
-		r.POST("/api/reset-password", autheliaMiddleware(
-			handlers.ResetPasswordPost))
-	}
-
-	// Information about the user.
-	r.GET("/api/user/info", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.UserInfoGet)))
-	r.POST("/api/user/info/2fa_method", autheliaMiddleware(
-		middlewares.RequireFirstFactor(handlers.MethodPreferencePost)))
-
-	if !configuration.TOTP.Disable {
-		// TOTP related endpoints.
-		r.GET("/api/user/info/totp", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.UserTOTPGet)))
-
-		r.POST("/api/secondfactor/totp/identity/start", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityStart)))
-		r.POST("/api/secondfactor/totp/identity/finish", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPIdentityFinish)))
-		r.POST("/api/secondfactor/totp", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorTOTPPost)))
-	}
-
-	if !configuration.Webauthn.Disable {
-		// Webauthn Endpoints.
-		r.POST("/api/secondfactor/webauthn/identity/start", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityStart)))
-		r.POST("/api/secondfactor/webauthn/identity/finish", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnIdentityFinish)))
-		r.POST("/api/secondfactor/webauthn/attestation", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAttestationPOST)))
-
-		r.GET("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionGET)))
-		r.POST("/api/secondfactor/webauthn/assertion", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorWebauthnAssertionPOST)))
-	}
-
-	// Configure DUO api endpoint only if configuration exists.
-	if configuration.DuoAPI != nil {
-		var duoAPI duo.API
-		if os.Getenv("ENVIRONMENT") == dev {
-			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
-				configuration.DuoAPI.IntegrationKey,
-				configuration.DuoAPI.SecretKey,
-				configuration.DuoAPI.Hostname, "", duoapi.SetInsecure()))
-		} else {
-			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
-				configuration.DuoAPI.IntegrationKey,
-				configuration.DuoAPI.SecretKey,
-				configuration.DuoAPI.Hostname, ""))
+		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
+			return nil, nil, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
 		}
 
-		r.GET("/api/secondfactor/duo_devices", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicesGet(duoAPI))))
+		if len(config.Server.TLS.ClientCertificates) > 0 {
+			caCertPool := x509.NewCertPool()
 
-		r.POST("/api/secondfactor/duo", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorDuoPost(duoAPI))))
+			var cert []byte
 
-		r.POST("/api/secondfactor/duo_device", autheliaMiddleware(
-			middlewares.RequireFirstFactor(handlers.SecondFactorDuoDevicePost)))
+			for _, path := range config.Server.TLS.ClientCertificates {
+				if cert, err = os.ReadFile(path); err != nil {
+					return nil, nil, fmt.Errorf("unable to load tls client certificate '%s': %w", path, err)
+				}
+
+				caCertPool.AppendCertsFromPEM(cert)
+			}
+
+			// ClientCAs should never be nil, otherwise the system cert pool is used for client authentication
+			// but we don't want everybody on the Internet to be able to authenticate.
+			server.TLSConfig.ClientCAs = caCertPool
+			server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
+		}
+
+		if listener, err = tls.Listen("tcp", address, server.TLSConfig.Clone()); err != nil {
+			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
+		}
+	} else {
+		connectionType, connectionScheme = "non-TLS", schemeHTTP
+
+		if listener, err = net.Listen("tcp", address); err != nil {
+			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
+		}
 	}
 
-	if configuration.Server.EnablePprof {
-		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
+	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Host,
+		config.Server.Path, config.Server.Port); err != nil {
+		return nil, nil, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
-	if configuration.Server.EnableExpvars {
-		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
-	}
-
-	r.NotFound = autheliaMiddleware(serveIndexHandler)
-
-	handler := middlewares.LogRequestMiddleware(r.Handler)
-	if configuration.Server.Path != "" {
-		handler = middlewares.StripPathMiddleware(configuration.Server.Path, handler)
-	}
-
-	if providers.OpenIDConnect.Fosite != nil {
-		handlers.RegisterOIDC(r, autheliaMiddleware)
-	}
-
-	return handler
-}
-
-// Start Authelia's internal webserver with the given configuration and providers.
-func Start(configuration schema.Configuration, providers middlewares.Providers) {
 	logger := logging.Logger()
 
-	handler := registerRoutes(configuration, providers)
-
-	server := &fasthttp.Server{
-		ErrorHandler:          autheliaErrorHandler,
-		Handler:               handler,
-		NoDefaultServerHeader: true,
-		ReadBufferSize:        configuration.Server.ReadBufferSize,
-		WriteBufferSize:       configuration.Server.WriteBufferSize,
-	}
-
-	address := net.JoinHostPort(configuration.Server.Host, strconv.Itoa(configuration.Server.Port))
-
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		logger.Fatalf("Error initializing listener: %s", err)
-	}
-
-	if configuration.Server.TLS.Certificate != "" && configuration.Server.TLS.Key != "" {
-		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "https", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
-			logger.Fatalf("Could not configure healthcheck: %v", err)
-		}
-
-		if configuration.Server.Path == "" {
-			logger.Infof("Listening for TLS connections on '%s' path '/'", address)
-		} else {
-			logger.Infof("Listening for TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
-		}
-
-		logger.Fatal(server.ServeTLS(listener, configuration.Server.TLS.Certificate, configuration.Server.TLS.Key))
+	if config.Server.Path == "" {
+		logger.Infof("Initializing server for %s connections on '%s' path '/'", connectionType, listener.Addr().String())
 	} else {
-		if err = writeHealthCheckEnv(configuration.Server.DisableHealthcheck, "http", configuration.Server.Host, configuration.Server.Path, configuration.Server.Port); err != nil {
-			logger.Fatalf("Could not configure healthcheck: %v", err)
-		}
-
-		if configuration.Server.Path == "" {
-			logger.Infof("Listening for non-TLS connections on '%s' path '/'", address)
-		} else {
-			logger.Infof("Listening for non-TLS connections on '%s' paths '/' and '%s'", address, configuration.Server.Path)
-		}
-		logger.Fatal(server.Serve(listener))
+		logger.Infof("Initializing server for %s connections on '%s' paths '/' and '%s'", connectionType, listener.Addr().String(), config.Server.Path)
 	}
+
+	return server, listener, nil
+}
+
+// CreateMetricsServer creates a metrics server.
+func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp.Server, listener net.Listener, err error) {
+	if listener, err = config.Address.Listener(); err != nil {
+		return nil, nil, err
+	}
+
+	server = &fasthttp.Server{
+		ErrorHandler:          handleError(),
+		NoDefaultServerHeader: true,
+		Handler:               handleMetrics(),
+	}
+
+	return server, listener, nil
 }

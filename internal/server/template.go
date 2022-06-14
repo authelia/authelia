@@ -16,7 +16,7 @@ import (
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, session, theme string, https bool) middlewares.RequestHandler {
+func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, session, theme string, https bool) middlewares.RequestHandler {
 	logger := logging.Logger()
 
 	a, err := assets.Open(publicDir + file)
@@ -43,19 +43,19 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		logoOverride := f
 
 		if assetPath != "" {
-			if _, err := os.Stat(assetPath + logoFile); err == nil {
+			if _, err := os.Stat(filepath.Join(assetPath, logoFile)); err == nil {
 				logoOverride = t
 			}
 		}
 
-		var scheme = "https"
+		var scheme = schemeHTTPS
 
 		if !https {
 			proto := string(ctx.XForwardedProto())
 			switch proto {
 			case "":
 				break
-			case "http", "https":
+			case schemeHTTP, schemeHTTPS:
 				scheme = proto
 			}
 		}
@@ -81,7 +81,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, nonce))
 		}
 
-		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, Session: session, Theme: theme})
+		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, ResetPasswordCustomURL, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, ResetPasswordCustomURL: resetPasswordCustomURL, Session: session, Theme: theme})
 		if err != nil {
 			ctx.RequestCtx.Error("an error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)
@@ -116,7 +116,7 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 	}()
 
 	if host == "0.0.0.0" {
-		host = "localhost"
+		host = localhost
 	} else if strings.Contains(host, ":") {
 		host = "[" + host + "]"
 	}

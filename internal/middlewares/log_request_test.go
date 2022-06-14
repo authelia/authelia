@@ -13,7 +13,7 @@ func TestShouldCallNextFunction(t *testing.T) {
 	f := func(ctx *fasthttp.RequestCtx) { val = true }
 
 	context := &fasthttp.RequestCtx{}
-	LogRequestMiddleware(f)(context)
+	LogRequest(f)(context)
 
 	assert.Equal(t, true, val)
 }

@@ -30,7 +30,7 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 				Secret:      "mysecret",
 			},
 		},
-	})
+	}, nil)
 
 	policyOne := s.GetClientPolicy("myclient")
 	assert.Equal(t, authorization.OneFactor, policyOne)
@@ -54,7 +54,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 				Secret:      "mysecret",
 			},
 		},
-	})
+	}, nil)
 
 	client, err := s.GetClient(context.Background(), "myinvalidclient")
 	assert.EqualError(t, err, "not_found")
@@ -78,9 +78,9 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
-	})
+	}, nil)
 
-	client, err := s.GetInternalClient(c1.ID)
+	client, err := s.GetFullClient(c1.ID)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, client.ID, c1.ID)
@@ -105,9 +105,9 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
 		IssuerPrivateKey: exampleIssuerPrivateKey,
 		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
-	})
+	}, nil)
 
-	client, err := s.GetInternalClient("another-client")
+	client, err := s.GetFullClient("another-client")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "not_found")
 }
@@ -124,7 +124,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 				Secret:      "mysecret",
 			},
 		},
-	})
+	}, nil)
 
 	validClient := s.IsValidClientID("myclient")
 	invalidClient := s.IsValidClientID("myinvalidclient")

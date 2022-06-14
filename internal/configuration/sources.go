@@ -6,13 +6,13 @@ import (
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
 // NewYAMLFileSource returns a Source configured to load from a specified YAML path. If there is an issue accessing this
@@ -75,7 +75,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
-	keyMap, ignoredKeys := getEnvConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
+	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
 }
@@ -109,7 +109,7 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err
 
 // Load the Source into the SecretsSource koanf.Koanf.
 func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
-	keyMap := getSecretConfigMap(validator.ValidKeys, s.prefix, s.delimiter)
+	keyMap := getSecretConfigMap(schema.Keys, s.prefix, s.delimiter)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
 }
@@ -145,8 +145,31 @@ func (s *CommandLineSource) Load(_ *schema.StructValidator) (err error) {
 	return s.koanf.Load(posflag.Provider(s.flags, ".", s.koanf), nil)
 }
 
+// NewMapSource returns a new map[string]interface{} source.
+func NewMapSource(m map[string]interface{}) (source *MapSource) {
+	return &MapSource{
+		m:     m,
+		koanf: koanf.New(constDelimiter),
+	}
+}
+
+// Name of the Source.
+func (s MapSource) Name() (name string) {
+	return "map"
+}
+
+// Merge the CommandLineSource koanf.Koanf into the provided one.
+func (s *MapSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err error) {
+	return ko.Merge(s.koanf)
+}
+
+// Load the Source into the YAMLFileSource koanf.Koanf.
+func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
+	return s.koanf.Load(confmap.Provider(s.m, constDelimiter), nil)
+}
+
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSources(filePaths []string, prefix, delimiter string) (sources []Source) {
+func NewDefaultSources(filePaths []string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
 	fileSources := NewYAMLFileSources(filePaths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -154,6 +177,19 @@ func NewDefaultSources(filePaths []string, prefix, delimiter string) (sources []
 
 	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
 	sources = append(sources, NewSecretsSource(prefix, delimiter))
+
+	if len(additionalSources) != 0 {
+		sources = append(sources, additionalSources...)
+	}
+
+	return sources
+}
+
+// NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
+func NewDefaultSourcesWithDefaults(filePaths []string, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
+	sources = []Source{defaults}
+
+	sources = append(sources, NewDefaultSources(filePaths, prefix, delimiter, additionalSources...)...)
 
 	return sources
 }

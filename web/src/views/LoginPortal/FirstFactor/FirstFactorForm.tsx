@@ -16,7 +16,9 @@ import { postFirstFactor } from "@services/FirstFactor";
 export interface Props {
     disabled: boolean;
     rememberMe: boolean;
+
     resetPassword: boolean;
+    resetPasswordCustomURL: string;
 
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
@@ -38,7 +40,7 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const { t: translate } = useTranslation("Portal");
+    const { t: translate } = useTranslation();
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);
@@ -76,7 +78,13 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleResetPasswordClick = () => {
-        navigate(ResetPasswordStep1Route);
+        if (props.resetPassword) {
+            if (props.resetPasswordCustomURL !== "") {
+                window.open(props.resetPasswordCustomURL);
+            } else {
+                navigate(ResetPasswordStep1Route);
+            }
+        }
     };
 
     return (

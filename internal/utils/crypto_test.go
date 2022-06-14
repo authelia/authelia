@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"crypto/elliptic"
 	"crypto/tls"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -123,4 +125,45 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	}
 
 	assert.EqualError(t, errors[0], "could not import certificate key.pem")
+}
+
+func TestShouldGenerateCertificateAndPersistIt(t *testing.T) {
+	testCases := []struct {
+		Name              string
+		PrivateKeyBuilder PrivateKeyBuilder
+	}{
+		{
+			Name:              "P224",
+			PrivateKeyBuilder: ECDSAKeyBuilder{}.WithCurve(elliptic.P224()),
+		},
+		{
+			Name:              "P256",
+			PrivateKeyBuilder: ECDSAKeyBuilder{}.WithCurve(elliptic.P256()),
+		},
+		{
+			Name:              "P384",
+			PrivateKeyBuilder: ECDSAKeyBuilder{}.WithCurve(elliptic.P384()),
+		},
+		{
+			Name:              "P521",
+			PrivateKeyBuilder: ECDSAKeyBuilder{}.WithCurve(elliptic.P521()),
+		},
+		{
+			Name:              "Ed25519",
+			PrivateKeyBuilder: Ed25519KeyBuilder{},
+		},
+		{
+			Name:              "RSA",
+			PrivateKeyBuilder: RSAKeyBuilder{keySizeInBits: 2048},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			certBytes, keyBytes, err := GenerateCertificate(tc.PrivateKeyBuilder, []string{"authelia.com", "example.org"}, time.Now(), 3*time.Hour, false)
+			require.NoError(t, err)
+			assert.True(t, len(certBytes) > 0)
+			assert.True(t, len(keyBytes) > 0)
+		})
+	}
 }

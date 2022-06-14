@@ -1,419 +1,763 @@
-package configuration
+package configuration_test
 
 import (
+	"net/mail"
 	"net/url"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/configuration"
 )
 
-func TestStringToURLHookFunc_ShouldNotParseStrings(t *testing.T) {
-	hook := StringToURLHookFunc()
+func TestStringToMailAddressHookFunc(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   interface{}
+		want   interface{}
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeMailAddress",
+			have:   "james@example.com",
+			want:   mail.Address{Name: "", Address: "james@example.com"},
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeMailAddressWithName",
+			have:   "James <james@example.com>",
+			want:   mail.Address{Name: "James", Address: "james@example.com"},
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeMailAddressWithEmptyString",
+			have:   "",
+			want:   mail.Address{},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInvalidMailAddress",
+			have:   "fred",
+			want:   mail.Address{},
+			err:    "could not decode 'fred' to a mail.Address (RFC5322): mail: missing '@' or angle-addr",
+			decode: true,
+		},
+	}
 
-	var (
-		from = "https://google.com/abc?a=123"
+	hook := configuration.StringToMailAddressHookFunc()
 
-		result interface{}
-		err    error
-
-		resultTo    string
-		resultPtrTo *time.Time
-		ok          bool
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
-	assert.NoError(t, err)
-
-	resultTo, ok = result.(string)
-	assert.True(t, ok)
-	assert.Equal(t, from, resultTo)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
-	assert.NoError(t, err)
-
-	resultTo, ok = result.(string)
-	assert.True(t, ok)
-	assert.Equal(t, from, resultTo)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestStringToURLHookFunc_ShouldParseEmptyString(t *testing.T) {
-	hook := StringToURLHookFunc()
+func TestStringToMailAddressHookFuncPointer(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   interface{}
+		want   interface{}
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeMailAddress",
+			have:   "james@example.com",
+			want:   &mail.Address{Name: "", Address: "james@example.com"},
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeMailAddressWithName",
+			have:   "James <james@example.com>",
+			want:   &mail.Address{Name: "James", Address: "james@example.com"},
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeMailAddressWithEmptyString",
+			have:   "",
+			want:   (*mail.Address)(nil),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInvalidMailAddress",
+			have:   "fred",
+			want:   &mail.Address{},
+			err:    "could not decode 'fred' to a *mail.Address (RFC5322): mail: missing '@' or angle-addr",
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToInt",
+			have:   "fred",
+			want:   testInt32Ptr(4),
+			decode: false,
+		},
+	}
 
-	var (
-		from = ""
+	hook := configuration.StringToMailAddressHookFunc()
 
-		result interface{}
-		err    error
-
-		resultTo    url.URL
-		resultPtrTo *url.URL
-
-		ok bool
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
-	assert.NoError(t, err)
-
-	resultTo, ok = result.(url.URL)
-	assert.True(t, ok)
-	assert.Equal(t, "", resultTo.String())
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
-	assert.NoError(t, err)
-
-	resultPtrTo, ok = result.(*url.URL)
-	assert.True(t, ok)
-	assert.Nil(t, resultPtrTo)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestStringToURLHookFunc_ShouldNotParseBadURLs(t *testing.T) {
-	hook := StringToURLHookFunc()
+func TestStringToURLHookFunc(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   interface{}
+		want   interface{}
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeURL",
+			have:   "https://www.example.com:9090/abc?test=true",
+			want:   url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true"},
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeURLEmptyString",
+			have:   "",
+			want:   url.URL{},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToString",
+			have:   "abc",
+			want:   "",
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeURLWithUserAndPassword",
+			have:   "https://john:abc123@www.example.com:9090/abc?test=true",
+			want:   url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true", User: url.UserPassword("john", "abc123")},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInt",
+			have:   5,
+			want:   url.URL{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeBool",
+			have:   true,
+			want:   url.URL{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeBadURL",
+			have:   "*(!&@#(!*^$%",
+			want:   url.URL{},
+			err:    "could not decode '*(!&@#(!*^$%' to a url.URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"",
+			decode: true,
+		},
+	}
 
-	var (
-		from = "*(!&@#(!*^$%"
+	hook := configuration.StringToURLHookFunc()
 
-		result interface{}
-		err    error
-
-		resultTo    url.URL
-		resultPtrTo *url.URL
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
-	assert.EqualError(t, err, "could not parse '*(!&@#(!*^$%' as a URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"")
-	assert.Nil(t, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
-	assert.EqualError(t, err, "could not parse '*(!&@#(!*^$%' as a URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"")
-	assert.Nil(t, result)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestStringToURLHookFunc_ShouldParseURLs(t *testing.T) {
-	hook := StringToURLHookFunc()
+func TestStringToURLHookFuncPointer(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   interface{}
+		want   interface{}
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeURL",
+			have:   "https://www.example.com:9090/abc?test=true",
+			want:   &url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true"},
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeURLEmptyString",
+			have:   "",
+			want:   (*url.URL)(nil),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeURLWithUserAndPassword",
+			have:   "https://john:abc123@www.example.com:9090/abc?test=true",
+			want:   &url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true", User: url.UserPassword("john", "abc123")},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInt",
+			have:   5,
+			want:   &url.URL{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeBool",
+			have:   true,
+			want:   &url.URL{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeBadURL",
+			have:   "*(!&@#(!*^$%",
+			want:   &url.URL{},
+			err:    "could not decode '*(!&@#(!*^$%' to a *url.URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"",
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToInt",
+			have:   "fred",
+			want:   testInt32Ptr(4),
+			decode: false,
+		},
+	}
 
-	var (
-		from = "https://google.com/abc?a=123"
+	hook := configuration.StringToURLHookFunc()
 
-		result interface{}
-		err    error
-
-		resultTo    url.URL
-		resultPtrTo *url.URL
-
-		ok bool
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultTo), from)
-	assert.NoError(t, err)
-
-	resultTo, ok = result.(url.URL)
-	assert.True(t, ok)
-	assert.Equal(t, "https", resultTo.Scheme)
-	assert.Equal(t, "google.com", resultTo.Host)
-	assert.Equal(t, "/abc", resultTo.Path)
-	assert.Equal(t, "a=123", resultTo.RawQuery)
-
-	resultPtrTo, ok = result.(*url.URL)
-	assert.False(t, ok)
-	assert.Nil(t, resultPtrTo)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(resultPtrTo), from)
-	assert.NoError(t, err)
-
-	resultPtrTo, ok = result.(*url.URL)
-	assert.True(t, ok)
-	assert.NotNil(t, resultPtrTo)
-
-	assert.Equal(t, "https", resultTo.Scheme)
-	assert.Equal(t, "google.com", resultTo.Host)
-	assert.Equal(t, "/abc", resultTo.Path)
-	assert.Equal(t, "a=123", resultTo.RawQuery)
-
-	resultTo, ok = result.(url.URL)
-	assert.False(t, ok)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestToTimeDurationHookFunc_ShouldParse_String(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
+func TestToTimeDurationHookFunc(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   interface{}
+		want   interface{}
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeFourtyFiveSeconds",
+			have:   "45s",
+			want:   time.Second * 45,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeOneMinute",
+			have:   "1m",
+			want:   time.Minute,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTwoHours",
+			have:   "2h",
+			want:   time.Hour * 2,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeThreeDays",
+			have:   "3d",
+			want:   time.Hour * 24 * 3,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFourWeeks",
+			have:   "4w",
+			want:   time.Hour * 24 * 7 * 4,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFiveMonths",
+			have:   "5M",
+			want:   time.Hour * 24 * 30 * 5,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeSixYears",
+			have:   "6y",
+			want:   time.Hour * 24 * 365 * 6,
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInvalidString",
+			have:   "abc",
+			want:   time.Duration(0),
+			err:    "could not decode 'abc' to a time.Duration: could not parse 'abc' as a duration",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeIntToSeconds",
+			have:   60,
+			want:   time.Second * 60,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt32ToSeconds",
+			have:   int32(90),
+			want:   time.Second * 90,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt64ToSeconds",
+			have:   int64(120),
+			want:   time.Second * 120,
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTimeDuration",
+			have:   time.Second * 30,
+			want:   time.Second * 30,
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToString",
+			have:   int64(30),
+			want:   "",
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeFromIntZero",
+			have:   0,
+			want:   time.Duration(0),
+			decode: true,
+		},
+		{
+			desc: "ShouldNotDecodeFromBool",
+			have: true,
+			want: true,
+		},
+	}
 
-	var (
-		from     = "1h"
-		expected = time.Hour
+	hook := configuration.ToTimeDurationHookFunc()
 
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestToTimeDurationHookFunc_ShouldParse_String_Years(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
+func TestToTimeDurationHookFuncPointer(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		have   interface{}
+		want   interface{}
+		err    string
+		decode bool
+	}{
+		{
+			desc:   "ShouldDecodeFourtyFiveSeconds",
+			have:   "45s",
+			want:   testTimeDurationPtr(time.Second * 45),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeOneMinute",
+			have:   "1m",
+			want:   testTimeDurationPtr(time.Minute),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTwoHours",
+			have:   "2h",
+			want:   testTimeDurationPtr(time.Hour * 2),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeThreeDays",
+			have:   "3d",
+			want:   testTimeDurationPtr(time.Hour * 24 * 3),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFourWeeks",
+			have:   "4w",
+			want:   testTimeDurationPtr(time.Hour * 24 * 7 * 4),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeFiveMonths",
+			have:   "5M",
+			want:   testTimeDurationPtr(time.Hour * 24 * 30 * 5),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeSixYears",
+			have:   "6y",
+			want:   testTimeDurationPtr(time.Hour * 24 * 365 * 6),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeInvalidString",
+			have:   "abc",
+			want:   testTimeDurationPtr(time.Duration(0)),
+			err:    "could not decode 'abc' to a *time.Duration: could not parse 'abc' as a duration",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeIntToSeconds",
+			have:   60,
+			want:   testTimeDurationPtr(time.Second * 60),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt32ToSeconds",
+			have:   int32(90),
+			want:   testTimeDurationPtr(time.Second * 90),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeInt64ToSeconds",
+			have:   int64(120),
+			want:   testTimeDurationPtr(time.Second * 120),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeTimeDuration",
+			have:   time.Second * 30,
+			want:   testTimeDurationPtr(time.Second * 30),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeToString",
+			have:   int64(30),
+			want:   &testString,
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeFromIntZero",
+			have:   0,
+			want:   testTimeDurationPtr(time.Duration(0)),
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeFromBool",
+			have:   true,
+			want:   &testTrue,
+			decode: false,
+		},
+	}
 
-	var (
-		from     = "1y"
-		expected = time.Hour * 24 * 365
+	hook := configuration.ToTimeDurationHookFunc()
 
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestToTimeDurationHookFunc_ShouldParse_String_Months(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
+func TestStringToRegexpFunc(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		have     interface{}
+		want     interface{}
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			desc:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			have:   "hello(test one two",
+			want:   regexp.Regexp{},
+			err:    "could not decode 'hello(test one two' to a regexp.Regexp: error parsing regexp: missing closing ): `hello(test one two`",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeValidRegex",
+			have:   "^(api|admin)$",
+			want:   *regexp.MustCompile(`^(api|admin)$`),
+			decode: true,
+		},
+		{
+			desc:     "ShouldDecodeValidRegexWithGroupNames",
+			have:     "^(?P<area>api|admin)(one|two)$",
+			want:     *regexp.MustCompile(`^(?P<area>api|admin)(one|two)$`),
+			decode:   true,
+			wantGrps: []string{"area"},
+		},
+		{
+			desc:   "ShouldNotDecodeFromInt32",
+			have:   int32(20),
+			want:   regexp.Regexp{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeFromBool",
+			have:   false,
+			want:   regexp.Regexp{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToBool",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   testTrue,
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToInt32",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   testInt32Ptr(0),
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToMailAddress",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   mail.Address{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldErrOnDecodeEmptyString",
+			have:   "",
+			want:   regexp.Regexp{},
+			err:    "could not decode an empty value to a regexp.Regexp: must have a non-empty value",
+			decode: true,
+		},
+	}
 
-	var (
-		from     = "1M"
-		expected = time.Hour * 24 * 30
+	hook := configuration.StringToRegexpHookFunc()
 
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
 
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
+				pattern := result.(regexp.Regexp)
 
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
+				var names []string
+				for _, name := range pattern.SubexpNames() {
+					if name != "" {
+						names = append(names, name)
+					}
+				}
+
+				if len(tc.wantGrps) != 0 {
+					t.Run("MustHaveAllExpectedSubexpGroupNames", func(t *testing.T) {
+						for _, name := range tc.wantGrps {
+							assert.Contains(t, names, name)
+						}
+					})
+					t.Run("MustNotHaveUnexpectedSubexpGroupNames", func(t *testing.T) {
+						for _, name := range names {
+							assert.Contains(t, tc.wantGrps, name)
+						}
+					})
+				} else {
+					t.Run("MustHaveNoSubexpGroupNames", func(t *testing.T) {
+						assert.Len(t, names, 0)
+					})
+				}
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestToTimeDurationHookFunc_ShouldParse_String_Weeks(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
+func TestStringToRegexpFuncPointers(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		have     interface{}
+		want     interface{}
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			desc:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			have:   "hello(test one two",
+			want:   &regexp.Regexp{},
+			err:    "could not decode 'hello(test one two' to a *regexp.Regexp: error parsing regexp: missing closing ): `hello(test one two`",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeValidRegex",
+			have:   "^(api|admin)$",
+			want:   regexp.MustCompile(`^(api|admin)$`),
+			decode: true,
+		},
+		{
+			desc:     "ShouldDecodeValidRegexWithGroupNames",
+			have:     "^(?P<area>api|admin)(one|two)$",
+			want:     regexp.MustCompile(`^(?P<area>api|admin)(one|two)$`),
+			decode:   true,
+			wantGrps: []string{"area"},
+		},
+		{
+			desc:   "ShouldNotDecodeFromInt32",
+			have:   int32(20),
+			want:   &regexp.Regexp{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeFromBool",
+			have:   false,
+			want:   &regexp.Regexp{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToBool",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   &testTrue,
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToInt32",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   &testZero,
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToMailAddress",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   &mail.Address{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeEmptyStringToNil",
+			have:   "",
+			want:   (*regexp.Regexp)(nil),
+			decode: true,
+		},
+	}
 
-	var (
-		from     = "1w"
-		expected = time.Hour * 24 * 7
+	hook := configuration.StringToRegexpHookFunc()
 
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
 
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
+				pattern := result.(*regexp.Regexp)
 
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
+				if tc.want == (*regexp.Regexp)(nil) {
+					assert.Nil(t, pattern)
+				} else {
+					var names []string
+					for _, name := range pattern.SubexpNames() {
+						if name != "" {
+							names = append(names, name)
+						}
+					}
+
+					if len(tc.wantGrps) != 0 {
+						t.Run("MustHaveAllExpectedSubexpGroupNames", func(t *testing.T) {
+							for _, name := range tc.wantGrps {
+								assert.Contains(t, names, name)
+							}
+						})
+						t.Run("MustNotHaveUnexpectedSubexpGroupNames", func(t *testing.T) {
+							for _, name := range names {
+								assert.Contains(t, tc.wantGrps, name)
+							}
+						})
+					} else {
+						t.Run("MustHaveNoSubexpGroupNames", func(t *testing.T) {
+							assert.Len(t, names, 0)
+						})
+					}
+				}
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
 }
 
-func TestToTimeDurationHookFunc_ShouldParse_String_Days(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from     = "1d"
-		expected = time.Hour * 24
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
+func testInt32Ptr(i int32) *int32 {
+	return &i
 }
 
-func TestToTimeDurationHookFunc_ShouldNotParseAndRaiseErr_InvalidString(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from = "abc"
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.EqualError(t, err, "could not parse 'abc' as a duration")
-	assert.Nil(t, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.EqualError(t, err, "could not parse 'abc' as a duration")
-	assert.Nil(t, result)
+func testTimeDurationPtr(t time.Duration) *time.Duration {
+	return &t
 }
 
-func TestToTimeDurationHookFunc_ShouldParse_Int(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from     = 60
-		expected = time.Second * 60
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
-}
-
-func TestToTimeDurationHookFunc_ShouldParse_Int32(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from     = int32(120)
-		expected = time.Second * 120
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
-}
-
-func TestToTimeDurationHookFunc_ShouldParse_Int64(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from     = int64(30)
-		expected = time.Second * 30
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
-}
-
-func TestToTimeDurationHookFunc_ShouldParse_Duration(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from     = time.Second * 30
-		expected = time.Second * 30
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
-}
-
-func TestToTimeDurationHookFunc_ShouldNotParse_Int64ToString(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from = int64(30)
-
-		to     string
-		ptrTo  *string
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, from, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, from, result)
-}
-
-func TestToTimeDurationHookFunc_ShouldNotParse_FromBool(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from = true
-
-		to     string
-		ptrTo  *string
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, from, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, from, result)
-}
-
-func TestToTimeDurationHookFunc_ShouldParse_FromZero(t *testing.T) {
-	hook := ToTimeDurationHookFunc()
-
-	var (
-		from     = 0
-		expected = time.Duration(0)
-
-		to     time.Duration
-		ptrTo  *time.Duration
-		result interface{}
-		err    error
-	)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(to), from)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-
-	result, err = hook(reflect.TypeOf(from), reflect.TypeOf(ptrTo), from)
-	assert.NoError(t, err)
-	assert.Equal(t, &expected, result)
-}
+var (
+	testTrue   = true
+	testZero   int32
+	testString = ""
+)

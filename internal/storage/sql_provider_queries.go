@@ -48,7 +48,7 @@ const (
 		REPLACE INTO %s (username, second_factor_method)
 		VALUES (?, ?);`
 
-	queryFmtPostgresUpsertPreferred2FAMethod = `
+	queryFmtUpsertPreferred2FAMethodPostgreSQL = `
 		INSERT INTO %s (username, second_factor_method)
 		VALUES ($1, $2)
 			ON CONFLICT (username)
@@ -99,7 +99,7 @@ const (
 		REPLACE INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtPostgresUpsertTOTPConfiguration = `
+	queryFmtUpsertTOTPConfigurationPostgreSQL = `
 		INSERT INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username)
@@ -160,7 +160,7 @@ const (
 		REPLACE INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtPostgresUpsertWebauthnDevice = `
+	queryFmtUpsertWebauthnDevicePostgreSQL = `
 		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
@@ -172,7 +172,7 @@ const (
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`
 
-	queryFmtPostgresUpsertDuoDevice = `
+	queryFmtUpsertDuoDevicePostgreSQL = `
 		INSERT INTO %s (username, device, method)
 		VALUES ($1, $2, $3)
 			ON CONFLICT (username)
@@ -214,9 +214,112 @@ const (
 		REPLACE INTO %s (name, value)
 		VALUES (?, ?);`
 
-	queryFmtPostgresUpsertEncryptionValue = `
+	queryFmtUpsertEncryptionValuePostgreSQL = `
 		INSERT INTO %s (name, value)
 		VALUES ($1, $2)
 			ON CONFLICT (name)
 			DO UPDATE SET value = $2;`
+)
+
+const (
+	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		FROM %s
+		WHERE challenge_id = ?;`
+
+	queryFmtSelectOAuth2ConsentSessionsPreConfigured = `
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		FROM %s
+		WHERE client_id = ? AND subject = ? AND 
+			  authorized = TRUE AND granted = TRUE AND expires_at IS NOT NULL AND expires_at >= CURRENT_TIMESTAMP;`
+
+	queryFmtInsertOAuth2ConsentSession = `
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2ConsentSessionSubject = `
+		UPDATE %s
+		SET subject = ?
+		WHERE id = ?;`
+
+	queryFmtUpdateOAuth2ConsentSessionResponse = `
+		UPDATE %s
+		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, expires_at = ?, granted_scopes = ?, granted_audience = ?
+		WHERE id = ? AND responded_at IS NULL;`
+
+	queryFmtUpdateOAuth2ConsentSessionGranted = `
+		UPDATE %s
+		SET granted = TRUE
+		WHERE id = ? AND responded_at IS NOT NULL;`
+
+	queryFmtSelectOAuth2Session = `
+		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ? AND revoked = FALSE;`
+
+	queryFmtInsertOAuth2Session = `
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at, 
+		requested_scopes, granted_scopes, requested_audience, granted_audience, 
+		active, revoked, form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtRevokeOAuth2Session = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE signature = ?;`
+
+	queryFmtRevokeOAuth2SessionByRequestID = `
+		UPDATE %s
+		SET revoked = TRUE
+		WHERE request_id = ?;`
+
+	queryFmtDeactivateOAuth2Session = `
+		UPDATE %s
+		SET active = FALSE
+		WHERE signature = ?;`
+
+	queryFmtDeactivateOAuth2SessionByRequestID = `
+		UPDATE %s
+		SET active = FALSE
+		WHERE request_id = ?;"`
+
+	queryFmtSelectOAuth2BlacklistedJTI = `
+		SELECT id, signature, expires_at
+		FROM %s
+		WHERE signature = ?;`
+
+	queryFmtUpsertOAuth2BlacklistedJTI = `
+		REPLACE INTO %s (signature, expires_at)
+		VALUES(?, ?);`
+
+	queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL = `
+		INSERT INTO %s (signature, expires_at)
+		VALUES ($1, $2)
+			ON CONFLICT (signature)
+			DO UPDATE SET expires_at = $2;`
+)
+
+const (
+	queryFmtInsertUserOpaqueIdentifier = `
+		INSERT INTO %s (service, sector_id, username, identifier)
+		VALUES(?, ?, ?, ?);`
+
+	queryFmtSelectUserOpaqueIdentifier = `
+		SELECT id, service, sector_id, username, identifier
+		FROM %s
+		WHERE identifier = ?;`
+
+	queryFmtSelectUserOpaqueIdentifierBySignature = `
+		SELECT id, service, sector_id, username, identifier
+		FROM %s
+		WHERE service = ? AND sector_id = ? AND username = ?;`
+
+	queryFmtSelectUserOpaqueIdentifiers = `
+		SELECT id, service, sector_id, username, identifier
+		FROM %s;`
 )

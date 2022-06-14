@@ -12,7 +12,7 @@ import (
 )
 
 func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page) string {
-	err := rs.WaitElementLocatedByCSSSelector(t, page, "register-link").Click("left")
+	err := rs.WaitElementLocatedByID(t, page, "register-link").Click("left")
 	require.NoError(t, err)
 	rs.verifyMailNotificationDisplayed(t, page)
 	link := doGetLinkFromLastMail(t)
@@ -28,10 +28,10 @@ func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page) string {
 }
 
 func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, code string) {
-	inputs := rs.WaitElementsLocatedByCSSSelector(t, page, "otp-input input")
+	inputs := rs.WaitElementsLocatedByID(t, page, "otp-input input")
 
 	for i := 0; i < len(code); i++ {
-		_ = inputs[i].Input(string(code[i]))
+		inputs[i].MustInput(string(code[i]))
 	}
 }
 

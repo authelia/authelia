@@ -185,6 +185,9 @@ func TestShouldParseACLNetworks(t *testing.T) {
 }
 
 func TestShouldReturnCorrectValidationLevel(t *testing.T) {
+	assert.False(t, IsAuthLevelSufficient(authentication.NotAuthenticated, Denied))
+	assert.False(t, IsAuthLevelSufficient(authentication.OneFactor, Denied))
+	assert.False(t, IsAuthLevelSufficient(authentication.TwoFactor, Denied))
 	assert.True(t, IsAuthLevelSufficient(authentication.NotAuthenticated, Bypass))
 	assert.True(t, IsAuthLevelSufficient(authentication.OneFactor, Bypass))
 	assert.True(t, IsAuthLevelSufficient(authentication.TwoFactor, Bypass))

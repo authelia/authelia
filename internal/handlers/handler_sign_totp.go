@@ -5,8 +5,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// SecondFactorTOTPPost validate the TOTP passcode provided by the user.
-func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
+// TimeBasedOneTimePasswordPOST validate the TOTP passcode provided by the user.
+func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	requestBody := signTOTPRequestBody{}
 
 	if err := ctx.ParseBody(&requestBody); err != nil {
@@ -68,7 +68,7 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.SetTwoFactor(ctx.Clock.Now())
+	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, userSession.Username, err)
@@ -78,7 +78,7 @@ func SecondFactorTOTPPost(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.OIDCWorkflowSession != nil {
+	if userSession.ConsentChallengeID != nil {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
 		Handle2FAResponse(ctx, requestBody.TargetURL)

@@ -1,4 +1,4 @@
-FROM alpine:3.15.2
+FROM alpine:3.16.0
 
 RUN \
 apk add --no-cache \
@@ -8,5 +8,4 @@ apk add --no-cache \
   samba-dc \
   supervisor
 
-ADD init.sh /init.sh
 CMD /init.sh setup

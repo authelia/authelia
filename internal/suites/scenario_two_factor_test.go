@@ -14,7 +14,7 @@ type TwoFactorSuite struct {
 	*RodSuite
 }
 
-func NewTwoFactorScenario() *TwoFactorSuite {
+func New2FAScenario() *TwoFactorSuite {
 	return &TwoFactorSuite{
 		RodSuite: new(RodSuite),
 	}
@@ -97,5 +97,5 @@ func TestRunTwoFactor(t *testing.T) {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewTwoFactorScenario())
+	suite.Run(t, New2FAScenario())
 }

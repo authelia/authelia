@@ -24,7 +24,7 @@ func TestCheckSafeRedirection_ForbiddenCall(t *testing.T) {
 		URI: "http://myapp.example.com",
 	})
 
-	CheckSafeRedirection(mock.Ctx)
+	CheckSafeRedirectionPOST(mock.Ctx)
 	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
 }
 
@@ -40,7 +40,7 @@ func TestCheckSafeRedirection_UnsafeRedirection(t *testing.T) {
 		URI: "http://myapp.com",
 	})
 
-	CheckSafeRedirection(mock.Ctx)
+	CheckSafeRedirectionPOST(mock.Ctx)
 	mock.Assert200OK(t, checkURIWithinDomainResponseBody{
 		OK: false,
 	})
@@ -58,7 +58,7 @@ func TestCheckSafeRedirection_SafeRedirection(t *testing.T) {
 		URI: "https://myapp.example.com",
 	})
 
-	CheckSafeRedirection(mock.Ctx)
+	CheckSafeRedirectionPOST(mock.Ctx)
 	mock.Assert200OK(t, checkURIWithinDomainResponseBody{
 		OK: true,
 	})

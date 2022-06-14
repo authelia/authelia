@@ -8,7 +8,7 @@ module.exports = {
         "type-enum": [
             2,
             "always",
-            ["build", "ci", "docs", "feat", "fix", "perf", "refactor", "release", "revert", "test"],
+            ["build", "ci", "docs", "feat", "fix", "i18n", "perf", "refactor", "release", "revert", "test"],
         ],
         "scope-enum": [
             2,
@@ -31,6 +31,7 @@ module.exports = {
                 "golangci-lint",
                 "handlers",
                 "logging",
+                "metrics",
                 "middlewares",
                 "mocks",
                 "model",

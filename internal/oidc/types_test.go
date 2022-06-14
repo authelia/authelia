@@ -9,6 +9,8 @@ import (
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/model"
 )
 
 func TestNewSession(t *testing.T) {
@@ -38,7 +40,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Request: fosite.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
-			Client: &InternalClient{ID: "example"},
+			Client: &Client{ID: "example"},
 		},
 	}
 
@@ -49,8 +51,15 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	requested := time.Unix(1647332518, 0)
 	authAt := time.Unix(1647332500, 0)
 	issuer := "https://example.com"
+	amr := []string{AMRPasswordBasedAuthentication}
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", extra, authAt, requested, request)
+	consent := &model.OAuth2ConsentSession{
+		ChallengeID: uuid.New(),
+		RequestedAt: requested,
+		Subject:     model.NullUUID{UUID: subject, Valid: true},
+	}
+
+	session := NewSessionWithAuthorizeRequest(issuer, "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -58,24 +67,34 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	require.NotNil(t, session.Headers.Extra)
 	require.NotNil(t, session.Claims)
 	require.NotNil(t, session.Claims.Extra)
+	require.NotNil(t, session.Claims.AuthenticationMethodsReferences)
 
-	assert.Equal(t, "abc123xyzauthelia", session.Claims.Nonce)
-	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, subject.String(), session.Subject)
-	assert.Equal(t, issuer, session.Claims.Issuer)
-	assert.Equal(t, "primary", session.Headers.Get("kid"))
 	assert.Equal(t, "example", session.ClientID)
-	assert.Equal(t, requested, session.Claims.RequestedAt)
-	assert.Equal(t, authAt, session.Claims.AuthTime)
 	assert.Greater(t, session.Claims.IssuedAt.Unix(), authAt.Unix())
 	assert.Equal(t, "john", session.Username)
 
-	require.Contains(t, session.Claims.Extra, "preferred_username")
+	assert.Equal(t, "abc123xyzauthelia", session.Claims.Nonce)
+	assert.Equal(t, subject.String(), session.Claims.Subject)
+	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
+	assert.Equal(t, authAt, session.Claims.AuthTime)
+	assert.Equal(t, requested, session.Claims.RequestedAt)
+	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", subject.String(), "john", nil, authAt, requested, request)
+	assert.Equal(t, "primary", session.Headers.Get("kid"))
+
+	require.Contains(t, session.Claims.Extra, "preferred_username")
+
+	consent = &model.OAuth2ConsentSession{
+		ChallengeID: uuid.New(),
+		RequestedAt: requested,
+	}
+
+	session = NewSessionWithAuthorizeRequest(issuer, "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
+	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
 }

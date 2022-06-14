@@ -89,10 +89,15 @@ that users who have access to the database do not also have access to this key.
 
 The encrypted data in the database is as follows:
 
-|        Table        |   Column   |                                                Rational                                                |
-|:-------------------:|:----------:|:------------------------------------------------------------------------------------------------------:|
-| totp_configurations |   secret   | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|  webauthn_devices   | public_key |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|               Table               |    Column    |                                                Rational                                                |
+|:---------------------------------:|:------------:|:------------------------------------------------------------------------------------------------------:|
+|        totp_configurations        |    secret    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|         webauthn_devices          |  public_key  |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+| oauth2_authorization_code_session | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|    oauth2_access_token_session    | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|   oauth2_refresh_token_session    | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|    oauth2_pkce_request_session    | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|   oauth2_openid_connect_session   | session_data |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
 
 ### Leaked Database
 
@@ -189,6 +194,19 @@ Authelia protects your users against open redirect attacks by always checking if
 to a subdomain of the domain protected by Authelia. This prevents phishing campaigns tricking users into visiting
 infected websites leveraging legit links.
 
+## Mutual TLS
+
+For the best security protection, configuration with TLS is highly recommended. TLS is used to secure the connection between
+the proxies and Authelia instances meaning that an attacker on the network cannot perform a man-in-the-middle attack on those
+connections. However, an attacker on the network can still impersonate proxies but this can be prevented by configuring mutual
+TLS.
+Mutual TLS brings mutual authentication between Authelia and the proxies. Any other party attempting to contact Authelia
+would not even be able to create a TCP connection. This measure is recommended in all cases except if you already configured
+some kind of ACLs specifically allowing the communication between proxies and Authelia instances like in a service mesh or
+some kind of network overlay.
+
+To configure mutual TLS, please refer to [this document](../configuration/server.md#client_certificates)
+
 ## Additional security
 
 ### Reset Password
@@ -211,77 +229,70 @@ feature, and set the [expiration](../configuration/session/index.md#expiration) 
 manner would mean if the cookie age was more than 2 hours or if the user was inactive for more than 10 minutes the
 session would be destroyed.
 
-### Additional proxy protection measures
+### Response Headers
 
-You can also apply the following headers to your proxy configuration for improving security. Please read the 
-relevant documentation for these headers before applying them blindly.
+This document previously detailed additional per-proxy configuration options that could be utilized in a proxy to
+improve security. These headers are now documented here and implemented by default in all responses due to the fact
+the experience should be the same regardless of which proxy you're utilizing and the area is rapidly evolving.
 
-#### nginx
+Users who need custom behaviours in this area can submit a request or remove/replace the headers as necessary.
 
-```
-# We don't want any credentials / TOTP secret key / QR code to be cached by
-# the client
-add_header Cache-Control "no-store";
-add_header Pragma "no-cache";
+#### X-Content-Type-Options
 
-# Clickjacking / XSS protection
+**Value:** `nosniff`
+**Endpoints:** All
 
-# We don't want Authelia's login page to be rendered within a <frame>,
-# <iframe> or <object> from an external website.
-add_header X-Frame-Options "SAMEORIGIN";
+Prevents MIME type sniffing. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options) for more information.
 
-# Block pages from loading when they detect reflected XSS attacks.
-add_header X-XSS-Protection "1; mode=block";
-```
+#### Referrer-Policy
 
+**Value:** `strict-origin-when-cross-origin`
+**Endpoints:** All
 
-#### Traefik 2.x - Kubernetes CRD
+Sends only the origin as the referrer in cross-origin requests, but sends the origin, path, and query string in
+same-origin requests. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) for more information.
 
-```yaml
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: headers-authelia
-spec:
-  headers:
-    browserXssFilter: true
-    customFrameOptionsValue: "SAMEORIGIN"
-    customResponseHeaders:
-      Cache-Control: "no-store"
-      Pragma: "no-cache"
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: authelia
-spec:
-  entryPoints:
-    - http
-  routes:
-    - match: Host(`auth.example.com`) && PathPrefix(`/`)
-      kind: Rule
-      priority: 1
-      middlewares:
-        - name: headers-authelia
-          namespace: authelia
-      services:
-        - name: authelia
-          port: 80
-```
+#### X-Frame-Options
 
-#### Traefik 2.x - docker-compose
+**Value:** `SAMEORIGIN`
+**Endpoints:** All
 
-```yaml
-services:
-  authelia:
-    labels:
-      - "traefik.http.routers.authelia.middlewares=authelia-headers"
-      - "traefik.http.middlewares.authelia-headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.authelia-headers.headers.customFrameOptionsValue=SAMEORIGIN"
-      - "traefik.http.middlewares.authelia-headers.headers.customResponseHeaders.Cache-Control=no-store"
-      - "traefik.http.middlewares.authelia-headers.headers.customResponseHeaders.Pragma=no-cache"
-```
+Prevents Authelia rendering in a `frame`, `iframe`, `embed`, or `object` element. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options) for more information.
+
+#### X-XSS-Protection
+
+**Value:** `0`
+**Endpoints:** All
+
+We disable this as this feature is not present in any modern browser and could introduce vulnerabilities if enabled at
+all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
+
+#### Permissions-Policy
+
+**Value:** `interest-cohort=()`
+**Endpoints:** All
+
+Disables FLoC Cohorts.
+
+#### Pragma
+
+**Value:** `no-cache`
+**Endpoints:** API
+
+Disables caching of API requests on HTTP/1.0 browsers. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) for more information.
+
+#### Cache-Control
+
+**Value:** `no-store`
+**Endpoints:** API
+
+Disables caching responses entirely on HTTP/1.1 browsers. See the
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information.
 
 ### More protections measures with fail2ban
 
@@ -425,3 +436,6 @@ services:
 ```
 
 [HSTS]: https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
+[CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+[CORP]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cross-Origin_Resource_Policy_(CORP)
+[COEP]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy

@@ -30,7 +30,9 @@ func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods() {
 	s.mock.Ctx.Configuration = schema.Configuration{
-		DuoAPI: &schema.DuoAPIConfiguration{},
+		DuoAPI: schema.DuoAPIConfiguration{
+			Disable: false,
+		},
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
@@ -49,7 +51,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
@@ -58,7 +60,9 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
-		DuoAPI: &schema.DuoAPIConfiguration{},
+		DuoAPI: schema.DuoAPIConfiguration{
+			Disable: false,
+		},
 		TOTP: schema.TOTPConfiguration{
 			Disable: true,
 		},
@@ -77,7 +81,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"webauthn", "mobile_push"},
@@ -86,7 +90,9 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
-		DuoAPI: &schema.DuoAPIConfiguration{},
+		DuoAPI: schema.DuoAPIConfiguration{
+			Disable: false,
+		},
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
@@ -105,7 +111,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvaila
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"totp", "mobile_push"},
@@ -114,7 +120,9 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebauthnFromAvaila
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMethodsWhenNotConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
-		DuoAPI: nil,
+		DuoAPI: schema.DuoAPIConfiguration{
+			Disable: true,
+		},
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
@@ -133,7 +141,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"totp", "webauthn"},
@@ -142,7 +150,9 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTwoFactorACLRulesConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
-		DuoAPI: &schema.DuoAPIConfiguration{},
+		DuoAPI: schema.DuoAPIConfiguration{
+			Disable: false,
+		},
 		TOTP: schema.TOTPConfiguration{
 			Disable: false,
 		},
@@ -161,7 +171,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{},
@@ -170,7 +180,9 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 
 func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllDisabledOrNotConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
-		DuoAPI: nil,
+		DuoAPI: schema.DuoAPIConfiguration{
+			Disable: true,
+		},
 		TOTP: schema.TOTPConfiguration{
 			Disable: true,
 		},
@@ -189,7 +201,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllD
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
-	ConfigurationGet(s.mock.Ctx)
+	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{},

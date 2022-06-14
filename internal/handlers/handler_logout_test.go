@@ -30,7 +30,7 @@ func (s *LogoutSuite) TearDownTest() {
 }
 
 func (s *LogoutSuite) TestShouldDestroySession() {
-	LogoutPost(s.mock.Ctx)
+	LogoutPOST(s.mock.Ctx)
 	b := s.mock.Ctx.Response.Header.PeekCookie("authelia_session")
 
 	// Reset the cookie, meaning it resets the value and expires the cookie by setting

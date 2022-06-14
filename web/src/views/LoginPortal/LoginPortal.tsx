@@ -16,7 +16,7 @@ import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
-import { useUserInfo } from "@hooks/UserInfo";
+import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -28,7 +28,9 @@ import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
 export interface Props {
     duoSelfEnrollment: boolean;
     rememberMe: boolean;
+
     resetPassword: boolean;
+    resetPasswordCustomURL: string;
 }
 
 const RedirectionErrorMessage =
@@ -44,7 +46,7 @@ const LoginPortal = function (props: Props) {
     const redirector = useRedirector();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfo();
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
     const redirect = useCallback((url: string) => navigate(url), [navigate]);
@@ -175,6 +177,7 @@ const LoginPortal = function (props: Props) {
                             disabled={firstFactorDisabled}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
+                            resetPasswordCustomURL={props.resetPasswordCustomURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}

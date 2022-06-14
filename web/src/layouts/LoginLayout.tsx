@@ -1,15 +1,20 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 
-import { Grid, makeStyles, Container, Typography, Link } from "@material-ui/core";
+import { Grid, makeStyles, Container, Link } from "@material-ui/core";
 import { grey } from "@material-ui/core/colors";
+import { useTranslation } from "react-i18next";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
+import TypographyWithTooltip from "@components/TypographyWithTootip";
 import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {
     id?: string;
     children?: ReactNode;
     title?: string;
+    titleTooltip?: string;
+    subtitle?: string;
+    subtitleTooltip?: string;
     showBrand?: boolean;
 }
 
@@ -20,6 +25,10 @@ const LoginLayout = function (props: Props) {
     ) : (
         <UserSvg className={style.icon} />
     );
+    const { t: translate } = useTranslation();
+    useEffect(() => {
+        document.title = `${translate("Login")} - Authelia`;
+    }, [translate]);
     return (
         <Grid id={props.id} className={style.root} container spacing={0} alignItems="center" justifyContent="center">
             <Container maxWidth="xs" className={style.rootContainer}>
@@ -29,9 +38,16 @@ const LoginLayout = function (props: Props) {
                     </Grid>
                     {props.title ? (
                         <Grid item xs={12}>
-                            <Typography variant="h5" className={style.title}>
-                                {props.title}
-                            </Typography>
+                            <TypographyWithTooltip variant={"h5"} value={props.title} tooltip={props.titleTooltip} />
+                        </Grid>
+                    ) : null}
+                    {props.subtitle ? (
+                        <Grid item xs={12}>
+                            <TypographyWithTooltip
+                                variant={"h6"}
+                                value={props.subtitle}
+                                tooltip={props.subtitleTooltip}
+                            />
                         </Grid>
                     ) : null}
                     <Grid item xs={12} className={style.body}>
@@ -44,7 +60,7 @@ const LoginLayout = function (props: Props) {
                                 target="_blank"
                                 className={style.poweredBy}
                             >
-                                Powered by Authelia
+                                {translate("Powered by")} Authelia
                             </Link>
                         </Grid>
                     ) : null}
@@ -66,6 +82,7 @@ const useStyles = makeStyles((theme) => ({
         paddingRight: 32,
     },
     title: {},
+    subtitle: {},
     icon: {
         margin: theme.spacing(),
         width: "64px",

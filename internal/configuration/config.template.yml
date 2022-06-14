@@ -27,6 +27,11 @@ jwt_secret: a_very_important_secret
 ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication.
 default_redirection_url: https://home.example.com/
 
+## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
+## disabled. This setting must be a method that is enabled.
+## Options are totp, webauthn, mobile_push.
+default_2fa_method: ""
+
 ##
 ## Server Configuration
 ##
@@ -71,6 +76,9 @@ server:
     ## The path to the DER base64/PEM format public certificate.
     certificate: ""
 
+    ## The list of certificates for client authentication.
+    client_certificates: []
+
   ## Server headers configuration/customization.
   headers:
 
@@ -92,6 +100,21 @@ log:
 
   ## Whether to also log to stdout when a log_file_path is defined.
   # keep_stdout: false
+
+##
+## Telemetry Configuration
+##
+telemetry:
+
+  ##
+  ## Metrics Configuration
+  ##
+  metrics:
+    ## Enable Metrics.
+    enabled: false
+
+    ## The address to listen on for metrics. This should be on a different port to the main server.port value.
+    address: '0.0.0.0:9959'
 
 ##
 ## TOTP Configuration
@@ -124,6 +147,9 @@ totp:
   skew: 1
   ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
 
+  ## The size of the generated shared secrets. Default is 32 and is sufficient in most use cases, minimum is 20.
+  secret_size: 32
+
 ##
 ## WebAuthn Configuration
 ##
@@ -152,6 +178,7 @@ webauthn:
 ## Parameters used to contact the Duo API. Those are generated when you protect an application of type
 ## "Partner Auth API" in the management panel.
 duo_api:
+  disable: false
   hostname: api-123456789.example.com
   integration_key: ABCDEF
   ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -190,6 +217,13 @@ ntp:
 authentication_backend:
   ## Disable both the HTML element and the API for reset password functionality.
   disable_reset_password: false
+
+  ## Password Reset Options.
+  password_reset:
+
+    ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
+    ## functionality.
+    custom_url: ""
 
   ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
@@ -294,6 +328,10 @@ authentication_backend:
     ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
     # display_name_attribute: displayName
 
+    ## Follow referrals returned by the server.
+    ## This is especially useful for environments where read-only servers exist. Only implemented for write operations.
+    permit_referrals: false
+
     ## The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -320,6 +358,40 @@ authentication_backend:
   #     salt_length: 16
   #     memory: 1024
   #     parallelism: 8
+
+##
+## Password Policy Configuration.
+##
+password_policy:
+
+  ## The standard policy allows you to tune individual settings manually.
+  standard:
+    enabled: false
+
+    ## Require a minimum length for passwords.
+    min_length: 8
+
+    ## Require a maximum length for passwords.
+    max_length: 0
+
+    ## Require uppercase characters.
+    require_uppercase: true
+
+    ## Require lowercase characters.
+    require_lowercase: true
+
+    ## Require numeric characters.
+    require_number: true
+
+    ## Require special characters.
+    require_special: true
+
+  ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
+  zxcvbn:
+    enabled: false
+
+    ## Configures the minimum score allowed.
+    min_score: 3
 
 ##
 ## Access Control Configuration
@@ -363,10 +435,22 @@ access_control:
 
   rules:
     ## Rules applied to everyone
-    - domain: public.example.com
+    - domain: 'public.example.com'
       policy: bypass
 
-    - domain: secure.example.com
+    ## Domain Regex examples. Generally we recommend just using a standard domain.
+    # - domain_regex: '^(?P<User>\w+)\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex: '^(?P<Group>\w+)\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex:
+    #    - '^appgroup-.*\.example\.com$'
+    #    - '^appgroup2-.*\.example\.com$'
+    #   policy: one_factor
+    # - domain_regex: '^.*\.example\.com$'
+    #   policy: two_factor
+
+    - domain: 'secure.example.com'
       policy: one_factor
       ## Network based rule, if not provided any network matches.
       networks:
@@ -376,53 +460,53 @@ access_control:
         - 10.0.0.1
 
     - domain:
-        - secure.example.com
-        - private.example.com
+        - 'secure.example.com'
+        - 'private.example.com'
       policy: two_factor
 
-    - domain: singlefactor.example.com
+    - domain: 'singlefactor.example.com'
       policy: one_factor
 
     ## Rules applied to 'admins' group
-    - domain: "mx2.mail.example.com"
-      subject: "group:admins"
+    - domain: 'mx2.mail.example.com'
+      subject: 'group:admins'
       policy: deny
 
-    - domain: "*.example.com"
+    - domain: '*.example.com'
       subject:
-        - "group:admins"
-        - "group:moderators"
+        - 'group:admins'
+        - 'group:moderators'
       policy: two_factor
 
     ## Rules applied to 'dev' group
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/groups/dev/.*$"
-      subject: "group:dev"
+        - '^/groups/dev/.*$'
+      subject: 'group:dev'
       policy: two_factor
 
     ## Rules applied to user 'john'
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
+        - '^/users/john/.*$'
+      subject: 'user:john'
       policy: two_factor
 
     ## Rules applied to user 'harry'
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
       policy: two_factor
 
     ## Rules applied to user 'bob'
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
       policy: two_factor
-    - domain: "dev.example.com"
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
       policy: two_factor
 
 ##
@@ -713,6 +797,26 @@ notifier:
     ## for security reasons.
     # enforce_pkce: public_clients_only
 
+    ## Cross-Origin Resource Sharing (CORS) settings.
+    # cors:
+      ## List of endpoints in addition to the metadata endpoints to permit cross-origin requests on.
+      # endpoints:
+      #    - authorization
+      #    - token
+      #    - revocation
+      #    - introspection
+      #    - userinfo
+
+      ## List of allowed origins.
+      ## Any origin with https is permitted unless this option is configured or the
+      ## allowed_origins_from_client_redirect_uris option is enabled.
+      # allowed_origins:
+      #   - https://example.com
+
+      ## Automatically adds the origin portion of all redirect URI's on all clients to the list of allowed_origins,
+      ## provided they have the scheme http or https and do not have the hostname of localhost.
+      # allowed_origins_from_client_redirect_uris: false
+
     ## Clients is a list of known clients and their configuration.
     # clients:
       # -
@@ -725,11 +829,21 @@ notifier:
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # secret: this_is_a_secret
 
+        ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
+        ## necessary. Read the documentation for more information.
+        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port.
+        # sector_identifier: example.com
+
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
         # public: false
 
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
+
+        ## By default users cannot remember pre-configured consents. Setting this value to a period of time using a
+        ## duration notation will enable users to remember consent for this client. The time configured is the amount
+        ## of time the pre-configured consent is valid for granting new authorizations to the user.
+        # pre_configured_consent_duration:
 
         ## Audience this client is allowed to request.
         # audience: []

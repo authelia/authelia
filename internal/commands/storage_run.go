@@ -2,6 +2,8 @@ package commands
 
 import (
 	"context"
+	"database/sql"
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"image"
@@ -10,7 +12,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -63,10 +68,11 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
 		"postgres.ssl.key":              "storage.postgres.ssl.key",
 
-		"period":    "totp.period",
-		"digits":    "totp.digits",
-		"algorithm": "totp.algorithm",
-		"issuer":    "totp.issuer",
+		"period":      "totp.period",
+		"digits":      "totp.digits",
+		"algorithm":   "totp.algorithm",
+		"issuer":      "totp.issuer",
+		"secret-size": "totp.secret_size",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -201,13 +207,13 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 
 func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider storage.Provider
-		ctx      = context.Background()
-		c        *model.TOTPConfiguration
-		force    bool
-		filename string
-		file     *os.File
-		img      image.Image
+		provider         storage.Provider
+		ctx              = context.Background()
+		c                *model.TOTPConfiguration
+		force            bool
+		filename, secret string
+		file             *os.File
+		img              image.Image
 	)
 
 	provider = getStorageProvider()
@@ -216,25 +222,19 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		_ = provider.Close()
 	}()
 
-	if force, err = cmd.Flags().GetBool("force"); err != nil {
-		return err
-	}
-
-	if filename, err = cmd.Flags().GetString("path"); err != nil {
+	if force, filename, secret, err = storageTOTPGenerateRunEOptsFromFlags(cmd.Flags()); err != nil {
 		return err
 	}
 
 	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
-	}
-
-	if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
+	} else if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
 		return err
 	}
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-	if c, err = totpProvider.Generate(args[0]); err != nil {
+	if c, err = totpProvider.GenerateCustom(args[0], config.TOTP.Algorithm, secret, config.TOTP.Digits, config.TOTP.Period, config.TOTP.SecretSize); err != nil {
 		return err
 	}
 
@@ -269,6 +269,28 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	fmt.Printf("Generated TOTP configuration for user '%s' with URI '%s'%s\n", args[0], c.URI(), extraInfo)
 
 	return nil
+}
+
+func storageTOTPGenerateRunEOptsFromFlags(flags *pflag.FlagSet) (force bool, filename, secret string, err error) {
+	if force, err = flags.GetBool("force"); err != nil {
+		return force, filename, secret, err
+	}
+
+	if filename, err = flags.GetString("path"); err != nil {
+		return force, filename, secret, err
+	}
+
+	if secret, err = flags.GetString("secret"); err != nil {
+		return force, filename, secret, err
+	}
+
+	secretLength := base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(secret))
+	if secret != "" && secretLength < schema.TOTPSecretSizeMinimum {
+		return force, filename, secret, fmt.Errorf("decoded length of the base32 secret must have "+
+			"a length of more than %d but '%s' has a decoded length of %d", schema.TOTPSecretSizeMinimum, secret, secretLength)
+	}
+
+	return force, filename, secret, nil
 }
 
 func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
@@ -329,17 +351,17 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 
-		if page == 0 && format == storageExportFormatCSV {
+		if page == 0 && format == storageTOTPExportFormatCSV {
 			fmt.Printf("issuer,username,algorithm,digits,period,secret\n")
 		}
 
 		for _, c := range configurations {
 			switch format {
-			case storageExportFormatCSV:
+			case storageTOTPExportFormatCSV:
 				fmt.Printf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
-			case storageExportFormatURI:
+			case storageTOTPExportFormatURI:
 				fmt.Println(c.URI())
-			case storageExportFormatPNG:
+			case storageTOTPExportFormatPNG:
 				file, _ := os.Create(filepath.Join(dir, fmt.Sprintf("%s.png", c.Username)))
 
 				if img, err = c.Image(256, 256); err != nil {
@@ -363,7 +385,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	if format == storageExportFormatPNG {
+	if format == storageTOTPExportFormatPNG {
 		fmt.Printf("Exported TOTP QR codes in PNG format in the '%s' directory\n", dir)
 	}
 
@@ -380,9 +402,9 @@ func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string
 	}
 
 	switch format {
-	case storageExportFormatCSV, storageExportFormatURI:
+	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
 		break
-	case storageExportFormatPNG:
+	case storageTOTPExportFormatPNG:
 		if dir == "" {
 			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
 		}
@@ -631,6 +653,255 @@ func checkStorageSchemaUpToDate(ctx context.Context, provider storage.Provider) 
 	if version != latest {
 		return fmt.Errorf("schema is version %d which is outdated please migrate to version %d in order to use this command or use an older binary", version, latest)
 	}
+
+	return nil
+}
+
+func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		file string
+	)
+
+	if file, err = cmd.Flags().GetString("file"); err != nil {
+		return err
+	}
+
+	_, err = os.Stat(file)
+
+	switch {
+	case err == nil:
+		return fmt.Errorf("must specify a file that doesn't exist but '%s' exists", file)
+	case !os.IsNotExist(err):
+		return fmt.Errorf("error occurred opening '%s': %w", file, err)
+	}
+
+	provider = getStorageProvider()
+
+	var (
+		export model.UserOpaqueIdentifiersExport
+
+		data []byte
+	)
+
+	if export.Identifiers, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
+		return err
+	}
+
+	if len(export.Identifiers) == 0 {
+		return fmt.Errorf("no data to export")
+	}
+
+	if data, err = yaml.Marshal(&export); err != nil {
+		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
+	}
+
+	if err = os.WriteFile(file, data, 0600); err != nil {
+		return fmt.Errorf("error occurred writing to file '%s': %w", file, err)
+	}
+
+	fmt.Printf("Exported %d User Opaque Identifiers to %s\n", len(export.Identifiers), file)
+
+	return nil
+}
+
+func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		file string
+		stat os.FileInfo
+	)
+
+	if file, err = cmd.Flags().GetString("file"); err != nil {
+		return err
+	}
+
+	if stat, err = os.Stat(file); err != nil {
+		return fmt.Errorf("must specify a file that exists but '%s' had an error opening it: %w", file, err)
+	}
+
+	if stat.IsDir() {
+		return fmt.Errorf("must specify a file that exists but '%s' is a directory", file)
+	}
+
+	var (
+		data   []byte
+		export model.UserOpaqueIdentifiersExport
+	)
+
+	if data, err = os.ReadFile(file); err != nil {
+		return err
+	}
+
+	if err = yaml.Unmarshal(data, &export); err != nil {
+		return err
+	}
+
+	if len(export.Identifiers) == 0 {
+		return fmt.Errorf("can't import a file with no data")
+	}
+
+	provider = getStorageProvider()
+
+	for _, opaqueID := range export.Identifiers {
+		if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
+			return err
+		}
+	}
+
+	fmt.Printf("Imported User Opaque Identifiers from %s\n", file)
+
+	return nil
+}
+
+func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []model.UserOpaqueIdentifier) bool {
+	for i := 0; i < len(identifiers); i++ {
+		if identifier.Service == identifiers[i].Service && identifier.SectorID == identifiers[i].SectorID && identifier.Username == identifiers[i].Username {
+			return true
+		}
+	}
+
+	return false
+}
+
+func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		users, services, sectors []string
+	)
+
+	provider = getStorageProvider()
+
+	identifiers, err := provider.LoadUserOpaqueIdentifiers(ctx)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("can't load the existing identifiers: %w", err)
+	}
+
+	if users, err = cmd.Flags().GetStringSlice("users"); err != nil {
+		return err
+	}
+
+	if services, err = cmd.Flags().GetStringSlice("services"); err != nil {
+		return err
+	}
+
+	if sectors, err = cmd.Flags().GetStringSlice("sectors"); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		return fmt.Errorf("must supply at least one user")
+	}
+
+	if len(sectors) == 0 {
+		sectors = append(sectors, "")
+	}
+
+	if !utils.IsStringSliceContainsAll(services, validIdentifierServices) {
+		return fmt.Errorf("one or more the service names '%s' is invalid, the valid values are: '%s'", strings.Join(services, "', '"), strings.Join(validIdentifierServices, "', '"))
+	}
+
+	var added, duplicates int
+
+	for _, service := range services {
+		for _, sector := range sectors {
+			for _, username := range users {
+				identifier := model.UserOpaqueIdentifier{
+					Service:  service,
+					SectorID: sector,
+					Username: username,
+				}
+
+				if containsIdentifier(identifier, identifiers) {
+					duplicates++
+
+					continue
+				}
+
+				identifier.Identifier, err = uuid.NewRandom()
+				if err != nil {
+					return fmt.Errorf("failed to generate a uuid: %w", err)
+				}
+
+				if err = provider.SaveUserOpaqueIdentifier(ctx, identifier); err != nil {
+					return fmt.Errorf("failed to save identifier: %w", err)
+				}
+
+				added++
+			}
+		}
+	}
+
+	fmt.Printf("Successfully added %d opaque identifiers and %d duplicates were skipped\n", added, duplicates)
+
+	return nil
+}
+
+func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		service, sector string
+	)
+
+	if service, err = cmd.Flags().GetString("service"); err != nil {
+		return err
+	}
+
+	if service == "" {
+		service = identifierServiceOpenIDConnect
+	} else if !utils.IsStringInSlice(service, validIdentifierServices) {
+		return fmt.Errorf("the service name '%s' is invalid, the valid values are: '%s'", service, strings.Join(validIdentifierServices, "', '"))
+	}
+
+	if sector, err = cmd.Flags().GetString("sector"); err != nil {
+		return err
+	}
+
+	opaqueID := model.UserOpaqueIdentifier{
+		Service:  service,
+		Username: args[0],
+		SectorID: sector,
+	}
+
+	if cmd.Flags().Changed("identifier") {
+		var identifierStr string
+
+		if identifierStr, err = cmd.Flags().GetString("identifier"); err != nil {
+			return err
+		}
+
+		if opaqueID.Identifier, err = uuid.Parse(identifierStr); err != nil {
+			return fmt.Errorf("the identifier provided '%s' is invalid as it must be a version 4 UUID but parsing it had an error: %w", identifierStr, err)
+		}
+
+		if opaqueID.Identifier.Version() != 4 {
+			return fmt.Errorf("the identifier providerd '%s' is a version %d UUID but only version 4 UUID's accepted as identifiers", identifierStr, opaqueID.Identifier.Version())
+		}
+	} else {
+		if opaqueID.Identifier, err = uuid.NewRandom(); err != nil {
+			return err
+		}
+	}
+
+	provider = getStorageProvider()
+
+	if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
+		return err
+	}
+
+	fmt.Printf("Added User Opaque Identifier:\n\tService: %s\n\tSector: %s\n\tUsername: %s\n\tIdentifier: %s\n\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
 
 	return nil
 }

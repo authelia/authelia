@@ -21,6 +21,16 @@ The following areas are actively being worked on for Kubernetes:
 
 Users are welcome to reach out directly by using any of our various [contact options](../about-us.md#contact-options). 
 
+### Important Notes
+
+The following section has special notes regarding utilizing Authelia with Kubernetes.
+
+1. Authelia (and all of your other applications) may receive an invalid remote IP if the service handling traffic to
+   the Kubernetes Ingress of your choice doesn't have the `externalTrafficPolicy` setting configured to `local` as per
+   the Kubernetes [preserving the client source ip] documentation.
+2. Authelia's configuration management system conflicts with the `enableServiceLinks` option when it's set to `true`
+   which is the default. This shoudld be changed to `false`.
+
 ###  NGINX Ingress Controller 
 If you use NGINX Ingress Controller you can protect an ingress with the following annotations.
 The assumptions are that your public domain where authelia is running would be https://auth.mypublicdomain.com
@@ -42,3 +52,5 @@ annotations:
 ### RAM usage
 
 If using file-based authentication, the argon2id provider will by default use 1GB of RAM for password generation. This means you should allow for at least this amount in your deployment/daemonset spec and have this much available on your node, alternatively you can [tweak the providers settings](https://www.authelia.com/docs/configuration/authentication/file.html#memory). Otherwise, your Authelia may OOM during login. See [here](https://github.com/authelia/authelia/issues/1234#issuecomment-663910799) for more info.
+
+[preserving the client source ip]: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip

@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/asaskevich/govalidator"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
