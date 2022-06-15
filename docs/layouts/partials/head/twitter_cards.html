@@ -1,0 +1,24 @@
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="{{ .Site.Params.twitterSite }}">
+<meta name="twitter:creator" content="{{ .Site.Params.twitterCreator }}">
+<meta name="twitter:title" content="{{ .Title }}">
+<meta name="twitter:description" content="{{ .Description }}">
+{{ with $.Params.images -}}
+  <meta name="twitter:image" content="{{ $.Permalink }}{{ index . 0 }}">
+{{ else -}}
+  {{ $images := $.Resources.ByType "image" -}}
+  {{ $featured := $images.GetMatch "*feature*" -}}
+  {{ if not $featured -}}
+    {{ $featured = $images.GetMatch "{*cover*,*thumbnail*}" -}}
+  {{ end -}}
+  {{ with $featured -}}
+    <meta name="twitter:image" content="{{ $featured.Permalink }}">
+  {{ else -}}
+    {{ with $.Site.Params.images -}}
+      <meta name="twitter:image" content="{{ index . 0 | absURL }}">
+    {{ else -}}
+      <meta name="twitter:card" content="summary">
+    {{ end -}}
+  {{ end -}}
+{{ end -}}
+<meta name="twitter:image:alt" content="{{ .Title }}">

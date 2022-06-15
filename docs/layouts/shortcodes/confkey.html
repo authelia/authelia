@@ -1,0 +1,12 @@
+{{ $requiredClass := "confkey-required" }}{{ $requiredText := "required" }}
+{{ with .Get "required" }}
+{{ if (eq . "no") }}{{ $requiredClass = "confkey-notrequired" }}{{ $requiredText = "not required" }}
+{{ else if (eq . "situational") }}{{ $requiredClass = "confkey-situational" }}{{ $requiredText = "situational" }}
+{{ end }}{{ end }}
+<div class="mb-3">
+  <span class="badge confkey-type" data-bs-toggle="tooltip" data-bs-placement="top" title="The value type">{{ with .Get "type" }}{{ . }}{{ else }}string{{ end }}</span>
+  {{ with .Get "default" }}
+  <span class="badge confkey-default" data-bs-toggle="tooltip" title="The default value">{{ . }}</span>
+  {{ end }}
+  <span class="badge {{ $requiredClass }}" data-bs-toggle="tooltip" title="If this option is required or not">{{ $requiredText }}</span>
+</div>
