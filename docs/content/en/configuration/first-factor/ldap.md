@@ -38,6 +38,7 @@ authentication_backend:
     groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     permit_referrals: false
+    permit_unauthenticated_bind: false
     user: CN=admin,DC=example,DC=com
     password: password
 ```
@@ -170,7 +171,7 @@ using the following filter which is currently only tested against Microsoft Acti
 
 `(&(member:1.2.840.113556.1.4.1941:={dn})(objectClass=group)(objectCategory=group))`
 
-## group_name_attribute
+### group_name_attribute
 
 {{< confkey type="string" required="situational" >}}
 
@@ -180,12 +181,23 @@ information.*
 
 The LDAP attribute that is used by Authelia to determine the group name.
 
-## permit_referrals
+### permit_referrals
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Permits following referrals. This is useful if you have read-only servers in your architecture and thus require
 referrals to be followed when performing write operations.
+
+### permit_unauthenticated_bind
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+*__WARNING:__ This option is highly discouraged. Please consider disabling unauthenticated binding to your LDAP
+server and utilizing a service account.*
+
+Permits binding to the server without a password. For this option to be enabled both the [password](#password)
+configuration option must be blank and [disable_reset_password](introduction.md#disable_reset_password) must be
+disabled.
 
 ### user
 
