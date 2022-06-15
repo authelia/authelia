@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/images/authelia-title.png" width="350" title="Authelia">
+  <img src="./docs/static/images/authelia-title.png" width="350" title="Authelia">
 </p>
 
   [![Build](https://img.shields.io/buildkite/d6543d3ece3433f46dbe5fd9fcfaf1f68a6dbc48eb1048bc22/master?logo=buildkite&style=flat-square&color=brightgreen)](https://buildkite.com/authelia/authelia)
@@ -20,12 +20,12 @@ sign-on (SSO) for your applications via a web portal. It acts as a companion for
 [Traefik], [caddy] or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's
 portal for authentication.
 
-Documentation is available at https://www.authelia.com/docs.
+Documentation is available at [https://www.authelia.com/](https://www.authelia.com/).
 
 The following is a simple diagram of the architecture:
 
 <p align="center" style="margin:50px">
-  <img src="./docs/images/archi.png"/>
+  <img src="./docs/static/images/archi.png"/>
 </p>
 
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/),
@@ -36,15 +36,15 @@ The following is a simple diagram of the architecture:
 the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers and ingress configurations.
 
 <p align="center">
-  <img src="./docs/images/logos/kubernetes.png" height="100"/>
-  <img src="./docs/images/logos/docker.logo.png" width="100">
+  <img src="./docs/static/images/logos/kubernetes.png" height="100"/>
+  <img src="./docs/static/images/logos/docker.logo.png" width="100">
 </p>
 
 Here is what Authelia's portal looks like:
 
 <p align="center">
-  <img src="./docs/images/1FA.png" width="400" />
-  <img src="./docs/images/2FA-METHODS.png" width="400" />
+  <img src="./docs/static/images/1FA.png" width="400" />
+  <img src="./docs/static/images/2FA-METHODS.png" width="400" />
 </p>
 
 ## Features summary
@@ -52,11 +52,11 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * Several second factor methods:
-  * **[Security Keys](https://www.authelia.com/docs/features/2fa/security-key)** that support [FIDO2]&nbsp;[Webauthn]
-    with devices like a [YubiKey].
-  * **[Time-based One-Time password](https://www.authelia.com/docs/features/2fa/one-time-password)**
+  * **[Security Keys](https://www.authelia.com/overview/authentication/webauthn-security-key/)** that support
+    [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
+  * **[Time-based One-Time password](https://www.authelia.com/overview/authentication/one-time-password/)**
     with compatible authenticator applications.
-  * **[Mobile Push Notifications](https://www.authelia.com/docs/features/2fa/push-notifications)**
+  * **[Mobile Push Notifications](https://www.authelia.com/overview/authentication/push-notification/)**
     with [Duo](https://duo.com/).
 * Password reset with identity verification using email confirmation.
 * Access restriction after too many invalid authentication attempts.
@@ -78,11 +78,11 @@ This is a list of the key features of Authelia:
     [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-crd/) Kubernetes ingress
     controllers out of the box.
   * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
-* Beta support for [OpenID Connect](https://www.authelia.com/docs/configuration/identity-providers/oidc.html).
+* Beta support for [OpenID Connect](https://www.authelia.com/roadmap/active/openid-connect/).
 
-For more details about the features, follow [Features](https://www.authelia.com/docs/features/).
+For more details take a look at the [Overview](https://www.authelia.com/overview/prologue/introduction/).
 
-If you want to know more about the roadmap, follow [Roadmap](https://www.authelia.com/docs/roadmap).
+If you want to know more about the roadmap, follow [Roadmap](https://www.authelia.com/roadmap).
 
 ## Proxy support
 
@@ -90,33 +90,36 @@ Authelia works in combination with [nginx], [Traefik], [caddy] or [HAProxy]. It 
 Docker or on top of [Kubernetes].
 
 <p align="center">
-  <img src="./docs/images/logos/nginx.png" height="50"/>
-  <img src="./docs/images/logos/traefik.png" height="50"/>
-  <img src="./docs/images/logos/caddy.png" height="50"/>
-  <img src="./docs/images/logos/haproxy.png" height="50"/>
-  <img src="./docs/images/logos/kubernetes.png" height="50"/>
+  <img src="./docs/static/images/logos/nginx.png" height="50"/>
+  <img src="./docs/static/images/logos/traefik.png" height="50"/>
+  <img src="./docs/static/images/logos/caddy.png" height="50"/>
+  <img src="./docs/static/images/logos/haproxy.png" height="50"/>
+  <img src="./docs/static/images/logos/kubernetes.png" height="50"/>
 </p>
 
 ***Help Wanted:*** Assistance would be appreciated in getting Authelia working with
 [Envoy](https://www.envoyproxy.io/).
 
 <p align="center">
-  <img src="./docs/images/logos/envoy.png" height="50"/>
+  <img src="./docs/static/images/logos/envoy.png" height="50"/>
 </p>
 
 ## Getting Started
+
+See the [Get Started Guide](https://www.authelia.com/integration/prologue/get-started/) or one of the curated examples
+below.
 
 ### docker-compose
 
 The `docker-compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
 customize them to your needs as they come with self-signed certificates.
 
-#### [Local](https://www.authelia.com/docs/getting-started)
+#### [Local](https://www.authelia.com/integration/deployment/docker/#local)
 The Local compose bundle is intended to test Authelia without worrying about configuration.
 It's meant to be used for scenarios where the server is not be exposed to the internet.
 Domains will be defined in the local hosts file and self-signed certificates will be utilised.
 
-#### [Lite](https://www.authelia.com/docs/deployment/deployment-lite)
+#### [Lite](https://www.authelia.com/integration/deployment/docker/#lite)
 The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will
 need to be setup accordingly and certificates will be generated through LetsEncrypt. The Lite element refers to minimal
 external dependencies; File based user storage, SQLite based configuration storage. In this configuration, the service
@@ -140,8 +143,8 @@ This guide will show you how to deploy it on bare metal as well as on
 Authelia takes security very seriously. If you discover a vulnerability in Authelia, please see our
 [Security Policy](https://github.com/authelia/authelia/security/policy).
 
-For more information about [security](https://www.authelia.com/docs/security/) related matters, please read
-[the documentation](https://www.authelia.com/docs/security/).
+For more information about [security](https://www.authelia.com/information/security/) related matters, please read
+[the documentation](https://www.authelia.com/information/security/).
 
 ## Contact Options
 
@@ -345,22 +348,17 @@ Companies contributing to Authelia will have a specical mention below. [[Become 
 
 #### Balto
 
-Thank you to [<img src="./docs/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/) for
-hosting our apt repository.
-
-#### Digital Ocean
-
-Thank you to [<img src="./docs/images/logos/digitalocean.svg" alt="Digital Ocean" width="32"> DigitalOcean](https://www.digitalocean.com/?from=Authelia) for
-contributing on OpenCollective.
+Thank you to [<img src="./docs/static/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
+for hosting our apt repository.
 
 #### JetBrains
 
-Thank you to [<img src="./docs/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
+Thank you to [<img src="./docs/static/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
 for providing us with free licenses to their great tools.
 
-* [<img src="./docs/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
-* [<img src="./docs/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
-* [<img src="./docs/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
+* [<img src="./docs/static/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
+* [<img src="./docs/static/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
+* [<img src="./docs/static/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
 ## License
 

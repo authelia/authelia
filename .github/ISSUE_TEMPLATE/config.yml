@@ -2,7 +2,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://www.authelia.com/docs/
+    url: https://www.authelia.com/
     about: Read the Documentation
   - name: Matrix
     url: https://matrix.to/#/#community:authelia.com
