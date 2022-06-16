@@ -115,7 +115,8 @@ const (
 	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
 	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' must is required"
 	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
+	errFmtStorageUserMustBeProvided          = "storage: %s: option 'username' is required"
+	errFmtStoragePassMustBeProvided          = "storage: %s: option 'password' is required" //nolint:gosec
 	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
 	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
 )

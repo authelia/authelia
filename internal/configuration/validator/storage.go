@@ -40,8 +40,16 @@ func validateSQLConfiguration(config *schema.SQLStorageConfiguration, validator 
 		validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "host"))
 	}
 
-	if config.Username == "" || config.Password == "" {
-		validator.Push(fmt.Errorf(errFmtStorageUserPassMustBeProvided, provider))
+	if config.Username == "" {
+		validator.Push(fmt.Errorf(errFmtStorageUserMustBeProvided, provider))
+	}
+
+	if config.Password == "" && provider == "mysql" && config.Port > 0 {
+		validator.Push(fmt.Errorf(errFmtStoragePassMustBeProvided, provider))
+	}
+
+	if config.Password == "" && provider == "postgres" {
+		validator.Push(fmt.Errorf(errFmtStoragePassMustBeProvided, provider))
 	}
 
 	if config.Database == "" {

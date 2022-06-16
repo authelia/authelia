@@ -30,7 +30,11 @@ func NewMySQLProvider(config *schema.Configuration) (provider *MySQLProvider) {
 }
 
 func dataSourceNameMySQL(config schema.MySQLStorageConfiguration) (dataSourceName string) {
-	dataSourceName = fmt.Sprintf("%s:%s", config.Username, config.Password)
+	dataSourceName = config.Username
+
+	if config.Password != "" {
+		dataSourceName += fmt.Sprintf(":%s", config.Password)
+	}
 
 	if dataSourceName != "" {
 		dataSourceName += "@"
@@ -39,11 +43,12 @@ func dataSourceNameMySQL(config schema.MySQLStorageConfiguration) (dataSourceNam
 	address := config.Host
 	if config.Port > 0 {
 		address += fmt.Sprintf(":%d", config.Port)
+		dataSourceName += "tcp"
+	} else {
+		dataSourceName += "unix"
 	}
 
-	dataSourceName += fmt.Sprintf("tcp(%s)/%s", address, config.Database)
-
-	dataSourceName += "?"
+	dataSourceName += fmt.Sprintf("(%s)/%s?", address, config.Database)
 	dataSourceName += fmt.Sprintf("timeout=%ds&multiStatements=true&parseTime=true", int32(config.Timeout/time.Second))
 
 	return dataSourceName

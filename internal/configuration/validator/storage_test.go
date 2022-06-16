@@ -55,14 +55,20 @@ func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
 	suite.Require().Len(suite.validator.Errors(), 0)
 }
 
+// MySQL over TCP.
 func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabaseAreProvided() {
-	suite.config.MySQL = &schema.MySQLStorageConfiguration{}
+	suite.config.MySQL = &schema.MySQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Port: 3306,
+		},
+	}
 	ValidateStorage(suite.config, suite.validator)
 
-	suite.Require().Len(suite.validator.Errors(), 3)
+	suite.Require().Len(suite.validator.Errors(), 4)
 	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: option 'host' is required")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: mysql: option 'username' and 'password' are required")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: option 'database' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: mysql: option 'username' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: option 'password' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "storage: mysql: option 'database' is required")
 
 	suite.validator.Clear()
 	suite.config.MySQL = &schema.MySQLStorageConfiguration{
@@ -79,15 +85,40 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	suite.Require().Len(suite.validator.Errors(), 0)
 }
 
+// MySQL over unix socket.
+func (suite *StorageSuite) TestShouldValidateMySQLHostUsernameAndDatabaseAreProvided() {
+	suite.config.MySQL = &schema.MySQLStorageConfiguration{}
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Errors(), 3)
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: option 'host' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: mysql: option 'username' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: mysql: option 'database' is required")
+
+	suite.validator.Clear()
+	suite.config.MySQL = &schema.MySQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "/run/mysqld/mysqld.sock",
+			Username: "myuser",
+			Database: "database",
+		},
+	}
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 0)
+}
+
 func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDatabaseAreProvided() {
 	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{}
 	suite.config.MySQL = nil
 	ValidateStorage(suite.config, suite.validator)
 
-	suite.Require().Len(suite.validator.Errors(), 3)
+	suite.Require().Len(suite.validator.Errors(), 4)
 	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: option 'host' is required")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: postgres: option 'username' and 'password' are required")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: postgres: option 'database' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "storage: postgres: option 'username' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "storage: postgres: option 'password' is required")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "storage: postgres: option 'database' is required")
 
 	suite.validator.Clear()
 	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
