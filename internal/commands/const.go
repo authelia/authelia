@@ -486,7 +486,7 @@ const (
 
 	cmdFlagNamePKCS8 = "pkcs8"
 	cmdFlagNameBits  = "bits"
-	cmdFlagNameCurve = "cruve"
+	cmdFlagNameCurve = "curve"
 )
 
 const (
