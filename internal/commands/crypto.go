@@ -7,7 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
-	"path/filepath"
+	"net"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -225,10 +225,10 @@ func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		return cryptoCertificateGenerateRunE(cmd, args, privateKey)
 	}
 
-	return cryptoPairGenRunE(cmd, args, privateKey)
+	return cryptoPairGenerateRunE(cmd, args, privateKey)
 }
 
-func cryptoPairGenRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
 	var (
 		privateKeyPath, publicKeyPath string
 		pkcs8                         bool
@@ -280,6 +280,24 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (
 	return nil
 }
 
+func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
+	sans = make([]string, len(dnsSANs)+len(ipSANs))
+
+	j := 0
+
+	for i, dnsSAN := range dnsSANs {
+		sans[j] = fmt.Sprintf("DNS.%d:%s", i+1, dnsSAN)
+		j++
+	}
+
+	for i, ipSAN := range ipSANs {
+		sans[j] = fmt.Sprintf("IP.%d:%s", i+1, ipSAN)
+		j++
+	}
+
+	return sans
+}
+
 func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey interface{}) (err error) {
 	var csr bool
 
@@ -288,7 +306,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 	}
 
 	if csr {
-		return cryptoCertificateGenCSRRunE(cmd, args, privateKey)
+		return cryptoCertificateSigningRequestGenerateRunE(cmd, args, privateKey)
 	}
 
 	var (
@@ -308,19 +326,6 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 
 	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
 		return err
-	}
-
-	sans := make([]string, len(template.DNSNames)+len(template.IPAddresses))
-
-	j := 0
-
-	for i, dns := range template.DNSNames {
-		sans[i] = fmt.Sprintf("DNS.%d:%s", i+1, dns)
-		j = i
-	}
-
-	for i, ip := range template.IPAddresses {
-		sans[i+j+1] = fmt.Sprintf("IP.%d:%s", i+1, ip)
 	}
 
 	s := strings.Builder{}
@@ -355,7 +360,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 		s.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
 	}
 
-	s.WriteString(fmt.Sprintf("\tSubject Alternative Names: %s\n\n", strings.Join(sans, ", ")))
+	s.WriteString(fmt.Sprintf("\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
 	fmt.Print(s.String())
 
@@ -389,38 +394,59 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 	return nil
 }
 
-func cryptoCertificateGenCSRRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}) (err error) {
+func cryptoCertificateSigningRequestGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
 	var (
-		template                           *x509.CertificateRequest
-		data                               []byte
-		directory, privateKeyFile, csrFile string
+		template                *x509.CertificateRequest
+		csr                     []byte
+		privateKeyPath, csrPath string
 	)
 
 	if template, err = cryptoGetCSRFromCmd(cmd); err != nil {
 		return err
 	}
 
-	if data, err = x509.CreateCertificateRequest(rand.Reader, template, newPrivateKey); err != nil {
+	s := strings.Builder{}
+
+	s.WriteString("Generating Certificate Signing Request\n\n")
+
+	s.WriteString("Subject:\n")
+	s.WriteString(fmt.Sprintf("\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit))
+	s.WriteString(fmt.Sprintf("\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality))
+
+	s.WriteString("Properties:\n")
+
+	s.WriteString(fmt.Sprintf("\tSignature Algorithm: %s, Public Key Algorithm: %s", template.SignatureAlgorithm, template.PublicKeyAlgorithm))
+
+	switch k := privateKey.(type) {
+	case *rsa.PrivateKey:
+		s.WriteString(fmt.Sprintf(", Bits: %d", k.N.BitLen()))
+	case *ecdsa.PrivateKey:
+		s.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
+	}
+
+	s.WriteString(fmt.Sprintf("\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
+
+	fmt.Print(s.String())
+
+	s.Reset()
+
+	if csr, err = x509.CreateCertificateRequest(rand.Reader, template, privateKey); err != nil {
 		return fmt.Errorf("failed to create CSR: %w", err)
 	}
 
-	if directory, err = cmd.Flags().GetString(cmdFlagNameDirectory); err != nil {
+	if privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
-	if privateKeyFile, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey); err != nil {
+	fmt.Printf("Writing private key to %s\n", privateKeyPath)
+
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
 	}
 
-	if csrFile, err = cmd.Flags().GetString(cmdFlagNameFileCSR); err != nil {
-		return err
-	}
+	fmt.Printf("Writing certificate signing request to %s\n", csrPath)
 
-	if err = utils.WriteKeyToPEM(newPrivateKey, filepath.Join(directory, privateKeyFile), false); err != nil {
-		return err
-	}
-
-	if err = utils.WriteCertificateBytesToPEM(data, filepath.Join(directory, csrFile), false); err != nil {
+	if err = utils.WriteCertificateBytesToPEM(csr, csrPath, true); err != nil {
 		return err
 	}
 

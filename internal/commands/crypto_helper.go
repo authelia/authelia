@@ -69,46 +69,40 @@ func cryptoEd25519Flags(cmd *cobra.Command) {
 }
 
 func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey string, err error) {
-	dir, err := cmd.Flags().GetString(cmdFlagNameDirectory)
-	if err != nil {
+	var dir string
+
+	if dir, err = cmd.Flags().GetString(cmdFlagNameDirectory); err != nil {
 		return "", "", err
 	}
 
 	ca, _ := cmd.Flags().GetBool(cmdFlagNameCA)
+	csr, _ := cmd.Flags().GetBool(cmdFlagNameCSR)
 
 	var private, public string
 
+	var flagPrivate, flagPublic string
+
 	switch {
+	case ca && csr:
+		flagPrivate, flagPublic = cmdFlagNameFileCAPrivateKey, cmdFlagNameFileCSR
+	case csr:
+		flagPrivate, flagPublic = cmdFlagNameFilePrivateKey, cmdFlagNameFileCSR
 	case ca:
-		private, err = cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey)
-		if err != nil {
-			return "", "", err
-		}
-
-		public, err = cmd.Flags().GetString(cmdFlagNameFileCACertificate)
-		if err != nil {
-			return "", "", err
-		}
+		flagPrivate, flagPublic = cmdFlagNameFileCAPrivateKey, cmdFlagNameFileCACertificate
 	case cmd.Parent().Parent().Use == cmdUsePair:
-		private, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey)
-		if err != nil {
-			return "", "", err
-		}
-
-		public, err = cmd.Flags().GetString(cmdFlagNameFilePublicKey)
-		if err != nil {
-			return "", "", err
-		}
+		flagPrivate, flagPublic = cmdFlagNameFilePrivateKey, cmdFlagNameFilePublicKey
 	default:
-		private, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey)
-		if err != nil {
-			return "", "", err
-		}
+		flagPrivate, flagPublic = cmdFlagNameFilePrivateKey, cmdFlagNameFileCertificate
+	}
 
-		public, err = cmd.Flags().GetString(cmdFlagNameFileCertificate)
-		if err != nil {
-			return "", "", err
-		}
+	private, err = cmd.Flags().GetString(flagPrivate)
+	if err != nil {
+		return "", "", err
+	}
+
+	public, err = cmd.Flags().GetString(flagPublic)
+	if err != nil {
+		return "", "", err
 	}
 
 	return filepath.Join(dir, private), filepath.Join(dir, public), nil
@@ -201,15 +195,19 @@ func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, certificate
 }
 
 func cryptoGetCSRFromCmd(cmd *cobra.Command) (csr *x509.CertificateRequest, err error) {
-	subject, err := cryptoGetSubjectFromCmd(cmd)
-	if err != nil {
+	var (
+		subject *pkix.Name
+		dnsSANs []string
+		ipSANs  []net.IP
+	)
+
+	if subject, err = cryptoGetSubjectFromCmd(cmd); err != nil {
 		return nil, err
 	}
 
 	keyAlg, sigAlg := cryptoGetAlgFromCmd(cmd)
 
-	dnsNames, ipAddresses, err := cryptoGetSANsFromCmd(cmd)
-	if err != nil {
+	if dnsSANs, ipSANs, err = cryptoGetSANsFromCmd(cmd); err != nil {
 		return nil, err
 	}
 
@@ -218,16 +216,19 @@ func cryptoGetCSRFromCmd(cmd *cobra.Command) (csr *x509.CertificateRequest, err 
 		PublicKeyAlgorithm: keyAlg,
 		SignatureAlgorithm: sigAlg,
 
-		DNSNames:    dnsNames,
-		IPAddresses: ipAddresses,
+		DNSNames:    dnsSANs,
+		IPAddresses: ipSANs,
 	}
 
 	return csr, nil
 }
 
 func cryptoGetSANsFromCmd(cmd *cobra.Command) (dnsSANs []string, ipSANs []net.IP, err error) {
-	sans, err := cmd.Flags().GetStringSlice(cmdFlagNameSANs)
-	if err != nil {
+	var (
+		sans []string
+	)
+
+	if sans, err = cmd.Flags().GetStringSlice(cmdFlagNameSANs); err != nil {
 		return nil, nil, err
 	}
 
@@ -252,43 +253,40 @@ func cryptoGetAlgFromCmd(cmd *cobra.Command) (keyAlg x509.PublicKeyAlgorithm, si
 }
 
 func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error) {
-	commonName, err := cmd.Flags().GetString(cmdFlagNameCommonName)
-	if err != nil {
+	var (
+		commonName                                                                             string
+		organization, organizationalUnit, country, locality, province, streetAddress, postcode []string
+	)
+
+	if commonName, err = cmd.Flags().GetString(cmdFlagNameCommonName); err != nil {
 		return nil, err
 	}
 
-	organization, err := cmd.Flags().GetStringSlice(cmdFlagNameOrganization)
-	if err != nil {
+	if organization, err = cmd.Flags().GetStringSlice(cmdFlagNameOrganization); err != nil {
 		return nil, err
 	}
 
-	organizationalUnit, err := cmd.Flags().GetStringSlice(cmdFlagNameOrganizationalUnit)
-	if err != nil {
+	if organizationalUnit, err = cmd.Flags().GetStringSlice(cmdFlagNameOrganizationalUnit); err != nil {
 		return nil, err
 	}
 
-	country, err := cmd.Flags().GetStringSlice(cmdFlagNameCountry)
-	if err != nil {
+	if country, err = cmd.Flags().GetStringSlice(cmdFlagNameCountry); err != nil {
 		return nil, err
 	}
 
-	locality, err := cmd.Flags().GetStringSlice(cmdFlagNameLocality)
-	if err != nil {
+	if locality, err = cmd.Flags().GetStringSlice(cmdFlagNameLocality); err != nil {
 		return nil, err
 	}
 
-	province, err := cmd.Flags().GetStringSlice(cmdFlagNameProvince)
-	if err != nil {
+	if province, err = cmd.Flags().GetStringSlice(cmdFlagNameProvince); err != nil {
 		return nil, err
 	}
 
-	streetAddress, err := cmd.Flags().GetStringSlice(cmdFlagNameStreetAddress)
-	if err != nil {
+	if streetAddress, err = cmd.Flags().GetStringSlice(cmdFlagNameStreetAddress); err != nil {
 		return nil, err
 	}
 
-	postcode, err := cmd.Flags().GetStringSlice(cmdFlagNamePostcode)
-	if err != nil {
+	if postcode, err = cmd.Flags().GetStringSlice(cmdFlagNamePostcode); err != nil {
 		return nil, err
 	}
 
