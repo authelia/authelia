@@ -280,7 +280,7 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (
 	return nil
 }
 
-func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, newPrivateKey interface{}) (err error) {
+func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey interface{}) (err error) {
 	var csr bool
 
 	if csr, err = cmd.Flags().GetBool(cmdFlagNameCSR); err != nil {
@@ -288,16 +288,15 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, newPrivate
 	}
 
 	if csr {
-		return cryptoCertificateGenCSRRunE(cmd, args, newPrivateKey)
+		return cryptoCertificateGenCSRRunE(cmd, args, privateKey)
 	}
 
 	var (
-		template, caCertificate, parent     *x509.Certificate
-		privateKey, publicKey, caPrivateKey interface{}
-		data                                []byte
+		template, caCertificate, parent *x509.Certificate
+		publicKey, caPrivateKey         interface{}
 	)
 
-	privateKey, publicKey = newPrivateKey, utils.PublicKeyFromPrivateKey(newPrivateKey)
+	publicKey = utils.PublicKeyFromPrivateKey(privateKey)
 
 	if caPrivateKey, caCertificate, err = cryptoGetCAFromCmd(cmd); err != nil {
 		return err
@@ -349,7 +348,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, newPrivate
 
 	s.WriteString(fmt.Sprintf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, csr, template.SignatureAlgorithm, template.PublicKeyAlgorithm))
 
-	switch k := newPrivateKey.(type) {
+	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
 		s.WriteString(fmt.Sprintf(", Bits: %d", k.N.BitLen()))
 	case *ecdsa.PrivateKey:
@@ -362,13 +361,14 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, newPrivate
 
 	s.Reset()
 
-	if data, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
-		return err
-	}
-
 	var (
 		privateKeyPath, certificatePath string
+		certificate                     []byte
 	)
+
+	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
+		return err
+	}
 
 	if privateKeyPath, certificatePath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
@@ -376,13 +376,13 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, newPrivate
 
 	fmt.Printf("Writing private key to %s\n", privateKeyPath)
 
-	if err = utils.WriteKeyToPEM(newPrivateKey, privateKeyPath, false); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
 	}
 
 	fmt.Printf("Writing certificate to %s\n", certificatePath)
 
-	if err = utils.WriteCertificateBytesToPEM(data, certificatePath, false); err != nil {
+	if err = utils.WriteCertificateBytesToPEM(certificate, certificatePath, false); err != nil {
 		return err
 	}
 
