@@ -230,23 +230,29 @@ func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}) (err error) {
-	fmt.Printf("Generating key pair\n\n")
-
-	switch privateKey := newPrivateKey.(type) {
-	case *rsa.PrivateKey:
-		fmt.Printf("\tAlgorithm: RSA-%d %d bits\n\n", privateKey.Size(), privateKey.N.BitLen())
-	case *ecdsa.PrivateKey:
-		fmt.Printf("\tAlgorithm: ECDSA Curve %s\n\n", privateKey.Curve.Params().Name)
-	case ed25519.PrivateKey:
-		fmt.Printf("\tAlgorithm: Ed25519\n\n")
-	}
-
 	privateKeyPath, publicKeyPath, err := cryptoGetWritePathsFromCmd(cmd)
 	if err != nil {
 		return err
 	}
 
 	pkcs8, _ := cmd.Flags().GetBool(cmdFlagNamePKCS8)
+
+	b := strings.Builder{}
+
+	b.WriteString(fmt.Sprintf("Generating key pair\n\n"))
+
+	switch privateKey := newPrivateKey.(type) {
+	case *rsa.PrivateKey:
+		b.WriteString(fmt.Sprintf("\tAlgorithm: RSA-%d %d bits\n\n", privateKey.Size(), privateKey.N.BitLen()))
+	case *ecdsa.PrivateKey:
+		b.WriteString(fmt.Sprintf("\tAlgorithm: ECDSA Curve %s\n\n", privateKey.Curve.Params().Name))
+	case ed25519.PrivateKey:
+		b.WriteString(fmt.Sprintf("\tAlgorithm: Ed25519\n\n"))
+	}
+
+	fmt.Printf(b.String())
+
+	b.Reset()
 
 	fmt.Printf("Writing private key to %s\n", privateKeyPath)
 

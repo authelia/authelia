@@ -89,7 +89,7 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 		if err != nil {
 			return "", "", err
 		}
-	case cmd.Parent().Use == cmdUsePair:
+	case cmd.Parent().Parent().Use == cmdUsePair:
 		private, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey)
 		if err != nil {
 			return "", "", err
