@@ -145,7 +145,7 @@
     "@types/jest": "28.1.1",
     "@types/node": "16.11.41",
     "@types/qrcode.react": "1.0.2",
-    "@types/react": "18.0.12",
+    "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",
     "@types/zxcvbn": "4.4.1",
     "@typescript-eslint/eslint-plugin": "5.28.0",
