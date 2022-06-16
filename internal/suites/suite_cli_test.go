@@ -203,7 +203,7 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().Contains(output, "Writing private key to /tmp/ca.private.pem")
 	s.Assert().Contains(output, "Writing certificate to /tmp/ca.public.crt")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--ca-path", "/tmp/", "--directory=/tmp/"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--path.ca", "/tmp/", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Authelia Standalone Root Certificate Authority")
