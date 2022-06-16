@@ -95,7 +95,7 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -110,7 +110,7 @@ func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name=example.com", "--sans", "*.example.com,127.0.0.1", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans", "*.example.com,127.0.0.1", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -125,7 +125,7 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithNotBefore() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name=example.com", "--sans='*.example.com'", "--not-before", "'Jan 1 15:04:05 2011'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--not-before", "'Jan 1 15:04:05 2011'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -141,13 +141,13 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWithNotBefore() {
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithInvalidNotBefore() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name=example.com", "--sans='*.example.com'", "--not-before", "Jan", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--not-before", "Jan", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
 	s.Assert().Contains(output, "Error: failed to parse not before: parsing time \"Jan\" as \"Jan 2 15:04:05 2006\": cannot parse \"\" as \"2\"")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWith4096Bits() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--bits=4096", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--bits=4096", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -162,7 +162,7 @@ func (s *CLISuite) TestShouldGenerateCertificateRSAWith4096Bits() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name=example.com", "--sans='*.example.com'", "--country=Australia", "--organization='Acme Co.'", "--organizational-unit=Tech", "--province=QLD", "--street-address='123 Smith St'", "--postcode=4000", "--locality=Internet", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--country=Australia", "--organization='Acme Co.'", "--organizational-unit=Tech", "--province=QLD", "--street-address='123 Smith St'", "--postcode=4000", "--locality=Internet", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -177,7 +177,7 @@ func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Self-Signed")
@@ -191,7 +191,7 @@ func (s *CLISuite) TestShouldGenerateCertificateCA() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -203,7 +203,7 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().Contains(output, "Writing private key to /tmp/ca.private.pem")
 	s.Assert().Contains(output, "Writing certificate to /tmp/ca.public.crt")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "rsa", "--common-name=example.com", "--sans='*.example.com'", "--ca-path", "/tmp/", "--directory=/tmp/"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--ca-path", "/tmp/", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Authelia Standalone Root Certificate Authority")
@@ -220,7 +220,7 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "ed25519", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ed25519", "generate", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -235,13 +235,13 @@ func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "ecdsa", "--curve=invalid", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=invalid", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
 	s.Assert().Contains(output, "Error: curve must be P224, P256, P384, or P521 but an invalid curve was specified: invalid")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "ecdsa", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -256,7 +256,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "ecdsa", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -271,7 +271,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "ecdsa", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -286,7 +286,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "cert", "ecdsa", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate with serial ")
 	s.Assert().Contains(output, "Signed By: Self-Signed")
@@ -301,7 +301,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "rsa", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "rsa", "generate", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -312,7 +312,7 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "rsa", "--bits=4096", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "rsa", "generate", "--bits=4096", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -323,7 +323,7 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -334,7 +334,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "--curve=P224", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--curve=P224", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -345,7 +345,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "--curve=P256", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--curve=P256", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -356,7 +356,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "--curve=P384", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--curve=P384", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -367,7 +367,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "--curve=P521", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--curve=P521", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
@@ -378,7 +378,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
 }
 
 func (s *CLISuite) TestShouldNotGenerateECDSAKeyPairCurveInvalid() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "--curve=invalid", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--curve=invalid", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
 	s.Assert().Contains(output, "Error: curve must be P224, P256, P384, or P521 but an invalid curve was specified: invalid")
 }

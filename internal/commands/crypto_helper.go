@@ -22,99 +22,94 @@ import (
 )
 
 func cryptoCertificateGenFlags(cmd *cobra.Command) {
-	cmd.Flags().String(flagNamePathCA, "", "source directory of the certificate authority files, if not provided the certificate will be self-signed")
-	cmd.Flags().String(flagNameFileCAPrivateKey, "ca.private.pem", "certificate authority private key to use to signing this certificate")
-	cmd.Flags().String(flagNameFileCACertificate, "ca.public.crt", "certificate authority certificate to use when signing this certificate")
-	cmd.Flags().String(flagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
-	cmd.Flags().String(flagNameFileCSR, "request.csr", "name of the file to export the certificate request data to")
-	cmd.Flags().StringSlice(flagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
+	cmd.Flags().String(cmdFlagNamePathCA, "", "source directory of the certificate authority files, if not provided the certificate will be self-signed")
+	cmd.Flags().String(cmdFlagNameFileCAPrivateKey, "ca.private.pem", "certificate authority private key to use to signing this certificate")
+	cmd.Flags().String(cmdFlagNameFileCACertificate, "ca.public.crt", "certificate authority certificate to use when signing this certificate")
+	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
+	cmd.Flags().String(cmdFlagNameFileCSR, "request.csr", "name of the file to export the certificate request data to")
+	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
 
-	cmd.Flags().String(flagNameSignature, "SHA256", "signature algorithm for the certificate")
-	cmd.Flags().Bool(flagNameCA, false, "create the certificate as a certificate authority certificate")
-	cmd.Flags().Bool(flagNameCSR, false, "create a certificate signing request instead of a certificate")
+	cmd.Flags().String(cmdFlagNameSignature, "SHA256", "signature algorithm for the certificate")
+	cmd.Flags().Bool(cmdFlagNameCA, false, "create the certificate as a certificate authority certificate")
+	cmd.Flags().Bool(cmdFlagNameCSR, false, "create a certificate signing request instead of a certificate")
 
-	cmd.Flags().StringP(flagNameCommonName, "c", "", "certificate common name")
-	cmd.Flags().StringSliceP(flagNameOrganization, "o", []string{"Authelia"}, "certificate organization")
-	cmd.Flags().StringSlice(flagNameOrganizationalUnit, nil, "certificate organizational unit")
-	cmd.Flags().StringSlice(flagNameCountry, nil, "certificate country")
-	cmd.Flags().StringSlice(flagNameProvince, nil, "certificate province")
-	cmd.Flags().StringSliceP(flagNameLocality, "l", nil, "certificate locality")
-	cmd.Flags().StringSliceP(flagNameStreetAddress, "s", nil, "certificate street address")
-	cmd.Flags().StringSliceP(flagNamePostcode, "p", nil, "certificate postcode")
+	cmd.Flags().StringP(cmdFlagNameCommonName, "c", "", "certificate common name")
+	cmd.Flags().StringSliceP(cmdFlagNameOrganization, "o", []string{"Authelia"}, "certificate organization")
+	cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "certificate organizational unit")
+	cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "certificate country")
+	cmd.Flags().StringSlice(cmdFlagNameProvince, nil, "certificate province")
+	cmd.Flags().StringSliceP(cmdFlagNameLocality, "l", nil, "certificate locality")
+	cmd.Flags().StringSliceP(cmdFlagNameStreetAddress, "s", nil, "certificate street address")
+	cmd.Flags().StringSliceP(cmdFlagNamePostcode, "p", nil, "certificate postcode")
 
-	cmd.Flags().String(flagNameNotBefore, "", fmt.Sprintf("earliest date and time the certificate is considered valid formatted as %s (default is now)", timeLayoutCertificateNotBefore))
-	cmd.Flags().Duration(flagNameDuration, 365*24*time.Hour, "duration of time the certificate is valid for")
-	cmd.Flags().StringSlice(flagNameSANs, nil, "subject alternative names")
+	cmd.Flags().String(cmdFlagNameNotBefore, "", fmt.Sprintf("earliest date and time the certificate is considered valid formatted as %s (default is now)", timeLayoutCertificateNotBefore))
+	cmd.Flags().Duration(cmdFlagNameDuration, 365*24*time.Hour, "duration of time the certificate is valid for")
+	cmd.Flags().StringSlice(cmdFlagNameSANs, nil, "subject alternative names")
 }
 
 func cryptoPairGenFlags(cmd *cobra.Command) {
-	cmd.Flags().String(flagNameFilePublicKey, "public.pem", "name of the file to export the public key data to")
-	cmd.Flags().Bool(flagNamePKCS8, false, "force PKCS #8 ASN.1 format")
+	cmd.Flags().String(cmdFlagNameFilePublicKey, "public.pem", "name of the file to export the public key data to")
+	cmd.Flags().Bool(cmdFlagNamePKCS8, false, "force PKCS #8 ASN.1 format")
 }
 
 func cryptoGenFlags(cmd *cobra.Command) {
-	cmd.Flags().String(flagNameFilePrivateKey, "private.pem", "name of the file to export the private key data to")
-	cmd.Flags().StringP(flagNameDirectory, "d", "", "directory where the generated keys, certificates, etc will be stored")
+	cmd.Flags().String(cmdFlagNameFilePrivateKey, "private.pem", "name of the file to export the private key data to")
+	cmd.Flags().StringP(cmdFlagNameDirectory, "d", "", "directory where the generated keys, certificates, etc will be stored")
 }
 
 func cryptoRSAGenFlags(cmd *cobra.Command) {
-	cmd.Flags().IntP(flagNameBits, "b", 2048, "number of RSA bits for the certificate")
+	cmd.Flags().IntP(cmdFlagNameBits, "b", 2048, "number of RSA bits for the certificate")
 }
 
 func cryptoECDSAGenFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(flagNameCurve, "b", "P256", "Sets the elliptic curve which can be P224, P256, P384, or P521")
+	cmd.Flags().StringP(cmdFlagNameCurve, "b", "P256", "Sets the elliptic curve which can be P224, P256, P384, or P521")
+}
+
+func cryptoEd25519Flags(cmd *cobra.Command) {
 }
 
 func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey string, err error) {
-	dir, err := cmd.Flags().GetString(flagNameDirectory)
+	dir, err := cmd.Flags().GetString(cmdFlagNameDirectory)
 	if err != nil {
 		return "", "", err
 	}
 
-	ca, _ := cmd.Flags().GetBool(flagNameCA)
+	ca, _ := cmd.Flags().GetBool(cmdFlagNameCA)
 
 	var private, public string
 
 	switch {
 	case ca:
-		private, err = cmd.Flags().GetString(flagNameFileCAPrivateKey)
+		private, err = cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey)
 		if err != nil {
 			return "", "", err
 		}
 
-		public, err = cmd.Flags().GetString(flagNameFileCACertificate)
+		public, err = cmd.Flags().GetString(cmdFlagNameFileCACertificate)
 		if err != nil {
 			return "", "", err
 		}
-	case cmd.Parent().Use == "pair":
-		private, err = cmd.Flags().GetString(flagNameFilePrivateKey)
+	case cmd.Parent().Use == cmdUsePair:
+		private, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey)
 		if err != nil {
 			return "", "", err
 		}
 
-		public, err = cmd.Flags().GetString(flagNameFilePublicKey)
+		public, err = cmd.Flags().GetString(cmdFlagNameFilePublicKey)
 		if err != nil {
 			return "", "", err
 		}
 	default:
-		private, err = cmd.Flags().GetString(flagNameFilePrivateKey)
+		private, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey)
 		if err != nil {
 			return "", "", err
 		}
 
-		public, err = cmd.Flags().GetString(flagNameFileCertificate)
+		public, err = cmd.Flags().GetString(cmdFlagNameFileCertificate)
 		if err != nil {
 			return "", "", err
 		}
 	}
-
-	/*
-		csr, _ := cmd.Flags().GetBool("create-csr")
-
-		if csr {
-			publicExt = ".csr"
-		}
-	*/
 
 	return filepath.Join(dir, private), filepath.Join(dir, public), nil
 }
@@ -126,9 +121,9 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 		curve    elliptic.Curve
 	)
 
-	switch cmd.Use {
-	case "rsa":
-		bits, err = cmd.Flags().GetInt(flagNameBits)
+	switch cmd.Parent().Use {
+	case cmdUseRSA:
+		bits, err = cmd.Flags().GetInt(cmdFlagNameBits)
 		if err != nil {
 			return nil, err
 		}
@@ -137,8 +132,8 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 		if err != nil {
 			return nil, err
 		}
-	case "ecdsa":
-		curveStr, err = cmd.Flags().GetString(flagNameCurve)
+	case cmdUseECDSA:
+		curveStr, err = cmd.Flags().GetString(cmdFlagNameCurve)
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +147,7 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 		if err != nil {
 			return nil, err
 		}
-	case "ed25519":
+	case cmdUseEd25519:
 		_, privateKey, err = ed25519.GenerateKey(rand.Reader)
 		if err != nil {
 			return nil, err
@@ -162,47 +157,47 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 	return privateKey, nil
 }
 
-func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, cert *x509.Certificate, err error) {
-	if !cmd.Flags().Changed(flagNamePathCA) {
+func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, certificate *x509.Certificate, err error) {
+	if !cmd.Flags().Changed(cmdFlagNamePathCA) {
 		return nil, nil, nil
 	}
 
-	caPath, err := cmd.Flags().GetString(flagNamePathCA)
+	pathCA, err := cmd.Flags().GetString(cmdFlagNamePathCA)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	keyName, err := cmd.Flags().GetString(flagNameFileCAPrivateKey)
+	caPrivateKeyFileName, err := cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	certName, err := cmd.Flags().GetString(flagNameFileCACertificate)
+	caCertificateFileName, err := cmd.Flags().GetString(cmdFlagNameFileCACertificate)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	keyBytes, err := os.ReadFile(filepath.Join(caPath, keyName))
+	bytesPrivateKey, err := os.ReadFile(filepath.Join(pathCA, caPrivateKeyFileName))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	certBytes, err := os.ReadFile(filepath.Join(caPath, certName))
+	bytesCertificate, err := os.ReadFile(filepath.Join(pathCA, caCertificateFileName))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	privateKey, err = utils.ParseX509FromPEM(keyBytes)
+	privateKey, err = utils.ParseX509FromPEM(bytesPrivateKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	cert, err = utils.ParseX509CertificateFromPEM(certBytes)
+	certificate, err = utils.ParseX509CertificateFromPEM(bytesCertificate)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return privateKey, cert, nil
+	return privateKey, certificate, nil
 }
 
 func cryptoGetCSRFromCmd(cmd *cobra.Command) (csr *x509.CertificateRequest, err error) {
@@ -231,7 +226,7 @@ func cryptoGetCSRFromCmd(cmd *cobra.Command) (csr *x509.CertificateRequest, err 
 }
 
 func cryptoGetSANsFromCmd(cmd *cobra.Command) (dnsSANs []string, ipSANs []net.IP, err error) {
-	sans, err := cmd.Flags().GetStringSlice(flagNameSANs)
+	sans, err := cmd.Flags().GetStringSlice(cmdFlagNameSANs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -250,49 +245,49 @@ func cryptoGetSANsFromCmd(cmd *cobra.Command) (dnsSANs []string, ipSANs []net.IP
 }
 
 func cryptoGetAlgFromCmd(cmd *cobra.Command) (keyAlg x509.PublicKeyAlgorithm, sigAlg x509.SignatureAlgorithm) {
-	sigAlgStr, _ := cmd.Flags().GetString(flagNameSignature)
+	sigAlgStr, _ := cmd.Flags().GetString(cmdFlagNameSignature)
 	keyAlgStr := cmd.Use
 
 	return utils.KeySigAlgorithmFromString(keyAlgStr, sigAlgStr)
 }
 
 func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error) {
-	commonName, err := cmd.Flags().GetString(flagNameCommonName)
+	commonName, err := cmd.Flags().GetString(cmdFlagNameCommonName)
 	if err != nil {
 		return nil, err
 	}
 
-	organization, err := cmd.Flags().GetStringSlice(flagNameOrganization)
+	organization, err := cmd.Flags().GetStringSlice(cmdFlagNameOrganization)
 	if err != nil {
 		return nil, err
 	}
 
-	organizationalUnit, err := cmd.Flags().GetStringSlice(flagNameOrganizationalUnit)
+	organizationalUnit, err := cmd.Flags().GetStringSlice(cmdFlagNameOrganizationalUnit)
 	if err != nil {
 		return nil, err
 	}
 
-	country, err := cmd.Flags().GetStringSlice(flagNameCountry)
+	country, err := cmd.Flags().GetStringSlice(cmdFlagNameCountry)
 	if err != nil {
 		return nil, err
 	}
 
-	locality, err := cmd.Flags().GetStringSlice(flagNameLocality)
+	locality, err := cmd.Flags().GetStringSlice(cmdFlagNameLocality)
 	if err != nil {
 		return nil, err
 	}
 
-	province, err := cmd.Flags().GetStringSlice(flagNameProvince)
+	province, err := cmd.Flags().GetStringSlice(cmdFlagNameProvince)
 	if err != nil {
 		return nil, err
 	}
 
-	streetAddress, err := cmd.Flags().GetStringSlice(flagNameStreetAddress)
+	streetAddress, err := cmd.Flags().GetStringSlice(cmdFlagNameStreetAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	postcode, err := cmd.Flags().GetStringSlice(flagNamePostcode)
+	postcode, err := cmd.Flags().GetStringSlice(cmdFlagNamePostcode)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +305,7 @@ func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error)
 }
 
 func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, err error) {
-	ca, err := cmd.Flags().GetBool(flagNameCA)
+	ca, err := cmd.Flags().GetBool(cmdFlagNameCA)
 	if err != nil {
 		return nil, err
 	}
@@ -320,12 +315,12 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 		return nil, err
 	}
 
-	notBeforeStr, err := cmd.Flags().GetString(flagNameNotBefore)
+	notBeforeStr, err := cmd.Flags().GetString(cmdFlagNameNotBefore)
 	if err != nil {
 		return nil, err
 	}
 
-	duration, err := cmd.Flags().GetDuration(flagNameDuration)
+	duration, err := cmd.Flags().GetDuration(cmdFlagNameDuration)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +351,7 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 
 	keyAlg, sigAlg := cryptoGetAlgFromCmd(cmd)
 
-	extKeyUsages, _ := cmd.Flags().GetStringSlice(flagNameExtendedUsage)
+	extKeyUsages, _ := cmd.Flags().GetStringSlice(cmdFlagNameExtendedUsage)
 
 	cert = &x509.Certificate{
 		SerialNumber: serialNumber,

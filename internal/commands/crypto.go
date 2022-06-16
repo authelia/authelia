@@ -32,9 +32,64 @@ func newCryptoCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
+func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:  "generate",
+		Args: cobra.NoArgs,
+		RunE: cryptoGenerateRunE,
+	}
+
+	cryptoGenFlags(cmd)
+
+	switch category {
+	case cmdUseCertificate:
+		cryptoCertificateGenFlags(cmd)
+
+		switch algorithm {
+		case cmdUseRSA:
+			cmd.Short, cmd.Long = cmdAutheliaCryptoCertRSAGenerateShort, cmdAutheliaCryptoCertRSAGenerateLong
+			cmd.Example = cmdAutheliaCryptoCertRSAGenerateExample
+
+			cryptoRSAGenFlags(cmd)
+		case cmdUseECDSA:
+			cmd.Short, cmd.Long = cmdAutheliaCryptoCertECDSAGenerateShort, cmdAutheliaCryptoCertECDSAGenerateLong
+			cmd.Example = cmdAutheliaCryptoCertECDSAGenerateExample
+
+			cryptoECDSAGenFlags(cmd)
+		case cmdUseEd25519:
+			cmd.Short, cmd.Long = cmdAutheliaCryptoCertEd25519GenerateShort, cmdAutheliaCryptoCertEd25519GenerateLong
+			cmd.Example = cmdAutheliaCryptoCertEd25519GenerateExample
+
+			cryptoEd25519Flags(cmd)
+		}
+	case cmdUsePair:
+		cryptoPairGenFlags(cmd)
+
+		switch algorithm {
+		case cmdUseRSA:
+			cmd.Short, cmd.Long = cmdAutheliaCryptoPairRSAGenerateShort, cmdAutheliaCryptoPairRSAGenerateLong
+			cmd.Example = cmdAutheliaCryptoPairRSAGenerateExample
+
+			cryptoRSAGenFlags(cmd)
+		case cmdUseECDSA:
+			cmd.Short, cmd.Long = cmdAutheliaCryptoPairECDSAGenerateShort, cmdAutheliaCryptoPairECDSAGenerateLong
+			cmd.Example = cmdAutheliaCryptoPairECDSAGenerateExample
+
+			cryptoECDSAGenFlags(cmd)
+		case cmdUseEd25519:
+			cmd.Short, cmd.Long = cmdAutheliaCryptoPairEd25519GenerateShort, cmdAutheliaCryptoPairEd25519GenerateLong
+			cmd.Example = cmdAutheliaCryptoPairEd25519GenerateExample
+
+			cryptoEd25519Flags(cmd)
+		}
+	}
+
+	return cmd
+}
+
 func newCryptoCertCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "cert",
+		Use:     cmdUseCertificate,
 		Short:   cmdAutheliaCryptoCertShort,
 		Long:    cmdAutheliaCryptoCertLong,
 		Example: cmdAutheliaCryptoCertExample,
@@ -52,57 +107,51 @@ func newCryptoCertCmd() (cmd *cobra.Command) {
 
 func newCryptoCertRSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "rsa",
+		Use:     cmdUseRSA,
 		Short:   cmdAutheliaCryptoCertRSAShort,
 		Long:    cmdAutheliaCryptoCertRSALong,
 		Example: cmdAutheliaCryptoCertRSAExample,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenRunE,
 	}
 
-	cryptoGenFlags(cmd)
-	cryptoCertificateGenFlags(cmd)
-	cryptoRSAGenFlags(cmd)
+	cmd.AddCommand(newCryptoGenerateCmd(cmdUseCertificate, cmdUseRSA))
 
 	return cmd
 }
 
 func newCryptoCertECDSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "ecdsa",
+		Use:     cmdUseECDSA,
 		Short:   cmdAutheliaCryptoCertECDSAShort,
 		Long:    cmdAutheliaCryptoCertECDSALong,
 		Example: cmdAutheliaCryptoCertECDSAExample,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenRunE,
+		RunE:    cryptoGenerateRunE,
 	}
 
-	cryptoGenFlags(cmd)
-	cryptoCertificateGenFlags(cmd)
-	cryptoECDSAGenFlags(cmd)
+	cmd.AddCommand(newCryptoGenerateCmd(cmdUseCertificate, cmdUseECDSA))
 
 	return cmd
 }
 
 func newCryptoCertEd25519Cmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "ed25519",
+		Use:     cmdUseEd25519,
 		Short:   cmdAutheliaCryptoCertEd25519Short,
 		Long:    cmdAutheliaCryptoCertEd25519Long,
 		Example: cmdAutheliaCryptoCertEd25519Example,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenRunE,
+		RunE:    cryptoGenerateRunE,
 	}
 
-	cryptoGenFlags(cmd)
-	cryptoCertificateGenFlags(cmd)
+	cmd.AddCommand(newCryptoGenerateCmd(cmdUseCertificate, cmdUseEd25519))
 
 	return cmd
 }
 
 func newCryptoPairCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "pair",
+		Use:     cmdUsePair,
 		Short:   cmdAutheliaCryptoPairShort,
 		Long:    cmdAutheliaCryptoPairLong,
 		Example: cmdAutheliaCryptoPairExample,
@@ -120,55 +169,54 @@ func newCryptoPairCmd() (cmd *cobra.Command) {
 
 func newCryptoPairRSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "rsa",
+		Use:     cmdUseRSA,
 		Short:   cmdAutheliaCryptoPairRSAShort,
 		Long:    cmdAutheliaCryptoPairRSALong,
 		Example: cmdAutheliaCryptoPairRSAExample,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenRunE,
+		RunE:    cryptoGenerateRunE,
 	}
 
-	cryptoGenFlags(cmd)
-	cryptoPairGenFlags(cmd)
-	cryptoRSAGenFlags(cmd)
+	//cryptoGenFlags(cmd)
+	//cryptoPairGenFlags(cmd)
+	//cryptoRSAGenFlags(cmd)
+
+	cmd.AddCommand(newCryptoGenerateCmd(cmdUsePair, cmdUseRSA))
 
 	return cmd
 }
 
 func newCryptoPairECDSACmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "ecdsa",
+		Use:     cmdUseECDSA,
 		Short:   cmdAutheliaCryptoPairECDSAShort,
 		Long:    cmdAutheliaCryptoPairECDSALong,
 		Example: cmdAutheliaCryptoPairECDSAExample,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenRunE,
+		RunE:    cryptoGenerateRunE,
 	}
 
-	cryptoGenFlags(cmd)
-	cryptoPairGenFlags(cmd)
-	cryptoECDSAGenFlags(cmd)
+	cmd.AddCommand(newCryptoGenerateCmd(cmdUsePair, cmdUseECDSA))
 
 	return cmd
 }
 
 func newCryptoPairEd25519Cmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "ed25519",
+		Use:     cmdUseEd25519,
 		Short:   cmdAutheliaCryptoPairEd25519Short,
 		Long:    cmdAutheliaCryptoPairEd25519Long,
 		Example: cmdAutheliaCryptoPairEd25519Example,
 		Args:    cobra.NoArgs,
-		RunE:    cryptoGenRunE,
+		RunE:    cryptoGenerateRunE,
 	}
 
-	cryptoGenFlags(cmd)
-	cryptoPairGenFlags(cmd)
+	cmd.AddCommand(newCryptoGenerateCmd(cmdUsePair, cmdUseEd25519))
 
 	return cmd
 }
 
-func cryptoGenRunE(cmd *cobra.Command, args []string) (err error) {
+func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		privateKey interface{}
 	)
@@ -178,7 +226,7 @@ func cryptoGenRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if cmd.Parent().Use == "cert" {
+	if cmd.Parent().Parent().Use == cmdUseCertificate {
 		return cryptoCertificateGenRunE(cmd, args, privateKey)
 	}
 
@@ -202,12 +250,11 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}
 		return err
 	}
 
-	pkcs8, _ := cmd.Flags().GetBool(flagNamePKCS8)
+	pkcs8, _ := cmd.Flags().GetBool(cmdFlagNamePKCS8)
 
 	fmt.Printf("Writing private key to %s\n", privateKeyPath)
 
-	err = utils.WriteKeyToPEM(newPrivateKey, privateKeyPath, pkcs8)
-	if err != nil {
+	if err = utils.WriteKeyToPEM(newPrivateKey, privateKeyPath, pkcs8); err != nil {
 		return err
 	}
 
@@ -218,8 +265,7 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}
 
 	fmt.Printf("Writing public key to %s\n", publicKeyPath)
 
-	err = utils.WriteKeyToPEM(newPublicKey, publicKeyPath, pkcs8)
-	if err != nil {
+	if err = utils.WriteKeyToPEM(newPublicKey, publicKeyPath, pkcs8); err != nil {
 		return err
 	}
 
@@ -227,7 +273,7 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}
 }
 
 func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey interface{}) (err error) {
-	isCSR, err := cmd.Flags().GetBool(flagNameCSR)
+	isCSR, err := cmd.Flags().GetBool(cmdFlagNameCSR)
 	if err != nil {
 		return err
 	}
@@ -244,8 +290,7 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 
 	priv, pub = newPrivateKey, utils.PublicKeyFromPrivateKey(newPrivateKey)
 
-	caPrivateKey, caCert, err = cryptoGetCAFromCmd(cmd)
-	if err != nil {
+	if caPrivateKey, caCert, err = cryptoGetCAFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -253,8 +298,7 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 		priv = caPrivateKey
 	}
 
-	template, err = cryptoGetCertificateFromCmd(cmd)
-	if err != nil {
+	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
 		return err
 	}
 
@@ -305,27 +349,27 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 	fmt.Printf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s%s\n", template.IsCA, isCSR, template.SignatureAlgorithm, template.PublicKeyAlgorithm, extra)
 	fmt.Printf("\tSubject Alternative Names: %s\n\n", strings.Join(sans, ", "))
 
-	data, err = x509.CreateCertificate(rand.Reader, template, parent, pub, priv)
-	if err != nil {
+	if data, err = x509.CreateCertificate(rand.Reader, template, parent, pub, priv); err != nil {
 		return err
 	}
 
-	privateKeyPath, certificatePath, err := cryptoGetWritePathsFromCmd(cmd)
-	if err != nil {
+	var (
+		privateKeyPath, certificatePath string
+	)
+
+	if privateKeyPath, certificatePath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
 	fmt.Printf("Writing private key to %s\n", privateKeyPath)
 
-	err = utils.WriteKeyToPEM(newPrivateKey, privateKeyPath, false)
-	if err != nil {
+	if err = utils.WriteKeyToPEM(newPrivateKey, privateKeyPath, false); err != nil {
 		return err
 	}
 
 	fmt.Printf("Writing certificate to %s\n", certificatePath)
 
-	err = utils.WriteCertificateBytesToPEM(data, certificatePath, false)
-	if err != nil {
+	if err = utils.WriteCertificateBytesToPEM(data, certificatePath, false); err != nil {
 		return err
 	}
 
@@ -334,42 +378,36 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 
 func cryptoCertificateGenCSRRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}) (err error) {
 	var (
-		template *x509.CertificateRequest
-		data     []byte
+		template                           *x509.CertificateRequest
+		data                               []byte
+		directory, privateKeyFile, csrFile string
 	)
 
-	template, err = cryptoGetCSRFromCmd(cmd)
-	if err != nil {
+	if template, err = cryptoGetCSRFromCmd(cmd); err != nil {
 		return err
 	}
 
-	data, err = x509.CreateCertificateRequest(rand.Reader, template, newPrivateKey)
-	if err != nil {
+	if data, err = x509.CreateCertificateRequest(rand.Reader, template, newPrivateKey); err != nil {
 		return fmt.Errorf("failed to create CSR: %w", err)
 	}
 
-	dir, err := cmd.Flags().GetString(flagNameDirectory)
-	if err != nil {
+	if directory, err = cmd.Flags().GetString(cmdFlagNameDirectory); err != nil {
 		return err
 	}
 
-	key, err := cmd.Flags().GetString(flagNameFilePrivateKey)
-	if err != nil {
+	if privateKeyFile, err = cmd.Flags().GetString(cmdFlagNameFilePrivateKey); err != nil {
 		return err
 	}
 
-	csr, err := cmd.Flags().GetString(flagNameFileCSR)
-	if err != nil {
+	if csrFile, err = cmd.Flags().GetString(cmdFlagNameFileCSR); err != nil {
 		return err
 	}
 
-	err = utils.WriteKeyToPEM(newPrivateKey, filepath.Join(dir, key), false)
-	if err != nil {
+	if err = utils.WriteKeyToPEM(newPrivateKey, filepath.Join(directory, privateKeyFile), false); err != nil {
 		return err
 	}
 
-	err = utils.WriteCertificateBytesToPEM(data, filepath.Join(dir, csr), false)
-	if err != nil {
+	if err = utils.WriteCertificateBytesToPEM(data, filepath.Join(directory, csrFile), false); err != nil {
 		return err
 	}
 
