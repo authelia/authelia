@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -311,7 +312,9 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 
 	s := strings.Builder{}
 
-	s.WriteString(fmt.Sprintf("Generating Certificate with serial %x\n\n", template.SerialNumber))
+	s.WriteString("Generating Certificate\n\n")
+
+	s.WriteString(fmt.Sprintf("\tSerial: %x\n\n", template.SerialNumber))
 
 	switch caCertificate {
 	case nil:
@@ -322,15 +325,15 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 		parent = caCertificate
 
 		s.WriteString(fmt.Sprintf("Signed By: %s\n", caCertificate.Subject.CommonName))
-		s.WriteString(fmt.Sprintf("\tSerial: %x, Expires: %v\n\n", caCertificate.SerialNumber, caCertificate.NotAfter))
+		s.WriteString(fmt.Sprintf("\tSerial: %x, Expires: %s\n", caCertificate.SerialNumber, caCertificate.NotAfter.Format(time.RFC3339)))
 	}
 
-	s.WriteString("Subject:\n")
+	s.WriteString("\nSubject:\n")
 	s.WriteString(fmt.Sprintf("\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit))
 	s.WriteString(fmt.Sprintf("\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality))
 
 	s.WriteString("Properties:\n")
-	s.WriteString(fmt.Sprintf("\tNot Before: %v, Not After: %v\n", template.NotBefore, template.NotAfter))
+	s.WriteString(fmt.Sprintf("\tNot Before: %s, Not After: %s\n", template.NotBefore.Format(time.RFC3339), template.NotAfter.Format(time.RFC3339)))
 
 	s.WriteString(fmt.Sprintf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, csr, template.SignatureAlgorithm, template.PublicKeyAlgorithm))
 
@@ -341,32 +344,32 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 		s.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
 	}
 
-	s.WriteString(fmt.Sprintf("\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
-
-	fmt.Print(s.String())
-
-	s.Reset()
+	s.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
 
 	var (
 		privateKeyPath, certificatePath string
 		certificate                     []byte
 	)
 
-	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
-		return err
-	}
-
 	if privateKeyPath, certificatePath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
 		return err
 	}
 
-	fmt.Printf("Writing private key to %s\n", privateKeyPath)
+	s.WriteString("Output Paths:\n")
+	s.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
+	s.WriteString(fmt.Sprintf("\tCertificate: %s\n\n", certificatePath))
+
+	fmt.Print(s.String())
+
+	s.Reset()
+
+	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
+		return err
+	}
 
 	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
 	}
-
-	fmt.Printf("Writing certificate to %s\n", certificatePath)
 
 	if err = utils.WriteCertificateBytesToPEM(certificate, certificatePath, false); err != nil {
 		return err
@@ -405,7 +408,15 @@ func cryptoCertificateSigningRequestGenerateRunE(cmd *cobra.Command, _ []string,
 		s.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
 	}
 
-	s.WriteString(fmt.Sprintf("\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
+	s.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
+
+	if privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
+		return err
+	}
+
+	s.WriteString("Output Paths:\n")
+	s.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
+	s.WriteString(fmt.Sprintf("\tCertificate Signing Request: %s\n\n", csrPath))
 
 	fmt.Print(s.String())
 
@@ -419,13 +430,9 @@ func cryptoCertificateSigningRequestGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
-	fmt.Printf("Writing private key to %s\n", privateKeyPath)
-
 	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {
 		return err
 	}
-
-	fmt.Printf("Writing certificate signing request to %s\n", csrPath)
 
 	if err = utils.WriteCertificateBytesToPEM(csr, csrPath, true); err != nil {
 		return err
