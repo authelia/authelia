@@ -7,7 +7,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
-	"net"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -278,24 +277,6 @@ func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface
 	}
 
 	return nil
-}
-
-func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
-	sans = make([]string, len(dnsSANs)+len(ipSANs))
-
-	j := 0
-
-	for i, dnsSAN := range dnsSANs {
-		sans[j] = fmt.Sprintf("DNS.%d:%s", i+1, dnsSAN)
-		j++
-	}
-
-	for i, ipSAN := range ipSANs {
-		sans[j] = fmt.Sprintf("IP.%d:%s", i+1, ipSAN)
-		j++
-	}
-
-	return sans
 }
 
 func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey interface{}) (err error) {

@@ -68,6 +68,24 @@ func cryptoECDSAGenFlags(cmd *cobra.Command) {
 func cryptoEd25519Flags(cmd *cobra.Command) {
 }
 
+func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
+	sans = make([]string, len(dnsSANs)+len(ipSANs))
+
+	j := 0
+
+	for i, dnsSAN := range dnsSANs {
+		sans[j] = fmt.Sprintf("DNS.%d:%s", i+1, dnsSAN)
+		j++
+	}
+
+	for i, ipSAN := range ipSANs {
+		sans[j] = fmt.Sprintf("IP.%d:%s", i+1, ipSAN)
+		j++
+	}
+
+	return sans
+}
+
 func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey string, err error) {
 	var dir string
 
@@ -95,13 +113,11 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 		flagPrivate, flagPublic = cmdFlagNameFilePrivateKey, cmdFlagNameFileCertificate
 	}
 
-	private, err = cmd.Flags().GetString(flagPrivate)
-	if err != nil {
+	if private, err = cmd.Flags().GetString(flagPrivate); err != nil {
 		return "", "", err
 	}
 
-	public, err = cmd.Flags().GetString(flagPublic)
-	if err != nil {
+	if public, err = cmd.Flags().GetString(flagPublic); err != nil {
 		return "", "", err
 	}
 
@@ -117,33 +133,27 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 
 	switch cmd.Parent().Use {
 	case cmdUseRSA:
-		bits, err = cmd.Flags().GetInt(cmdFlagNameBits)
-		if err != nil {
+		if bits, err = cmd.Flags().GetInt(cmdFlagNameBits); err != nil {
 			return nil, err
 		}
 
-		privateKey, err = rsa.GenerateKey(rand.Reader, bits)
-		if err != nil {
+		if privateKey, err = rsa.GenerateKey(rand.Reader, bits); err != nil {
 			return nil, err
 		}
 	case cmdUseECDSA:
-		curveStr, err = cmd.Flags().GetString(cmdFlagNameCurve)
-		if err != nil {
+		if curveStr, err = cmd.Flags().GetString(cmdFlagNameCurve); err != nil {
 			return nil, err
 		}
 
-		curve = utils.EllipticCurveFromString(curveStr)
-		if curve == nil {
+		if curve = utils.EllipticCurveFromString(curveStr); curve == nil {
 			return nil, fmt.Errorf("curve must be P224, P256, P384, or P521 but an invalid curve was specified: %s", curveStr)
 		}
 
-		privateKey, err = ecdsa.GenerateKey(curve, rand.Reader)
-		if err != nil {
+		if privateKey, err = ecdsa.GenerateKey(curve, rand.Reader); err != nil {
 			return nil, err
 		}
 	case cmdUseEd25519:
-		_, privateKey, err = ed25519.GenerateKey(rand.Reader)
-		if err != nil {
+		if _, privateKey, err = ed25519.GenerateKey(rand.Reader); err != nil {
 			return nil, err
 		}
 	}
@@ -156,33 +166,35 @@ func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, certificate
 		return nil, nil, nil
 	}
 
-	pathCA, err := cmd.Flags().GetString(cmdFlagNamePathCA)
-	if err != nil {
+	var (
+		dir, privateKeyFileName, certificateFileName string
+	)
+
+	if dir, err = cmd.Flags().GetString(cmdFlagNamePathCA); err != nil {
 		return nil, nil, err
 	}
 
-	caPrivateKeyFileName, err := cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey)
-	if err != nil {
+	if privateKeyFileName, err = cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey); err != nil {
 		return nil, nil, err
 	}
 
-	caCertificateFileName, err := cmd.Flags().GetString(cmdFlagNameFileCACertificate)
-	if err != nil {
+	if certificateFileName, err = cmd.Flags().GetString(cmdFlagNameFileCACertificate); err != nil {
 		return nil, nil, err
 	}
 
-	bytesPrivateKey, err := os.ReadFile(filepath.Join(pathCA, caPrivateKeyFileName))
-	if err != nil {
+	var (
+		bytesPrivateKey, bytesCertificate []byte
+	)
+
+	if bytesPrivateKey, err = os.ReadFile(filepath.Join(dir, privateKeyFileName)); err != nil {
 		return nil, nil, err
 	}
 
-	bytesCertificate, err := os.ReadFile(filepath.Join(pathCA, caCertificateFileName))
-	if err != nil {
+	if bytesCertificate, err = os.ReadFile(filepath.Join(dir, certificateFileName)); err != nil {
 		return nil, nil, err
 	}
 
-	privateKey, err = utils.ParseX509FromPEM(bytesPrivateKey)
-	if err != nil {
+	if privateKey, err = utils.ParseX509FromPEM(bytesPrivateKey); err != nil {
 		return nil, nil, err
 	}
 
@@ -302,7 +314,7 @@ func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error)
 	}, nil
 }
 
-func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, err error) {
+func cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certificate, err error) {
 	var (
 		ca           bool
 		subject      *pkix.Name
@@ -327,18 +339,17 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 	}
 
 	var (
-		notBefore    time.Time
-		serialNumber *big.Int
-		dnsSANs      []string
-		ipSANs       []net.IP
+		notBefore             time.Time
+		serialNumber          *big.Int
+		dnsSANs, extKeyUsages []string
+		ipSANs                []net.IP
 	)
 
 	switch len(notBeforeStr) {
 	case 0:
 		notBefore = time.Now()
 	default:
-		notBefore, err = time.Parse(timeLayoutCertificateNotBefore, notBeforeStr)
-		if err != nil {
+		if notBefore, err = time.Parse(timeLayoutCertificateNotBefore, notBeforeStr); err != nil {
 			return nil, fmt.Errorf("failed to parse not before: %w", err)
 		}
 	}
@@ -355,9 +366,11 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 
 	keyAlg, sigAlg := cryptoGetAlgFromCmd(cmd)
 
-	extKeyUsages, _ := cmd.Flags().GetStringSlice(cmdFlagNameExtendedUsage)
+	if extKeyUsages, err = cmd.Flags().GetStringSlice(cmdFlagNameExtendedUsage); err != nil {
+		return nil, err
+	}
 
-	cert = &x509.Certificate{
+	certificate = &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject:      *subject,
 
@@ -378,7 +391,7 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 		BasicConstraintsValid: true,
 	}
 
-	return cert, nil
+	return certificate, nil
 }
 
 func cryptoGetExtKeyUsage(extKeyUsages []string, ca bool) (extKeyUsage []x509.ExtKeyUsage) {
