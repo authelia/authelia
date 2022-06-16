@@ -302,39 +302,77 @@ prior to deploying it.`
 	cmdAutheliaValidateConfigExample = `authelia validate-config
 authelia validate-config --config config.yml`
 
-	cmdAutheliaCertificatesShort = "Commands related to certificate generation"
+	cmdAutheliaCryptoShort = "Commands related to cryptographic operations"
 
-	cmdAutheliaCertificatesLong = `Commands related to certificate generation.
+	cmdAutheliaCryptoLong = `Commands related to cryptographic operations.
 
-This subcommand allows preforming X509 certificate tasks.`
+This subcommand allows preforming cryptographic certificate, key pair, etc tasks.`
 
-	cmdAutheliaCertificatesExample = `authelia certificates --help`
+	cmdAutheliaCryptoExample = `authelia crypto --help`
 
-	cmdAutheliaCertificatesGenerateShort = "Generate a self-signed certificate"
+	cmdAutheliaCryptoCertShort = "Commands related to certificate cryptographic operations"
 
-	cmdAutheliaCertificatesGenerateLong = `Generate a self-signed certificate.
+	cmdAutheliaCryptoCertLong = `Commands related to certificate cryptographic operations.
 
-This subcommand allows generating self-signed certificates.`
+This subcommand allows preforming certificate cryptographic tasks.`
 
-	cmdAutheliaCertificatesGenerateExample = `authelia certificates generate
-authelia certificates generate --dir ./out`
+	cmdAutheliaCryptoCertExample = `authelia crypto cert --help`
 
-	cmdAutheliaRSAShort = "Commands related to rsa keypair generation"
+	cmdAutheliaCryptoCertRSAShort = "Commands related to certificate cryptographic operations"
 
-	cmdAutheliaRSALong = `Commands related to rsa keypair generation.
+	cmdAutheliaCryptoCertRSALong = `Commands related to certificate cryptographic operations.
 
-This subcommand allows performing RSA keypair tasks.`
+This subcommand allows preforming certificate cryptographic tasks.`
 
-	cmdAutheliaRSAExample = `authelia rsa --help`
+	cmdAutheliaCryptoCertRSAExample = `authelia crypto cert --help`
 
-	cmdAutheliaRSAGenerateShort = "Generate a RSA keypair"
+	cmdAutheliaCryptoCertECDSAShort = "Commands related to certificate cryptographic operations"
 
-	cmdAutheliaRSAGenerateLong = `Generate a RSA keypair.
+	cmdAutheliaCryptoCertECDSALong = `Commands related to certificate cryptographic operations.
 
-This subcommand allows generating an RSA keypair.`
+This subcommand allows preforming certificate cryptographic tasks.`
 
-	cmdAutheliaRSAGenerateExample = `authelia rsa generate
-authelia rsa generate --dir ./out`
+	cmdAutheliaCryptoCertECDSAExample = `authelia crypto cert --help`
+
+	cmdAutheliaCryptoCertEd25519Short = "Commands related to certificate cryptographic operations"
+
+	cmdAutheliaCryptoCertEd25519Long = `Commands related to certificate cryptographic operations.
+
+This subcommand allows preforming certificate cryptographic tasks.`
+
+	cmdAutheliaCryptoCertEd25519Example = `authelia crypto cert --help`
+
+	cmdAutheliaCryptoPairShort = "Commands related to key pair key pair operations"
+
+	cmdAutheliaCryptoPairLong = `Commands related to key pair cryptographic operations.
+
+This subcommand allows preforming key pair cryptographic tasks.`
+
+	cmdAutheliaCryptoPairExample = `authelia crypto pair --help`
+
+	cmdAutheliaCryptoPairRSAShort = "Commands related to key pair key pair operations"
+
+	cmdAutheliaCryptoPairRSALong = `Commands related to key pair cryptographic operations.
+
+This subcommand allows preforming key pair cryptographic tasks.`
+
+	cmdAutheliaCryptoPairRSAExample = `authelia crypto pair rsa --help`
+
+	cmdAutheliaCryptoPairECDSAShort = "Commands related to key pair key pair operations"
+
+	cmdAutheliaCryptoPairECDSALong = `Commands related to key pair cryptographic operations.
+
+This subcommand allows preforming key pair cryptographic tasks.`
+
+	cmdAutheliaCryptoPairECDSAExample = `authelia crypto pair rsa --help`
+
+	cmdAutheliaCryptoPairEd25519Short = "Commands related to key pair key pair operations"
+
+	cmdAutheliaCryptoPairEd25519Long = `Commands related to key pair cryptographic operations.
+
+This subcommand allows preforming key pair cryptographic tasks.`
+
+	cmdAutheliaCryptoPairEd25519Example = `authelia crypto pair rsa --help`
 
 	cmdAutheliaHashPasswordShort = "Hash a password to be used in file-based users database."
 
@@ -369,11 +407,38 @@ const (
 )
 
 const (
-	flagNamePrivateKey    = "private-key"
-	flagNamePublicKey     = "public-key"
-	flagNameCertificate   = "certificate"
-	flagNameCAPrivateKey  = "ca-private-key"
-	flagNameCACertificate = "ca-certificate"
+	flagNameDirectory = "directory"
+
+	flagNamePathCA = "path.ca"
+
+	flagNameFilePrivateKey    = "file.private-key"
+	flagNameFilePublicKey     = "file.public-key"
+	flagNameFileCertificate   = "file.certificate"
+	flagNameFileCAPrivateKey  = "file.ca-private-key"
+	flagNameFileCACertificate = "file.ca-certificate"
+	flagNameFileCSR           = "file.csr"
+
+	flagNameExtendedUsage = "extended-usage"
+	flagNameSignature     = "signature"
+	flagNameCA            = "ca"
+	flagNameCSR           = "csr"
+	flagNameSANs          = "sans"
+
+	flagNameCommonName         = "common-name"
+	flagNameOrganization       = "organization"
+	flagNameOrganizationalUnit = "organizational-unit"
+	flagNameCountry            = "country"
+	flagNameProvince           = "province"
+	flagNameLocality           = "locality"
+	flagNameStreetAddress      = "street-address"
+	flagNamePostcode           = "postcode"
+
+	flagNameNotBefore = "not-before"
+	flagNameDuration  = "duration"
+
+	flagNamePKCS8 = "pkcs8"
+	flagNameBits  = "bits"
+	flagNameCurve = "cruve"
 )
 
 var (
