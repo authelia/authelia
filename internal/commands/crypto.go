@@ -217,19 +217,18 @@ func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		privateKey interface{}
 	)
 
-	privateKey, err = cryptoGenPrivateKeyFromCmd(cmd)
-	if err != nil {
+	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
 		return err
 	}
 
 	if cmd.Parent().Parent().Use == cmdUseCertificate {
-		return cryptoCertificateGenRunE(cmd, args, privateKey)
+		return cryptoCertificateGenerateRunE(cmd, args, privateKey)
 	}
 
 	return cryptoPairGenRunE(cmd, args, privateKey)
 }
 
-func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}) (err error) {
+func cryptoPairGenRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
 	var (
 		privateKeyPath, publicKeyPath string
 		pkcs8                         bool
@@ -247,11 +246,11 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}
 
 	b.WriteString("Generating key pair\n\n")
 
-	switch privateKey := newPrivateKey.(type) {
+	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
-		b.WriteString(fmt.Sprintf("\tAlgorithm: RSA-%d %d bits\n\n", privateKey.Size(), privateKey.N.BitLen()))
+		b.WriteString(fmt.Sprintf("\tAlgorithm: RSA-%d %d bits\n\n", k.Size(), k.N.BitLen()))
 	case *ecdsa.PrivateKey:
-		b.WriteString(fmt.Sprintf("\tAlgorithm: ECDSA Curve %s\n\n", privateKey.Curve.Params().Name))
+		b.WriteString(fmt.Sprintf("\tAlgorithm: ECDSA Curve %s\n\n", k.Curve.Params().Name))
 	case ed25519.PrivateKey:
 		b.WriteString("\tAlgorithm: Ed25519\n\n")
 	}
@@ -262,31 +261,33 @@ func cryptoPairGenRunE(cmd *cobra.Command, _ []string, newPrivateKey interface{}
 
 	fmt.Printf("Writing private key to %s\n", privateKeyPath)
 
-	if err = utils.WriteKeyToPEM(newPrivateKey, privateKeyPath, pkcs8); err != nil {
+	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, pkcs8); err != nil {
 		return err
 	}
 
-	newPublicKey := utils.PublicKeyFromPrivateKey(newPrivateKey)
-	if newPublicKey == nil {
+	var publicKey interface{}
+
+	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
 		return fmt.Errorf("failed to obtain public key from private key")
 	}
 
 	fmt.Printf("Writing public key to %s\n", publicKeyPath)
 
-	if err = utils.WriteKeyToPEM(newPublicKey, publicKeyPath, pkcs8); err != nil {
+	if err = utils.WriteKeyToPEM(publicKey, publicKeyPath, pkcs8); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey interface{}) (err error) {
-	isCSR, err := cmd.Flags().GetBool(cmdFlagNameCSR)
-	if err != nil {
+func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, newPrivateKey interface{}) (err error) {
+	var csr bool
+
+	if csr, err = cmd.Flags().GetBool(cmdFlagNameCSR); err != nil {
 		return err
 	}
 
-	if isCSR {
+	if csr {
 		return cryptoCertificateGenCSRRunE(cmd, args, newPrivateKey)
 	}
 
@@ -323,39 +324,43 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 		sans[i+j+1] = fmt.Sprintf("IP.%d:%s", i+1, ip)
 	}
 
-	fmt.Printf("Generating Certificate with serial %x\n\n", template.SerialNumber)
+	s := strings.Builder{}
+
+	s.WriteString(fmt.Sprintf("Generating Certificate with serial %x\n\n", template.SerialNumber))
 
 	switch caCertificate {
 	case nil:
 		parent = template
 
-		fmt.Println("\tSigned By: Self-Signed")
-		fmt.Println("")
+		s.WriteString("\tSigned By: Self-Signed\n")
 	default:
 		parent = caCertificate
 
-		fmt.Printf("Signed By: %s\n", caCertificate.Subject.CommonName)
-		fmt.Printf("\tSerial: %x, Expires: %v\n\n", caCertificate.SerialNumber, caCertificate.NotAfter)
+		s.WriteString(fmt.Sprintf("Signed By: %s\n", caCertificate.Subject.CommonName))
+		s.WriteString(fmt.Sprintf("\tSerial: %x, Expires: %v\n\n", caCertificate.SerialNumber, caCertificate.NotAfter))
 	}
 
-	fmt.Println("Subject:")
-	fmt.Printf("\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit)
-	fmt.Printf("\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality)
+	s.WriteString("Subject:\n")
+	s.WriteString(fmt.Sprintf("\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit))
+	s.WriteString(fmt.Sprintf("\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality))
 
-	fmt.Println("Properties:")
-	fmt.Printf("\tNot Before: %v, Not After: %v\n", template.NotBefore, template.NotAfter)
+	s.WriteString("Properties:\n")
+	s.WriteString(fmt.Sprintf("\tNot Before: %v, Not After: %v\n", template.NotBefore, template.NotAfter))
 
-	var extra string
+	s.WriteString(fmt.Sprintf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, csr, template.SignatureAlgorithm, template.PublicKeyAlgorithm))
 
 	switch k := newPrivateKey.(type) {
 	case *rsa.PrivateKey:
-		extra = fmt.Sprintf(", Bits: %d", k.N.BitLen())
+		s.WriteString(fmt.Sprintf(", Bits: %d", k.N.BitLen()))
 	case *ecdsa.PrivateKey:
-		extra = fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name)
+		s.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
 	}
 
-	fmt.Printf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s%s\n", template.IsCA, isCSR, template.SignatureAlgorithm, template.PublicKeyAlgorithm, extra)
-	fmt.Printf("\tSubject Alternative Names: %s\n\n", strings.Join(sans, ", "))
+	s.WriteString(fmt.Sprintf("\tSubject Alternative Names: %s\n\n", strings.Join(sans, ", ")))
+
+	fmt.Print(s.String())
+
+	s.Reset()
 
 	if data, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
 		return err
