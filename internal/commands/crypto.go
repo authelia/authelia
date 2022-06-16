@@ -320,11 +320,11 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 	case nil:
 		parent = template
 
-		s.WriteString("\tSigned By: Self-Signed\n")
+		s.WriteString("Signed By:\n\tSelf-Signed\n")
 	default:
 		parent = caCertificate
 
-		s.WriteString(fmt.Sprintf("Signed By: %s\n", caCertificate.Subject.CommonName))
+		s.WriteString(fmt.Sprintf("Signed By:\n\t%s\n", caCertificate.Subject.CommonName))
 		s.WriteString(fmt.Sprintf("\tSerial: %x, Expires: %s\n", caCertificate.SerialNumber, caCertificate.NotAfter.Format(time.RFC3339)))
 	}
 

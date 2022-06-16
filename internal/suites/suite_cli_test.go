@@ -97,47 +97,53 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithIPAddress() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans", "*.example.com,127.0.0.1", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com, IP.1:127.0.0.1")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com, IP.1:127.0.0.1")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSAWithNotBefore() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--not-before", "'Jan 1 15:04:05 2011'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "Not Before: 2011-01-01 15:04:05 +0000 UTC, Not After: 2012-01-01 15:04:05 +0000 UTC")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tNot Before: 2011-01-01T15:04:05Z, Not After: 2012-01-01T15:04:05Z")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithInvalidNotBefore() {
@@ -149,89 +155,103 @@ func (s *CLISuite) TestShouldFailGenerateCertificateRSAWithInvalidNotBefore() {
 func (s *CLISuite) TestShouldGenerateCertificateRSAWith4096Bits() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--bits=4096", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 4096")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 4096")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateWithCustomizedSubject() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--country=Australia", "--organization='Acme Co.'", "--organizational-unit=Tech", "--province=QLD", "--street-address='123 Smith St'", "--postcode=4000", "--locality=Internet", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Acme Co.], Organizational Unit: [Tech]")
-	s.Assert().Contains(output, "Country: [Australia], Province: [QLD], Street Address: [123 Smith St], Postal Code: [4000], Locality: [Internet]")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Acme Co.], Organizational Unit: [Tech]")
+	s.Assert().Contains(output, "\tCountry: [Australia], Province: [QLD], Street Address: [123 Smith St], Postal Code: [4000], Locality: [Internet]")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Self-Signed")
-	s.Assert().Contains(output, "Common Name: Authelia Standalone Root Certificate Authority, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: true, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names: ")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/ca.private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/ca.public.crt")
+	s.Assert().Contains(output, "\tCommon Name: Authelia Standalone Root Certificate Authority, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: true, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: ")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/ca.private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/ca.public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
-	s.Assert().Contains(output, "Common Name: Authelia Standalone Root Certificate Authority, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: true, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names:")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/ca.private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/ca.public.crt")
+	s.Assert().Contains(output, "\tCommon Name: Authelia Standalone Root Certificate Authority, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: true, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: ")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/ca.private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/ca.public.crt")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--path.ca", "/tmp/", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Authelia Standalone Root Certificate Authority")
-	s.Assert().Contains(output, "Serial: ")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tAuthelia Standalone Root Certificate Authority")
+	s.Assert().Contains(output, "\tSerial: ")
 	s.Assert().Contains(output, ", Expires: ")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ed25519", "generate", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: Ed25519, Public Key Algorithm: Ed25519")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: Ed25519, Public Key Algorithm: Ed25519")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
@@ -243,61 +263,69 @@ func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-224")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-224")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-256")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-256")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-384")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-384")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate with serial ")
-	s.Assert().Contains(output, "Signed By: Self-Signed")
+	s.Assert().Contains(output, "Generating Certificate")
+	s.Assert().Contains(output, "\tSerial: ")
+	s.Assert().Contains(output, "Signed By:\n\tSelf-Signed")
 
-	s.Assert().Contains(output, "Common Name: example.com, Organization: [Authelia], Organizational Unit: []")
-	s.Assert().Contains(output, "Country: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
-	s.Assert().Contains(output, "CA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-521")
-	s.Assert().Contains(output, "Subject Alternative Names: DNS.1:*.example.com")
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tCA: false, CSR: false, Signature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-521")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing certificate to /tmp/public.crt")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
@@ -307,8 +335,9 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
 
 	s.Assert().Contains(output, "Algorithm: RSA-256 2048 bits")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
@@ -318,8 +347,9 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
 
 	s.Assert().Contains(output, "Algorithm: RSA-512 4096 bits")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
@@ -329,8 +359,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
 
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
@@ -340,8 +371,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
 
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-224")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
@@ -351,8 +383,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
 
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
@@ -362,8 +395,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
 
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-384")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
@@ -373,8 +407,9 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
 
 	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-521")
 
-	s.Assert().Contains(output, "Writing private key to /tmp/private.pem")
-	s.Assert().Contains(output, "Writing public key to /tmp/public.pem")
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
 }
 
 func (s *CLISuite) TestShouldNotGenerateECDSAKeyPairCurveInvalid() {
