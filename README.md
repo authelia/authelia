@@ -360,6 +360,16 @@ for providing us with free licenses to their great tools.
 * [<img src="./docs/static/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
 * [<img src="./docs/static/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
+#### Microsoft
+
+Our pipeline agents which we rely on for productivity are hosted on [Azure](https://azure.microsoft.com/?from=Authelia)
+and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
+which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
+
+[<img src="./docs/static/images/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
+
+[<img src="./docs/static/images/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
+
 ## License
 
 **Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed in
