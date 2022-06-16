@@ -177,10 +177,6 @@ func newCryptoPairRSACmd() (cmd *cobra.Command) {
 		RunE:    cryptoGenerateRunE,
 	}
 
-	//cryptoGenFlags(cmd)
-	//cryptoPairGenFlags(cmd)
-	//cryptoRSAGenFlags(cmd)
-
 	cmd.AddCommand(newCryptoGenerateCmd(cmdUsePair, cmdUseRSA))
 
 	return cmd
@@ -283,19 +279,19 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 	}
 
 	var (
-		template, caCert, parent *x509.Certificate
-		priv, pub, caPrivateKey  interface{}
-		data                     []byte
+		template, caCertificate, parent     *x509.Certificate
+		privateKey, publicKey, caPrivateKey interface{}
+		data                                []byte
 	)
 
-	priv, pub = newPrivateKey, utils.PublicKeyFromPrivateKey(newPrivateKey)
+	privateKey, publicKey = newPrivateKey, utils.PublicKeyFromPrivateKey(newPrivateKey)
 
-	if caPrivateKey, caCert, err = cryptoGetCAFromCmd(cmd); err != nil {
+	if caPrivateKey, caCertificate, err = cryptoGetCAFromCmd(cmd); err != nil {
 		return err
 	}
 
 	if caPrivateKey != nil {
-		priv = caPrivateKey
+		privateKey = caPrivateKey
 	}
 
 	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
@@ -317,17 +313,17 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 
 	fmt.Printf("Generating Certificate with serial %x\n\n", template.SerialNumber)
 
-	switch caCert {
+	switch caCertificate {
 	case nil:
 		parent = template
 
 		fmt.Println("\tSigned By: Self-Signed")
 		fmt.Println("")
 	default:
-		parent = caCert
+		parent = caCertificate
 
-		fmt.Printf("Signed By: %s\n", caCert.Subject.CommonName)
-		fmt.Printf("\tSerial: %x, Expires: %v\n\n", caCert.SerialNumber, caCert.NotAfter)
+		fmt.Printf("Signed By: %s\n", caCertificate.Subject.CommonName)
+		fmt.Printf("\tSerial: %x, Expires: %v\n\n", caCertificate.SerialNumber, caCertificate.NotAfter)
 	}
 
 	fmt.Println("Subject:")
@@ -339,17 +335,17 @@ func cryptoCertificateGenRunE(cmd *cobra.Command, args []string, newPrivateKey i
 
 	var extra string
 
-	switch privateKey := newPrivateKey.(type) {
+	switch k := newPrivateKey.(type) {
 	case *rsa.PrivateKey:
-		extra = fmt.Sprintf(", Bits: %d", privateKey.N.BitLen())
+		extra = fmt.Sprintf(", Bits: %d", k.N.BitLen())
 	case *ecdsa.PrivateKey:
-		extra = fmt.Sprintf(", Elliptic Curve: %s", privateKey.Curve.Params().Name)
+		extra = fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name)
 	}
 
 	fmt.Printf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s%s\n", template.IsCA, isCSR, template.SignatureAlgorithm, template.PublicKeyAlgorithm, extra)
 	fmt.Printf("\tSubject Alternative Names: %s\n\n", strings.Join(sans, ", "))
 
-	if data, err = x509.CreateCertificate(rand.Reader, template, parent, pub, priv); err != nil {
+	if data, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
 		return err
 	}
 

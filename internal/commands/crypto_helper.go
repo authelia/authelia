@@ -246,7 +246,7 @@ func cryptoGetSANsFromCmd(cmd *cobra.Command) (dnsSANs []string, ipSANs []net.IP
 
 func cryptoGetAlgFromCmd(cmd *cobra.Command) (keyAlg x509.PublicKeyAlgorithm, sigAlg x509.SignatureAlgorithm) {
 	sigAlgStr, _ := cmd.Flags().GetString(cmdFlagNameSignature)
-	keyAlgStr := cmd.Use
+	keyAlgStr := cmd.Parent().Use
 
 	return utils.KeySigAlgorithmFromString(keyAlgStr, sigAlgStr)
 }
@@ -305,27 +305,35 @@ func cryptoGetSubjectFromCmd(cmd *cobra.Command) (subject *pkix.Name, err error)
 }
 
 func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, err error) {
-	ca, err := cmd.Flags().GetBool(cmdFlagNameCA)
-	if err != nil {
+	var (
+		ca           bool
+		subject      *pkix.Name
+		notBeforeStr string
+		duration     time.Duration
+	)
+
+	if ca, err = cmd.Flags().GetBool(cmdFlagNameCA); err != nil {
 		return nil, err
 	}
 
-	subject, err := cryptoGetSubjectFromCmd(cmd)
-	if err != nil {
+	if subject, err = cryptoGetSubjectFromCmd(cmd); err != nil {
 		return nil, err
 	}
 
-	notBeforeStr, err := cmd.Flags().GetString(cmdFlagNameNotBefore)
-	if err != nil {
+	if notBeforeStr, err = cmd.Flags().GetString(cmdFlagNameNotBefore); err != nil {
 		return nil, err
 	}
 
-	duration, err := cmd.Flags().GetDuration(cmdFlagNameDuration)
-	if err != nil {
+	if duration, err = cmd.Flags().GetDuration(cmdFlagNameDuration); err != nil {
 		return nil, err
 	}
 
-	var notBefore time.Time
+	var (
+		notBefore    time.Time
+		serialNumber *big.Int
+		dnsSANs      []string
+		ipSANs       []net.IP
+	)
 
 	switch len(notBeforeStr) {
 	case 0:
@@ -339,13 +347,11 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
+	if serialNumber, err = rand.Int(rand.Reader, serialNumberLimit); err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
 
-	dnsNames, ipAddresses, err := cryptoGetSANsFromCmd(cmd)
-	if err != nil {
+	if dnsSANs, ipSANs, err = cryptoGetSANsFromCmd(cmd); err != nil {
 		return nil, err
 	}
 
@@ -368,8 +374,8 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (cert *x509.Certificate, er
 		PublicKeyAlgorithm: keyAlg,
 		SignatureAlgorithm: sigAlg,
 
-		DNSNames:    dnsNames,
-		IPAddresses: ipAddresses,
+		DNSNames:    dnsSANs,
+		IPAddresses: ipSANs,
 
 		BasicConstraintsValid: true,
 	}
