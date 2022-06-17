@@ -20,6 +20,7 @@ type LDAPClient interface {
 	StartTLS(config *tls.Config) (err error)
 
 	Bind(username, password string) (err error)
+	UnauthenticatedBind(username string) (err error)
 
 	Modify(modifyRequest *ldap.ModifyRequest) (err error)
 	PasswordModify(pwdModifyRequest *ldap.PasswordModifyRequest) (pwdModifyResult *ldap.PasswordModifyResult, err error)

@@ -85,6 +85,9 @@ const (
 		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
 		"with parallelism %d it should be at least %d but it is configured as '%d'"
 
+	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
+	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
+
 	errFmtLDAPAuthBackendMissingOption = "authentication_backend: ldap: option '%s' is required"
 	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
 		"'minimum_tls_version' is invalid: %s: %w"
