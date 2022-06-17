@@ -790,8 +790,7 @@ notifier:
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
-    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
-    ## security reasons.
+    ## SECURITY NOTICE: It's not recommended changing this option and values below 8 are strongly discouraged.
     # minimum_parameter_entropy: 8
 
     ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'
