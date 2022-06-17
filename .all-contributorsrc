@@ -750,6 +750,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "andreas-berg",
+      "name": "andreas-berg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39428693?v=4",
+      "profile": "https://github.com/andreas-berg",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7
