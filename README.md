@@ -326,9 +326,6 @@ or other audits related to improving the security of Authelia.
 Any company can become a sponsor by donating or providing any benefit to the project or the team helping improve
 Authelia.
 
-We are extremely grateful to the sponsors below for facilitating Authelia's development and growth. These sponsors all
-provide invaluable support to the Authelia project.
-
 #### Balto
 
 Thank you to [<img src="./docs/static/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
@@ -355,14 +352,14 @@ which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
 ### Open Collective
 
-### Backers
+#### Backers
 
 Thank you to all our backers! 🙏 [Become a backer](https://opencollective.com/authelia-sponsors/contribute) and help us
 sustain our community. The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many
 eyes as we can to detect potential vulnerabilities.
 <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
-#### Open Collective Sponsorship
+#### Sponsorship
 
 Companies contributing to Authelia via Open Collective will have a special mention below.
 [Become a sponsor](https://opencollective.com/authelia-sponsors#sponsor).
