@@ -51,7 +51,7 @@ authentication_backend:
 
 Configures the LDAP implementation used by Authelia.
 
-See the [Implementation Guide](#implementation-guide) for information.
+See the [Implementation Guide](../../reference/guides/ldap.md#implementation-guide) for information.
 
 ### url
 
@@ -192,7 +192,7 @@ referrals to be followed when performing write operations.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__WARNING:__ This option is highly discouraged. Please consider disabling unauthenticated binding to your LDAP
+*__WARNING:__ This option is strongly discouraged. Please consider disabling unauthenticated binding to your LDAP
 server and utilizing a service account.*
 
 Permits binding to the server without a password. For this option to be enabled both the [password](#password)
@@ -212,65 +212,6 @@ The distinguished name of the user paired with the password to bind with for loo
 The password of the user paired with the user to bind with for lookup and password change operations.
 Can also be defined using a [secret](../methods/secrets.md) which is the recommended for containerized deployments.
 
-## Implementation Guide
-
-There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
-must be used if you wish to allow users to change or reset their password as Active Directory
-uses a custom attribute for this, and an input format other implementations do not use. The long term
-intention of this is to have logical defaults for various RFC implementations of LDAP.
-
-### Filter replacements
-
-Various replacements occur in the user and groups filter. The replacements either occur at startup or upon an LDAP
-search.
-
-#### Users filter replacements
-
-|       Placeholder        |  Phase  |              Replacement              |
-|:------------------------:|:-------:|:-------------------------------------:|
-|   {username_attribute}   | startup |   The configured username attribute   |
-|     {mail_attribute}     | startup |     The configured mail attribute     |
-| {display_name_attribute} | startup | The configured display name attribute |
-|         {input}          | search  |   The input into the username field   |
-
-#### Groups filter replacements
-
-| Placeholder | Phase  |                                Replacement                                |
-|:-----------:|:------:|:-------------------------------------------------------------------------:|
-|   {input}   | search |                     The input into the username field                     |
-| {username}  | search | The username from the profile lookup obtained from the username attribute |
-|    {dn}     | search |              The distinguished name from the profile lookup               |
-
-### Defaults
-
-The below tables describes the current attribute defaults for each implementation.
-
-#### Attribute defaults
-
-This table describes the attribute defaults for each implementation. i.e. the username_attribute is described by the
-Username column.
-
-| Implementation  |    Username    | Display Name | Mail | Group Name |
-|:---------------:|:--------------:|:------------:|:----:|:----------:|
-|     custom      |      N/A       | displayName  | mail |     cn     |
-| activedirectory | sAMAccountName | displayName  | mail |     cn     |
-
-#### Filter defaults
-
-The filters are probably the most important part to get correct when setting up LDAP. You want to exclude disabled
-accounts. The active directory example has two attribute filters that accomplish this as an example (more examples would
-be appreciated). The userAccountControl filter checks that the account is not disabled and the pwdLastSet makes sure that
-value is not 0 which means the password requires changing at the next login.
-
-| Implementation  |                                                                          Users Filter                                                                           |                       Groups Filter                       |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------:|
-|     custom      |                                                                               N/A                                                                               |                            N/A                            |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(objectClass=group)(objectCategory=group)) |
-
-*__Note:__* The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as
-`(&(objectCategory=person)(objectClass=user))` except that the former is more performant, you can read more about this
-and other Active Directory filters on the [TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
-
 ## Refresh Interval
 
 It's recommended you either use the default [refresh interval](./introduction.md#refresh_interval) or configure this to
@@ -285,6 +226,10 @@ user and display an error message in the logs.
 In order to avoid such problems, we highly recommended you follow [RFC2307] by using `sAMAccountName` for Active
 Directory and `uid` for other implementations as the attribute holding the unique identifier
 for your users.
+
+## See Also
+
+- [LDAP Reference Guide](../../reference/guides/ldap.md)
 
 [username attribute]: #username_attribute
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
