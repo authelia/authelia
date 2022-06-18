@@ -56,7 +56,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	consent := &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
-		Subject:     subject,
+		Subject:     model.NullUUID{UUID: subject, Valid: true},
 	}
 
 	session := NewSessionWithAuthorizeRequest(issuer, "primary", "john", amr, extra, authAt, consent, request)

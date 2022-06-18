@@ -39,6 +39,10 @@ if [[ "${BUILDKITE_LABEL}" == ":debian: Package Builds" ]]; then
   cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success" --context "ctx-success"
 fi
 
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy Image" ]]; then
+  docker logout
+fi
+
 if [[ "${BUILDKITE_LABEL}" =~ ":docker: Deploy" ]]; then
   docker logout
   docker logout ghcr.io
@@ -78,10 +82,4 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]] && [[ "${BUILDKITE_B
       done
     done
   done
-fi
-
-if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
-  echo "--- :go: Force module index update"
-  rm go.mod go.sum
-  go get github.com/authelia/authelia/v4
 fi

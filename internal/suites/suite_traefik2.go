@@ -2,6 +2,7 @@ package suites
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -20,6 +21,19 @@ var traefik2DockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
+	if os.Getenv("CI") == t {
+		traefik2DockerEnvironment = NewDockerEnvironment([]string{
+			"internal/suites/docker-compose.yml",
+			"internal/suites/Traefik2/docker-compose.yml",
+			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+			"internal/suites/example/compose/redis/docker-compose.yml",
+			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+			"internal/suites/example/compose/traefik2/docker-compose.yml",
+			"internal/suites/example/compose/smtp/docker-compose.yml",
+			"internal/suites/example/compose/httpbin/docker-compose.yml",
+		})
+	}
+
 	setup := func(suitePath string) error {
 		if err := traefik2DockerEnvironment.Up(); err != nil {
 			return err
@@ -36,12 +50,28 @@ func init() {
 
 		fmt.Println(backendLogs)
 
-		frontendLogs, err := traefik2DockerEnvironment.Logs("authelia-frontend", nil)
+		if os.Getenv("CI") != t {
+			frontendLogs, err := traefik2DockerEnvironment.Logs("authelia-frontend", nil)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(frontendLogs)
+		}
+
+		redisLogs, err := traefik2DockerEnvironment.Logs("redis", nil)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(frontendLogs)
+		fmt.Println(redisLogs)
+
+		traefikLogs, err := traefik2DockerEnvironment.Logs("traefik", nil)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(traefikLogs)
 
 		return nil
 	}

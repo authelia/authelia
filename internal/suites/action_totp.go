@@ -31,7 +31,7 @@ func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, code string) {
 	inputs := rs.WaitElementsLocatedByID(t, page, "otp-input input")
 
 	for i := 0; i < len(code); i++ {
-		_ = inputs[i].Input(string(code[i]))
+		inputs[i].MustInput(string(code[i]))
 	}
 }
 

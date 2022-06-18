@@ -3,6 +3,8 @@ package logging
 import (
 	"io"
 	"os"
+	"strings"
+	"time"
 
 	logrus_stack "github.com/Gurpartap/logrus-stack"
 	"github.com/sirupsen/logrus"
@@ -30,7 +32,9 @@ func InitializeLogger(config schema.LogConfiguration, log bool) error {
 	}
 
 	if config.FilePath != "" {
-		f, err := os.OpenFile(config.FilePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		filePath := strings.ReplaceAll(config.FilePath, "%d", time.Now().Format("2006-02-01T150405Z"))
+
+		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
 		if err != nil {
 			return err

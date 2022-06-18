@@ -7,3 +7,5 @@ if [[ ! "${BUILDKITE_COMMAND}" =~ "buildkite-agent pipeline upload" ]] && \
   echo "--- :docker: Clean environment"
   docker system prune -af --volumes
 fi
+
+sudo find /tmp/ ! -wholename "/tmp/" ! -name "buildkite*" ! -name "job-env-*" -type d,f -exec rm -rf {} +

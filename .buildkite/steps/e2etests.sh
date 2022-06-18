@@ -4,9 +4,11 @@ set -eu
 for SUITE_NAME in $(authelia-scripts suites list); do
 cat << EOF
   - label: ":selenium: ${SUITE_NAME} Suite"
-    command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --headless"
+    command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --failfast --headless"
     retry:
       automatic: true
+      manual:
+        permit_on_passed: true
 EOF
 if [[ "${SUITE_NAME}" = "ActiveDirectory" ]]; then
 cat << EOF
@@ -33,9 +35,9 @@ cat << EOF
     agents:
       suite: "all"
 EOF
+fi
 cat << EOF
     env:
       SUITE: "${SUITE_NAME}"
 EOF
-fi
 done

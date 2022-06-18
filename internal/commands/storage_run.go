@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base32"
 	"errors"
 	"fmt"
@@ -350,17 +351,17 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 
-		if page == 0 && format == storageExportFormatCSV {
+		if page == 0 && format == storageTOTPExportFormatCSV {
 			fmt.Printf("issuer,username,algorithm,digits,period,secret\n")
 		}
 
 		for _, c := range configurations {
 			switch format {
-			case storageExportFormatCSV:
+			case storageTOTPExportFormatCSV:
 				fmt.Printf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
-			case storageExportFormatURI:
+			case storageTOTPExportFormatURI:
 				fmt.Println(c.URI())
-			case storageExportFormatPNG:
+			case storageTOTPExportFormatPNG:
 				file, _ := os.Create(filepath.Join(dir, fmt.Sprintf("%s.png", c.Username)))
 
 				if img, err = c.Image(256, 256); err != nil {
@@ -384,7 +385,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	if format == storageExportFormatPNG {
+	if format == storageTOTPExportFormatPNG {
 		fmt.Printf("Exported TOTP QR codes in PNG format in the '%s' directory\n", dir)
 	}
 
@@ -401,9 +402,9 @@ func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string
 	}
 
 	switch format {
-	case storageExportFormatCSV, storageExportFormatURI:
+	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
 		break
-	case storageExportFormatPNG:
+	case storageTOTPExportFormatPNG:
 		if dir == "" {
 			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
 		}
@@ -759,6 +760,92 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
+func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []model.UserOpaqueIdentifier) bool {
+	for i := 0; i < len(identifiers); i++ {
+		if identifier.Service == identifiers[i].Service && identifier.SectorID == identifiers[i].SectorID && identifier.Username == identifiers[i].Username {
+			return true
+		}
+	}
+
+	return false
+}
+
+func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+
+		ctx = context.Background()
+
+		users, services, sectors []string
+	)
+
+	provider = getStorageProvider()
+
+	identifiers, err := provider.LoadUserOpaqueIdentifiers(ctx)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("can't load the existing identifiers: %w", err)
+	}
+
+	if users, err = cmd.Flags().GetStringSlice("users"); err != nil {
+		return err
+	}
+
+	if services, err = cmd.Flags().GetStringSlice("services"); err != nil {
+		return err
+	}
+
+	if sectors, err = cmd.Flags().GetStringSlice("sectors"); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		return fmt.Errorf("must supply at least one user")
+	}
+
+	if len(sectors) == 0 {
+		sectors = append(sectors, "")
+	}
+
+	if !utils.IsStringSliceContainsAll(services, validIdentifierServices) {
+		return fmt.Errorf("one or more the service names '%s' is invalid, the valid values are: '%s'", strings.Join(services, "', '"), strings.Join(validIdentifierServices, "', '"))
+	}
+
+	var added, duplicates int
+
+	for _, service := range services {
+		for _, sector := range sectors {
+			for _, username := range users {
+				identifier := model.UserOpaqueIdentifier{
+					Service:  service,
+					SectorID: sector,
+					Username: username,
+				}
+
+				if containsIdentifier(identifier, identifiers) {
+					duplicates++
+
+					continue
+				}
+
+				identifier.Identifier, err = uuid.NewRandom()
+				if err != nil {
+					return fmt.Errorf("failed to generate a uuid: %w", err)
+				}
+
+				if err = provider.SaveUserOpaqueIdentifier(ctx, identifier); err != nil {
+					return fmt.Errorf("failed to save identifier: %w", err)
+				}
+
+				added++
+			}
+		}
+	}
+
+	fmt.Printf("Successfully added %d opaque identifiers and %d duplicates were skipped\n", added, duplicates)
+
+	return nil
+}
+
 func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 	var (
 		provider storage.Provider
@@ -774,8 +861,8 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 
 	if service == "" {
 		service = identifierServiceOpenIDConnect
-	} else if service != identifierServiceOpenIDConnect {
-		return fmt.Errorf("the service name '%s' is invalid, the valid values are: 'openid_connect'", service)
+	} else if !utils.IsStringInSlice(service, validIdentifierServices) {
+		return fmt.Errorf("the service name '%s' is invalid, the valid values are: '%s'", service, strings.Join(validIdentifierServices, "', '"))
 	}
 
 	if sector, err = cmd.Flags().GetString("sector"); err != nil {

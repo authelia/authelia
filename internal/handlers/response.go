@@ -9,6 +9,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -59,14 +60,48 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.ConsentChallengeID != nil {
+	if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		ctx.Logger.Errorf("Unable to find subject for the consent session: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	consent.Subject.Valid = true
+
+	var preConsent *model.OAuth2ConsentSession
+
+	if preConsent, err = getOIDCPreConfiguredConsentFromClientAndConsent(ctx, client, consent); err != nil {
+		ctx.Logger.Errorf("Unable to lookup pre-configured consent for the consent session: %v", err)
+
+		respondUnauthorized(ctx, messageOperationFailed)
+
+		return
+	}
+
+	if userSession.ConsentChallengeID != nil && preConsent == nil {
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", externalRootURL)}); err != nil {
 			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
-	} else {
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+
+		return
+	}
+
+	if userSession.ConsentChallengeID != nil {
+		userSession.ConsentChallengeID = nil
+
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.Logger.Errorf("Unable to update user session: %v", err)
+
+			respondUnauthorized(ctx, messageOperationFailed)
+
+			return
 		}
+	}
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}); err != nil {
+		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 	}
 }
 
@@ -184,7 +219,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		}
 	}
 
-	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType, ctx.RemoteIP()); err != nil {
+	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType); err != nil {
 		ctx.Logger.Errorf("Unable to mark %s authentication attempt by user '%s': %+v", authType, username, err)
 
 		return err
@@ -213,7 +248,9 @@ func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 
 // SetStatusCodeResponse writes a response status code and an appropriate body on either a
 // *fasthttp.RequestCtx or *middlewares.AutheliaCtx.
-func SetStatusCodeResponse(ctx responseWriter, statusCode int) {
+func SetStatusCodeResponse(ctx *fasthttp.RequestCtx, statusCode int) {
+	ctx.Response.Reset()
+	ctx.SetContentTypeBytes(headerContentTypeValueDefault)
 	ctx.SetStatusCode(statusCode)
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }

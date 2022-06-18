@@ -11,6 +11,7 @@ services:
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
       # Traefik 2.x
+      - 'traefik.enable=true'
       - 'traefik.http.routers.protectedapps.rule=Host(`home.example.com`,`public.example.com`,`secure.example.com`,`admin.example.com`,`singlefactor.example.com`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.protectedapps.entrypoints=https'
       - 'traefik.http.routers.protectedapps.tls=true'

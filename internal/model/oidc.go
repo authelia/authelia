@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -17,7 +16,7 @@ import (
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
-func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+func NewOAuth2ConsentSession(subject NullUUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
 		Subject:           subject,
@@ -40,23 +39,27 @@ func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OA
 func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
 	var (
 		subject       string
-		openidSession *OpenIDSession
-		sessData      []byte
+		sessionOpenID *OpenIDSession
+		sessionData   []byte
 	)
 
-	openidSession = r.GetSession().(*OpenIDSession)
-	if openidSession == nil {
-		return nil, errors.New("unexpected session type")
+	s := r.GetSession()
+
+	switch t := s.(type) {
+	case *OpenIDSession:
+		sessionOpenID = t
+	default:
+		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", s)
 	}
 
-	subject = openidSession.GetSubject()
+	subject = sessionOpenID.GetSubject()
 
-	if sessData, err = json.Marshal(openidSession); err != nil {
+	if sessionData, err = json.Marshal(sessionOpenID); err != nil {
 		return nil, err
 	}
 
 	return &OAuth2Session{
-		ChallengeID:       openidSession.ChallengeID,
+		ChallengeID:       sessionOpenID.ChallengeID,
 		RequestID:         r.GetID(),
 		ClientID:          r.GetClient().GetID(),
 		Signature:         signature,
@@ -69,7 +72,7 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 		Active:            true,
 		Revoked:           false,
 		Form:              r.GetRequestForm().Encode(),
-		Session:           sessData,
+		Session:           sessionData,
 	}, nil
 }
 
@@ -86,7 +89,7 @@ type OAuth2ConsentSession struct {
 	ID          int       `db:"id"`
 	ChallengeID uuid.UUID `db:"challenge_id"`
 	ClientID    string    `db:"client_id"`
-	Subject     uuid.UUID `db:"subject"`
+	Subject     NullUUID  `db:"subject"`
 
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`

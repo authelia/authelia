@@ -105,6 +105,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeactivateOAuth2OpenIDConnectSessionByRequestID: fmt.Sprintf(queryFmtDeactivateOAuth2SessionByRequestID, tableOAuth2OpenIDConnectSession),
 
 		sqlInsertOAuth2ConsentSession:               fmt.Sprintf(queryFmtInsertOAuth2ConsentSession, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionSubject:        fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionSubject, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionResponse:       fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponse, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionGranted:        fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID:  fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
@@ -235,6 +236,7 @@ type SQLProvider struct {
 
 	// Table: oauth2_consent_session.
 	sqlInsertOAuth2ConsentSession               string
+	sqlUpdateOAuth2ConsentSessionSubject        string
 	sqlUpdateOAuth2ConsentSessionResponse       string
 	sqlUpdateOAuth2ConsentSessionGranted        string
 	sqlSelectOAuth2ConsentSessionByChallengeID  string
@@ -390,7 +392,7 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 	return opaqueID, nil
 }
 
-// SaveOAuth2ConsentSession inserts an OAuth2.0 consent.
+// SaveOAuth2ConsentSession inserts an OAuth2.0 consent session.
 func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
 		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
@@ -402,10 +404,18 @@ func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent mode
 	return nil
 }
 
-// SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent with the consent response.
+// SaveOAuth2ConsentSessionSubject updates an OAuth2.0 consent session with the subject.
+func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionSubject, consent.Subject, consent.ID); err != nil {
+		return fmt.Errorf("error updating oauth2 consent session subject with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject, err)
+	}
+
+	return nil
+}
+
+// SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session with the response.
 func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, authorized bool) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.ExpiresAt, consent.GrantedScopes, consent.GrantedAudience, consent.ID)
-	if err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.ExpiresAt, consent.GrantedScopes, consent.GrantedAudience, consent.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session (authorized  '%t') with id '%d' and challenge id '%s' for subject '%s': %w", authorized, consent.ID, consent.ChallengeID, consent.Subject, err)
 	}
 

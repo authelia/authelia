@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
@@ -73,12 +74,18 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 
 	ppolicyProvider := middlewares.NewPasswordPolicyProvider(config.PasswordPolicy)
 
+	var metricsProvider metrics.Provider
+	if config.Telemetry.Metrics.Enabled {
+		metricsProvider = metrics.NewPrometheus()
+	}
+
 	return middlewares.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
 		Regulator:       regulator,
 		OpenIDConnect:   oidcProvider,
 		StorageProvider: storageProvider,
+		Metrics:         metricsProvider,
 		NTP:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,

@@ -240,6 +240,11 @@ const (
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
+	queryFmtUpdateOAuth2ConsentSessionSubject = `
+		UPDATE %s
+		SET subject = ?
+		WHERE id = ?;`
+
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
 		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, expires_at = ?, granted_scopes = ?, granted_audience = ?
@@ -281,7 +286,7 @@ const (
 	queryFmtDeactivateOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET active = FALSE
-		WHERE request_id = ?;"`
+		WHERE request_id = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at
