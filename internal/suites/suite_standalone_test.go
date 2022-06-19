@@ -83,24 +83,16 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 		page2.MustClose()
 	}()
 
-	if err := page2.WaitLoad(); err != nil {
-		s.T().Fail()
-		return
-	}
+	// Open second tab with secret page.
+	page2.MustWaitLoad()
 
-	if _, err := s.Page.Activate(); err != nil {
-		s.T().Fail()
-		return
-	}
-
+	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
+	s.Page.MustActivate()
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	if _, err := page2.Activate(); err != nil {
-		s.T().Fail()
-		return
-	}
-
+	// Switch to second tab and wait for redirection to secret page with secret displayed.
+	page2.MustActivate()
 	s.verifySecretAuthorized(s.T(), page2.Context(ctx))
 }
 
