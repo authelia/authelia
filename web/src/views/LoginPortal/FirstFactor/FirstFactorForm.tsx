@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePageVisibility } from "@hooks/PageVisibility";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
@@ -33,6 +34,7 @@ const FirstFactorForm = function (props: Props) {
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
 
+    const [state, fetchState, ,] = useAutheliaState();
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -42,8 +44,8 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const visible = usePageVisibility();
     const { t: translate } = useTranslation();
-    const [state, fetchState, ,] = useAutheliaState();
 
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
@@ -51,9 +53,10 @@ const FirstFactorForm = function (props: Props) {
     }, [usernameRef]);
 
     useEffect(() => {
-        const timer = setInterval(() => fetchState(), 2000);
-        return () => clearInterval(timer);
-    }, [fetchState]);
+        if (visible) {
+            fetchState();
+        }
+    }, [visible, fetchState]);
 
     useEffect(() => {
         if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
