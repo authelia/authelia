@@ -296,6 +296,32 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyRedirectFromXOriginalHostURI(
 	s.Assert().Equal(fmt.Sprintf("<a href=\"%s\">Found</a>", utils.StringHTMLEscape(fmt.Sprintf("%s/?rd=%s", GetLoginBaseURL(), urlEncodedAdminURL))), string(body))
 }
 
+func (s *StandaloneSuite) TestShouldRecordMetrics() {
+	client := NewHTTPClient()
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/health", LoginBaseURL), nil)
+	s.Require().NoError(err)
+
+	res, err := client.Do(req)
+	s.Require().NoError(err)
+	s.Assert().Equal(res.StatusCode, 200)
+
+	req, err = http.NewRequest("GET", fmt.Sprintf("%s/metrics", LoginBaseURL), nil)
+	s.Require().NoError(err)
+
+	res, err = client.Do(req)
+	s.Require().NoError(err)
+	s.Assert().Equal(res.StatusCode, 200)
+
+	body, err := io.ReadAll(res.Body)
+	s.Require().NoError(err)
+
+	metrics := string(body)
+
+	s.Assert().Contains(metrics, "authelia_request_duration_bucket{")
+	s.Assert().Contains(metrics, "authelia_request_duration_sum{")
+}
+
 func (s *StandaloneSuite) TestStandaloneWebDriverScenario() {
 	suite.Run(s.T(), NewStandaloneWebDriverSuite())
 }

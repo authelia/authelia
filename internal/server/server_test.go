@@ -137,7 +137,12 @@ type TLSServerContext struct {
 func NewTLSServerContext(configuration schema.Configuration) (*TLSServerContext, error) {
 	serverContext := new(TLSServerContext)
 
-	s, listener := CreateServer(configuration, middlewares.Providers{})
+	s, listener, err := CreateDefaultServer(configuration, middlewares.Providers{})
+
+	if err != nil {
+		return nil, err
+	}
+
 	serverContext.server = s
 
 	go func() {

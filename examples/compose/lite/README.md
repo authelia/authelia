@@ -1,3 +1,3 @@
 # Usage
 
-Please see the [documentation](https://www.authelia.com/docs/deployment/deployment-lite.html) for usage instructions.
+Please see the [documentation](https://www.authelia.com/integration/deployment/docker/#lite) for usage instructions.

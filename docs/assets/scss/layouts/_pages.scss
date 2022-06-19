@@ -1,0 +1,64 @@
+.docs-content > h2[id]::before,
+.docs-content > h3[id]::before,
+.docs-content > h4[id]::before {
+  display: block;
+  height: 6rem;
+  margin-top: -6rem;
+  content: "";
+}
+
+.anchor {
+  visibility: hidden;
+}
+
+h1:hover a,
+h2:hover a,
+h3:hover a,
+h4:hover a {
+  visibility: visible;
+  text-decoration: none;
+}
+
+.card-list {
+  margin-top: 2.25rem;
+}
+
+.page-footer-meta {
+  margin-top: 3rem;
+}
+
+.edit-page,
+.last-modified {
+  font-size: $font-size-sm;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+@include media-breakpoint-up(md) {
+  .edit-page,
+  .last-modified {
+    font-size: $font-size-base;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.edit-page svg,
+.last-modified svg {
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+p.meta {
+  margin-top: 0.5rem;
+  font-size: $font-size-base;
+}
+
+.breadcrumb {
+  margin-top: 2.25rem;
+  font-size: $font-size-base;
+}
+
+.page-link:hover {
+  text-decoration: none;
+}

@@ -61,11 +61,4 @@ steps:
     agents:
       upload: "fast"
     if: build.tag != null
-
-  - label: ":book: Deploy Documentation"
-    command: "syncdoc.sh"
-    depends_on: ~
-    agents:
-      upload: "fast"
-    if: build.branch == "master"
 EOF

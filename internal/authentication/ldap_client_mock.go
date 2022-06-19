@@ -118,3 +118,17 @@ func (mr *MockLDAPClientMockRecorder) StartTLS(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTLS", reflect.TypeOf((*MockLDAPClient)(nil).StartTLS), arg0)
 }
+
+// UnauthenticatedBind mocks base method.
+func (m *MockLDAPClient) UnauthenticatedBind(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnauthenticatedBind", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnauthenticatedBind indicates an expected call of UnauthenticatedBind.
+func (mr *MockLDAPClientMockRecorder) UnauthenticatedBind(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnauthenticatedBind", reflect.TypeOf((*MockLDAPClient)(nil).UnauthenticatedBind), arg0)
+}

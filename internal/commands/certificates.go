@@ -13,12 +13,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewCertificatesCmd returns a new Certificates Cmd.
-func NewCertificatesCmd() (cmd *cobra.Command) {
+func newCertificatesCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "certificates",
-		Short: "Commands related to certificate generation",
-		Args:  cobra.NoArgs,
+		Use:     "certificates",
+		Short:   cmdAutheliaCertificatesShort,
+		Long:    cmdAutheliaCertificatesLong,
+		Example: cmdAutheliaCertificatesExample,
+		Args:    cobra.NoArgs,
 	}
 
 	cmd.PersistentFlags().StringSlice("host", []string{}, "Comma-separated hostnames and IPs to generate a certificate for")
@@ -35,10 +36,12 @@ func NewCertificatesCmd() (cmd *cobra.Command) {
 
 func newCertificatesGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "generate",
-		Short: "Generate a self-signed certificate",
-		Args:  cobra.NoArgs,
-		Run:   cmdCertificatesGenerateRun,
+		Use:     "generate",
+		Short:   cmdAutheliaCertificatesGenerateShort,
+		Long:    cmdAutheliaCertificatesGenerateLong,
+		Example: cmdAutheliaCertificatesGenerateExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdCertificatesGenerateRun,
 	}
 
 	cmd.Flags().String("start-date", "", "Creation date formatted as Jan 1 15:04:05 2011")
