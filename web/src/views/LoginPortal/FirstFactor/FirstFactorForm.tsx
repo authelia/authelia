@@ -56,6 +56,8 @@ const FirstFactorForm = function (props: Props) {
         if (visible) {
             fetchState();
         }
+        const timer = setInterval(() => fetchState(), 1000);
+        return () => clearInterval(timer);
     }, [visible, fetchState]);
 
     useEffect(() => {
