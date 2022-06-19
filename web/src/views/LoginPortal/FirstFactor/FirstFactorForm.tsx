@@ -8,10 +8,13 @@ import { useNavigate } from "react-router-dom";
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePageVisibility } from "@hooks/PageVisibility";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
+import { useAutheliaState } from "@hooks/State";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
+import { AuthenticationLevel } from "@services/State";
 
 export interface Props {
     disabled: boolean;
@@ -31,6 +34,7 @@ const FirstFactorForm = function (props: Props) {
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
 
+    const [state, fetchState, ,] = useAutheliaState();
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -40,11 +44,27 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const visible = usePageVisibility();
     const { t: translate } = useTranslation();
+
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);
     }, [usernameRef]);
+
+    useEffect(() => {
+        if (visible) {
+            fetchState();
+        }
+        const timer = setInterval(() => fetchState(), 1000);
+        return () => clearInterval(timer);
+    }, [visible, fetchState]);
+
+    useEffect(() => {
+        if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
+            props.onAuthenticationSuccess(redirectionURL);
+        }
+    }, [state, redirectionURL, props]);
 
     const disabled = props.disabled;
 

@@ -71,6 +71,31 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
 
+func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
+	page2 := s.Browser().MustPage(targetURL)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+		s.collectScreenshot(ctx.Err(), page2)
+		page2.MustClose()
+	}()
+
+	// Open second tab with secret page.
+	page2.MustWaitLoad()
+
+	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
+	s.Page.MustActivate()
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, targetURL)
+	s.verifySecretAuthorized(s.T(), s.Page)
+
+	// Switch to second tab and wait for redirection to secret page with secret displayed.
+	page2.MustActivate()
+	s.verifySecretAuthorized(s.T(), page2.Context(ctx))
+}
+
 func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer func() {
