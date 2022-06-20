@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect } from "react";
 
-import { Grid, Container, Link, Theme, Typography } from "@mui/material";
+import { Grid, Container, Link, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,8 @@ export interface Props {
     subtitleTooltip?: string;
     showBrand?: boolean;
 }
+
+const url = "https://www.authelia.com";
 
 const LoginLayout = function (props: Props) {
     const styles = useStyles();
@@ -56,10 +58,8 @@ const LoginLayout = function (props: Props) {
                     </Grid>
                     {props.showBrand ? (
                         <Grid item xs={12}>
-                            <Link href="https://www.authelia.com" target="_blank" underline="hover">
-                                <Typography variant="body2" className={styles.poweredBy}>
-                                    {translate("Powered by")} Authelia
-                                </Typography>
+                            <Link href={url} target="_blank" underline="hover" className={styles.poweredBy}>
+                                {translate("Powered by")} Authelia
                             </Link>
                         </Grid>
                     ) : null}

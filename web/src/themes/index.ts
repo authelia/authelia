@@ -1,3 +1,5 @@
+import React from "react";
+
 import { Theme } from "@mui/material";
 
 declare module "@mui/material/styles" {
@@ -12,13 +14,6 @@ declare module "@mui/material/styles" {
         custom?: {
             icon?: React.CSSProperties["color"];
             loadingBar?: React.CSSProperties["color"];
-        };
-    }
-
-    interface DeprecatedThemeOptions {
-        custom: {
-            icon: React.CSSProperties["color"];
-            loadingBar: React.CSSProperties["color"];
         };
     }
 }
