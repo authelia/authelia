@@ -82,6 +82,13 @@ const Dark = createTheme({
             activatedOpacity: 0.24,
         },
     },
+    typography: {
+        body2: {
+            fontSize: "0.875rem",
+            lineHeight: 1.43,
+            letterSpacing: "0.01071em",
+        },
+    },
 });
 
 export default Dark;

@@ -82,6 +82,13 @@ const Grey = createTheme({
             activatedOpacity: 0.12,
         },
     },
+    typography: {
+        body2: {
+            fontSize: "0.875rem",
+            lineHeight: 1.43,
+            letterSpacing: "0.01071em",
+        },
+    },
     components: {
         MuiCssBaseline: {
             styleOverrides: {
