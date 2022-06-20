@@ -1,0 +1,57 @@
+---
+name: Feature
+description: Submit a Feature for Design which Has Been Submitted as an Idea and has been voted on
+labels:
+{{- range .Labels }}
+  - {{ . }}
+{{- end }}
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature. Features are created as issue for the purpose of tracking the design and implementation of a feature. To request a feature please create an [Idea Discussion](https://github.com/authelia/authelia/discussions/new?category=ideas) so that other users can easily vote on it.
+
+        Please review the following requirements before submitting this issue type:
+
+        1. Ensure an [Idea](https://github.com/authelia/authelia/discussions/new?category=ideas) has been created and voted on sufficiently before creating this issue type.
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Suggested Milestone
+      description: What milestone is suggested for this feature?
+      options:
+      {{- range .Versions }}
+        - {{ . }}
+	  {{- end }}
+    validations:
+      required: true
+  - type: input
+    id: idea-discussion
+    attributes:
+      label: Discussion Idea Number
+      description: 'The Discussion Number prefixed with # which this feature is linked to, create a new [Idea Discussion](https://github.com/authelia/authelia/discussions/new?category=ideas) if one does not exist yet'
+      placeholder: '#xxxx'
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the feature
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Describe the feature in detail
+    validations:
+      required: false
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation
+      description: Provide any relevant specification or other documentation if applicable
+    validations:
+      required: false
+...

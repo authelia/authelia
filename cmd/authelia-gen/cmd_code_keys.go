@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -36,7 +35,7 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		f *os.File
 	)
 
-	data := keysTemplateStruct{
+	data := tmplConfigurationKeysData{
 		Timestamp: time.Now(),
 		Keys:      readTags("", reflect.TypeOf(schema.Configuration{})),
 	}
@@ -53,26 +52,7 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("failed to create file '%s': %w", file, err)
 	}
 
-	var (
-		content []byte
-		tmpl    *template.Template
-	)
-
-	if content, err = templatesFS.ReadFile("templates/config_keys.go.tmpl"); err != nil {
-		return err
-	}
-
-	if tmpl, err = template.New("keys").Parse(string(content)); err != nil {
-		return err
-	}
-
-	return tmpl.Execute(f, data)
-}
-
-type keysTemplateStruct struct {
-	Timestamp time.Time
-	Keys      []string
-	Package   string
+	return tmplCodeConfigurationSchemaKeys.Execute(f, data)
 }
 
 var decodedTypes = []reflect.Type{

@@ -1,13 +1,8 @@
 package main
 
 import (
-	"embed"
-
 	"github.com/spf13/cobra"
 )
-
-//go:embed templates/*
-var templatesFS embed.FS
 
 func main() {
 	if err := newRootCmd().Execute(); err != nil {
@@ -21,7 +16,9 @@ func newRootCmd() *cobra.Command {
 		Short: "Authelia's generator tooling",
 	}
 
-	cmd.AddCommand(newAllCmd(), newCodeCmd(), newDocsCmd())
+	cmd.PersistentFlags().StringP("cwd", "C", "", "Sets the CWD for git commands")
+
+	cmd.AddCommand(newAllCmd(), newCodeCmd(), newDocsCmd(), newGitHubCmd(), newLocalesCmd())
 
 	return cmd
 }
