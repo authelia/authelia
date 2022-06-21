@@ -30,6 +30,7 @@ clipboard.on('success', function(e) {
 });
 
 clipboard.on('error', function(e) {
+  console.error('Clipboard');
   console.error('Action:', e.action);
   console.error('Trigger:', e.trigger);
 });
