@@ -34,7 +34,7 @@ The following is an example [Docker Compose] deployment with just *Authelia* and
 It expects the following:
 
 * The file `data/authelia/config/configuration.yml` is present and the configuration file.
-* The files `data/authelia/secrets/*` exist and contain the relevant secrets.
+* The files `data/authelia/secrets/*` exist and contain the relevant [secrets](../../configuration/methods/secrets.md).
 * You're using PostgreSQL.
 * You have an external network named `net` which is in bridge mode.
 
