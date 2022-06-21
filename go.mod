@@ -19,7 +19,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/knadh/koanf v1.4.1
+	github.com/knadh/koanf v1.4.2
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ory/fosite v0.42.2
@@ -32,7 +32,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.4
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.37.0
 	golang.org/x/text v0.3.7

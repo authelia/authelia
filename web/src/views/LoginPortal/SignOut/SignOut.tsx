@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 
-import { Typography, makeStyles } from "@material-ui/core";
+import { Theme, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 
@@ -16,7 +17,7 @@ export interface Props {}
 
 const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
-    const style = useStyles();
+    const styles = useStyles();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useRedirectionURL();
     const redirector = useRedirector();
@@ -56,14 +57,14 @@ const SignOut = function (props: Props) {
 
     return (
         <LoginLayout title={translate("Sign out")}>
-            <Typography className={style.typo}>{translate("You're being signed out and redirected")}...</Typography>
+            <Typography className={styles.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </LoginLayout>
     );
 };
 
 export default SignOut;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     typo: {
         padding: theme.spacing(),
     },
