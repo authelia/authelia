@@ -17,6 +17,7 @@
     }
   },
   "dependencies": {
+    "@babel/core": "7.18.5",
     "@emotion/cache": "11.9.3",
     "@emotion/react": "11.9.3",
     "@emotion/styled": "11.9.3",
