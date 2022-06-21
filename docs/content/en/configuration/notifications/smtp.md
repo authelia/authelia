@@ -74,12 +74,14 @@ The username sent for authentication with the SMTP server. Paired with the passw
 
 {{< confkey type="string" required="no" >}}
 
-The password sent for authentication with the SMTP server. Paired with the username. Can also be defined using a
-[secret](../methods/secrets.md) which is the recommended for containerized deployments.
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
 
-We recommend generating a random string with 64 characters or more for this purposes which can be done by following the
-[Generating a Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string)
-guide.
+The password paired with the [username](#username) sent for authentication with the SMTP server.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 ### sender
 
