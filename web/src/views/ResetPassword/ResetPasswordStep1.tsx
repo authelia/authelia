@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-import { Grid, Button, makeStyles } from "@material-ui/core";
+import { Grid, Button, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +12,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
-    const style = useStyles();
+    const styles = useStyles();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
@@ -42,7 +43,7 @@ const ResetPasswordStep1 = function () {
 
     return (
         <LoginLayout title={translate("Reset password")} id="reset-password-step1-stage">
-            <Grid container className={style.root} spacing={2}>
+            <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="username-textfield"
@@ -83,7 +84,7 @@ const ResetPasswordStep1 = function () {
 
 export default ResetPasswordStep1;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
