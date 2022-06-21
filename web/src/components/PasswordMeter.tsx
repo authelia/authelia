@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-import { makeStyles } from "@material-ui/core";
+import { Box, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
@@ -13,20 +14,12 @@ export interface Props {
 }
 
 const PasswordMeter = function (props: Props) {
+    const { t: translate } = useTranslation();
+
     const [progressColor] = useState(["#D32F2F", "#FF5722", "#FFEB3B", "#AFB42B", "#62D32F"]);
     const [passwordScore, setPasswordScore] = useState(0);
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
-    const { t: translate } = useTranslation();
-    const style = makeStyles((theme) => ({
-        progressBar: {
-            height: "5px",
-            marginTop: "2px",
-            backgroundColor: "red",
-            width: "50%",
-            transition: "width .5s linear",
-        },
-    }))();
 
     useEffect(() => {
         const password = props.value;
@@ -106,17 +99,23 @@ const PasswordMeter = function (props: Props) {
         }
     }, [props, translate]);
 
+    const styles = makeStyles((theme: Theme) => ({
+        progressBar: {
+            height: "5px",
+            marginTop: "2px",
+            backgroundColor: progressColor[passwordScore],
+            width: `${(passwordScore + 1) * (100 / maxScores)}%`,
+            transition: "width .5s linear",
+        },
+        progressContainer: {
+            width: "100%",
+        },
+    }))();
+
     return (
-        <div style={{ width: "100%" }}>
-            <div
-                title={feedback}
-                className={classnames(style.progressBar)}
-                style={{
-                    width: `${(passwordScore + 1) * (100 / maxScores)}%`,
-                    backgroundColor: progressColor[passwordScore],
-                }}
-            />
-        </div>
+        <Box className={styles.progressContainer}>
+            <Box title={feedback} className={classnames(styles.progressBar)} />
+        </Box>
     );
 };
 
