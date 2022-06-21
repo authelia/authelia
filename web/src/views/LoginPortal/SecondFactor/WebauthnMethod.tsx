@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, makeStyles, useTheme } from "@material-ui/core";
-import { CSSProperties } from "@material-ui/styles";
+import { Button, Theme, useTheme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 
 import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -38,7 +38,7 @@ export interface Props {
 const WebauthnMethod = function (props: Props) {
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
-    const style = useStyles();
+    const styles = useStyles();
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
@@ -162,7 +162,7 @@ const WebauthnMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <div className={style.icon}>
+            <div className={styles.icon}>
                 <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
             </div>
         </MethodContainer>
@@ -171,7 +171,7 @@ const WebauthnMethod = function (props: Props) {
 
 export default WebauthnMethod;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         display: "inline-block",
     },
@@ -188,16 +188,18 @@ function Icon(props: IconProps) {
     const state = props.state as State;
     const theme = useTheme();
 
-    const progressBarStyle: CSSProperties = {
-        marginTop: theme.spacing(),
-    };
+    const styles = makeStyles((theme: Theme) => ({
+        progressBar: {
+            marginTop: theme.spacing(),
+        },
+    }))();
 
     const touch = (
         <IconWithContext
             icon={<FingerTouchIcon size={64} animated strong />}
             className={state === State.WaitTouch ? undefined : "hidden"}
         >
-            <LinearProgressBar value={props.timer} style={progressBarStyle} height={theme.spacing(2)} />
+            <LinearProgressBar value={props.timer} className={styles.progressBar} height={theme.spacing(2)} />
         </IconWithContext>
     );
 

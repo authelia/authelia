@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-import { Grid, makeStyles, Button } from "@material-ui/core";
+import { Grid, Button, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
@@ -35,7 +36,7 @@ export interface Props {
 }
 
 const SecondFactorForm = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
@@ -106,7 +107,7 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </Grid>
-                <Grid item xs={12} className={style.methodContainer}>
+                <Grid item xs={12} className={styles.methodContainer}>
                     <Routes>
                         <Route
                             path={SecondFactorTOTPSubRoute}
@@ -159,7 +160,7 @@ const SecondFactorForm = function (props: Props) {
 
 export default SecondFactorForm;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     methodContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",
