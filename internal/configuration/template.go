@@ -15,8 +15,7 @@ func EnsureConfigurationExists(path string) (created bool, err error) {
 	_, err = os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := os.WriteFile(path, template, 0600)
-			if err != nil {
+			if err = os.WriteFile(path, template, 0600); err != nil {
 				return false, fmt.Errorf(errFmtGenerateConfiguration, err)
 			}
 

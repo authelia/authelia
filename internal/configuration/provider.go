@@ -35,13 +35,13 @@ func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, 
 
 	var final *koanf.Koanf
 
-	if final, err = remapKoanfKeys(val, ko); err != nil {
-		return ko.Keys(), err
+	if final, err = koanfRemapKeys(val, ko, deprecations); err != nil {
+		return koanfGetKeys(ko), err
 	}
 
 	unmarshal(final, val, path, result)
 
-	return getKoanfKeys(final), nil
+	return koanfGetKeys(final), nil
 }
 
 func mapHasKey(k string, m map[string]interface{}) bool {

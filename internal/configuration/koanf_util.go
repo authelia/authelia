@@ -11,7 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func getKoanfKeys(ko *koanf.Koanf) (keys []string) {
+func koanfGetKeys(ko *koanf.Koanf) (keys []string) {
 	keys = ko.Keys()
 
 	for key, value := range ko.All() {
@@ -38,11 +38,11 @@ func getKoanfKeys(ko *koanf.Koanf) (keys []string) {
 	return keys
 }
 
-func remapKoanfKeys(val *schema.StructValidator, ko *koanf.Koanf) (final *koanf.Koanf, err error) {
+func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]Deprecation) (final *koanf.Koanf, err error) {
 	keys := ko.All()
 
-	keys = remapKoanfKeysStandard(keys, val)
-	keys = remapKoanfKeysMapped(keys, val)
+	keys = koanfRemapKeysStandard(keys, val, ds)
+	keys = koanfRemapKeysMapped(keys, val, ds)
 
 	final = koanf.New(".")
 
@@ -53,28 +53,70 @@ func remapKoanfKeys(val *schema.StructValidator, ko *koanf.Koanf) (final *koanf.
 	return final, nil
 }
 
-func remapKoanfKeysMapped(keys map[string]interface{}, val *schema.StructValidator) (keysFinal map[string]interface{}) {
-	keysFinal = make(map[string]interface{})
-
+func koanfRemapKeysStandard(keys map[string]interface{}, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
 	var (
-		slc []interface{}
-		ok  bool
-		m   map[string]interface{}
-		d   Deprecation
+		ok    bool
+		d     Deprecation
+		key   string
+		value interface{}
 	)
 
-	for key, value := range keys {
+	keysFinal = make(map[string]interface{})
+
+	for key, value = range keys {
+		if d, ok = ds[key]; ok {
+			if !d.AutoMap {
+				val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
+
+				keysFinal[key] = value
+
+				continue
+			} else {
+				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
+					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
+			}
+
+			if !mapHasKey(d.NewKey, keys) && !mapHasKey(d.NewKey, keysFinal) {
+				if d.MapFunc != nil {
+					keysFinal[d.NewKey] = d.MapFunc(value)
+				} else {
+					keysFinal[d.NewKey] = value
+				}
+			}
+
+			continue
+		}
+
+		keysFinal[key] = value
+	}
+
+	return keysFinal
+}
+
+func koanfRemapKeysMapped(keys map[string]interface{}, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
+	var (
+		key           string
+		value         interface{}
+		slc, slcFinal []interface{}
+		ok            bool
+		m             map[string]interface{}
+		d             Deprecation
+	)
+
+	keysFinal = make(map[string]interface{})
+
+	for key, value = range keys {
 		if slc, ok = value.([]interface{}); !ok {
 			keysFinal[key] = value
 
 			continue
 		}
 
-		sliceFinal := make([]interface{}, len(slc))
+		slcFinal = make([]interface{}, len(slc))
 
 		for i, item := range slc {
 			if m, ok = item.(map[string]interface{}); !ok {
-				sliceFinal[i] = item
+				slcFinal[i] = item
 
 				continue
 			}
@@ -86,7 +128,7 @@ func remapKoanfKeysMapped(keys map[string]interface{}, val *schema.StructValidat
 
 				fullKey := prefix + subkey
 
-				if d, ok = deprecations[fullKey]; ok {
+				if d, ok = ds[fullKey]; ok {
 					if !d.AutoMap {
 						val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
 
@@ -112,43 +154,10 @@ func remapKoanfKeysMapped(keys map[string]interface{}, val *schema.StructValidat
 				}
 			}
 
-			sliceFinal[i] = itemFinal
+			slcFinal[i] = itemFinal
 		}
 
-		keysFinal[key] = sliceFinal
-	}
-
-	return keysFinal
-}
-
-func remapKoanfKeysStandard(keys map[string]interface{}, val *schema.StructValidator) (keysFinal map[string]interface{}) {
-	keysFinal = make(map[string]interface{})
-
-	for key, value := range keys {
-		if d, ok := deprecations[key]; ok {
-			if !d.AutoMap {
-				val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
-
-				keysFinal[key] = value
-
-				continue
-			} else {
-				val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and has been replaced by '%s': "+
-					"this has been automatically mapped for you but you will need to adjust your configuration to remove this message", d.Key, d.Version.String(), d.NewKey))
-			}
-
-			if !mapHasKey(d.NewKey, keys) && !mapHasKey(d.NewKey, keysFinal) {
-				if d.MapFunc != nil {
-					keysFinal[d.NewKey] = d.MapFunc(value)
-				} else {
-					keysFinal[d.NewKey] = value
-				}
-			}
-
-			continue
-		}
-
-		keysFinal[key] = value
+		keysFinal[key] = slcFinal
 	}
 
 	return keysFinal
