@@ -102,6 +102,7 @@ stringData:
 This is the same manifest as above but encoded in base64.
 
 ```yaml
+---
 kind: Secret
 apiVersion: v1
 type: Opaque
@@ -119,6 +120,7 @@ data:
   SMTP_PASSWORD: b2k0WWFnNUhYOEJoYzVKVHI0OW5Sa2RQRXI0SmNQTWZMQVB2WHhOcEh0SHFpSFhmeDNpc2RXWHVUZzd5Q3Rqaw==
   STORAGE_ENCRYPTION_KEY: ckg4N3JqVk1RQnZ6VmdqOHZWR1N4aG9wMlBQd2Rkcko3QjZvU2tHY21vZ2FuTWY0d3FBTnA5QUp3YU1IdDhSQQ==
   STORAGE_PASSWORD: Tk1IZjlaN0M1VVFZdUtLZ2g5QkpUS2VjY29adDZjNjQ3RlFxc0VIaGthcGtrbmRQa1B3M2Q4Ym52a3FMZ2laNQ==
+...
 ```
 ### Kustomize
 
@@ -129,6 +131,7 @@ desired secret value.
 ##### kustomization.yaml
 
 ```yaml
+---
 generatorOptions:
   disableNameSuffixHash: true
   labels:
@@ -148,6 +151,7 @@ secretGenerator:
       - SMTP_PASSWORD
       - STORAGE_ENCRYPTION_KEY
       - STORAGE_PASSWORD
+...
 ```
 
 ## Usage
@@ -159,6 +163,7 @@ The example is an excerpt for a manifest which can mount volumes. Examples of th
 [StatefulSet], and [DaemonSet].
 
 ```yaml
+---
 spec:
   containers:
     - name: authelia
@@ -214,6 +219,7 @@ spec:
             path: STORAGE_ENCRYPTION_KEY
           - key: STORAGE_PASSWORD
             path: STORAGE_PASSWORD
+...
 ```
 
 [Kubernetes]: https://kubernetes.io/
