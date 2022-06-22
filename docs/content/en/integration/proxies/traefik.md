@@ -31,6 +31,12 @@ You need the following to run __Authelia__ with [Traefik]:
 * [Traefik] [v2.4.1](https://github.com/traefik/traefik/releases/tag/v2.4.1) or greater if you wish to use
   [basic authentication](#basic-authentication)
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
 ## Trusted Proxies
 
 *__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
