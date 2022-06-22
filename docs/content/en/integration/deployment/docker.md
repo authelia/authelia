@@ -120,33 +120,6 @@ networks:
     name: net
 ```
 
-#### Running the Proxy on the Host Instead of in a Container
-
-If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
-configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
-users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
-architectural choice our users make and you should expect to do your own research to figure this out where possible.
-
-The example below includes the additional `ports` option which must be added in order to allow communication to
-*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
-[Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
-localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
-
-```yaml
-services:
-  authelia:
-    container_name: authelia
-    image: docker.io/authelia/authelia:latest
-    restart: unless-stopped
-    networks:
-      net:
-        aliases: []
-    expose:
-      - 9091
-    ports:
-      - "127.0.0.1:9091:9091"
-```
-
 ### Bundles
 
 To use the bundles we recommend first cloning the git repository and checking out the latest release on a Linux Desktop:
@@ -195,6 +168,35 @@ running the following command:
 
 ```bash
 grep -Eo '"https://.*" ' ./authelia/notification.txt.
+```
+
+## FAQ
+
+#### Running the Proxy on the Host Instead of in a Container
+
+If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
+configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
+users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
+architectural choice our users make and you should expect to do your own research to figure this out where possible.
+
+The example below includes the additional `ports` option which must be added in order to allow communication to
+*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
+[Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
+localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
+
+```yaml
+services:
+  authelia:
+    container_name: authelia
+    image: docker.io/authelia/authelia:latest
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    ports:
+      - "127.0.0.1:9091:9091"
 ```
 
 [Docker]: https://docker.com
