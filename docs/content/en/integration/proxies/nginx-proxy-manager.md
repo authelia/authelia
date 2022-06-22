@@ -29,8 +29,8 @@ While this proxy is supported we don't have any specific documentation for it at
 ## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to setup of
-the *Authelia* configuration.
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Requirements
 
