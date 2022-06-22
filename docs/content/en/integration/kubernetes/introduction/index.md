@@ -27,6 +27,12 @@ The following areas are actively being worked on for Kubernetes:
 
 Users are welcome to reach out directly by using any of our various [contact options](../../information/contact.md).
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to setup of
+the *Authelia* configuration.
+
 ## Important Notes
 
 The following section has special notes regarding utilizing Authelia with Kubernetes.

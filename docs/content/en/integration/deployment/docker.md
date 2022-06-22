@@ -27,16 +27,32 @@ existing [Docker Compose].
 * [Bundle: lite](#lite)
 * [Bundle: local](#local)
 
+### Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to setup of
+the *Authelia* configuration.
+
 ### Standalone Example
 
-The following is an example [Docker Compose] deployment with just *Authelia* and no bundled applications or proxies.
+The following is an examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
+proxies.
 
 It expects the following:
 
 * The file `data/authelia/config/configuration.yml` is present and the configuration file.
-* The files `data/authelia/secrets/*` exist and contain the relevant [secrets](../../configuration/methods/secrets.md).
+* The files `data/authelia/secrets/*` exist and contain the relevant [secrets](../../configuration/methods/secrets.md):
+  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/miscellaneous/introduction.md#jwt_secret)
+  * A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
+  * A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
+  * A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryption_key)
 * You're using PostgreSQL.
 * You have an external network named `net` which is in bridge mode.
+
+#### Using Secrets
+
+Use this [Standalone Example](#standalone-example) if you want to use
+[docker secrets](https://docs.docker.com/engine/swarm/secrets/).
 
 ```yaml
 version: "3.8"
@@ -49,10 +65,6 @@ secrets:
     file: ${PWD}/data/authelia/secrets/STORAGE_PASSWORD
   STORAGE_ENCRYPTION_KEY:
     file: ${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY
-  OIDC_HMAC_KEY:
-    file: ${PWD}/data/authelia/secrets/OIDC_HMAC_KEY
-  OIDC_PRIVATE_KEY:
-    file: ${PWD}/data/authelia/secrets/OIDC_PRIVATE_KEY
 services:
   authelia:
     container_name: authelia
@@ -63,16 +75,45 @@ services:
         aliases: []
     expose:
       - 9091
-    secrets: [JWT_SECRET, SESSION_SECRET, STORAGE_PASSWORD, STORAGE_ENCRYPTION_KEY, OIDC_HMAC_KEY, OIDC_PRIVATE_KEY]
+    secrets: [JWT_SECRET, SESSION_SECRET, STORAGE_PASSWORD, STORAGE_ENCRYPTION_KEY]
     environment:
       AUTHELIA_JWT_SECRET_FILE: /run/secrets/JWT_SECRET
       AUTHELIA_SESSION_SECRET_FILE: /run/secrets/SESSION_SECRET
       AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /run/secrets/STORAGE_PASSWORD
       AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /run/secrets/STORAGE_ENCRYPTION_KEY
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE: /run/secrets/OIDC_HMAC_KEY
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /run/secrets/OIDC_PRIVATE_KEY
     volumes:
       - ${PWD}/data/authelia/config:/config
+networks:
+  net:
+    external: true
+    name: net
+```
+
+#### Using a Secrets Volume
+
+Use this [Standalone Example](#standalone-example) if you want to use a standard
+[docker volume](https://docs.docker.com/storage/volumes/) or bind mount for your secrets.
+
+```yaml
+version: "3.8"
+services:
+  authelia:
+    container_name: authelia
+    image: docker.io/authelia/authelia:latest
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    environment:
+      AUTHELIA_JWT_SECRET_FILE: /secrets/JWT_SECRET
+      AUTHELIA_SESSION_SECRET_FILE: /secrets/SESSION_SECRET
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /secrets/STORAGE_PASSWORD
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /secrets/STORAGE_ENCRYPTION_KEY
+    volumes:
+      - ${PWD}/data/authelia/config:/config
+      - ${PWD}/data/authelia/secrets:/secrets
 networks:
   net:
     external: true

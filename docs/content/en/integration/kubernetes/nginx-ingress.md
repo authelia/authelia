@@ -18,6 +18,12 @@ official one [nginx-ingress-controller]. Currently we only have support docs for
 The [nginx documentation](../proxies/nginx.md) may also be useful for crafting advanced snippets to use with annotations
 even though it's not specific to Kubernetes.
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to setup of
+the *Authelia* configuration.
+
 ## NGINX Ingress Controller (ingress-nginx)
 
 If you use NGINX Ingress Controller (ingress-nginx) you can protect an ingress with the following annotations. The
