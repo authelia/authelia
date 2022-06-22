@@ -41,7 +41,7 @@ proxies.
 It expects the following:
 
 * The file `data/authelia/config/configuration.yml` is present and the configuration file.
-* The files `data/authelia/secrets/*` exist and contain the relevant [secrets](../../configuration/methods/secrets.md):
+* The directory `data/authelia/secrets/` exists and contain the relevant [secret](../../configuration/methods/secrets.md) files:
   * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/miscellaneous/introduction.md#jwt_secret)
   * A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
   * A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
