@@ -60,7 +60,7 @@ specifiers:
   vite: 2.9.12
   vite-plugin-eslint: 1.6.1
   vite-plugin-istanbul: 2.8.0
-  vite-plugin-svgr: 2.1.1
+  vite-plugin-svgr: 2.2.0
   vite-tsconfig-paths: 3.5.0
   zxcvbn: 4.4.2
 
@@ -127,7 +127,7 @@ devDependencies:
   vite: 2.9.12
   vite-plugin-eslint: 1.6.1_eslint@8.18.0+vite@2.9.12
   vite-plugin-istanbul: 2.8.0
-  vite-plugin-svgr: 2.1.1_vite@2.9.12
+  vite-plugin-svgr: 2.2.0_vite@2.9.12
   vite-tsconfig-paths: 3.5.0_vite@2.9.12
 
 packages:
@@ -147,11 +147,6 @@ packages:
 
   /@babel/compat-data/7.17.10:
     resolution: {integrity: sha512-GZt/TCsG70Ms19gfZO1tM4CVnXsPgEPBCpJu+Qz3L0LUDsY5nZqFZglIoPC1kIYOtNBZlrnFT+klg12vFGZXrw==}
-    engines: {node: '>=6.9.0'}
-    dev: true
-
-  /@babel/compat-data/7.17.7:
-    resolution: {integrity: sha512-p8pdE6j0a29TNGebNm7NzYZWB3xVZJBZ7XGs42uAKzQo8VQ3F0By/cQCtUEABwIqw5zo6WA4NbmxsfzADzMKnQ==}
     engines: {node: '>=6.9.0'}
     dev: true
 
@@ -276,7 +271,7 @@ packages:
       '@babel/core':
         optional: true
     dependencies:
-      '@babel/compat-data': 7.17.7
+      '@babel/compat-data': 7.17.10
       '@babel/core': 7.17.8
       '@babel/helper-validator-option': 7.16.7
       browserslist: 4.20.2
@@ -479,7 +474,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/template': 7.16.7
-      '@babel/traverse': 7.17.9
+      '@babel/traverse': 7.17.10
       '@babel/types': 7.17.10
     transitivePeerDependencies:
       - supports-color
@@ -699,7 +694,7 @@ packages:
       '@babel/core':
         optional: true
     dependencies:
-      '@babel/compat-data': 7.17.7
+      '@babel/compat-data': 7.17.10
       '@babel/core': 7.17.10
       '@babel/helper-compilation-targets': 7.17.10_@babel+core@7.17.10
       '@babel/helper-plugin-utils': 7.16.7
@@ -1805,7 +1800,7 @@ packages:
       '@babel/core':
         optional: true
     dependencies:
-      '@babel/compat-data': 7.17.7
+      '@babel/compat-data': 7.17.10
       '@babel/core': 7.17.10
       '@babel/helper-compilation-targets': 7.17.10_@babel+core@7.17.10
       '@babel/helper-plugin-utils': 7.16.7
@@ -1954,7 +1949,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/code-frame': 7.16.7
-      '@babel/parser': 7.17.9
+      '@babel/parser': 7.17.10
       '@babel/types': 7.17.10
     dev: true
 
@@ -1981,12 +1976,12 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/code-frame': 7.16.7
-      '@babel/generator': 7.17.9
+      '@babel/generator': 7.17.10
       '@babel/helper-environment-visitor': 7.16.7
       '@babel/helper-function-name': 7.17.9
       '@babel/helper-hoist-variables': 7.16.7
       '@babel/helper-split-export-declaration': 7.16.7
-      '@babel/parser': 7.17.9
+      '@babel/parser': 7.17.10
       '@babel/types': 7.17.10
       debug: 4.3.4
       globals: 11.12.0
@@ -3182,7 +3177,7 @@ packages:
   /@types/babel__core/7.1.19:
     resolution: {integrity: sha512-WEOTgRsbYkvA/KCsDwVEGkd7WAr1e3g31VHQ8zy5gul/V1qKullU/BU5I68X5v7V3GnB9eotmom4v5a5gjxorw==}
     dependencies:
-      '@babel/parser': 7.17.9
+      '@babel/parser': 7.17.10
       '@babel/types': 7.17.10
       '@types/babel__generator': 7.6.4
       '@types/babel__template': 7.4.1
@@ -3937,7 +3932,7 @@ packages:
       '@babel/core':
         optional: true
     dependencies:
-      '@babel/compat-data': 7.17.7
+      '@babel/compat-data': 7.17.10
       '@babel/core': 7.17.10
       '@babel/helper-define-polyfill-provider': 0.3.1_@babel+core@7.17.10
       semver: 6.3.0
@@ -7144,7 +7139,7 @@ packages:
     dev: true
 
   /jsesc/0.5.0:
-    resolution: {integrity: sha1-597mbjXW/Bb3EP6R1c9p9w8IkR0=}
+    resolution: {integrity: sha512-uZz5UnB7u4T9LvwmFqXii7pZSouaRPorGs5who1Ip7VO0wxanFvBL7GkM6dTHlgX+jhBApRetaWpnDabOeTcnA==}
     hasBin: true
     dev: true
 
@@ -9154,11 +9149,12 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.1.1_vite@2.9.12:
-    resolution: {integrity: sha512-RWuUgp37kNx5bbBcG/RdbUMW90fcEZWyZGtDJTOlNrFxDsJDNfg0GS4YSTLon6/JLsBR2TG2WvTN8k+MnH4YhA==}
+  /vite-plugin-svgr/2.2.0_vite@2.9.12:
+    resolution: {integrity: sha512-CRJgz92vf3SQbt3jwF6/BhyQIhbY0pwbXAPqUh1/EMG6a4eHsHCECcDNrKZMhlRBj3LyXQSfHXJLtM2ISP5rfg==}
     peerDependencies:
       vite: ^2.6.0 || 3
     dependencies:
+      '@rollup/pluginutils': 4.2.1
       '@svgr/core': 6.2.1
       vite: 2.9.12
     transitivePeerDependencies:
