@@ -264,7 +264,7 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
 
-	if forwardedProto != nil && forwardedHost != nil && forwardedURI != nil {
+	if forwardedProto != nil && forwardedHost != nil {
 		var requestURI string
 
 		scheme := forwardedProto
