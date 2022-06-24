@@ -40,6 +40,7 @@ can manually create a secret like this with `kubectl apply -f`.
 
 ##### secret.yaml
 
+{{< details "secret.yml" >}}
 ```yaml
 ---
 kind: Secret
@@ -97,10 +98,13 @@ stringData:
     -----END RSA PRIVATE KEY-----
 ...
 ```
+{{< /details >}}
+
 ##### Base64 Data Example
 
 This is the same manifest as above but encoded in base64.
 
+{{< details "secret.yml" >}}
 ```yaml
 ---
 kind: Secret
@@ -122,14 +126,15 @@ data:
   STORAGE_PASSWORD: Tk1IZjlaN0M1VVFZdUtLZ2g5QkpUS2VjY29adDZjNjQ3RlFxc0VIaGthcGtrbmRQa1B3M2Q4Ym52a3FMZ2laNQ==
 ...
 ```
+{{< /details >}}
+
 ### Kustomize
 
 The following example is a [Kustomize](https://kustomize.io/) example which can be utilized with `kubectl apply -k`. The
 files listed in the `secretGenerator` section  of the `kustomization.yaml` must exist and contain the contents of your
 desired secret value.
 
-##### kustomization.yaml
-
+{{< details "kustomization.yaml" >}}
 ```yaml
 ---
 generatorOptions:
@@ -153,6 +158,7 @@ secretGenerator:
       - STORAGE_PASSWORD
 ...
 ```
+{{< /details >}}
 
 ## Usage
 
@@ -162,6 +168,7 @@ details.
 The example is an excerpt for a manifest which can mount volumes. Examples of these are the [Pod], [Deployment],
 [StatefulSet], and [DaemonSet].
 
+{{< details "deployment.yml" >}}
 ```yaml
 ---
 spec:
@@ -221,6 +228,7 @@ spec:
             path: STORAGE_PASSWORD
 ...
 ```
+{{< /details >}}
 
 [Kubernetes]: https://kubernetes.io/
 [Pod]: https://kubernetes.io/docs/concepts/workloads/pods/
