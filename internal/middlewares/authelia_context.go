@@ -269,17 +269,15 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 		scheme := forwardedProto
 		scheme = append(scheme, protoHostSeparator...)
-		requestURI = string(append(scheme,
-			append(forwardedHost, forwardedURI...)...))
+		requestURI = string(append(scheme, append(forwardedHost, forwardedURI...)...))
 
 		parsedURL, err := url.ParseRequestURI(requestURI)
 		if err == nil {
 			ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
 				"to construct targeted site URL")
 			return parsedURL, nil
-		} else {
-			ctx.Logger.Trace("Unable to parse URL %s: %v", requestURI, err)
 		}
+		ctx.Logger.Trace("Unable to parse URL %s: %v", requestURI, err)
 	}
 
 	originalURL := ctx.XOriginalURL()
