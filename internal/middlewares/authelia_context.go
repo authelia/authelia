@@ -262,44 +262,46 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 
 // GetOriginalURL extract the URL from the request headers (X-Original-URL or X-Forwarded-* headers).
 func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
-	originalURL := ctx.XOriginalURL()
-	if originalURL != nil {
-		parsedURL, err := url.ParseRequestURI(string(originalURL))
-		if err != nil {
-			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
-		}
+        forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
 
-		ctx.Logger.Trace("Using X-Original-URL header content as targeted site URL")
+        if forwardedProto != nil && forwardedHost != nil && forwardedURI != nil {
+                var requestURI string
 
-		return parsedURL, nil
-	}
+                scheme := forwardedProto
+                scheme = append(scheme, protoHostSeparator...)
+                requestURI = string(append(scheme,
+                        append(forwardedHost, forwardedURI...)...))
 
-	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
+                parsedURL, err := url.ParseRequestURI(requestURI)
+                if err == nil {
+                        ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
+                                "to construct targeted site URL")
+                        return parsedURL, nil
+                } else {
+                        ctx.Logger.Trace("Unable to parse URL %s: %v", requestURI, err)
+                }
+        }
 
-	if forwardedProto == nil {
-		return nil, errMissingXForwardedProto
-	}
+        originalURL := ctx.XOriginalURL()
+        if originalURL != nil {
+                parsedURL, err := url.ParseRequestURI(string(originalURL))
+                if err != nil {
+                        return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
+                }
+                ctx.Logger.Trace("Using X-Original-URL header content as targeted site URL")
+                return parsedURL, nil
+        }
 
-	if forwardedHost == nil {
-		return nil, errMissingXForwardedHost
-	}
+        if forwardedProto == nil {
+                return nil, errMissingXForwardedProto
+        }
 
-	var requestURI string
+        if forwardedHost == nil {
+                return nil, errMissingXForwardedHost
+        }
 
-	scheme := forwardedProto
-	scheme = append(scheme, protoHostSeparator...)
-	requestURI = string(append(scheme,
-		append(forwardedHost, forwardedURI...)...))
-
-	parsedURL, err := url.ParseRequestURI(requestURI)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
-	}
-
-	ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
-		"to construct targeted site URL")
-
-	return parsedURL, nil
+        return nil, fmt.Errorf("Unable to parse URL from X-Original-URL header " +
+                "or X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers")
 }
 
 // IsXHR returns true if the request is a XMLHttpRequest.
