@@ -94,6 +94,96 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 	s.Assert().Contains(output, "Password hash: $6$rounds=50000")
 }
 
+func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--csr", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate Signing Request")
+
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tSignature Algorithm: SHA256-RSA, Public Key Algorithm: RSA, Bits: 2048")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+}
+
+func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate Signing Request")
+
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tSignature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-224")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+}
+
+func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate Signing Request")
+
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tSignature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-256")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+}
+
+func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate Signing Request")
+
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tSignature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-384")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+}
+
+func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate Signing Request")
+
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tSignature Algorithm: ECDSA-SHA256, Public Key Algorithm: ECDSA, Elliptic Curve: P-521")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+}
+
+func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ed25519", "generate", "--csr", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating Certificate Signing Request")
+
+	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
+	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
+	s.Assert().Contains(output, "\tSignature Algorithm: Ed25519, Public Key Algorithm: Ed25519")
+	s.Assert().Contains(output, "\tSubject Alternative Names: DNS.1:*.example.com")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+}
+
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
@@ -260,7 +350,7 @@ func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 	s.Assert().Contains(output, "Error: curve must be P224, P256, P384, or P521 but an invalid curve was specified: invalid")
 }
 
-func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
+func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP224() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate")
@@ -277,7 +367,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP224() {
 	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
-func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
+func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP256() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate")
@@ -294,7 +384,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP256() {
 	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
-func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
+func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP384() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate")
@@ -311,7 +401,7 @@ func (s *CLISuite) TestShouldGenerateCertificateECDSAP384() {
 	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
-func (s *CLISuite) TestShouldGenerateCertificateECDSAP521() {
+func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP521() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate")
@@ -333,7 +423,7 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPair() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: RSA-256 2048 bits")
+	s.Assert().Contains(output, "Algorithm: RSA-256 2048 bits\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
@@ -345,7 +435,7 @@ func (s *CLISuite) TestShouldGenerateRSAKeyPairWith4069Bits() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: RSA-512 4096 bits")
+	s.Assert().Contains(output, "Algorithm: RSA-512 4096 bits\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
@@ -357,7 +447,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPair() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256")
+	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
@@ -369,7 +459,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP224() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-224")
+	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-224\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
@@ -381,7 +471,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP256() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256")
+	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-256\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
@@ -393,7 +483,7 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP384() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-384")
+	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-384\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
@@ -405,7 +495,19 @@ func (s *CLISuite) TestShouldGenerateECDSAKeyPairCurveP521() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating key pair")
 
-	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-521")
+	s.Assert().Contains(output, "Algorithm: ECDSA Curve P-521\n\n")
+
+	s.Assert().Contains(output, "Output Paths:")
+	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
+	s.Assert().Contains(output, "\tPublic Key: /tmp/public.pem")
+}
+
+func (s *CLISuite) TestShouldGenerateEd25519KeyPair() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ed25519", "generate", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Generating key pair")
+
+	s.Assert().Contains(output, "Algorithm: Ed25519\n\n")
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")

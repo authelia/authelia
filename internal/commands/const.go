@@ -398,25 +398,25 @@ This subcommand allows preforming Ed25519 key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairEd25519Example = `authelia crypto pair ed25519 --help`
 
-	cmdAutheliaCryptoPairRSAGenerateShort = "Generate an RSA key pair cryptographic"
+	cmdAutheliaCryptoPairRSAGenerateShort = "Generate a cryptographic RSA key pair"
 
-	cmdAutheliaCryptoPairRSAGenerateLong = `Generate an RSA key pair cryptographic.
+	cmdAutheliaCryptoPairRSAGenerateLong = `Generate a cryptographic RSA key pair.
 
 This subcommand allows generating an RSA key pair.`
 
 	cmdAutheliaCryptoPairRSAGenerateExample = `authelia crypto pair rsa generate --help`
 
-	cmdAutheliaCryptoPairECDSAGenerateShort = "Generate an ECDSA key pair cryptographic"
+	cmdAutheliaCryptoPairECDSAGenerateShort = "Generate a cryptographic ECDSA key pair"
 
-	cmdAutheliaCryptoPairECDSAGenerateLong = `Generate an ECDSA key pair cryptographic.
+	cmdAutheliaCryptoPairECDSAGenerateLong = `Generate a cryptographic ECDSA key pair.
 
 This subcommand allows generating an ECDSA key pair.`
 
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
 
-	cmdAutheliaCryptoPairEd25519GenerateShort = "Generate an Ed25519 key pair cryptographic"
+	cmdAutheliaCryptoPairEd25519GenerateShort = "Generate a cryptographic Ed25519 key pair"
 
-	cmdAutheliaCryptoPairEd25519GenerateLong = `Generate an Ed25519 key pair cryptographic.
+	cmdAutheliaCryptoPairEd25519GenerateLong = `Generate a cryptographic Ed25519 key pair.
 
 This subcommand allows generating an Ed25519 key pair.`
 

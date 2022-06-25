@@ -293,7 +293,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 
 	var (
 		template, caCertificate, parent *x509.Certificate
-		publicKey, caPrivateKey         interface{}
+		publicKey, caPrivateKey, signer interface{}
 	)
 
 	publicKey = utils.PublicKeyFromPrivateKey(privateKey)
@@ -302,8 +302,10 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 		return err
 	}
 
+	signer = privateKey
+
 	if caPrivateKey != nil {
-		privateKey = caPrivateKey
+		signer = caPrivateKey
 	}
 
 	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
@@ -335,7 +337,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 	b.WriteString("Properties:\n")
 	b.WriteString(fmt.Sprintf("\tNot Before: %s, Not After: %s\n", template.NotBefore.Format(time.RFC3339), template.NotAfter.Format(time.RFC3339)))
 
-	b.WriteString(fmt.Sprintf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, csr, template.SignatureAlgorithm, template.PublicKeyAlgorithm))
+	b.WriteString(fmt.Sprintf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, false, template.SignatureAlgorithm, template.PublicKeyAlgorithm))
 
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
@@ -363,7 +365,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 
 	b.Reset()
 
-	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey); err != nil {
+	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, signer); err != nil {
 		return err
 	}
 
