@@ -106,7 +106,7 @@ func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
@@ -121,7 +121,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
@@ -136,7 +136,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
@@ -151,7 +151,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
@@ -166,7 +166,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
@@ -181,7 +181,7 @@ func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
