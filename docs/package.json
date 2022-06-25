@@ -2,6 +2,9 @@
   "name": "@hyas/doks",
   "description": "Doks theme",
   "version": "0.4.2",
+  "engines": {
+    "node": ">=16.15.0"
+  },
   "browserslist": [
     "defaults"
   ],
@@ -63,6 +66,6 @@
     "stylelint-config-standard-scss": "4.0.0"
   },
   "otherDependencies": {
-    "hugo": "0.96.0"
+    "hugo": "0.101.0"
   }
 }

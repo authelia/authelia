@@ -26,6 +26,12 @@ method of deploying a proxy. These guides show a suggested setup only and you ne
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
 ## Requirements
 
 You need the following to run __Authelia__ with [Caddy]:
@@ -173,52 +179,33 @@ auth.example.com {
 
 # Protected Endpoint.
 nextcloud.example.com {
-        route {
-                reverse_proxy authelia:9091 {
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
+        reverse_proxy authelia:9091 {
+                ## This import needs to be included if you're relying on a trusted proxies configuration.
+                import trusted_proxy_list
 
-                        method GET
-                        rewrite "/api/verify?rd=https://auth.example.com/"
+                method GET
+                rewrite "/api/verify?rd=https://auth.example.com/"
 
-                        header_up X-Forwarded-Method {method}
-                        header_up X-Forwarded-Uri {uri}
+                header_up X-Forwarded-Method {method}
+                header_up X-Forwarded-Uri {uri}
 
-                        ## If the auth request:
-                        ##   1. Responds with a status code IN the 200-299 range.
-                        ## Then:
-                        ##   1. Proxy the request to the backend.
-                        ##   2. Copy the relevant headers from the auth request and provide them to the backend.
-                        @good status 2xx
-                        handle_response @good {
-                                request_header {
-                                        Remote-User {http.reverse_proxy.header.Remote-User}
-                                        Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-                                        Remote-Name {http.reverse_proxy.header.Remote-Name}
-                                        Remote-Email {http.reverse_proxy.header.Remote-Email}
-                                }
-                        }
-
-                        ## If the auth request:
-                        ##   1. Responds with a status code NOT IN the 200-299 range.
-                        ## Then:
-                        ##   1. Respond with the status code of the auth request.
-                        ##   1. Copy the response except for several headers.
-                        @denied {
-                                status 1xx 3xx 4xx 5xx
-                        }
-                        handle_response @denied {
-                                copy_response
-                                copy_response_headers {
-                                        exclude Connection Keep-Alive Te Trailers Transfer-Encoding Upgrade
-                                }
-                        }
+                ## If the auth request:
+                ##   1. Responds with a status code IN the 200-299 range.
+                ## Then:
+                ##   1. Proxy the request to the backend.
+                ##   2. Copy the relevant headers from the auth request and provide them to the backend.
+                @good status 2xx
+                handle_response @good {
+                        request_header Remote-User {http.reverse_proxy.header.Remote-User}
+                        request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
+                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
+                        request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
                 }
+        }
 
-                reverse_proxy nextcloud:80 {
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
-                }
+        reverse_proxy nextcloud:80 {
+                ## This import needs to be included if you're relying on a trusted proxies configuration.
+                import trusted_proxy_list
         }
 }
 ```

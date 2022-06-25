@@ -209,8 +209,14 @@ The distinguished name of the user paired with the password to bind with for loo
 
 {{< confkey type="string" required="yes" >}}
 
-The password of the user paired with the user to bind with for lookup and password change operations.
-Can also be defined using a [secret](../methods/secrets.md) which is the recommended for containerized deployments.
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
+
+The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 ## Refresh Interval
 

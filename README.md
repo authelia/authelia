@@ -125,12 +125,6 @@ need to be setup accordingly and certificates will be generated through LetsEncr
 external dependencies; File based user storage, SQLite based configuration storage. In this configuration, the service
 will not scale well.
 
-#### [Full](https://www.authelia.com/docs/deployment/deployment-ha)
-The Full compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will
-need to be setup accordingly and certificates will be generated through LetsEncrypt. The Full element refers to a
-scalable setup which includes external dependencies; LDAP based user storage, Database based configuration storage
-(MariaDB, MySQL or Postgres).
-
 ## Deployment
 
 Now that you have tested **Authelia** and you want to try it out in your own infrastructure,

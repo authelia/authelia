@@ -30,6 +30,12 @@ only need to enabled two includes.
 *__Note:__ All paths in this guide are the locations inside the container. You will have to either edit the files within
 the container or adapt the path to the path you have mounted the relevant container path to.*
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
 ## Requirements
 
 [SWAG] supports the required [NGINX](nginx.md#requirements) requirements for __Authelia__ out-of-the-box.
