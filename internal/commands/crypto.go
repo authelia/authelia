@@ -292,8 +292,8 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 	}
 
 	var (
-		template, caCertificate, parent *x509.Certificate
-		publicKey, caPrivateKey, signer interface{}
+		template, caCertificate, parent       *x509.Certificate
+		publicKey, caPrivateKey, signatureKey interface{}
 	)
 
 	publicKey = utils.PublicKeyFromPrivateKey(privateKey)
@@ -302,10 +302,10 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 		return err
 	}
 
-	signer = privateKey
+	signatureKey = privateKey
 
 	if caPrivateKey != nil {
-		signer = caPrivateKey
+		signatureKey = caPrivateKey
 	}
 
 	if template, err = cryptoGetCertificateFromCmd(cmd); err != nil {
@@ -365,7 +365,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, args []string, privateKey
 
 	b.Reset()
 
-	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, signer); err != nil {
+	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, signatureKey); err != nil {
 		return err
 	}
 

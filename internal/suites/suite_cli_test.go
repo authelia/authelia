@@ -344,6 +344,12 @@ func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
 	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 }
 
+func (s *CLISuite) TestShouldFailGenerateCertificateParseNotBefore() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--not-before=invalid", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	s.Assert().NotNil(err)
+	s.Assert().Contains(output, "Error: failed to parse not before: parsing time \"invalid\" as \"Jan 2 15:04:05 2006\": cannot parse \"invalid\" as \"Jan\"")
+}
+
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=invalid", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
