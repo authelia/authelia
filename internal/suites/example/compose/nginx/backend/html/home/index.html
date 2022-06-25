@@ -4,6 +4,20 @@
 <head>
   <title>Home page</title>
   <link rel="icon" href="/icon.png" type="image/png" />
+  <script>
+    window.onload = () =>{
+      const hostname = window.location.hostname
+      const protocol = window.location.protocol
+      const port = window.location.port
+      const domain = hostname.replace(/^\w+\.(.+)$/i, "$1")
+      let hrefs = document.body.querySelectorAll("a[href]")
+      for(const link of hrefs) {
+        newDomain = `${domain}:${port}`
+        link.href = link.href.replace("example.com:8080", newDomain)
+      }
+
+    }
+  </script>
 </head>
 
 <body>
