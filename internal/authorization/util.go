@@ -82,9 +82,9 @@ func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) 
 	return domains
 }
 
-func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []AccessControlResource) {
+func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []SubjectObjectMatcher) {
 	for _, resourceRule := range resourceRules {
-		resources = append(resources, AccessControlResource{Pattern: resourceRule})
+		resources = append(resources, NewAccessControlResource(resourceRule))
 	}
 
 	return resources
