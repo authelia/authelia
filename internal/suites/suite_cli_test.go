@@ -573,6 +573,51 @@ func (s *CLISuite) TestShouldNotGenerateECDSAKeyPairCurveInvalid() {
 	s.Assert().Contains(output, "Error: invalid curve 'invalid' was specified: curve must be P224, P256, P384, or P521")
 }
 
+func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAPath() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/invalid", "--directory=/tmp/"})
+	s.Assert().NotNil(err)
+	s.Assert().Contains(output, "Error: could not read private key file '/tmp/invalid/ca.private.pem': open /tmp/invalid/ca.private.pem: no such file or directory\n")
+}
+
+func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileNames() {
+	var (
+		err    error
+		output string
+	)
+
+	_, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=invalid.pem", "--directory=/tmp/"})
+	s.Assert().NotNil(err)
+	s.Assert().Contains(output, "Error: could not read private key file '/tmp/invalid.pem': open /tmp/invalid.pem: no such file or directory\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-certificate=invalid.crt", "--directory=/tmp/"})
+	s.Assert().NotNil(err)
+	s.Assert().Contains(output, "Error: could not read certificate file '/tmp/invalid.crt': open /tmp/invalid.crt: no such file or directory\n")
+}
+
+func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
+	var (
+		err    error
+		output string
+	)
+
+	_, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
+	s.Assert().NoError(err)
+
+	s.Require().NoError(os.WriteFile("/tmp/ca.private.bad.pem", []byte("INVALID"), 0600)) //nolint:gosec
+	s.Require().NoError(os.WriteFile("/tmp/ca.public.bad.crt", []byte("INVALID"), 0600))  //nolint:gosec
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=ca.private.bad.pem", "--directory=/tmp/"})
+	s.Assert().NotNil(err)
+	s.Assert().Contains(output, "Error: could not parse private key from file '/tmp/ca.private.bad.pem': failed to parse PEM block containing the key\n")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-certificate=ca.public.bad.crt", "--directory=/tmp/"})
+	s.Assert().NotNil(err)
+	s.Assert().Contains(output, "Error: could not parse certificate from file '/tmp/ca.public.bad.crt': failed to parse PEM block containing the key\n")
+}
+
 func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info"})
 	s.Assert().EqualError(err, "exit status 1")
