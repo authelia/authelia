@@ -341,11 +341,6 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
 	s.Assert().NoError(err)
 
-	s.Assert().Equal("", string(privateKeyData))
-	s.Assert().Equal("", string(privateKeyCAData))
-	s.Assert().Equal("", string(certificateData))
-	s.Assert().Equal("", string(certificateCAData))
-
 	s.Assert().False(bytes.Equal(privateKeyData, privateKeyCAData))
 	s.Assert().False(bytes.Equal(certificateData, certificateCAData))
 
@@ -359,11 +354,11 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 
 	c, err := utils.ParseX509FromPEM(certificateData)
 	s.Assert().NoError(err)
-	s.Assert().True(utils.IsX509PrivateKey(privateKey))
+	s.Assert().False(utils.IsX509PrivateKey(c))
 
-	cCA, err := utils.ParseX509FromPEM(privateKeyCAData)
+	cCA, err := utils.ParseX509FromPEM(certificateCAData)
 	s.Assert().NoError(err)
-	s.Assert().True(utils.IsX509PrivateKey(privateCAKey))
+	s.Assert().False(utils.IsX509PrivateKey(cCA))
 
 	certificate, ok := utils.CastX509AsCertificate(c)
 	s.Assert().True(ok)
