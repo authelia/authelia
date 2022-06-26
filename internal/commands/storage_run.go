@@ -351,17 +351,17 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 
-		if page == 0 && format == storageExportFormatCSV {
+		if page == 0 && format == storageTOTPExportFormatCSV {
 			fmt.Printf("issuer,username,algorithm,digits,period,secret\n")
 		}
 
 		for _, c := range configurations {
 			switch format {
-			case storageExportFormatCSV:
+			case storageTOTPExportFormatCSV:
 				fmt.Printf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
-			case storageExportFormatURI:
+			case storageTOTPExportFormatURI:
 				fmt.Println(c.URI())
-			case storageExportFormatPNG:
+			case storageTOTPExportFormatPNG:
 				file, _ := os.Create(filepath.Join(dir, fmt.Sprintf("%s.png", c.Username)))
 
 				if img, err = c.Image(256, 256); err != nil {
@@ -385,7 +385,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	if format == storageExportFormatPNG {
+	if format == storageTOTPExportFormatPNG {
 		fmt.Printf("Exported TOTP QR codes in PNG format in the '%s' directory\n", dir)
 	}
 
@@ -402,9 +402,9 @@ func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string
 	}
 
 	switch format {
-	case storageExportFormatCSV, storageExportFormatURI:
+	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
 		break
-	case storageExportFormatPNG:
+	case storageTOTPExportFormatPNG:
 		if dir == "" {
 			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
 		}

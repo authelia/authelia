@@ -9,16 +9,17 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
-// NewHashPasswordCmd returns a new Hash Password Cmd.
-func NewHashPasswordCmd() (cmd *cobra.Command) {
+func newHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "hash-password [password]",
-		Short: "Hash a password to be used in file-based users database. Default algorithm is argon2id.",
-		Args:  cobra.MinimumNArgs(1),
-		Run:   cmdHashPasswordRun,
+		Use:     "hash-password [flags] -- <password>",
+		Short:   cmdAutheliaHashPasswordShort,
+		Long:    cmdAutheliaHashPasswordLong,
+		Example: cmdAutheliaHashPasswordExample,
+		Args:    cobra.MinimumNArgs(1),
+		RunE:    cmdHashPasswordRunE,
 	}
 
 	cmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordSHA512Configuration.Iterations))
@@ -33,34 +34,44 @@ func NewHashPasswordCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdHashPasswordRun(cmd *cobra.Command, args []string) {
-	logger := logging.Logger()
-
-	sha512, _ := cmd.Flags().GetBool("sha512")
-	iterations, _ := cmd.Flags().GetInt("iterations")
+func cmdHashPasswordRunE(cmd *cobra.Command, args []string) (err error) {
 	salt, _ := cmd.Flags().GetString("salt")
-	keyLength, _ := cmd.Flags().GetInt("key-length")
-	saltLength, _ := cmd.Flags().GetInt("salt-length")
-	memory, _ := cmd.Flags().GetInt("memory")
-	parallelism, _ := cmd.Flags().GetInt("parallelism")
+	sha512, _ := cmd.Flags().GetBool("sha512")
 	configs, _ := cmd.Flags().GetStringSlice("config")
 
-	if len(configs) > 0 {
-		val := schema.NewStructValidator()
+	mapDefaults := map[string]interface{}{
+		"authentication_backend.file.password.algorithm":   schema.DefaultPasswordConfiguration.Algorithm,
+		"authentication_backend.file.password.iterations":  schema.DefaultPasswordConfiguration.Iterations,
+		"authentication_backend.file.password.key_length":  schema.DefaultPasswordConfiguration.KeyLength,
+		"authentication_backend.file.password.salt_length": schema.DefaultPasswordConfiguration.SaltLength,
+		"authentication_backend.file.password.parallelism": schema.DefaultPasswordConfiguration.Parallelism,
+		"authentication_backend.file.password.memory":      schema.DefaultPasswordConfiguration.Memory,
+	}
 
-		_, config, err := configuration.Load(val, configuration.NewDefaultSources(configs, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
-		if err != nil {
-			logger.Fatalf("Error occurred loading configuration: %v", err)
-		}
+	if sha512 {
+		mapDefaults["authentication_backend.file.password.algorithm"] = schema.DefaultPasswordSHA512Configuration.Algorithm
+		mapDefaults["authentication_backend.file.password.iterations"] = schema.DefaultPasswordSHA512Configuration.Iterations
+		mapDefaults["authentication_backend.file.password.salt_length"] = schema.DefaultPasswordSHA512Configuration.SaltLength
+	}
 
-		if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Password != nil {
-			sha512 = config.AuthenticationBackend.File.Password.Algorithm == "sha512"
-			iterations = config.AuthenticationBackend.File.Password.Iterations
-			keyLength = config.AuthenticationBackend.File.Password.KeyLength
-			saltLength = config.AuthenticationBackend.File.Password.SaltLength
-			memory = config.AuthenticationBackend.File.Password.Memory
-			parallelism = config.AuthenticationBackend.File.Password.Parallelism
-		}
+	mapCLI := map[string]string{
+		"iterations":  "authentication_backend.file.password.iterations",
+		"key-length":  "authentication_backend.file.password.key_length",
+		"salt-length": "authentication_backend.file.password.salt_length",
+		"parallelism": "authentication_backend.file.password.parallelism",
+		"memory":      "authentication_backend.file.password.memory",
+	}
+
+	sources := configuration.NewDefaultSourcesWithDefaults(configs,
+		configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter,
+		configuration.NewMapSource(mapDefaults),
+		configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapCLI, false, false),
+	)
+
+	val := schema.NewStructValidator()
+
+	if _, config, err = configuration.Load(val, sources...); err != nil {
+		return fmt.Errorf("error occurred loading configuration: %w", err)
 	}
 
 	var (
@@ -68,24 +79,41 @@ func cmdHashPasswordRun(cmd *cobra.Command, args []string) {
 		algorithm authentication.CryptAlgo
 	)
 
-	if sha512 {
-		if iterations == schema.DefaultPasswordConfiguration.Iterations {
-			iterations = schema.DefaultPasswordSHA512Configuration.Iterations
+	p := config.AuthenticationBackend.File.Password
+
+	switch p.Algorithm {
+	case "sha512":
+		algorithm = authentication.HashingAlgorithmSHA512
+	default:
+		algorithm = authentication.HashingAlgorithmArgon2id
+	}
+
+	validator.ValidatePasswordConfiguration(p, val)
+
+	errs := val.Errors()
+
+	if len(errs) != 0 {
+		for i, e := range errs {
+			if i == 0 {
+				err = e
+				continue
+			}
+
+			err = fmt.Errorf("%v, %w", err, e)
 		}
 
-		algorithm = authentication.HashingAlgorithmSHA512
-	} else {
-		algorithm = authentication.HashingAlgorithmArgon2id
+		return fmt.Errorf("errors occurred validating the password configuration: %w", err)
 	}
 
 	if salt != "" {
 		salt = crypt.Base64Encoding.EncodeToString([]byte(salt))
 	}
 
-	hash, err := authentication.HashPassword(args[0], salt, algorithm, iterations, memory*1024, parallelism, keyLength, saltLength)
-	if err != nil {
-		logging.Logger().Fatalf("Error occurred during hashing: %v\n", err)
+	if hash, err = authentication.HashPassword(args[0], salt, algorithm, p.Iterations, p.Memory*1024, p.Parallelism, p.KeyLength, p.SaltLength); err != nil {
+		return fmt.Errorf("error during password hashing: %w", err)
 	}
 
 	fmt.Printf("Password hash: %s\n", hash)
+
+	return nil
 }

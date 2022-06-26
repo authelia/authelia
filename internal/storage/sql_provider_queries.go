@@ -286,7 +286,7 @@ const (
 	queryFmtDeactivateOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET active = FALSE
-		WHERE request_id = ?;"`
+		WHERE request_id = ?;`
 
 	queryFmtSelectOAuth2BlacklistedJTI = `
 		SELECT id, signature, expires_at
