@@ -299,20 +299,18 @@ func WriteCertificateBytesToPEM(cert []byte, path string, csr bool) (err error) 
 		return fmt.Errorf("failed to open %s for writing: %w", path, err)
 	}
 
-	defer func() {
-		err := out.Close()
-		if err != nil {
-			fmt.Printf("Error closing %s: %v\n", path, err)
-			os.Exit(1)
-		}
-	}()
-
 	blockType := BlockTypeCertificate
 	if csr {
 		blockType = BlockTypeCertificateRequest
 	}
 
-	return pem.Encode(out, &pem.Block{Bytes: cert, Type: blockType})
+	if err = pem.Encode(out, &pem.Block{Bytes: cert, Type: blockType}); err != nil {
+		_ = out.Close()
+
+		return err
+	}
+
+	return out.Close()
 }
 
 // WriteKeyToPEM writes a key that can be encoded as a PEM to a file in the PEM format.
@@ -327,15 +325,13 @@ func WriteKeyToPEM(key interface{}, path string, pkcs8 bool) (err error) {
 		return fmt.Errorf("failed to open %s for writing: %w", path, err)
 	}
 
-	defer func() {
-		err := out.Close()
-		if err != nil {
-			fmt.Printf("Error closing %s: %v\n", path, err)
-			os.Exit(1)
-		}
-	}()
+	if err = pem.Encode(out, pemBlock); err != nil {
+		_ = out.Close()
 
-	return pem.Encode(out, pemBlock)
+		return err
+	}
+
+	return out.Close()
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
@@ -418,12 +414,12 @@ func KeySigAlgorithmFromString(keyAlgorithm, signatureAlgorithm string) (keyAlg 
 
 // PublicKeyAlgorithmFromString returns a x509.PublicKeyAlgorithm given an appropriate string.
 func PublicKeyAlgorithmFromString(algorithm string) (alg x509.PublicKeyAlgorithm) {
-	switch algorithm {
-	case KeyAlgorithmAltRSA, KeyAlgorithmRSA:
+	switch strings.ToUpper(algorithm) {
+	case KeyAlgorithmRSA:
 		return x509.RSA
-	case KeyAlgorithmAltECDSA, KeyAlgorithmECDSA:
+	case KeyAlgorithmECDSA:
 		return x509.ECDSA
-	case KeyAlgorithmAlt1Ed25519, KeyAlgorithmEd25519, KeyAlgorithmAlt2Ed25519:
+	case KeyAlgorithmEd25519:
 		return x509.Ed25519
 	default:
 		return x509.UnknownPublicKeyAlgorithm
@@ -433,14 +429,14 @@ func PublicKeyAlgorithmFromString(algorithm string) (alg x509.PublicKeyAlgorithm
 // RSASignatureAlgorithmFromString returns a x509.SignatureAlgorithm for the RSA x509.PublicKeyAlgorithm given an
 // algorithm string.
 func RSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgorithm) {
-	switch algorithm {
-	case HashAlgorithmAltSHA1, HashAlgorithmSHA1:
+	switch strings.ToUpper(algorithm) {
+	case HashAlgorithmSHA1:
 		return x509.SHA1WithRSA
-	case HashAlgorithmAltSHA256, HashAlgorithmSHA256:
+	case HashAlgorithmSHA256:
 		return x509.SHA256WithRSA
-	case HashAlgorithmAltSHA384, HashAlgorithmSHA384:
+	case HashAlgorithmSHA384:
 		return x509.SHA384WithRSA
-	case HashAlgorithmAltSHA512, HashAlgorithmSHA512:
+	case HashAlgorithmSHA512:
 		return x509.SHA512WithRSA
 	default:
 		return x509.UnknownSignatureAlgorithm
@@ -450,14 +446,14 @@ func RSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgori
 // ECDSASignatureAlgorithmFromString returns a x509.SignatureAlgorithm for the ECDSA x509.PublicKeyAlgorithm given an
 // algorithm string.
 func ECDSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgorithm) {
-	switch algorithm {
-	case HashAlgorithmAltSHA1, HashAlgorithmSHA1:
+	switch strings.ToUpper(algorithm) {
+	case HashAlgorithmSHA1:
 		return x509.ECDSAWithSHA1
-	case HashAlgorithmAltSHA256, HashAlgorithmSHA256:
+	case HashAlgorithmSHA256:
 		return x509.ECDSAWithSHA256
-	case HashAlgorithmAltSHA384, HashAlgorithmSHA384:
+	case HashAlgorithmSHA384:
 		return x509.ECDSAWithSHA384
-	case HashAlgorithmAltSHA512, HashAlgorithmSHA512:
+	case HashAlgorithmSHA512:
 		return x509.ECDSAWithSHA512
 	default:
 		return x509.UnknownSignatureAlgorithm
@@ -466,7 +462,7 @@ func ECDSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgo
 
 // EllipticCurveFromString turns a string into an elliptic.Curve.
 func EllipticCurveFromString(curveString string) (curve elliptic.Curve) {
-	switch curveString {
+	switch strings.ToUpper(curveString) {
 	case EllipticCurveAltP224, EllipticCurveP224:
 		return elliptic.P224()
 	case EllipticCurveAltP256, EllipticCurveP256:

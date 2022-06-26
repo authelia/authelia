@@ -1,9 +1,14 @@
 package utils
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -164,6 +169,272 @@ func TestShouldGenerateCertificateAndPersistIt(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, len(certBytes) > 0)
 			assert.True(t, len(keyBytes) > 0)
+		})
+	}
+}
+
+func TestShouldParseKeySigAlgorithm(t *testing.T) {
+	testCases := []struct {
+		Name               string
+		InputKey, InputSig string
+		ExpectedKeyAlg     x509.PublicKeyAlgorithm
+		ExpectedSigAlg     x509.SignatureAlgorithm
+	}{
+		{
+			Name:           "ShouldNotParseInvalidKeyAlg",
+			InputKey:       "DDD",
+			InputSig:       "SHA1",
+			ExpectedKeyAlg: x509.UnknownPublicKeyAlgorithm,
+			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
+		},
+		{
+			Name:           "ShouldParseKeyRSASigSHA1",
+			InputKey:       "RSA",
+			InputSig:       "SHA1",
+			ExpectedKeyAlg: x509.RSA,
+			ExpectedSigAlg: x509.SHA1WithRSA,
+		},
+		{
+			Name:           "ShouldParseKeyRSASigSHA256",
+			InputKey:       "RSA",
+			InputSig:       "SHA256",
+			ExpectedKeyAlg: x509.RSA,
+			ExpectedSigAlg: x509.SHA256WithRSA,
+		},
+		{
+			Name:           "ShouldParseKeyRSASigSHA384",
+			InputKey:       "RSA",
+			InputSig:       "SHA384",
+			ExpectedKeyAlg: x509.RSA,
+			ExpectedSigAlg: x509.SHA384WithRSA,
+		},
+		{
+			Name:           "ShouldParseKeyRSASigSHA512",
+			InputKey:       "RSA",
+			InputSig:       "SHA512",
+			ExpectedKeyAlg: x509.RSA,
+			ExpectedSigAlg: x509.SHA512WithRSA,
+		},
+		{
+			Name:           "ShouldNotParseKeyRSASigInvalid",
+			InputKey:       "RSA",
+			InputSig:       "INVALID",
+			ExpectedKeyAlg: x509.RSA,
+			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
+		},
+		{
+			Name:           "ShouldParseKeyECDSASigSHA1",
+			InputKey:       "ECDSA",
+			InputSig:       "SHA1",
+			ExpectedKeyAlg: x509.ECDSA,
+			ExpectedSigAlg: x509.ECDSAWithSHA1,
+		},
+		{
+			Name:           "ShouldParseKeyECDSASigSHA256",
+			InputKey:       "ECDSA",
+			InputSig:       "SHA256",
+			ExpectedKeyAlg: x509.ECDSA,
+			ExpectedSigAlg: x509.ECDSAWithSHA256,
+		},
+		{
+			Name:           "ShouldParseKeyECDSASigSHA384",
+			InputKey:       "ECDSA",
+			InputSig:       "SHA384",
+			ExpectedKeyAlg: x509.ECDSA,
+			ExpectedSigAlg: x509.ECDSAWithSHA384,
+		},
+		{
+			Name:           "ShouldParseKeyECDSASigSHA512",
+			InputKey:       "ECDSA",
+			InputSig:       "SHA512",
+			ExpectedKeyAlg: x509.ECDSA,
+			ExpectedSigAlg: x509.ECDSAWithSHA512,
+		},
+		{
+			Name:           "ShouldNotParseKeyECDSASigInvalid",
+			InputKey:       "ECDSA",
+			InputSig:       "INVALID",
+			ExpectedKeyAlg: x509.ECDSA,
+			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
+		},
+		{
+			Name:           "ShouldParseKeyEd25519SigSHA1",
+			InputKey:       "ED25519",
+			InputSig:       "SHA1",
+			ExpectedKeyAlg: x509.Ed25519,
+			ExpectedSigAlg: x509.PureEd25519,
+		},
+		{
+			Name:           "ShouldParseKeyEd25519SigSHA256",
+			InputKey:       "ED25519",
+			InputSig:       "SHA256",
+			ExpectedKeyAlg: x509.Ed25519,
+			ExpectedSigAlg: x509.PureEd25519,
+		},
+		{
+			Name:           "ShouldParseKeyEd25519SigSHA384",
+			InputKey:       "ED25519",
+			InputSig:       "SHA384",
+			ExpectedKeyAlg: x509.Ed25519,
+			ExpectedSigAlg: x509.PureEd25519,
+		},
+		{
+			Name:           "ShouldParseKeyEd25519SigSHA512",
+			InputKey:       "ED25519",
+			InputSig:       "SHA512",
+			ExpectedKeyAlg: x509.Ed25519,
+			ExpectedSigAlg: x509.PureEd25519,
+		},
+		{
+			Name:           "ShouldParseKeyEd25519SigInvalid",
+			InputKey:       "ED25519",
+			InputSig:       "INVALID",
+			ExpectedKeyAlg: x509.Ed25519,
+			ExpectedSigAlg: x509.PureEd25519,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			actualKey, actualSig := KeySigAlgorithmFromString(tc.InputKey, tc.InputSig)
+			actualKeyLower, actualSigLower := KeySigAlgorithmFromString(strings.ToLower(tc.InputKey), strings.ToLower(tc.InputSig))
+
+			assert.Equal(t, tc.ExpectedKeyAlg, actualKey)
+			assert.Equal(t, tc.ExpectedSigAlg, actualSig)
+			assert.Equal(t, tc.ExpectedKeyAlg, actualKeyLower)
+			assert.Equal(t, tc.ExpectedSigAlg, actualSigLower)
+		})
+	}
+}
+
+func TestShouldParseCurves(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Input    string
+		Expected elliptic.Curve
+	}{
+		{
+			Name:     "P224-Standard",
+			Input:    "P224",
+			Expected: elliptic.P224(),
+		},
+		{
+			Name:     "P224-Lowercase",
+			Input:    "p224",
+			Expected: elliptic.P224(),
+		},
+		{
+			Name:     "P224-Hyphenated",
+			Input:    "P-224",
+			Expected: elliptic.P224(),
+		},
+		{
+			Name:     "P256-Standard",
+			Input:    "P256",
+			Expected: elliptic.P256(),
+		},
+		{
+			Name:     "P256-Lowercase",
+			Input:    "p256",
+			Expected: elliptic.P256(),
+		},
+		{
+			Name:     "P256-Hyphenated",
+			Input:    "P-256",
+			Expected: elliptic.P256(),
+		},
+		{
+			Name:     "P384-Standard",
+			Input:    "P384",
+			Expected: elliptic.P384(),
+		},
+		{
+			Name:     "P384-Lowercase",
+			Input:    "p384",
+			Expected: elliptic.P384(),
+		},
+		{
+			Name:     "P384-Hyphenated",
+			Input:    "P-384",
+			Expected: elliptic.P384(),
+		},
+		{
+			Name:     "P521-Standard",
+			Input:    "P521",
+			Expected: elliptic.P521(),
+		},
+		{
+			Name:     "P521-Lowercase",
+			Input:    "p521",
+			Expected: elliptic.P521(),
+		},
+		{
+			Name:     "P521-Hyphenated",
+			Input:    "P-521",
+			Expected: elliptic.P521(),
+		},
+		{
+			Name:     "Invalid",
+			Input:    "521",
+			Expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			actual := EllipticCurveFromString(tc.Input)
+
+			assert.Equal(t, tc.Expected, actual)
+		})
+	}
+}
+
+func testMustBuildPrivateKey(b PrivateKeyBuilder) interface{} {
+	k, err := b.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	return k
+}
+
+func TestPublicKeyFromPrivateKey(t *testing.T) {
+	testCases := []struct {
+		Name       string
+		PrivateKey interface{}
+		Expected   interface{}
+	}{
+		{
+			Name:       "RSA2048",
+			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(512)),
+			Expected:   &rsa.PublicKey{},
+		},
+		{
+			Name:       "ECDSA-P256",
+			PrivateKey: testMustBuildPrivateKey(ECDSAKeyBuilder{}.WithCurve(elliptic.P256())),
+			Expected:   &ecdsa.PublicKey{},
+		},
+		{
+			Name:       "Ed25519",
+			PrivateKey: testMustBuildPrivateKey(Ed25519KeyBuilder{}),
+			Expected:   ed25519.PublicKey{},
+		},
+		{
+			Name:       "Invalid",
+			PrivateKey: 8,
+			Expected:   nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			actual := PublicKeyFromPrivateKey(tc.PrivateKey)
+
+			if tc.Expected == nil {
+				assert.Nil(t, actual)
+			} else {
+				assert.IsType(t, tc.Expected, actual)
+			}
 		})
 	}
 }

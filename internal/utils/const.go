@@ -43,32 +43,22 @@ const (
 
 	KeyAlgorithmRSA     = "RSA"
 	KeyAlgorithmECDSA   = "ECDSA"
-	KeyAlgorithmEd25519 = "Ed25519"
-
-	KeyAlgorithmAltRSA      = "rsa"
-	KeyAlgorithmAltECDSA    = "ecdsa"
-	KeyAlgorithmAlt1Ed25519 = "ed25519"
-	KeyAlgorithmAlt2Ed25519 = "ED25519"
+	KeyAlgorithmEd25519 = "ED25519"
 
 	HashAlgorithmSHA1   = "SHA1"
 	HashAlgorithmSHA256 = "SHA256"
 	HashAlgorithmSHA384 = "SHA384"
 	HashAlgorithmSHA512 = "SHA512"
 
-	HashAlgorithmAltSHA1   = "sha1"
-	HashAlgorithmAltSHA256 = "sha256"
-	HashAlgorithmAltSHA384 = "sha384"
-	HashAlgorithmAltSHA512 = "sha512"
-
 	EllipticCurveP224 = "P224"
 	EllipticCurveP256 = "P256"
 	EllipticCurveP384 = "P384"
 	EllipticCurveP521 = "P521"
 
-	EllipticCurveAltP224 = "p224"
-	EllipticCurveAltP256 = "p256"
-	EllipticCurveAltP384 = "p384"
-	EllipticCurveAltP521 = "p521"
+	EllipticCurveAltP224 = "P-224"
+	EllipticCurveAltP256 = "P-256"
+	EllipticCurveAltP384 = "P-384"
+	EllipticCurveAltP521 = "P-521"
 )
 
 const (
