@@ -138,7 +138,7 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 		}
 
 		if privateKey, err = rsa.GenerateKey(rand.Reader, bits); err != nil {
-			return nil, fmt.Errorf("error generating RSA private key: %w", err)
+			return nil, fmt.Errorf("generating RSA private key resulted in an error: %w", err)
 		}
 	case cmdUseECDSA:
 		if curveStr, err = cmd.Flags().GetString(cmdFlagNameCurve); err != nil {
@@ -146,15 +146,15 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 		}
 
 		if curve = utils.EllipticCurveFromString(curveStr); curve == nil {
-			return nil, fmt.Errorf("error invalid curve '%s' was specified: curve must be P224, P256, P384, or P521", curveStr)
+			return nil, fmt.Errorf("invalid curve '%s' was specified: curve must be P224, P256, P384, or P521", curveStr)
 		}
 
 		if privateKey, err = ecdsa.GenerateKey(curve, rand.Reader); err != nil {
-			return nil, fmt.Errorf("error generating ECDSA private key: %w", err)
+			return nil, fmt.Errorf("generating ECDSA private key resulted in an error: %w", err)
 		}
 	case cmdUseEd25519:
 		if _, privateKey, err = ed25519.GenerateKey(rand.Reader); err != nil {
-			return nil, fmt.Errorf("error generating Ed25519 private key: %w", err)
+			return nil, fmt.Errorf("generating Ed25519 private key resulted in an error: %w", err)
 		}
 	}
 

@@ -353,7 +353,7 @@ func (s *CLISuite) TestShouldFailGenerateCertificateParseNotBefore() {
 func (s *CLISuite) TestShouldFailGenerateCertificateECDSA() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--curve=invalid", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Error: curve must be P224, P256, P384, or P521 but an invalid curve was specified: invalid")
+	s.Assert().Contains(output, "Error: invalid curve 'invalid' was specified: curve must be P224, P256, P384, or P521")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateECDSACurveP224() {
@@ -523,7 +523,7 @@ func (s *CLISuite) TestShouldGenerateEd25519KeyPair() {
 func (s *CLISuite) TestShouldNotGenerateECDSAKeyPairCurveInvalid() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "pair", "ecdsa", "generate", "--curve=invalid", "--directory=/tmp/"})
 	s.Assert().NotNil(err)
-	s.Assert().Contains(output, "Error: curve must be P224, P256, P384, or P521 but an invalid curve was specified: invalid")
+	s.Assert().Contains(output, "Error: invalid curve 'invalid' was specified: curve must be P224, P256, P384, or P521")
 }
 
 func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
