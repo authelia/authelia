@@ -39,7 +39,7 @@ func (s *CLISuite) SetupTest() {
 	coverageArg := ""
 
 	if os.Getenv("CI") == t {
-		testArg = "-test.coverprofile=/authelia/coverage-$(date +%s).txt"
+		testArg = "-test.coverprofile=/authelia/coverage-$(cat /proc/sys/kernel/random/uuid).txt"
 		coverageArg = "COVERAGE"
 	}
 
