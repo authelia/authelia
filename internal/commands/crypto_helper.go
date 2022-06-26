@@ -21,17 +21,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func cryptoCertificateGenFlags(cmd *cobra.Command) {
-	cmd.Flags().String(cmdFlagNamePathCA, "", "source directory of the certificate authority files, if not provided the certificate will be self-signed")
-	cmd.Flags().String(cmdFlagNameFileCAPrivateKey, "ca.private.pem", "certificate authority private key to use to signing this certificate")
-	cmd.Flags().String(cmdFlagNameFileCACertificate, "ca.public.crt", "certificate authority certificate to use when signing this certificate")
-	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
-	cmd.Flags().String(cmdFlagNameFileCSR, "request.csr", "name of the file to export the certificate request data to")
-	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
-
+func cmdFlagsCryptoCertificateCommon(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameSignature, "SHA256", "signature algorithm for the certificate")
-	cmd.Flags().Bool(cmdFlagNameCA, false, "create the certificate as a certificate authority certificate")
-	cmd.Flags().Bool(cmdFlagNameCSR, false, "create a certificate signing request instead of a certificate")
 
 	cmd.Flags().StringP(cmdFlagNameCommonName, "c", "", "certificate common name")
 	cmd.Flags().StringSliceP(cmdFlagNameOrganization, "o", []string{"Authelia"}, "certificate organization")
@@ -47,25 +38,40 @@ func cryptoCertificateGenFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSlice(cmdFlagNameSANs, nil, "subject alternative names")
 }
 
-func cryptoPairGenFlags(cmd *cobra.Command) {
+func cmdFlagsCryptoCertificateGenerate(cmd *cobra.Command) {
+	cmd.Flags().String(cmdFlagNamePathCA, "", "source directory of the certificate authority files, if not provided the certificate will be self-signed")
+	cmd.Flags().String(cmdFlagNameFileCAPrivateKey, "ca.private.pem", "certificate authority private key to use to signing this certificate")
+	cmd.Flags().String(cmdFlagNameFileCACertificate, "ca.public.crt", "certificate authority certificate to use when signing this certificate")
+	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
+
+	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
+
+	cmd.Flags().Bool(cmdFlagNameCA, false, "create the certificate as a certificate authority certificate")
+}
+
+func cmdFlagsCryptoCertificateRequest(cmd *cobra.Command) {
+	cmd.Flags().String(cmdFlagNameFileCSR, "request.csr", "name of the file to export the certificate request data to")
+}
+
+func cmdFlagsCryptoPairGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFilePublicKey, "public.pem", "name of the file to export the public key data to")
 	cmd.Flags().Bool(cmdFlagNamePKCS8, false, "force PKCS #8 ASN.1 format")
 }
 
-func cryptoGenFlags(cmd *cobra.Command) {
+func cmdFlagsCryptoPrivateKey(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFilePrivateKey, "private.pem", "name of the file to export the private key data to")
 	cmd.Flags().StringP(cmdFlagNameDirectory, "d", "", "directory where the generated keys, certificates, etc will be stored")
 }
 
-func cryptoRSAGenFlags(cmd *cobra.Command) {
+func cmdFlagsCryptoPrivateKeyRSA(cmd *cobra.Command) {
 	cmd.Flags().IntP(cmdFlagNameBits, "b", 2048, "number of RSA bits for the certificate")
 }
 
-func cryptoECDSAGenFlags(cmd *cobra.Command) {
+func cmdFlagsCryptoPrivateKeyECDSA(cmd *cobra.Command) {
 	cmd.Flags().StringP(cmdFlagNameCurve, "b", "P256", "Sets the elliptic curve which can be P224, P256, P384, or P521")
 }
 
-func cryptoEd25519Flags(cmd *cobra.Command) {
+func cmdFlagsCryptoPrivateKeyEd25519(cmd *cobra.Command) {
 }
 
 func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
@@ -94,7 +100,7 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 	}
 
 	ca, _ := cmd.Flags().GetBool(cmdFlagNameCA)
-	csr, _ := cmd.Flags().GetBool(cmdFlagNameCSR)
+	csr := cmd.Use == cmdUseRequest
 
 	var private, public string
 
@@ -483,24 +489,11 @@ func cryptoGetKeyUsage(keyUsages []string, ca bool) (keyUsage x509.KeyUsage) {
 	return keyUsage
 }
 
-/*
-	Key Usage Values:
-		digitalSignature
-		keyEncipherment
-		dataEncipherment
-		keyAgreement
-		certSign
-		crlSign
-		encipherOnly
-		decipherOnly
-
-	Extended Key Usage Values:
-		serverAuth
-		clientAuth
-		codeSigning
-		emailProtection
-		ipsecEndSystem
-		ipsecTunnel
-		ipsecUser
-		ocspSigning
-*/
+func fmtCryptoUse(use string) string {
+	switch use {
+	case cmdUseEd25519:
+		return "Ed25519"
+	default:
+		return strings.ToUpper(use)
+	}
+}

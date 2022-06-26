@@ -310,61 +310,43 @@ This subcommand allows preforming cryptographic certificate, key pair, etc tasks
 
 	cmdAutheliaCryptoExample = `authelia crypto --help`
 
-	cmdAutheliaCryptoCertShort = "Perform certificate cryptographic operations"
+	cmdAutheliaCryptoCertificateShort = "Perform certificate cryptographic operations"
 
-	cmdAutheliaCryptoCertLong = `Perform certificate cryptographic operations.
+	cmdAutheliaCryptoCertificateLong = `Perform certificate cryptographic operations.
 
 This subcommand allows preforming certificate cryptographic tasks.`
 
-	cmdAutheliaCryptoCertExample = `authelia crypto certificate --help`
+	cmdAutheliaCryptoCertificateExample = `authelia crypto certificate --help`
 
-	cmdAutheliaCryptoCertRSAShort = "Perform RSA certificate cryptographic operations"
+	fmtCmdAutheliaCryptoCertificateSubShort = "Perform %s certificate cryptographic operations"
 
-	cmdAutheliaCryptoCertRSALong = `Perform RSA certificate cryptographic operations.
+	fmtCmdAutheliaCryptoCertificateSubLong = `Perform %s certificate cryptographic operations.
 
-This subcommand allows preforming RSA certificate cryptographic tasks.`
+This subcommand allows preforming %s certificate cryptographic tasks.`
 
-	cmdAutheliaCryptoCertRSAExample = `authelia crypto certificate rsa --help`
+	cmdAutheliaCryptoCertificateRSAExample = `authelia crypto certificate rsa --help`
 
-	cmdAutheliaCryptoCertECDSAShort = "Perform ECDSA certificate cryptographic operations"
+	cmdAutheliaCryptoCertificateECDSAExample = `authelia crypto certificate ecdsa --help`
 
-	cmdAutheliaCryptoCertECDSALong = `Perform ECDSA certificate cryptographic operations.
+	cmdAutheliaCryptoCertificateEd25519Example = `authelia crypto certificate ed25519 --help`
 
-This subcommand allows preforming ECDSA certificate cryptographic tasks.`
+	fmtCmdAutheliaCryptoCertificateGenerateRequestShort = "Generate an %s private key and %s"
 
-	cmdAutheliaCryptoCertECDSAExample = `authelia crypto certificate ecdsa --help`
+	fmtCmdAutheliaCryptoCertificateGenerateRequestLong = `Generate an %s private key and %s.
 
-	cmdAutheliaCryptoCertEd25519Short = "Perform Ed25519 certificate cryptographic operations"
+This subcommand allows generating an %s private key and %s.`
 
-	cmdAutheliaCryptoCertEd25519Long = `Perform Ed25519 certificate cryptographic operations.
+	cmdAutheliaCryptoCertificateRSAGenerateExample = `authelia crypto certificate rsa generate --help`
 
-This subcommand allows preforming Ed25519 certificate cryptographic tasks.`
+	cmdAutheliaCryptoCertificateECDSAGenerateExample = `authelia crypto certificate ecdsa generate --help`
 
-	cmdAutheliaCryptoCertEd25519Example = `authelia crypto certificate ed25519 --help`
+	cmdAutheliaCryptoCertificateEd25519GenerateExample = `authelia crypto certificate ed25519 request --help`
 
-	cmdAutheliaCryptoCertRSAGenerateShort = "Generate an RSA private key and certificate or certificate signing request"
+	cmdAutheliaCryptoCertificateRSARequestExample = `authelia crypto certificate rsa request --help`
 
-	cmdAutheliaCryptoCertRSAGenerateLong = `Generate an RSA private key and certificate or certificate signing request.
+	cmdAutheliaCryptoCertificateECDSARequestExample = `authelia crypto certificate ecdsa request --help`
 
-This subcommand allows generating an RSA private key and certificate.`
-
-	cmdAutheliaCryptoCertRSAGenerateExample = `authelia crypto certificate rsa generate --help`
-
-	cmdAutheliaCryptoCertECDSAGenerateShort = "Generate an ECDSA private key and certificate or certificate signing request"
-
-	cmdAutheliaCryptoCertECDSAGenerateLong = `Generate an ECDSA private key and certificate or certificate signing request.
-
-This subcommand allows generating an ECDSA private key and certificate.`
-
-	cmdAutheliaCryptoCertECDSAGenerateExample = `authelia crypto certificate ecdsa generate --help`
-
-	cmdAutheliaCryptoCertEd25519GenerateShort = "Generate an Ed25519 private key and certificate or certificate signing request"
-
-	cmdAutheliaCryptoCertEd25519GenerateLong = `Generate an Ed25519 private key and certificate or certificate signing request.
-
-This subcommand allows generating an Ed25519 private key and certificate.`
-
-	cmdAutheliaCryptoCertEd25519GenerateExample = `authelia crypto certificate ed25519 generate --help`
+	cmdAutheliaCryptoCertificateEd25519RequestExample = `authelia crypto certificate ed25519 request --help`
 
 	cmdAutheliaCryptoPairShort = "Perform key pair cryptographic operations"
 
@@ -374,51 +356,27 @@ This subcommand allows preforming key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairExample = `authelia crypto pair --help`
 
-	cmdAutheliaCryptoPairRSAShort = "Perform RSA key pair cryptographic operations"
+	cmdAutheliaCryptoPairSubShort = "Perform %s key pair cryptographic operations"
 
-	cmdAutheliaCryptoPairRSALong = `Perform RSA key pair cryptographic operations.
+	cmdAutheliaCryptoPairSubLong = `Perform %s key pair cryptographic operations.
 
-This subcommand allows preforming RSA key pair cryptographic tasks.`
+This subcommand allows preforming %s key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairRSAExample = `authelia crypto pair rsa --help`
 
-	cmdAutheliaCryptoPairECDSAShort = "Perform ECDSA key pair cryptographic operations"
-
-	cmdAutheliaCryptoPairECDSALong = `Perform ECDSA key pair cryptographic operations.
-
-This subcommand allows preforming ECDSA key pair cryptographic tasks.`
-
 	cmdAutheliaCryptoPairECDSAExample = `authelia crypto pair ecdsa --help`
-
-	cmdAutheliaCryptoPairEd25519Short = "Perform Ed25519 key pair cryptographic operations"
-
-	cmdAutheliaCryptoPairEd25519Long = `Perform Ed25519 key pair cryptographic operations.
-
-This subcommand allows preforming Ed25519 key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairEd25519Example = `authelia crypto pair ed25519 --help`
 
-	cmdAutheliaCryptoPairRSAGenerateShort = "Generate a cryptographic RSA key pair"
+	fmtCmdAutheliaCryptoPairGenerateShort = "Generate a cryptographic %s key pair"
 
-	cmdAutheliaCryptoPairRSAGenerateLong = `Generate a cryptographic RSA key pair.
+	fmtCmdAutheliaCryptoPairGenerateLong = `Generate a cryptographic %s key pair.
 
-This subcommand allows generating an RSA key pair.`
+This subcommand allows generating an %s key pair.`
 
 	cmdAutheliaCryptoPairRSAGenerateExample = `authelia crypto pair rsa generate --help`
 
-	cmdAutheliaCryptoPairECDSAGenerateShort = "Generate a cryptographic ECDSA key pair"
-
-	cmdAutheliaCryptoPairECDSAGenerateLong = `Generate a cryptographic ECDSA key pair.
-
-This subcommand allows generating an ECDSA key pair.`
-
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
-
-	cmdAutheliaCryptoPairEd25519GenerateShort = "Generate a cryptographic Ed25519 key pair"
-
-	cmdAutheliaCryptoPairEd25519GenerateLong = `Generate a cryptographic Ed25519 key pair.
-
-This subcommand allows generating an Ed25519 key pair.`
 
 	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
 
@@ -469,7 +427,6 @@ const (
 	cmdFlagNameExtendedUsage = "extended-usage"
 	cmdFlagNameSignature     = "signature"
 	cmdFlagNameCA            = "ca"
-	cmdFlagNameCSR           = "csr"
 	cmdFlagNameSANs          = "sans"
 
 	cmdFlagNameCommonName         = "common-name"
@@ -491,10 +448,17 @@ const (
 
 const (
 	cmdUseCertificate = "certificate"
+	cmdUseGenerate    = "generate"
+	cmdUseRequest     = "request"
 	cmdUsePair        = "pair"
 	cmdUseRSA         = "rsa"
 	cmdUseECDSA       = "ecdsa"
 	cmdUseEd25519     = "ed25519"
+)
+
+const (
+	cryptoCertPubCertOut = "certificate"
+	cryptoCertCSROut     = "certificate signing request"
 )
 
 var (

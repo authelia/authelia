@@ -97,7 +97,7 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 }
 
 func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "generate", "--csr", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "request", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate Signing Request")
 
@@ -112,7 +112,7 @@ func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate Signing Request")
 
@@ -127,7 +127,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate Signing Request")
 
@@ -142,7 +142,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate Signing Request")
 
@@ -157,7 +157,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "generate", "--csr", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate Signing Request")
 
@@ -172,7 +172,7 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
 }
 
 func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ed25519", "generate", "--csr", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ed25519", "request", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Generating Certificate Signing Request")
 
