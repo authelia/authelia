@@ -41,7 +41,7 @@ cd cmd/authelia && \
 chmod 0666 /go/src/app/.healthcheck.env && \
 echo ">> Starting go build (coverage via go test)..." && \
 CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go test -c --tags coverage -covermode=atomic \
--ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/v4/...
+-ldflags "${LDFLAGS_EXTRA}" -o authelia -coverpkg github.com/authelia/authelia/...
 
 # ===================================
 # ===== Authelia official image =====
