@@ -84,7 +84,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-    domain := ctx.GetCurrentDomain()
+		domain := ctx.GetCurrentDomain()
 		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx, domain); err != nil {
 			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username, err)
 
@@ -98,8 +98,9 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		// Set the cookie to expire if remember me is enabled and the user has asked us to.
 		if keepMeLoggedIn {
-      domain := ctx.GetCurrentDomain()
+			domain := ctx.GetCurrentDomain()
 			err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe, domain)
+
 			if err != nil {
 				ctx.Logger.Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username, err)
 

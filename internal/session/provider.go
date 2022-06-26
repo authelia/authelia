@@ -26,21 +26,19 @@ type Provider struct {
 func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *Provider {
 	c := NewProviderConfig(config, certPool)
 
-
 	provider := new(Provider)
-  provider.sessionHolder = make(map[string]*fasthttpsession.Session)
+	provider.sessionHolder = make(map[string]*fasthttpsession.Session)
 
-  // configure default root domain
-  if config.Domain != "" {
-    provider.sessionHolder[config.Domain] = fasthttpsession.New(c.config)
-  }
-  // configuring extra root domains
+	// configure default root domain.
+	if config.Domain != "" {
+		provider.sessionHolder[config.Domain] = fasthttpsession.New(c.config)
+	}
+	// configuring extra root domains.
 
-  for _, domain := range config.DomainList {
-    c.config.Domain = domain
-    provider.sessionHolder[domain] = fasthttpsession.New(c.config)
-  }
-
+	for _, domain := range config.DomainList {
+		c.config.Domain = domain
+		provider.sessionHolder[domain] = fasthttpsession.New(c.config)
+	}
 
 	logger := logging.Logger()
 
@@ -69,22 +67,22 @@ func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *P
 		}
 	}
 
-  for domain := range provider.sessionHolder {
-    err = provider.sessionHolder[domain].SetProvider(providerImpl)
-    if err != nil {
-      logger.Fatal(err)
-    }
-  }
+	for domain := range provider.sessionHolder {
+		err = provider.sessionHolder[domain].SetProvider(providerImpl)
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}
 
 	return provider
 }
 
 // GetSession return the user session from a request.
 func (p *Provider) GetSession(ctx *fasthttp.RequestCtx, domain string) (UserSession, error) {
-  sessionHolder, found := p.sessionHolder[domain]
-  if !found {
+	sessionHolder, found := p.sessionHolder[domain]
+	if !found {
 		return NewDefaultUserSession(), fmt.Errorf("no session for domain %s found", domain)
-  }
+	}
 
 	store, err := sessionHolder.Get(ctx)
 
@@ -116,10 +114,11 @@ func (p *Provider) GetSession(ctx *fasthttp.RequestCtx, domain string) (UserSess
 
 // SaveSession save the user session.
 func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession, domain string) error {
-  sessionHolder, found := p.sessionHolder[domain]
-  if !found {
+	sessionHolder, found := p.sessionHolder[domain]
+	if !found {
 		return fmt.Errorf("no session for domain %s found", domain)
-  }
+	}
+
 	store, err := sessionHolder.Get(ctx)
 
 	if err != nil {
@@ -145,10 +144,11 @@ func (p *Provider) SaveSession(ctx *fasthttp.RequestCtx, userSession UserSession
 
 // RegenerateSession regenerate a session ID.
 func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx, domain string) error {
-  sessionHolder, found := p.sessionHolder[domain]
-  if !found {
+	sessionHolder, found := p.sessionHolder[domain]
+	if !found {
 		return fmt.Errorf("no session for domain %s found", domain)
-  }
+	}
+
 	err := sessionHolder.Regenerate(ctx)
 
 	return err
@@ -156,20 +156,21 @@ func (p *Provider) RegenerateSession(ctx *fasthttp.RequestCtx, domain string) er
 
 // DestroySession destroy a session ID and delete the cookie.
 func (p *Provider) DestroySession(ctx *fasthttp.RequestCtx, domain string) error {
-  sessionHolder, found := p.sessionHolder[domain]
-  if !found {
+	sessionHolder, found := p.sessionHolder[domain]
+	if !found {
 		return fmt.Errorf("no session for domain %s found", domain)
-  }
+	}
 
 	return sessionHolder.Destroy(ctx)
 }
 
 // UpdateExpiration update the expiration of the cookie and session.
 func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Duration, domain string) error {
-  sessionHolder, found := p.sessionHolder[domain]
-  if !found {
+	sessionHolder, found := p.sessionHolder[domain]
+	if !found {
 		return fmt.Errorf("no session for domain %s found", domain)
-  }
+	}
+
 	store, err := sessionHolder.Get(ctx)
 
 	if err != nil {
@@ -187,10 +188,11 @@ func (p *Provider) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Du
 
 // GetExpiration get the expiration of the current session.
 func (p *Provider) GetExpiration(ctx *fasthttp.RequestCtx, domain string) (time.Duration, error) {
-  sessionHolder, found := p.sessionHolder[domain]
-  if !found {
+	sessionHolder, found := p.sessionHolder[domain]
+	if !found {
 		return time.Duration(0), fmt.Errorf("no session for domain %s found", domain)
-  }
+	}
+
 	store, err := sessionHolder.Get(ctx)
 
 	if err != nil {
@@ -199,4 +201,3 @@ func (p *Provider) GetExpiration(ctx *fasthttp.RequestCtx, domain string) (time.
 
 	return store.GetExpiration(), nil
 }
-

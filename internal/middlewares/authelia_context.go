@@ -192,9 +192,9 @@ func (ctx *AutheliaCtx) XOriginalURL() []byte {
 
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
+	domain := ctx.GetCurrentDomain()
+	userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx, domain)
 
-  domain := ctx.GetCurrentDomain()
-  userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx, domain)
 	if err != nil {
 		ctx.Logger.Error("unable to retrieve user session: ", err)
 		return session.NewDefaultUserSession()
@@ -205,7 +205,7 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-  domain := ctx.GetCurrentDomain()
+	domain := ctx.GetCurrentDomain()
 	return ctx.Providers.SessionProvider.SaveSession(ctx.RequestCtx, userSession, domain)
 }
 
@@ -357,39 +357,40 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
 }
 
-// GetCurrentDomain returns the requested domain
-func (ctx *AutheliaCtx) GetCurrentDomain() (string) {
+// GetCurrentDomain returns the requested domain.
+func (ctx *AutheliaCtx) GetCurrentDomain() string {
 	url, err := ctx.GetOriginalURL()
 	if err != nil {
-	  return ctx.GetDefaultDomain()
+		return ctx.GetDefaultDomain()
 	}
 
 	hostname := url.Hostname()
 
 	if ctx.Configuration.Session.Domain != "" {
-	  if strings.HasSuffix(hostname, ctx.Configuration.Session.Domain) {
-		return ctx.Configuration.Session.Domain
-	  }
+		if strings.HasSuffix(hostname, ctx.Configuration.Session.Domain) {
+			return ctx.Configuration.Session.Domain
+		}
 	}
+
 	for _, domain := range ctx.Configuration.Session.DomainList {
-	  if strings.HasSuffix(hostname, domain) {
-		return domain
-	  }
+		if strings.HasSuffix(hostname, domain) {
+			return domain
+		}
 	}
 
 	return ctx.GetDefaultDomain()
-  }
+}
 
-  // GetDefaultDomain return the default root domain
-  // returns config.session.domain or the first element of config.session.domain_list configured in configuration.yml
-  func (ctx *AutheliaCtx) GetDefaultDomain() (string) {
+// GetDefaultDomain return the default root domain
+// returns config.session.domain or the first element of config.session.domain_list configured in configuration.yml.
+func (ctx *AutheliaCtx) GetDefaultDomain() string {
 	if ctx.Configuration.Session.Domain != "" {
-	  return ctx.Configuration.Session.Domain
+		return ctx.Configuration.Session.Domain
 	}
 
 	if len(ctx.Configuration.Session.DomainList) > 0 {
-	  return ctx.Configuration.Session.DomainList[0]
+		return ctx.Configuration.Session.DomainList[0]
 	}
 
 	return ""
-  }
+}
