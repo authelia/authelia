@@ -329,26 +329,31 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
 
 	// Check the certificates look fine.
-	privateData, err := os.ReadFile("/tmp/private.pem")
+	privateKeyData, err := os.ReadFile("/tmp/private.pem")
 	s.Assert().NoError(err)
 
 	certificateData, err := os.ReadFile("/tmp/public.crt")
 	s.Assert().NoError(err)
 
-	privateCAData, err := os.ReadFile("/tmp/ca.private.pem")
+	privateKeyCAData, err := os.ReadFile("/tmp/ca.private.pem")
 	s.Assert().NoError(err)
 
 	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
 	s.Assert().NoError(err)
 
-	s.Assert().False(bytes.Equal(privateData, privateCAData))
+	s.Assert().Equal("", string(privateKeyData))
+	s.Assert().Equal("", string(privateKeyCAData))
+	s.Assert().Equal("", string(certificateData))
+	s.Assert().Equal("", string(certificateCAData))
+
+	s.Assert().False(bytes.Equal(privateKeyData, privateKeyCAData))
 	s.Assert().False(bytes.Equal(certificateData, certificateCAData))
 
-	privateKey, err := utils.ParseX509FromPEM(privateData)
+	privateKey, err := utils.ParseX509FromPEM(privateKeyData)
 	s.Assert().NoError(err)
 	s.Assert().True(utils.IsX509PrivateKey(privateKey))
 
-	privateCAKey, err := utils.ParseX509FromPEM(privateCAData)
+	privateCAKey, err := utils.ParseX509FromPEM(privateKeyCAData)
 	s.Assert().NoError(err)
 	s.Assert().True(utils.IsX509PrivateKey(privateCAKey))
 
@@ -356,7 +361,7 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().NoError(err)
 	s.Assert().True(utils.IsX509PrivateKey(privateKey))
 
-	cCA, err := utils.ParseX509FromPEM(privateCAData)
+	cCA, err := utils.ParseX509FromPEM(privateKeyCAData)
 	s.Assert().NoError(err)
 	s.Assert().True(utils.IsX509PrivateKey(privateCAKey))
 
