@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type CLISuite struct {
@@ -325,6 +327,51 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
 	s.Assert().Contains(output, "\tCertificate: /tmp/public.crt")
+
+	// Check the certificates look fine.
+	privateData, err := os.ReadFile("/tmp/private.pem")
+	s.Assert().NoError(err)
+
+	certificateData, err := os.ReadFile("/tmp/public.crt")
+	s.Assert().NoError(err)
+
+	privateCAData, err := os.ReadFile("/tmp/ca.private.pem")
+	s.Assert().NoError(err)
+
+	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
+	s.Assert().NoError(err)
+
+	s.Assert().False(bytes.Equal(privateData, privateCAData))
+	s.Assert().False(bytes.Equal(certificateData, certificateCAData))
+
+	privateKey, err := utils.ParseX509FromPEM(privateData)
+	s.Assert().NoError(err)
+	s.Assert().True(utils.IsX509PrivateKey(privateKey))
+
+	privateCAKey, err := utils.ParseX509FromPEM(privateCAData)
+	s.Assert().NoError(err)
+	s.Assert().True(utils.IsX509PrivateKey(privateCAKey))
+
+	c, err := utils.ParseX509FromPEM(certificateData)
+	s.Assert().NoError(err)
+	s.Assert().True(utils.IsX509PrivateKey(privateKey))
+
+	cCA, err := utils.ParseX509FromPEM(privateCAData)
+	s.Assert().NoError(err)
+	s.Assert().True(utils.IsX509PrivateKey(privateCAKey))
+
+	certificate, ok := utils.CastX509AsCertificate(c)
+	s.Assert().True(ok)
+
+	certificateCA, ok := utils.CastX509AsCertificate(cCA)
+	s.Assert().True(ok)
+
+	s.Require().NotNil(certificate)
+	s.Require().NotNil(certificateCA)
+
+	err = certificate.CheckSignatureFrom(certificateCA)
+
+	s.Assert().NoError(err)
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateEd25519() {
