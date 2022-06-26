@@ -213,9 +213,11 @@ func (ctx *AutheliaCtx) XOriginalURL() []byte {
 
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
-	userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx)
+
+  domain := ctx.GetCurrentDomain()
+  userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx, domain)
 	if err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
+		ctx.Logger.Error("Unable to retrieve user session: ", err)
 		return session.NewDefaultUserSession()
 	}
 
@@ -224,7 +226,8 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-	return ctx.Providers.SessionProvider.SaveSession(ctx.RequestCtx, userSession)
+  domain := ctx.GetCurrentDomain()
+	return ctx.Providers.SessionProvider.SaveSession(ctx.RequestCtx, userSession, domain)
 }
 
 // ReplyOK is a helper method to reply ok.
@@ -364,4 +367,41 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%s</a>", utils.StringHTMLEscape(string(u.FullURI())), fasthttp.StatusMessage(statusCode)))
 
 	fasthttp.ReleaseURI(u)
+}
+
+// GetCurrentDomain returns the requested domain
+func (ctx *AutheliaCtx) GetCurrentDomain() (string) {
+  url, err := ctx.GetOriginalURL()
+  if err != nil {
+    return ctx.GetDefaultDomain()
+  }
+
+  hostname := url.Hostname()
+
+  if ctx.Configuration.Session.Domain != "" {
+    if strings.HasSuffix(hostname, ctx.Configuration.Session.Domain) {
+      return ctx.Configuration.Session.Domain
+    }
+  }
+  for _, domain := range ctx.Configuration.Session.DomainList {
+    if strings.HasSuffix(hostname, domain) {
+      return domain
+    }
+  }
+
+  return ctx.GetDefaultDomain()
+}
+
+// GetDefaultDomain return the default root domain
+// returns config.session.domain or the first element of config.session.domain_list configured in configuration.yml
+func (ctx *AutheliaCtx) GetDefaultDomain() (string) {
+  if ctx.Configuration.Session.Domain != "" {
+    return ctx.Configuration.Session.Domain
+  }
+
+  if len(ctx.Configuration.Session.DomainList) > 0 {
+    return ctx.Configuration.Session.DomainList[0]
+  }
+
+  return ""
 }

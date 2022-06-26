@@ -76,6 +76,7 @@ var Keys = []string{
 	"authentication_backend.refresh_interval",
 	"session.name",
 	"session.domain",
+	"session.domain_list",
 	"session.same_site",
 	"session.secret",
 	"session.expiration",

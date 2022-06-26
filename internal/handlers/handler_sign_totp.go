@@ -50,7 +50,8 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
+  domain := ctx.GetCurrentDomain()
+  if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx, domain); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)

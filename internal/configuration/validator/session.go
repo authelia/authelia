@@ -39,7 +39,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
 	}
 
-	if config.Domain == "" {
+	if config.Domain == "" && len(config.DomainList) == 0 {
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 

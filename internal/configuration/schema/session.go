@@ -37,6 +37,7 @@ type RedisSessionConfiguration struct {
 type SessionConfiguration struct {
 	Name               string        `koanf:"name"`
 	Domain             string        `koanf:"domain"`
+	DomainList         []string      `koanf:"domain_list"`
 	SameSite           string        `koanf:"same_site"`
 	Secret             string        `koanf:"secret"`
 	Expiration         time.Duration `koanf:"expiration"`

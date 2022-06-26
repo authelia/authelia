@@ -246,7 +246,8 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 	userSession := ctx.GetSession()
 
-	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx)
+  domain:= ctx.GetCurrentDomain()
+	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx, domain)
 	if err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
 
