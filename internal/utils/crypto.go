@@ -200,7 +200,7 @@ func ParseX509FromPEM(data []byte) (key interface{}, err error) {
 	case BlockTypePKIXPublicKey:
 		key, err = x509.ParsePKIXPublicKey(block.Bytes)
 	case BlockTypeCertificate:
-		key, err = x509.ParseCertificates(block.Bytes)
+		key, err = x509.ParseCertificate(block.Bytes)
 	default:
 		return nil, fmt.Errorf("unknown block type: %s", block.Type)
 	}

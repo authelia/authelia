@@ -216,7 +216,7 @@ func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, cert *x509.
 	}
 
 	if cert, ok = utils.CastX509AsCertificate(certificate); !ok {
-		return nil, nil, fmt.Errorf("could not parse certificate from file '%s': does not appear to be a certificate", pathPrivateKey)
+		return nil, nil, fmt.Errorf("could not parse certificate from file '%s': does not appear to be a certificate", pathCertificate)
 	}
 
 	return privateKey, cert, nil
