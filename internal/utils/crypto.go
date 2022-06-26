@@ -199,6 +199,8 @@ func ParseX509FromPEM(data []byte) (key interface{}, err error) {
 		key, err = x509.ParsePKCS1PublicKey(block.Bytes)
 	case BlockTypePKIXPublicKey:
 		key, err = x509.ParsePKIXPublicKey(block.Bytes)
+	case BlockTypeCertificate:
+		key, err = x509.ParseCertificates(block.Bytes)
 	default:
 		return nil, fmt.Errorf("unknown block type: %s", block.Type)
 	}
@@ -210,14 +212,26 @@ func ParseX509FromPEM(data []byte) (key interface{}, err error) {
 	return key, nil
 }
 
-// ParseX509CertificateFromPEM parses PEM bytes and returns a x509.Certificate.
-func ParseX509CertificateFromPEM(data []byte) (cert *x509.Certificate, err error) {
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the key")
+// CastX509AsCertificate converts an interface to an *x509.Certificate.
+func CastX509AsCertificate(c interface{}) (certificate *x509.Certificate, ok bool) {
+	switch t := c.(type) {
+	case x509.Certificate:
+		return &t, true
+	case *x509.Certificate:
+		return t, true
+	default:
+		return nil, false
 	}
+}
 
-	return x509.ParseCertificate(block.Bytes)
+// IsX509PrivateKey returns true if the provided interface is an rsa.PrivateKey, ecdsa.PrivateKey, or ed25519.PrivateKey.
+func IsX509PrivateKey(i interface{}) bool {
+	switch i.(type) {
+	case rsa.PrivateKey, *rsa.PrivateKey, ecdsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ed25519.PrivateKey:
+		return true
+	default:
+		return false
+	}
 }
 
 // NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.

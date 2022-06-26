@@ -125,14 +125,12 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 }
 
 func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err error) {
-	var (
-		bits     int
-		curveStr string
-		curve    elliptic.Curve
-	)
-
 	switch cmd.Parent().Use {
 	case cmdUseRSA:
+		var (
+			bits int
+		)
+
 		if bits, err = cmd.Flags().GetInt(cmdFlagNameBits); err != nil {
 			return nil, err
 		}
@@ -141,6 +139,11 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 			return nil, fmt.Errorf("generating RSA private key resulted in an error: %w", err)
 		}
 	case cmdUseECDSA:
+		var (
+			curveStr string
+			curve    elliptic.Curve
+		)
+
 		if curveStr, err = cmd.Flags().GetString(cmdFlagNameCurve); err != nil {
 			return nil, err
 		}
@@ -161,24 +164,28 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 	return privateKey, nil
 }
 
-func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, certificate *x509.Certificate, err error) {
+func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, cert *x509.Certificate, err error) {
 	if !cmd.Flags().Changed(cmdFlagNamePathCA) {
 		return nil, nil, nil
 	}
 
 	var (
-		dir, privateKeyFileName, certificateFileName string
+		dir, filePrivateKey, fileCertificate string
+
+		ok bool
+
+		certificate interface{}
 	)
 
 	if dir, err = cmd.Flags().GetString(cmdFlagNamePathCA); err != nil {
 		return nil, nil, err
 	}
 
-	if privateKeyFileName, err = cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey); err != nil {
+	if filePrivateKey, err = cmd.Flags().GetString(cmdFlagNameFileCAPrivateKey); err != nil {
 		return nil, nil, err
 	}
 
-	if certificateFileName, err = cmd.Flags().GetString(cmdFlagNameFileCACertificate); err != nil {
+	if fileCertificate, err = cmd.Flags().GetString(cmdFlagNameFileCACertificate); err != nil {
 		return nil, nil, err
 	}
 
@@ -186,24 +193,33 @@ func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, certificate
 		bytesPrivateKey, bytesCertificate []byte
 	)
 
-	if bytesPrivateKey, err = os.ReadFile(filepath.Join(dir, privateKeyFileName)); err != nil {
-		return nil, nil, err
-	}
-
-	if bytesCertificate, err = os.ReadFile(filepath.Join(dir, certificateFileName)); err != nil {
-		return nil, nil, err
+	pathPrivateKey := filepath.Join(dir, filePrivateKey)
+	if bytesPrivateKey, err = os.ReadFile(pathPrivateKey); err != nil {
+		return nil, nil, fmt.Errorf("could not read private key file '%s': %w", pathPrivateKey, err)
 	}
 
 	if privateKey, err = utils.ParseX509FromPEM(bytesPrivateKey); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("could not parse private key from file '%s': %w", pathPrivateKey, err)
 	}
 
-	certificate, err = utils.ParseX509CertificateFromPEM(bytesCertificate)
-	if err != nil {
-		return nil, nil, err
+	if privateKey == nil || !utils.IsX509PrivateKey(privateKey) {
+		return nil, nil, fmt.Errorf("could not parse private key from file '%s': does not appear to be a private key", pathPrivateKey)
 	}
 
-	return privateKey, certificate, nil
+	pathCertificate := filepath.Join(dir, fileCertificate)
+	if bytesCertificate, err = os.ReadFile(pathCertificate); err != nil {
+		return nil, nil, fmt.Errorf("could not read certificate file '%s': %w", pathCertificate, err)
+	}
+
+	if certificate, err = utils.ParseX509FromPEM(bytesCertificate); err != nil {
+		return nil, nil, fmt.Errorf("could not parse certificate from file '%s': %w", pathCertificate, err)
+	}
+
+	if cert, ok = utils.CastX509AsCertificate(certificate); !ok {
+		return nil, nil, fmt.Errorf("could not parse certificate from file '%s': does not appear to be a certificate", pathPrivateKey)
+	}
+
+	return privateKey, cert, nil
 }
 
 func cryptoGetCSRFromCmd(cmd *cobra.Command) (csr *x509.CertificateRequest, err error) {
