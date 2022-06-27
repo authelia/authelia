@@ -11,8 +11,8 @@ specifiers:
   '@fortawesome/free-solid-svg-icons': 6.1.1
   '@fortawesome/react-fontawesome': 0.1.18
   '@mui/icons-material': 5.8.4
-  '@mui/material': 5.8.5
-  '@mui/styles': 5.8.4
+  '@mui/material': 5.8.6
+  '@mui/styles': 5.8.6
   '@testing-library/jest-dom': 5.16.4
   '@testing-library/react': 13.3.0
   '@types/jest': 28.1.3
@@ -72,9 +72,9 @@ dependencies:
   '@fortawesome/free-regular-svg-icons': 6.1.1
   '@fortawesome/free-solid-svg-icons': 6.1.1
   '@fortawesome/react-fontawesome': 0.1.18_sdfg7szeivrzzj63kiqxwaxkwu
-  '@mui/icons-material': 5.8.4_cvyp5zempd5ykaci6zzt36rera
-  '@mui/material': 5.8.5_h2u6a3oivtyocvjxeke7xcvlfa
-  '@mui/styles': 5.8.4_luyos4mouogwq6z3wafb3re4ce
+  '@mui/icons-material': 5.8.4_exkh4ozixmqjuepcuko77h7fiq
+  '@mui/material': 5.8.6_h2u6a3oivtyocvjxeke7xcvlfa
+  '@mui/styles': 5.8.6_luyos4mouogwq6z3wafb3re4ce
   axios: 0.27.2
   classnames: 2.3.1
   i18next: 21.8.11
@@ -2709,8 +2709,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.11
     dev: true
 
-  /@mui/base/5.0.0-alpha.86_twyhzqqpkwvvgrmyeapdo6i4my:
-    resolution: {integrity: sha512-0vi/Nni1mizrgrzKeyksEjw5JVSrgT8Vr2NhxzFtYxqpMgtdSrBvcmcuzBf9kE/ECMPbgpSIcqv0nLbLZUYkOQ==}
+  /@mui/base/5.0.0-alpha.87_twyhzqqpkwvvgrmyeapdo6i4my:
+    resolution: {integrity: sha512-PuxRYrvG63Yj/UTwf4hSwZ5ClMv88iXHK+5hUV1CrG3kNPo6FFQiIFNRaNpRt/3nsXj6+xygJByNFA8m4Leetg==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@types/react': ^17.0.0 || ^18.0.0 || 18
@@ -2723,7 +2723,7 @@ packages:
       '@babel/runtime': 7.18.3
       '@emotion/is-prop-valid': 1.1.3
       '@mui/types': 7.1.4_@types+react@18.0.14
-      '@mui/utils': 5.8.4_react@18.2.0
+      '@mui/utils': 5.8.6_react@18.2.0
       '@popperjs/core': 2.11.5
       '@types/react': 18.0.14
       clsx: 1.1.1
@@ -2733,7 +2733,7 @@ packages:
       react-is: 17.0.2
     dev: false
 
-  /@mui/icons-material/5.8.4_cvyp5zempd5ykaci6zzt36rera:
+  /@mui/icons-material/5.8.4_exkh4ozixmqjuepcuko77h7fiq:
     resolution: {integrity: sha512-9Z/vyj2szvEhGWDvb+gG875bOGm8b8rlHBKOD1+nA3PcgC3fV6W1AU6pfOorPeBfH2X4mb9Boe97vHvaSndQvA==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -2745,13 +2745,13 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.17.8
-      '@mui/material': 5.8.5_h2u6a3oivtyocvjxeke7xcvlfa
+      '@mui/material': 5.8.6_h2u6a3oivtyocvjxeke7xcvlfa
       '@types/react': 18.0.14
       react: 18.2.0
     dev: false
 
-  /@mui/material/5.8.5_h2u6a3oivtyocvjxeke7xcvlfa:
-    resolution: {integrity: sha512-wngPXlOI9BurLSGlObQM/2L0QFFaIcvJnDK5A+ALxuUyuQnPviVWfC1l/r8rPlxQ4PCbSYpq3gzLlgnLoWcO/g==}
+  /@mui/material/5.8.6_h2u6a3oivtyocvjxeke7xcvlfa:
+    resolution: {integrity: sha512-9fo5AiNHs+HY5ArMzsDMFrAmJSRw90y/qu81oDIszgK7Bfrm8GuI7Eb0mO6WADWPEyKOzOov/WZsm4G6jPEM4g==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
@@ -2767,13 +2767,13 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@babel/runtime': 7.17.8
+      '@babel/runtime': 7.18.3
       '@emotion/react': 11.9.3_luyos4mouogwq6z3wafb3re4ce
       '@emotion/styled': 11.9.3_mtgmvqaicd2yfw2b4v4o2ssbiu
-      '@mui/base': 5.0.0-alpha.86_twyhzqqpkwvvgrmyeapdo6i4my
-      '@mui/system': 5.8.5_2n63gx4a5hafw7crejwh35wbou
+      '@mui/base': 5.0.0-alpha.87_twyhzqqpkwvvgrmyeapdo6i4my
+      '@mui/system': 5.8.6_2n63gx4a5hafw7crejwh35wbou
       '@mui/types': 7.1.4_@types+react@18.0.14
-      '@mui/utils': 5.8.4_react@18.2.0
+      '@mui/utils': 5.8.6_react@18.2.0
       '@types/react': 18.0.14
       '@types/react-transition-group': 4.4.4
       clsx: 1.1.1
@@ -2785,8 +2785,8 @@ packages:
       react-transition-group: 4.4.2_biqbaboplfbrettd7655fr4n2y
     dev: false
 
-  /@mui/private-theming/5.8.4_luyos4mouogwq6z3wafb3re4ce:
-    resolution: {integrity: sha512-3Lp0VAEjtQygJ70MWEyHkKvg327O6YoBH6ZNEy6fIsrK6gmRIj+YrlvJ7LQCbowY+qDGnbdMrTBd1hfThlI8lg==}
+  /@mui/private-theming/5.8.6_luyos4mouogwq6z3wafb3re4ce:
+    resolution: {integrity: sha512-yHsJk1qU9r/q0DlnxGRJPHyM0Y/nUv8FTNgDTiI9I58GWuVuZqeTUr7JRvPh6ybeP/FLtW5eXEavRK9wxVk4uQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@types/react': ^17.0.0 || ^18.0.0 || 18
@@ -2796,7 +2796,7 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.18.3
-      '@mui/utils': 5.8.4_react@18.2.0
+      '@mui/utils': 5.8.6_react@18.2.0
       '@types/react': 18.0.14
       prop-types: 15.8.1
       react: 18.2.0
@@ -2823,8 +2823,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@mui/styles/5.8.4_luyos4mouogwq6z3wafb3re4ce:
-    resolution: {integrity: sha512-Td7dafJDgpdzObT0z5CH/ihOh22MG2vZ7p2tpnrKaq3We50f8l3T69XeTNcy2OH0TWnXJJuASZS/0uMJmVPfag==}
+  /@mui/styles/5.8.6_luyos4mouogwq6z3wafb3re4ce:
+    resolution: {integrity: sha512-0IvwctufjczoS5qERihquoeVwsz3/buHRpVIt6hNb9Jab2dKH38fhxvIHJTTmmJMQazchaAeVh7T3duOV2Vl2g==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@types/react': ^17.0.0 || 18
@@ -2833,11 +2833,11 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@babel/runtime': 7.17.8
+      '@babel/runtime': 7.18.3
       '@emotion/hash': 0.8.0
-      '@mui/private-theming': 5.8.4_luyos4mouogwq6z3wafb3re4ce
+      '@mui/private-theming': 5.8.6_luyos4mouogwq6z3wafb3re4ce
       '@mui/types': 7.1.4_@types+react@18.0.14
-      '@mui/utils': 5.8.4_react@18.2.0
+      '@mui/utils': 5.8.6_react@18.2.0
       '@types/react': 18.0.14
       clsx: 1.1.1
       csstype: 3.1.0
@@ -2854,8 +2854,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@mui/system/5.8.5_2n63gx4a5hafw7crejwh35wbou:
-    resolution: {integrity: sha512-1bhITHp5sX/CVEf1QwtBWvW+kNnH+GU7lKz0CeAL1RyH9dWvoL9Yt/+i/L8hJ6jVZB/7Au2F6MsyDPt8V1jfdA==}
+  /@mui/system/5.8.6_2n63gx4a5hafw7crejwh35wbou:
+    resolution: {integrity: sha512-+a+rD58XltKQHDrrjcuCta2cUBqdnLDUDwnphSLCMFigRl8/uk+R+fdQRlMNRXAOgnMb8ioWIgfjxri5pmTH4A==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
@@ -2873,10 +2873,10 @@ packages:
       '@babel/runtime': 7.18.3
       '@emotion/react': 11.9.3_luyos4mouogwq6z3wafb3re4ce
       '@emotion/styled': 11.9.3_mtgmvqaicd2yfw2b4v4o2ssbiu
-      '@mui/private-theming': 5.8.4_luyos4mouogwq6z3wafb3re4ce
+      '@mui/private-theming': 5.8.6_luyos4mouogwq6z3wafb3re4ce
       '@mui/styled-engine': 5.8.0_fdnqutfacy7v3gmlcm66flps3q
       '@mui/types': 7.1.4_@types+react@18.0.14
-      '@mui/utils': 5.8.4_react@18.2.0
+      '@mui/utils': 5.8.6_react@18.2.0
       '@types/react': 18.0.14
       clsx: 1.1.1
       csstype: 3.1.0
@@ -2895,8 +2895,8 @@ packages:
       '@types/react': 18.0.14
     dev: false
 
-  /@mui/utils/5.8.4_react@18.2.0:
-    resolution: {integrity: sha512-BHYErfrjqqh76KaDAm8wZlhEip1Uj7Cmco65NcsF3BWrAl3FWngACpaPZeEbTgmaEwyWAQEE6LZhsmy43hfyqQ==}
+  /@mui/utils/5.8.6_react@18.2.0:
+    resolution: {integrity: sha512-QM2Sd1xZo2jOt2Vz5Rmro+pi2FLJyiv4+OjxkUwXR3oUM65KSMAMLl/KNYU55s3W3DLRFP5MVwE4FhAbHseHAg==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       react: ^17.0.0 || ^18.0.0 || 18
