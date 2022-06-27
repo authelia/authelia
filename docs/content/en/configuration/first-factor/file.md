@@ -18,7 +18,6 @@ aliases:
 
 ```yaml
 authentication_backend:
-  disable_reset_password: false
   file:
     path: /config/users.yml
     password:

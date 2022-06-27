@@ -107,7 +107,7 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 	},
 	"authentication_backend.disable_reset_password": {
-		Version: model.SemanticVersion{Major: 4, Minor: 35},
+		Version: model.SemanticVersion{Major: 4, Minor: 36},
 		Key:     "authentication_backend.disable_reset_password",
 		NewKey:  "authentication_backend.password_reset.disable",
 		AutoMap: true,
