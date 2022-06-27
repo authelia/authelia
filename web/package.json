@@ -175,7 +175,7 @@
     "prettier": "2.7.1",
     "react-test-renderer": "18.2.0",
     "typescript": "4.7.4",
-    "vite": "2.9.12",
+    "vite": "2.9.13",
     "vite-plugin-eslint": "1.6.1",
     "vite-plugin-istanbul": "2.8.0",
     "vite-plugin-svgr": "2.2.0",
