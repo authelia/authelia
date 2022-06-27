@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect"
-description: "An introduction into integrating Authelia with an OpenID Connect relying party."
-lead: "An introduction into integrating Authelia with an OpenID Connect relying party."
+description: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
+lead: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
 date: 2022-05-15T13:52:27+10:00
 draft: false
 images: []
@@ -24,8 +24,8 @@ to configure [OpenID Connect].
 
 ### openid
 
-This is the default scope for openid. This field is forced on every client by the configuration validation that Authelia
-does.
+This is the default scope for [OpenID Connect]. This field is forced on every client by the configuration validation
+that Authelia does.
 
 *__Important Note:__ The subject identifiers or `sub` claim has been changed to a [RFC4122] UUID V4 to identify the
 individual user as per the [Subject Identifier Types] specification. Please use the claim `preferred_username` instead.*
@@ -45,6 +45,15 @@ individual user as per the [Subject Identifier Types] specification. Please use 
 |    amr    | array[string] |       *N/A*        | An [RFC8176] list of authentication method reference values |
 |    azp    |    string     |    id (client)     |                    The authorized party                     |
 | client_id |    string     |    id (client)     |                        The client id                        |
+
+### offline_access
+
+This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
+an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
+issued token credentials, effectively it allows the relying party to obtain new tokens periodically.
+
+Generally unless an application supports this and actively requests this scope they should not be granted this scope via
+the client configuration.
 
 ### groups
 
@@ -133,6 +142,8 @@ These endpoints implement OpenID Connect elements.
 |    [Revocation]     |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+[Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
+[Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
 
 [OpenID Connect]: https://openid.net/connect/
 
