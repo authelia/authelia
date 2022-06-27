@@ -8,7 +8,7 @@ images: []
 menu:
   integration:
     parent: "kubernetes"
-weight: 520
+weight: 550
 toc: true
 ---
 
@@ -19,6 +19,12 @@ We officially support the Traefik 2.x Kubernetes ingress controllers. These come
 
 The [Traefik documentation](../proxies/traefik.md) may also be useful for crafting advanced annotations to use with
 this ingress even though it's not specific to Kubernetes.
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Special Notes
 

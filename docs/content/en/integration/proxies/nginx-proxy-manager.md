@@ -26,6 +26,12 @@ throughout this documentation and in the [See Also](#see-also) section.*
 While this proxy is supported we don't have any specific documentation for it at the present time. Please see the
 [NGINX integration documentation](nginx.md) for hints on how to configure this.
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
 ## Requirements
 
 [NGINX Proxy Manager] supports the required [NGINX](nginx.md#requirements) requirements for __Authelia__ out-of-the-box.

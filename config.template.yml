@@ -777,8 +777,33 @@ notifier:
     ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
     ## Issuer Private Key can also be set using a secret: https://www.authelia.com/c/secrets
     # issuer_private_key: |
-    #   --- KEY START
-    #   --- KEY END
+    #   -----BEGIN RSA PRIVATE KEY-----
+    #   MXIEogIB$AKCAQEAxZVJP3WF//PG2fLQoEC9DtdiFG/+00vqlbVzz47nyxKONIPI
+    #   lmL3UdmqpGTKMe/5Brqse4ZAKlQHiDbwzK9ypnfigtHuvh/JO0S7ChP70RC67ed1
+    #   HV1nyfz5eW3llbtGJPrlYLqITNgctHp6zmRUFtSzPj9qFvozI93LJi492yL1+vu8
+    #   Un3Dm8+Qq6XM2tPdEcldB/dtBwOWoF+8eOOVsu0TDuB5bwlhBVGJuSAuzBPRS2bF
+    #   Ga4uk0JDdkDOMCEQxC5uWDFxgfERSMFyfLVWD47woDbuWEBq10c0z+dpWPMp7Ain
+    #   YnnkqicwCN88Z0zid6MmMQ65F4+9Hc+qC/p6xwIDAQABAoIBAGlhaAHKor+Su3o/
+    #   AXqXTL5/rbYMzbLQiLt0XeJT69jpeqMTroZXHmWvXE3128mqnf0yzw/K2Ko6yxGh
+    #   i+j/onya8FqpsVYCCgfsbn2/js1AyRJeIp6Y1ORsYnqbXJnxmkXa80AV/OBPW2/+
+    #   60TtSdQrebY3iFPc+i2k+9bPTvpyyDLKlz8UwdZG+k5uyYNIyQTccz+PjwsIvDij
+    #   7tKYamhhLN3QXt3/aZTFpjTgezP4WyriZxjWrddHowc47q2rwNS95ND39JcysJAc
+    #   0Pcbu8A5lVa7Fx33uOtzDfKWIW7xVEN+OtPgN+FbTjXcXk5IZedl+pW5lU5P++G/
+    #   ZPvz+WECgYEA9g6HwdODW3e68bOqsFoKg35+vfUFMzlyMF8HFylNVfnLpTEDr637
+    #   owzMFvcUxVd71b+gV5nnnbI+riUFIgyR8vhCjhy4moopDPahC4/KwN4NG6uz+i1h
+    #   AB6D5+zn2BjnO/5xMMFGlApWtRNmJVGYlNDj3bXKh2VXzzy03VNeD8kCgYEAzZFL
+    #   OlzoRB1HKpTWIECcuvxofMxLOLb3zs0k2t/FYNYIpovmGWCCAULz13y53e5+/+5m
+    #   7I9VUZJFaIhaZ36qVBApCKdru69pZMkWCcQO9jELFcx51Ez7OgJWzu7GS1QJCPKC
+    #   fEDxI0rZK21j93/Sl/nUnEir7CYpQ+wvCaGuHg8CgYAXgbncfY1+DokwkB6NbHy2
+    #   pT4Mfbz6cNGE538w6kQ2I4AeDvmwLentYMqaow478CinegAiflSPTzkHwAemghbr
+    #   ZGZPV1UXhn13fJRUG2+eT1hnPVcbXnx223N0k8Bud6qXo65CnyRT/kzcTbcjd5Eh
+    #   Hne2daicmMTzynPo9Q72aQKBgBmobO9X8VWvIdbaxO85oVZlctVA2pK1o7CYQmVf
+    #   UM+JZ4MCKzI3rYJizPS0iK5+ujNPmmEkcs2/qBIoEsCgOrpLWhPOcc/3UPxXbPzD
+    #   D+sCrBOIdhxdj23qJNOnUfDNCGOpgUfpAzAYg4q8GKInvi1h7XukRnEvQi9MJ4LY
+    #   P1dZAoGASGcGnTMkmeSXP8ux+dvQJAiJskn/sJIgBZ5uq5GRCeLBUosRSVxM75UK
+    #   vAh/c/RBj+pYXVKuPuHGZCQJxsdcRXzXNGouUtgbaYML5Me/Hagt20QzDRBfuGBg
+    #   qeZBJaXhjElvw6PUWtg4x+LYRCBpq/bS3LK3ozZrSTukVkKDegw=
+    #   -----END RSA PRIVATE KEY-----
 
     ## The lifespans configure the expiration for these token types.
     # access_token_lifespan: 1h

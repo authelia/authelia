@@ -24,6 +24,7 @@ The following table is a support matrix for Authelia features and specific rever
 |        [Caddy]        |        [<i class="icon-support-full"></i>](../../integration/proxies/caddy.md)        |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
 |     [Traefik] 1.x     |      [<i class="icon-support-full"></i>](../../integration/proxies/traefikv1.md)      |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
 |        [Envoy]        |      [<i class="icon-support-unknown"></i>](../../integration/proxies/envoy.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
+|       [Skipper]       |       [<i class="icon-support-full"></i>](../../integration/proxies/skipper.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
 |       [Apache]        |                 <i class="icon-support-none" alt="Not Supported"></i>                 |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
 |         [IIS]         |                           <i class="icon-support-none"></i>                           |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
 
@@ -48,6 +49,7 @@ For more comprehensive support information please see the
 [Caddy]: https://caddyserver.com/
 [HAProxy]: https://www.haproxy.com/
 [Envoy]: https://www.envoyproxy.io/
+[Skipper]: https://opensource.zalando.com/skipper/
 [Caddy]: https://caddyserver.com/
 [Apache]: https://httpd.apache.org/
 [IIS]: https://www.iis.net/

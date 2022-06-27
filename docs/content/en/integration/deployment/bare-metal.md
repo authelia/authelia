@@ -15,6 +15,12 @@ toc: true
 There are several ways to achieve this, as *Authelia* runs as a daemon. We do not provide specific examples for running
 *Authelia* as a service excluding the [systemd unit](#systemd) files.
 
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
 ## systemd
 
 We publish two example [systemd] unit files:

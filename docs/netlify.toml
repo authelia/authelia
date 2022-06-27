@@ -3,7 +3,7 @@
   functions = "functions"
 
 [build.environment]
-  NODE_VERSION = "17.8.0"
+  NODE_VERSION = "16.15.0"
   NPM_VERSION = "8.5.5"
 
 [context.production]
