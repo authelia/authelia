@@ -70,7 +70,7 @@ func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 	return nil
 }
 
-func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []SubjectObjectMatcher) {
+func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []AccessControlDomain) {
 	for _, domainRule := range domainRules {
 		domains = append(domains, NewAccessControlDomain(domainRule))
 	}
@@ -82,7 +82,7 @@ func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) 
 	return domains
 }
 
-func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []SubjectObjectMatcher) {
+func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []AccessControlResource) {
 	for _, resourceRule := range resourceRules {
 		resources = append(resources, NewAccessControlResource(resourceRule))
 	}

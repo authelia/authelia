@@ -231,7 +231,7 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", "GET", TwoFactor)
 }
 
-func (s *AuthorizerSuite) TestShouldcheckDomainMatching() {
+func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	tester := NewAuthorizerBuilder().
 		WithRule(schema.ACLRule{
 			Domains: []string{"public.example.com"},
@@ -272,20 +272,50 @@ func (s *AuthorizerSuite) TestShouldcheckDomainMatching() {
 	tester.CheckAuthorizations(s.T(), Bob, "https://x.example.com", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://x.example.com", "GET", OneFactor)
 
-	assert.Equal(s.T(), "public.example.com", tester.configuration.AccessControl.Rules[0].Domains[0])
-	assert.Equal(s.T(), "domain:public.example.com", tester.rules[0].Domains[0].String())
+	s.Assert().Equal("public.example.com", tester.configuration.AccessControl.Rules[0].Domains[0])
 
-	assert.Equal(s.T(), "one-factor.example.com", tester.configuration.AccessControl.Rules[1].Domains[0])
-	assert.Equal(s.T(), "domain:one-factor.example.com", tester.rules[1].Domains[0].String())
+	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("public.example.com", ruleMatcher0.Name)
+	s.Assert().False(ruleMatcher0.Wildcard)
+	s.Assert().False(ruleMatcher0.UserWildcard)
+	s.Assert().False(ruleMatcher0.GroupWildcard)
 
-	assert.Equal(s.T(), "two-factor.example.com", tester.configuration.AccessControl.Rules[2].Domains[0])
-	assert.Equal(s.T(), "domain:two-factor.example.com", tester.rules[2].Domains[0].String())
+	s.Assert().Equal("one-factor.example.com", tester.configuration.AccessControl.Rules[1].Domains[0])
 
-	assert.Equal(s.T(), "*.example.com", tester.configuration.AccessControl.Rules[3].Domains[0])
-	assert.Equal(s.T(), "domain:.example.com", tester.rules[3].Domains[0].String())
+	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("one-factor.example.com", ruleMatcher1.Name)
+	s.Assert().False(ruleMatcher1.Wildcard)
+	s.Assert().False(ruleMatcher1.UserWildcard)
+	s.Assert().False(ruleMatcher1.GroupWildcard)
 
-	assert.Equal(s.T(), "*.example.com", tester.configuration.AccessControl.Rules[4].Domains[0])
-	assert.Equal(s.T(), "domain:.example.com", tester.rules[4].Domains[0].String())
+	s.Assert().Equal("two-factor.example.com", tester.configuration.AccessControl.Rules[2].Domains[0])
+
+	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("two-factor.example.com", ruleMatcher2.Name)
+	s.Assert().False(ruleMatcher2.Wildcard)
+	s.Assert().False(ruleMatcher2.UserWildcard)
+	s.Assert().False(ruleMatcher2.GroupWildcard)
+
+	s.Assert().Equal("*.example.com", tester.configuration.AccessControl.Rules[3].Domains[0])
+
+	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal(".example.com", ruleMatcher3.Name)
+	s.Assert().True(ruleMatcher3.Wildcard)
+	s.Assert().False(ruleMatcher3.UserWildcard)
+	s.Assert().False(ruleMatcher3.GroupWildcard)
+
+	s.Assert().Equal("*.example.com", tester.configuration.AccessControl.Rules[4].Domains[0])
+
+	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal(".example.com", ruleMatcher4.Name)
+	s.Assert().True(ruleMatcher4.Wildcard)
+	s.Assert().False(ruleMatcher4.UserWildcard)
+	s.Assert().False(ruleMatcher4.GroupWildcard)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
@@ -327,20 +357,35 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://group-dev.regex.com", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://group-dev.regex.com", "GET", Denied)
 
-	assert.Equal(s.T(), "^.*\\.example.com$", tester.configuration.AccessControl.Rules[0].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex:^.*\\.example.com$", tester.rules[0].Domains[0].String())
+	s.Assert().Equal("^.*\\.example.com$", tester.configuration.AccessControl.Rules[0].DomainsRegex[0].String())
 
-	assert.Equal(s.T(), "^.*\\.example2.com$", tester.configuration.AccessControl.Rules[1].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex:^.*\\.example2.com$", tester.rules[1].Domains[0].String())
+	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^.*\\.example.com$", ruleMatcher0.String())
 
-	assert.Equal(s.T(), "^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[2].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex(subexp):^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.rules[2].Domains[0].String())
+	s.Assert().Equal("^.*\\.example2.com$", tester.configuration.AccessControl.Rules[1].DomainsRegex[0].String())
 
-	assert.Equal(s.T(), "^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[3].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex(subexp):^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.rules[3].Domains[0].String())
+	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^.*\\.example2.com$", ruleMatcher1.String())
 
-	assert.Equal(s.T(), "^.*\\.(one|two).com$", tester.configuration.AccessControl.Rules[4].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex:^.*\\.(one|two).com$", tester.rules[4].Domains[0].String())
+	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[2].DomainsRegex[0].String())
+
+	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher2.String())
+
+	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[3].DomainsRegex[0].String())
+
+	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher3.String())
+
+	s.Assert().Equal("^.*\\.(one|two).com$", tester.configuration.AccessControl.Rules[4].DomainsRegex[0].String())
+
+	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^.*\\.(one|two).com$", ruleMatcher4.String())
 }
 
 func (s *AuthorizerSuite) TestShouldCheckUserMatching() {

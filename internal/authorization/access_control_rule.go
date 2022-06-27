@@ -34,8 +34,8 @@ func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][
 // AccessControlRule controls and represents an ACL internally.
 type AccessControlRule struct {
 	Position  int
-	Domains   []SubjectObjectMatcher
-	Resources []SubjectObjectMatcher
+	Domains   []AccessControlDomain
+	Resources []AccessControlResource
 	Methods   []string
 	Networks  []*net.IPNet
 	Subjects  []AccessControlSubjects

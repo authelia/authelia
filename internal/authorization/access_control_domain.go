@@ -9,60 +9,30 @@ import (
 )
 
 // NewAccessControlDomain creates a new SubjectObjectMatcher that matches the domain as a basic string.
-func NewAccessControlDomain(domain string) SubjectObjectMatcher {
-	d := AccessControlDomain{}
-
+func NewAccessControlDomain(domain string) AccessControlDomain {
+	m := &AccessControlDomainMatcher{}
 	domain = strings.ToLower(domain)
 
 	switch {
 	case strings.HasPrefix(domain, "*."):
-		d.Wildcard = true
-		d.Name = domain[1:]
+		m.Wildcard = true
+		m.Name = domain[1:]
 	case strings.HasPrefix(domain, "{user}"):
-		d.UserWildcard = true
-		d.Name = domain[7:]
+		m.UserWildcard = true
+		m.Name = domain[7:]
 	case strings.HasPrefix(domain, "{group}"):
-		d.GroupWildcard = true
-		d.Name = domain[8:]
+		m.GroupWildcard = true
+		m.Name = domain[8:]
 	default:
-		d.Name = domain
+		m.Name = domain
 	}
 
-	return d
-}
-
-// AccessControlDomain represents an ACL domain.
-type AccessControlDomain struct {
-	Name          string
-	Wildcard      bool
-	UserWildcard  bool
-	GroupWildcard bool
-}
-
-// IsMatch returns true if the ACL domain matches the object domain.
-func (acl AccessControlDomain) IsMatch(subject Subject, object Object) (match bool) {
-	switch {
-	case acl.Wildcard:
-		return strings.HasSuffix(object.Domain, acl.Name)
-	case acl.UserWildcard:
-		return object.Domain == fmt.Sprintf("%s.%s", subject.Username, acl.Name)
-	case acl.GroupWildcard:
-		prefix, suffix := domainToPrefixSuffix(object.Domain)
-
-		return suffix == acl.Name && utils.IsStringInSliceFold(prefix, subject.Groups)
-	default:
-		return object.Domain == acl.Name
-	}
-}
-
-// String returns a string representation of the SubjectObjectMatcher rule.
-func (acl AccessControlDomain) String() string {
-	return fmt.Sprintf("domain:%s", acl.Name)
+	return AccessControlDomain{m}
 }
 
 // NewAccessControlDomainRegex creates a new SubjectObjectMatcher that matches the domain either in a basic way or
 // dynamic User/Group subexpression group way.
-func NewAccessControlDomainRegex(pattern regexp.Regexp) SubjectObjectMatcher {
+func NewAccessControlDomainRegex(pattern regexp.Regexp) AccessControlDomain {
 	var iuser, igroup = -1, -1
 
 	for i, group := range pattern.SubexpNames() {
@@ -75,53 +45,42 @@ func NewAccessControlDomainRegex(pattern regexp.Regexp) SubjectObjectMatcher {
 	}
 
 	if iuser != -1 || igroup != -1 {
-		return AccessControlDomainRegex{Pattern: pattern, SubexpNameUser: iuser, SubexpNameGroup: igroup}
+		return AccessControlDomain{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
 	}
 
-	return AccessControlDomainRegexBasic{Pattern: pattern}
+	return AccessControlDomain{RegexpStringSubjectMatcher{pattern}}
 }
 
-// AccessControlDomainRegexBasic represents a basic domain regex SubjectObjectMatcher.
-type AccessControlDomainRegexBasic struct {
-	Pattern regexp.Regexp
+// AccessControlDomainMatcher is the basic domain matcher.
+type AccessControlDomainMatcher struct {
+	Name          string
+	Wildcard      bool
+	UserWildcard  bool
+	GroupWildcard bool
 }
 
-// IsMatch returns true if the ACL regex matches the object domain.
-func (acl AccessControlDomainRegexBasic) IsMatch(_ Subject, object Object) (match bool) {
-	return acl.Pattern.MatchString(object.Domain)
-}
+// IsMatch returns true if this rule matches.
+func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (match bool) {
+	switch {
+	case m.Wildcard:
+		return strings.HasSuffix(domain, m.Name)
+	case m.UserWildcard:
+		return domain == fmt.Sprintf("%s.%s", subject.Username, m.Name)
+	case m.GroupWildcard:
+		prefix, suffix := domainToPrefixSuffix(domain)
 
-// String returns a text representation of a AccessControlDomainRegexBasic.
-func (acl AccessControlDomainRegexBasic) String() string {
-	return fmt.Sprintf("domain_regex:%s", acl.Pattern.String())
-}
-
-// AccessControlDomainRegex represents an ACL domain regex.
-type AccessControlDomainRegex struct {
-	Pattern         regexp.Regexp
-	SubexpNameUser  int
-	SubexpNameGroup int
-}
-
-// IsMatch returns true if the ACL regex matches the object domain.
-func (acl AccessControlDomainRegex) IsMatch(subject Subject, object Object) (match bool) {
-	matches := acl.Pattern.FindAllStringSubmatch(object.Domain, -1)
-	if matches == nil {
-		return false
+		return suffix == m.Name && utils.IsStringInSliceFold(prefix, subject.Groups)
+	default:
+		return strings.EqualFold(domain, m.Name)
 	}
-
-	if acl.SubexpNameUser != -1 && !strings.EqualFold(subject.Username, matches[0][acl.SubexpNameUser]) {
-		return false
-	}
-
-	if acl.SubexpNameGroup != -1 && !utils.IsStringInSliceFold(matches[0][acl.SubexpNameGroup], subject.Groups) {
-		return false
-	}
-
-	return true
 }
 
-// String returns a text representation of a AccessControlDomainRegex.
-func (acl AccessControlDomainRegex) String() string {
-	return fmt.Sprintf("domain_regex(subexp):%s", acl.Pattern.String())
+// AccessControlDomain represents an ACL domain.
+type AccessControlDomain struct {
+	Matcher StringSubjectMatcher
+}
+
+// IsMatch returns true if the ACL domain matches the object domain.
+func (acl AccessControlDomain) IsMatch(subject Subject, object Object) (match bool) {
+	return acl.Matcher.IsMatch(object.Domain, subject)
 }
