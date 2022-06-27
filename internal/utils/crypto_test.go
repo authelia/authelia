@@ -438,3 +438,101 @@ func TestPublicKeyFromPrivateKey(t *testing.T) {
 		})
 	}
 }
+
+func TestX509ParseKeyUsage(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     [][]string
+		ca       bool
+		expected x509.KeyUsage
+	}{
+		{
+			"ShouldParseDefault", nil, false, x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		},
+		{
+			"ShouldParseDefaultCA", nil, true, x509.KeyUsageCertSign | x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		},
+		{
+			"ShouldParseDigitalSignature", [][]string{{"digital_signature"}, {"Digital_Signature"}, {"digitalsignature"}, {"digitalSignature"}}, false, x509.KeyUsageDigitalSignature,
+		},
+		{
+			"ShouldParseKeyEncipherment", [][]string{{"key_encipherment"}, {"Key_Encipherment"}, {"keyencipherment"}, {"keyEncipherment"}}, false, x509.KeyUsageKeyEncipherment,
+		},
+		{
+			"ShouldParseDataEncipherment", [][]string{{"data_encipherment"}, {"Data_Encipherment"}, {"dataencipherment"}, {"dataEncipherment"}}, false, x509.KeyUsageDataEncipherment,
+		},
+		{
+			"ShouldParseKeyAgreement", [][]string{{"key_agreement"}, {"Key_Agreement"}, {"keyagreement"}, {"keyAgreement"}}, false, x509.KeyUsageKeyAgreement,
+		},
+		{
+			"ShouldParseCertSign", [][]string{{"cert_sign"}, {"Cert_Sign"}, {"certsign"}, {"certSign"}, {"certificate_sign"}, {"Certificate_Sign"}, {"certificatesign"}, {"certificateSign"}}, false, x509.KeyUsageCertSign,
+		},
+		{
+			"ShouldParseCRLSign", [][]string{{"crl_sign"}, {"CRL_Sign"}, {"crlsign"}, {"CRLSign"}}, false, x509.KeyUsageCRLSign,
+		},
+		{
+			"ShouldParseEncipherOnly", [][]string{{"encipher_only"}, {"Encipher_Only"}, {"encipheronly"}, {"encipherOnly"}}, false, x509.KeyUsageEncipherOnly,
+		},
+		{
+			"ShouldParseDecipherOnly", [][]string{{"decipher_only"}, {"Decipher_Only"}, {"decipheronly"}, {"decipherOnly"}}, false, x509.KeyUsageDecipherOnly,
+		},
+		{
+			"ShouldParseMulti", [][]string{{"digitalSignature", "keyEncipherment", "dataEncipherment", "certSign", "crlSign"}}, false, x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if len(tc.have) == 0 {
+				actual := X509ParseKeyUsage(nil, tc.ca)
+
+				assert.Equal(t, tc.expected, actual)
+			}
+			for _, have := range tc.have {
+				t.Run(strings.Join(have, ","), func(t *testing.T) {
+					actual := X509ParseKeyUsage(have, tc.ca)
+
+					assert.Equal(t, tc.expected, actual)
+				})
+			}
+		})
+	}
+}
+
+func TestX509ParseExtendedKeyUsage(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     [][]string
+		ca       bool
+		expected []x509.ExtKeyUsage
+	}{
+		{"ShouldParseDefault", nil, false, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}},
+		{"ShouldParseDefaultCA", nil, true, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}},
+		{"ShouldParseAny", [][]string{{"any"}, {"Any"}, {"any", "server_auth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}},
+		{"ShouldParseServerAuth", [][]string{{"server_auth"}, {"Server_Auth"}, {"serverauth"}, {"serverAuth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}},
+		{"ShouldParseClientAuth", [][]string{{"client_auth"}, {"Client_Auth"}, {"clientauth"}, {"clientAuth"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}},
+		{"ShouldParseCodeSigning", [][]string{{"code_signing"}, {"Code_Signing"}, {"codesigning"}, {"codeSigning"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning}},
+		{"ShouldParseEmailProtection", [][]string{{"email_protection"}, {"Email_Protection"}, {"emailprotection"}, {"emailProtection"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageEmailProtection}},
+		{"ShouldParseIPSECEndSystem", [][]string{{"ipsec_endsystem"}, {"IPSEC_Endsystem"}, {"ipsec_end_system"}, {"IPSEC_End_System"}, {"ipsecendsystem"}, {"ipsecEndSystem"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageIPSECEndSystem}},
+		{"ShouldParseIPSECTunnel", [][]string{{"ipsec_tunnel"}, {"IPSEC_Tunnel"}, {"ipsectunnel"}, {"ipsecTunnel"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageIPSECTunnel}},
+		{"ShouldParseIPSECUser", [][]string{{"ipsec_user"}, {"IPSEC_User"}, {"ipsecuser"}, {"ipsecUser"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageIPSECUser}},
+		{"ShouldParseOCSPSigning", [][]string{{"ocsp_signing"}, {"OCSP_Signing"}, {"ocspsigning"}, {"ocspSigning"}}, false, []x509.ExtKeyUsage{x509.ExtKeyUsageOCSPSigning}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if len(tc.have) == 0 {
+				actual := X509ParseExtendedKeyUsage(nil, tc.ca)
+
+				assert.Equal(t, tc.expected, actual)
+			}
+			for _, have := range tc.have {
+				t.Run(strings.Join(have, ","), func(t *testing.T) {
+					actual := X509ParseExtendedKeyUsage(have, tc.ca)
+
+					assert.Equal(t, tc.expected, actual)
+				})
+			}
+		})
+	}
+}

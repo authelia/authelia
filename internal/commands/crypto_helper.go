@@ -401,8 +401,8 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certific
 
 		IsCA: ca,
 
-		KeyUsage:    cryptoGetKeyUsage(nil, ca),
-		ExtKeyUsage: cryptoGetExtKeyUsage(extKeyUsages, ca),
+		KeyUsage:    utils.X509ParseKeyUsage(nil, ca),
+		ExtKeyUsage: utils.X509ParseExtendedKeyUsage(extKeyUsages, ca),
 
 		PublicKeyAlgorithm: keyAlg,
 		SignatureAlgorithm: sigAlg,
@@ -414,79 +414,6 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certific
 	}
 
 	return certificate, nil
-}
-
-func cryptoGetExtKeyUsage(extKeyUsages []string, ca bool) (extKeyUsage []x509.ExtKeyUsage) {
-	if len(extKeyUsages) == 0 {
-		if ca {
-			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageAny}
-		} else {
-			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
-		}
-
-		return extKeyUsage
-	}
-
-loop:
-	for _, extKeyUsageString := range extKeyUsages {
-		switch strings.ToLower(extKeyUsageString) {
-		case "any":
-			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageAny}
-			break loop
-		case "serverauth", "server_auth":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageServerAuth)
-		case "clientauth", "client_auth":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageClientAuth)
-		case "codesigning", "code_signing":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageCodeSigning)
-		case "emailprotection", "email_protection":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageEmailProtection)
-		case "ipsecendsystem", "ipsec_endsystem", "ipsec_end_system":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECEndSystem)
-		case "ipsectunnel", "ipsec_tunnel":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECTunnel)
-		case "ipsecuser", "ipsec_user":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECUser)
-		case "ocspsigning", "ocsp_signing":
-			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageOCSPSigning)
-		}
-	}
-
-	return extKeyUsage
-}
-
-func cryptoGetKeyUsage(keyUsages []string, ca bool) (keyUsage x509.KeyUsage) {
-	if len(keyUsages) == 0 {
-		keyUsage = x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
-		if ca {
-			keyUsage |= x509.KeyUsageCertSign
-		}
-
-		return keyUsage
-	}
-
-	for _, keyUsageString := range keyUsages {
-		switch strings.ToLower(keyUsageString) {
-		case "digitalsignature", "digital_signature":
-			keyUsage |= x509.KeyUsageDigitalSignature
-		case "keyencipherment", "key_encipherment":
-			keyUsage |= x509.KeyUsageKeyEncipherment
-		case "dataencipherment", "data_encipherment":
-			keyUsage |= x509.KeyUsageDataEncipherment
-		case "keyagreement", "key_agreement":
-			keyUsage |= x509.KeyUsageKeyAgreement
-		case "certsign", "cert_sign", "certificatesign", "certificate_sign":
-			keyUsage |= x509.KeyUsageCertSign
-		case "crlsign", "crl_sign":
-			keyUsage |= x509.KeyUsageCRLSign
-		case "encipheronly", "encipher_only":
-			keyUsage |= x509.KeyUsageEncipherOnly
-		case "decipheronly", "decipher_only":
-			keyUsage |= x509.KeyUsageDecipherOnly
-		}
-	}
-
-	return keyUsage
 }
 
 func fmtCryptoUse(use string) string {

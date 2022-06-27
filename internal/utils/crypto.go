@@ -503,3 +503,80 @@ func PublicKeyFromPrivateKey(privateKey interface{}) (publicKey interface{}) {
 		return nil
 	}
 }
+
+// X509ParseKeyUsage parses a list of key usages. If provided with an empty list returns a default of Key Encipherment
+// and Digital Signature unless ca is true in which case it returns Cert Sign.
+func X509ParseKeyUsage(keyUsages []string, ca bool) (keyUsage x509.KeyUsage) {
+	if len(keyUsages) == 0 {
+		keyUsage = x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
+		if ca {
+			keyUsage |= x509.KeyUsageCertSign
+		}
+
+		return keyUsage
+	}
+
+	for _, keyUsageString := range keyUsages {
+		switch strings.ToLower(keyUsageString) {
+		case "digitalsignature", "digital_signature":
+			keyUsage |= x509.KeyUsageDigitalSignature
+		case "keyencipherment", "key_encipherment":
+			keyUsage |= x509.KeyUsageKeyEncipherment
+		case "dataencipherment", "data_encipherment":
+			keyUsage |= x509.KeyUsageDataEncipherment
+		case "keyagreement", "key_agreement":
+			keyUsage |= x509.KeyUsageKeyAgreement
+		case "certsign", "cert_sign", "certificatesign", "certificate_sign":
+			keyUsage |= x509.KeyUsageCertSign
+		case "crlsign", "crl_sign":
+			keyUsage |= x509.KeyUsageCRLSign
+		case "encipheronly", "encipher_only":
+			keyUsage |= x509.KeyUsageEncipherOnly
+		case "decipheronly", "decipher_only":
+			keyUsage |= x509.KeyUsageDecipherOnly
+		}
+	}
+
+	return keyUsage
+}
+
+// X509ParseExtendedKeyUsage parses a list of extended key usages. If provided with an empty list returns a default of
+// Server Auth unless ca is true in which case it returns a default of Any.
+func X509ParseExtendedKeyUsage(extKeyUsages []string, ca bool) (extKeyUsage []x509.ExtKeyUsage) {
+	if len(extKeyUsages) == 0 {
+		if ca {
+			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageAny}
+		} else {
+			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
+		}
+
+		return extKeyUsage
+	}
+
+loop:
+	for _, extKeyUsageString := range extKeyUsages {
+		switch strings.ToLower(extKeyUsageString) {
+		case "any":
+			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageAny}
+			break loop
+		case "serverauth", "server_auth":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageServerAuth)
+		case "clientauth", "client_auth":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageClientAuth)
+		case "codesigning", "code_signing":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageCodeSigning)
+		case "emailprotection", "email_protection":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageEmailProtection)
+		case "ipsecendsystem", "ipsec_endsystem", "ipsec_end_system":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECEndSystem)
+		case "ipsectunnel", "ipsec_tunnel":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECTunnel)
+		case "ipsecuser", "ipsec_user":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECUser)
+		case "ocspsigning", "ocsp_signing":
+			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageOCSPSigning)
+		}
+	}
+
+	return extKeyUsage
+}
