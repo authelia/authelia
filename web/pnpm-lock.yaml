@@ -51,7 +51,7 @@ specifiers:
   query-string: 7.1.1
   react: 18.2.0
   react-dom: 18.2.0
-  react-i18next: 11.17.2
+  react-i18next: 11.17.3
   react-loading: 2.0.3
   react-otp-input: 2.4.0
   react-router-dom: 6.3.0
@@ -84,7 +84,7 @@ dependencies:
   query-string: 7.1.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 11.17.2_c76r735imieyshiewj4bh5xlwy
+  react-i18next: 11.17.3_c76r735imieyshiewj4bh5xlwy
   react-loading: 2.0.3_react@18.2.0
   react-otp-input: 2.4.0_biqbaboplfbrettd7655fr4n2y
   react-router-dom: 6.3.0_biqbaboplfbrettd7655fr4n2y
@@ -7996,8 +7996,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/11.17.2_c76r735imieyshiewj4bh5xlwy:
-    resolution: {integrity: sha512-/HG4XSResWDY450cFmoUqLgCYDu8VYMFISGcMnZlxRSV05naj3+F7DoebwnPu6z/akA3Wd0Xe7KGTYdywL9z9g==}
+  /react-i18next/11.17.3_c76r735imieyshiewj4bh5xlwy:
+    resolution: {integrity: sha512-rIrLl5cLDoHdXFWdjKurRpatA3MPC9j3yTZidv0GmJEea5+XGXl42p7NupA1dmghoLGOXllShNUobgPYtgEcRA==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0 || 18'
@@ -8009,7 +8009,7 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@babel/runtime': 7.17.8
+      '@babel/runtime': 7.18.3
       html-escaper: 2.0.2
       html-parse-stringify: 3.0.1
       i18next: 21.8.10
@@ -9165,7 +9165,7 @@ packages:
     dev: true
 
   /void-elements/3.1.0:
-    resolution: {integrity: sha1-YU9/v42AHwu18GYfWy9XhXUOTwk=}
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
     engines: {node: '>=0.10.0'}
     dev: false
 
