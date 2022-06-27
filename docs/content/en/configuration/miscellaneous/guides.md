@@ -42,7 +42,7 @@ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
 The __Authelia__ docker container or CLI binary can be used to generate a RSA 4096 bit keypair:
 
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --directory /keys
+docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --bits 4096 --directory /keys
 ```
 
 ```bash
