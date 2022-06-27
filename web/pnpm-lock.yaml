@@ -57,7 +57,7 @@ specifiers:
   react-router-dom: 6.3.0
   react-test-renderer: 18.2.0
   typescript: 4.7.4
-  vite: 2.9.12
+  vite: 2.9.13
   vite-plugin-eslint: 1.6.1
   vite-plugin-istanbul: 2.8.0
   vite-plugin-svgr: 2.2.0
@@ -124,11 +124,11 @@ devDependencies:
   prettier: 2.7.1
   react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.7.4
-  vite: 2.9.12
-  vite-plugin-eslint: 1.6.1_eslint@8.18.0+vite@2.9.12
+  vite: 2.9.13
+  vite-plugin-eslint: 1.6.1_eslint@8.18.0+vite@2.9.13
   vite-plugin-istanbul: 2.8.0
-  vite-plugin-svgr: 2.2.0_vite@2.9.12
-  vite-tsconfig-paths: 3.5.0_vite@2.9.12
+  vite-plugin-svgr: 2.2.0_vite@2.9.13
+  vite-tsconfig-paths: 3.5.0_vite@2.9.13
 
 packages:
 
@@ -9091,7 +9091,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.6.1_eslint@8.18.0+vite@2.9.12:
+  /vite-plugin-eslint/1.6.1_eslint@8.18.0+vite@2.9.13:
     resolution: {integrity: sha512-wXwGJ222zjlllHmmPXX6oSU8DbmYjnA6HHBYbOLT8WAc73j4/YAtBQHCVSoHOTPiT4TPzsuZSvputWwc86BweQ==}
     peerDependencies:
       eslint: '>=7'
@@ -9101,7 +9101,7 @@ packages:
       '@types/eslint': 8.4.2
       eslint: 8.18.0
       rollup: 2.70.2
-      vite: 2.9.12
+      vite: 2.9.13
     dev: true
 
   /vite-plugin-istanbul/2.8.0:
@@ -9114,19 +9114,19 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.2.0_vite@2.9.12:
+  /vite-plugin-svgr/2.2.0_vite@2.9.13:
     resolution: {integrity: sha512-CRJgz92vf3SQbt3jwF6/BhyQIhbY0pwbXAPqUh1/EMG6a4eHsHCECcDNrKZMhlRBj3LyXQSfHXJLtM2ISP5rfg==}
     peerDependencies:
       vite: ^2.6.0 || 3
     dependencies:
       '@rollup/pluginutils': 4.2.1
       '@svgr/core': 6.2.1
-      vite: 2.9.12
+      vite: 2.9.13
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.5.0_vite@2.9.12:
+  /vite-tsconfig-paths/3.5.0_vite@2.9.13:
     resolution: {integrity: sha512-NKIubr7gXgh/3uniQaOytSg+aKWPrjquP6anAy+zCWEn6h9fB8z2/qdlfQrTgZWaXJ2pHVlllrSdRZltHn9P4g==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -9135,13 +9135,13 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.2
       tsconfig-paths: 4.0.0
-      vite: 2.9.12
+      vite: 2.9.13
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/2.9.12:
-    resolution: {integrity: sha512-suxC36dQo9Rq1qMB2qiRorNJtJAdxguu5TMvBHOc/F370KvqAe9t48vYp+/TbPKRNrMh/J55tOUmkuIqstZaew==}
+  /vite/2.9.13:
+    resolution: {integrity: sha512-AsOBAaT0AD7Mhe8DuK+/kE4aWYFMx/i0ZNi98hJclxb4e0OhQcZYUrvLjIaQ8e59Ui7txcvKMiJC1yftqpQoDw==}
     engines: {node: '>=12.2.0'}
     hasBin: true
     peerDependencies:
