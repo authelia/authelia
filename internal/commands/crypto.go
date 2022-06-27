@@ -312,7 +312,9 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 		publicKey, caPrivateKey, signatureKey interface{}
 	)
 
-	publicKey = utils.PublicKeyFromPrivateKey(privateKey)
+	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
+		return fmt.Errorf("failed to obtain public key from private key")
+	}
 
 	if caPrivateKey, caCertificate, err = cryptoGetCAFromCmd(cmd); err != nil {
 		return err
