@@ -173,7 +173,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 			ctx.Logger.Warnf("User %s has been inactive for too long", userSession.Username)
 
-			return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, nil
+			return "", "", nil, nil, authentication.NotAuthenticated, nil
 		}
 	}
 
