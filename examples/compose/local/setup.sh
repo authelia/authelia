@@ -60,7 +60,7 @@ if [[ $MODIFIED == "false" ]]; then
 fi
 
 echo "Generating SSL certificate for *.$DOMAIN"
-sudo docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia certificates generate --host *.$DOMAIN --dir /tmp/certs/ > /dev/null
+sudo docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia authelia crypto certificate rsa generate --common-name="*.${DOMAIN}" --directory=/tmp/certs/ > /dev/null
 
 if [[ $DOMAIN != "example.com" ]]; then
   if [[ $(uname) == "Darwin" ]]; then

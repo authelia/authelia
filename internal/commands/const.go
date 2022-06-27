@@ -302,41 +302,85 @@ prior to deploying it.`
 	cmdAutheliaValidateConfigExample = `authelia validate-config
 authelia validate-config --config config.yml`
 
-	cmdAutheliaCertificatesShort = "Commands related to certificate generation"
+	cmdAutheliaCryptoShort = "Perform cryptographic operations"
 
-	cmdAutheliaCertificatesLong = `Commands related to certificate generation.
+	cmdAutheliaCryptoLong = `Perform cryptographic operations.
 
-This subcommand allows preforming X509 certificate tasks.`
+This subcommand allows preforming cryptographic certificate, key pair, etc tasks.`
 
-	cmdAutheliaCertificatesExample = `authelia certificates --help`
+	cmdAutheliaCryptoExample = `authelia crypto --help`
 
-	cmdAutheliaCertificatesGenerateShort = "Generate a self-signed certificate"
+	cmdAutheliaCryptoCertificateShort = "Perform certificate cryptographic operations"
 
-	cmdAutheliaCertificatesGenerateLong = `Generate a self-signed certificate.
+	cmdAutheliaCryptoCertificateLong = `Perform certificate cryptographic operations.
 
-This subcommand allows generating self-signed certificates.`
+This subcommand allows preforming certificate cryptographic tasks.`
 
-	cmdAutheliaCertificatesGenerateExample = `authelia certificates generate
-authelia certificates generate --dir ./out`
+	cmdAutheliaCryptoCertificateExample = `authelia crypto certificate --help`
 
-	cmdAutheliaRSAShort = "Commands related to rsa keypair generation"
+	fmtCmdAutheliaCryptoCertificateSubShort = "Perform %s certificate cryptographic operations"
 
-	cmdAutheliaRSALong = `Commands related to rsa keypair generation.
+	fmtCmdAutheliaCryptoCertificateSubLong = `Perform %s certificate cryptographic operations.
 
-This subcommand allows performing RSA keypair tasks.`
+This subcommand allows preforming %s certificate cryptographic tasks.`
 
-	cmdAutheliaRSAExample = `authelia rsa --help`
+	cmdAutheliaCryptoCertificateRSAExample = `authelia crypto certificate rsa --help`
 
-	cmdAutheliaRSAGenerateShort = "Generate a RSA keypair"
+	cmdAutheliaCryptoCertificateECDSAExample = `authelia crypto certificate ecdsa --help`
 
-	cmdAutheliaRSAGenerateLong = `Generate a RSA keypair.
+	cmdAutheliaCryptoCertificateEd25519Example = `authelia crypto certificate ed25519 --help`
 
-This subcommand allows generating an RSA keypair.`
+	fmtCmdAutheliaCryptoCertificateGenerateRequestShort = "Generate an %s private key and %s"
 
-	cmdAutheliaRSAGenerateExample = `authelia rsa generate
-authelia rsa generate --dir ./out`
+	fmtCmdAutheliaCryptoCertificateGenerateRequestLong = `Generate an %s private key and %s.
 
-	cmdAutheliaHashPasswordShort = "Hash a password to be used in file-based users database."
+This subcommand allows generating an %s private key and %s.`
+
+	cmdAutheliaCryptoCertificateRSAGenerateExample = `authelia crypto certificate rsa generate --help`
+
+	cmdAutheliaCryptoCertificateECDSAGenerateExample = `authelia crypto certificate ecdsa generate --help`
+
+	cmdAutheliaCryptoCertificateEd25519GenerateExample = `authelia crypto certificate ed25519 request --help`
+
+	cmdAutheliaCryptoCertificateRSARequestExample = `authelia crypto certificate rsa request --help`
+
+	cmdAutheliaCryptoCertificateECDSARequestExample = `authelia crypto certificate ecdsa request --help`
+
+	cmdAutheliaCryptoCertificateEd25519RequestExample = `authelia crypto certificate ed25519 request --help`
+
+	cmdAutheliaCryptoPairShort = "Perform key pair cryptographic operations"
+
+	cmdAutheliaCryptoPairLong = `Perform key pair cryptographic operations.
+
+This subcommand allows preforming key pair cryptographic tasks.`
+
+	cmdAutheliaCryptoPairExample = `authelia crypto pair --help`
+
+	cmdAutheliaCryptoPairSubShort = "Perform %s key pair cryptographic operations"
+
+	cmdAutheliaCryptoPairSubLong = `Perform %s key pair cryptographic operations.
+
+This subcommand allows preforming %s key pair cryptographic tasks.`
+
+	cmdAutheliaCryptoPairRSAExample = `authelia crypto pair rsa --help`
+
+	cmdAutheliaCryptoPairECDSAExample = `authelia crypto pair ecdsa --help`
+
+	cmdAutheliaCryptoPairEd25519Example = `authelia crypto pair ed25519 --help`
+
+	fmtCmdAutheliaCryptoPairGenerateShort = "Generate a cryptographic %s key pair"
+
+	fmtCmdAutheliaCryptoPairGenerateLong = `Generate a cryptographic %s key pair.
+
+This subcommand allows generating an %s key pair.`
+
+	cmdAutheliaCryptoPairRSAGenerateExample = `authelia crypto pair rsa generate --help`
+
+	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
+
+	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
+
+	cmdAutheliaHashPasswordShort = "Hash a password to be used in file-based users database"
 
 	cmdAutheliaHashPasswordLong = `Hash a password to be used in file-based users database.`
 
@@ -362,6 +406,59 @@ const (
 
 var (
 	validStorageTOTPExportFormats = []string{storageTOTPExportFormatCSV, storageTOTPExportFormatURI, storageTOTPExportFormatPNG}
+)
+
+const (
+	timeLayoutCertificateNotBefore = "Jan 2 15:04:05 2006"
+)
+
+const (
+	cmdFlagNameDirectory = "directory"
+
+	cmdFlagNamePathCA = "path.ca"
+
+	cmdFlagNameFilePrivateKey    = "file.private-key"
+	cmdFlagNameFilePublicKey     = "file.public-key"
+	cmdFlagNameFileCertificate   = "file.certificate"
+	cmdFlagNameFileCAPrivateKey  = "file.ca-private-key"
+	cmdFlagNameFileCACertificate = "file.ca-certificate"
+	cmdFlagNameFileCSR           = "file.csr"
+
+	cmdFlagNameExtendedUsage = "extended-usage"
+	cmdFlagNameSignature     = "signature"
+	cmdFlagNameCA            = "ca"
+	cmdFlagNameSANs          = "sans"
+
+	cmdFlagNameCommonName         = "common-name"
+	cmdFlagNameOrganization       = "organization"
+	cmdFlagNameOrganizationalUnit = "organizational-unit"
+	cmdFlagNameCountry            = "country"
+	cmdFlagNameProvince           = "province"
+	cmdFlagNameLocality           = "locality"
+	cmdFlagNameStreetAddress      = "street-address"
+	cmdFlagNamePostcode           = "postcode"
+
+	cmdFlagNameNotBefore = "not-before"
+	cmdFlagNameDuration  = "duration"
+
+	cmdFlagNamePKCS8 = "pkcs8"
+	cmdFlagNameBits  = "bits"
+	cmdFlagNameCurve = "curve"
+)
+
+const (
+	cmdUseCertificate = "certificate"
+	cmdUseGenerate    = "generate"
+	cmdUseRequest     = "request"
+	cmdUsePair        = "pair"
+	cmdUseRSA         = "rsa"
+	cmdUseECDSA       = "ecdsa"
+	cmdUseEd25519     = "ed25519"
+)
+
+const (
+	cryptoCertPubCertOut = "certificate"
+	cryptoCertCSROut     = "certificate signing request"
 )
 
 var (
