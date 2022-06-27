@@ -256,7 +256,7 @@ func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	b := strings.Builder{}
 
-	b.WriteString("Generating Certificate Signing Request\n\n")
+	b.WriteString("Generating Certificate Request\n\n")
 
 	b.WriteString("Subject:\n")
 	b.WriteString(fmt.Sprintf("\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit))
@@ -281,14 +281,14 @@ func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	b.WriteString("Output Paths:\n")
 	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", privateKeyPath))
-	b.WriteString(fmt.Sprintf("\tCertificate Signing Request: %s\n\n", csrPath))
+	b.WriteString(fmt.Sprintf("\tCertificate Request: %s\n\n", csrPath))
 
 	fmt.Print(b.String())
 
 	b.Reset()
 
 	if csr, err = x509.CreateCertificateRequest(rand.Reader, template, privateKey); err != nil {
-		return fmt.Errorf("failed to create CSR: %w", err)
+		return fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
 	if privateKeyPath, csrPath, err = cryptoGetWritePathsFromCmd(cmd); err != nil {
@@ -382,7 +382,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 	b.Reset()
 
 	if certificate, err = x509.CreateCertificate(rand.Reader, template, parent, publicKey, signatureKey); err != nil {
-		return err
+		return fmt.Errorf("failed to create certificate: %w", err)
 	}
 
 	if err = utils.WriteKeyToPEM(privateKey, privateKeyPath, false); err != nil {

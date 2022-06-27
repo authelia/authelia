@@ -99,7 +99,7 @@ func (s *CLISuite) TestShouldHashPasswordSHA512() {
 func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "request", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate Signing Request")
+	s.Assert().Contains(output, "Generating Certificate Request")
 
 	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
 	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
@@ -108,13 +108,13 @@ func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P224", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate Signing Request")
+	s.Assert().Contains(output, "Generating Certificate Request")
 
 	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
 	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
@@ -123,13 +123,13 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP224CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P256", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate Signing Request")
+	s.Assert().Contains(output, "Generating Certificate Request")
 
 	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
 	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
@@ -138,13 +138,13 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP256CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P384", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate Signing Request")
+	s.Assert().Contains(output, "Generating Certificate Request")
 
 	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
 	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
@@ -153,13 +153,13 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP384CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ecdsa", "request", "--curve=P521", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate Signing Request")
+	s.Assert().Contains(output, "Generating Certificate Request")
 
 	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
 	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
@@ -168,13 +168,13 @@ func (s *CLISuite) TestShouldGenerateECDSACurveP521CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "ed25519", "request", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Generating Certificate Signing Request")
+	s.Assert().Contains(output, "Generating Certificate Request")
 
 	s.Assert().Contains(output, "\tCommon Name: example.com, Organization: [Authelia], Organizational Unit: []")
 	s.Assert().Contains(output, "\tCountry: [], Province: [], Street Address: [], Postal Code: [], Locality: []")
@@ -183,7 +183,7 @@ func (s *CLISuite) TestShouldGenerateEd25519CertificateRequest() {
 
 	s.Assert().Contains(output, "Output Paths:")
 	s.Assert().Contains(output, "\tPrivate Key: /tmp/private.pem")
-	s.Assert().Contains(output, "\tCertificate Signing Request: /tmp/request.csr")
+	s.Assert().Contains(output, "\tCertificate Request: /tmp/request.csr")
 }
 
 func (s *CLISuite) TestShouldGenerateCertificateRSA() {
