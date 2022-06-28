@@ -2,7 +2,7 @@
 title: "Chart"
 description: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes"
 lead: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-22T22:58:23+10:00
 draft: false
 images: []
 menu:

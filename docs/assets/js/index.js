@@ -75,26 +75,20 @@ Source:
     }
   });
 
+  {{ $list := slice }}
+  {{- if and (isset .Site.Params.options "searchsectionsindex") (not (eq (len .Site.Params.options.searchSectionsIndex) 0)) }}
+  {{- if eq .Site.Params.options.searchSectionsIndex "ALL" }}
+  {{- $list = .Site.Pages }}
+  {{- else }}
+  {{- $list = (where (where .Site.Pages "Type" "in" .Site.Params.options.searchSectionsIndex) ".Params.search.index" "!=" "false") }}
+  {{- if (in .Site.Params.options.searchSectionsIndex "HomePage") }}
+  {{ $list = $list | append .Site.Home }}
+  {{- end }}
+  {{- end }}
+  {{- else }}
+  {{- $list = (where .Site.Pages "Section" "docs") }}
+  {{- end }}
 
-  // Not yet supported: https://github.com/nextapps-de/flexsearch#complex-documents
-
-  /*
-  var docs = [
-    {{ range $index, $page := (where .Site.Pages "Section" "docs") -}}
-      {
-        id: {{ $index }},
-        href: "{{ .Permalink }}",
-        title: {{ .Title | jsonify }},
-        description: {{ .Params.description | jsonify }},
-        content: {{ .Content | jsonify }}
-      },
-    {{ end -}}
-  ];
-  */
-
-  // https://discourse.gohugo.io/t/range-length-or-last-element/3803/2
-
-  {{ $list := (where .Site.RegularPages "Type" "in" (union .Site.Params.Sections.Search .Site.Params.Sections.Searchable)) -}}
   {{ $len := (len $list) -}}
 
   index.add(
@@ -120,8 +114,8 @@ Source:
 
   function show_results(){
     const maxResult = 5;
-    var searchQuery = this.value;
-    var results = index.search(searchQuery, {limit: maxResult, enrich: true});
+    const searchQuery = this.value;
+    const results = index.search(searchQuery, {limit: maxResult, enrich: true});
 
     // flatten results since index.search() returns results for each indexed field
     const flatResults = new Map(); // keyed by href to dedupe results
@@ -163,7 +157,7 @@ Source:
 
         suggestions.appendChild(entry);
 
-        if(suggestions.childElementCount == maxResult) break;
+        if(suggestions.childElementCount === maxResult) break;
     }
   }
 }());

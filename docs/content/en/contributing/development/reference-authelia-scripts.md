@@ -2,7 +2,7 @@
 title: "Reference: authelia-scripts"
 description: "This section covers the authelia-scripts tool."
 lead: "This section covers the authelia-scripts tool."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

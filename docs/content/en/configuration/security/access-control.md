@@ -2,7 +2,7 @@
 title: "Access Control"
 description: "Configuring the Access Control or RBAC settings."
 lead: "Authelia supports a comprehensive access control system. This section describes configuring this."
-date: 2022-03-20T12:52:27+11:00
+date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
 menu:

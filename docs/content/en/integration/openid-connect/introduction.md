@@ -2,7 +2,7 @@
 title: "OpenID Connect"
 description: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
 lead: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

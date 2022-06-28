@@ -2,7 +2,7 @@
 title: "Cloudflare Zero Trust"
 description: "Integrating Cloudflare Zero Trust with Authelia via OpenID Connect."
 lead: ""
-date: 2022-05-17T07:45:58+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

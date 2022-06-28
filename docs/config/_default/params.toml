@@ -76,6 +76,8 @@ lastMod = true
   clipBoard = true
   instantPage = true
   flexSearch = true
+  searchSectionsShow = ["overview", "configuration", "integration", "contributing", "reference"]
+  searchSectionsIndex = ["overview", "configuration", "integration", "contributing", "reference", "blog"]
   darkMode = true
   bootStrapJs = true
   breadCrumb = true
@@ -89,7 +91,3 @@ lastMod = true
   [menu.section]
     auto = true
     collapsibleSidebar = true
-
-[Sections]
-  Search = ["overview", "configuration", "integration", "contributing", "reference"]
-  Searchable = ["blog"]
