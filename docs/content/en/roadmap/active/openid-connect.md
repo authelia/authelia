@@ -11,6 +11,7 @@ menu:
 weight: 221
 toc: true
 aliases:
+  - /r/openid-connect
   - /docs/roadmap/oidc.html
 ---
 

@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 250
 toc: true
+aliases:
+  - /r/k8s-docs
 ---
 
 ## Stages

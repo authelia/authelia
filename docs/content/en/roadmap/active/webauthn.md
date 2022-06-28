@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 220
 toc: true
+aliases:
+  - /r/webauthn
 ---
 
 [WebAuthn] requires urgent implementation as it is being deprecated by Chrome. It is a modern evolution of the
