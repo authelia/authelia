@@ -116,7 +116,7 @@ const (
 // Storage Error constants.
 const (
 	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' must is required"
+	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' is required"
 	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
 	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
 	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
