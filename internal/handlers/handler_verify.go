@@ -221,6 +221,7 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().Peek("rd"))
+	proxy := string(ctx.QueryArgs().Peek("proxy"))
 	rm := string(method)
 
 	switch rm {
@@ -240,7 +241,9 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	}
 
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || rd == "":
+	case redirectionURL != "" && proxy == "nginx":
+		fallthrough
+	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == "":
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch rm {
