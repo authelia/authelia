@@ -404,7 +404,7 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher3.String())
 
 	s.Require().Len(tester.rules[4].Domains, 1)
-	
+
 	s.Assert().Equal("^.*\\.(one|two).com$", tester.configuration.AccessControl.Rules[4].DomainsRegex[0].String())
 
 	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(RegexpStringSubjectMatcher)
