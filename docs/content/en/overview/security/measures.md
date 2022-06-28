@@ -224,7 +224,7 @@ To configure mutual TLS, please refer to [this document](../../configuration/mis
 ### Reset Password
 
 It's possible to disable the reset password functionality and is an optional adjustment to consider for anyone wanting
-to increase security. See the [configuration](../../configuration/first-factor/introduction.md#disable_reset_password)
+to increase security. See the [configuration](../../configuration/first-factor/introduction.md#disable)
 for more information.
 
 ### Session security

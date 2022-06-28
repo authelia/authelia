@@ -216,11 +216,10 @@ ntp:
 ##
 ## The available providers are: `file`, `ldap`. You must use only one of these providers.
 authentication_backend:
-  ## Disable both the HTML element and the API for reset password functionality.
-  disable_reset_password: false
-
   ## Password Reset Options.
   password_reset:
+    ## Disable both the HTML element and the API for reset password functionality.
+    disable: false
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
