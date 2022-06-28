@@ -2,7 +2,7 @@
 title: "Guides"
 description: "Miscellaneous Guides for Configuration."
 lead: "This section contains miscellaneous guides used in the configuration."
-date: 2022-05-16T15:21:22+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -42,11 +42,11 @@ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
 The __Authelia__ docker container or CLI binary can be used to generate a RSA 4096 bit keypair:
 
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia rsa generate --dir /keys
+docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --bits 4096 --directory /keys
 ```
 
 ```bash
-authelia rsa generate --dir /path/to/keys
+authelia crypto pair rsa generate --directory /path/to/keys
 ```
 
 ## Generating an RSA Self-Signed Certificate
@@ -69,9 +69,9 @@ The __Authelia__ docker container or binary can be used to generate a RSA 4096 b
 domain `example.com`:
 
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia authelia certificates generate --host example.com --dir /keys
+docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia authelia crypto certificate rsa generate --common-name example.com --directory /keys
 ```
 
 ```bash
-authelia certificates generate --host example.com --dir /path/to/keys
+authelia crypto certificate rsa generate --common-name example.com --directory /path/to/keys
 ```

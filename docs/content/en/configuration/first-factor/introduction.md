@@ -2,7 +2,7 @@
 title: "First Factor"
 description: "Configuring Authelia First Factor Authentication."
 lead: "Authelia uses a username and password for a first factor method. This section describes configuring this."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -26,8 +26,8 @@ There are two ways to integrate *Authelia* with an authentication backend:
 ```yaml
 authentication_backend:
   refresh_interval: 5m
-  disable_reset_password: false
   password_reset:
+    disable: false
     custom_url: ""
 ```
 
@@ -40,13 +40,13 @@ authentication_backend:
 This setting controls the interval at which details are refreshed from the backend. Particularly useful for
 [LDAP](#ldap).
 
-### disable_reset_password
+### password_reset
+
+#### disable
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
 This setting controls if users can reset their password from the web frontend or not.
-
-### password_reset
 
 #### custom_url
 

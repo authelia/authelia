@@ -2,7 +2,7 @@
 title: "LDAP"
 description: "Configuring LDAP"
 lead: "Authelia supports an LDAP server based first factor user provider. This section describes configuring this."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -196,8 +196,7 @@ referrals to be followed when performing write operations.
 server and utilizing a service account.*
 
 Permits binding to the server without a password. For this option to be enabled both the [password](#password)
-configuration option must be blank and [disable_reset_password](introduction.md#disable_reset_password) must be
-disabled.
+configuration option must be blank and the [password_reset disable](introduction.md#disable) option must be `true`.
 
 ### user
 

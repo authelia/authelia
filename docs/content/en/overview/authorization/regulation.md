@@ -2,7 +2,7 @@
 title: "Regulation"
 description: "Regulation of failed attempts is an important function of an IAM system."
 lead: "Regulation of failed attempts is an important function of an IAM system."
-date: 2022-03-20T22:52:38+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

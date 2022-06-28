@@ -2,7 +2,7 @@
 title: "Internationalization"
 description: "Authelia Internationalization Implementation"
 lead: "Implementation of internationalization will make Authelia more accessible to more people."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 230
 toc: true
+aliases:
+  - /r/i18n
 ---
 
 This can easily be done in the web interface and automatically adapt to the users browser.
