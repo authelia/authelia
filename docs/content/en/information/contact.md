@@ -48,6 +48,6 @@ Discord can be accessed via [https://discord.authelia.com](https://discord.authe
 
 ## Email
 
-To contact the team for anything not security related you can utilized {{< email user="team" domain="authelia.com" >}}.
+To contact the team for anything not security related you can utilize [team@authelia.com](mailto:team@authelia.com).
 
-For all security related matters over email please ensure you use {{< email user="security" domain="authelia.com" >}}.
+For all security related matters over email please ensure you use [security@authelia.com](mailto:team@authelia.com).
