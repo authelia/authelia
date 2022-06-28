@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 230
 toc: true
+aliases:
+  - /r/i18n
 ---
 
 This can easily be done in the web interface and automatically adapt to the users browser.

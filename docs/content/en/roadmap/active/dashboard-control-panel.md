@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 240
 toc: true
+aliases:
+  - /r/dashboard
 ---
 
 This feature has several major impacts on other roadmap items. For example several OpenID Connect features would greatly
