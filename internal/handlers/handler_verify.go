@@ -194,12 +194,13 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, userSession.AuthenticationLevel, nil
 }
 
-func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
+func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL *url.URL, isBasicAuth bool, username string, method []byte) {
 	var (
 		statusCode            int
-		redirectionURL        string
 		friendlyUsername      string
 		friendlyRequestMethod string
+
+		redirectionURL *url.URL
 	)
 
 	switch username {
@@ -212,16 +213,12 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	if isBasicAuth {
 		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), friendlyUsername)
 		ctx.ReplyUnauthorized()
-		ctx.Response.Header.Add("WWW-Authenticate", "Basic realm=\"Authentication required\"")
-
+		ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerWWWAuthenticateValueBasic)
 		return
 	}
 
-	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-	// endpoint to provide the URL of the login portal. The target URL of the user
-	// is computed from X-Forwarded-* headers or X-Original-URL.
-	rd := string(ctx.QueryArgs().Peek("rd"))
-	proxy := string(ctx.QueryArgs().Peek("proxy"))
+	rd := string(ctx.QueryArgs().PeekBytes(queryArgRD))
+	proxy := string(ctx.QueryArgs().PeekBytes(queryArgProxy))
 	rm := string(method)
 
 	switch rm {
@@ -231,19 +228,17 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		friendlyRequestMethod = rm
 	}
 
-	if rd != "" {
-		switch rm {
-		case "":
-			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		default:
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
-		}
+	var err error
+
+	if redirectionURL, err = getRedirectionURL(rd, rm, targetURL); err != nil {
+		SetStatusCodeResponse(ctx.RequestCtx, fasthttp.StatusInternalServerError)
+		return
 	}
 
 	switch {
-	case redirectionURL != "" && proxy == "nginx":
+	case redirectionURL != nil && proxy == queryArgProxyValueNGINX:
 		fallthrough
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == "":
+	case ctx.IsXHR() || !ctx.AcceptsMIME(headerAcceptsMIMETextHTML) || redirectionURL == nil:
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch rm {
@@ -254,13 +249,39 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		}
 	}
 
-	if redirectionURL != "" {
+	if redirectionURL != nil {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL, statusCode)
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
 	}
+}
+
+func getRedirectionURL(rd, rm string, targetURL *url.URL) (redirectionURL *url.URL, err error) {
+	if rd == "" {
+		return nil, nil
+	}
+
+	if rd, err = url.QueryUnescape(rd); err != nil {
+		return nil, err
+	}
+
+	if redirectionURL, err = url.Parse(rd); err != nil {
+		return nil, err
+	}
+
+	args := url.Values{
+		"rd": []string{targetURL.String()},
+	}
+
+	if rm != "" {
+		args.Set("rm", rm)
+	}
+
+	redirectionURL.RawQuery = args.Encode()
+
+	return redirectionURL, nil
 }
 
 func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, username string) error {

@@ -26,10 +26,25 @@ var (
 	headerRemoteGroups    = []byte("Remote-Groups")
 	headerRemoteName      = []byte("Remote-Name")
 	headerRemoteEmail     = []byte("Remote-Email")
+	headerWWWAuthenticate = []byte("WWW-Authenticate")
 )
 
 var (
-	headerContentTypeValueDefault = []byte("text/plain; charset=utf-8")
+	headerContentTypeValueDefault   = []byte("text/plain; charset=utf-8")
+	headerWWWAuthenticateValueBasic = []byte("Basic realm=\"Authentication Required\"")
+)
+
+const (
+	headerAcceptsMIMETextHTML = "text/html"
+)
+
+var (
+	queryArgRD    = []byte("rd")
+	queryArgProxy = []byte("proxy")
+)
+
+const (
+	queryArgProxyValueNGINX = "nginx"
 )
 
 const (
