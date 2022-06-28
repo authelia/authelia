@@ -34,7 +34,7 @@ func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][
 // AccessControlRule controls and represents an ACL internally.
 type AccessControlRule struct {
 	Position  int
-	Domains   []SubjectObjectMatcher
+	Domains   []AccessControlDomain
 	Resources []AccessControlResource
 	Methods   []string
 	Networks  []*net.IPNet
@@ -48,7 +48,7 @@ func (acr *AccessControlRule) IsMatch(subject Subject, object Object) (match boo
 		return false
 	}
 
-	if !isMatchForResources(object, acr) {
+	if !isMatchForResources(subject, object, acr) {
 		return false
 	}
 
@@ -83,7 +83,7 @@ func isMatchForDomains(subject Subject, object Object, acl *AccessControlRule) (
 	return false
 }
 
-func isMatchForResources(object Object, acl *AccessControlRule) (match bool) {
+func isMatchForResources(subject Subject, object Object, acl *AccessControlRule) (match bool) {
 	// If there are no resources in this rule then the resource condition is a match.
 	if len(acl.Resources) == 0 {
 		return true
@@ -91,7 +91,7 @@ func isMatchForResources(object Object, acl *AccessControlRule) (match bool) {
 
 	// Iterate over the resources until we find a match (return true) or until we exit the loop (return false).
 	for _, resource := range acl.Resources {
-		if resource.IsMatch(object) {
+		if resource.IsMatch(subject, object) {
 			return true
 		}
 	}

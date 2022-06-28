@@ -12,10 +12,14 @@ type SubjectMatcher interface {
 	IsMatch(subject Subject) (match bool)
 }
 
+// StringSubjectMatcher is a matcher that takes an input string and subject.
+type StringSubjectMatcher interface {
+	IsMatch(input string, subject Subject) (match bool)
+}
+
 // SubjectObjectMatcher is a matcher that takes both a subject and an object.
 type SubjectObjectMatcher interface {
 	IsMatch(subject Subject, object Object) (match bool)
-	String() string
 }
 
 // Subject represents the identity of a user for the purposes of ACL matching.
