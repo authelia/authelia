@@ -34,9 +34,14 @@
   {{ $slice = $slice | append $instantPage -}}
 {{ end -}}
 
-{{ if .Site.Params.options.flexSearch -}}
+{{ $showFlexSearch := .Site.Params.options.flexSearch }}
+
+{{ if $showFlexSearch -}}
   {{ $flexSearch := resources.Get "js/vendor/flexsearch/dist/flexsearch.bundle.js" -}}
   {{ $slice = $slice | append $flexSearch -}}
+  {{ if and (isset .Site.Params.options "searchsectionsshow") (not (eq .Site.Params.options.searchSectionsShow "ALL")) -}}
+  {{ $showFlexSearch = or (eq (len .Site.Params.options.searchSectionsShow) 0) (in .Site.Params.options.searchSectionsShow .Section) (and .IsHome (in .Site.Params.options.searchSectionsShow "HomePage")) -}}
+  {{ end -}}
 {{ end -}}
 
 {{ if .Site.Params.options.darkMode -}}
@@ -77,7 +82,7 @@
   {{ with .Params.mermaid -}}
     <script src="{{ $mermaid.RelPermalink }}" defer></script>
   {{ end -}}
-{{ if and (.Site.Params.options.flexSearch) (in .Site.Params.Sections.Search .Section) -}}
+  {{ if $showFlexSearch -}}
     <script src="{{ $index.RelPermalink }}" defer></script>
   {{ end -}}
 {{ else -}}
@@ -102,7 +107,7 @@
   {{ with .Params.mermaid -}}
     <script src="{{ $mermaid.RelPermalink }}" integrity="{{ $mermaid.Data.Integrity }}" crossorigin="anonymous" defer></script>
   {{ end -}}
-{{ if and (.Site.Params.options.flexSearch) (in .Site.Params.Sections.Search .Section) -}}
+  {{ if $showFlexSearch -}}
     <script src="{{ $index.Permalink }}" integrity="{{ $index.Data.Integrity }}" crossorigin="anonymous" defer></script>
   {{ end -}}
 {{ end -}}

@@ -2,7 +2,7 @@
 title: "SWAG"
 description: "An integration guide for Authelia and the SWAG reverse proxy"
 lead: "A guide on integrating Authelia with SWAG."
-date: 2022-05-17T10:57:38+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

@@ -2,7 +2,7 @@
 title: "Seafile"
 description: "Integrating Seafile with Authelia via OpenID Connect."
 lead: ""
-date: 2022-05-17T09:17:01+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

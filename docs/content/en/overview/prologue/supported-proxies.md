@@ -2,7 +2,7 @@
 title: "Supported Proxies"
 description: "An introduction into the Authelia overview."
 lead: "An introduction into the Authelia overview."
-date: 2022-05-13T12:34:15+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

@@ -2,7 +2,7 @@
 title: "Pull Request Guidelines"
 description: "Authelia Development Pull Request Guidelines"
 lead: "This section covers the pull request guidelines."
-date: 2022-05-23T22:03:03+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

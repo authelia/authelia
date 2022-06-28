@@ -2,7 +2,7 @@
 title: "Kubernetes Documentation"
 description: "Add better Kubernetes documentation."
 lead: "While there is some documentation for Kubernetes, and several people have it working, better documentation is needed."
-date: 2022-03-20T21:18:42+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

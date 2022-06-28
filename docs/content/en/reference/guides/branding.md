@@ -2,7 +2,7 @@
 title: "Branding"
 description: "This guide highlights information about Authelia's branding assets"
 lead: "This guide highlights information about Authelia's branding assets."
-date: 2022-05-31T11:13:56+10:00
+date: 2022-06-20T10:05:55+10:00
 draft: false
 images: []
 menu:

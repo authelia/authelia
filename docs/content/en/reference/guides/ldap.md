@@ -2,7 +2,7 @@
 title: "LDAP"
 description: "A reference guide on the LDAP implementation specifics"
 lead: "This section contains reference documentation for Authelia's LDAP implementation specifics."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-17T21:03:47+10:00
 draft: false
 images: []
 menu:

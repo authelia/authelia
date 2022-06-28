@@ -2,7 +2,7 @@
 title: "Environment"
 description: "How to configure your development environment."
 lead: "This section covers the environment we recommend for development."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
