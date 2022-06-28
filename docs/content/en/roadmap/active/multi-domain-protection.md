@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 230
 toc: true
+aliases:
+  - /r/multi-domain-protection
 ---
 
 We have seen and heard the feedback from our users and we are acting on it. This feature is being prioritized. Allowing
