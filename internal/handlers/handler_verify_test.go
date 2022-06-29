@@ -350,7 +350,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingNoHeader() 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
 }
@@ -366,7 +366,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
 }
@@ -386,7 +386,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPasswo
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
 }
@@ -402,7 +402,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
 }
