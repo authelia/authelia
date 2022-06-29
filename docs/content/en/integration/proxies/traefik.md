@@ -323,6 +323,7 @@ services:
       - "traefik.enable=true"
 ...
 ```
+{{< /details >}}
 
 This file is part of the dynamic configuration and should have the path
 `${PWD}/data/traefik/config/dynamic/traefik.yml`. Please see the [Traefik] service and the volume that mounts the
@@ -466,6 +467,7 @@ http:
         - /certificates/ca.public.crt
 ...
 ```
+{{< /details >}}
 
 ## FAQ
 
