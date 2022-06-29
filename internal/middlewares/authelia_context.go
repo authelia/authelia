@@ -68,14 +68,9 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
-	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
-
-	if marshalErr != nil {
-		ctx.Logger.Error(marshalErr)
+	if replyErr := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); replyErr != nil {
+		ctx.Logger.Error(replyErr)
 	}
-
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
-	ctx.SetBody(b)
 }
 
 // ReplyError reply with an error but does not display any stack trace in the logs.
@@ -97,6 +92,26 @@ func (ctx *AutheliaCtx) ReplyStatusCode(statusCode int) {
 	ctx.SetStatusCode(statusCode)
 	ctx.SetContentTypeBytes(contentTypeTextPlain)
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
+}
+
+// ReplyJSON writes a JSON response.
+func (ctx *AutheliaCtx) ReplyJSON(data interface{}, statusCode int) (err error) {
+	var (
+		body []byte
+	)
+
+	if body, err = json.Marshal(data); err != nil {
+		return fmt.Errorf("unable to marshal JSON body: %w", err)
+	}
+
+	if statusCode > 0 {
+		ctx.SetStatusCode(statusCode)
+	}
+
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetBody(body)
+
+	return nil
 }
 
 // ReplyUnauthorized response sent when user is unauthorized.
@@ -243,15 +258,7 @@ func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
 
 // SetJSONBody Set json body.
 func (ctx *AutheliaCtx) SetJSONBody(value interface{}) error {
-	b, err := json.Marshal(OKResponse{Status: "OK", Data: value})
-	if err != nil {
-		return fmt.Errorf("unable to marshal JSON body: %w", err)
-	}
-
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
-	ctx.SetBody(b)
-
-	return nil
+	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
 }
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
