@@ -31,5 +31,5 @@ type AccessControlResource struct {
 
 // IsMatch returns true if the ACL resource match the object path.
 func (acl AccessControlResource) IsMatch(subject Subject, object Object) (match bool) {
-	return acl.Matcher.IsMatch(object.Path, subject)
+	return acl.Matcher.IsMatch(object.PathFullClean(), subject)
 }

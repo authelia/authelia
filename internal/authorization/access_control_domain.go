@@ -82,5 +82,5 @@ type AccessControlDomain struct {
 
 // IsMatch returns true if the ACL domain matches the object domain.
 func (acl AccessControlDomain) IsMatch(subject Subject, object Object) (match bool) {
-	return acl.Matcher.IsMatch(object.Domain, subject)
+	return acl.Matcher.IsMatch(object.Domain(), subject)
 }

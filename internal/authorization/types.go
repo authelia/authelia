@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"path"
 	"strings"
 )
 
@@ -41,15 +42,44 @@ func (s Subject) IsAnonymous() bool {
 
 // Object represents a protected object for the purposes of ACL matching.
 type Object struct {
-	Scheme string
-	Domain string
-	Path   string
+	URL    url.URL
 	Method string
+}
+
+// Scheme returns the scheme.
+func (o Object) Scheme() (scheme string) {
+	return o.URL.Scheme
+}
+
+// Domain returns the domain.
+func (o Object) Domain() (domain string) {
+	return o.URL.Hostname()
+}
+
+// Path returns the full path followed by the query.
+func (o Object) Path() (path string) {
+	switch len(o.URL.RawQuery) {
+	case 0:
+		return o.URL.Path
+	default:
+		return o.URL.Path + "?" + o.URL.RawQuery
+	}
+}
+
+// PathFullClean returns the full unescaped path cleaned of any double slashes, periods, etc, followed by the query.
+func (o Object) PathFullClean() (urlPath string) {
+	urlPath = path.Clean(o.URL.Path)
+
+	if len(o.URL.RawQuery) != 0 {
+		return urlPath + "?" + o.URL.RawQuery
+	}
+
+	return urlPath
 }
 
 // String is a string representation of the Object.
 func (o Object) String() string {
-	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
+	return o.URL.String()
 }
 
 // NewObjectRaw creates a new Object type from a URL and a method header.
@@ -59,19 +89,10 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 
 // NewObject creates a new Object type from a URL and a method header.
 func NewObject(targetURL *url.URL, method string) (object Object) {
-	object = Object{
-		Scheme: targetURL.Scheme,
-		Domain: targetURL.Hostname(),
+	return Object{
+		URL:    *targetURL,
 		Method: method,
 	}
-
-	if targetURL.RawQuery == "" {
-		object.Path = targetURL.Path
-	} else {
-		object.Path = targetURL.Path + "?" + targetURL.RawQuery
-	}
-
-	return object
 }
 
 // RuleMatchResult describes how well a rule matched a subject/object combo.
