@@ -14,7 +14,7 @@ aliases:
   - /i/k8s
 ---
 
-{{< figure src="kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" >}}
+{{< figure src="/images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" >}}
 
 ## UNDER CONSTRUCTION
 
@@ -62,9 +62,6 @@ spec:
   enableServiceLinks: false
 ...
 ```
-
-## Secrets
-
 
 ## FAQ
 
