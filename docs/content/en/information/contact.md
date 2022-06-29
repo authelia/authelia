@@ -48,7 +48,8 @@ The [Matrix] chat is organized into a space which can be accessed at
 
 ### Discord
 
-[Discord] can be accessed via [https://discord.authelia.com](https://discord.authelia.com). All rooms in [Discord]
+[Discord] can be accessed via [https://discord.authelia.com](https://discord.authelia.com). The channels in [Discord]
+are bridged to the [Matrix Rooms](#matrix) with the same names providing they exist.
 
 ## Email
 
