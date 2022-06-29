@@ -720,7 +720,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">Found</a>",
+	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
 
@@ -740,7 +740,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">Found</a>",
+	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
 
@@ -751,7 +751,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=POST\">See Other</a>",
+	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=POST\">303 See Other</a>",
 		string(mock.Ctx.Response.Body()))
 	assert.Equal(t, 303, mock.Ctx.Response.StatusCode())
 }
@@ -808,7 +808,7 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">Found</a>",
+	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 }
 
@@ -1239,7 +1239,7 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "Unauthorized", string(mock.Ctx.Response.Body()))
+	assert.Equal(t, "401 Unauthorized", string(mock.Ctx.Response.Body()))
 }
 
 func TestGetProfileRefreshSettings(t *testing.T) {
