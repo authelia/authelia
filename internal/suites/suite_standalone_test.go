@@ -247,7 +247,7 @@ func (s *StandaloneSuite) TestShouldVerifyAPIVerifyUnauthorized() {
 	s.Assert().Equal(res.StatusCode, 401)
 	body, err := io.ReadAll(res.Body)
 	s.Assert().NoError(err)
-	s.Assert().Equal("Unauthorized", string(body))
+	s.Assert().Equal("401 Unauthorized", string(body))
 }
 
 // Standard case using Kubernetes.
