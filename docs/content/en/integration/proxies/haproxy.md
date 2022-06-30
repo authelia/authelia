@@ -2,7 +2,7 @@
 title: "HAProxy"
 description: "An integration guide for Authelia and the HAProxy reverse proxy"
 lead: "A guide on integrating Authelia with the HAProxy reverse proxy."
-date: 2022-03-20T20:23:41+11:00
+date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
 menu:

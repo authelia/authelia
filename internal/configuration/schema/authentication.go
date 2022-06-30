@@ -56,12 +56,12 @@ type AuthenticationBackendConfiguration struct {
 
 	PasswordReset PasswordResetAuthenticationBackendConfiguration `koanf:"password_reset"`
 
-	DisableResetPassword bool   `koanf:"disable_reset_password"`
-	RefreshInterval      string `koanf:"refresh_interval"`
+	RefreshInterval string `koanf:"refresh_interval"`
 }
 
 // PasswordResetAuthenticationBackendConfiguration represents the configuration related to password reset functionality.
 type PasswordResetAuthenticationBackendConfiguration struct {
+	Disable   bool    `koanf:"disable"`
 	CustomURL url.URL `koanf:"custom_url"`
 }
 

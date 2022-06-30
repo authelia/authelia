@@ -2,7 +2,7 @@
 title: "Say hello to the new website 👋"
 description: "Introducing the new website"
 lead: "Introducing the new website"
-date: 2022-06-15T18:12:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 contributors: ["James Elliott"]
 ---

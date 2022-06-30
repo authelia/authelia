@@ -231,7 +231,7 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester.CheckAuthorizations(s.T(), John, "https://public.example.com/", "GET", TwoFactor)
 }
 
-func (s *AuthorizerSuite) TestShouldcheckDomainMatching() {
+func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	tester := NewAuthorizerBuilder().
 		WithRule(schema.ACLRule{
 			Domains: []string{"public.example.com"},
@@ -272,20 +272,62 @@ func (s *AuthorizerSuite) TestShouldcheckDomainMatching() {
 	tester.CheckAuthorizations(s.T(), Bob, "https://x.example.com", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://x.example.com", "GET", OneFactor)
 
-	assert.Equal(s.T(), "public.example.com", tester.configuration.AccessControl.Rules[0].Domains[0])
-	assert.Equal(s.T(), "domain:public.example.com", tester.rules[0].Domains[0].String())
+	s.Require().Len(tester.rules, 5)
 
-	assert.Equal(s.T(), "one-factor.example.com", tester.configuration.AccessControl.Rules[1].Domains[0])
-	assert.Equal(s.T(), "domain:one-factor.example.com", tester.rules[1].Domains[0].String())
+	s.Require().Len(tester.rules[0].Domains, 1)
 
-	assert.Equal(s.T(), "two-factor.example.com", tester.configuration.AccessControl.Rules[2].Domains[0])
-	assert.Equal(s.T(), "domain:two-factor.example.com", tester.rules[2].Domains[0].String())
+	s.Assert().Equal("public.example.com", tester.configuration.AccessControl.Rules[0].Domains[0])
 
-	assert.Equal(s.T(), "*.example.com", tester.configuration.AccessControl.Rules[3].Domains[0])
-	assert.Equal(s.T(), "domain:.example.com", tester.rules[3].Domains[0].String())
+	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("public.example.com", ruleMatcher0.Name)
+	s.Assert().False(ruleMatcher0.Wildcard)
+	s.Assert().False(ruleMatcher0.UserWildcard)
+	s.Assert().False(ruleMatcher0.GroupWildcard)
 
-	assert.Equal(s.T(), "*.example.com", tester.configuration.AccessControl.Rules[4].Domains[0])
-	assert.Equal(s.T(), "domain:.example.com", tester.rules[4].Domains[0].String())
+	s.Require().Len(tester.rules[1].Domains, 1)
+
+	s.Assert().Equal("one-factor.example.com", tester.configuration.AccessControl.Rules[1].Domains[0])
+
+	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("one-factor.example.com", ruleMatcher1.Name)
+	s.Assert().False(ruleMatcher1.Wildcard)
+	s.Assert().False(ruleMatcher1.UserWildcard)
+	s.Assert().False(ruleMatcher1.GroupWildcard)
+
+	s.Require().Len(tester.rules[2].Domains, 1)
+
+	s.Assert().Equal("two-factor.example.com", tester.configuration.AccessControl.Rules[2].Domains[0])
+
+	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("two-factor.example.com", ruleMatcher2.Name)
+	s.Assert().False(ruleMatcher2.Wildcard)
+	s.Assert().False(ruleMatcher2.UserWildcard)
+	s.Assert().False(ruleMatcher2.GroupWildcard)
+
+	s.Require().Len(tester.rules[3].Domains, 1)
+
+	s.Assert().Equal("*.example.com", tester.configuration.AccessControl.Rules[3].Domains[0])
+
+	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal(".example.com", ruleMatcher3.Name)
+	s.Assert().True(ruleMatcher3.Wildcard)
+	s.Assert().False(ruleMatcher3.UserWildcard)
+	s.Assert().False(ruleMatcher3.GroupWildcard)
+
+	s.Require().Len(tester.rules[4].Domains, 1)
+
+	s.Assert().Equal("*.example.com", tester.configuration.AccessControl.Rules[4].Domains[0])
+
+	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(*AccessControlDomainMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal(".example.com", ruleMatcher4.Name)
+	s.Assert().True(ruleMatcher4.Wildcard)
+	s.Assert().False(ruleMatcher4.UserWildcard)
+	s.Assert().False(ruleMatcher4.GroupWildcard)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
@@ -327,20 +369,135 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://group-dev.regex.com", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://group-dev.regex.com", "GET", Denied)
 
-	assert.Equal(s.T(), "^.*\\.example.com$", tester.configuration.AccessControl.Rules[0].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex:^.*\\.example.com$", tester.rules[0].Domains[0].String())
+	s.Require().Len(tester.rules, 5)
 
-	assert.Equal(s.T(), "^.*\\.example2.com$", tester.configuration.AccessControl.Rules[1].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex:^.*\\.example2.com$", tester.rules[1].Domains[0].String())
+	s.Require().Len(tester.rules[0].Domains, 1)
 
-	assert.Equal(s.T(), "^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[2].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex(subexp):^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.rules[2].Domains[0].String())
+	s.Assert().Equal("^.*\\.example.com$", tester.configuration.AccessControl.Rules[0].DomainsRegex[0].String())
 
-	assert.Equal(s.T(), "^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[3].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex(subexp):^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.rules[3].Domains[0].String())
+	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^.*\\.example.com$", ruleMatcher0.String())
 
-	assert.Equal(s.T(), "^.*\\.(one|two).com$", tester.configuration.AccessControl.Rules[4].DomainsRegex[0].String())
-	assert.Equal(s.T(), "domain_regex:^.*\\.(one|two).com$", tester.rules[4].Domains[0].String())
+	s.Require().Len(tester.rules[1].Domains, 1)
+
+	s.Assert().Equal("^.*\\.example2.com$", tester.configuration.AccessControl.Rules[1].DomainsRegex[0].String())
+
+	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^.*\\.example2.com$", ruleMatcher1.String())
+
+	s.Require().Len(tester.rules[2].Domains, 1)
+
+	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[2].DomainsRegex[0].String())
+
+	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher2.String())
+
+	s.Require().Len(tester.rules[3].Domains, 1)
+
+	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.configuration.AccessControl.Rules[3].DomainsRegex[0].String())
+
+	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher3.String())
+
+	s.Require().Len(tester.rules[4].Domains, 1)
+
+	s.Assert().Equal("^.*\\.(one|two).com$", tester.configuration.AccessControl.Rules[4].DomainsRegex[0].String())
+
+	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^.*\\.(one|two).com$", ruleMatcher4.String())
+}
+
+func (s *AuthorizerSuite) TestShouldCheckResourceSubjectMatching() {
+	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
+		result, err := stringSliceToRegexpSlice(rules)
+
+		require.NoError(t, err)
+
+		return result
+	}
+
+	tester := NewAuthorizerBuilder().
+		WithRule(schema.ACLRule{
+			Domains:   []string{"id.example.com"},
+			Policy:    oneFactor,
+			Resources: createSliceRegexRule(s.T(), []string{`^/(?P<User>[a-zA-Z0-9]+)/personal(/|/.*)?$`, `^/(?P<Group>[a-zA-Z0-9]+)/group(/|/.*)?$`}),
+		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"id.example.com"},
+			Policy:    deny,
+			Resources: createSliceRegexRule(s.T(), []string{`^/([a-zA-Z0-9]+)/personal(/|/.*)?$`, `^/([a-zA-Z0-9]+)/group(/|/.*)?$`}),
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"id.example.com"},
+			Policy:  bypass,
+		}).
+		Build()
+
+	// Accessing the unprotected root.
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com", "GET", Bypass)
+
+	// Accessing Personal page.
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/john/personal", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/John/personal", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/bob/personal", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/Bob/personal", "GET", OneFactor)
+
+	// Accessing an invalid users Personal page.
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/invaliduser/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/invaliduser/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/invaliduser/personal", "GET", Denied)
+
+	// Accessing another users Personal page.
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/bob/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/bob/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/Bob/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/Bob/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/john/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/john/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/John/personal", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/John/personal", "GET", Denied)
+
+	// Accessing a Group page.
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/dev/group", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/admins/group", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/dev/group", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/admins/group", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/dev/group", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/admins/group", "GET", Denied)
+
+	// Accessing an invalid group's Group page.
+	tester.CheckAuthorizations(s.T(), John, "https://id.example.com/invalidgroup/group", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), Bob, "https://id.example.com/invalidgroup/group", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://id.example.com/invalidgroup/group", "GET", Denied)
+
+	s.Require().Len(tester.rules, 3)
+
+	s.Require().Len(tester.rules[0].Resources, 2)
+
+	ruleMatcher00, ok := tester.rules[0].Resources[0].Matcher.(RegexpGroupStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^/(?P<User>[a-zA-Z0-9]+)/personal(/|/.*)?$", ruleMatcher00.String())
+
+	ruleMatcher01, ok := tester.rules[0].Resources[1].Matcher.(RegexpGroupStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^/(?P<Group>[a-zA-Z0-9]+)/group(/|/.*)?$", ruleMatcher01.String())
+
+	s.Require().Len(tester.rules[1].Resources, 2)
+
+	ruleMatcher10, ok := tester.rules[1].Resources[0].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^/([a-zA-Z0-9]+)/personal(/|/.*)?$", ruleMatcher10.String())
+
+	ruleMatcher11, ok := tester.rules[1].Resources[1].Matcher.(RegexpStringSubjectMatcher)
+	s.Require().True(ok)
+	s.Assert().Equal("^/([a-zA-Z0-9]+)/group(/|/.*)?$", ruleMatcher11.String())
 }
 
 func (s *AuthorizerSuite) TestShouldCheckUserMatching() {
@@ -616,56 +773,56 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 
 	results := tester.GetRuleMatchResults(John, "https://private.example.com", "GET")
 
-	require.Len(s.T(), results, 7)
+	s.Require().Len(results, 7)
 
-	assert.False(s.T(), results[0].IsMatch())
-	assert.False(s.T(), results[0].MatchDomain)
-	assert.False(s.T(), results[0].MatchResources)
-	assert.True(s.T(), results[0].MatchSubjects)
-	assert.True(s.T(), results[0].MatchNetworks)
-	assert.True(s.T(), results[0].MatchMethods)
+	s.Assert().False(results[0].IsMatch())
+	s.Assert().False(results[0].MatchDomain)
+	s.Assert().False(results[0].MatchResources)
+	s.Assert().True(results[0].MatchSubjects)
+	s.Assert().True(results[0].MatchNetworks)
+	s.Assert().True(results[0].MatchMethods)
 
-	assert.False(s.T(), results[1].IsMatch())
-	assert.False(s.T(), results[1].MatchDomain)
-	assert.False(s.T(), results[1].MatchResources)
-	assert.True(s.T(), results[1].MatchSubjects)
-	assert.True(s.T(), results[1].MatchNetworks)
-	assert.True(s.T(), results[1].MatchMethods)
+	s.Assert().False(results[1].IsMatch())
+	s.Assert().False(results[1].MatchDomain)
+	s.Assert().False(results[1].MatchResources)
+	s.Assert().True(results[1].MatchSubjects)
+	s.Assert().True(results[1].MatchNetworks)
+	s.Assert().True(results[1].MatchMethods)
 
-	assert.False(s.T(), results[2].IsMatch())
-	assert.False(s.T(), results[2].MatchDomain)
-	assert.True(s.T(), results[2].MatchResources)
-	assert.True(s.T(), results[2].MatchSubjects)
-	assert.True(s.T(), results[2].MatchNetworks)
-	assert.True(s.T(), results[2].MatchMethods)
+	s.Assert().False(results[2].IsMatch())
+	s.Assert().False(results[2].MatchDomain)
+	s.Assert().True(results[2].MatchResources)
+	s.Assert().True(results[2].MatchSubjects)
+	s.Assert().True(results[2].MatchNetworks)
+	s.Assert().True(results[2].MatchMethods)
 
-	assert.False(s.T(), results[3].IsMatch())
-	assert.False(s.T(), results[3].MatchDomain)
-	assert.False(s.T(), results[3].MatchResources)
-	assert.True(s.T(), results[3].MatchSubjects)
-	assert.True(s.T(), results[3].MatchNetworks)
-	assert.True(s.T(), results[3].MatchMethods)
+	s.Assert().False(results[3].IsMatch())
+	s.Assert().False(results[3].MatchDomain)
+	s.Assert().False(results[3].MatchResources)
+	s.Assert().True(results[3].MatchSubjects)
+	s.Assert().True(results[3].MatchNetworks)
+	s.Assert().True(results[3].MatchMethods)
 
-	assert.False(s.T(), results[4].IsMatch())
-	assert.False(s.T(), results[4].MatchDomain)
-	assert.False(s.T(), results[4].MatchResources)
-	assert.True(s.T(), results[4].MatchSubjects)
-	assert.True(s.T(), results[4].MatchNetworks)
-	assert.True(s.T(), results[4].MatchMethods)
+	s.Assert().False(results[4].IsMatch())
+	s.Assert().False(results[4].MatchDomain)
+	s.Assert().False(results[4].MatchResources)
+	s.Assert().True(results[4].MatchSubjects)
+	s.Assert().True(results[4].MatchNetworks)
+	s.Assert().True(results[4].MatchMethods)
 
-	assert.False(s.T(), results[5].IsMatch())
-	assert.False(s.T(), results[5].MatchDomain)
-	assert.True(s.T(), results[5].MatchResources)
-	assert.True(s.T(), results[5].MatchSubjects)
-	assert.True(s.T(), results[5].MatchNetworks)
-	assert.True(s.T(), results[5].MatchMethods)
+	s.Assert().False(results[5].IsMatch())
+	s.Assert().False(results[5].MatchDomain)
+	s.Assert().True(results[5].MatchResources)
+	s.Assert().True(results[5].MatchSubjects)
+	s.Assert().True(results[5].MatchNetworks)
+	s.Assert().True(results[5].MatchMethods)
 
-	assert.True(s.T(), results[6].IsMatch())
-	assert.True(s.T(), results[6].MatchDomain)
-	assert.True(s.T(), results[6].MatchResources)
-	assert.True(s.T(), results[6].MatchSubjects)
-	assert.True(s.T(), results[6].MatchNetworks)
-	assert.True(s.T(), results[6].MatchMethods)
+	s.Assert().True(results[6].IsMatch())
+	s.Assert().True(results[6].MatchDomain)
+	s.Assert().True(results[6].MatchResources)
+	s.Assert().True(results[6].MatchSubjects)
+	s.Assert().True(results[6].MatchNetworks)
+	s.Assert().True(results[6].MatchMethods)
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {

@@ -2,7 +2,7 @@
 title: "NGINX"
 description: "An integration guide for Authelia and the NGINX reverse proxy"
 lead: "A guide on integrating Authelia with the nginx reverse proxy."
-date: 2022-03-20T20:23:41+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

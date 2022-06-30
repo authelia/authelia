@@ -2,7 +2,7 @@
 title: "Jira"
 description: "Trusted Header SSO Integration for Jira"
 lead: ""
-date: 2022-05-16T21:15:52+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

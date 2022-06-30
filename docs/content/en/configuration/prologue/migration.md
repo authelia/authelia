@@ -2,7 +2,7 @@
 title: "Migration"
 description: "Information regarding configuration migration."
 lead: "An introduction into configuring Authelia."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -14,8 +14,12 @@ aliases:
   - /docs/configuration/migration.html
 ---
 
-This section documents changes in the configuration which may require manual migration by the administrator. Typically
-this only occurs when a configuration key is renamed or moved to a more appropriate location.
+This section discusses the change to the configuration over time. Since v4.36.0 the migration process is automatically
+performed where possible in memory (the file is unchanged). The automatic process generates warnings and the automatic
+migrations are disabled in major version bumps.
+
+If you're running a version prior to v4.36.0 this it may require manual migration by the administrator. Typically this
+only occurs when a configuration key is renamed or moved to a more appropriate location.
 
 ## Format
 
@@ -29,13 +33,17 @@ server:
   host: 0.0.0.0
 ```
 
-## Policy
-
-Our deprecation policy for configuration keys is 3 minor versions. For example if a configuration option is deprecated
-in version 4.30.0, it will remain as a warning for 4.30.x, 4.31.x, and 4.32.x; then it will become a fatal error in
-4.33.0+.
-
 ## Migrations
+
+### 4.36.0
+
+Automatic mapping was introduced in this version.
+
+The following changes occurred in 4.30.0:
+
+|                 Previous Key                  |                    New Key                    |
+|:---------------------------------------------:|:---------------------------------------------:|
+| authentication_backend.disable_reset_password | authentication_backend.password_reset.disable |
 
 ### 4.33.0
 

@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/google/uuid"
 )
 
 // GetLoginBaseURL returns the URL of the login portal and the path prefix if specified.
@@ -24,7 +24,6 @@ func GetLoginBaseURL() string {
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {
 	coverageDir := "../../web/.nyc_output"
-	now := time.Now()
 
 	resp, err := page.Eval("() => JSON.stringify(window.__coverage__)")
 	if err != nil {
@@ -36,7 +35,7 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	_ = os.MkdirAll(coverageDir, 0775)
 
 	if coverageData != "<nil>" {
-		err = os.WriteFile(fmt.Sprintf("%s/coverage-%d.json", coverageDir, now.Unix()), []byte(coverageData), 0664) //nolint:gosec
+		err = os.WriteFile(fmt.Sprintf("%s/coverage-%s.json", coverageDir, uuid.New().String()), []byte(coverageData), 0664) //nolint:gosec
 		if err != nil {
 			log.Fatal(err)
 		}

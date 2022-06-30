@@ -43,7 +43,7 @@ type LDAPUserProvider struct {
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
 func NewLDAPUserProvider(config schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
-	provider = newLDAPUserProvider(*config.LDAP, config.DisableResetPassword, certPool, nil)
+	provider = newLDAPUserProvider(*config.LDAP, config.PasswordReset.Disable, certPool, nil)
 
 	return provider
 }
