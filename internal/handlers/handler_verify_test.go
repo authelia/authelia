@@ -1264,3 +1264,37 @@ func TestGetProfileRefreshSettings(t *testing.T) {
 	assert.Equal(t, true, refresh)
 	assert.Equal(t, time.Duration(0), interval)
 }
+
+//TestShouldNotRedirectRequestsForByPassedACLWhenInactiveForTooLong
+func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	clock := mocks.TestingClock{}
+	clock.Set(time.Now())
+	past := clock.Now().Add(-1 * time.Hour)
+
+	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	// Reload the session provider since the configuration is indirect.
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.LastActivity = past.Unix()
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	// should pass
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+
+	// should get 401
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
+
+}
