@@ -74,10 +74,7 @@ This example is for using the __Authelia__ portal redirection flow on a specific
 files exist in the `/config/nginx/` directory. The `/config/nginx/ssl.conf` snippet is expected to have
 the configuration for TLS or SSL but is not included as part of the examples.
 
-#### Authelia Portal
-
-##### auth.example.com.conf
-
+{{< details "Authelia Portal (auth.example.com.conf)" >}}
 ```nginx
 server {
     listen 80;
@@ -100,11 +97,9 @@ server {
     }
 }
 ```
+{{< /details >}}
 
-#### Protected Endpoint
-
-##### nextcloud.example.com.conf
-
+{{< details "Protected Endpoint (nextcloud.example.com.conf)" >}}
 ```nginx
 server {
     listen 80;
@@ -129,6 +124,7 @@ server {
     }
 }
 ```
+{{< /details >}}
 
 ### HTTP Basic Authentication Example
 
@@ -138,10 +134,10 @@ to have the [authelia-location-basic.conf](#authelia-location-basicconf),
 example these files exist in the `/config/nginx/` directory. The `/config/nginx/ssl.conf` snippet is expected to have
 the configuration for TLS or SSL but is not included as part of the examples.
 
-The [Authelia Portal](#authelia-portal) configuration can be reused for this example as such it isn't repeated.
+The Authelia Portal file from the [Standard Example](#standard-example) configuration can be reused for this example as
+such it isn't repeated.
 
-#### HTTP Basic Authentication Protected Endpoint
-
+{{< details "Protected Endpoint (nextcloud.example.com.conf)" >}}
 ```nginx
 server {
     listen 80;
@@ -166,6 +162,7 @@ server {
     }
 }
 ```
+{{< /details >}}
 
 ### Supporting Configuration Snippets
 
@@ -181,6 +178,7 @@ The following is an example `proxy.conf`. The important directives include the `
 [Trusted Proxies](#trusted-proxies) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
 `X-Forwarded-Uri`, and `X-Forwarded-For` headers.
 
+{{< details "proxy.conf" >}}
 ```nginx
 ## Headers
 proxy_set_header Host $host;
@@ -217,11 +215,14 @@ proxy_read_timeout 360;
 proxy_send_timeout 360;
 proxy_connect_timeout 360;
 ```
+{{< /details >}}
 
 #### authelia-location.conf
 
 *The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
 `auth_request` and is paired with [authelia-authrequest.conf](#authelia-authrequestconf).*
+
+{{< details "authelia-location.conf" >}}
 ```nginx
 set $upstream_authelia http://authelia:9091/api/verify;
 
@@ -259,12 +260,14 @@ location /authelia {
     proxy_connect_timeout 240;
 }
 ```
+{{< /details >}}
 
 #### authelia-authrequest.conf
 
 *The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
 and is paired with [authelia-location.conf](#authelia-locationconf).*
 
+{{< details "authelia-authrequest.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia;
@@ -287,6 +290,7 @@ proxy_set_header Remote-Email $email;
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 https://auth.example.com/?rd=$target_url;
 ```
+{{< /details >}}
 
 #### authelia-location-basic.conf
 
@@ -296,6 +300,7 @@ snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
+{{< details "authelia-location-basic.conf" >}}
 ```nginx
 set $upstream_authelia http://authelia:9091/api/verify?auth=basic;
 
@@ -333,6 +338,7 @@ location /authelia-basic {
     proxy_connect_timeout 240;
 }
 ```
+{{< /details >}}
 
 #### authelia-authrequest-basic.conf
 
@@ -342,6 +348,7 @@ required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
 
+{{< details "authelia-authrequest-basic.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia-basic;
@@ -361,6 +368,7 @@ proxy_set_header Remote-Groups $groups;
 proxy_set_header Remote-Name $name;
 proxy_set_header Remote-Email $email;
 ```
+{{< /details >}}
 
 #### authelia-location-detect.conf
 
@@ -370,6 +378,7 @@ snippet is rarely required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
+{{< details "authelia-location-detect.conf" >}}
 ```nginx
 include /config/nginx/authelia-location.conf;
 
@@ -398,6 +407,7 @@ location  /authelia-detect {
     return 302 https://auth.example.com/$is_args$args;
 }
 ```
+{{< /details >}}
 
 #### authelia-authrequest-detect.conf
 
@@ -407,6 +417,7 @@ required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
 
+{{< details "authelia-authrequest-detect.conf" >}}
 ```nginx
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia;
@@ -429,6 +440,7 @@ proxy_set_header Remote-Email $email;
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 /authelia-detect?rd=$target_url;
 ```
+{{< /details >}}
 
 ## See Also
 

@@ -6,7 +6,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20220428205559-fa137a8ef05b
+	github.com/duosecurity/duo_api_golang v0.0.0-20220628180508-bed46d1be614
 	github.com/fasthttp/router v1.4.10
 	github.com/fasthttp/session/v2 v2.4.11
 	github.com/go-asn1-ber/asn1-ber v1.5.4
@@ -33,7 +33,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.38.0
 	golang.org/x/text v0.3.7
