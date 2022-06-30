@@ -40,7 +40,6 @@ login.example.com:8080 {
 			fail_duration 10s
 			max_fails 1
 			unhealthy_status 5xx
-			unhealthy_request_count 1
 		}
 	}
 }
