@@ -1265,7 +1265,6 @@ func TestGetProfileRefreshSettings(t *testing.T) {
 	assert.Equal(t, time.Duration(0), interval)
 }
 
-//TestShouldNotRedirectRequestsForByPassedACLWhenInactiveForTooLong
 func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -1287,14 +1286,13 @@ func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
-	// should pass
+	// should pass.
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
-	// should get 401
+	// should get 401.
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
-
 }
