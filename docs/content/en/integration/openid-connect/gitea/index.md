@@ -18,7 +18,7 @@ community: true
 * [Authelia]
   * [v4.36.1](https://github.com/authelia/authelia/releases/tag/v4.36.1)
 * [Gitea]
-  * TBA
+  * [1.16.5](https://github.com/go-gitea/gitea/releases/tag/v1.16.5)
 
 ## Before You Begin
 
@@ -39,7 +39,16 @@ This example makes the following assumptions:
 
 To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
 
-1. Steps to come.
+1. Expand User Options
+2. Visit Site Administration
+3. Visit Authentication Sources
+4. Visit Add Authentication Source
+5. Configure:
+   1. Authentication Name: `authelia`
+   2. OAuth2 Provider: `OpenID Connect`
+   3. Client ID (Key): `gitea`
+   4. Client Secret: `gitea_client_secret`
+   5. OpenID Connect Auto Discovery URL: `https://auth.example.com/.well-known/openid-configuration`
 
 {{< figure src="gitea.png" alt="Gitea" width="736" style="padding-right: 10px" >}}
 
