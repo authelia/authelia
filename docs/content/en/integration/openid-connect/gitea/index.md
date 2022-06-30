@@ -50,7 +50,7 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
    4. Client Secret: `gitea_client_secret`
    5. OpenID Connect Auto Discovery URL: `https://auth.example.com/.well-known/openid-configuration`
 
-{{< figure src="gitea.png" alt="Gitea" width="736" style="padding-right: 10px" >}}
+{{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
 ### Authelia
 
