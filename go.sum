@@ -322,8 +322,8 @@ github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0/go.mod h1:fyg78
 github.com/go-test/deep v1.0.2-0.20181118220953-042da051cf31/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-webauthn/revoke v0.1.2 h1:k1CiG5nPtKmVkH2XucYWcbRARwL8GhqFZ8N57wPrgXk=
 github.com/go-webauthn/revoke v0.1.2/go.mod h1:fPsKNzp6BcGKuQnsB+3gw0KCTr8tY7HOIrphBjZZL10=
-github.com/go-webauthn/webauthn v0.3.3 h1:NopCZFgjTMnabXwv7U0s85v72lYGvPphkU7IYgmtEFE=
-github.com/go-webauthn/webauthn v0.3.3/go.mod h1:aAre5gRg/bBbCzO7YgVUuy6QLR3/fG12iuRgtiX5By8=
+github.com/go-webauthn/webauthn v0.3.4 h1:/VibH9HIaSFXmzuacwBNMJL3ULAzLCDv0pVR1aHGLsA=
+github.com/go-webauthn/webauthn v0.3.4/go.mod h1:aAre5gRg/bBbCzO7YgVUuy6QLR3/fG12iuRgtiX5By8=
 github.com/gobuffalo/attrs v0.0.0-20190224210810-a9411de4debd/go.mod h1:4duuawTqi2wkkpB4ePgWMaai6/Kc6WEz83bhFwpHzj0=
 github.com/gobuffalo/attrs v0.1.0/go.mod h1:fmNpaWyHM0tRm8gCZWKx8yY9fvaNLo2PyzBNSrBZ5Hw=
 github.com/gobuffalo/buffalo v0.12.8-0.20181004233540-fac9bb505aa8/go.mod h1:sLyT7/dceRXJUxSsE813JTQtA3Eb1vjxWfo/N//vXIY=
