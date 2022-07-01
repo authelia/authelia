@@ -1286,13 +1286,24 @@ func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
-	// should pass.
+	// Should respond 200 OK.
+	mock.Ctx.QueryArgs().Set("rd", "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 
-	// should get 401.
+	// Should respond 302 Found.
+	mock.Ctx.QueryArgs().Set("rd", "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
-	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&rm=GET", string(mock.Ctx.Response.Header.Peek("Location")))
+
+	// Should respond 401 Unauthorized.
+	mock.Ctx.QueryArgs().Del("rd")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 }
