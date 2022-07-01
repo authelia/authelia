@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -1287,15 +1288,19 @@ func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing
 	require.NoError(t, err)
 
 	// Should respond 200 OK.
-	mock.Ctx.QueryArgs().Set("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
+	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 
 	// Should respond 302 Found.
-	mock.Ctx.QueryArgs().Set("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
+	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&rm=GET", string(mock.Ctx.Response.Header.Peek("Location")))
@@ -1303,6 +1308,8 @@ func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing
 	// Should respond 401 Unauthorized.
 	mock.Ctx.QueryArgs().Del("rd")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
+	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
