@@ -1266,7 +1266,7 @@ func TestGetProfileRefreshSettings(t *testing.T) {
 	assert.Equal(t, time.Duration(0), interval)
 }
 
-func TestShouldNotRedirectRequestsToByPassedACLWhenInactiveForTooLong(t *testing.T) {
+func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
