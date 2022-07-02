@@ -1,8 +1,8 @@
 ---
 title: "HashiCorp Vault"
-description: "Integrating HashiCorp Vault with Authelia via OpenID Connect."
+description: "Integrating HashiCorp Vault with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-05-16T21:15:52+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

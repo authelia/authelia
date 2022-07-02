@@ -93,7 +93,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
-	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.DisableResetPassword)
+	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable)
 
 	resetPasswordCustomURL := config.AuthenticationBackend.PasswordReset.CustomURL.String()
 
@@ -175,7 +175,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.
-	if !config.AuthenticationBackend.DisableResetPassword &&
+	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
 		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))

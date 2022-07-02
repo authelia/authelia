@@ -1,7 +1,7 @@
 ---
 title: "Security"
 description: "Report security issues."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 aliases:
@@ -28,9 +28,9 @@ below.
 
 ### Email
 
-Please either utilize the {{< email user="security" domain="authelia.com" >}} email address for security issues
-discovered. This email address is only accessible by key members of the team for the purpose of disclosing security
-issues within the __Authelia__ code base.
+Please utilize the [security@authelia.com](mailto:team@authelia.com) email address for security issues discovered. This
+email address is only accessible by key members of the team for the purpose of disclosing security issues within the
+__Authelia__ code base.
 
 This is the preferred method of reporting.
 

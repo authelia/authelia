@@ -31,6 +31,36 @@ const (
 	unknown = "unknown"
 )
 
+// X.509 consts.
+const (
+	BlockTypeRSAPrivateKey      = "RSA PRIVATE KEY"
+	BlockTypeRSAPublicKey       = "RSA PUBLIC KEY"
+	BlockTypeECDSAPrivateKey    = "EC PRIVATE KEY"
+	BlockTypePKCS8PrivateKey    = "PRIVATE KEY"
+	BlockTypePKIXPublicKey      = "PUBLIC KEY"
+	BlockTypeCertificate        = "CERTIFICATE"
+	BlockTypeCertificateRequest = "CERTIFICATE REQUEST"
+
+	KeyAlgorithmRSA     = "RSA"
+	KeyAlgorithmECDSA   = "ECDSA"
+	KeyAlgorithmEd25519 = "ED25519"
+
+	HashAlgorithmSHA1   = "SHA1"
+	HashAlgorithmSHA256 = "SHA256"
+	HashAlgorithmSHA384 = "SHA384"
+	HashAlgorithmSHA512 = "SHA512"
+
+	EllipticCurveP224 = "P224"
+	EllipticCurveP256 = "P256"
+	EllipticCurveP384 = "P384"
+	EllipticCurveP521 = "P521"
+
+	EllipticCurveAltP224 = "P-224"
+	EllipticCurveAltP256 = "P-256"
+	EllipticCurveAltP384 = "P-384"
+	EllipticCurveAltP521 = "P-521"
+)
+
 const (
 	// Hour is an int based representation of the time unit.
 	Hour = time.Minute * 60 //nolint:revive

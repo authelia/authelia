@@ -2,7 +2,7 @@
 title: "Traefik Ingress"
 description: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
 lead: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -45,7 +45,9 @@ configured it to be served on the URL `https://auth.example.com` and there is a 
 `authelia` in the `default` namespace with TCP port `80` configured to route to the Authelia pod's HTTP port and that
 your cluster is configured with the default DNS domain name of `cluster.local`.
 
+{{< details "middleware.yml" >}}
 ```yaml
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -63,7 +65,9 @@ spec:
       - Remote-Name
       - Remote-Email
       - Remote-Groups
+...
 ```
+{{< /details >}}
 
 ## Ingress
 
@@ -71,7 +75,9 @@ This is an example Ingress manifest which uses the above [Middleware](#middlewar
 application you wish to serve on `https://app.example.com` and there is a Kubernetes Service with the name `app` in the
 `default` namespace with TCP port `80` configured to route to the application pod's HTTP port.
 
+{{< details "ingress.yml" >}}
 ```yaml
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -93,7 +99,9 @@ spec:
                 name:  app
                 port:
                   number: 80
+...
 ```
+{{< /details >}}
 
 ## IngressRoute
 
@@ -101,7 +109,9 @@ This is an example IngressRoute manifest which uses the above [Middleware](#midd
 application you wish to serve on `https://app.example.com` and there is a Kubernetes Service with the name `app` in the
 `default` namespace with TCP port `80` configured to route to the application pod's HTTP port.
 
+{{< details "ingressRoute.yml" >}}
 ```yaml
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -124,7 +134,9 @@ spec:
           scheme: http
           strategy: RoundRobin
           weight: 10
+...
 ```
+{{< /details >}}
 
 [Traefik Kubernetes Ingress]: https://doc.traefik.io/traefik/providers/kubernetes-ingress/
 [Traefik Kubernetes CRD]: https://doc.traefik.io/traefik/providers/kubernetes-crd/

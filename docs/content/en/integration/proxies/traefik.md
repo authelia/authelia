@@ -2,7 +2,7 @@
 title: "Traefik"
 description: "An integration guide for Authelia and the Traefik reverse proxy"
 lead: "A guide on integrating Authelia with the Traefik reverse proxy."
-date: 2022-03-20T20:23:41+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -80,9 +80,9 @@ Please ensure that you also setup the respective [ACME configuration](https://do
 
 This is an example configuration using [docker compose] labels:
 
-##### docker-compose.yml
-
+{{< details "docker-compose.yml" >}}
 ```yaml
+---
 version: "3.8"
 networks:
   net:
@@ -199,7 +199,9 @@ services:
       - 'traefik.http.routers.heimdall.entryPoints=https'
       - 'traefik.http.routers.heimdall.tls=true'
       - 'traefik.http.routers.heimdall.middlewares=authelia-basic@docker'
+...
 ```
+{{< /details >}}
 
 ### YAML
 
@@ -215,9 +217,9 @@ This example uses a `docker-compose.yml` similar to the one above however it has
      all `forwardAuth` middlewares, adjusting the `authelia` router in the `http.routers` section to use the
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
-##### docker-compose.yml
-
+{{< details "docker-compose.yml" >}}
 ```yaml
+---
 version: "3.8"
 networks:
   net:
@@ -319,16 +321,17 @@ services:
       TZ: "Australia/Melbourne"
     labels:
       - "traefik.enable=true"
-
+...
 ```
-
-##### traefik.yml
+{{< /details >}}
 
 This file is part of the dynamic configuration and should have the path
 `${PWD}/data/traefik/config/dynamic/traefik.yml`. Please see the [Traefik] service and the volume that mounts the
 `${PWD}/data/traefik/config` in the docker compose above.
 
+{{< details "traefik.yml" >}}
 ```yaml
+---
 entryPoints:
   web:
     proxyProtocol:
@@ -462,7 +465,9 @@ http:
           keyFile: /certificates/traefik.private.pem
       rootCAs:
         - /certificates/ca.public.crt
+...
 ```
+{{< /details >}}
 
 ## FAQ
 

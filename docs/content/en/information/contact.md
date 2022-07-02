@@ -1,7 +1,7 @@
 ---
 title: "Contact"
 description: "Drop us an email."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 aliases:
@@ -16,6 +16,11 @@ documentation.
 
 ## GitHub
 
+### Discussions
+
+If you have a general question or want to discuss an idea that's not entirely hashed out please visit
+[GitHub Discussions](https://github.com/authelia/authelia/discussions) and start a new discussion.
+
 ### Issues
 
 If you have found a bug or have a feature request please visit
@@ -26,28 +31,31 @@ Bug reports should be reserved for bugs with Authelia, not for issues with the d
 integration. If you are having an issue with one of these areas please utilize [discussions](#discussions) or one of
 the [chat](#chat) methods.
 
-### Discussions
-
-If you have a general question or want to discuss an idea that's not entirely hashed out please visit
-[GitHub Discussions](https://github.com/authelia/authelia/discussions) and start a new discussion.
-
 ## Chat
 
-Authelia has a community chat service which can either be accessed via Matrix or Discord.
+Authelia has a community chat service which can either be accessed via [Matrix] or [Discord].
 
 ### Matrix
 
-The Matrix chat is organized into a space which can be accessed at
-[community:authelia.com](https://matrix.to/#/#community:authelia.com) which has two main rooms
-[support:authelia.com](https://matrix.to/#/#support:authelia.com) and
-[contributing:authelia.com](https://matrix.to/#/#contributing:authelia.com).
+The [Matrix] chat is organized into a space which can be accessed at
+[community:authelia.com](https://matrix.to/#/#community:authelia.com). The space contains the following rooms:
+
+|                                    Room                                     |           Description           |
+|:---------------------------------------------------------------------------:|:-------------------------------:|
+|      [support:authelia.com](https://matrix.to/#/#support:authelia.com)      |          Support Chat           |
+| [contributing:authelia.com](https://matrix.to/#/#contributing:authelia.com) | Contributing / Development Chat |
+|    [off-topic:authelia.com](https://matrix.to/#/#off-topic:authelia.com)    |         Off Topic Chat          |
 
 ### Discord
 
-Discord can be accessed via [https://discord.authelia.com](https://discord.authelia.com).
+[Discord] can be accessed via [https://discord.authelia.com](https://discord.authelia.com). The channels in [Discord]
+are bridged to the [Matrix Rooms](#matrix) with the same names providing they exist.
 
 ## Email
 
-To contact the team for anything not security related you can utilized {{< email user="team" domain="authelia.com" >}}.
+To contact the team for anything not security related you can utilize [team@authelia.com](mailto:team@authelia.com).
 
-For all security related matters over email please ensure you use {{< email user="security" domain="authelia.com" >}}.
+For all security related matters over email please ensure you use [security@authelia.com](mailto:team@authelia.com).
+
+[Discord]: https://discord.com/
+[Matrix]: https://matrix.org/

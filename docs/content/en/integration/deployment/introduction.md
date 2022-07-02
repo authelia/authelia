@@ -2,7 +2,7 @@
 title: "Deployment"
 description: "An introduction into integrating Authelia with a product."
 lead: "An introduction into integrating Authelia within your architecture."
-date: 2022-05-27T22:24:38+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

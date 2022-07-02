@@ -6,14 +6,14 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20220428205559-fa137a8ef05b
+	github.com/duosecurity/duo_api_golang v0.0.0-20220628180508-bed46d1be614
 	github.com/fasthttp/router v1.4.10
 	github.com/fasthttp/session/v2 v2.4.11
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-ldap/ldap/v3 v3.4.3
-	github.com/go-rod/rod v0.107.2
+	github.com/go-rod/rod v0.107.3
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/go-webauthn/webauthn v0.3.3
+	github.com/go-webauthn/webauthn v0.3.4
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
@@ -22,6 +22,7 @@ require (
 	github.com/knadh/koanf v1.4.2
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.42.2
 	github.com/ory/herodot v0.9.13
 	github.com/otiai10/copy v1.7.0
@@ -32,9 +33,9 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.37.0
+	github.com/valyala/fasthttp v1.38.0
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -76,7 +77,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/ory/go-acc v0.2.6 // indirect
 	github.com/ory/go-convenience v0.1.0 // indirect
 	github.com/ory/viper v1.7.5 // indirect

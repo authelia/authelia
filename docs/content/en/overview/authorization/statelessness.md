@@ -2,7 +2,7 @@
 title: "Statelessness"
 description: "Statelessness is the ability for a system to operate without an in-memory state. A crash could result in loss of the in-memory state causing a bad user experience."
 lead: "Statelessness is the ability for a system to operate without an in-memory state. A crash could result in loss of the in-memory state causing a bad user experience."
-date: 2022-03-20T22:52:38+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

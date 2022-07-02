@@ -2,7 +2,7 @@
 title: "Dashboard / Control Panel"
 description: "Authelia Dashboard Implementation"
 lead: "A dashboard or control panel for users and administrators to adjust their settings or Authelia's settings is easily one of the most impactful features we can implment."
-date: 2022-03-20T21:18:42+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -10,6 +10,8 @@ menu:
     parent: "active"
 weight: 240
 toc: true
+aliases:
+  - /r/dashboard
 ---
 
 This feature has several major impacts on other roadmap items. For example several OpenID Connect features would greatly

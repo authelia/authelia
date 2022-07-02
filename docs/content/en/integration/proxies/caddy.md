@@ -2,7 +2,7 @@
 title: "Caddy"
 description: "An integration guide for Authelia and the Caddy reverse proxy"
 lead: "A guide on integrating Authelia with the Caddy reverse proxy."
-date: 2022-05-13T12:06:00+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -78,8 +78,7 @@ support to ensure the basic example covers your use case in a secure way.
 
 #### Subdomain
 
-##### Caddyfile
-
+{{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
@@ -111,11 +110,11 @@ nextcloud.example.com {
         }
 }
 ```
+{{< /details >}}
 
 #### Subpath
 
-##### Caddyfile
-
+{{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
@@ -151,7 +150,7 @@ example.com {
         }
 }
 ```
-
+{{< /details >}}
 ### Advanced example
 
 The advanced example allows for more flexible customization, however the [basic example](#basic-examples) should be
@@ -159,8 +158,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 
 *__Important:__ Making a mistake when configuring the advanced example could lead to authentication bypass or errors.*
 
-##### Caddyfile
-
+{{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
@@ -209,6 +207,7 @@ nextcloud.example.com {
         }
 }
 ```
+{{< /details >}}
 
 ## See Also
 
