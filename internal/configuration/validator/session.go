@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -24,6 +25,7 @@ func ValidateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	}
 
 	validateSession(config, validator)
+	validateSessionDomains(config, validator)
 }
 
 func validateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -52,6 +54,47 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
 		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
 	}
+}
+
+// validateSessionDomains validates domain list.
+func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	cookieDomainList := make([]string, 0, len(config.Domains))
+	for index := range config.Domains {
+		// ensure there's not duplicated domain_cookie.
+		if sliceContainsString(cookieDomainList, config.Domains[index].CookieDomain) {
+			validator.Push(fmt.Errorf(errFmtSessionDupplicatedDomainCookie, config.Domains[index].CookieDomain, index))
+		}
+
+		cookieDomainList = append(cookieDomainList, config.Domains[index].CookieDomain)
+		sort.Strings(cookieDomainList)
+
+		if len(config.Domains[index].Domains) == 0 {
+			validator.Push(fmt.Errorf(errFmtSessionDomainListRequired, index))
+		}
+
+		if config.Domains[index].Expiration <= 0 {
+			config.Domains[index].Expiration = config.Expiration
+		}
+
+		if config.Domains[index].Inactivity <= 0 {
+			config.Domains[index].Inactivity = config.Inactivity
+		}
+
+		if config.Domains[index].RememberMeDuration <= 0 && config.Domains[index].RememberMeDuration != schema.RememberMeDisabled {
+			config.Domains[index].RememberMeDuration = config.RememberMeDuration
+		}
+	}
+}
+
+// sliceContainsString returns true if str is found in slice.
+func sliceContainsString(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+
+	return false
 }
 
 func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.StructValidator) {

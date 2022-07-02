@@ -225,6 +225,9 @@ const (
 
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+
+	errFmtSessionDomainListRequired      = "session: domains: option 'domains' is required for domain index %d"
+	errFmtSessionDupplicatedDomainCookie = "session: domains: duplicated domain_cookie '%s' option for domain index %d"
 )
 
 // Regulation Error Consts.

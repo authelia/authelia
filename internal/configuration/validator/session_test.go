@@ -15,6 +15,15 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	config.Secret = testJWTSecret
 	config.Domain = "example.com"
 
+	config.Domains = append([]schema.DomainSessionConfiguration{}, schema.DomainSessionConfiguration{
+		CookieDomain: "example.com",
+		Domains: []string{
+			"auth.example.com",
+			"public.example.com",
+			"secure.example.com",
+		},
+	})
+
 	return config
 }
 
@@ -31,6 +40,12 @@ func TestShouldSetDefaultSessionValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.Expiration, config.Expiration)
 	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.SameSite)
+
+	for _, domain := range config.Domains {
+		assert.Equal(t, config.Inactivity, domain.Inactivity)
+		assert.Equal(t, config.Expiration, domain.Expiration)
+		assert.Equal(t, config.RememberMeDuration, domain.RememberMeDuration)
+	}
 }
 
 func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
@@ -432,4 +447,45 @@ func TestShouldSetDefaultRememberMeDuration(t *testing.T) {
 	assert.False(t, validator.HasWarnings())
 	assert.False(t, validator.HasErrors())
 	assert.Equal(t, config.RememberMeDuration, schema.DefaultSessionConfiguration.RememberMeDuration)
+}
+
+func TestShouldRaiseErrorWhenDomainListIsEmpty(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Domains = append([]schema.DomainSessionConfiguration{}, schema.DomainSessionConfiguration{
+		CookieDomain: "example.com",
+	})
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDomainListRequired, 0))
+}
+
+func TestShouldRaiseErrorWhenCookieDomainIsNotUnique(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Domains = append([]schema.DomainSessionConfiguration{},
+		schema.DomainSessionConfiguration{
+			CookieDomain: "example.com",
+			Domains: []string{
+				"example.com",
+			},
+		},
+		schema.DomainSessionConfiguration{
+			CookieDomain: "example.com",
+			Domains: []string{
+				"internal.example.com",
+			},
+		},
+	)
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDupplicatedDomainCookie, "example.com", 1))
 }

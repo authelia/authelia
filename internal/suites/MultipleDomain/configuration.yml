@@ -19,10 +19,29 @@ authentication_backend:
     path: /config/users.yml
 
 session:
-  # domain: example.com
-  domain_list:
-    - example.com
-    - example2.com
+  # domain_list:
+  #   - example.com
+  #   - example2.com
+  domains:
+    - cookie_domain: internal.example.com
+      domains:
+        - "internal.example.com"
+        - "auth.internal.example.com"
+      inactivity: 60
+      expiration: 1800
+      remember_me_duration: 1d
+    - cookie_domain: example.com
+      domains:
+        - "auth.example.com"
+        - "public.example.com"
+        - "secure.example.com"
+    - cookie_domain: example2.com
+      domains:
+        - "example2.com"
+      expiration: 1800
+
+  # default session settings
+  domain: example.com
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
   remember_me_duration: 1y
@@ -42,7 +61,7 @@ access_control:
     - domain_regex: '^singlefactor\..+$'
       policy: one_factor
 
-    - domain_regex: '^pffublic\..+$'
+    - domain_regex: '^public\..+$'
       policy: bypass
 
     - domain_regex: '^secure\..+$'
