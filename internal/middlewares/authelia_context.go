@@ -193,8 +193,14 @@ func (ctx *AutheliaCtx) XOriginalURL() []byte {
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
 	domain := ctx.GetCurrentSessionDomain()
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
-	userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx, domain)
+	if err != nil {
+		ctx.Logger.Errorf("Could not get seccion for domain '%s': %s", domain, err)
+		return session.NewDefaultUserSession()
+	}
+
+	userSession, err := sessionProvider.GetSession(ctx.RequestCtx)
 
 	if err != nil {
 		ctx.Logger.Error("unable to retrieve user session: ", err)
@@ -207,8 +213,13 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 	domain := ctx.GetCurrentSessionDomain()
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
-	return ctx.Providers.SessionProvider.SaveSession(ctx.RequestCtx, userSession, domain)
+	if err != nil {
+		return err
+	}
+
+	return sessionProvider.SaveSession(ctx.RequestCtx, userSession)
 }
 
 // ReplyOK is a helper method to reply ok.

@@ -572,14 +572,17 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	sessionProvider, err := mock.Ctx.Providers.SessionProvider.Get("example.com")
+	require.NoError(t, err)
+
+	assert.Equal(t, time.Second*10, sessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 
-	err := mock.Ctx.SaveSession(userSession)
+	err = mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
@@ -605,14 +608,16 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	mock.Ctx.Configuration.Session.Inactivity = time.Second * 10
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	sessionProvider, err := mock.Ctx.Providers.SessionProvider.Get("example.com")
+	require.NoError(t, err)
+	assert.Equal(t, time.Second*10, sessionProvider.Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = clock.Now().Add(-1 * time.Hour).Unix()
 
-	err := mock.Ctx.SaveSession(userSession)
+	err = mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
@@ -702,7 +707,9 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	sessionProvider, err := mock.Ctx.Providers.SessionProvider.Get("example.com")
+	require.NoError(t, err)
+	assert.Equal(t, time.Second*10, sessionProvider.Inactivity)
 
 	past := clock.Now().Add(-1 * time.Hour)
 
@@ -711,7 +718,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	userSession.AuthenticationLevel = authentication.TwoFactor
 	userSession.LastActivity = past.Unix()
 
-	err := mock.Ctx.SaveSession(userSession)
+	err = mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
 	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")

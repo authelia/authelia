@@ -247,8 +247,16 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
 	userSession := ctx.GetSession()
 
 	domain := ctx.GetCurrentSessionDomain()
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
-	err := ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx, domain)
+	if err != nil {
+		ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	err = sessionProvider.RegenerateSession(ctx.RequestCtx)
 	if err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username, err)
 

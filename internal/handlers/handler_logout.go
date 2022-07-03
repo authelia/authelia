@@ -27,8 +27,16 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	domain := ctx.GetCurrentSessionDomain()
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
-	err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx, domain)
+	if err != nil {
+		ctx.Error(fmt.Errorf(logFmtErrObtainSessionProvider, domain, err), messageOperationFailed)
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	err = sessionProvider.DestroySession(ctx.RequestCtx)
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to destroy session during logout: %s", err), messageOperationFailed)
 	}

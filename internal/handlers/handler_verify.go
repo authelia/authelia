@@ -129,8 +129,15 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 }
 
 // hasUserBeenInactiveTooLong checks whether the user has been inactive for too long.
-func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
-	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
+func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) {
+	domain := ctx.GetCurrentSessionDomain()
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
+
+	if err != nil {
+		return false, err
+	}
+
+	maxInactivityPeriod := int64(sessionProvider.Inactivity.Seconds())
 	if maxInactivityPeriod == 0 {
 		return false, nil
 	}
@@ -165,10 +172,16 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 		}
 
 		if inactiveLongEnough {
-			// Destroy the session a new one will be regenerated on next request.
 			domain := ctx.GetCurrentSessionDomain()
+			sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
-			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx, domain)
+			if err != nil {
+				ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+				return "", "", nil, nil, authentication.NotAuthenticated, err
+			}
+
+			// Destroy the session a new one will be regenerated on next request.
+			err = sessionProvider.DestroySession(ctx.RequestCtx)
 			if err != nil {
 				return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy user session after long inactivity: %s", err)
 			}
@@ -181,8 +194,14 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	if err != nil {
 		if err == authentication.ErrUserNotFound {
 			domain := ctx.GetCurrentSessionDomain()
+			sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
-			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx, domain)
+			if err != nil {
+				ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+				return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, err
+			}
+
+			err = sessionProvider.DestroySession(ctx.RequestCtx)
 
 			if err != nil {
 				ctx.Logger.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err)
@@ -435,8 +454,16 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
 		domain := ctx.GetCurrentSessionDomain()
+		sessionProvider, err2 := ctx.Providers.SessionProvider.Get(domain)
 
-		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx, domain)
+		if err2 != nil {
+			ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+			err = err2
+
+			return
+		}
+
+		err = sessionProvider.DestroySession(ctx.RequestCtx)
 		if err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", headerSessionUsername, err)
 		}

@@ -22,7 +22,11 @@ func TestShouldInitializerSession(t *testing.T) {
 	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration, nil)
-	session, err := provider.GetSession(ctx, "example.com")
+
+	sessionProvider, err := provider.Get("example.com")
+	require.NoError(t, err)
+
+	session, err := sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, NewDefaultUserSession(), session)
@@ -37,15 +41,19 @@ func TestShouldUpdateSession(t *testing.T) {
 	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration, nil)
-	session, _ := provider.GetSession(ctx, "example.com")
+
+	sessionProvider, err := provider.Get("example.com")
+	require.NoError(t, err)
+
+	session, _ := sessionProvider.GetSession(ctx)
 
 	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
-	err := provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, UserSession{
@@ -67,14 +75,18 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration, nil)
-	session, _ := provider.GetSession(ctx, "example.com")
+
+	sessionProvider, err := provider.Get("example.com")
+	require.NoError(t, err)
+
+	session, _ := sessionProvider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
 
-	err := provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	authAt, err := session.AuthenticatedTime(authorization.OneFactor)
@@ -99,10 +111,10 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 
 	session.SetTwoFactorDuo(timeTwoFactor)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, UserSession{
@@ -140,14 +152,17 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration, nil)
-	session, _ := provider.GetSession(ctx, "example.com")
+	sessionProvider, err := provider.Get("example.com")
+	require.NoError(t, err)
+
+	session, _ := sessionProvider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
 
-	err := provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	authAt, err := session.AuthenticatedTime(authorization.OneFactor)
@@ -172,10 +187,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Webauthn: true}, session.AuthenticationMethodRefs)
@@ -195,10 +210,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -207,10 +222,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, false)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -219,10 +234,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -231,10 +246,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, true, false)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -243,10 +258,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -255,10 +270,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorWebauthn(timeTwoFactor, false, true)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -267,10 +282,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorTOTP(timeTwoFactor)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -279,10 +294,10 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 	session.SetTwoFactorTOTP(timeTwoFactor)
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	session, err = provider.GetSession(ctx, "example.com")
+	session, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t,
@@ -298,24 +313,27 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	configuration.Expiration = testExpiration
 
 	provider := NewProvider(configuration, nil)
-	session, err := provider.GetSession(ctx, "example.com")
+	sessionProvider, err := provider.Get("example.com")
+	require.NoError(t, err)
+
+	session, err := sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 
 	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
-	err = provider.SaveSession(ctx, session, "example.com")
+	err = sessionProvider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	newUserSession, err := provider.GetSession(ctx, "example.com")
+	newUserSession, err := sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, testUsername, newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 
-	err = provider.DestroySession(ctx, "example.com")
+	err = sessionProvider.DestroySession(ctx)
 	require.NoError(t, err)
 
-	newUserSession, err = provider.GetSession(ctx, "example.com")
+	newUserSession, err = sessionProvider.GetSession(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
