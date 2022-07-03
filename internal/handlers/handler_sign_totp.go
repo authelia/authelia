@@ -50,7 +50,8 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	domain := ctx.GetCurrentDomain()
+	domain := ctx.GetCurrentSessionDomain()
+
 	if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx, domain); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeTOTP, userSession.Username, err)
 

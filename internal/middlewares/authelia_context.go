@@ -192,7 +192,8 @@ func (ctx *AutheliaCtx) XOriginalURL() []byte {
 
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
-	domain := ctx.GetCurrentDomain()
+	domain := ctx.GetCurrentSessionDomain()
+
 	userSession, err := ctx.Providers.SessionProvider.GetSession(ctx.RequestCtx, domain)
 
 	if err != nil {
@@ -205,7 +206,8 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-	domain := ctx.GetCurrentDomain()
+	domain := ctx.GetCurrentSessionDomain()
+
 	return ctx.Providers.SessionProvider.SaveSession(ctx.RequestCtx, userSession, domain)
 }
 
@@ -357,8 +359,8 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
 }
 
-// GetCurrentDomain returns the requested domain.
-func (ctx *AutheliaCtx) GetCurrentDomain() string {
+// GetCurrentSessionDomain returns the cookie_domain linked to requested domain.
+func (ctx *AutheliaCtx) GetCurrentSessionDomain() string {
 	url, err := ctx.GetOriginalURL()
 	if err != nil {
 		return ctx.GetDefaultDomain()
@@ -372,13 +374,15 @@ func (ctx *AutheliaCtx) GetCurrentDomain() string {
 		}
 	}
 
-	for _, domain := range ctx.Configuration.Session.DomainList {
-		if strings.HasSuffix(hostname, domain) {
-			return domain
+	for _, domainConfig := range ctx.Configuration.Session.Domains {
+		for _, domain := range domainConfig.Domains {
+			if hostname == domain {
+				return domainConfig.CookieDomain
+			}
 		}
 	}
 
-	return ctx.GetDefaultDomain()
+	return ""
 }
 
 // GetDefaultDomain return the default root domain
@@ -386,10 +390,6 @@ func (ctx *AutheliaCtx) GetCurrentDomain() string {
 func (ctx *AutheliaCtx) GetDefaultDomain() string {
 	if ctx.Configuration.Session.Domain != "" {
 		return ctx.Configuration.Session.Domain
-	}
-
-	if len(ctx.Configuration.Session.DomainList) > 0 {
-		return ctx.Configuration.Session.DomainList[0]
 	}
 
 	return ""
