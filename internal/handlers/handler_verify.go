@@ -462,7 +462,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		if err != nil {
 			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
 
-			if err := updateActivityTimestamp(ctx, isBasicAuth); err != nil {
+			if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {
 				ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
 				return
 			}
@@ -485,7 +485,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}
 
-		if err := updateActivityTimestamp(ctx, isBasicAuth); err != nil {
+		if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {
 			ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
 		}
 	}
