@@ -1,6 +1,6 @@
 ---
 title: "BookStack"
-description: "Integrating BookStack with Authelia via OpenID Connect."
+description: "Integrating BookStack with the Authelia OpenID Connect Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false

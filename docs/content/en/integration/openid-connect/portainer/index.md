@@ -1,6 +1,6 @@
 ---
 title: "Portainer"
-description: "Integrating Portainer with Authelia via OpenID Connect."
+description: "Integrating Portainer with the Authelia OpenID Connect Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -43,19 +43,18 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect] Provider:
 
 1. Visit Settings
 2. Visit Authentication
-3. Select:
+3. Set the following values:
    1. Authentication Method: OAuth
    2. Provider: Custom
    3. Enable *Automatic User Provision* if you want users to automatically be created in [Portainer].
-4. Configure the following:
-   1. Client ID: `portainer`
-   2. Client Secret: `portainer_client_secret`
-   3. Authorization URL: `https://auth.example.com/api/oidc/authorization`
-   4. Access Token URL: `https://auth.example.com/api/oidc/token`
-   5. Resource URL: `https://auth.example.com/api/oidc/userinfo`
-   6. Redirect URL: `https://portainer.example.com`
-   7. User Identifier: `preferred_username`
-   8. Scopes: `openid profile groups email`
+   4. Client ID: `portainer`
+   5. Client Secret: `portainer_client_secret`
+   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
+   7. Access Token URL: `https://auth.example.com/api/oidc/token`
+   8. Resource URL: `https://auth.example.com/api/oidc/userinfo`
+   9. Redirect URL: `https://portainer.example.com`
+   10. User Identifier: `preferred_username`
+   11. Scopes: `openid profile groups email`
 
 {{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
