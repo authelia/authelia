@@ -171,7 +171,9 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 				return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy user session after long inactivity: %s", err)
 			}
 
-			return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
+			ctx.Logger.Warnf("User %s has been inactive for too long", userSession.Username)
+
+			return "", "", nil, nil, authentication.NotAuthenticated, nil
 		}
 	}
 
@@ -260,8 +262,8 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	}
 }
 
-func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, username string) error {
-	if isBasicAuth || username == "" {
+func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool) error {
+	if isBasicAuth {
 		return nil
 	}
 
@@ -477,7 +479,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		if err != nil {
 			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
 
-			if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+			if err := updateActivityTimestamp(ctx, isBasicAuth); err != nil {
 				ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
 				return
 			}
@@ -500,7 +502,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}
 
-		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+		if err := updateActivityTimestamp(ctx, isBasicAuth); err != nil {
 			ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
 		}
 	}

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"regexp"
 	"time"
 )
 
@@ -52,3 +53,7 @@ const (
 	// TOTPSecretSizeMinimum is the minimum secret size.
 	TOTPSecretSizeMinimum = 20
 )
+
+// regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
+// period, and plus characters.
+var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]+://`)

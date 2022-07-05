@@ -286,9 +286,8 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 	var requestURI string
 
-	scheme := forwardedProto
-	scheme = append(scheme, protoHostSeparator...)
-	requestURI = string(append(scheme,
+	forwardedProto = append(forwardedProto, protoHostSeparator...)
+	requestURI = string(append(forwardedProto,
 		append(forwardedHost, forwardedURI...)...))
 
 	parsedURL, err := url.ParseRequestURI(requestURI)
