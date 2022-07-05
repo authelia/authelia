@@ -15,10 +15,9 @@ func TestShouldAppendQueryParamToURL(t *testing.T) {
 
 	object := NewObject(targetURL, "GET")
 
-	assert.Equal(t, "https", object.Scheme())
-	assert.Equal(t, "domain.example.com", object.Domain())
-	assert.Equal(t, "/api?type=none", object.Path())
-	assert.Equal(t, "/api?type=none", object.PathFullClean())
+	assert.Equal(t, "https", object.URL.Scheme)
+	assert.Equal(t, "domain.example.com", object.Domain)
+	assert.Equal(t, "/api?type=none", object.Path)
 	assert.Equal(t, "GET", object.Method)
 }
 
@@ -29,10 +28,10 @@ func TestShouldCreateNewObjectFromRaw(t *testing.T) {
 
 	object := NewObjectRaw(targetURL, []byte("GET"))
 
-	assert.Equal(t, "https", object.Scheme())
-	assert.Equal(t, "domain.example.com", object.Domain())
-	assert.Equal(t, "/api", object.Path())
-	assert.Equal(t, "/api", object.PathFullClean())
+	assert.Equal(t, "https", object.URL.Scheme)
+	assert.Equal(t, "domain.example.com", object.Domain)
+	assert.Equal(t, "/api", object.URL.Path)
+	assert.Equal(t, "/api", object.Path)
 	assert.Equal(t, "GET", object.Method)
 }
 
@@ -61,10 +60,10 @@ func TestShouldCleanURL(t *testing.T) {
 
 			object := NewObject(have, tc.method)
 
-			assert.Equal(t, tc.expectedScheme, object.Scheme())
-			assert.Equal(t, tc.expectedDomain, object.Domain())
-			assert.Equal(t, tc.expectedPath, object.Path())
-			assert.Equal(t, tc.expectedPathClean, object.PathFullClean())
+			assert.Equal(t, tc.expectedScheme, object.URL.Scheme)
+			assert.Equal(t, tc.expectedDomain, object.Domain)
+			assert.Equal(t, tc.expectedPath, object.URL.Path)
+			assert.Equal(t, tc.expectedPathClean, object.Path)
 			assert.Equal(t, tc.method, object.Method)
 
 			have, err = url.Parse(tc.have)
@@ -77,10 +76,10 @@ func TestShouldCleanURL(t *testing.T) {
 
 			object = NewObject(have, tc.method)
 
-			assert.Equal(t, tc.expectedScheme, object.Scheme())
-			assert.Equal(t, tc.expectedDomain, object.Domain())
-			assert.Equal(t, tc.expectedPath, object.Path())
-			assert.Equal(t, tc.expectedPathClean, object.PathFullClean())
+			assert.Equal(t, tc.expectedScheme, object.URL.Scheme)
+			assert.Equal(t, tc.expectedDomain, object.Domain)
+			assert.Equal(t, tc.expectedPath, object.URL.Path)
+			assert.Equal(t, tc.expectedPathClean, object.Path)
 			assert.Equal(t, tc.method, object.Method)
 		})
 	}

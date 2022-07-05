@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path"
 	"strings"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // SubjectMatcher is a matcher that takes a subject.
@@ -42,39 +43,11 @@ func (s Subject) IsAnonymous() bool {
 
 // Object represents a protected object for the purposes of ACL matching.
 type Object struct {
-	URL    url.URL
+	URL url.URL
+
+	Domain string
+	Path   string
 	Method string
-}
-
-// Scheme returns the scheme.
-func (o Object) Scheme() (scheme string) {
-	return o.URL.Scheme
-}
-
-// Domain returns the domain.
-func (o Object) Domain() (domain string) {
-	return o.URL.Hostname()
-}
-
-// Path returns the full path followed by the query.
-func (o Object) Path() (path string) {
-	switch len(o.URL.RawQuery) {
-	case 0:
-		return o.URL.Path
-	default:
-		return o.URL.Path + "?" + o.URL.RawQuery
-	}
-}
-
-// PathFullClean returns the full unescaped path cleaned of any double slashes, periods, etc, followed by the query.
-func (o Object) PathFullClean() (urlPath string) {
-	urlPath = path.Clean(o.URL.Path)
-
-	if len(o.URL.RawQuery) != 0 {
-		return urlPath + "?" + o.URL.RawQuery
-	}
-
-	return urlPath
 }
 
 // String is a string representation of the Object.
@@ -91,6 +64,8 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 func NewObject(targetURL *url.URL, method string) (object Object) {
 	return Object{
 		URL:    *targetURL,
+		Domain: targetURL.Hostname(),
+		Path:   utils.URLPathFullClean(targetURL),
 		Method: method,
 	}
 }
