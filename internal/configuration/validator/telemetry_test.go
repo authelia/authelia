@@ -93,7 +93,7 @@ func TestValidateTelemetry(t *testing.T) {
 				require.Len(t, errs, lenErrs)
 
 				for i, expectedErr := range tc.expectedErrs {
-					assert.EqualError(t, wrns[i], expectedErr)
+					assert.EqualError(t, errs[i], expectedErr)
 				}
 			}
 		})
