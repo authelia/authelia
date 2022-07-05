@@ -257,7 +257,9 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 		Build()
 
 	tester.CheckAuthorizations(s.T(), John, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com:8080/", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com:8080", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com", "GET", Bypass)
 
 	tester.CheckAuthorizations(s.T(), John, "https://one-factor.example.com", "GET", OneFactor)
