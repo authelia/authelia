@@ -79,7 +79,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx)
+		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -247,19 +246,6 @@ func getOIDCExpectedScopesAndAudience(clientID string, scopes, audience []string
 	}
 
 	return scopes, audience
-}
-
-func getOIDCPreConfiguredConsentFromClientAndConsent(ctx *middlewares.AutheliaCtx, client fosite.Client, consent *model.OAuth2ConsentSession) (preConfigConsent *model.OAuth2ConsentSession, err error) {
-	if consent == nil || !consent.Subject.Valid {
-		return nil, fmt.Errorf("invalid consent provided for pre-configured consent lookup")
-	}
-
-	scopes, audience := getOIDCExpectedScopesAndAudience(client.GetID(), consent.RequestedScopes, consent.RequestedAudience)
-
-	// We can skip this error as it's handled at the authorization endpoint.
-	preConfigConsent, _ = getOIDCPreConfiguredConsent(ctx, client.GetID(), consent.Subject.UUID, scopes, audience)
-
-	return preConfigConsent, nil
 }
 
 func getOIDCPreConfiguredConsent(ctx *middlewares.AutheliaCtx, clientID string, subject uuid.UUID, scopes, audience []string) (consent *model.OAuth2ConsentSession, err error) {
