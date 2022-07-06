@@ -138,6 +138,7 @@ const PushNotificationMethod = function (props: Props) {
         props.authenticationLevel,
         props.duoSelfEnrollment,
         redirectionURL,
+        workflow,
         mounted,
         onSignInErrorCallback,
         onSignInSuccessCallback,

@@ -148,6 +148,7 @@ const LoginPortal = function (props: Props) {
         state,
         redirectionURL,
         requestMethod,
+        workflow,
         redirect,
         userInfo,
         setFirstFactorDisabled,

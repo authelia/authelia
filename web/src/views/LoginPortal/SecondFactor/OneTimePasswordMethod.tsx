@@ -83,6 +83,7 @@ const OneTimePasswordMethod = function (props: Props) {
         onSignInSuccessCallback,
         passcode,
         redirectionURL,
+        workflow,
         resp,
         props.authenticationLevel,
         props.registered,
