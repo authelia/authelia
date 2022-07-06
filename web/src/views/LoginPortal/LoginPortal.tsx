@@ -123,7 +123,7 @@ const LoginPortal = function (props: Props) {
 
             const redirectionSuffix = redirectionURL
                 ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
-                      workflow ? `workflow=${workflow}` : ""
+                      workflow ? `&workflow=${workflow}` : ""
                   }`
                 : "";
 
