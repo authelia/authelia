@@ -80,11 +80,6 @@ const (
 	auth   = "auth"
 )
 
-const (
-	accept = "accept"
-	reject = "reject"
-)
-
 const authPrefix = "Basic "
 
 const ldapPasswordComplexityCode = "0000052D."

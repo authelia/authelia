@@ -45,32 +45,36 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 		return nil, true
 	}
 
-	if userSession.ConsentChallengeID != nil {
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to lookup consent by challenge id '%s'", requester.GetID(), client.GetID(), userSession.ConsentChallengeID)
+	rawConsentID := string(ctx.QueryArgs().Peek("consent_id"))
 
-		return handleOIDCAuthorizationConsentWithChallengeID(ctx, issuer, client, userSession, rw, r, requester)
+	if len(rawConsentID) != 0 {
+		var consentID uuid.UUID
+
+		if consentID, err = uuid.Parse(rawConsentID); err != nil {
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Consent Session ID was Malformed."))
+
+			return nil, true
+		}
+
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to lookup consent by challenge id '%s'", requester.GetID(), client.GetID(), consentID)
+
+		return handleOIDCAuthorizationConsentWithChallengeID(ctx, issuer, client, userSession, consentID, rw, r, requester)
 	}
 
 	return handleOIDCAuthorizationConsentOrGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
 func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
-	userSession session.UserSession,
+	userSession session.UserSession, consentID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID); err != nil {
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Failed to lookup consent session."))
-
-		userSession.ConsentChallengeID = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred unlinking consent session challenge id: %+v", requester.GetID(), requester.GetClient().GetID(), err)
-		}
 
 		return nil, true
 	}
@@ -96,16 +100,6 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 	}
 
 	if consent.Responded() {
-		userSession.ConsentChallengeID = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving session: %+v", requester.GetID(), client.GetID(), err)
-
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
-
-			return nil, true
-		}
-
 		if consent.Granted {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: this consent session with challenge id '%s' was already granted", requester.GetID(), client.GetID(), consent.ChallengeID.String())
 
@@ -127,7 +121,7 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		return consent, false
 	}
 
-	handleOIDCAuthorizationConsentRedirect(ctx, issuer, client, userSession, rw, r, requester)
+	handleOIDCAuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
 
 	return consent, true
 }
@@ -183,28 +177,23 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 		return nil, true
 	}
 
-	userSession.ConsentChallengeID = &consent.ChallengeID
-
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving user session for consent: %+v", requester.GetID(), client.GetID(), err)
-
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the user session."))
-
-		return nil, true
-	}
-
-	handleOIDCAuthorizationConsentRedirect(ctx, issuer, client, userSession, rw, r, requester)
+	handleOIDCAuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
 
 	return consent, true
 }
 
-func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, client *oidc.Client,
 	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) {
 	var location *url.URL
 
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		location, _ = url.Parse(issuer.String())
 		location.Path = path.Join(location.Path, "/consent")
+
+		query := location.Query()
+		query.Set("consent_id", consent.ChallengeID.String())
+
+		location.RawQuery = query.Encode()
 
 		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is sufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToString(client.Policy))
 	} else {
@@ -226,12 +215,11 @@ func getOIDCAuthorizationRedirectURL(issuer *url.URL, requester fosite.Authorize
 	authorizationURL.Path = path.Join(authorizationURL.Path, oidc.AuthorizationPath)
 	authorizationURL.RawQuery = requester.GetRequestForm().Encode()
 
-	values := url.Values{
-		"rd":       []string{authorizationURL.String()},
-		"workflow": []string{"openid_connect"},
-	}
+	query := redirectURL.Query()
+	query.Set("rd", authorizationURL.String())
+	query.Set("workflow", "openid_connect")
 
-	redirectURL.RawQuery = values.Encode()
+	redirectURL.RawQuery = query.Encode()
 
 	return redirectURL
 }

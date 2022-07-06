@@ -19,12 +19,12 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
-import { useConsentResponse } from "@hooks/Consent";
+import { useConsentID } from "@hooks/ConsentID";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import LoginLayout from "@layouts/LoginLayout";
-import { acceptConsent, rejectConsent } from "@services/Consent";
+import { acceptConsent, ConsentGetResponseBody, getConsentResponse, rejectConsent } from "@services/Consent";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {}
@@ -46,12 +46,13 @@ function scopeNameToAvatar(id: string) {
 
 const ConsentView = function (props: Props) {
     const styles = useStyles();
+    const { t: translate } = useTranslation();
     const navigate = useNavigate();
     const redirect = useRedirector();
+    const consentID = useConsentID();
     const { createErrorNotification, resetNotification } = useNotifications();
-    const [resp, fetch, , err] = useConsentResponse();
-    const { t: translate } = useTranslation();
-
+    const [response, setResponse] = useState<ConsentGetResponseBody | undefined>(undefined);
+    const [error, setError] = useState<any>(undefined);
     const [preConfigure, setPreConfigure] = useState(false);
 
     const handlePreConfigureChanged = () => {
@@ -65,21 +66,29 @@ const ConsentView = function (props: Props) {
     }, [fetchUserInfo]);
 
     useEffect(() => {
+        if (consentID) {
+            getConsentResponse(consentID)
+                .then((r) => {
+                    setResponse(r);
+                })
+                .catch((error) => {
+                    setError(error);
+                });
+        }
+    }, [consentID]);
+
+    useEffect(() => {
+        if (error) {
+            navigate(IndexRoute);
+            console.error(`Unable to display consent screen: ${error.message}`);
+        }
+    }, [navigate, resetNotification, createErrorNotification, error]);
+
+    useEffect(() => {
         if (fetchUserInfoError) {
             createErrorNotification("There was an issue retrieving user preferences");
         }
-    }, [fetchUserInfoError, createErrorNotification]);
-
-    useEffect(() => {
-        if (err) {
-            navigate(IndexRoute);
-            console.error(`Unable to display consent screen: ${err.message}`);
-        }
-    }, [navigate, resetNotification, createErrorNotification, err]);
-
-    useEffect(() => {
-        fetch();
-    }, [fetch]);
+    }, [fetchUserInfoError, resetNotification, createErrorNotification]);
 
     const translateScopeNameToDescription = (id: string): string => {
         switch (id) {
@@ -98,10 +107,10 @@ const ConsentView = function (props: Props) {
 
     const handleAcceptConsent = async () => {
         // This case should not happen in theory because the buttons are disabled when response is undefined.
-        if (!resp) {
+        if (!response) {
             return;
         }
-        const res = await acceptConsent(resp.client_id, preConfigure);
+        const res = await acceptConsent(preConfigure, response.client_id, consentID);
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -110,10 +119,10 @@ const ConsentView = function (props: Props) {
     };
 
     const handleRejectConsent = async () => {
-        if (!resp) {
+        if (!response) {
             return;
         }
-        const res = await rejectConsent(resp.client_id);
+        const res = await rejectConsent(response.client_id, consentID);
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -122,7 +131,7 @@ const ConsentView = function (props: Props) {
     };
 
     return (
-        <ComponentOrLoading ready={resp !== undefined && userInfo !== undefined}>
+        <ComponentOrLoading ready={response !== undefined && userInfo !== undefined}>
             <LoginLayout
                 id="consent-stage"
                 title={`${translate("Hi")} ${userInfo?.display_name}`}
@@ -134,14 +143,14 @@ const ConsentView = function (props: Props) {
                         <div>
                             <Tooltip
                                 title={
-                                    translate("Client ID", { client_id: resp?.client_id }) ||
-                                    "Client ID: " + resp?.client_id
+                                    translate("Client ID", { client_id: response?.client_id }) ||
+                                    "Client ID: " + response?.client_id
                                 }
                             >
                                 <Typography className={styles.clientDescription}>
-                                    {resp !== undefined && resp.client_description !== ""
-                                        ? resp.client_description
-                                        : resp?.client_id}
+                                    {response !== undefined && response.client_description !== ""
+                                        ? response.client_description
+                                        : response?.client_id}
                                 </Typography>
                             </Tooltip>
                         </div>
@@ -152,7 +161,7 @@ const ConsentView = function (props: Props) {
                     <Grid item xs={12}>
                         <div className={styles.scopesListContainer}>
                             <List className={styles.scopesList}>
-                                {resp?.scopes.map((scope: string) => (
+                                {response?.scopes.map((scope: string) => (
                                     <Tooltip title={"Scope " + scope}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
@@ -163,7 +172,7 @@ const ConsentView = function (props: Props) {
                             </List>
                         </div>
                     </Grid>
-                    {resp?.pre_configuration ? (
+                    {response?.pre_configuration ? (
                         <Grid item xs={12}>
                             <Tooltip
                                 title={
@@ -193,7 +202,7 @@ const ConsentView = function (props: Props) {
                                 <Button
                                     id="accept-button"
                                     className={styles.button}
-                                    disabled={!resp}
+                                    disabled={!response}
                                     onClick={handleAcceptConsent}
                                     color="primary"
                                     variant="contained"
@@ -205,7 +214,7 @@ const ConsentView = function (props: Props) {
                                 <Button
                                     id="deny-button"
                                     className={styles.button}
-                                    disabled={!resp}
+                                    disabled={!response}
                                     onClick={handleRejectConsent}
                                     color="secondary"
                                     variant="contained"
