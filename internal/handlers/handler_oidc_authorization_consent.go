@@ -3,6 +3,8 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 
 	"github.com/google/uuid"
@@ -21,20 +23,39 @@ import (
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
 	userSession session.UserSession, subject model.NullUUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
-	if userSession.ConsentChallengeID != nil {
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to lookup consent by challenge id '%s'", requester.GetID(), client.GetID(), userSession.ConsentChallengeID)
+	issuer, err := url.Parse(rootURI)
+	if err != nil {
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not safely determine the issuer."))
 
-		return handleOIDCAuthorizationConsentWithChallengeID(ctx, rootURI, client, userSession, rw, r, requester)
+		return nil, true
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) || userSession.Username == "" {
+		redirectURL := getOIDCAuthorizationRedirectURL(issuer, requester)
+
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected due to insufficient authentication", requester.GetID(), client.GetID())
+
+		http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
+
+		return nil, true
 	}
 
 	if !subject.Valid {
-		return handleOIDCAuthorizationConsentGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
+
+		return nil, true
 	}
 
-	return handleOIDCAuthorizationConsentOrGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
+	if userSession.ConsentChallengeID != nil {
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to lookup consent by challenge id '%s'", requester.GetID(), client.GetID(), userSession.ConsentChallengeID)
+
+		return handleOIDCAuthorizationConsentWithChallengeID(ctx, issuer, client, userSession, rw, r, requester)
+	}
+
+	return handleOIDCAuthorizationConsentOrGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
-func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
+func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
 	userSession session.UserSession,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -107,40 +128,42 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		return consent, false
 	}
 
-	handleOIDCAuthorizationConsentRedirect(ctx, rootURI, client, userSession, rw, r, requester)
+	handleOIDCAuthorizationConsentRedirect(ctx, issuer, client, userSession, rw, r, requester)
 
 	return consent, true
 }
 
-func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
+func handleOIDCAuthorizationConsentOrGenerate(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
 	userSession session.UserSession, subject model.NullUUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
 
-	scopes, audience := getOIDCExpectedScopesAndAudienceFromRequest(requester)
+	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		scopes, audience := getOIDCExpectedScopesAndAudienceFromRequest(requester)
 
-	if consent, err = getOIDCPreConfiguredConsent(ctx, client.GetID(), subject.UUID, scopes, audience); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+		if consent, err = getOIDCPreConfiguredConsent(ctx, client.GetID(), subject.UUID, scopes, audience); err != nil {
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not lookup the consent session."))
+			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not lookup the consent session."))
 
-		return nil, true
-	}
+			return nil, true
+		}
 
-	if consent != nil {
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' successfully looked up pre-configured consent with challenge id '%s'", requester.GetID(), client.GetID(), consent.ChallengeID)
+		if consent != nil {
+			ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' successfully looked up pre-configured consent with challenge id '%s'", requester.GetID(), client.GetID(), consent.ChallengeID)
 
-		return consent, false
+			return consent, false
+		}
 	}
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to generate a new consent due to unsuccessful lookup of pre-configured consent", requester.GetID(), client.GetID())
 
-	return handleOIDCAuthorizationConsentGenerate(ctx, rootURI, client, userSession, subject, rw, r, requester)
+	return handleOIDCAuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
-func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
+func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
 	userSession session.UserSession, subject model.NullUUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
@@ -171,24 +194,47 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, rootUR
 		return nil, true
 	}
 
-	handleOIDCAuthorizationConsentRedirect(ctx, rootURI, client, userSession, rw, r, requester)
+	handleOIDCAuthorizationConsentRedirect(ctx, issuer, client, userSession, rw, r, requester)
 
 	return consent, true
 }
 
-func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, destination string, client *oidc.Client,
+func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
 	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) {
-	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is sufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToPolicy(client.Policy))
+	var location *url.URL
 
-		destination = fmt.Sprintf("%s/consent", destination)
+	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		location, _ = url.Parse(issuer.String())
+		location.Path = path.Join(location.Path, "/consent")
+
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is sufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToString(client.Policy))
 	} else {
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is insufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToPolicy(client.Policy))
+		location = getOIDCAuthorizationRedirectURL(issuer, requester)
+
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is insufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToString(client.Policy))
 	}
 
-	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected to '%s'", requester.GetID(), client.GetID(), destination)
+	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected to '%s'", requester.GetID(), client.GetID(), location)
 
-	http.Redirect(rw, r, destination, http.StatusFound)
+	http.Redirect(rw, r, location.String(), http.StatusFound)
+}
+
+func getOIDCAuthorizationRedirectURL(issuer *url.URL, requester fosite.AuthorizeRequester) (redirectURL *url.URL) {
+	redirectURL, _ = url.Parse(issuer.String())
+
+	authorizationURL, _ := url.Parse(issuer.String())
+
+	authorizationURL.Path = path.Join(authorizationURL.Path, oidc.AuthorizationPath)
+	authorizationURL.RawQuery = requester.GetRequestForm().Encode()
+
+	values := url.Values{
+		"rd":       []string{authorizationURL.String()},
+		"workflow": []string{"openid_connect"},
+	}
+
+	redirectURL.RawQuery = values.Encode()
+
+	return redirectURL
 }
 
 func getOIDCExpectedScopesAndAudienceFromRequest(requester fosite.Requester) (scopes, audience []string) {

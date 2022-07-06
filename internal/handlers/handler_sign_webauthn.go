@@ -84,10 +84,10 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		err error
 		w   *webauthn.WebAuthn
 
-		requestBody signWebauthnRequestBody
+		bodyJSON signWebauthnRequestBody
 	)
 
-	if err = ctx.ParseBody(&requestBody); err != nil {
+	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.Logger.Errorf(logFmtErrParseRequestBody, regulation.AuthTypeWebauthn, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -197,9 +197,9 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession.ConsentChallengeID != nil {
+	if bodyJSON.Workflow == workflowOpenIDConnect {
 		handleOIDCWorkflowResponse(ctx)
 	} else {
-		Handle2FAResponse(ctx, requestBody.TargetURL)
+		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}
 }

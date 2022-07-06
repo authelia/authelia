@@ -17,6 +17,7 @@ import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
+import { useWorkflow } from "@hooks/Workflow";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -41,6 +42,7 @@ const LoginPortal = function (props: Props) {
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
+    const workflow = useWorkflow();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const redirector = useRedirector();
@@ -120,7 +122,9 @@ const LoginPortal = function (props: Props) {
             }
 
             const redirectionSuffix = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
+                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
+                      workflow ? `workflow=${workflow}` : ""
+                  }`
                 : "";
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {

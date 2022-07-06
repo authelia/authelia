@@ -135,7 +135,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		successful = true
 
-		if userSession.ConsentChallengeID != nil {
+		if bodyJSON.Workflow == workflowOpenIDConnect {
 			handleOIDCWorkflowResponse(ctx)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
