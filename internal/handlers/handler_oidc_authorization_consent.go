@@ -66,20 +66,20 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 
 		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to lookup consent by challenge id '%s'", requester.GetID(), client.GetID(), consentID)
 
-		return handleOIDCAuthorizationConsentWithChallengeID(ctx, issuer, client, userSession, consentID, rw, r, requester)
+		return handleOIDCAuthorizationConsentWithChallengeID(ctx, issuer, client, userSession, subject, consentID, rw, r, requester)
 	}
 
 	return handleOIDCAuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
 func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
-	userSession session.UserSession, consentID uuid.UUID,
+	userSession session.UserSession, subject, challengeID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Failed to lookup consent session."))
@@ -87,24 +87,13 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		return nil, true
 	}
 
-	if !consent.Subject.Valid {
-		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
+	if consent.Subject.UUID != subject || !consent.Subject.Valid || consent.Subject.UUID.ID() == 0 {
+		ctx.Logger.Debugf("Consent Subject: %s (%d) Valid %t, Subject: %s (%d)", consent.Subject, consent.Subject.ID(), consent.Subject.Valid, subject, subject.ID())
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not process consent session with challenge id '%s': the user '%s' is not authorized to process consent sessions for subject '%s'", requester.GetID(), client.GetID(), consent.ChallengeID, userSession.Username, consent.Subject.UUID)
 
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
+		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("The user is not authorized to perform consent."))
 
-			return nil, true
-		}
-
-		consent.Subject.Valid = true
-
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, *consent); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred updating consent session subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
-
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not update the consent session subject."))
-
-			return nil, true
-		}
+		return nil, true
 	}
 
 	if consent.Responded() {
