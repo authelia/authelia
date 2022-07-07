@@ -35,7 +35,15 @@ func (u *NullUUID) Scan(src interface{}) (err error) {
 		return nil
 	}
 
-	return u.UUID.Scan(src)
+	if err = u.UUID.Scan(src); err != nil {
+		u.UUID, u.Valid = uuid.UUID{}, false
+
+		return err
+	}
+
+	u.Valid = true
+
+	return nil
 }
 
 // NewIP easily constructs a new IP.
