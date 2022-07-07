@@ -177,17 +177,9 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 		return userSession, nil, nil, true
 	}
 
-	var subject uuid.UUID
+	if err = verifyOIDCUserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
+		ctx.Logger.Errorf("Could not authorize the user user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
 
-	if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-		ctx.Logger.Errorf("Unable to find user subject identifier for consent session '%s', user '%s', and sector '%s': %v", consent.ChallengeID, userSession.Username, client.GetSectorIdentifier(), err)
-		ctx.ReplyForbidden()
-
-		return userSession, nil, nil, true
-	}
-
-	if consent.Subject.UUID != subject {
-		ctx.Logger.Errorf("Unable to match user subject identifier '%s' to the consent subject identifier '%s' for consent session '%s', user '%s', and sector '%s': %v", subject, consent.Subject.UUID, consent.ChallengeID, userSession.Username, client.GetSectorIdentifier(), err)
 		ctx.ReplyForbidden()
 
 		return userSession, nil, nil, true

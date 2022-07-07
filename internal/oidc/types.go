@@ -41,7 +41,7 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     consent.Subject.String(),
+				Subject:     consent.Subject.UUID.String(),
 				Issuer:      issuer,
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
@@ -57,7 +57,7 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 					"kid": kid,
 				},
 			},
-			Subject:  consent.Subject.String(),
+			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
 		Extra:       map[string]interface{}{},

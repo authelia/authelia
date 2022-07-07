@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -87,9 +88,8 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 		return nil, true
 	}
 
-	if consent.Subject.UUID != subject || !consent.Subject.Valid || consent.Subject.UUID.ID() == 0 {
-		ctx.Logger.Debugf("Consent Subject: %s (%d) Valid %t, Subject: %s (%d)", consent.Subject, consent.Subject.ID(), consent.Subject.Valid, subject, subject.ID())
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not process consent session with challenge id '%s': the user '%s' is not authorized to process consent sessions for subject '%s'", requester.GetID(), client.GetID(), consent.ChallengeID, userSession.Username, consent.Subject.UUID)
+	if err = verifyOIDCUserAuthorizedForConsent(ctx, client, userSession, consent, subject); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not process consent session with challenge id '%s': could not authorize the user user '%s' for this consent session: %v", requester.GetID(), client.GetID(), consent.ChallengeID, userSession.Username, err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("The user is not authorized to perform consent."))
 
@@ -105,10 +105,10 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 			return nil, true
 		}
 
-		ctx.Logger.Debugf("Authorization Request with id '%s' loaded consent session with id '%d' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s'", requester.GetID(), consent.ID, consent.ChallengeID, client.GetID(), consent.Subject, strings.Join(requester.GetRequestedScopes(), " "))
+		ctx.Logger.Debugf("Authorization Request with id '%s' loaded consent session with id '%d' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s'", requester.GetID(), consent.ID, consent.ChallengeID, client.GetID(), consent.Subject.UUID, strings.Join(requester.GetRequestedScopes(), " "))
 
 		if consent.IsDenied() {
-			ctx.Logger.Warnf("Authorization Request with id '%s' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s' was not denied by the user durng the consent session", requester.GetID(), consent.ChallengeID, client.GetID(), consent.Subject, strings.Join(requester.GetRequestedScopes(), " "))
+			ctx.Logger.Warnf("Authorization Request with id '%s' and challenge id '%s' for client id '%s' and subject '%s' and scopes '%s' was not denied by the user durng the consent session", requester.GetID(), consent.ChallengeID, client.GetID(), consent.Subject.UUID, strings.Join(requester.GetRequestedScopes(), " "))
 
 			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrAccessDenied)
 
@@ -148,7 +148,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to generate a new consent due to unsuccessful lookup of pre-configured consent", requester.GetID(), client.GetID())
 
-	if consent, err = model.NewOAuth2ConsentSession(model.NullUUID{UUID: subject, Valid: true}, requester); err != nil {
+	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generate the consent session."))
@@ -192,6 +192,36 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected to '%s'", requester.GetID(), client.GetID(), location)
 
 	http.Redirect(rw, r, location.String(), http.StatusFound)
+}
+
+func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client *oidc.Client, userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID) (err error) {
+	var sid, csid uint32
+
+	csid = consent.Subject.UUID.ID()
+
+	if !consent.Subject.Valid || csid == 0 {
+		return fmt.Errorf("the consent subject is null for consent session with id '%d'", consent.ID)
+	}
+
+	if client == nil {
+		if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID); err != nil {
+			return fmt.Errorf("failed to retrieve client: %w", err)
+		}
+	}
+
+	if sid = subject.ID(); sid == 0 {
+		if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+			return fmt.Errorf("failed to lookup subject: %w", err)
+		}
+
+		sid = subject.ID()
+	}
+
+	if csid != sid {
+		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifier())
+	}
+
+	return nil
 }
 
 func getOIDCAuthorizationRedirectURL(issuer *url.URL, requester fosite.AuthorizeRequester) (redirectURL *url.URL) {
