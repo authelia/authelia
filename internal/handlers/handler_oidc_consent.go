@@ -92,12 +92,12 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	if bodyJSON.Consent {
 		if bodyJSON.PreConfigure {
 			if client.PreConfiguredConsentDuration == nil {
-				ctx.Logger.Warnf("Consent session with challenge id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID.String(), userSession.Username)
+				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
 			} else {
 				expiresAt := time.Now().Add(*client.PreConfiguredConsentDuration)
 				consent.ExpiresAt = &expiresAt
 
-				ctx.Logger.Debugf("Consent session with challenge id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID.String(), userSession.Username, consent.ExpiresAt)
+				ctx.Logger.Debugf("Consent session with id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID, userSession.Username, consent.ExpiresAt)
 			}
 		}
 
@@ -112,7 +112,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var externalRootURL string
 
 	if externalRootURL, err = ctx.ExternalRootURL(); err != nil {
-		ctx.Logger.Errorf("Could not determine the external URL during consent session processing with challenge id '%s' for user '%s': %v", consent.ChallengeID.String(), userSession.Username, err)
+		ctx.Logger.Errorf("Could not determine the external URL during consent session processing with id '%s' for user '%s': %v", consent.ChallengeID, userSession.Username, err)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -164,7 +164,7 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 	userSession = ctx.GetSession()
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
-		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", consentID.String(), err)
+		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", consentID, err)
 		ctx.ReplyForbidden()
 
 		return userSession, nil, nil, true
