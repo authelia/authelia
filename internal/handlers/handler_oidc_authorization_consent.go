@@ -20,10 +20,15 @@ import (
 )
 
 func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
-	userSession session.UserSession, subject model.NullUUID,
+	userSession session.UserSession,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
-	issuer, err := url.Parse(rootURI)
-	if err != nil {
+	var (
+		issuer  *url.URL
+		subject uuid.UUID
+		err     error
+	)
+
+	if issuer, err = url.Parse(rootURI); err != nil {
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not safely determine the issuer."))
 
 		return nil, true
@@ -40,7 +45,9 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 		return nil, true
 	}
 
-	if !subject.Valid {
+	if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject identifier for user '%s' and sector identifier '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, client.GetSectorIdentifier(), err)
+
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
 
 		return nil, true
@@ -128,7 +135,7 @@ func handleOIDCAuthorizationConsentWithChallengeID(ctx *middlewares.AutheliaCtx,
 }
 
 func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
-	userSession session.UserSession, subject model.NullUUID,
+	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
@@ -136,7 +143,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 
 	scopes, audience := getOIDCExpectedScopesAndAudienceFromRequest(requester)
 
-	if consent, err = getOIDCPreConfiguredConsent(ctx, client.GetID(), subject.UUID, scopes, audience); err != nil {
+	if consent, err = getOIDCPreConfiguredConsent(ctx, client.GetID(), subject, scopes, audience); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not lookup the consent session."))
@@ -152,7 +159,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' proceeding to generate a new consent due to unsuccessful lookup of pre-configured consent", requester.GetID(), client.GetID())
 
-	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
+	if consent, err = model.NewOAuth2ConsentSession(model.NullUUID{UUID: subject, Valid: true}, requester); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
 
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not generate the consent session."))
