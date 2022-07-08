@@ -52,7 +52,7 @@ func NewAddressFromURL(u *url.URL) (addr *Address, err error) {
 	}
 
 	switch addr.Scheme {
-	case "tcp", "udp", "http", "https":
+	case "tcp", "udp":
 		break
 	default:
 		return nil, fmt.Errorf("could not parse scheme for address '%s': scheme '%s' is not valid, expected to be one of 'tcp://', 'udp://'", u.String(), addr.Scheme)
