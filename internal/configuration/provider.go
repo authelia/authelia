@@ -29,14 +29,27 @@ func LoadAdvanced(val *schema.StructValidator, path string, result interface{}, 
 		StrictMerge: false,
 	})
 
-	err = loadSources(ko, val, sources...)
-	if err != nil {
+	if err = loadSources(ko, val, sources...); err != nil {
 		return ko.Keys(), err
 	}
 
-	unmarshal(ko, val, path, result)
+	var final *koanf.Koanf
 
-	return getAllKoanfKeys(ko), nil
+	if final, err = koanfRemapKeys(val, ko, deprecations); err != nil {
+		return koanfGetKeys(ko), err
+	}
+
+	unmarshal(final, val, path, result)
+
+	return koanfGetKeys(final), nil
+}
+
+func mapHasKey(k string, m map[string]interface{}) bool {
+	if _, ok := m[k]; ok {
+		return true
+	}
+
+	return false
 }
 
 func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o interface{}) {
@@ -45,9 +58,10 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
 				mapstructure.StringToSliceHookFunc(","),
 				StringToMailAddressHookFunc(),
-				ToTimeDurationHookFunc(),
 				StringToURLHookFunc(),
-				StringToRegexpFunc(),
+				StringToRegexpHookFunc(),
+				StringToAddressHookFunc(),
+				ToTimeDurationHookFunc(),
 			),
 			Metadata:         nil,
 			Result:           o,

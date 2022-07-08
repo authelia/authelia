@@ -7,7 +7,7 @@ import (
 )
 
 // StripPath strips the first level of a path.
-func StripPath(path string) (middleware StandardMiddleware) {
+func StripPath(path string) (middleware Middleware) {
 	return func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 		return func(ctx *fasthttp.RequestCtx) {
 			uri := ctx.RequestURI()

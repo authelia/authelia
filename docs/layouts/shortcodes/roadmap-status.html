@@ -1,0 +1,12 @@
+{{ $class := "rs-not-started" }}{{ $text := "not started" }}
+{{ with .Get "stage" }}
+{{ if (eq . "in-progress") }}{{ $class = "rs-started" }}{{ $text = "in progress" }}
+{{ else if (eq . "waiting") }}{{ $class = "rs-waiting" }}{{ $text = "waiting" }}
+{{ else if (eq . "complete") }}{{ $class = "rs-complete" }}{{ $text = "complete" }}
+{{ end }}{{ end }}
+<div class="m-2">
+  <span class="badge {{ $class }}" data-bs-toggle="tooltip" data-bs-placement="top" title="The status of this roadmap item">{{ $text }}</span>
+  {{ with .Get "version" }}
+  <span class="badge rs-version" data-bs-toggle="tooltip" data-bs-placement="top" title="The version this stage was implemented in">{{ . }}</span>
+  {{ end }}
+</div>

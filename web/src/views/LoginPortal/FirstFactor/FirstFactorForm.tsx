@@ -1,6 +1,7 @@
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
-import { makeStyles, Grid, Button, FormControlLabel, Checkbox, Link } from "@material-ui/core";
+import { Grid, Button, FormControlLabel, Checkbox, Link, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -8,10 +9,13 @@ import { useNavigate } from "react-router-dom";
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePageVisibility } from "@hooks/PageVisibility";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
+import { useAutheliaState } from "@hooks/State";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
+import { AuthenticationLevel } from "@services/State";
 
 export interface Props {
     disabled: boolean;
@@ -26,11 +30,12 @@ export interface Props {
 }
 
 const FirstFactorForm = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
 
+    const [state, fetchState, ,] = useAutheliaState();
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -40,11 +45,27 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const visible = usePageVisibility();
     const { t: translate } = useTranslation();
+
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
         return () => clearTimeout(timeout);
     }, [usernameRef]);
+
+    useEffect(() => {
+        if (visible) {
+            fetchState();
+        }
+        const timer = setInterval(() => fetchState(), 1000);
+        return () => clearInterval(timer);
+    }, [visible, fetchState]);
+
+    useEffect(() => {
+        if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
+            props.onAuthenticationSuccess(redirectionURL);
+        }
+    }, [state, redirectionURL, props]);
 
     const disabled = props.disabled;
 
@@ -150,7 +171,7 @@ const FirstFactorForm = function (props: Props) {
                     />
                 </Grid>
                 {props.rememberMe ? (
-                    <Grid item xs={12} className={classnames(style.actionRow)}>
+                    <Grid item xs={12} className={classnames(styles.actionRow)}>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -172,7 +193,7 @@ const FirstFactorForm = function (props: Props) {
                                     color="primary"
                                 />
                             }
-                            className={style.rememberMe}
+                            className={styles.rememberMe}
                             label={translate("Remember me")}
                         />
                     </Grid>
@@ -190,12 +211,13 @@ const FirstFactorForm = function (props: Props) {
                     </Button>
                 </Grid>
                 {props.resetPassword ? (
-                    <Grid item xs={12} className={classnames(style.actionRow, style.flexEnd)}>
+                    <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
                         <Link
                             id="reset-password-button"
                             component="button"
                             onClick={handleResetPasswordClick}
-                            className={style.resetLink}
+                            className={styles.resetLink}
+                            underline="hover"
                         >
                             {translate("Reset password?")}
                         </Link>
@@ -208,7 +230,7 @@ const FirstFactorForm = function (props: Props) {
 
 export default FirstFactorForm;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     actionRow: {
         display: "flex",
         flexDirection: "row",

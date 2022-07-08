@@ -1,6 +1,9 @@
 package regulation
 
 import (
+	"context"
+	"net"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -16,4 +19,17 @@ type Regulator struct {
 	storageProvider storage.RegulatorProvider
 
 	clock utils.Clock
+}
+
+// Context represents a regulator context.
+type Context interface {
+	context.Context
+	MetricsRecorder
+
+	RemoteIP() (ip net.IP)
+}
+
+// MetricsRecorder represents the methods used to record regulation.
+type MetricsRecorder interface {
+	RecordAuthentication(success, banned bool, authType string)
 }

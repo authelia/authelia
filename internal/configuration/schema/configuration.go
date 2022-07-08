@@ -20,6 +20,7 @@ type Configuration struct {
 	Storage               StorageConfiguration               `koanf:"storage"`
 	Notifier              NotifierConfiguration              `koanf:"notifier"`
 	Server                ServerConfiguration                `koanf:"server"`
+	Telemetry             TelemetryConfig                    `koanf:"telemetry"`
 	Webauthn              WebauthnConfiguration              `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration        `koanf:"password_policy"`
 }

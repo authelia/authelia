@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -22,9 +23,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmd = &cobra.Command{
 		Use:     "authelia",
+		Short:   fmt.Sprintf(fmtCmdAutheliaShort, version),
+		Long:    fmt.Sprintf(fmtCmdAutheliaLong, version),
 		Example: cmdAutheliaExample,
-		Short:   fmt.Sprintf("authelia %s", version),
-		Long:    fmt.Sprintf(fmtAutheliaLong, version),
 		Version: version,
 		Args:    cobra.NoArgs,
 		PreRun:  newCmdWithConfigPreRun(true, true, true),
@@ -35,11 +36,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newBuildInfoCmd(),
-		NewCertificatesCmd(),
-		newCompletionCmd(),
-		NewHashPasswordCmd(),
-		NewRSACmd(),
-		NewStorageCmd(),
+		newCryptoCmd(),
+		newHashPasswordCmd(),
+		newStorageCmd(),
 		newValidateConfigCmd(),
 		newAccessControlCommand(),
 	)
@@ -77,9 +76,65 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers)
 
-	s, listener := server.CreateServer(*config, providers)
+	runServers(config, providers, logger)
+}
 
-	logger.Fatal(s.Serve(listener))
+func runServers(config *schema.Configuration, providers middlewares.Providers, logger *logrus.Logger) {
+	wg := new(sync.WaitGroup)
+
+	wg.Add(2)
+
+	go func() {
+		err := startDefaultServer(config, providers)
+		if err != nil {
+			logger.Fatal(err)
+		}
+
+		wg.Done()
+	}()
+
+	go func() {
+		err := startMetricsServer(config, providers)
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}()
+
+	wg.Wait()
+}
+
+func startDefaultServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
+	svr, listener, err := server.CreateDefaultServer(*config, providers)
+
+	switch err {
+	case nil:
+		if err = svr.Serve(listener); err != nil {
+			return fmt.Errorf("error occurred during default server operation: %w", err)
+		}
+	default:
+		return fmt.Errorf("error occurred during default server startup: %w", err)
+	}
+
+	return nil
+}
+
+func startMetricsServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
+	if providers.Metrics == nil {
+		return nil
+	}
+
+	svr, listener, err := server.CreateMetricsServer(config.Telemetry.Metrics)
+
+	switch err {
+	case nil:
+		if err = svr.Serve(listener); err != nil {
+			return fmt.Errorf("error occurred during metrics server operation: %w", err)
+		}
+	default:
+		return fmt.Errorf("error occurred during metrics server startup: %w", err)
+	}
+
+	return nil
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {

@@ -1,7 +1,7 @@
-import { Level } from "@components/ColoredSnackbarContent";
+import { AlertColor } from "@mui/material";
 
 export interface Notification {
     message: string;
-    level: Level;
+    level: AlertColor;
     timeout: number;
 }

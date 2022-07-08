@@ -39,6 +39,10 @@ if [[ "${BUILDKITE_LABEL}" == ":debian: Package Builds" ]]; then
   cat .buildkite/annotations/artifacts | buildkite-agent annotate --style "success" --context "ctx-success"
 fi
 
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy Image" ]]; then
+  docker logout
+fi
+
 if [[ "${BUILDKITE_LABEL}" =~ ":docker: Deploy" ]]; then
   docker logout
   docker logout ghcr.io

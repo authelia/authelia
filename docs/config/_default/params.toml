@@ -1,0 +1,93 @@
+# Meta Data for SEO
+
+## Homepage
+title = "Authelia"
+titleSeparator = "-"
+titleAddition = "The Single Sign-On Multi-Factor portal for web apps"
+description = "Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO) for your applications via a web portal. It acts as a companion for common reverse proxies."
+
+## Documentation
+# docsVersion = "0.3"
+
+## Open Graph
+images = ["authelia.png"]
+ogLocale = "en_US"
+domainTLD = "authelia.com"
+titleHome = "Authelia"
+
+## Twitter Cards
+# twitterSite = ""
+# twitterCreator = ""
+
+## JSON-LD
+schemaType = "Organization"
+schemaName = "Authelia"
+schemaAuthor = "Authelia"
+# schemaAuthorTwitter = ""
+# schemaAuthorLinkedIn = ""
+schemaAuthorGitHub = "https://github.com/authelia"
+schemaLocale = "en-US"
+schemaLogo = "logo-doks.png"
+schemaLogoWidth = 512
+schemaLogoHeight = 512
+schemaImage = "doks.png"
+schemaImageWidth = 1280
+schemaImageHeight = 640
+# schemaTwitter = ""
+# schemaLinkedIn = ""
+schemaGitHub = "https://github.com/authelia/authelia"
+schemaSection = "blog"
+
+## Sitelinks Search Box
+siteLinksSearchBox = false
+
+## Chrome Browser
+themeColor = "#fff"
+
+# Images
+quality = 85
+bgColor = "#fff"
+landscapePhotoWidths = [900, 800, 700, 600, 500]
+portraitPhotoWidths = [800, 700, 600, 500]
+lqipWidth = "20x"
+smallLimit = "300"
+
+# Footer
+footer = "Powered by <a class=\"text-muted\" href=\"https://www.netlify.com/\">Netlify</a>, <a class=\"text-muted\" href=\"https://gohugo.io/\">Hugo</a>, and <a class=\"text-muted\" href=\"https://getdoks.org/\">Doks</a>"
+
+# Feed
+copyRight = "Copyright © 2016-%s Authelia"
+
+# Alert
+alert = true
+alertDismissable = true
+alertText = "Help us improve Authelia by taking this <a class=\"alert-link stretched-link\" href=\"https://forms.gle/aVw6J9jcez97EAhD6\">10 second survey.</a>"
+
+# Edit Page
+repoHost = "GitHub"
+docsRepo = "https://github.com/authelia/authelia"
+docsRepoBranch = "master"
+docsRepoSubPath = "docs"
+editPage = true
+lastMod = true
+
+[options]
+  lazySizes = true
+  clipBoard = true
+  instantPage = true
+  flexSearch = true
+  searchSectionsShow = ["overview", "configuration", "integration", "contributing", "reference"]
+  searchSectionsIndex = ["overview", "configuration", "integration", "contributing", "reference", "blog"]
+  darkMode = true
+  bootStrapJs = true
+  breadCrumb = true
+  highLight = true
+  kaTex = false
+  multilingualMode = false
+  docsVersioning = false
+  fullWidth = false
+
+[menu]
+  [menu.section]
+    auto = true
+    collapsibleSidebar = true

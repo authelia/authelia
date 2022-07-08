@@ -38,7 +38,7 @@ func TestShouldHashArgon2idPassword(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, argon2id, code)
 	assert.Equal(t, "BpLnfgDsc2WD8F2q", salt)
-	assert.Equal(t, "f+Y+KaS12gkNHN0Llc9kqDZuk1OYvoXj8t+5DcPbgY4", key)
+	assert.Equal(t, "kYempka60N8ETZ+EedP+Fn3z83mEPMl08RQEXTwY6u0", key)
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Iterations, parameters.GetInt("t", HashingDefaultArgon2idTime))
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Memory*1024, parameters.GetInt("m", HashingDefaultArgon2idMemory))
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Parallelism, parameters.GetInt("p", HashingDefaultArgon2idParallelism))
@@ -217,7 +217,7 @@ func TestShouldNotParseArgon2idHashWithWrongKeyLength(t *testing.T) {
 }
 
 func TestShouldParseArgon2idHash(t *testing.T) {
-	passwordHash, err := ParseHash("$argon2id$v=19$m=65536,t=1,p=8$NEwwcVNuQWlQMFpkMndxdg$LlHjiLxPB94pdmOiNwr7Bgy+uy3huSv6y9phCQ+mLls")
+	passwordHash, err := ParseHash("$argon2id$v=19$m=65536,t=3,p=4$NEwwcVNuQWlQMFpkMndxdg$LlHjiLxPB94pdmOiNwr7Bgy+uy3huSv6y9phCQ+mLls")
 	assert.NoError(t, err)
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Iterations, passwordHash.Iterations)
 	assert.Equal(t, schema.DefaultCIPasswordConfiguration.Parallelism, passwordHash.Parallelism)

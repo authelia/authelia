@@ -57,6 +57,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateServer(config, validator)
 
+	ValidateTelemetry(config, validator)
+
 	ValidateStorage(config.Storage, validator)
 
 	ValidateNotifier(&config.Notifier, validator)

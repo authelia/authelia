@@ -196,7 +196,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
 
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
-	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: option 'encryption_key' must is required")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: option 'encryption_key' is required")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {

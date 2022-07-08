@@ -119,8 +119,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
-	autheliaCtx, _ := middlewares.NewAutheliaCtx(request, configuration, providers)
-	mockAuthelia.Ctx = autheliaCtx
+	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
+	mockAuthelia.Ctx = ctx
 
 	logger, hook := test.NewNullLogger()
 	mockAuthelia.Hook = hook

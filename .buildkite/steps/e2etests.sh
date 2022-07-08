@@ -35,9 +35,9 @@ cat << EOF
     agents:
       suite: "all"
 EOF
+fi
 cat << EOF
     env:
       SUITE: "${SUITE_NAME}"
 EOF
-fi
 done

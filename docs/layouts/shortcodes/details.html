@@ -1,0 +1,4 @@
+<details{{ with .Get 1 }} {{ . | safeHTML }}{{ end -}}>
+  <summary>{{ with .Get 0 -}}{{ . | safeHTML }}{{ else -}}{{ errorf "No summary provided"}}{{ end -}}</summary>
+  {{ with .Inner -}}{{ . | markdownify}}{{ else -}}{{ errorf "No details provided"}}{{ end -}}
+</details>

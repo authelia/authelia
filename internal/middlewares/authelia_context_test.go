@@ -27,7 +27,9 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	}
 	nextCalled := false
 
-	middlewares.AutheliaMiddleware(configuration, providers)(func(actx *middlewares.AutheliaCtx) {
+	middleware := middlewares.NewBridgeBuilder(configuration, providers).Build()
+
+	middleware(func(actx *middlewares.AutheliaCtx) {
 		// Authelia context wraps the request.
 		assert.Equal(t, ctx, actx.RequestCtx)
 		nextCalled = true

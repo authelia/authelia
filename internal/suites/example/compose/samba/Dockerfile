@@ -8,5 +8,4 @@ apk add --no-cache \
   samba-dc \
   supervisor
 
-ADD init.sh /init.sh
 CMD /init.sh setup

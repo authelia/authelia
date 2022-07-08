@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/url"
 	"strings"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // SubjectMatcher is a matcher that takes a subject.
@@ -12,10 +14,14 @@ type SubjectMatcher interface {
 	IsMatch(subject Subject) (match bool)
 }
 
+// StringSubjectMatcher is a matcher that takes an input string and subject.
+type StringSubjectMatcher interface {
+	IsMatch(input string, subject Subject) (match bool)
+}
+
 // SubjectObjectMatcher is a matcher that takes both a subject and an object.
 type SubjectObjectMatcher interface {
 	IsMatch(subject Subject, object Object) (match bool)
-	String() string
 }
 
 // Subject represents the identity of a user for the purposes of ACL matching.
@@ -37,7 +43,8 @@ func (s Subject) IsAnonymous() bool {
 
 // Object represents a protected object for the purposes of ACL matching.
 type Object struct {
-	Scheme string
+	URL url.URL
+
 	Domain string
 	Path   string
 	Method string
@@ -45,7 +52,7 @@ type Object struct {
 
 // String is a string representation of the Object.
 func (o Object) String() string {
-	return fmt.Sprintf("%s://%s%s", o.Scheme, o.Domain, o.Path)
+	return o.URL.String()
 }
 
 // NewObjectRaw creates a new Object type from a URL and a method header.
@@ -55,19 +62,12 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 
 // NewObject creates a new Object type from a URL and a method header.
 func NewObject(targetURL *url.URL, method string) (object Object) {
-	object = Object{
-		Scheme: targetURL.Scheme,
+	return Object{
+		URL:    *targetURL,
 		Domain: targetURL.Hostname(),
+		Path:   utils.URLPathFullClean(targetURL),
 		Method: method,
 	}
-
-	if targetURL.RawQuery == "" {
-		object.Path = targetURL.Path
-	} else {
-		object.Path = targetURL.Path + "?" + targetURL.RawQuery
-	}
-
-	return object
 }
 
 // RuleMatchResult describes how well a rule matched a subject/object combo.

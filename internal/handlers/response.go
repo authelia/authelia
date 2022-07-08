@@ -219,7 +219,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		}
 	}
 
-	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType, ctx.RemoteIP()); err != nil {
+	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType); err != nil {
 		ctx.Logger.Errorf("Unable to mark %s authentication attempt by user '%s': %+v", authType, username, err)
 
 		return err
@@ -248,7 +248,9 @@ func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 
 // SetStatusCodeResponse writes a response status code and an appropriate body on either a
 // *fasthttp.RequestCtx or *middlewares.AutheliaCtx.
-func SetStatusCodeResponse(ctx responseWriter, statusCode int) {
+func SetStatusCodeResponse(ctx *fasthttp.RequestCtx, statusCode int) {
+	ctx.Response.Reset()
+	ctx.SetContentTypeBytes(headerContentTypeValueTextPlain)
 	ctx.SetStatusCode(statusCode)
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }

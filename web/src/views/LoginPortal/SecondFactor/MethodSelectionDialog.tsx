@@ -1,15 +1,7 @@
 import React, { ReactNode } from "react";
 
-import {
-    Dialog,
-    Grid,
-    makeStyles,
-    DialogContent,
-    Button,
-    DialogActions,
-    Typography,
-    useTheme,
-} from "@material-ui/core";
+import { Dialog, Grid, DialogContent, Button, DialogActions, Typography, useTheme, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -27,7 +19,7 @@ export interface Props {
 }
 
 const MethodSelectionDialog = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const theme = useTheme();
     const { t: translate } = useTranslation();
 
@@ -36,7 +28,7 @@ const MethodSelectionDialog = function (props: Props) {
     );
 
     return (
-        <Dialog open={props.open} className={style.root} onClose={props.onClose}>
+        <Dialog open={props.open} className={styles.root} onClose={props.onClose}>
             <DialogContent>
                 <Grid container justifyContent="center" spacing={1} id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
@@ -76,7 +68,7 @@ const MethodSelectionDialog = function (props: Props) {
 
 export default MethodSelectionDialog;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         textAlign: "center",
     },
@@ -91,7 +83,7 @@ interface MethodItemProps {
 }
 
 function MethodItem(props: MethodItemProps) {
-    const style = makeStyles((theme) => ({
+    const style = makeStyles((theme: Theme) => ({
         item: {
             paddingTop: theme.spacing(4),
             paddingBottom: theme.spacing(4),
