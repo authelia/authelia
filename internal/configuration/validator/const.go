@@ -123,6 +123,11 @@ const (
 	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
 )
 
+// Telemetry Error constants.
+const (
+	errFmtTelemetryMetricsScheme = "telemetry: metrics: option 'address' must have a scheme 'tcp://' but it is configured as '%s'"
+)
+
 // OpenID Error constants.
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +

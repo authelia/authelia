@@ -29,7 +29,7 @@ var (
 )
 
 var (
-	headerContentTypeValueDefault = []byte("text/plain; charset=utf-8")
+	headerContentTypeValueTextPlain = []byte("text/plain; charset=utf-8")
 )
 
 const (
