@@ -2,7 +2,7 @@
 title: "authelia-scripts bootstrap"
 description: "Reference for the authelia-scripts bootstrap command."
 lead: ""
-date: 2022-07-08T12:23:30+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

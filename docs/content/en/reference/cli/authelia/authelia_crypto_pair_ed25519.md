@@ -2,7 +2,7 @@
 title: "authelia crypto pair ed25519"
 description: "Reference for the authelia crypto pair ed25519 command."
 lead: ""
-date: 2022-07-08T12:23:30+10:00
+date: 2022-06-27T18:27:57+10:00
 draft: false
 images: []
 menu:
