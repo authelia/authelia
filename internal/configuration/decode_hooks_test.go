@@ -774,7 +774,6 @@ func TestStringToAddressHookFunc(t *testing.T) {
 		expected interface{}
 		err      string
 		decode   bool
-		wantGrps []string
 	}{
 		{
 			name:     "ShouldDecodeNonPtr",
