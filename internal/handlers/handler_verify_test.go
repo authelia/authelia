@@ -1314,3 +1314,67 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 }
+
+func TestIsSessionInactiveTooLong(t *testing.T) {
+	testCases := []struct {
+		name       string
+		have       *session.UserSession
+		now        time.Time
+		inactivity time.Duration
+		expected   bool
+	}{
+		{
+			name:       "ShouldNotBeInactiveTooLong",
+			have:       &session.UserSession{Username: "john", LastActivity: 1656994960},
+			now:        time.Unix(1656994970, 0),
+			inactivity: time.Second * 90,
+			expected:   false,
+		},
+		{
+			name:       "ShouldNotBeInactiveTooLongIfAnonymous",
+			have:       &session.UserSession{Username: "", LastActivity: 1656994960},
+			now:        time.Unix(1656994990, 0),
+			inactivity: time.Second * 20,
+			expected:   false,
+		},
+		{
+			name:       "ShouldNotBeInactiveTooLongIfRemembered",
+			have:       &session.UserSession{Username: "john", LastActivity: 1656994960, KeepMeLoggedIn: true},
+			now:        time.Unix(1656994990, 0),
+			inactivity: time.Second * 20,
+			expected:   false,
+		},
+		{
+			name:       "ShouldNotBeInactiveTooLongIfDisabled",
+			have:       &session.UserSession{Username: "john", LastActivity: 1656994960},
+			now:        time.Unix(1656994990, 0),
+			inactivity: time.Second * 0,
+			expected:   false,
+		},
+		{
+			name:       "ShouldBeInactiveTooLong",
+			have:       &session.UserSession{Username: "john", LastActivity: 1656994960},
+			now:        time.Unix(4656994990, 0),
+			inactivity: time.Second * 1,
+			expected:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := mocks.NewMockAutheliaCtx(t)
+
+			defer ctx.Close()
+
+			ctx.Ctx.Configuration.Session.Inactivity = tc.inactivity
+			ctx.Ctx.Providers.SessionProvider = session.NewProvider(ctx.Ctx.Configuration.Session, nil)
+
+			ctx.Clock.Set(tc.now)
+			ctx.Ctx.Clock = &ctx.Clock
+
+			actual := isSessionInactiveTooLong(ctx.Ctx, tc.have, tc.have.Username == "")
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
