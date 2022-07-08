@@ -166,6 +166,34 @@ func (mr *MockStorageMockRecorder) DeleteTOTPConfiguration(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).DeleteTOTPConfiguration), arg0, arg1)
 }
 
+// DeleteWebauthnDevice mocks base method.
+func (m *MockStorage) DeleteWebauthnDevice(arg0 context.Context, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteWebauthnDevice", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteWebauthnDevice indicates an expected call of DeleteWebauthnDevice.
+func (mr *MockStorageMockRecorder) DeleteWebauthnDevice(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWebauthnDevice", reflect.TypeOf((*MockStorage)(nil).DeleteWebauthnDevice), arg0, arg1)
+}
+
+// DeleteWebauthnDeviceByUsername mocks base method.
+func (m *MockStorage) DeleteWebauthnDeviceByUsername(arg0 context.Context, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteWebauthnDeviceByUsername", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteWebauthnDeviceByUsername indicates an expected call of DeleteWebauthnDeviceByUsername.
+func (mr *MockStorageMockRecorder) DeleteWebauthnDeviceByUsername(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWebauthnDeviceByUsername", reflect.TypeOf((*MockStorage)(nil).DeleteWebauthnDeviceByUsername), arg0, arg1, arg2)
+}
+
 // FindIdentityVerification mocks base method.
 func (m *MockStorage) FindIdentityVerification(arg0 context.Context, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
