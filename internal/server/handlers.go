@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"strconv"
@@ -10,9 +9,11 @@ import (
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/expvarhandler"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -70,10 +71,7 @@ func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 			"status_code": statusCode,
 		}).WithError(err).Error(message)
 
-		ctx.Response.Reset()
-		ctx.SetStatusCode(statusCode)
-		ctx.SetContentType("text/plain; charset=utf-8")
-		ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
+		handlers.SetStatusCodeResponse(ctx, statusCode)
 	}
 }
 
@@ -93,13 +91,9 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
-func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
-	handlers.SetStatusCodeResponse(ctx, fasthttp.StatusMethodNotAllowed)
-}
-
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
-	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.DisableResetPassword)
+	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable)
 
 	resetPasswordCustomURL := config.AuthenticationBackend.PasswordReset.CustomURL.String()
 
@@ -168,18 +162,20 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	r.GET("/api/configuration/password-policy", middlewareAPI(handlers.PasswordPolicyConfigurationGET))
 
-	r.GET("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
-	r.HEAD("/api/verify", middlewareAPI(handlers.VerifyGET(config.AuthenticationBackend)))
+	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
+
+	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
-	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second)
+	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
 
 	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST(delayFunc)))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.
-	if !config.AuthenticationBackend.DisableResetPassword &&
+	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
 		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))
@@ -324,14 +320,28 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/oidc/revoke", policyCORSRevocation.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
 	}
 
+	r.HandleMethodNotAllowed = true
+	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
 	r.NotFound = handleNotFound(middleware(serveIndexHandler))
 
-	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = handleMethodNotAllowed
-
+	handler := middlewares.LogRequest(r.Handler)
 	if config.Server.Path != "" {
-		return middlewares.StripPath(config.Server.Path)(middlewares.LogRequest(r.Handler))
+		handler = middlewares.StripPath(config.Server.Path)(handler)
 	}
 
-	return middlewares.LogRequest(r.Handler)
+	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)
+
+	return handler
+}
+
+func handleMetrics() fasthttp.RequestHandler {
+	r := router.New()
+
+	r.GET("/metrics", fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
+
+	r.HandleMethodNotAllowed = true
+	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
+	r.NotFound = handlers.Status(fasthttp.StatusNotFound)
+
+	return r.Handler
 }

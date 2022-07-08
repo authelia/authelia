@@ -1,6 +1,7 @@
 import React from "react";
 
-import { Grid, makeStyles, Button } from "@material-ui/core";
+import { Grid, Button, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +14,7 @@ export interface Props {
 }
 
 const AuthenticatedView = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
@@ -29,7 +30,7 @@ const AuthenticatedView = function (props: Props) {
                         {translate("Logout")}
                     </Button>
                 </Grid>
-                <Grid item xs={12} className={style.mainContainer}>
+                <Grid item xs={12} className={styles.mainContainer}>
                     <Authenticated />
                 </Grid>
             </Grid>
@@ -39,7 +40,7 @@ const AuthenticatedView = function (props: Props) {
 
 export default AuthenticatedView;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     mainContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",

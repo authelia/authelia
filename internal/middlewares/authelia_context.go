@@ -68,14 +68,9 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
-	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
-
-	if marshalErr != nil {
-		ctx.Logger.Error(marshalErr)
+	if replyErr := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); replyErr != nil {
+		ctx.Logger.Error(replyErr)
 	}
-
-	ctx.SetContentType(contentTypeApplicationJSON)
-	ctx.SetBody(b)
 }
 
 // ReplyError reply with an error but does not display any stack trace in the logs.
@@ -86,24 +81,52 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 		ctx.Logger.Error(marshalErr)
 	}
 
-	ctx.SetContentType(contentTypeApplicationJSON)
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
 	ctx.SetBody(b)
 	ctx.Logger.Debug(err)
 }
 
+// ReplyStatusCode resets a response and replies with the given status code and relevant message.
+func (ctx *AutheliaCtx) ReplyStatusCode(statusCode int) {
+	ctx.Response.Reset()
+	ctx.SetStatusCode(statusCode)
+	ctx.SetContentTypeBytes(contentTypeTextPlain)
+	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
+}
+
+// ReplyJSON writes a JSON response.
+func (ctx *AutheliaCtx) ReplyJSON(data interface{}, statusCode int) (err error) {
+	var (
+		body []byte
+	)
+
+	if body, err = json.Marshal(data); err != nil {
+		return fmt.Errorf("unable to marshal JSON body: %w", err)
+	}
+
+	if statusCode > 0 {
+		ctx.SetStatusCode(statusCode)
+	}
+
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetBody(body)
+
+	return nil
+}
+
 // ReplyUnauthorized response sent when user is unauthorized.
 func (ctx *AutheliaCtx) ReplyUnauthorized() {
-	ctx.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusUnauthorized), fasthttp.StatusUnauthorized)
+	ctx.ReplyStatusCode(fasthttp.StatusUnauthorized)
 }
 
 // ReplyForbidden response sent when access is forbidden to user.
 func (ctx *AutheliaCtx) ReplyForbidden() {
-	ctx.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusForbidden), fasthttp.StatusForbidden)
+	ctx.ReplyStatusCode(fasthttp.StatusForbidden)
 }
 
 // ReplyBadRequest response sent when bad request has been sent.
 func (ctx *AutheliaCtx) ReplyBadRequest() {
-	ctx.RequestCtx.Error(fasthttp.StatusMessage(fasthttp.StatusBadRequest), fasthttp.StatusBadRequest)
+	ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
 }
 
 // XForwardedProto return the content of the X-Forwarded-Proto header.
@@ -208,7 +231,7 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 
 // ReplyOK is a helper method to reply ok.
 func (ctx *AutheliaCtx) ReplyOK() {
-	ctx.SetContentType(contentTypeApplicationJSON)
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
 	ctx.SetBody(okMessageBytes)
 }
 
@@ -235,15 +258,7 @@ func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
 
 // SetJSONBody Set json body.
 func (ctx *AutheliaCtx) SetJSONBody(value interface{}) error {
-	b, err := json.Marshal(OKResponse{Status: "OK", Data: value})
-	if err != nil {
-		return fmt.Errorf("unable to marshal JSON body: %w", err)
-	}
-
-	ctx.SetContentType(contentTypeApplicationJSON)
-	ctx.SetBody(b)
-
-	return nil
+	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
 }
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
@@ -286,9 +301,8 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 
 	var requestURI string
 
-	scheme := forwardedProto
-	scheme = append(scheme, protoHostSeparator...)
-	requestURI = string(append(scheme,
+	forwardedProto = append(forwardedProto, protoHostSeparator...)
+	requestURI = string(append(forwardedProto,
 		append(forwardedHost, forwardedURI...)...))
 
 	parsedURL, err := url.ParseRequestURI(requestURI)
@@ -330,7 +344,7 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 		statusCode = fasthttp.StatusFound
 	}
 
-	ctx.SetContentType(contentTypeTextHTML)
+	ctx.SetContentTypeBytes(contentTypeTextHTML)
 	ctx.SetStatusCode(statusCode)
 
 	u := fasthttp.AcquireURI()
@@ -338,9 +352,18 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	ctx.URI().CopyTo(u)
 	u.Update(uri)
 
-	ctx.Response.Header.SetBytesV("Location", u.FullURI())
+	ctx.Response.Header.SetBytesKV(headerLocation, u.FullURI())
 
-	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%s</a>", utils.StringHTMLEscape(string(u.FullURI())), fasthttp.StatusMessage(statusCode)))
+	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u.FullURI())), statusCode, fasthttp.StatusMessage(statusCode)))
 
 	fasthttp.ReleaseURI(u)
+}
+
+// RecordAuthentication records authentication metrics.
+func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method string) {
+	if ctx.Providers.Metrics == nil {
+		return
+	}
+
+	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
 }

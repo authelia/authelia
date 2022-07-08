@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useRef, useState, ReactNode } from "react";
 
-import { Button, makeStyles } from "@material-ui/core";
+import { Button, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -40,7 +41,7 @@ export interface Props {
 }
 
 const PushNotificationMethod = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
     const mounted = useIsMountedRef();
@@ -216,7 +217,7 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={fetchDuoDevicesFunc}
             onRegisterClick={() => window.open(enroll_url, "_blank")}
         >
-            <div className={style.icon}>{icon}</div>
+            <div className={styles.icon}>{icon}</div>
             <div className={state !== State.Failure ? "hidden" : ""}>
                 <Button color="secondary" onClick={signInFunc}>
                     Retry
@@ -228,7 +229,7 @@ const PushNotificationMethod = function (props: Props) {
 
 export default PushNotificationMethod;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     icon: {
         width: "64px",
         height: "64px",

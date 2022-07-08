@@ -15,7 +15,7 @@
 theme: light
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
-## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+## set using a secret: https://www.authelia.com/c/secrets
 jwt_secret: a_very_important_secret
 
 ## Default redirection URL
@@ -52,7 +52,7 @@ server:
   # asset_path: /config/assets/
 
   ## Buffers usually should be configured to be the same value.
-  ## Explanation at https://www.authelia.com/docs/configuration/server.html
+  ## Explanation at https://www.authelia.com/c/server#buffer-sizes
   ## Read buffer size adjusts the server's max incoming request size in bytes.
   ## Write buffer size does the same for outgoing responses.
   read_buffer_size: 4096
@@ -102,6 +102,21 @@ log:
   # keep_stdout: false
 
 ##
+## Telemetry Configuration
+##
+telemetry:
+
+  ##
+  ## Metrics Configuration
+  ##
+  metrics:
+    ## Enable Metrics.
+    enabled: false
+
+    ## The address to listen on for metrics. This should be on a different port to the main server.port value.
+    address: tcp://0.0.0.0:9959
+
+##
 ## TOTP Configuration
 ##
 ## Parameters used for TOTP generation.
@@ -114,13 +129,13 @@ totp:
 
   ## The TOTP algorithm to use.
   ## It is CRITICAL you read the documentation before changing this option:
-  ## https://www.authelia.com/docs/configuration/one-time-password.html#algorithm
+  ## https://www.authelia.com/c/totp#algorithm
   algorithm: sha1
 
   ## The number of digits a user has to input. Must either be 6 or 8.
   ## Changing this option only affects newly generated TOTP configurations.
   ## It is CRITICAL you read the documentation before changing this option:
-  ## https://www.authelia.com/docs/configuration/one-time-password.html#digits
+  ## https://www.authelia.com/c/totp#digits
   digits: 6
 
   ## The period in seconds a one-time password is valid for.
@@ -130,7 +145,8 @@ totp:
   ## The skew controls number of one-time passwords either side of the current one that are valid.
   ## Warning: before changing skew read the docs link below.
   skew: 1
-  ## See: https://www.authelia.com/docs/configuration/one-time-password.html#input-validation to read the documentation.
+  ## See: https://www.authelia.com/c/totp#input-validation to read
+  ## the documentation.
 
   ## The size of the generated shared secrets. Default is 32 and is sufficient in most use cases, minimum is 20.
   secret_size: 32
@@ -166,7 +182,7 @@ duo_api:
   disable: false
   hostname: api-123456789.example.com
   integration_key: ABCDEF
-  ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+  ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
   secret_key: 1234567890abcdefghifjkl
   enable_self_enrollment: false
 
@@ -200,11 +216,11 @@ ntp:
 ##
 ## The available providers are: `file`, `ldap`. You must use only one of these providers.
 authentication_backend:
-  ## Disable both the HTML element and the API for reset password functionality.
-  disable_reset_password: false
 
   ## Password Reset Options.
   password_reset:
+    ## Disable both the HTML element and the API for reset password functionality.
+    disable: false
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
@@ -215,8 +231,8 @@ authentication_backend:
   ## always belong to groups they belonged to at the time of login even if they have been removed from them in LDAP.
   ## To force update on every request you can set this to '0' or 'always', this will increase processor demand.
   ## See the below documentation for more information.
-  ## Duration Notation docs:  https://www.authelia.com/docs/configuration/index.html#duration-notation-format
-  ## Refresh Interval docs: https://www.authelia.com/docs/configuration/authentication/ldap.html#refresh-interval
+  ## Duration Notation docs:  https://www.authelia.com/c/common#duration-notation-format
+  ## Refresh Interval docs: https://www.authelia.com/c/1fa#refresh-interval
   refresh_interval: 5m
 
   ##
@@ -234,7 +250,7 @@ authentication_backend:
     ##
     ## Depending on the option here certain other values in this section have a default value, notably all of the
     ## attribute mappings have a default value that this config overrides, you can read more about these default values
-    ## at https://www.authelia.com/docs/configuration/authentication/ldap.html#defaults
+    ## at https://www.authelia.com/c/ldap#defaults
     implementation: custom
 
     ## The url to the ldap server. Format: <scheme>://<address>[:<port>].
@@ -279,7 +295,7 @@ authentication_backend:
 
     ## The users filter used in search queries to find the user profile based on input filled in login form.
     ## Various placeholders are available in the user filter which you can read about in the documentation which can
-    ## be found at: https://www.authelia.com/docs/configuration/authentication/ldap.html#users-filter-replacements
+    ## be found at: https://www.authelia.com/c/ldap#users-filter-replacements
     ##
     ## Recommended settings are as follows:
     ## - Microsoft Active Directory: (&({username_attribute}={input})(objectCategory=person)(objectClass=user))
@@ -297,7 +313,7 @@ authentication_backend:
 
     ## The groups filter used in search queries to find the groups based on relevant authenticated user.
     ## Various placeholders are available in the groups filter which you can read about in the documentation which can
-    ## be found at: https://www.authelia.com/docs/configuration/authentication/ldap.html#groups-filter-replacements
+    ## be found at: https://www.authelia.com/c/ldap#groups-filter-replacements
     ##
     ## If your groups use the `groupOfUniqueNames` structure use this instead:
     ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
@@ -319,7 +335,7 @@ authentication_backend:
 
     ## The username and password of the admin user.
     user: cn=admin,dc=example,dc=com
-    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
     password: password
 
   ##
@@ -330,9 +346,9 @@ authentication_backend:
   ## to be scaled to more than one instance. The options under 'password' have sane defaults, and as it has security
   ## implications it is highly recommended you leave the default values. Before considering changing these settings
   ## please read the docs page below:
-  ## https://www.authelia.com/docs/configuration/authentication/file.html#password-hash-algorithm-tuning
+  ## https://www.authelia.com/r/passwords#tuning
   ##
-  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   # file:
   #   path: /config/users_database.yml
@@ -509,15 +525,15 @@ session:
   domain: example.com
 
   ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
-  ## Please read https://www.authelia.com/docs/configuration/session/#same_site
+  ## Please read https://www.authelia.com/c/session#same_site
   same_site: lax
 
   ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
-  ## Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+  ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
   secret: insecure_session_secret
 
   ## The value for expiration, inactivity, and remember_me_duration are in seconds or the duration notation format.
-  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
+  ## See: https://www.authelia.com/c/common#duration-notation-format
   ## All three of these values affect the cookie/session validity period. Longer periods are considered less secure
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
@@ -536,7 +552,7 @@ session:
   ##
   ## Redis Provider
   ##
-  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   redis:
     host: 127.0.0.1
@@ -547,7 +563,7 @@ session:
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
     # username: authelia
 
-    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
     password: authelia
 
     ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
@@ -610,11 +626,11 @@ regulation:
 
   ## The time range during which the user can attempt login before being banned. The user is banned if the
   ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration notation.
-  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
+  ## See: https://www.authelia.com/c/common#duration-notation-format
   find_time: 2m
 
   ## The length of time before a banned user can login again. Ban Time accepts duration notation.
-  ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
+  ## See: https://www.authelia.com/c/common#duration-notation-format
   ban_time: 5m
 
 ##
@@ -632,7 +648,7 @@ storage:
   ## This stores the data in a SQLite3 Database.
   ## This is only recommended for lightweight non-stateful installations.
   ##
-  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   # local:
   #   path: /config/db.sqlite3
@@ -645,7 +661,7 @@ storage:
     port: 3306
     database: authelia
     username: authelia
-    ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
     password: mypassword
     timeout: 5s
 
@@ -658,7 +674,7 @@ storage:
   #   database: authelia
   #   schema: public
   #   username: authelia
-  #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+  #   ## Password can also be set using a secret: https://www.authelia.com/c/secrets
   #   password: mypassword
   #   timeout: 5s
   #   ssl:
@@ -679,7 +695,7 @@ notifier:
   ##
   ## File System (Notification Provider)
   ##
-  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/docs/features/statelessness.html
+  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
   ##
   # filesystem:
   #   filename: /config/notification.txt
@@ -708,7 +724,7 @@ notifier:
     username: test
 
     ## The password used for SMTP authentication.
-    ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    ## Can also be set using a secret: https://www.authelia.com/c/secrets
     password: password
 
     ## The sender is used to is used for the MAIL FROM command and the FROM header.
@@ -753,17 +769,42 @@ notifier:
   ## OpenID Connect (Identity Provider)
   ##
   ## It's recommended you read the documentation before configuration of this section:
-  ## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
+  ## https://www.authelia.com/c/oidc
   # oidc:
     ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
-    ## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
+    ## HMAC Secret can also be set using a secret: https://www.authelia.com/c/secrets
     # hmac_secret: this_is_a_secret_abc123abc123abc
 
     ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
-    ## Issuer Private Key can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    ## Issuer Private Key can also be set using a secret: https://www.authelia.com/c/secrets
     # issuer_private_key: |
-    #   --- KEY START
-    #   --- KEY END
+    #   -----BEGIN RSA PRIVATE KEY-----
+    #   MXIEogIB$AKCAQEAxZVJP3WF//PG2fLQoEC9DtdiFG/+00vqlbVzz47nyxKONIPI
+    #   lmL3UdmqpGTKMe/5Brqse4ZAKlQHiDbwzK9ypnfigtHuvh/JO0S7ChP70RC67ed1
+    #   HV1nyfz5eW3llbtGJPrlYLqITNgctHp6zmRUFtSzPj9qFvozI93LJi492yL1+vu8
+    #   Un3Dm8+Qq6XM2tPdEcldB/dtBwOWoF+8eOOVsu0TDuB5bwlhBVGJuSAuzBPRS2bF
+    #   Ga4uk0JDdkDOMCEQxC5uWDFxgfERSMFyfLVWD47woDbuWEBq10c0z+dpWPMp7Ain
+    #   YnnkqicwCN88Z0zid6MmMQ65F4+9Hc+qC/p6xwIDAQABAoIBAGlhaAHKor+Su3o/
+    #   AXqXTL5/rbYMzbLQiLt0XeJT69jpeqMTroZXHmWvXE3128mqnf0yzw/K2Ko6yxGh
+    #   i+j/onya8FqpsVYCCgfsbn2/js1AyRJeIp6Y1ORsYnqbXJnxmkXa80AV/OBPW2/+
+    #   60TtSdQrebY3iFPc+i2k+9bPTvpyyDLKlz8UwdZG+k5uyYNIyQTccz+PjwsIvDij
+    #   7tKYamhhLN3QXt3/aZTFpjTgezP4WyriZxjWrddHowc47q2rwNS95ND39JcysJAc
+    #   0Pcbu8A5lVa7Fx33uOtzDfKWIW7xVEN+OtPgN+FbTjXcXk5IZedl+pW5lU5P++G/
+    #   ZPvz+WECgYEA9g6HwdODW3e68bOqsFoKg35+vfUFMzlyMF8HFylNVfnLpTEDr637
+    #   owzMFvcUxVd71b+gV5nnnbI+riUFIgyR8vhCjhy4moopDPahC4/KwN4NG6uz+i1h
+    #   AB6D5+zn2BjnO/5xMMFGlApWtRNmJVGYlNDj3bXKh2VXzzy03VNeD8kCgYEAzZFL
+    #   OlzoRB1HKpTWIECcuvxofMxLOLb3zs0k2t/FYNYIpovmGWCCAULz13y53e5+/+5m
+    #   7I9VUZJFaIhaZ36qVBApCKdru69pZMkWCcQO9jELFcx51Ez7OgJWzu7GS1QJCPKC
+    #   fEDxI0rZK21j93/Sl/nUnEir7CYpQ+wvCaGuHg8CgYAXgbncfY1+DokwkB6NbHy2
+    #   pT4Mfbz6cNGE538w6kQ2I4AeDvmwLentYMqaow478CinegAiflSPTzkHwAemghbr
+    #   ZGZPV1UXhn13fJRUG2+eT1hnPVcbXnx223N0k8Bud6qXo65CnyRT/kzcTbcjd5Eh
+    #   Hne2daicmMTzynPo9Q72aQKBgBmobO9X8VWvIdbaxO85oVZlctVA2pK1o7CYQmVf
+    #   UM+JZ4MCKzI3rYJizPS0iK5+ujNPmmEkcs2/qBIoEsCgOrpLWhPOcc/3UPxXbPzD
+    #   D+sCrBOIdhxdj23qJNOnUfDNCGOpgUfpAzAYg4q8GKInvi1h7XukRnEvQi9MJ4LY
+    #   P1dZAoGASGcGnTMkmeSXP8ux+dvQJAiJskn/sJIgBZ5uq5GRCeLBUosRSVxM75UK
+    #   vAh/c/RBj+pYXVKuPuHGZCQJxsdcRXzXNGouUtgbaYML5Me/Hagt20QzDRBfuGBg
+    #   qeZBJaXhjElvw6PUWtg4x+LYRCBpq/bS3LK3ozZrSTukVkKDegw=
+    #   -----END RSA PRIVATE KEY-----
 
     ## The lifespans configure the expiration for these token types.
     # access_token_lifespan: 1h
@@ -774,8 +815,7 @@ notifier:
     ## Enables additional debug messages.
     # enable_client_debug_messages: false
 
-    ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
-    ## security reasons.
+    ## SECURITY NOTICE: It's not recommended changing this option and values below 8 are strongly discouraged.
     # minimum_parameter_entropy: 8
 
     ## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it set to 'never'

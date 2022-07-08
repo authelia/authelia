@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, Grid, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Button, Grid, IconButton, InputAdornment, Theme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -17,7 +18,7 @@ import { completeResetPasswordProcess, resetPassword } from "@services/ResetPass
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const ResetPasswordStep2 = function () {
-    const style = useStyles();
+    const styles = useStyles();
     const location = useLocation();
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
@@ -110,7 +111,7 @@ const ResetPasswordStep2 = function () {
 
     return (
         <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">
-            <Grid container className={style.root} spacing={2}>
+            <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField
                         id="password1-textfield"
@@ -121,7 +122,7 @@ const ResetPasswordStep2 = function () {
                         disabled={formDisabled}
                         onChange={(e) => setPassword1(e.target.value)}
                         error={errorPassword1}
-                        className={classnames(style.fullWidth)}
+                        className={classnames(styles.fullWidth)}
                         autoComplete="new-password"
                         InputProps={{
                             endAdornment: (
@@ -130,6 +131,7 @@ const ResetPasswordStep2 = function () {
                                         aria-label="toggle password visibility"
                                         onClick={(e) => setShowPassword(!showPassword)}
                                         edge="end"
+                                        size="large"
                                     >
                                         {showPassword ? <VisibilityOff></VisibilityOff> : <Visibility></Visibility>}
                                     </IconButton>
@@ -157,7 +159,7 @@ const ResetPasswordStep2 = function () {
                                 ev.preventDefault();
                             }
                         }}
-                        className={classnames(style.fullWidth)}
+                        className={classnames(styles.fullWidth)}
                         autoComplete="new-password"
                     />
                 </Grid>
@@ -169,7 +171,7 @@ const ResetPasswordStep2 = function () {
                         name="password1"
                         disabled={formDisabled}
                         onClick={handleResetClick}
-                        className={style.fullWidth}
+                        className={styles.fullWidth}
                     >
                         {translate("Reset")}
                     </Button>
@@ -181,7 +183,7 @@ const ResetPasswordStep2 = function () {
                         color="primary"
                         name="password2"
                         onClick={handleCancelClick}
-                        className={style.fullWidth}
+                        className={styles.fullWidth}
                     >
                         {translate("Cancel")}
                     </Button>
@@ -193,7 +195,7 @@ const ResetPasswordStep2 = function () {
 
 export default ResetPasswordStep2;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     root: {
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),

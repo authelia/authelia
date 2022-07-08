@@ -4,6 +4,9 @@
     ":semanticCommitTypeAll(build)",
     ":separatePatchReleases"
   ],
+  "ignorePaths": [
+  	"docs/**"
+  ],
   "ignorePresets": [
     ":combinePatchMinorReleases",
     "helpers:disableTypesNodeMajor",

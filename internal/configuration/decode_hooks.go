@@ -10,6 +10,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -206,6 +207,46 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 
 		if result == nil {
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, kindStr, errDecodeNonPtrMustHaveValue)
+		}
+
+		return *result, nil
+	}
+}
+
+// StringToAddressHookFunc decodes a string into an Address or *Address.
+func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		kindStr := "Address"
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			kindStr = "*" + kindStr
+		}
+
+		expectedType := reflect.TypeOf(schema.Address{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.Address
+
+		if result, err = schema.NewAddressFromString(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, kindStr, err)
+		}
+
+		if ptr {
+			return result, nil
 		}
 
 		return *result, nil

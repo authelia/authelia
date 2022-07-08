@@ -2,6 +2,7 @@
 extends: default
 
 ignore: |
+  docs/pnpm-lock.yaml
   internal/configuration/test_resources/config_bad_quoting.yml
   web/pnpm-lock.yaml
   web/node_modules/

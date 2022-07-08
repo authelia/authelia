@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-import { Snackbar } from "@material-ui/core";
+import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
 
-import ColoredSnackbarContent from "@components/ColoredSnackbarContent";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 
@@ -10,12 +9,18 @@ export interface Props {
     onClose: () => void;
 }
 
+type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
+
+function NotificationBarTransition(props: NotificationBarTransitionProps) {
+    return <Slide {...props} direction={"left"} />;
+}
+
 const NotificationBar = function (props: Props) {
     const [tmpNotification, setTmpNotification] = useState(null as Notification | null);
     const { notification } = useNotifications();
 
     useEffect(() => {
-        if (notification && notification !== null) {
+        if (notification) {
             setTmpNotification(notification);
         }
     }, [notification, setTmpNotification]);
@@ -28,15 +33,18 @@ const NotificationBar = function (props: Props) {
             anchorOrigin={{ vertical: "top", horizontal: "right" }}
             autoHideDuration={tmpNotification ? tmpNotification.timeout * 1000 : 10000}
             onClose={props.onClose}
+            TransitionComponent={NotificationBarTransition}
             TransitionProps={{
                 onExited: () => setTmpNotification(null),
             }}
         >
-            <ColoredSnackbarContent
-                className="notification"
-                level={tmpNotification ? tmpNotification.level : "info"}
-                message={tmpNotification ? tmpNotification.message : ""}
-            />
+            {tmpNotification ? (
+                <Alert severity={tmpNotification.level} variant={"filled"} elevation={6} className={"notification"}>
+                    {tmpNotification.message}
+                </Alert>
+            ) : (
+                <Alert severity={"success"} elevation={6} variant={"filled"} className={"notification"} />
+            )}
         </Snackbar>
     );
 };

@@ -1,0 +1,20 @@
+{
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD024": false,
+    "MD026": false,
+    "MD033": false,
+    "MD034": false,
+    "emphasis-style": {
+      "style": "asterisk"
+    },
+    "strong-style": {
+      "style": "underscore"
+    },
+    "ul-style": {
+      "style": "asterisk"
+    }
+  },
+  "ignores": ["node_modules", "CHANGELOG.md", "README.md", "content/*/reference/cli"]
+}

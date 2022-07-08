@@ -79,7 +79,7 @@ func (p Authorizer) GetRuleMatchResults(subject Subject, object Object) (results
 			Skipped: skipped,
 
 			MatchDomain:        isMatchForDomains(subject, object, rule),
-			MatchResources:     isMatchForResources(object, rule),
+			MatchResources:     isMatchForResources(subject, object, rule),
 			MatchMethods:       isMatchForMethods(object, rule),
 			MatchNetworks:      isMatchForNetworks(subject, rule),
 			MatchSubjects:      isMatchForSubjects(subject, rule),

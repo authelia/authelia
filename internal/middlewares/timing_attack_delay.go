@@ -6,15 +6,13 @@ import (
 	"math/big"
 	"sync"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 // TimingAttackDelayFunc describes a function for preventing timing attacks via a delay.
-type TimingAttackDelayFunc func(logger *logrus.Entry, requestTime time.Time, successful *bool)
+type TimingAttackDelayFunc func(ctx *AutheliaCtx, requestTime time.Time, successful *bool)
 
 // TimingAttackDelay creates a new standard timing delay func.
-func TimingAttackDelay(history int, minDelayMs float64, maxRandomMs int64, initialDelay time.Duration) TimingAttackDelayFunc {
+func TimingAttackDelay(history int, minDelayMs float64, maxRandomMs int64, initialDelay time.Duration, record bool) TimingAttackDelayFunc {
 	var (
 		mutex  = &sync.Mutex{}
 		cursor = 0
@@ -26,15 +24,20 @@ func TimingAttackDelay(history int, minDelayMs float64, maxRandomMs int64, initi
 		execDurationMovingAverage[i] = initialDelay
 	}
 
-	return func(logger *logrus.Entry, requestTime time.Time, successful *bool) {
+	return func(ctx *AutheliaCtx, requestTime time.Time, successful *bool) {
 		successfulValue := false
 		if successful != nil {
 			successfulValue = *successful
 		}
 
 		execDuration := time.Since(requestTime)
+
+		if record && ctx.Providers.Metrics != nil {
+			ctx.Providers.Metrics.RecordAuthenticationDuration(successfulValue, execDuration)
+		}
+
 		execDurationAvgMs := movingAverageIteration(execDuration, history, successfulValue, &cursor, &execDurationMovingAverage, mutex)
-		actualDelayMs := calculateActualDelay(logger, execDuration, execDurationAvgMs, minDelayMs, maxRandomMs, successfulValue)
+		actualDelayMs := calculateActualDelay(ctx, execDuration, execDurationAvgMs, minDelayMs, maxRandomMs, successfulValue)
 		time.Sleep(time.Duration(actualDelayMs) * time.Millisecond)
 	}
 }
@@ -58,7 +61,7 @@ func movingAverageIteration(value time.Duration, history int, successful bool, c
 	return float64(sum / int64(history))
 }
 
-func calculateActualDelay(logger *logrus.Entry, execDuration time.Duration, execDurationAvgMs, minDelayMs float64, maxRandomMs int64, successful bool) (actualDelayMs float64) {
+func calculateActualDelay(ctx *AutheliaCtx, execDuration time.Duration, execDurationAvgMs, minDelayMs float64, maxRandomMs int64, successful bool) (actualDelayMs float64) {
 	randomDelayMs, err := rand.Int(rand.Reader, big.NewInt(maxRandomMs))
 	if err != nil {
 		return float64(maxRandomMs)
@@ -66,7 +69,7 @@ func calculateActualDelay(logger *logrus.Entry, execDuration time.Duration, exec
 
 	totalDelayMs := math.Max(execDurationAvgMs, minDelayMs) + float64(randomDelayMs.Int64())
 	actualDelayMs = math.Max(totalDelayMs-float64(execDuration.Milliseconds()), 1.0)
-	logger.Tracef("Timing Attack Delay successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", successful, execDuration.Milliseconds(), int64(execDurationAvgMs), randomDelayMs.Int64(), int64(totalDelayMs), int64(actualDelayMs))
+	ctx.Logger.Tracef("Timing Attack Delay successful: %t, exec duration: %d, avg execution duration: %d, random delay ms: %d, total delay ms: %d, actual delay ms: %d", successful, execDuration.Milliseconds(), int64(execDurationAvgMs), randomDelayMs.Int64(), int64(totalDelayMs), int64(actualDelayMs))
 
 	return actualDelayMs
 }

@@ -1,0 +1,71 @@
+{
+  "name": "@hyas/doks",
+  "description": "Doks theme",
+  "version": "0.4.2",
+  "engines": {
+    "node": ">=16.15.1"
+  },
+  "browserslist": [
+    "defaults"
+  ],
+  "repository": "https://github.com/h-enk/doks",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "init": "shx rm -rf .git && git init -b main",
+    "create": "exec-bin node_modules/.bin/hugo/hugo new",
+    "prestart": "npm run clean",
+    "start": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender",
+    "prebuild": "npm run clean",
+    "build": "exec-bin node_modules/.bin/hugo/hugo --gc --minify",
+    "build:preview": "npm run build -D -F",
+    "clean": "shx rm -rf public resources",
+    "clean:install": "shx rm -rf package-lock.json node_modules ",
+    "lint": "npm run -s lint:scripts && npm run -s lint:styles && npm run -s lint:markdown",
+    "lint:scripts": "eslint assets/js config functions",
+    "lint:styles": "stylelint \"assets/scss/**/*.{css,sass,scss,sss,less}\"",
+    "lint:markdown": "markdownlint-cli2 \"*.md\" \"content/**/*.md\"",
+    "lint:markdown-fix": "markdownlint-cli2-fix \"*.md\" \"content/**/*.md\"",
+    "server": "exec-bin node_modules/.bin/hugo/hugo server",
+    "test": "npm run -s lint",
+    "env": "env",
+    "precheck": "npm version",
+    "check": "exec-bin node_modules/.bin/hugo/hugo version",
+    "copy:katex-fonts": "shx cp ./node_modules/katex/dist/fonts/* ./static/fonts/",
+    "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo",
+    "version": "auto-changelog -p && git add CHANGELOG.md"
+  },
+  "devDependencies": {
+    "@babel/cli": "7.18.6",
+    "@babel/core": "7.18.6",
+    "@babel/preset-env": "7.18.6",
+    "@fullhuman/postcss-purgecss": "4.1.3",
+    "auto-changelog": "2.4.0",
+    "autoprefixer": "10.4.7",
+    "bootstrap": "5.2.0-beta1",
+    "bootstrap-icons": "1.8.3",
+    "clipboard": "2.0.11",
+    "eslint": "8.19.0",
+    "exec-bin": "1.0.0",
+    "flexsearch": "0.7.21",
+    "highlight.js": "11.5.1",
+    "hugo-installer": "3.1.0",
+    "instant.page": "5.1.1",
+    "katex": "0.16.0",
+    "lazysizes": "5.3.2",
+    "markdownlint-cli2": "0.4.0",
+    "netlify-plugin-submit-sitemap": "0.4.0",
+    "node-fetch": "3.2.6",
+    "postcss": "8.4.14",
+    "postcss-cli": "10.0.0",
+    "purgecss-whitelister": "2.4.0",
+    "shx": "0.3.4",
+    "stylelint": "14.9.1",
+    "stylelint-config-standard-scss": "4.0.0"
+  },
+  "otherDependencies": {
+    "hugo": "0.101.0"
+  }
+}

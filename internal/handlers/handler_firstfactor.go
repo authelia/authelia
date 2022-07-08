@@ -19,7 +19,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		requestTime := time.Now()
 
 		if delayFunc != nil {
-			defer delayFunc(ctx.Logger, requestTime, &successful)
+			defer delayFunc(ctx, requestTime, &successful)
 		}
 
 		bodyJSON := firstFactorRequestBody{}

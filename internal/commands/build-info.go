@@ -11,11 +11,12 @@ import (
 
 func newBuildInfoCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "build-info",
-		Short: "Show the build information of Authelia",
-		Long:  buildLong,
-		RunE:  cmdBuildInfoRunE,
-		Args:  cobra.NoArgs,
+		Use:     "build-info",
+		Short:   cmdAutheliaBuildInfoShort,
+		Long:    cmdAutheliaBuildInfoLong,
+		Example: cmdAutheliaBuildInfoExample,
+		RunE:    cmdBuildInfoRunE,
+		Args:    cobra.NoArgs,
 	}
 
 	return cmd

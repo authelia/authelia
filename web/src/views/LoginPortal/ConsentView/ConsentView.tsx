@@ -1,5 +1,6 @@
 import React, { useEffect, Fragment, ReactNode, useState } from "react";
 
+import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
 import {
     Button,
     Grid,
@@ -9,11 +10,11 @@ import {
     ListItemText,
     Tooltip,
     Typography,
-    makeStyles,
     Checkbox,
     FormControlLabel,
-} from "@material-ui/core";
-import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@material-ui/icons";
+    Theme,
+} from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -44,7 +45,7 @@ function scopeNameToAvatar(id: string) {
 }
 
 const ConsentView = function (props: Props) {
-    const classes = useStyles();
+    const styles = useStyles();
     const navigate = useNavigate();
     const redirect = useRedirector();
     const { createErrorNotification, resetNotification } = useNotifications();
@@ -137,7 +138,7 @@ const ConsentView = function (props: Props) {
                                     "Client ID: " + resp?.client_id
                                 }
                             >
-                                <Typography className={classes.clientDescription}>
+                                <Typography className={styles.clientDescription}>
                                     {resp !== undefined && resp.client_description !== ""
                                         ? resp.client_description
                                         : resp?.client_id}
@@ -149,8 +150,8 @@ const ConsentView = function (props: Props) {
                         <div>{translate("The above application is requesting the following permissions")}:</div>
                     </Grid>
                     <Grid item xs={12}>
-                        <div className={classes.scopesListContainer}>
-                            <List className={classes.scopesList}>
+                        <div className={styles.scopesListContainer}>
+                            <List className={styles.scopesList}>
                                 {resp?.scopes.map((scope: string) => (
                                     <Tooltip title={"Scope " + scope}>
                                         <ListItem id={"scope-" + scope} dense>
@@ -180,7 +181,7 @@ const ConsentView = function (props: Props) {
                                             color="primary"
                                         />
                                     }
-                                    className={classes.preConfigure}
+                                    className={styles.preConfigure}
                                     label={translate("Remember Consent")}
                                 />
                             </Tooltip>
@@ -191,7 +192,7 @@ const ConsentView = function (props: Props) {
                             <Grid item xs={6}>
                                 <Button
                                     id="accept-button"
-                                    className={classes.button}
+                                    className={styles.button}
                                     disabled={!resp}
                                     onClick={handleAcceptConsent}
                                     color="primary"
@@ -203,7 +204,7 @@ const ConsentView = function (props: Props) {
                             <Grid item xs={6}>
                                 <Button
                                     id="deny-button"
-                                    className={classes.button}
+                                    className={styles.button}
                                     disabled={!resp}
                                     onClick={handleRejectConsent}
                                     color="secondary"
@@ -220,7 +221,7 @@ const ConsentView = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
     container: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),

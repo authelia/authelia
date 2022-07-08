@@ -85,6 +85,9 @@ const (
 		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
 		"with parallelism %d it should be at least %d but it is configured as '%d'"
 
+	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
+	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
+
 	errFmtLDAPAuthBackendMissingOption = "authentication_backend: ldap: option '%s' is required"
 	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
 		"'minimum_tls_version' is invalid: %s: %w"
@@ -113,11 +116,16 @@ const (
 // Storage Error constants.
 const (
 	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' must is required"
+	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' is required"
 	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
 	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
 	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
 	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
+)
+
+// Telemetry Error constants.
+const (
+	errFmtTelemetryMetricsScheme = "telemetry: metrics: option 'address' must have a scheme 'tcp://' but it is configured as '%s'"
 )
 
 // OpenID Error constants.
@@ -188,10 +196,10 @@ const (
 		"is invalid: must be one of 'deny', 'two_factor', 'one_factor' or 'bypass'"
 	errAccessControlRuleBypassPolicyInvalidWithSubjects = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'subject' option is configured: see " +
-		"https://www.authelia.com/docs/configuration/access-control.html#bypass"
+		"https://www.authelia.com/c/acl#bypass"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
-		"https://www.authelia.com/docs/configuration/access-control.html#bypass-and-user-identity"
+		"https://www.authelia.com/c/acl#bypass-and-user-identity"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +

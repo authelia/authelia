@@ -1,6 +1,7 @@
 import React, { ReactNode, Fragment } from "react";
 
-import { makeStyles, Typography, Link, useTheme } from "@material-ui/core";
+import { Typography, Link, Theme, Box } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 
@@ -27,7 +28,7 @@ export interface Props {
 }
 
 const DefaultMethodContainer = function (props: Props) {
-    const style = useStyles();
+    const styles = useStyles();
     const { t: translate } = useTranslation();
     const registerMessage = props.registered
         ? props.title === "Push Notification"
@@ -56,17 +57,17 @@ const DefaultMethodContainer = function (props: Props) {
     return (
         <div id={props.id}>
             <Typography variant="h6">{props.title}</Typography>
-            <div className={classnames(style.container, stateClass)} id="2fa-container">
-                <div className={style.containerFlex}>{container}</div>
+            <div className={classnames(styles.container, stateClass)} id="2fa-container">
+                <div className={styles.containerFlex}>{container}</div>
             </div>
             {props.onSelectClick && props.registered ? (
-                <Link component="button" id="selection-link" onClick={props.onSelectClick}>
+                <Link component="button" id="selection-link" onClick={props.onSelectClick} underline="hover">
                     {selectMessage}
                 </Link>
             ) : null}
             {(props.onRegisterClick && props.title !== "Push Notification") ||
             (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
-                <Link component="button" id="register-link" onClick={props.onRegisterClick}>
+                <Link component="button" id="register-link" onClick={props.onRegisterClick} underline="hover">
                     {registerMessage}
                 </Link>
             ) : null}
@@ -76,7 +77,7 @@ const DefaultMethodContainer = function (props: Props) {
 
 export default DefaultMethodContainer;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
     container: {
         height: "200px",
     },
@@ -89,6 +90,16 @@ const useStyles = makeStyles(() => ({
         alignContent: "center",
         justifyContent: "center",
     },
+    containerMethod: {
+        marginBottom: theme.spacing(2),
+    },
+    info: {
+        marginBottom: theme.spacing(2),
+        flex: "0 0 100%",
+    },
+    infoTypography: {
+        color: "#5858ff",
+    },
 }));
 
 interface NotRegisteredContainerProps {
@@ -98,16 +109,17 @@ interface NotRegisteredContainerProps {
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const { t: translate } = useTranslation();
-    const theme = useTheme();
+    const styles = useStyles();
+
     return (
         <Fragment>
-            <div style={{ marginBottom: theme.spacing(2), flex: "0 0 100%" }}>
+            <Box className={styles.info}>
                 <InformationIcon />
-            </div>
-            <Typography style={{ color: "#5858ff" }}>
+            </Box>
+            <Typography className={styles.infoTypography}>
                 {translate("The resource you're attempting to access requires two-factor authentication")}
             </Typography>
-            <Typography style={{ color: "#5858ff" }}>
+            <Typography className={styles.infoTypography}>
                 {props.title === "Push Notification"
                     ? props.duoSelfEnrollment
                         ? translate("Register your first device by clicking on the link below")
@@ -124,10 +136,11 @@ interface MethodContainerProps {
 }
 
 function MethodContainer(props: MethodContainerProps) {
-    const theme = useTheme();
+    const styles = useStyles();
+
     return (
         <Fragment>
-            <div style={{ marginBottom: theme.spacing(2) }}>{props.children}</div>
+            <Box className={styles.containerMethod}>{props.children}</Box>
             <Typography>{props.explanation}</Typography>
         </Fragment>
     );

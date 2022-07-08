@@ -26,7 +26,8 @@ type LDAPAuthenticationBackendConfiguration struct {
 	MailAttribute        string `koanf:"mail_attribute"`
 	DisplayNameAttribute string `koanf:"display_name_attribute"`
 
-	PermitReferrals bool `koanf:"permit_referrals"`
+	PermitReferrals           bool `koanf:"permit_referrals"`
+	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind"`
 
 	User     string `koanf:"user"`
 	Password string `koanf:"password"`
@@ -55,12 +56,12 @@ type AuthenticationBackendConfiguration struct {
 
 	PasswordReset PasswordResetAuthenticationBackendConfiguration `koanf:"password_reset"`
 
-	DisableResetPassword bool   `koanf:"disable_reset_password"`
-	RefreshInterval      string `koanf:"refresh_interval"`
+	RefreshInterval string `koanf:"refresh_interval"`
 }
 
 // PasswordResetAuthenticationBackendConfiguration represents the configuration related to password reset functionality.
 type PasswordResetAuthenticationBackendConfiguration struct {
+	Disable   bool    `koanf:"disable"`
 	CustomURL url.URL `koanf:"custom_url"`
 }
 
