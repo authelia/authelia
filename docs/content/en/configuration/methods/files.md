@@ -12,12 +12,26 @@ weight: 101200
 toc: true
 ---
 
+## Formats
+
+The only supported configuration file format is [YAML](#yaml).
+
+It's important that you sufficiently validate your configuration file. While we produce console errors for users in many
+misconfiguration scenarios it's not perfect. Each file type has recommended methods for validation.
+
+### YAML
+
 *Authelia* loads `configuration.yml` as the configuration if you just run it. You can override this behaviour with the
 following syntax:
 
 ```bash
 authelia --config config.custom.yml
 ```
+
+#### YAML Validation
+
+We recommend utilizing [VSCodium](https://vscodium.com/) or [VSCode](https://code.visualstudio.com/), both with the
+[YAML Extension](https://open-vsx.org/extension/redhat/vscode-yaml) by RedHat to validate this file type.
 
 ## Multiple Configuration Files
 

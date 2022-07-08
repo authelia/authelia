@@ -257,7 +257,9 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 		Build()
 
 	tester.CheckAuthorizations(s.T(), John, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://public.example.com:8080/", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com:8080", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com", "GET", Bypass)
 
 	tester.CheckAuthorizations(s.T(), John, "https://one-factor.example.com", "GET", OneFactor)
@@ -650,21 +652,51 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 		WithRule(schema.ACLRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    bypass,
-			Resources: createSliceRegexRule(s.T(), []string{"^/bypass/[a-z]+$", "^/$", "embedded"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/case/[a-z]+$", "^/$"}),
+		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"resource.example.com"},
+			Policy:    bypass,
+			Resources: createSliceRegexRule(s.T(), []string{"^/bypass/.*$", "^/$", "embedded"}),
 		}).
 		WithRule(schema.ACLRule{
 			Domains:   []string{"resource.example.com"},
 			Policy:    oneFactor,
-			Resources: createSliceRegexRule(s.T(), []string{"^/one_factor/[a-z]+$"}),
+			Resources: createSliceRegexRule(s.T(), []string{"^/one_factor/.*$"}),
+		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"resource.example.com"},
+			Policy:    twoFactor,
+			Resources: createSliceRegexRule(s.T(), []string{"^/a/longer/rule/.*$"}),
 		}).
 		Build()
 
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/abc", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/", "GET", Denied)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/ABC", "GET", Denied)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/one_factor/abc", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/abc", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/ABC", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/../a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..//a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2f/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2fa/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2F/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2Fa/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e//a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2f/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2fa/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2F/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2Fa/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E//a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2f/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2fa/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2F/a/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2Fa/longer/rule/abc", "GET", TwoFactor)
 }
 
 // This test assures that rules without domains (not allowed by schema validator at this time) will pass validation correctly.

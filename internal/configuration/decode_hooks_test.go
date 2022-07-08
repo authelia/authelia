@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestStringToMailAddressHookFunc(t *testing.T) {
@@ -743,6 +744,120 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 			default:
 				assert.EqualError(t, err, tc.err)
 				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestStringToAddressHookFunc(t *testing.T) {
+	mustParseAddress := func(a string) (addr schema.Address) {
+		addrs, err := schema.NewAddressFromString(a)
+		if err != nil {
+			panic(err)
+		}
+
+		return *addrs
+	}
+
+	mustParseAddressPtr := func(a string) (addr *schema.Address) {
+		addr, err := schema.NewAddressFromString(a)
+		if err != nil {
+			panic(err)
+		}
+
+		return addr
+	}
+
+	testCases := []struct {
+		name     string
+		have     interface{}
+		expected interface{}
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			name:     "ShouldDecodeNonPtr",
+			have:     "tcp://0.0.0.0:2020",
+			expected: mustParseAddress("tcp://0.0.0.0:2020"),
+			decode:   true,
+		},
+		{
+			name:     "ShouldDecodePtr",
+			have:     "tcp://0.0.0.0:2020",
+			expected: mustParseAddressPtr("tcp://0.0.0.0:2020"),
+			decode:   true,
+		},
+		{
+			name:     "ShouldNotDecodeIntegerToCorrectType",
+			have:     1,
+			expected: schema.Address{},
+			decode:   false,
+		},
+		{
+			name:     "ShouldNotDecodeIntegerToCorrectTypePtr",
+			have:     1,
+			expected: &schema.Address{},
+			decode:   false,
+		},
+		{
+			name:     "ShouldNotDecodeIntegerPtrToCorrectType",
+			have:     testInt32Ptr(1),
+			expected: schema.Address{},
+			decode:   false,
+		},
+		{
+			name:     "ShouldNotDecodeIntegerPtrToCorrectTypePtr",
+			have:     testInt32Ptr(1),
+			expected: &schema.Address{},
+			decode:   false,
+		},
+		{
+			name:     "ShouldNotDecodeToString",
+			have:     "tcp://0.0.0.0:2020",
+			expected: "",
+			decode:   false,
+		},
+		{
+			name:     "ShouldNotDecodeToIntPtr",
+			have:     "tcp://0.0.0.0:2020",
+			expected: testInt32Ptr(1),
+			decode:   false,
+		},
+		{
+			name:     "ShouldNotDecodeToIntPtr",
+			have:     "tcp://0.0.0.0:2020",
+			expected: testInt32Ptr(1),
+			decode:   false,
+		},
+		{
+			name:     "ShouldFailDecode",
+			have:     "tcp://&!@^#*&!@#&*@!:2020",
+			expected: schema.Address{},
+			err:      "could not decode 'tcp://&!@^#*&!@#&*@!:2020' to a Address: could not parse string 'tcp://&!@^#*&!@#&*@!:2020' as address: expected format is [<scheme>://]<ip>[:<port>]: parse \"tcp://&!@^\": invalid character \"^\" in host name",
+			decode:   false,
+		},
+	}
+
+	hook := configuration.StringToAddressHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.expected), tc.have)
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+
+				if !tc.decode {
+					assert.Nil(t, actual)
+				}
+			} else {
+				assert.NoError(t, err)
+
+				if tc.decode {
+					assert.Equal(t, tc.expected, actual)
+				} else {
+					assert.Equal(t, tc.have, actual)
+				}
 			}
 		})
 	}

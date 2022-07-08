@@ -1,6 +1,6 @@
 ---
 title: "GitLab"
-description: "Integrating GitLab with Authelia via OpenID Connect."
+description: "Integrating GitLab with the Authelia OpenID Connect Provider."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false

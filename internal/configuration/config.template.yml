@@ -114,7 +114,7 @@ telemetry:
     enabled: false
 
     ## The address to listen on for metrics. This should be on a different port to the main server.port value.
-    address: '0.0.0.0:9959'
+    address: tcp://0.0.0.0:9959
 
 ##
 ## TOTP Configuration

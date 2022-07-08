@@ -13,7 +13,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.3
 	github.com/go-rod/rod v0.107.3
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/go-webauthn/webauthn v0.3.3
+	github.com/go-webauthn/webauthn v0.3.4
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
@@ -33,7 +33,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.38.0
 	golang.org/x/text v0.3.7
