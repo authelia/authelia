@@ -20,20 +20,22 @@ authentication_backend:
 
 session:
   domains:
-    - cookie_domain: internal.example.com
-      domains:
-        - "internal.example.com"
-        - "auth.internal.example.com"
-      inactivity: 60
-      expiration: 1800
-      remember_me_duration: 1d
+    # example: dedicated session for subdomain
+    # - cookie_domain: internal.example.com
+    #   domains:
+    #     - "internal.example.com"
+    #     - "*.internal.example.com"
+    #   inactivity: 60
+    #   expiration: 1800
+    #   remember_me_duration: 1d
+
+    # example: allow all subdomains from a root domain
     - cookie_domain: example.com
       domains:
-        - "login.example.com"
-        - "public.example.com"
-        - "secure.example.com"
-        - "singlefactor.example.com"
+        - "*.example.com"
       remember_me_duration: 15d
+
+    # example: restrictive subdomains
     - cookie_domain: example2.com
       domains:
         - "login.example2.com"
@@ -43,7 +45,7 @@ session:
       expiration: 1800
 
   # default session settings
-  domain: example.com
+  # domain: example.com
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
   remember_me_duration: 1y

@@ -82,7 +82,7 @@ func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *P
 // Get returns session information for specified domain.
 func (p *Provider) Get(domain string) (*Session, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("can not get session from un undefined domain")
+		return nil, fmt.Errorf("can not get session from an undefined domain")
 	}
 
 	session, found := p.sessions[domain]

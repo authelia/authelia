@@ -19,9 +19,16 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// isURLUnderProtectedDomain checks requested url against the list of protected domains.
 func isURLUnderProtectedDomain(url *url.URL, domains []string) bool {
+	var requestedURL = url.Hostname()
+	if requestedURL == "" {
+		return false
+	}
+
+	// TODO: test performance vs regex.
 	for _, domain := range domains {
-		if strings.HasSuffix(url.Hostname(), domain) {
+		if (strings.HasPrefix(domain, "*.") && strings.HasSuffix(requestedURL, domain[2:])) || domain == requestedURL {
 			return true
 		}
 	}
@@ -506,7 +513,8 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.ProtectedDomains) {
 			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
 				targetURL.String(), ctx.Configuration.Session.Domain)
-			ctx.ReplyUnauthorized()
+			// ctx.ReplyUnauthorized().
+			ctx.ReplyForbidden()
 
 			return
 		}

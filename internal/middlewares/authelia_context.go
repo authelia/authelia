@@ -196,7 +196,7 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
 	if err != nil {
-		ctx.Logger.Errorf("Could not get seccion for domain '%s': %s", domain, err)
+		ctx.Logger.Errorf("Could not get session for domain '%s': %s", domain, err)
 		return session.NewDefaultUserSession()
 	}
 
@@ -387,7 +387,8 @@ func (ctx *AutheliaCtx) GetCurrentSessionDomain() string {
 
 	for _, domainConfig := range ctx.Configuration.Session.Domains {
 		for _, domain := range domainConfig.Domains {
-			if hostname == domain {
+			if (strings.HasPrefix(domain, "*.") && strings.HasSuffix(hostname, domain[2:])) || domain == hostname {
+				// if hostname == domain {.
 				return domainConfig.CookieDomain
 			}
 		}
