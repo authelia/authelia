@@ -45,6 +45,12 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 
+	// Add default domain to protected domains list
+	// Refactor: this can be refatored as `func (s * SessionConfiguration) ProtectedDomains() []string` in SessionConfiguration structure.
+	if config.Domain != "" {
+		config.ProtectedDomains = append(config.ProtectedDomains, config.Domain)
+	}
+
 	if strings.HasPrefix(config.Domain, "*.") {
 		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, config.Domain))
 	}
@@ -71,6 +77,8 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 		if len(config.Domains[index].Domains) == 0 {
 			validator.Push(fmt.Errorf(errFmtSessionDomainListRequired, index))
 		}
+
+		config.ProtectedDomains = append(config.ProtectedDomains, config.Domains[index].Domains...)
 
 		if config.Domains[index].Expiration <= 0 {
 			config.Domains[index].Expiration = config.Expiration

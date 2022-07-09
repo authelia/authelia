@@ -19,9 +19,6 @@ authentication_backend:
     path: /config/users.yml
 
 session:
-  # domain_list:
-  #   - example.com
-  #   - example2.com
   domains:
     - cookie_domain: internal.example.com
       domains:
@@ -32,12 +29,17 @@ session:
       remember_me_duration: 1d
     - cookie_domain: example.com
       domains:
-        - "auth.example.com"
+        - "login.example.com"
         - "public.example.com"
         - "secure.example.com"
+        - "singlefactor.example.com"
+      remember_me_duration: 15d
     - cookie_domain: example2.com
       domains:
-        - "example2.com"
+        - "login.example2.com"
+        - "public.example2.com"
+        - "secure.example2.com"
+        - "singlefactor.example2.com"
       expiration: 1800
 
   # default session settings

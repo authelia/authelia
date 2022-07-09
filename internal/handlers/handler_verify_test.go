@@ -828,18 +828,18 @@ func TestIsDomainProtected(t *testing.T) {
 	}
 
 	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("http://mytest.example.com/abc/?query=abc"), "example.com"))
+		GetURL("http://mytest.example.com/abc/?query=abc"), []string{"example.com"}))
 
 	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("http://example.com/abc/?query=abc"), "example.com"))
+		GetURL("http://example.com/abc/?query=abc"), []string{"example.com"}))
 
 	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("https://mytest.example.com/abc/?query=abc"), "example.com"))
+		GetURL("https://mytest.example.com/abc/?query=abc"), []string{"example.com"}))
 
 	// Cookies readable by a service on a machine is also readable by a service on the same machine
 	// with a different port as mentioned in https://tools.ietf.org/html/rfc6265#section-8.5.
 	assert.True(t, isURLUnderProtectedDomain(
-		GetURL("https://mytest.example.com:8080/abc/?query=abc"), "example.com"))
+		GetURL("https://mytest.example.com:8080/abc/?query=abc"), []string{"example.com"}))
 }
 
 func TestSchemeIsHTTPS(t *testing.T) {

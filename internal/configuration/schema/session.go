@@ -35,15 +35,15 @@ type RedisSessionConfiguration struct {
 
 // SessionConfiguration represents the configuration related to user sessions.
 type SessionConfiguration struct {
-	Name    string                       `koanf:"name"`
-	Domain  string                       `koanf:"domain"`
-	Domains []DomainSessionConfiguration `koanf:"domains"`
-	// DomainList         []string                     `koanf:"domain_list"`.
-	SameSite           string        `koanf:"same_site"`
-	Secret             string        `koanf:"secret"`
-	Expiration         time.Duration `koanf:"expiration"`
-	Inactivity         time.Duration `koanf:"inactivity"`
-	RememberMeDuration time.Duration `koanf:"remember_me_duration"`
+	Name               string                       `koanf:"name"`
+	Domain             string                       `koanf:"domain"`
+	Domains            []DomainSessionConfiguration `koanf:"domains"`
+	SameSite           string                       `koanf:"same_site"`
+	Secret             string                       `koanf:"secret"`
+	Expiration         time.Duration                `koanf:"expiration"`
+	Inactivity         time.Duration                `koanf:"inactivity"`
+	RememberMeDuration time.Duration                `koanf:"remember_me_duration"`
+	ProtectedDomains   []string                     `koanf:"-"`
 
 	Redis *RedisSessionConfiguration `koanf:"redis"`
 }
