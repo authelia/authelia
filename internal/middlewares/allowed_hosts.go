@@ -15,7 +15,7 @@ func AllowedHosts(hosts []string) Middleware {
 	length := len(hosts)
 
 	if length == 0 {
-		return Nil
+		return nil
 	}
 
 	allowed := make([][]byte, length)

@@ -30,7 +30,9 @@ func TestAllowedHosts(t *testing.T) {
 
 			ctx.Request.SetHost(tc.have)
 
-			middleware(handler)(ctx)
+			handler = Wrap(middleware, handler)
+
+			handler(ctx)
 
 			assert.Equal(t, tc.expected, ctx.Response.StatusCode())
 		})

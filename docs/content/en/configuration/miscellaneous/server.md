@@ -187,9 +187,10 @@ This example is suitable for a single host docker environment, only allowing req
 
 ```yaml
 server:
-  allowed_hosts:
-    - 'localhost'
-    - 'authelia'
+  headers:
+    allowed_hosts:
+      - 'localhost'
+      - 'authelia'
 ```
 {{< /details >}}
 
@@ -199,10 +200,11 @@ This example is suitable for a multi-host docker environment, only allowing requ
 
 ```yaml
 server:
-  allowed_hosts:
-    - 'localhost'
-    - 'authelia'
-    - 'auth.example.com'
+  headers:
+    allowed_hosts:
+      - 'localhost'
+      - 'authelia'
+      - 'auth.example.com'
 ```
 {{< /details >}}
 
@@ -212,9 +214,10 @@ This example is suitable for a local host environment, only allowing requests fr
 
 ```yaml
 server:
-  allowed_hosts:
-    - localhost
-    - 127.0.0.1
+  headers:
+    allowed_hosts:
+      - 'localhost'
+      - '127.0.0.1'
 ```
 {{< /details >}}
 
@@ -224,8 +227,9 @@ This example is suitable for other environments not within docker, only allowing
 
 ```yaml
 server:
-  allowed_hosts:
-    - auth.example.com
+  headers:
+    allowed_hosts:
+      - 'auth.example.com'
 ```
 {{< /details >}}
 
