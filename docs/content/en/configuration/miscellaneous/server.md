@@ -22,6 +22,7 @@ server:
   host: 0.0.0.0
   port: 9091
   path: ""
+  asset_path: ""
   read_buffer_size: 4096
   write_buffer_size: 4096
   enable_pprof: false
@@ -32,6 +33,7 @@ server:
     certificate: ""
     client_certificates: []
   headers:
+    allowed_hosts: []
     csp_template: ""
 ```
 
@@ -58,7 +60,7 @@ Defines the port to listen on. See also [host](#host).
 
 ### path
 
-{{< confkey type="string " required="no" >}}
+{{< confkey type="string" required="no" >}}
 
 Authelia by default is served from the root `/` location, either via its own domain or subdomain.
 
@@ -86,7 +88,7 @@ server:
 
 ### asset_path
 
-{{< confkey type="string " required="no" >}}
+{{< confkey type="string" required="no" >}}
 
 Authelia by default serves all static assets from an embedded filesystem in the Go binary.
 
@@ -97,13 +99,13 @@ can be overriden is documented in the
 
 ### read_buffer_size
 
-{{< confkey type="integer " default="4096" required="no" >}}
+{{< confkey type="integer" default="4096" required="no" >}}
 
 Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
 
 ### write_buffer_size
 
-{{< confkey type="integer " default="4096" required="no" >}}
+{{< confkey type="integer" default="4096" required="no" >}}
 
 Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
@@ -163,6 +165,69 @@ The list of file paths to certificates used for authenticating clients. Those ce
 or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 ### headers
+
+#### allowed_hosts
+
+{{< confkey type="list(string)" required="no" >}}
+
+Configures the allowed host headers. If configured and Authelia receives a request where the `Host` header is not in the
+list then it will return a HTTP 404 Not Found response. This is useful to help assure that only requests from a proxy
+or known domain are handled by Authelia.
+
+This should not be confused with the external hostname as it's not strictly relevant. It's the `Host` header at the time
+Authelia processes the request. It allows ensuring that Authelia only handles requests from appropriate sources without
+having to configure the more secure [client_certificates](#client_certificates) option.
+
+*__Note:__ If using docker the host used by the health check script should also be included if disabled. This is either
+`localhost` if the host is `0.0.0.0` or the the value configured for host.*
+
+{{< details "Docker Proxy" >}}
+This example is suitable for a single host docker environment, only allowing requests from the proxy for the host
+`authelia`, i.e. `http://authelia:9091`:
+
+```yaml
+server:
+  allowed_hosts:
+    - 'localhost'
+    - 'authelia'
+```
+{{< /details >}}
+
+{{< details "Docker and External Proxy" >}}
+This example is suitable for a multi-host docker environment, only allowing requests from the proxy for the host
+`authelia` or `auth.example.com`, i.e. `http://authelia:9091` or `https://auth.example.com`:
+
+```yaml
+server:
+  allowed_hosts:
+    - 'localhost'
+    - 'authelia'
+    - 'auth.example.com'
+```
+{{< /details >}}
+
+{{< details "Local Host" >}}
+This example is suitable for a local host environment, only allowing requests from the proxy for the host
+`127.0.0.1` or `localhost`, i.e. `http://127.0.0.1:9091` or `http://localhost:9091`:
+
+```yaml
+server:
+  allowed_hosts:
+    - localhost
+    - 127.0.0.1
+```
+{{< /details >}}
+
+{{< details "External Proxy" >}}
+This example is suitable for other environments not within docker, only allowing requests from the proxies for the host
+`auth.example.com`, i.e. `https://auth.example.com`:
+
+```yaml
+server:
+  allowed_hosts:
+    - auth.example.com
+```
+{{< /details >}}
 
 #### csp_template
 

@@ -211,6 +211,17 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 	return added, removed
 }
 
+// StringSliceRemoveDuplicates removes duplicates from a []string.
+func StringSliceRemoveDuplicates(input []string) (output []string) {
+	for _, value := range input {
+		if !IsStringInSlice(value, output) {
+			output = append(output, value)
+		}
+	}
+
+	return output
+}
+
 // RandomString returns a random string with a given length with values from the provided characters. When crypto is set
 // to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
 // excluding when the task is time sensitive and would not benefit from extra randomness.

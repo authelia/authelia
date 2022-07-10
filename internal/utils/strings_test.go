@@ -28,6 +28,25 @@ func TestStringSplitDelimitedEscaped(t *testing.T) {
 	}
 }
 
+func TestStringSliceRemoveDuplicates(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected []string
+	}{
+		{"ShouldNotModifyNonDuplicates", []string{"abc", "123"}, []string{"abc", "123"}},
+		{"ShouldModifyDuplicates", []string{"abc", "123", "123", "abc"}, []string{"abc", "123"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := StringSliceRemoveDuplicates(tc.have)
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
 func TestStringJoinDelimitedEscaped(t *testing.T) {
 	testCases := []struct {
 		desc, want string
