@@ -45,17 +45,17 @@ type Providers struct {
 }
 
 // RequestHandler represents an Authelia request handler.
-type RequestHandler = func(*AutheliaCtx)
+type RequestHandler = func(ctx *AutheliaCtx)
 
 // AutheliaMiddleware represent an Authelia middleware.
-type AutheliaMiddleware = func(next RequestHandler) RequestHandler
+type AutheliaMiddleware = func(next RequestHandler) (handler RequestHandler)
 
 // Middleware represents a fasthttp middleware.
 type Middleware = func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 
 // Bridge represents the func signature that returns a fasthttp.RequestHandler given a RequestHandler allowing it to
 // bridge between the two handlers.
-type Bridge = func(RequestHandler) fasthttp.RequestHandler
+type Bridge = func(next RequestHandler) (handler fasthttp.RequestHandler)
 
 // BridgeBuilder is used to build a Bridge.
 type BridgeBuilder struct {
@@ -64,9 +64,6 @@ type BridgeBuilder struct {
 	preMiddlewares  []Middleware
 	postMiddlewares []AutheliaMiddleware
 }
-
-// Basic represents a middleware applied to a fasthttp.RequestHandler.
-type Basic func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase
 // of the identity verification process.

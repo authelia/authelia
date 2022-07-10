@@ -327,11 +327,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	handler := middlewares.LogRequest(r.Handler)
 	if config.Server.Path != "" {
-		handler = middlewares.StripPath(config.Server.Path)(handler)
+		handler = middlewares.Wrap(middlewares.StripPath(config.Server.Path), handler)
 	}
 
 	if len(config.Server.Headers.AllowedHosts) != 0 {
-		handler = middlewares.AllowedHosts(config.Server.Headers.AllowedHosts)(handler)
+		handler = middlewares.Wrap(middlewares.AllowedHosts(config.Server.Headers.AllowedHosts), handler)
 	}
 
 	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)
