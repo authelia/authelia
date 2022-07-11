@@ -115,7 +115,7 @@ This section documents the usage.
 {{< confkey type="string" required="no" >}}
 
 The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
-require to use a direct IP address for the address of the backend service but want to verify a specific SNI.
+require an IP address for the host of the backend service but want to verify a specific certificate server name.
 
 ### skip_verify
 

@@ -107,7 +107,7 @@ func (n *SMTPNotifier) preamble(recipient mail.Address) (err error) {
 		return fmt.Errorf(fmtSMTPGenericError, smtpCommandMAIL, err)
 	}
 
-	if err = n.client.Rcpt(recipient.String()); err != nil {
+	if err = n.client.Rcpt(recipient.Address); err != nil {
 		return fmt.Errorf(fmtSMTPGenericError, smtpCommandRCPT, err)
 	}
 
