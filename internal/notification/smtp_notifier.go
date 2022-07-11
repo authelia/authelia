@@ -64,7 +64,7 @@ func (n *SMTPNotifier) startTLS() error {
 		case true:
 			n.log.Warn("Notifier SMTP server does not support STARTTLS and SMTP configuration is set to disable the TLS requirement (only useful for unauthenticated emails over plain text)")
 		default:
-			return errors.New("Notifier SMTP server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
+			return errors.New("server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
 		}
 	}
 
@@ -72,28 +72,32 @@ func (n *SMTPNotifier) startTLS() error {
 }
 
 // Attempt Authentication.
-func (n *SMTPNotifier) auth() error {
+func (n *SMTPNotifier) auth() (err error) {
 	// Attempt AUTH if password is specified only.
 	if n.config.Password != "" {
-		_, ok := n.client.TLSConnectionState()
-		if !ok {
-			return errors.New("Notifier SMTP client does not support authentication over plain text and the connection is currently plain text")
+		var (
+			ok bool
+			m  string
+		)
+
+		if _, ok = n.client.TLSConnectionState(); !ok {
+			return errors.New("client does not support authentication over plain text and the connection is currently plain text")
 		}
 
 		// Check the server supports AUTH, and get the mechanisms.
-		ok, m := n.client.Extension("AUTH")
-		if ok {
+		if ok, m = n.client.Extension("AUTH"); ok {
 			var auth smtp.Auth
 
 			n.log.Debugf("Notifier SMTP server supports authentication with the following mechanisms: %s", m)
+
 			mechanisms := strings.Split(m, " ")
 
 			// Adaptively select the AUTH mechanism to use based on what the server advertised.
-			if utils.IsStringInSlice("PLAIN", mechanisms) {
+			if utils.IsStringInSlice(smtpAUTHMechanismPlain, mechanisms) {
 				auth = smtp.PlainAuth("", n.config.Username, n.config.Password, n.config.Host)
 
 				n.log.Debug("Notifier SMTP client attempting AUTH PLAIN with server")
-			} else if utils.IsStringInSlice("LOGIN", mechanisms) {
+			} else if utils.IsStringInSlice(smtpAUTHMechanismLogin, mechanisms) {
 				auth = newLoginAuth(n.config.Username, n.config.Password, n.config.Host)
 
 				n.log.Debug("Notifier SMTP client attempting AUTH LOGIN with server")
@@ -101,11 +105,11 @@ func (n *SMTPNotifier) auth() error {
 
 			// Throw error since AUTH extension is not supported.
 			if auth == nil {
-				return fmt.Errorf("notifier SMTP server does not advertise a AUTH mechanism that are supported by Authelia (PLAIN or LOGIN are supported, but server advertised %s mechanisms)", m)
+				return fmt.Errorf("server does not advertise an AUTH mechanism that is supported (PLAIN or LOGIN are supported, but server advertised mechanisms '%s')", m)
 			}
 
 			// Authenticate.
-			if err := n.client.Auth(auth); err != nil {
+			if err = n.client.Auth(auth); err != nil {
 				return err
 			}
 
@@ -114,7 +118,7 @@ func (n *SMTPNotifier) auth() error {
 			return nil
 		}
 
-		return errors.New("Notifier SMTP server does not advertise the AUTH extension but config requires AUTH (password specified), either disable AUTH, or use an SMTP host that supports AUTH PLAIN or AUTH LOGIN")
+		return errors.New("server does not advertise the AUTH extension but config requires AUTH (password specified), either disable AUTH, or use an SMTP host that supports AUTH PLAIN or AUTH LOGIN")
 	}
 
 	n.log.Debug("Notifier SMTP config has no password specified so authentication is being skipped")
@@ -128,19 +132,21 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody s
 	if !n.config.DisableRequireTLS {
 		_, ok := n.client.TLSConnectionState()
 		if !ok {
-			return errors.New("Notifier SMTP client can't send an email over plain text connection")
+			return errors.New("client can't send an email over plain text connection")
 		}
 	}
 
-	var wc io.WriteCloser
+	var (
+		wc    io.WriteCloser
+		muuid uuid.UUID
+	)
 
 	if wc, err = n.client.Data(); err != nil {
 		n.log.Debugf("Notifier SMTP client error while obtaining WriteCloser: %v", err)
 		return err
 	}
 
-	muuid, err := uuid.NewRandom()
-	if err != nil {
+	if muuid, err = uuid.NewRandom(); err != nil {
 		return err
 	}
 
@@ -158,13 +164,13 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody s
 	}
 
 	if err = n.templates.ExecuteEmailEnvelope(wc, values); err != nil {
-		n.log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %s", err)
+		n.log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %v", err)
 
 		return err
 	}
 
 	if err = wc.Close(); err != nil {
-		n.log.Debugf("Notifier SMTP client error while closing the WriteCloser: %s", err)
+		n.log.Debugf("Notifier SMTP client error while closing the WriteCloser: %v", err)
 		return err
 	}
 
@@ -181,8 +187,8 @@ func (n *SMTPNotifier) dial() (err error) {
 
 	n.log.Debugf("Notifier SMTP client attempting connection to %s:%d", n.config.Host, n.config.Port)
 
-	if n.config.Port == 465 {
-		n.log.Infof("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
+	if n.config.Port == smtpPortSUBMISSIONS {
+		n.log.Debugf("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
 
 		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port), n.tlsConfig)
 	} else {
@@ -198,8 +204,7 @@ func (n *SMTPNotifier) dial() (err error) {
 		return err
 	}
 
-	client, err = smtp.NewClient(conn, n.config.Host)
-	if err != nil {
+	if client, err = smtp.NewClient(conn, n.config.Host); err != nil {
 		return err
 	}
 
@@ -249,40 +254,38 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 }
 
 // Send is used to send an email to a recipient.
-func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) error {
+func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) (err error) {
 	subject := strings.ReplaceAll(n.config.Subject, "{title}", title)
 
-	var err error
-
 	if err = n.dial(); err != nil {
-		return fmt.Errorf("error dialing the smtp server: %w", err)
+		return fmt.Errorf("error dialing the SMTP server: %w", err)
 	}
 
 	// Always execute QUIT at the end once we're connected.
 	defer n.cleanup()
 
 	if err = n.client.Hello(n.config.Identifier); err != nil {
-		return fmt.Errorf("error performing HELO/EHLO with the smtp server: %w", err)
+		return fmt.Errorf("error performing HELO/EHLO with the SMTP server: %w", err)
 	}
 
 	if err = n.startTLS(); err != nil {
-		return fmt.Errorf("error performing STARTTLS with the smtp server: %w", err)
+		return fmt.Errorf("error performing STARTTLS with the SMTP server: %w", err)
 	}
 
 	if err = n.auth(); err != nil {
-		return fmt.Errorf("error performing AUTH with the smtp server: %w", err)
+		return fmt.Errorf("error performing AUTH with the SMTP server: %w", err)
 	}
 
 	if err = n.client.Mail(n.config.Sender.Address); err != nil {
-		n.log.Debugf("Notifier SMTP failed while sending MAIL FROM (using sender) with error: %s", err)
+		n.log.Debugf("Notifier SMTP failed while sending MAIL FROM (using sender) with error: %v", err)
 
-		return fmt.Errorf("error performing MAIL FROM with the smtp server: %w", err)
+		return fmt.Errorf("error performing MAIL FROM with the SMTP server: %w", err)
 	}
 
 	if err = n.client.Rcpt(n.config.StartupCheckAddress); err != nil {
-		n.log.Debugf("Notifier SMTP failed while sending RCPT TO (using recipient) with error: %s", err)
+		n.log.Debugf("Notifier SMTP failed while sending RCPT TO (using recipient) with error: %v", err)
 
-		return fmt.Errorf("error performing RCPT with the smtp server: %w", err)
+		return fmt.Errorf("error performing RCPT with the SMTP server: %w", err)
 	}
 
 	// Compose and send the email body to the server.
