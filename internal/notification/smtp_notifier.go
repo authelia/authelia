@@ -44,8 +44,6 @@ type SMTPNotifier struct {
 
 // Send is used to email a recipient.
 func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) (err error) {
-	subject := strings.ReplaceAll(n.config.Subject, "{title}", title)
-
 	if err = n.dial(); err != nil {
 		return fmt.Errorf(fmtSMTPDialError, err)
 	}
@@ -58,7 +56,7 @@ func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string
 	}
 
 	// Compose and send the email body to the server.
-	if err = n.compose(recipient, subject, body, htmlBody); err != nil {
+	if err = n.compose(recipient, title, body, htmlBody); err != nil {
 		return fmt.Errorf(fmtSMTPGenericError, smtpCommandDATA, err)
 	}
 
@@ -230,7 +228,7 @@ func (n *SMTPNotifier) auth() (err error) {
 	return nil
 }
 
-func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody string) (err error) {
+func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody string) (err error) {
 	n.log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient.String())
 
 	if !n.config.DisableRequireTLS {
@@ -258,7 +256,7 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody s
 		UUID:     muuid.String(),
 		From:     n.config.Sender.String(),
 		To:       recipient.String(),
-		Subject:  subject,
+		Subject:  strings.ReplaceAll(n.config.Subject, "{title}", title),
 		Date:     time.Now(),
 		Boundary: utils.RandomString(30, utils.AlphaNumericCharacters, true),
 		Body: templates.EmailEnvelopeBodyValues{
