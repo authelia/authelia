@@ -60,9 +60,9 @@ Some Additional examples for specific purposes can be found in the
 
 ## Envelope Template
 
-There is also a special envelope template. This is the email envelope which contains the content of the other templates.
-It's strongly recommended that you do not modify this template unless you know what you're doing. If you really want to
-modify it the name of the file must be `Envelope.tmpl`.
+There is also a special envelope template. This is the email envelope which contains the content of the other templates
+when sent via the SMTP notifier. It's *__strongly recommended__* that you do not modify this template unless you know
+what you're doing. If you really want to modify it the name of the file must be `Envelope.tmpl`.
 
 This template contains the following placeholders:
 
