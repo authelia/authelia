@@ -54,7 +54,7 @@ func validateNotifierTemplates(config *schema.NotifierConfiguration, validator *
 }
 
 func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *schema.StructValidator) {
-	if config.StartupCheckAddress == "" {
+	if config.StartupCheckAddress.Address == "" {
 		config.StartupCheckAddress = schema.DefaultSMTPNotifierConfiguration.StartupCheckAddress
 	}
 

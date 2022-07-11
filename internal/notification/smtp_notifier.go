@@ -21,15 +21,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SMTPNotifier a notifier to send emails to SMTP servers.
-type SMTPNotifier struct {
-	config    *schema.SMTPNotifierConfiguration
-	client    *smtp.Client
-	tlsConfig *tls.Config
-	log       *logrus.Logger
-	templates *templates.Provider
-}
-
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
 	notifier := &SMTPNotifier{
@@ -40,6 +31,119 @@ func NewSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, certPool *
 	}
 
 	return notifier
+}
+
+// SMTPNotifier a notifier to send emails to SMTP servers.
+type SMTPNotifier struct {
+	config    *schema.SMTPNotifierConfiguration
+	client    *smtp.Client
+	tlsConfig *tls.Config
+	log       *logrus.Logger
+	templates *templates.Provider
+}
+
+// Send is used to email a recipient.
+func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) (err error) {
+	subject := strings.ReplaceAll(n.config.Subject, "{title}", title)
+
+	if err = n.dial(); err != nil {
+		return fmt.Errorf(fmtSMTPDialError, err)
+	}
+
+	// Always execute QUIT at the end once we're connected.
+	defer n.cleanup()
+
+	if err = n.preamble(recipient); err != nil {
+		return err
+	}
+
+	// Compose and send the email body to the server.
+	if err = n.compose(recipient, subject, body, htmlBody); err != nil {
+		return fmt.Errorf(fmtSMTPGenericError, smtpCommandDATA, err)
+	}
+
+	n.log.Debug("Notifier SMTP client successfully sent email")
+
+	return nil
+}
+
+// StartupCheck implements the startup check provider interface.
+func (n *SMTPNotifier) StartupCheck() (err error) {
+	if err = n.dial(); err != nil {
+		return fmt.Errorf(fmtSMTPDialError, err)
+	}
+
+	// Always execute QUIT at the end once we're connected.
+	defer n.cleanup()
+
+	if err = n.preamble(n.config.StartupCheckAddress); err != nil {
+		return err
+	}
+
+	return n.client.Reset()
+}
+
+// preamble performs generic preamble requirements for sending messages via SMTP.
+func (n *SMTPNotifier) preamble(recipient mail.Address) (err error) {
+	if err = n.client.Hello(n.config.Identifier); err != nil {
+		return fmt.Errorf(fmtSMTPGenericError, smtpCommandHELLO, err)
+	}
+
+	if err = n.startTLS(); err != nil {
+		return fmt.Errorf(fmtSMTPGenericError, smtpCommandSTARTTLS, err)
+	}
+
+	if err = n.auth(); err != nil {
+		return fmt.Errorf(fmtSMTPGenericError, smtpCommandAUTH, err)
+	}
+
+	if err = n.client.Mail(n.config.Sender.Address); err != nil {
+		return fmt.Errorf(fmtSMTPGenericError, smtpCommandMAIL, err)
+	}
+
+	if err = n.client.Rcpt(recipient.String()); err != nil {
+		return fmt.Errorf(fmtSMTPGenericError, smtpCommandRCPT, err)
+	}
+
+	return nil
+}
+
+// Dial the SMTP server with the SMTPNotifier config.
+func (n *SMTPNotifier) dial() (err error) {
+	var (
+		client *smtp.Client
+		conn   net.Conn
+		dialer = &net.Dialer{Timeout: n.config.Timeout}
+	)
+
+	n.log.Debugf("Notifier SMTP client attempting connection to %s:%d", n.config.Host, n.config.Port)
+
+	if n.config.Port == smtpPortSUBMISSIONS {
+		n.log.Debugf("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
+
+		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port), n.tlsConfig)
+	} else {
+		conn, err = dialer.Dial("tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port))
+	}
+
+	switch {
+	case err == nil:
+		break
+	case errors.Is(err, io.EOF):
+		return fmt.Errorf("received %w error: this error often occurs due to network errors such as a firewall, network policies, or closed ports which may be due to smtp service not running or an incorrect port specified in configuration", err)
+	default:
+		return err
+	}
+
+	if client, err = smtp.NewClient(conn, n.config.Host); err != nil {
+		return err
+	}
+
+	n.client = client
+
+	n.log.Debug("Notifier SMTP client connected successfully")
+
+	return nil
 }
 
 // Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred).
@@ -177,123 +281,11 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody s
 	return nil
 }
 
-// Dial the SMTP server with the SMTPNotifier config.
-func (n *SMTPNotifier) dial() (err error) {
-	var (
-		client *smtp.Client
-		conn   net.Conn
-		dialer = &net.Dialer{Timeout: n.config.Timeout}
-	)
-
-	n.log.Debugf("Notifier SMTP client attempting connection to %s:%d", n.config.Host, n.config.Port)
-
-	if n.config.Port == smtpPortSUBMISSIONS {
-		n.log.Debugf("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
-
-		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port), n.tlsConfig)
-	} else {
-		conn, err = dialer.Dial("tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port))
-	}
-
-	switch {
-	case err == nil:
-		break
-	case errors.Is(err, io.EOF):
-		return fmt.Errorf("received %w error: this error often occurs due to network errors such as a firewall, network policies, or closed ports which may be due to smtp service not running or an incorrect port specified in configuration", err)
-	default:
-		return err
-	}
-
-	if client, err = smtp.NewClient(conn, n.config.Host); err != nil {
-		return err
-	}
-
-	n.client = client
-
-	n.log.Debug("Notifier SMTP client connected successfully")
-
-	return nil
-}
-
 // Closes the connection properly.
 func (n *SMTPNotifier) cleanup() {
 	if err := n.client.Quit(); err != nil {
 		n.log.Warnf("Notifier SMTP client encountered error during cleanup: %v", err)
 	}
-}
 
-// StartupCheck implements the startup check provider interface.
-func (n *SMTPNotifier) StartupCheck() (err error) {
-	if err = n.dial(); err != nil {
-		return fmt.Errorf("error dialing the smtp server: %w", err)
-	}
-
-	defer n.cleanup()
-
-	if err = n.client.Hello(n.config.Identifier); err != nil {
-		return fmt.Errorf("error performing HELO/EHLO with the smtp server: %w", err)
-	}
-
-	if err = n.startTLS(); err != nil {
-		return fmt.Errorf("error performing STARTTLS with the smtp server: %w", err)
-	}
-
-	if err = n.auth(); err != nil {
-		return fmt.Errorf("error performing AUTH with the smtp server: %w", err)
-	}
-
-	if err = n.client.Mail(n.config.Sender.Address); err != nil {
-		return fmt.Errorf("error performing MAIL FROM with the smtp server: %w", err)
-	}
-
-	if err = n.client.Rcpt(n.config.StartupCheckAddress); err != nil {
-		return fmt.Errorf("error performing RCPT with the smtp server: %w", err)
-	}
-
-	return n.client.Reset()
-}
-
-// Send is used to send an email to a recipient.
-func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) (err error) {
-	subject := strings.ReplaceAll(n.config.Subject, "{title}", title)
-
-	if err = n.dial(); err != nil {
-		return fmt.Errorf("error dialing the SMTP server: %w", err)
-	}
-
-	// Always execute QUIT at the end once we're connected.
-	defer n.cleanup()
-
-	if err = n.client.Hello(n.config.Identifier); err != nil {
-		return fmt.Errorf("error performing HELO/EHLO with the SMTP server: %w", err)
-	}
-
-	if err = n.startTLS(); err != nil {
-		return fmt.Errorf("error performing STARTTLS with the SMTP server: %w", err)
-	}
-
-	if err = n.auth(); err != nil {
-		return fmt.Errorf("error performing AUTH with the SMTP server: %w", err)
-	}
-
-	if err = n.client.Mail(n.config.Sender.Address); err != nil {
-		n.log.Debugf("Notifier SMTP failed while sending MAIL FROM (using sender) with error: %v", err)
-
-		return fmt.Errorf("error performing MAIL FROM with the SMTP server: %w", err)
-	}
-
-	if err = n.client.Rcpt(n.config.StartupCheckAddress); err != nil {
-		n.log.Debugf("Notifier SMTP failed while sending RCPT TO (using recipient) with error: %v", err)
-
-		return fmt.Errorf("error performing RCPT with the SMTP server: %w", err)
-	}
-
-	// Compose and send the email body to the server.
-	if err = n.compose(recipient, subject, body, htmlBody); err != nil {
-		return err
-	}
-
-	n.log.Debug("Notifier SMTP client successfully sent email")
-
-	return nil
+	n.client = nil
 }
