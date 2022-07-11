@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/smtp"
 	"strings"
@@ -185,14 +186,17 @@ func (n *SMTPNotifier) dial() (err error) {
 		n.log.Infof("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
 
 		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.configuration.Host, n.configuration.Port), n.tlsConfig)
-		if err != nil {
-			return err
-		}
 	} else {
 		conn, err = dialer.Dial("tcp", fmt.Sprintf("%s:%d", n.configuration.Host, n.configuration.Port))
-		if err != nil {
-			return err
-		}
+	}
+
+	switch {
+	case err == nil:
+		break
+	case errors.Is(err, io.EOF):
+		return fmt.Errorf("received %w error: this error often occurs due to network errors such as a firewall, network policies, or closed ports which may be due to smtp service not running or an incorrect port specified in configuration", err)
+	default:
+		return err
 	}
 
 	client, err = smtp.NewClient(conn, n.configuration.Host)
@@ -217,30 +221,30 @@ func (n *SMTPNotifier) cleanup() {
 
 // StartupCheck implements the startup check provider interface.
 func (n *SMTPNotifier) StartupCheck() (err error) {
-	if err := n.dial(); err != nil {
-		return err
+	if err = n.dial(); err != nil {
+		return fmt.Errorf("error dialing the smtp server: %w", err)
 	}
 
 	defer n.cleanup()
 
-	if err := n.client.Hello(n.configuration.Identifier); err != nil {
-		return err
+	if err = n.client.Hello(n.configuration.Identifier); err != nil {
+		return fmt.Errorf("error performing HELO/EHLO with the smtp server: %w", err)
 	}
 
-	if err := n.startTLS(); err != nil {
-		return err
+	if err = n.startTLS(); err != nil {
+		return fmt.Errorf("error performing STARTTLS with the smtp server: %w", err)
 	}
 
-	if err := n.auth(); err != nil {
-		return err
+	if err = n.auth(); err != nil {
+		return fmt.Errorf("error performing AUTH with the smtp server: %w", err)
 	}
 
-	if err := n.client.Mail(n.configuration.Sender.Address); err != nil {
-		return err
+	if err = n.client.Mail(n.configuration.Sender.Address); err != nil {
+		return fmt.Errorf("error performing MAIL FROM with the smtp server: %w", err)
 	}
 
-	if err := n.client.Rcpt(n.configuration.StartupCheckAddress); err != nil {
-		return err
+	if err = n.client.Rcpt(n.configuration.StartupCheckAddress); err != nil {
+		return fmt.Errorf("error performing RCPT with the smtp server: %w", err)
 	}
 
 	return n.client.Reset()
@@ -250,39 +254,41 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 func (n *SMTPNotifier) Send(recipient, title, body, htmlBody string) error {
 	subject := strings.ReplaceAll(n.configuration.Subject, "{title}", title)
 
-	if err := n.dial(); err != nil {
-		return err
+	var err error
+
+	if err = n.dial(); err != nil {
+		return fmt.Errorf("error dialing the smtp server: %w", err)
 	}
 
 	// Always execute QUIT at the end once we're connected.
 	defer n.cleanup()
 
-	if err := n.client.Hello(n.configuration.Identifier); err != nil {
-		return err
+	if err = n.client.Hello(n.configuration.Identifier); err != nil {
+		return fmt.Errorf("error performing HELO/EHLO with the smtp server: %w", err)
 	}
 
-	// Start TLS and then Authenticate.
-	if err := n.startTLS(); err != nil {
-		return err
+	if err = n.startTLS(); err != nil {
+		return fmt.Errorf("error performing STARTTLS with the smtp server: %w", err)
 	}
 
-	if err := n.auth(); err != nil {
-		return err
+	if err = n.auth(); err != nil {
+		return fmt.Errorf("error performing AUTH with the smtp server: %w", err)
 	}
 
-	// Set the sender and recipient first.
-	if err := n.client.Mail(n.configuration.Sender.Address); err != nil {
+	if err = n.client.Mail(n.configuration.Sender.Address); err != nil {
 		n.log.Debugf("Notifier SMTP failed while sending MAIL FROM (using sender) with error: %s", err)
-		return err
+
+		return fmt.Errorf("error performing MAIL FROM with the smtp server: %w", err)
 	}
 
-	if err := n.client.Rcpt(recipient); err != nil {
+	if err = n.client.Rcpt(n.configuration.StartupCheckAddress); err != nil {
 		n.log.Debugf("Notifier SMTP failed while sending RCPT TO (using recipient) with error: %s", err)
-		return err
+
+		return fmt.Errorf("error performing RCPT with the smtp server: %w", err)
 	}
 
 	// Compose and send the email body to the server.
-	if err := n.compose(recipient, subject, body, htmlBody); err != nil {
+	if err = n.compose(recipient, subject, body, htmlBody); err != nil {
 		return err
 	}
 

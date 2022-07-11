@@ -76,9 +76,9 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
 			ctx.Response.Header.Add("Content-Security-Policy", strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, cspNoncePlaceholder, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultDevTemplate, nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, " 'unsafe-eval'", nonce))
 		default:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, nonce))
+			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, "", nonce))
 		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, ResetPasswordCustomURL, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, ResetPasswordCustomURL: resetPasswordCustomURL, Session: session, Theme: theme})
