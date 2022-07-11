@@ -1,6 +1,6 @@
 import React, { useEffect, Fragment, ReactNode, useState } from "react";
 
-import { AccountBox, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
+import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
 import {
     Button,
     Grid,
@@ -33,6 +33,8 @@ function scopeNameToAvatar(id: string) {
     switch (id) {
         case "openid":
             return <AccountBox />;
+        case "offline_access":
+            return <Autorenew />;
         case "profile":
             return <Contacts />;
         case "groups":
@@ -85,6 +87,8 @@ const ConsentView = function (props: Props) {
         switch (id) {
             case "openid":
                 return translate("Use OpenID to verify your identity");
+            case "offline_access":
+                return translate("Automatically refresh these permissions without user interaction");
             case "profile":
                 return translate("Access your profile information");
             case "groups":
