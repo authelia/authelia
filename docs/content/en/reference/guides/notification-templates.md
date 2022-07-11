@@ -88,6 +88,7 @@ In template files, you can use the following placeholders which are automaticall
 The original template content can be found on
 [GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/notification).
 
+[host]: ../../configuration/notifications/smtp.md#host
 [server_name]: ../../configuration/notifications/smtp.md#tls
 [sender]: ../../configuration/notifications/smtp.md#sender
 [identifier]: ../../configuration/notifications/smtp.md#identifier
