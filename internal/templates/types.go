@@ -52,13 +52,17 @@ type EmailIdentityVerificationValues struct {
 
 // EmailEnvelopeValues are  the values used for the email envelopes.
 type EmailEnvelopeValues struct {
-	UUID     string
-	From     string
-	To       string
-	Subject  string
-	Date     time.Time
-	Boundary string
-	Body     EmailEnvelopeBodyValues
+	UUID         string
+	Host         string
+	ServerName   string
+	SenderDomain string
+	Identifier   string
+	From         string
+	To           string
+	Subject      string
+	Date         time.Time
+	Boundary     string
+	Body         EmailEnvelopeBodyValues
 }
 
 // EmailEnvelopeBodyValues are the values used for the email envelopes bodies.

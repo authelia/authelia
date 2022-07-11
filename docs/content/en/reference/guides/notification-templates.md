@@ -71,7 +71,11 @@ In template files, you can use the following placeholders which are automaticall
 |       Placeholder       |                                 Description                                 |
 |:-----------------------:|:---------------------------------------------------------------------------:|
 |      `{{ .UUID }}`      | A string representation of a UUID v4 generated specifically for this email. |
-|      `{{ .From }}`      |           The string representation of the senders email address.           |
+|      `{{ .Host }}`      |                           The configured [host].                            |
+|   `{{ .ServerName }}`   |                      The configured TLS [server_name].                      |
+|  `{{ .SenderDomain }}`  |               The domain portion of the configured [sender].                |
+|   `{{ .Identifier }}`   |                        The configured [identifier].                         |
+|      `{{ .From }}`      |            The string representation of the configured [sender].            |
 |       `{{ .To }}`       |         The string representation of the recipients email address.          |
 |    `{{ .Subject }}`     |                             The email subject.                              |
 |      `{{ .Date }}`      |             The time.Time of the email envelope being rendered.             |
@@ -83,3 +87,7 @@ In template files, you can use the following placeholders which are automaticall
 
 The original template content can be found on
 [GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/notification).
+
+[server_name]: ../../configuration/notifications/smtp.md#tls
+[sender]: ../../configuration/notifications/smtp.md#sender
+[identifier]: ../../configuration/notifications/smtp.md#identifier

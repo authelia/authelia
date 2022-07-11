@@ -22,12 +22,18 @@ import (
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
-func NewSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
+func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
 	notifier := &SMTPNotifier{
-		config:    configuration,
-		tlsConfig: utils.NewTLSConfig(configuration.TLS, tls.VersionTLS12, certPool),
+		config:    config,
+		tlsConfig: utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool),
 		log:       logging.Logger(),
 		templates: templateProvider,
+	}
+
+	at := strings.LastIndex(config.Sender.Address, "@")
+
+	if at >= 0 {
+		notifier.domain = config.Sender.Address[at:]
 	}
 
 	return notifier
@@ -36,10 +42,12 @@ func NewSMTPNotifier(configuration *schema.SMTPNotifierConfiguration, certPool *
 // SMTPNotifier a notifier to send emails to SMTP servers.
 type SMTPNotifier struct {
 	config    *schema.SMTPNotifierConfiguration
-	client    *smtp.Client
+	domain    string
 	tlsConfig *tls.Config
 	log       *logrus.Logger
 	templates *templates.Provider
+
+	client *smtp.Client
 }
 
 // Send is used to email a recipient.
@@ -253,12 +261,16 @@ func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody str
 	}
 
 	values := templates.EmailEnvelopeValues{
-		UUID:     muuid.String(),
-		From:     n.config.Sender.String(),
-		To:       recipient.String(),
-		Subject:  strings.ReplaceAll(n.config.Subject, "{title}", title),
-		Date:     time.Now(),
-		Boundary: utils.RandomString(30, utils.AlphaNumericCharacters, true),
+		UUID:         muuid.String(),
+		Host:         n.config.Host,
+		ServerName:   n.config.TLS.ServerName,
+		SenderDomain: n.domain,
+		Identifier:   n.config.Identifier,
+		From:         n.config.Sender.String(),
+		To:           recipient.String(),
+		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", title),
+		Date:         time.Now(),
+		Boundary:     utils.RandomString(30, utils.AlphaNumericCharacters, true),
 		Body: templates.EmailEnvelopeBodyValues{
 			PlainText: body,
 			HTML:      htmlBody,
