@@ -59,6 +59,8 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 		return
 	}
 
+	issuer += "/"
+
 	userSession := ctx.GetSession()
 
 	var (

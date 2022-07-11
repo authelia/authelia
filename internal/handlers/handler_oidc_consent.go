@@ -118,6 +118,8 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	externalRootURL += "/"
+
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)
