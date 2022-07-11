@@ -50,11 +50,16 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 	}
 
+	templatesProvider, err := templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath})
+	if err != nil {
+		errors = append(errors, err)
+	}
+
 	var notifier notification.Notifier
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool, providers.Templates)
+		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool, templatesProvider)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}
@@ -78,11 +83,6 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 	var metricsProvider metrics.Provider
 	if config.Telemetry.Metrics.Enabled {
 		metricsProvider = metrics.NewPrometheus()
-	}
-
-	templatesProvider, err := templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath})
-	if err != nil {
-		errors = append(errors, err)
 	}
 
 	return middlewares.Providers{

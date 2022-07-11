@@ -123,7 +123,7 @@ func (n *SMTPNotifier) auth() error {
 }
 
 func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody string) (err error) {
-	n.log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient)
+	n.log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient.String())
 
 	if !n.config.DisableRequireTLS {
 		_, ok := n.client.TLSConnectionState()
@@ -135,7 +135,7 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject, body, htmlBody s
 	var wc io.WriteCloser
 
 	if wc, err = n.client.Data(); err != nil {
-		n.log.Debugf("Notifier SMTP client error while obtaining WriteCloser: %s", err)
+		n.log.Debugf("Notifier SMTP client error while obtaining WriteCloser: %v", err)
 		return err
 	}
 
@@ -212,9 +212,8 @@ func (n *SMTPNotifier) dial() (err error) {
 
 // Closes the connection properly.
 func (n *SMTPNotifier) cleanup() {
-	err := n.client.Quit()
-	if err != nil {
-		n.log.Warnf("Notifier SMTP client encountered error during cleanup: %s", err)
+	if err := n.client.Quit(); err != nil {
+		n.log.Warnf("Notifier SMTP client encountered error during cleanup: %v", err)
 	}
 }
 
