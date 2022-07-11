@@ -37,6 +37,7 @@ type UserDetails struct {
 	Groups      []string
 }
 
+// Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
 func (d UserDetails) Addresses() (addresses []mail.Address) {
 	if len(d.Emails) == 0 {
 		return nil

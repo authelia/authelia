@@ -75,5 +75,5 @@ func (p *Provider) load() (err error) {
 		err = fmt.Errorf("%v, %w", err, e)
 	}
 
-	return fmt.Errorf("one or more errors occcurred loading templates: %w", err)
+	return fmt.Errorf("one or more errors occurred loading templates: %w", err)
 }

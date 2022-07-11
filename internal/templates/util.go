@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"text/template"
 )
@@ -20,6 +21,7 @@ func templateExists(path string) (exists bool) {
 	return true
 }
 
+//nolint:unparam
 func loadTemplate(name, category, overridePath string) (t *template.Template, err error) {
 	if overridePath != "" {
 		tPath := filepath.Join(overridePath, name)
@@ -33,9 +35,9 @@ func loadTemplate(name, category, overridePath string) (t *template.Template, er
 		}
 	}
 
-	data, err := embedFS.ReadFile(filepath.Join("src", category, name))
+	data, err := embedFS.ReadFile(path.Join("src", category, name))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if t, err = template.New(name).Parse(string(data)); err != nil {
