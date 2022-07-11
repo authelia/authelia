@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -137,6 +138,10 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
+	}
+
+	if !strings.HasSuffix(redirectURI.Path, "/") {
+		redirectURI.Path += "/"
 	}
 
 	if query, err = url.ParseQuery(consent.Form); err != nil {

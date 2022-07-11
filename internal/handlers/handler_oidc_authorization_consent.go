@@ -35,6 +35,10 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 		return nil, true
 	}
 
+	if !strings.HasSuffix(issuer.Path, "/") {
+		issuer.Path += "/"
+	}
+
 	// This prevents the consent request from being generated until the authentication level is sufficient.
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) || userSession.Username == "" {
 		redirectURL := getOIDCAuthorizationRedirectURL(issuer, requester)
