@@ -21,8 +21,11 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		ErrorHandler:          handleError(),
 		Handler:               handleRouter(config, providers),
 		NoDefaultServerHeader: true,
-		ReadBufferSize:        config.Server.ReadBufferSize,
-		WriteBufferSize:       config.Server.WriteBufferSize,
+		ReadBufferSize:        config.Server.Buffers.Read,
+		WriteBufferSize:       config.Server.Buffers.Write,
+		ReadTimeout:           config.Server.Timeouts.Read,
+		WriteTimeout:          config.Server.Timeouts.Write,
+		IdleTimeout:           config.Server.Timeouts.Idle,
 	}
 
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
@@ -95,6 +98,11 @@ func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp
 		ErrorHandler:          handleError(),
 		NoDefaultServerHeader: true,
 		Handler:               handleMetrics(),
+		ReadBufferSize:        config.Buffers.Read,
+		WriteBufferSize:       config.Buffers.Write,
+		ReadTimeout:           config.Timeouts.Read,
+		WriteTimeout:          config.Timeouts.Write,
+		IdleTimeout:           config.Timeouts.Idle,
 	}
 
 	return server, listener, nil

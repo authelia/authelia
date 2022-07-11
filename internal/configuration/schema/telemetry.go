@@ -13,6 +13,9 @@ type TelemetryConfig struct {
 type TelemetryMetricsConfig struct {
 	Enabled bool     `koanf:"enabled"`
 	Address *Address `koanf:"address"`
+
+	Buffers  ServerBuffers  `koanf:"buffers"`
+	Timeouts ServerTimeouts `koanf:"timeouts"`
 }
 
 // DefaultTelemetryConfig is the default telemetry configuration.

@@ -14,6 +14,9 @@ type ServerConfiguration struct {
 
 	TLS     ServerTLSConfiguration     `koanf:"tls"`
 	Headers ServerHeadersConfiguration `koanf:"headers"`
+
+	Buffers  ServerBuffers  `koanf:"buffers"`
+	Timeouts ServerTimeouts `koanf:"timeouts"`
 }
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
