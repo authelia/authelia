@@ -25,6 +25,8 @@ export async function postFirstFactor(
         keepMeLoggedIn: rememberMe,
     };
 
+    console.log("TargetURL is ", targetURL);
+
     if (targetURL) {
         data.targetURL = targetURL;
     }
@@ -36,6 +38,8 @@ export async function postFirstFactor(
     if (workflow) {
         data.workflow = workflow;
     }
+
+    console.log("Data is ", data);
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
     return res ? res : ({} as SignInResponse);

@@ -51,7 +51,16 @@ const LoginPortal = function (props: Props) {
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
-    const redirect = useCallback((url: string) => navigate(url), [navigate]);
+    const redirect = useCallback(
+        (pathname: string, search?: string) => {
+            if (search) {
+                navigate({ pathname: pathname, search: search });
+            } else {
+                navigate({ pathname: pathname });
+            }
+        },
+        [navigate],
+    );
 
     // Fetch the state when portal is mounted.
     useEffect(() => {
@@ -121,25 +130,35 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
-            const redirectionSuffix = redirectionURL
+            const search = redirectionURL
                 ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
                       workflow ? `&workflow=${workflow}` : ""
                   }`
-                : "";
+                : undefined;
+
+            console.log(`Search is ${search}`);
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(`${IndexRoute}${redirectionSuffix}`);
+                console.log(`Redirect to ${IndexRoute}${search}`);
+
+                redirect(IndexRoute, search);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}${redirectionSuffix}`);
+                        console.log(`Redirect to ${SecondFactorRoute}${SecondFactorWebauthnSubRoute}${search}`);
+
+                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`, search);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}${redirectionSuffix}`);
+                        console.log(`Redirect to ${SecondFactorRoute}${SecondFactorPushSubRoute}${search}`);
+
+                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`, search);
                     } else {
-                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}${redirectionSuffix}`);
+                        console.log(`Redirect to ${SecondFactorRoute}${SecondFactorPushSubRoute}${search}`);
+
+                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`, search);
                     }
                 }
             }
