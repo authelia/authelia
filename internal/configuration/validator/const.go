@@ -307,7 +307,7 @@ var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFact
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
-var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, "offline_access"}
+var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
