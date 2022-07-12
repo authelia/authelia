@@ -1,3 +1,4 @@
+---
 - id: get-started
   translation: "Get Started"
 
@@ -5,7 +6,7 @@
   translation: "On this page"
 
 - id: search-text
-  translation: "Search docs..."
+  translation: "Search..."
 
 - id: 404-title
   translation: "Page not found :("
@@ -15,3 +16,4 @@
 
 - id: browse
   translation: "Browse"
+...
