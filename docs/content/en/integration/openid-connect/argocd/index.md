@@ -71,8 +71,8 @@ which will operate with the above example:
     - profile
   secret: argocd_client_secret
   userinfo_signing_algorithm: none
-- description: ArgoCD CLI
-  id: argocd-cli
+- id: argocd-cli
+  description: ArgoCD CLI
   public: true
   redirect_uris:
     - http://localhost:8085/auth/callback
