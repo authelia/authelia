@@ -1,9 +1,9 @@
 {
   "name": "@hyas/doks",
   "description": "Doks theme",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "engines": {
-    "node": ">=16.15.1"
+    "node": ">=16.16.0"
   },
   "browserslist": [
     "defaults"
@@ -67,5 +67,8 @@
   },
   "otherDependencies": {
     "hugo": "0.101.0"
+  },
+  "dependencies": {
+    "@hyas/images": "0.2.2"
   }
 }

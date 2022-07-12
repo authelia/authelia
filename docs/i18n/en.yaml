@@ -1,0 +1,17 @@
+- id: get-started
+  translation: "Get Started"
+
+- id: on-this-page
+  translation: "On this page"
+
+- id: search-text
+  translation: "Search docs..."
+
+- id: 404-title
+  translation: "Page not found :("
+
+- id: 404-text
+  translation: "The page you are looking for doesn't exist or has been moved."
+
+- id: browse
+  translation: "Browse"

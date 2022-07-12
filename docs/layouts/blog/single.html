@@ -1,14 +1,59 @@
 {{ define "main" }}
+<article>
 <div class="row justify-content-center">
-  <div class="col-md-12 col-lg-10 col-xl-8">
-    <article>
-      <div class="blog-header">
-        <h1>{{ .Title }}</h1>
-        {{ partial "main/blog-meta.html" . }}
-      </div>
-      <p class="lead">{{ .Params.lead | safeHTML }}</p>
-      {{ .Content }}
-    </article>
+  <div class="col-md-12 col-lg-10">
+    <div class="blog-header">
+      <h1>{{ .Title }}</h1>
+      {{ partial "main/blog-meta.html" . }}
+    </div>
+  </div>
+  <div class="col-md-13">
+    <div>
+      {{- .Scratch.Set "fillImage" "1270x715 Center" -}}
+      {{ partial "content/figure.html" . }}
+    </div>
+  </div>
+  <div class="col-md-12 col-lg-9">
+    {{ .Content }}
+    {{ if .Params.tags -}}
+    <div class="mt-4">
+      {{ range $index, $tag := .Params.tags -}}
+        <a class="btn btn-light" href="{{ "/tags/" | absURL }}{{ . | urlize }}/" role="button">{{ . }}</a>
+      {{ end -}}
+    </div>
+    {{ end -}}
   </div>
 </div>
+</article>
+
+{{ $related := .Site.RegularPages.Related . | first 3 -}}
+{{ with $related -}}
+<div class="related-posts">
+<div class="row justify-content-center">
+  <div class="col">
+    <h2 class="section-title">Related posts</h2>
+  </div>
+</div>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-lg-5">
+  {{ range . -}}
+  <div class="col">
+    <div class="card">
+      {{- .Scratch.Set "fillImageCard" "1270x620 Center" -}}
+      {{ partial "content/card-image.html" . }}
+      <div class="card-body">
+        <article>
+          <h2 class="h3"><a class="stretched-link text-body" href="{{ .RelPermalink }}">{{ .Params.title }}</a></h2>
+          <p>{{ .Params.excerpt | safeHTML }}</p>
+          {{ partial "main/blog-meta.html" . -}}
+        </article>
+      </div>
+    </div>
+  </div>
+  {{ end -}}
+</div>
+</div>
+{{ end -}}
+
 {{ end }}
+
+
