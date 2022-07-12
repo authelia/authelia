@@ -5,7 +5,7 @@ specifiers:
   '@babel/core': 7.18.6
   '@babel/preset-env': 7.18.6
   '@fullhuman/postcss-purgecss': 4.1.3
-  '@hyas/images': 0.2.2
+  '@hyas/images': v0.2.2
   auto-changelog: 2.4.0
   autoprefixer: 10.4.7
   bootstrap: 5.2.0-beta1
@@ -29,14 +29,12 @@ specifiers:
   stylelint: 14.9.1
   stylelint-config-standard-scss: 4.0.0
 
-dependencies:
-  '@hyas/images': 0.2.2
-
 devDependencies:
   '@babel/cli': 7.18.6_@babel+core@7.18.6
   '@babel/core': 7.18.6
   '@babel/preset-env': 7.18.6_@babel+core@7.18.6
   '@fullhuman/postcss-purgecss': 4.1.3_postcss@8.4.14
+  '@hyas/images': 0.2.2
   auto-changelog: 2.4.0
   autoprefixer: 10.4.7_postcss@8.4.14
   bootstrap: 5.2.0-beta1
@@ -1300,7 +1298,7 @@ packages:
 
   /@hyas/images/0.2.2:
     resolution: {integrity: sha512-m6sYlR+iNAQBhbt+AKekRsXPrKff+UpE1/XsGqNIi9Ptb8ZdRiv/bgY1ZCdKAf6hNop1OT1bbS5WkP9wo0wb+w==}
-    dev: false
+    dev: true
 
   /@jridgewell/gen-mapping/0.1.1:
     resolution: {integrity: sha512-sQXCasFk+U8lWYEe66WxRDOE9PjVz4vSM51fTu3Hw+ClTpUSQb718772vH3pyS5pShp6lvQM7SxgIDXXXmOX7w==}
