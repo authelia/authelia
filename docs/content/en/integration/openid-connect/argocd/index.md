@@ -2,7 +2,7 @@
 title: "ArgoCD"
 description: "Integrating ArgoCD with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-07-12T17:51:47+10:00
+date: 2022-07-13T03:42:47+10:00
 draft: false
 images: []
 menu:
