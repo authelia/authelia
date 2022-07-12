@@ -2,7 +2,7 @@
 title: "Gitea"
 description: "Integrating Gitea with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-06-30T12:35:54+10:00
+date: 2022-07-01T13:07:02+10:00
 draft: false
 images: []
 menu:
