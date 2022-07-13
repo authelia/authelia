@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -65,7 +66,8 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 			}
 		}
 
-		ctx.SetContentType("application/json")
+		middlewares.SetContentTypeApplicationJSON(ctx)
+
 		ctx.SetBody(data)
 	}
 }
