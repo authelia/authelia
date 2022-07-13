@@ -1,6 +1,6 @@
 ---
-title: "ArgoCD"
-description: "Integrating ArgoCD with the Authelia OpenID Connect Provider."
+title: "Argo CD"
+description: "Integrating Argo CD with the Authelia OpenID Connect Provider."
 lead: ""
 date: 2022-07-13T03:42:47+10:00
 draft: false
@@ -17,7 +17,7 @@ community: true
 
 * [Authelia]
   * [v4.36.2](https://github.com/authelia/authelia/releases/tag/v4.36.2)
-* [ArgoCD]
+* [Argo CD]
   * v2.4.5
 
 ## Before You Begin
@@ -38,7 +38,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [ArgoCD] to utilize Authelia as an [OpenID Connect] Provider use the following configuration:
+To configure [Argo CD] to utilize Authelia as an [OpenID Connect] Provider use the following configuration:
 
 ```yaml
 name: Authelia
@@ -56,12 +56,12 @@ requestedScopes:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [ArgoCD]
+[client configuration](../../../configuration/identity-providers/open-id-connect.md#clients) for use with [Argo CD]
 which will operate with the above example:
 
 ```yaml
 - id: argocd
-  description: ArgoCD
+  description: Argo CD
   redirect_uris:
     - https://argocd.example.com/auth/callback
   scopes:
@@ -72,7 +72,7 @@ which will operate with the above example:
   secret: argocd_client_secret
   userinfo_signing_algorithm: none
 - id: argocd-cli
-  description: ArgoCD CLI
+  description: Argo CD (CLI)
   public: true
   redirect_uris:
     - http://localhost:8085/auth/callback
@@ -86,10 +86,10 @@ which will operate with the above example:
 
 ## See Also
 
-* [ArgoCD OpenID Connect Documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#existing-oidc-provider)
+* [Argo CD OpenID Connect Documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#existing-oidc-provider)
 
 [Authelia]: https://www.authelia.com
-[ArgoCD]: https://argo-cd.readthedocs.io/en/stable/
+[Argo CD]: https://argo-cd.readthedocs.io/en/stable/
 [OpenID Connect]: ../../openid-connect/introduction.md
 
 
