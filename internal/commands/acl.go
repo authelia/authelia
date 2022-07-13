@@ -74,11 +74,9 @@ func accessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	v := schema.NewStructValidator()
+	validator.ValidateAccessControl(accessControlConfig, val)
 
-	validator.ValidateAccessControl(accessControlConfig, v)
-
-	if v.HasErrors() || v.HasWarnings() {
+	if val.HasErrors() || val.HasWarnings() {
 		return errors.New("your configuration has errors")
 	}
 
