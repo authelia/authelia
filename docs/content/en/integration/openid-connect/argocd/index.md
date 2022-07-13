@@ -31,8 +31,8 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://argocd.example.com`
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `argocd`
-* __CLI Client ID:__ `argocd-cli`
 * __Client Secret:__ `argocd_client_secret`
+* __CLI Client ID:__ `argocd-cli`
 
 ## Configuration
 
@@ -44,8 +44,8 @@ To configure [ArgoCD] to utilize Authelia as an [OpenID Connect] Provider use th
 name: Authelia
 issuer: https://auth.example.com
 clientID: argocd
-cliClientID: argocd-cli
 clientSecret: argocd_client_secret
+cliClientID: argocd-cli
 requestedScopes:
   - openid
   - profile
