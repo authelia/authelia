@@ -30,7 +30,7 @@ Users are welcome to reach out directly by using any of our various [contact opt
 ## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../prologue/get-started) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Important Notes
