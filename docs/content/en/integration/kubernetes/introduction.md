@@ -14,7 +14,7 @@ aliases:
   - /i/k8s
 ---
 
-{{< figure src="/images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" >}}
+{{< figure src="/images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}
 
 ## UNDER CONSTRUCTION
 
