@@ -136,28 +136,18 @@ const LoginPortal = function (props: Props) {
                   }`
                 : undefined;
 
-            console.log(`Search is ${search}`);
-
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                console.log(`Redirect to ${IndexRoute}${search}`);
-
                 redirect(IndexRoute, search);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        console.log(`Redirect to ${SecondFactorRoute}${SecondFactorWebauthnSubRoute}${search}`);
-
                         redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`, search);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        console.log(`Redirect to ${SecondFactorRoute}${SecondFactorPushSubRoute}${search}`);
-
                         redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`, search);
                     } else {
-                        console.log(`Redirect to ${SecondFactorRoute}${SecondFactorPushSubRoute}${search}`);
-
                         redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`, search);
                     }
                 }
