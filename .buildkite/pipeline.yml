@@ -34,7 +34,7 @@ steps:
   - label: ":rocket: Setup Deployment"
     command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
     depends_on: ~
-    if: build.branch != "master" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/ && build.pull_request.repository.fork != true # yamllint disable-line rule:line-length
+    if: build.branch != "master" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/ && build.pull_request.repository.fork != true  # yamllint disable-line rule:line-length
 
   # Removed dependency optimisation for forked PRs to enforce block step.
   - label: ":rocket: Setup Deployment"
