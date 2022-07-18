@@ -214,7 +214,9 @@ func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
 // *fasthttp.RequestCtx or *middlewares.AutheliaCtx.
 func SetStatusCodeResponse(ctx *fasthttp.RequestCtx, statusCode int) {
 	ctx.Response.Reset()
-	ctx.SetContentTypeBytes(headerContentTypeValueTextPlain)
+
+	middlewares.SetContentTypeTextPlain(ctx)
+
 	ctx.SetStatusCode(statusCode)
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }

@@ -65,6 +65,12 @@
 {{ $scrollLock := resources.Get "js/scroll-lock.js" | js.Build -}}
 {{ $slice = $slice | append $scrollLock -}}
 
+{{ if .Site.Params.options.toTopButton -}}
+  {{ $toTopButton := resources.Get "js/to-top.js" -}}
+  {{ $toTopButton := $toTopButton | js.Build -}}
+  {{ $slice = $slice | append $toTopButton -}}
+{{ end -}}
+
 {{ $js := $slice | resources.Concat "main.js" -}}
 
 {{ if eq (hugo.Environment) "development" -}}
