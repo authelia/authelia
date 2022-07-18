@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	mail "net/mail"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,7 +35,7 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 }
 
 // Send mocks base method.
-func (m *MockNotifier) Send(arg0, arg1, arg2, arg3 string) error {
+func (m *MockNotifier) Send(arg0 mail.Address, arg1, arg2, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
