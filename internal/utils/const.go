@@ -88,11 +88,6 @@ var (
 	reDurationStandard    = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
 )
 
-var (
-	slashForward = []byte("/")
-	questionMark = []byte("?")
-)
-
 // Duration unit types.
 const (
 	DurationUnitDays   = "d"
