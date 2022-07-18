@@ -54,8 +54,7 @@ const (
 		"is configured"
 	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
-	errFmtNotifierTemplateLoad                    = "notifier: error loading template '%s': %w"
-	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required "
+	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 )
 

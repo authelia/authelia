@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"crypto/tls"
+	"net/mail"
 
 	"github.com/go-ldap/ldap/v3"
 	"golang.org/x/text/encoding/unicode"
@@ -34,6 +35,24 @@ type UserDetails struct {
 	DisplayName string
 	Emails      []string
 	Groups      []string
+}
+
+// Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
+func (d UserDetails) Addresses() (addresses []mail.Address) {
+	if len(d.Emails) == 0 {
+		return nil
+	}
+
+	addresses = make([]mail.Address, len(d.Emails))
+
+	for i, email := range d.Emails {
+		addresses[i] = mail.Address{
+			Name:    d.DisplayName,
+			Address: email,
+		}
+	}
+
+	return addresses
 }
 
 type ldapUserProfile struct {
