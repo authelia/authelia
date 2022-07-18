@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"os"
 	"strings"
 	"time"
 
@@ -261,6 +262,7 @@ func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody str
 	}
 
 	values := templates.EmailEnvelopeValues{
+		ProcessID:    os.Getpid(),
 		UUID:         muuid.String(),
 		Host:         n.config.Host,
 		ServerName:   n.config.TLS.ServerName,

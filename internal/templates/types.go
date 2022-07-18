@@ -52,6 +52,7 @@ type EmailIdentityVerificationValues struct {
 
 // EmailEnvelopeValues are  the values used for the email envelopes.
 type EmailEnvelopeValues struct {
+	ProcessID    int
 	UUID         string
 	Host         string
 	ServerName   string

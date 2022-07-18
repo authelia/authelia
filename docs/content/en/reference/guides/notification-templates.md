@@ -70,6 +70,7 @@ In template files, you can use the following placeholders which are automaticall
 
 |       Placeholder       |                                 Description                                 |
 |:-----------------------:|:---------------------------------------------------------------------------:|
+|   `{{ .ProcessID }}`    |                          The Authelia Process ID.                           |
 |      `{{ .UUID }}`      | A string representation of a UUID v4 generated specifically for this email. |
 |      `{{ .Host }}`      |                           The configured [host].                            |
 |   `{{ .ServerName }}`   |                      The configured TLS [server_name].                      |
