@@ -68,9 +68,10 @@ will operate with the above example:
     - email
     - profile
   redirect_uris:
-    - https://gitea.example.com
+    - https://gitea.example.com/user/oauth2/authelia/callback
   userinfo_signing_algorithm: none
 ```
+> Note: You will need to have pre-created the user within Gitea, with the authentication source set as 'authelia', to allow the user to sign in/be linked to an existing user.
 
 [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
