@@ -26,7 +26,7 @@ func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 		return "", nil, errors.New("unexpected hostname from server")
 	}
 
-	return "LOGIN", []byte{}, nil
+	return smtpAUTHMechanismLogin, []byte{}, nil
 }
 
 func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {

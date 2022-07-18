@@ -570,3 +570,13 @@ $navbar-dark-active-color:          $link-color-dark;
 [data-dark-mode] details summary::before {
   content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%28222, 226, 230, 0.75%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
 }
+
+[data-dark-mode] #toc a.active {
+  color: $link-color-dark;
+}
+
+[data-dark-mode] .btn-light {
+  color: $link-color-dark;
+  background: $body-overlay-dark;
+  border: 1px solid $body-overlay-dark;
+}

@@ -30,7 +30,6 @@ var (
 )
 
 var (
-	headerContentTypeValueDefault   = []byte("text/plain; charset=utf-8")
 	headerWWWAuthenticateValueBasic = []byte("Basic realm=\"Authentication Required\"")
 )
 

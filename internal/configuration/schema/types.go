@@ -3,74 +3,64 @@ package schema
 import (
 	"fmt"
 	"net"
-	"regexp"
+	"net/url"
 	"strconv"
+	"strings"
 )
 
-var regexpAddress = regexp.MustCompile(`^((?P<Scheme>\w+)://)?((?P<IPv4>((((25[0-5]|2[0-4]\d|[01]?\d\d?)(\.)){3})(25[0-5]|2[0-4]\d|[01]?\d\d?)))|(\[(?P<IPv6>([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?\d)?\d)\.){3}(25[0-5]|(2[0-4]|1?\d)?\d)|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?\d)?\d)\.){3}(25[0-5]|(2[0-4]|1?\d)?\d))\]):)?(?P<Port>\d+)$`)
-
-const tcp = "tcp"
-
-// NewAddress produces a valid address from input.
-func NewAddress(scheme string, ip net.IP, port int) Address {
-	return Address{
-		valid:  true,
-		Scheme: scheme,
-		IP:     ip,
-		Port:   port,
+// NewAddressFromString returns an *Address and error depending on the ability to parse the string as an Address.
+func NewAddressFromString(a string) (addr *Address, err error) {
+	if len(a) == 0 {
+		return &Address{true, "tcp", net.ParseIP("0.0.0.0"), 0}, nil
 	}
+
+	var u *url.URL
+
+	if regexpHasScheme.MatchString(a) {
+		u, err = url.Parse(a)
+	} else {
+		u, err = url.Parse("tcp://" + a)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("could not parse string '%s' as address: expected format is [<scheme>://]<ip>[:<port>]: %w", a, err)
+	}
+
+	return NewAddressFromURL(u)
 }
 
-// NewAddressFromString parses a string and returns an *Address or error.
-func NewAddressFromString(addr string) (address *Address, err error) {
-	if addr == "" {
-		return &Address{}, nil
+// NewAddressFromURL returns an *Address and error depending on the ability to parse the *url.URL as an Address.
+func NewAddressFromURL(u *url.URL) (addr *Address, err error) {
+	addr = &Address{
+		Scheme: strings.ToLower(u.Scheme),
+		IP:     net.ParseIP(u.Hostname()),
 	}
 
-	if !regexpAddress.MatchString(addr) {
-		return nil, fmt.Errorf("the string '%s' does not appear to be a valid address", addr)
+	if addr.IP == nil {
+		return nil, fmt.Errorf("could not parse ip for address '%s': %s does not appear to be an IP", u.String(), u.Hostname())
 	}
 
-	address = &Address{
-		valid: true,
-	}
-
-	submatches := regexpAddress.FindStringSubmatch(addr)
-
-	var ip, port string
-
-	for i, name := range regexpAddress.SubexpNames() {
-		switch name {
-		case "Scheme":
-			address.Scheme = submatches[i]
-		case "IPv4":
-			ip = submatches[i]
-
-			if address.Scheme == "" || address.Scheme == tcp {
-				address.Scheme = "tcp4"
-			}
-		case "IPv6":
-			ip = submatches[i]
-
-			if address.Scheme == "" || address.Scheme == tcp {
-				address.Scheme = "tcp6"
-			}
-		case "Port":
-			port = submatches[i]
+	port := u.Port()
+	switch port {
+	case "":
+		break
+	default:
+		addr.Port, err = strconv.Atoi(port)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse port for address '%s': %w", u.String(), err)
 		}
 	}
 
-	if address.IP = net.ParseIP(ip); address.IP == nil {
-		return nil, fmt.Errorf("failed to parse '%s' as an IP address", ip)
+	switch addr.Scheme {
+	case "tcp", "udp":
+		break
+	default:
+		return nil, fmt.Errorf("could not parse scheme for address '%s': scheme '%s' is not valid, expected to be one of 'tcp://', 'udp://'", u.String(), addr.Scheme)
 	}
 
-	address.Port, _ = strconv.Atoi(port)
+	addr.valid = true
 
-	if address.Port <= 0 || address.Port > 65535 {
-		return nil, fmt.Errorf("failed to parse address port '%d' is invalid: ports must be between 1 and 65535", address.Port)
-	}
-
-	return address, nil
+	return addr, nil
 }
 
 // Address represents an address.
@@ -78,8 +68,8 @@ type Address struct {
 	valid bool
 
 	Scheme string
-	net.IP
-	Port int
+	IP     net.IP
+	Port   int
 }
 
 // Valid returns true if the Address is valid.

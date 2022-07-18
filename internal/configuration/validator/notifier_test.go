@@ -82,6 +82,17 @@ func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
 
+func (suite *NotifierSuite) TestSMTPShouldDefaultStartupCheckAddress() {
+	suite.Assert().Equal(mail.Address{Name: "", Address: ""}, suite.config.SMTP.StartupCheckAddress)
+
+	ValidateNotifier(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(mail.Address{Name: "Authelia Test", Address: "test@authelia.com"}, suite.config.SMTP.StartupCheckAddress)
+}
+
 func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 	suite.config.SMTP.Host = "google.com"
 	suite.config.SMTP.TLS = &schema.TLSConfig{

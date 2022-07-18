@@ -128,24 +128,16 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 	}
 }
 
-// hasUserBeenInactiveTooLong checks whether the user has been inactive for too long.
-func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //nolint:unparam
-	maxInactivityPeriod := int64(ctx.Providers.SessionProvider.Inactivity.Seconds())
-	if maxInactivityPeriod == 0 {
-		return false, nil
+func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isUserAnonymous bool) (isInactiveTooLong bool) {
+	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(ctx.Providers.SessionProvider.Inactivity.Seconds()) == 0 {
+		return false
 	}
 
-	lastActivity := ctx.GetSession().LastActivity
-	inactivityPeriod := ctx.Clock.Now().Unix() - lastActivity
+	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(ctx.Providers.SessionProvider.Inactivity).Before(ctx.Clock.Now())
 
-	ctx.Logger.Tracef("Inactivity report: Inactivity=%d, MaxInactivity=%d",
-		inactivityPeriod, maxInactivityPeriod)
+	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(ctx.Providers.SessionProvider.Inactivity.Seconds()))
 
-	if inactivityPeriod > maxInactivityPeriod {
-		return true, nil
-	}
-
-	return false, nil
+	return isInactiveTooLong
 }
 
 // verifySessionCookie verifies if a user is identified by a cookie.
@@ -155,38 +147,30 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	isUserAnonymous := userSession.Username == ""
 
 	if isUserAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
-		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("an anonymous user cannot be authenticated. That might be the sign of a compromise")
+		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("an anonymous user cannot be authenticated (this might be the sign of a security compromise)")
 	}
 
-	if !userSession.KeepMeLoggedIn && !isUserAnonymous {
-		inactiveLongEnough, err := hasUserBeenInactiveTooLong(ctx)
-		if err != nil {
-			return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to check if user has been inactive for a long time: %s", err)
+	if isSessionInactiveTooLong(ctx, userSession, isUserAnonymous) {
+		// Destroy the session a new one will be regenerated on next request.
+		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+			return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy session for user '%s' after the session has been inactive too long: %w", userSession.Username, err)
 		}
 
-		if inactiveLongEnough {
-			// Destroy the session a new one will be regenerated on next request.
-			err := ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-			if err != nil {
-				return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy user session after long inactivity: %s", err)
-			}
+		ctx.Logger.Warnf("Session destroyed for user '%s' after exceeding configured session inactivity and not being marked as remembered", userSession.Username)
 
-			return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, fmt.Errorf("User %s has been inactive for too long", userSession.Username)
-		}
+		return "", "", nil, nil, authentication.NotAuthenticated, nil
 	}
 
-	err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval)
-	if err != nil {
+	if err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval); err != nil {
 		if err == authentication.ErrUserNotFound {
-			err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-			if err != nil {
-				ctx.Logger.Errorf("Unable to destroy user session after provider refresh didn't find the user: %s", err)
+			if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+				ctx.Logger.Errorf("Unable to destroy user session after provider refresh didn't find the user: %v", err)
 			}
 
 			return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, err
 		}
 
-		ctx.Logger.Errorf("Error occurred while attempting to update user details from LDAP: %s", err)
+		ctx.Logger.Errorf("Error occurred while attempting to update user details from LDAP: %v", err)
 
 		return "", "", nil, nil, authentication.NotAuthenticated, err
 	}
@@ -214,6 +198,7 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL *url.URL, isBasi
 		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), friendlyUsername)
 		ctx.ReplyUnauthorized()
 		ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerWWWAuthenticateValueBasic)
+
 		return
 	}
 
@@ -284,8 +269,8 @@ func getRedirectionURL(rd, rm string, targetURL *url.URL) (redirectionURL *url.U
 	return redirectionURL, nil
 }
 
-func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool, username string) error {
-	if isBasicAuth || username == "" {
+func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool) error {
+	if isBasicAuth {
 		return nil
 	}
 
@@ -437,31 +422,32 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	if authValue != nil {
 		isBasicAuth = true
 	} else if isBasicAuth {
-		err = fmt.Errorf("basic auth requested via query arg, but no value provided via %s header", authHeader)
-		return
+		return isBasicAuth, username, name, groups, emails, authLevel, fmt.Errorf("basic auth requested via query arg, but no value provided via %s header", authHeader)
 	}
 
 	if isBasicAuth {
 		username, name, groups, emails, authLevel, err = verifyBasicAuth(ctx, authHeader, authValue)
-		return
+
+		return isBasicAuth, username, name, groups, emails, authLevel, err
 	}
 
 	userSession := ctx.GetSession()
-	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
+	if username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval); err != nil {
+		return isBasicAuth, username, name, groups, emails, authLevel, err
+	}
 
 	sessionUsername := ctx.Request.Header.PeekBytes(headerSessionUsername)
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
-		err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
-		if err != nil {
+		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", headerSessionUsername, err)
 		}
 
-		err = fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, headerSessionUsername, sessionUsername, targetURL.String())
+		return isBasicAuth, username, name, groups, emails, authLevel, fmt.Errorf("could not match user %s to their %s header with a value of %s when visiting %s", username, headerSessionUsername, sessionUsername, targetURL.String())
 	}
 
-	return
+	return isBasicAuth, username, name, groups, emails, authLevel, err
 }
 
 // VerifyGET returns the handler verifying if a request is allowed to go through.
@@ -501,7 +487,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		if err != nil {
 			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
 
-			if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+			if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {
 				ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
 				return
 			}
@@ -524,7 +510,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}
 
-		if err := updateActivityTimestamp(ctx, isBasicAuth, username); err != nil {
+		if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {
 			ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
 		}
 	}
