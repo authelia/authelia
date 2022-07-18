@@ -13,7 +13,7 @@ func URLPathFullClean(u *url.URL) string {
 
 	b.WriteString(path.Clean(u.Path))
 
-	if len(u.Path) != 1 && u.Path[len(u.Path)-1] == '/' {
+	if len(u.Path) > 1 && u.Path[len(u.Path)-1] == '/' {
 		b.Write(slashForward)
 	}
 
