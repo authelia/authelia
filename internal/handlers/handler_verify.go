@@ -257,10 +257,6 @@ func getRedirectionURL(rd, rm string, targetURL *url.URL) (redirectionURL *url.U
 		return nil, nil
 	}
 
-	if rd, err = url.QueryUnescape(rd); err != nil {
-		return nil, err
-	}
-
 	if redirectionURL, err = url.Parse(rd); err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -279,13 +280,15 @@ func DoGetWithAuth(t *testing.T, username, password string) int {
 	res, err := client.Do(req)
 	assert.NoError(t, err)
 
+	require.NotNil(t, res)
+
 	return res.StatusCode
 }
 
 func (s *HighAvailabilitySuite) TestBasicAuth() {
-	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "password"), 200)
-	s.Assert().Equal(DoGetWithAuth(s.T(), "john", "bad-password"), 302)
-	s.Assert().Equal(DoGetWithAuth(s.T(), "dontexist", "password"), 302)
+	s.Assert().Equal(200, DoGetWithAuth(s.T(), "john", "password"))
+	s.Assert().Equal(302, DoGetWithAuth(s.T(), "john", "bad-password"))
+	s.Assert().Equal(302, DoGetWithAuth(s.T(), "dontexist", "password"))
 }
 
 func (s *HighAvailabilitySuite) Test1FAScenario() {

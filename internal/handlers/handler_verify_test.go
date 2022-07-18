@@ -1378,3 +1378,39 @@ func TestIsSessionInactiveTooLong(t *testing.T) {
 		})
 	}
 }
+
+func MustParseURL(u string) *url.URL {
+	o, err := url.Parse(u)
+	if err != nil {
+		panic(err)
+	}
+
+	return o
+}
+
+func TestGetRedirectionURL(t *testing.T) {
+	testCases := []struct {
+		name        string
+		rd, rm      string
+		targetURL   *url.URL
+		expected    *url.URL
+		expectedErr string
+	}{
+		{"Simple", "https://auth.example.com/", "GET", MustParseURL("https://app.example.com/?p=1&t=a"), MustParseURL("https://auth.example.com/?rd=https%3A%2F%2Fapp.example.com%2F%3Fp%3D1%26t%3Da&rm=GET"), ""},
+		{"NoRD", "", "GET", MustParseURL("https://app.example.com/?p=1&t=a"), nil, ""},
+		{"BadRD", "!@#!@#JMN!KI@$N%K!J@", "GET", MustParseURL("https://app.example.com/?p=1&t=a"), nil, "parse \"!@#!@#JMN!KI@$N%K!J@\": invalid URL escape \"%K!\""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, actualErr := getRedirectionURL(tc.rd, tc.rm, tc.targetURL)
+
+			assert.Equal(t, tc.expected, actual)
+			if tc.expectedErr != "" {
+				assert.EqualError(t, actualErr, tc.expectedErr)
+			} else {
+				assert.NoError(t, actualErr)
+			}
+		})
+	}
+}

@@ -183,12 +183,12 @@ The following is an example `proxy.conf`. The important directives include the `
 ## Headers
 proxy_set_header Host $host;
 proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Host $http_host;
-proxy_set_header X-Forwarded-Uri $request_uri;
-proxy_set_header X-Forwarded-Ssl on;
-proxy_set_header X-Forwarded-For $remote_addr;
-proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header Connection "";
+proxy_set_header X-Forwarded-Host  $http_host;
+proxy_set_header X-Forwarded-Uri   $request_uri;
+proxy_set_header X-Forwarded-Ssl   on;
+proxy_set_header X-Forwarded-For   $remote_addr;
+proxy_set_header X-Real-IP         $remote_addr;
+proxy_set_header Connection        "";
 
 ## Basic Proxy Configuration
 client_body_buffer_size 128k;
@@ -224,7 +224,7 @@ proxy_connect_timeout 360;
 
 {{< details "authelia-location.conf" >}}
 ```nginx
-set $upstream_authelia http://authelia:9091/api/verify;
+set $upstream_authelia http://authelia:9091/api/verify?proxy=nginx&rd=https%3A%2F%2F%2Fauth.example.com%2F;
 
 ## Virtual endpoint created by nginx to forward auth requests.
 location /authelia {
@@ -234,14 +234,13 @@ location /authelia {
 
     ## Headers
     ## The headers starting with X-* are required.
-    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     proxy_set_header X-Forwarded-Method $request_method;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $http_host;
-    proxy_set_header X-Forwarded-Uri $request_uri;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header Content-Length "";
-    proxy_set_header Connection "";
+    proxy_set_header X-Forwarded-Proto  $scheme;
+    proxy_set_header X-Forwarded-Host   $http_host;
+    proxy_set_header X-Forwarded-Uri    $request_uri;
+    proxy_set_header X-Forwarded-For    $remote_addr;
+    proxy_set_header Content-Length     "";
+    proxy_set_header Connection         "";
 
     ## Basic Proxy Configuration
     proxy_pass_request_body off;
@@ -272,23 +271,21 @@ and is paired with [authelia-location.conf](#authelia-locationconf).*
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia;
 
-## Set the $target_url variable based on the original request.
-auth_request_set $target_url $scheme://$http_host$request_uri;
-
 ## Save the upstream response headers from Authelia to variables.
-auth_request_set $user $upstream_http_remote_user;
-auth_request_set $groups $upstream_http_remote_groups;
-auth_request_set $name $upstream_http_remote_name;
-auth_request_set $email $upstream_http_remote_email;
+auth_request_set $user     $upstream_http_remote_user;
+auth_request_set $groups   $upstream_http_remote_groups;
+auth_request_set $name     $upstream_http_remote_name;
+auth_request_set $email    $upstream_http_remote_email;
+auth_request_set $location $upstream_http_location;
 
 ## Inject the response headers from the variables into the request made to the backend.
-proxy_set_header Remote-User $user;
+proxy_set_header Remote-User   $user;
 proxy_set_header Remote-Groups $groups;
-proxy_set_header Remote-Name $name;
-proxy_set_header Remote-Email $email;
+proxy_set_header Remote-Name   $name;
+proxy_set_header Remote-Email  $email;
 
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
-error_page 401 =302 https://auth.example.com/?rd=$target_url;
+error_page 401 =302 $location;
 ```
 {{< /details >}}
 
@@ -312,14 +309,13 @@ location /authelia-basic {
 
     ## Headers
     ## The headers starting with X-* are required.
-    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     proxy_set_header X-Forwarded-Method $request_method;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $http_host;
-    proxy_set_header X-Forwarded-Uri $request_uri;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header Content-Length "";
-    proxy_set_header Connection "";
+    proxy_set_header X-Forwarded-Proto  $scheme;
+    proxy_set_header X-Forwarded-Host   $http_host;
+    proxy_set_header X-Forwarded-Uri    $request_uri;
+    proxy_set_header X-Forwarded-For    $remote_addr;
+    proxy_set_header Content-Length     "";
+    proxy_set_header Connection         "";
 
     ## Basic Proxy Configuration
     proxy_pass_request_body off;
@@ -353,20 +349,18 @@ endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequ
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
 auth_request /authelia-basic;
 
-## Set the $target_url variable based on the original request.
-auth_request_set $target_url $scheme://$http_host$request_uri;
-
 ## Save the upstream response headers from Authelia to variables.
-auth_request_set $user $upstream_http_remote_user;
-auth_request_set $groups $upstream_http_remote_groups;
-auth_request_set $name $upstream_http_remote_name;
-auth_request_set $email $upstream_http_remote_email;
+auth_request_set $user     $upstream_http_remote_user;
+auth_request_set $groups   $upstream_http_remote_groups;
+auth_request_set $name     $upstream_http_remote_name;
+auth_request_set $email    $upstream_http_remote_email;
+auth_request_set $location $upstream_http_location;
 
 ## Inject the response headers from the variables into the request made to the backend.
-proxy_set_header Remote-User $user;
+proxy_set_header Remote-User   $user;
 proxy_set_header Remote-Groups $groups;
-proxy_set_header Remote-Name $name;
-proxy_set_header Remote-Email $email;
+proxy_set_header Remote-Name   $name;
+proxy_set_header Remote-Email  $email;
 ```
 {{< /details >}}
 
@@ -426,16 +420,16 @@ auth_request /authelia;
 auth_request_set $target_url $scheme://$http_host$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
-auth_request_set $user $upstream_http_remote_user;
+auth_request_set $user   $upstream_http_remote_user;
 auth_request_set $groups $upstream_http_remote_groups;
-auth_request_set $name $upstream_http_remote_name;
-auth_request_set $email $upstream_http_remote_email;
+auth_request_set $name   $upstream_http_remote_name;
+auth_request_set $email  $upstream_http_remote_email;
 
 ## Inject the response headers from the variables into the request made to the backend.
-proxy_set_header Remote-User $user;
+proxy_set_header Remote-User   $user;
 proxy_set_header Remote-Groups $groups;
-proxy_set_header Remote-Name $name;
-proxy_set_header Remote-Email $email;
+proxy_set_header Remote-Name   $name;
+proxy_set_header Remote-Email  $email;
 
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 /authelia-detect?rd=$target_url;
