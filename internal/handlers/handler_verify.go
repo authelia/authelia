@@ -180,11 +180,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL *url.URL, isBasicAuth bool, username string, method []byte) {
 	var (
-		statusCode            int
-		friendlyUsername      string
-		friendlyRequestMethod string
-
-		redirectionURL *url.URL
+		friendlyUsername string
 	)
 
 	switch username {
@@ -203,28 +199,46 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL *url.URL, isBasi
 	}
 
 	rd := string(ctx.QueryArgs().PeekBytes(queryArgRD))
-	proxy := string(ctx.QueryArgs().PeekBytes(queryArgProxy))
 	rm := string(method)
+	proxy := string(ctx.QueryArgs().PeekBytes(queryArgProxy))
+	statusCode := fasthttp.StatusUnauthorized
+
+	var (
+		friendlyRequestMethod string
+
+		redirectionURL *url.URL
+
+		err error
+	)
 
 	switch rm {
 	case "":
 		friendlyRequestMethod = "unknown"
 	default:
-		friendlyRequestMethod = rm
+		friendlyRequestMethod = string(method)
 	}
 
-	var err error
-
 	if redirectionURL, err = getRedirectionURL(rd, rm, targetURL); err != nil {
-		SetStatusCodeResponse(ctx.RequestCtx, fasthttp.StatusInternalServerError)
+		ctx.Logger.Errorf("Failed to determine redirect URL: %v", err)
+		ctx.ReplyInternalServerError()
+
+		return
+	}
+
+	if redirectionURL == nil {
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d without a location redirect", targetURL, friendlyRequestMethod, friendlyUsername, statusCode)
+		ctx.ReplyUnauthorized()
+
 		return
 	}
 
 	switch {
-	case redirectionURL != nil && proxy == queryArgProxyValueNGINX:
-		fallthrough
-	case ctx.IsXHR() || !ctx.AcceptsMIME(headerAcceptsMIMETextHTML) || redirectionURL == nil:
-		statusCode = fasthttp.StatusUnauthorized
+
+	}
+
+	switch {
+	case ctx.IsXHR() || !ctx.AcceptsMIME(headerAcceptsMIMETextHTML) || proxy == queryArgProxyValueNGINX:
+		break
 	default:
 		switch rm {
 		case fasthttp.MethodGet, fasthttp.MethodOptions, "":
@@ -234,13 +248,8 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL *url.URL, isBasi
 		}
 	}
 
-	if redirectionURL != nil {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
-	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
-		ctx.ReplyUnauthorized()
-	}
+	ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL, friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
+	ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 }
 
 func getRedirectionURL(rd, rm string, targetURL *url.URL) (redirectionURL *url.URL, err error) {

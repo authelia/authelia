@@ -129,6 +129,11 @@ func (ctx *AutheliaCtx) ReplyBadRequest() {
 	ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
 }
 
+// ReplyInternalServerError response sent when an internal server error has occurred.
+func (ctx *AutheliaCtx) ReplyInternalServerError() {
+	ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+}
+
 // XForwardedProto return the content of the X-Forwarded-Proto header.
 func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 	proto = ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedProto)
