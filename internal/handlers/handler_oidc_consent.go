@@ -48,6 +48,7 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
+//nolint:gocyclo
 // OpenIDConnectConsentPOST handles consent responses for OpenID Connect.
 func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
