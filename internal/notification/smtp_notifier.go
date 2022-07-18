@@ -195,7 +195,7 @@ func (n *SMTPNotifier) auth() (err error) {
 		}
 
 		// Check the server supports AUTH, and get the mechanisms.
-		if ok, m = n.client.Extension("AUTH"); ok {
+		if ok, m = n.client.Extension(smtpCommandAUTH); ok {
 			var auth smtp.Auth
 
 			n.log.Debugf("Notifier SMTP server supports authentication with the following mechanisms: %s", m)
