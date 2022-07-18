@@ -684,6 +684,7 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/abc", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/ABC", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/an/exact/path/", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/../a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..//a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2f/a/longer/rule/abc", "GET", TwoFactor)
