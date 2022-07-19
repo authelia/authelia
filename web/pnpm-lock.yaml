@@ -58,7 +58,7 @@ specifiers:
   react-test-renderer: 18.2.0
   typescript: 4.7.4
   vite: 2.9.14
-  vite-plugin-eslint: 1.6.1
+  vite-plugin-eslint: 1.7.0
   vite-plugin-istanbul: 2.9.0
   vite-plugin-svgr: 2.2.0
   vite-tsconfig-paths: 3.5.0
@@ -125,7 +125,7 @@ devDependencies:
   react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.7.4
   vite: 2.9.14
-  vite-plugin-eslint: 1.6.1_eslint@8.20.0+vite@2.9.14
+  vite-plugin-eslint: 1.7.0_eslint@8.20.0+vite@2.9.14
   vite-plugin-istanbul: 2.9.0
   vite-plugin-svgr: 2.2.0_vite@2.9.14
   vite-tsconfig-paths: 3.5.0_vite@2.9.14
@@ -3141,8 +3141,8 @@ packages:
       '@babel/types': 7.17.10
     dev: true
 
-  /@types/eslint/8.4.2:
-    resolution: {integrity: sha512-Z1nseZON+GEnFjJc04sv4NSALGjhFwy6K0HXt7qsn5ArfAKtb63dXNJHf+1YW6IpOIYRBGUbu3GwJdj8DGnCjA==}
+  /@types/eslint/8.4.5:
+    resolution: {integrity: sha512-dhsC09y1gpJWnK+Ff4SGvCuSnk9DaU0BJZSzOwa6GVSg65XtTugLBITDAAzRU5duGBoXBHpdR/9jHGxJjNflJQ==}
     dependencies:
       '@types/estree': 0.0.51
       '@types/json-schema': 7.0.11
@@ -8062,6 +8062,14 @@ packages:
       fsevents: 2.3.2
     dev: true
 
+  /rollup/2.77.0:
+    resolution: {integrity: sha512-vL8xjY4yOQEw79DvyXLijhnhh+R/O9zpF/LEgkCebZFtb6ELeN9H3/2T0r8+mp+fFTBHZ5qGpOpW2ela2zRt3g==}
+    engines: {node: '>=10.0.0'}
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
   /rsvp/4.8.5:
     resolution: {integrity: sha512-nfMOlASu9OnRJo1mbEk2cz0D56a1MBNrJ7orjRZQG10XDyuvwksKbuXNp6qa+kbn839HwjwhBzhFmdsaEAfauA==}
     engines: {node: 6.* || >= 7.*}
@@ -8831,16 +8839,16 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.6.1_eslint@8.20.0+vite@2.9.14:
-    resolution: {integrity: sha512-wXwGJ222zjlllHmmPXX6oSU8DbmYjnA6HHBYbOLT8WAc73j4/YAtBQHCVSoHOTPiT4TPzsuZSvputWwc86BweQ==}
+  /vite-plugin-eslint/1.7.0_eslint@8.20.0+vite@2.9.14:
+    resolution: {integrity: sha512-Kz2HwBeAArmsE0QmWSm+e7CaEQrfMkEZpFw4hngoy6JmERjw7WUH8HLbG1OkreOKX4iIUReOss9N1Mkw4wEk8g==}
     peerDependencies:
       eslint: '>=7'
-      vite: ^2.0.0
+      vite: '>=2'
     dependencies:
       '@rollup/pluginutils': 4.2.1
-      '@types/eslint': 8.4.2
+      '@types/eslint': 8.4.5
       eslint: 8.20.0
-      rollup: 2.70.2
+      rollup: 2.77.0
       vite: 2.9.14
     dev: true
 
