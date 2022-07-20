@@ -20,7 +20,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -137,7 +137,7 @@ type TLSServerContext struct {
 func NewTLSServerContext(configuration schema.Configuration) (*TLSServerContext, error) {
 	serverContext := new(TLSServerContext)
 
-	s, listener, err := CreateDefaultServer(configuration, middlewares.Providers{})
+	s, listener, err := CreateDefaultServer(configuration, middleware.Providers{})
 
 	if err != nil {
 		return nil, err

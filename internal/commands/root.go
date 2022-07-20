@@ -11,7 +11,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/server"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -79,7 +79,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	runServers(config, providers, logger)
 }
 
-func runServers(config *schema.Configuration, providers middlewares.Providers, logger *logrus.Logger) {
+func runServers(config *schema.Configuration, providers middleware.Providers, logger *logrus.Logger) {
 	wg := new(sync.WaitGroup)
 
 	wg.Add(2)
@@ -103,7 +103,7 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 	wg.Wait()
 }
 
-func startDefaultServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
+func startDefaultServer(config *schema.Configuration, providers middleware.Providers) (err error) {
 	svr, listener, err := server.CreateDefaultServer(*config, providers)
 
 	switch err {
@@ -118,7 +118,7 @@ func startDefaultServer(config *schema.Configuration, providers middlewares.Prov
 	return nil
 }
 
-func startMetricsServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
+func startMetricsServer(config *schema.Configuration, providers middleware.Providers) (err error) {
 	if providers.Metrics == nil {
 		return nil
 	}
@@ -137,7 +137,7 @@ func startMetricsServer(config *schema.Configuration, providers middlewares.Prov
 	return nil
 }
 
-func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {
+func doStartupChecks(config *schema.Configuration, providers *middleware.Providers) {
 	logger := logging.Logger()
 
 	var (

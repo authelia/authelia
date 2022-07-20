@@ -6,7 +6,7 @@ import (
 
 	duoapi "github.com/duosecurity/duo_api_golang"
 
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 )
 
 // NewDuoAPI create duo API instance.
@@ -18,7 +18,7 @@ func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
 }
 
 // Call call to the DuoAPI.
-func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method string, path string) (*Response, error) {
+func (d *APIImpl) Call(ctx *middleware.AutheliaCtx, values url.Values, method string, path string) (*Response, error) {
 	var response Response
 
 	_, responseBytes, err := d.DuoApi.SignedCall(method, path, values)
@@ -44,7 +44,7 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method s
 }
 
 // PreAuthCall call to the DuoAPI.
-func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*PreAuthResponse, error) {
+func (d *APIImpl) PreAuthCall(ctx *middleware.AutheliaCtx, values url.Values) (*PreAuthResponse, error) {
 	var preAuthResponse PreAuthResponse
 
 	response, err := d.Call(ctx, values, "POST", "/auth/v2/preauth")
@@ -61,7 +61,7 @@ func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (
 }
 
 // AuthCall call to the DuoAPI.
-func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*AuthResponse, error) {
+func (d *APIImpl) AuthCall(ctx *middleware.AutheliaCtx, values url.Values) (*AuthResponse, error) {
 	var authResponse AuthResponse
 
 	response, err := d.Call(ctx, values, "POST", "/auth/v2/auth")

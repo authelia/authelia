@@ -18,9 +18,9 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
-	"github.com/authelia/authelia/v4/internal/handlers"
+	"github.com/authelia/authelia/v4/internal/handler"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -71,7 +71,7 @@ func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 			"status_code": statusCode,
 		}).WithError(err).Error(message)
 
-		handlers.SetStatusCodeResponse(ctx, statusCode)
+		handler.SetStatusCodeResponse(ctx, statusCode)
 	}
 }
 
@@ -81,7 +81,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 		for i := 0; i < len(httpServerDirs); i++ {
 			if path == httpServerDirs[i].name || strings.HasPrefix(path, httpServerDirs[i].prefix) {
-				handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+				handler.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 				return
 			}
@@ -91,7 +91,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
-func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
+func handleRouter(config schema.Configuration, providers middleware.Providers) fasthttp.RequestHandler {
 	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
 	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable)
 
@@ -111,10 +111,10 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	middleware := middlewares.NewBridgeBuilder(config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
+	middlewarePublic := middleware.NewBridgeBuilder(config, providers).
+		WithPreMiddlewares(middleware.SecurityHeaders).Build()
 
-	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
+	policyCORSPublicGET := middleware.NewCORSPolicyBuilder().
 		WithAllowedMethods("OPTIONS", "GET").
 		WithAllowedOrigins("*").
 		Build()
@@ -122,88 +122,88 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r := router.New()
 
 	// Static Assets.
-	r.GET("/", middleware(serveIndexHandler))
+	r.GET("/", middlewarePublic(serveIndexHandler))
 
 	for _, f := range rootFiles {
 		r.GET("/"+f, handlerPublicHTML)
 	}
 
-	r.GET("/favicon.ico", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
-	r.GET("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
+	r.GET("/favicon.ico", middleware.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/media/logo.png", middleware.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
 	// Locales.
-	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
-	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middleware.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middleware.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.GET("/api/", middleware(serveSwaggerHandler))
+	r.GET("/api/", middlewarePublic(serveSwaggerHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/"+apiFile, policyCORSPublicGET.Middleware(middleware(serveSwaggerAPIHandler)))
+	r.GET("/api/"+apiFile, policyCORSPublicGET.Middleware(middlewarePublic(serveSwaggerAPIHandler)))
 	r.OPTIONS("/api/"+apiFile, policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range swaggerFiles {
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
-	middlewareAPI := middlewares.NewBridgeBuilder(config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+	middlewareAPI := middleware.NewBridgeBuilder(config, providers).
+		WithPreMiddlewares(middleware.SecurityHeaders, middleware.SecurityHeadersNoStore, middleware.SecurityHeadersCSPNone).
 		Build()
 
-	middleware1FA := middlewares.NewBridgeBuilder(config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithPostMiddlewares(middlewares.Require1FA).
+	middleware1FA := middleware.NewBridgeBuilder(config, providers).
+		WithPreMiddlewares(middleware.SecurityHeaders, middleware.SecurityHeadersNoStore, middleware.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middleware.Require1FA).
 		Build()
 
-	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
-	r.GET("/api/state", middlewareAPI(handlers.StateGET))
+	r.GET("/api/health", middlewareAPI(handler.HealthGET))
+	r.GET("/api/state", middlewareAPI(handler.StateGET))
 
-	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
+	r.GET("/api/configuration", middleware1FA(handler.ConfigurationGET))
 
-	r.GET("/api/configuration/password-policy", middlewareAPI(handlers.PasswordPolicyConfigurationGET))
+	r.GET("/api/configuration/password-policy", middlewareAPI(handler.PasswordPolicyConfigurationGET))
 
-	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
+	metricsVRMW := middleware.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.GET("/api/verify", middleware.Wrap(metricsVRMW, middlewarePublic(handler.VerifyGET(config.AuthenticationBackend))))
+	r.HEAD("/api/verify", middleware.Wrap(metricsVRMW, middlewarePublic(handler.VerifyGET(config.AuthenticationBackend))))
 
-	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
+	r.POST("/api/checks/safe-redirection", middlewareAPI(handler.CheckSafeRedirectionPOST))
 
-	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
+	delayFunc := middleware.TimingAttackDelay(10, 250, 85, time.Second, true)
 
-	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST(delayFunc)))
-	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
+	r.POST("/api/firstfactor", middlewareAPI(handler.FirstFactorPOST(delayFunc)))
+	r.POST("/api/logout", middlewareAPI(handler.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.
 	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(handlers.ResetPasswordIdentityFinish))
-		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
+		r.POST("/api/reset-password/identity/start", middlewareAPI(handler.ResetPasswordIdentityStart))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(handler.ResetPasswordIdentityFinish))
+		r.POST("/api/reset-password", middlewareAPI(handler.ResetPasswordPOST))
 	}
 
 	// Information about the user.
-	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
-	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
-	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
+	r.GET("/api/user/info", middleware1FA(handler.UserInfoGET))
+	r.POST("/api/user/info", middleware1FA(handler.UserInfoPOST))
+	r.POST("/api/user/info/2fa_method", middleware1FA(handler.MethodPreferencePOST))
 
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
-		r.GET("/api/user/info/totp", middleware1FA(handlers.UserTOTPInfoGET))
-		r.POST("/api/secondfactor/totp/identity/start", middleware1FA(handlers.TOTPIdentityStart))
-		r.POST("/api/secondfactor/totp/identity/finish", middleware1FA(handlers.TOTPIdentityFinish))
-		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
+		r.GET("/api/user/info/totp", middleware1FA(handler.UserTOTPInfoGET))
+		r.POST("/api/secondfactor/totp/identity/start", middleware1FA(handler.TOTPIdentityStart))
+		r.POST("/api/secondfactor/totp/identity/finish", middleware1FA(handler.TOTPIdentityFinish))
+		r.POST("/api/secondfactor/totp", middleware1FA(handler.TimeBasedOneTimePasswordPOST))
 	}
 
 	if !config.Webauthn.Disable {
 		// Webauthn Endpoints.
-		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
-		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
-		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnAttestationPOST))
+		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handler.WebauthnIdentityStart))
+		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handler.WebauthnIdentityFinish))
+		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handler.WebauthnAttestationPOST))
 
-		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionGET))
-		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionPOST))
+		r.GET("/api/secondfactor/webauthn/assertion", middleware1FA(handler.WebauthnAssertionGET))
+		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handler.WebauthnAssertionPOST))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
@@ -221,9 +221,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 				config.DuoAPI.Hostname, ""))
 		}
 
-		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
-		r.POST("/api/secondfactor/duo", middleware1FA(handlers.DuoPOST(duoAPI)))
-		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
+		r.GET("/api/secondfactor/duo_devices", middleware1FA(handler.DuoDevicesGET(duoAPI)))
+		r.POST("/api/secondfactor/duo", middleware1FA(handler.DuoPOST(duoAPI)))
+		r.POST("/api/secondfactor/duo_device", middleware1FA(handler.DuoDevicePOST))
 	}
 
 	if config.Server.EnablePprof {
@@ -235,42 +235,42 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if providers.OpenIDConnect.Fosite != nil {
-		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
-			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,
+		middlewareOIDC := middleware.NewBridgeBuilder(config, providers).WithPreMiddlewares(
+			middleware.SecurityHeaders, middleware.SecurityHeadersCSPNone, middleware.SecurityHeadersNoStore,
 		).Build()
 
-		r.GET("/api/oidc/consent", middlewareOIDC(handlers.OpenIDConnectConsentGET))
-		r.POST("/api/oidc/consent", middlewareOIDC(handlers.OpenIDConnectConsentPOST))
+		r.GET("/api/oidc/consent", middlewareOIDC(handler.OpenIDConnectConsentGET))
+		r.POST("/api/oidc/consent", middlewareOIDC(handler.OpenIDConnectConsentPOST))
 
 		allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
 
 		r.OPTIONS(oidc.WellKnownOpenIDConfigurationPath, policyCORSPublicGET.HandleOPTIONS)
-		r.GET(oidc.WellKnownOpenIDConfigurationPath, policyCORSPublicGET.Middleware(middlewareOIDC(handlers.OpenIDConnectConfigurationWellKnownGET)))
+		r.GET(oidc.WellKnownOpenIDConfigurationPath, policyCORSPublicGET.Middleware(middlewareOIDC(handler.OpenIDConnectConfigurationWellKnownGET)))
 
 		r.OPTIONS(oidc.WellKnownOAuthAuthorizationServerPath, policyCORSPublicGET.HandleOPTIONS)
-		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, policyCORSPublicGET.Middleware(middlewareOIDC(handlers.OAuthAuthorizationServerWellKnownGET)))
+		r.GET(oidc.WellKnownOAuthAuthorizationServerPath, policyCORSPublicGET.Middleware(middlewareOIDC(handler.OAuthAuthorizationServerWellKnownGET)))
 
 		r.OPTIONS(oidc.JWKsPath, policyCORSPublicGET.HandleOPTIONS)
-		r.GET(oidc.JWKsPath, policyCORSPublicGET.Middleware(middlewareAPI(handlers.JSONWebKeySetGET)))
+		r.GET(oidc.JWKsPath, policyCORSPublicGET.Middleware(middlewareAPI(handler.JSONWebKeySetGET)))
 
 		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
 		r.OPTIONS("/api/oidc/jwks", policyCORSPublicGET.HandleOPTIONS)
-		r.GET("/api/oidc/jwks", policyCORSPublicGET.Middleware(middlewareOIDC(handlers.JSONWebKeySetGET)))
+		r.GET("/api/oidc/jwks", policyCORSPublicGET.Middleware(middlewareOIDC(handler.JSONWebKeySetGET)))
 
-		policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
+		policyCORSAuthorization := middleware.NewCORSPolicyBuilder().
 			WithAllowedMethods("OPTIONS", "GET").
 			WithAllowedOrigins(allowedOrigins...).
 			WithEnabled(utils.IsStringInSlice(oidc.AuthorizationEndpoint, config.IdentityProviders.OIDC.CORS.Endpoints)).
 			Build()
 
 		r.OPTIONS(oidc.AuthorizationPath, policyCORSAuthorization.HandleOnlyOPTIONS)
-		r.GET(oidc.AuthorizationPath, middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+		r.GET(oidc.AuthorizationPath, middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OpenIDConnectAuthorizationGET)))
 
 		// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
 		r.OPTIONS("/api/oidc/authorize", policyCORSAuthorization.HandleOnlyOPTIONS)
-		r.GET("/api/oidc/authorize", middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET)))
+		r.GET("/api/oidc/authorize", middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OpenIDConnectAuthorizationGET)))
 
-		policyCORSToken := middlewares.NewCORSPolicyBuilder().
+		policyCORSToken := middleware.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST").
 			WithAllowedOrigins(allowedOrigins...).
@@ -278,9 +278,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 			Build()
 
 		r.OPTIONS(oidc.TokenPath, policyCORSToken.HandleOPTIONS)
-		r.POST(oidc.TokenPath, policyCORSToken.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST))))
+		r.POST(oidc.TokenPath, policyCORSToken.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OpenIDConnectTokenPOST))))
 
-		policyCORSUserinfo := middlewares.NewCORSPolicyBuilder().
+		policyCORSUserinfo := middleware.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "GET", "POST").
 			WithAllowedOrigins(allowedOrigins...).
@@ -288,10 +288,10 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 			Build()
 
 		r.OPTIONS(oidc.UserinfoPath, policyCORSUserinfo.HandleOPTIONS)
-		r.GET(oidc.UserinfoPath, policyCORSUserinfo.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
-		r.POST(oidc.UserinfoPath, policyCORSUserinfo.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo))))
+		r.GET(oidc.UserinfoPath, policyCORSUserinfo.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OpenIDConnectUserinfo))))
+		r.POST(oidc.UserinfoPath, policyCORSUserinfo.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OpenIDConnectUserinfo))))
 
-		policyCORSIntrospection := middlewares.NewCORSPolicyBuilder().
+		policyCORSIntrospection := middleware.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST").
 			WithAllowedOrigins(allowedOrigins...).
@@ -299,13 +299,13 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 			Build()
 
 		r.OPTIONS(oidc.IntrospectionPath, policyCORSIntrospection.HandleOPTIONS)
-		r.POST(oidc.IntrospectionPath, policyCORSIntrospection.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
+		r.POST(oidc.IntrospectionPath, policyCORSIntrospection.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OAuthIntrospectionPOST))))
 
 		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
 		r.OPTIONS("/api/oidc/introspect", policyCORSIntrospection.HandleOPTIONS)
-		r.POST("/api/oidc/introspect", policyCORSIntrospection.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST))))
+		r.POST("/api/oidc/introspect", policyCORSIntrospection.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OAuthIntrospectionPOST))))
 
-		policyCORSRevocation := middlewares.NewCORSPolicyBuilder().
+		policyCORSRevocation := middleware.NewCORSPolicyBuilder().
 			WithAllowCredentials(true).
 			WithAllowedMethods("OPTIONS", "POST").
 			WithAllowedOrigins(allowedOrigins...).
@@ -313,23 +313,23 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 			Build()
 
 		r.OPTIONS(oidc.RevocationPath, policyCORSRevocation.HandleOPTIONS)
-		r.POST(oidc.RevocationPath, policyCORSRevocation.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+		r.POST(oidc.RevocationPath, policyCORSRevocation.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OAuthRevocationPOST))))
 
 		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
 		r.OPTIONS("/api/oidc/revoke", policyCORSRevocation.HandleOPTIONS)
-		r.POST("/api/oidc/revoke", policyCORSRevocation.Middleware(middlewareOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST))))
+		r.POST("/api/oidc/revoke", policyCORSRevocation.Middleware(middlewareOIDC(middleware.NewHTTPToAutheliaHandlerAdaptor(handler.OAuthRevocationPOST))))
 	}
 
 	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
-	r.NotFound = handleNotFound(middleware(serveIndexHandler))
+	r.MethodNotAllowed = handler.Status(fasthttp.StatusMethodNotAllowed)
+	r.NotFound = handleNotFound(middlewarePublic(serveIndexHandler))
 
-	handler := middlewares.LogRequest(r.Handler)
+	handler := middleware.LogRequest(r.Handler)
 	if config.Server.Path != "" {
-		handler = middlewares.StripPath(config.Server.Path)(handler)
+		handler = middleware.StripPath(config.Server.Path)(handler)
 	}
 
-	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)
+	handler = middleware.Wrap(middleware.NewMetricsRequest(providers.Metrics), handler)
 
 	return handler
 }
@@ -340,8 +340,8 @@ func handleMetrics() fasthttp.RequestHandler {
 	r.GET("/metrics", fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
 
 	r.HandleMethodNotAllowed = true
-	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
-	r.NotFound = handlers.Status(fasthttp.StatusNotFound)
+	r.MethodNotAllowed = handler.Status(fasthttp.StatusMethodNotAllowed)
+	r.NotFound = handler.Status(fasthttp.StatusNotFound)
 
 	return r.Handler
 }

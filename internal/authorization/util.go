@@ -9,8 +9,24 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// PolicyToLevel converts a string policy to int authorization level.
-func PolicyToLevel(policy string) Level {
+// String returns the string representation of a level.
+func (l Level) String() string {
+	switch l {
+	case Bypass:
+		return bypass
+	case OneFactor:
+		return oneFactor
+	case TwoFactor:
+		return twoFactor
+	case Denied:
+		return deny
+	default:
+		return deny
+	}
+}
+
+// NewLevel converts a string policy to int authorization level.
+func NewLevel(policy string) Level {
 	switch policy {
 	case bypass:
 		return Bypass
@@ -20,25 +36,9 @@ func PolicyToLevel(policy string) Level {
 		return TwoFactor
 	case deny:
 		return Denied
+	default:
+		return Denied
 	}
-	// By default the deny policy applies.
-	return Denied
-}
-
-// LevelToPolicy converts a int authorization level to string policy.
-func LevelToPolicy(level Level) (policy string) {
-	switch level {
-	case Bypass:
-		return bypass
-	case OneFactor:
-		return oneFactor
-	case TwoFactor:
-		return twoFactor
-	case Denied:
-		return deny
-	}
-
-	return deny
 }
 
 func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err error) {
@@ -195,6 +195,8 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 // IsAuthLevelSufficient returns true if the current authenticationLevel is above the authorizationLevel.
 func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizationLevel Level) bool {
 	switch authorizationLevel {
+	case Bypass:
+		return true
 	case Denied:
 		return false
 	case OneFactor:
@@ -203,5 +205,5 @@ func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizati
 		return authenticationLevel >= authentication.TwoFactor
 	}
 
-	return true
+	return false
 }

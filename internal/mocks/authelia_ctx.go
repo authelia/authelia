@@ -15,7 +15,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -25,7 +25,7 @@ import (
 type MockAutheliaCtx struct {
 	// Logger hook.
 	Hook *test.Hook
-	Ctx  *middlewares.AutheliaCtx
+	Ctx  *middleware.AutheliaCtx
 	Ctrl *gomock.Controller
 
 	// Providers.
@@ -70,6 +70,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	configuration := schema.Configuration{}
 	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 	configuration.Session.Name = "authelia_session"
+	configuration.Session.Domain = "example.com"
 	configuration.AccessControl.DefaultPolicy = "deny"
 	configuration.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},
@@ -93,7 +94,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		Subjects: [][]string{{"group:grafana"}},
 	}}
 
-	providers := middlewares.Providers{}
+	providers := middleware.Providers{}
 
 	mockAuthelia.Ctrl = gomock.NewController(t)
 	mockAuthelia.UserProviderMock = NewMockUserProvider(mockAuthelia.Ctrl)
@@ -126,7 +127,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
-	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
+	ctx := middleware.NewAutheliaCtx(request, configuration, providers)
 	mockAuthelia.Ctx = ctx
 
 	logger, hook := test.NewNullLogger()
@@ -175,7 +176,7 @@ func (m *MockAutheliaCtx) Assert200KO(t *testing.T, message string) {
 func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 	assert.Equal(t, 200, m.Ctx.Response.StatusCode())
 
-	response := middlewares.OKResponse{
+	response := middleware.OKResponse{
 		Status: "OK",
 		Data:   data,
 	}
@@ -188,14 +189,14 @@ func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 
 // GetResponseData retrieves a response from the service.
 func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
-	okResponse := middlewares.OKResponse{}
+	okResponse := middleware.OKResponse{}
 	okResponse.Data = data
 	err := json.Unmarshal(m.Ctx.Response.Body(), &okResponse)
 	require.NoError(t, err)
 }
 
 // GetResponseError retrieves an error response from the service.
-func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middlewares.ErrorResponse) {
+func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middleware.ErrorResponse) {
 	err := json.Unmarshal(m.Ctx.Response.Body(), &errResponse)
 	require.NoError(t, err)
 

@@ -865,12 +865,12 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {
-	s.Assert().Equal(Bypass, PolicyToLevel(bypass))
-	s.Assert().Equal(OneFactor, PolicyToLevel(oneFactor))
-	s.Assert().Equal(TwoFactor, PolicyToLevel(twoFactor))
-	s.Assert().Equal(Denied, PolicyToLevel(deny))
+	s.Assert().Equal(Bypass, NewLevel(bypass))
+	s.Assert().Equal(OneFactor, NewLevel(oneFactor))
+	s.Assert().Equal(TwoFactor, NewLevel(twoFactor))
+	s.Assert().Equal(Denied, NewLevel(deny))
 
-	s.Assert().Equal(Denied, PolicyToLevel("whatever"))
+	s.Assert().Equal(Denied, NewLevel("whatever"))
 }
 
 func TestRunSuite(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/metrics"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -29,7 +29,7 @@ func getStorageProvider() (provider storage.Provider) {
 	}
 }
 
-func getProviders() (providers middlewares.Providers, warnings []error, errors []error) {
+func getProviders() (providers middleware.Providers, warnings []error, errors []error) {
 	// TODO: Adjust this so the CertPool can be used like a provider.
 	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
 	if len(warnings) != 0 || len(errors) != 0 {
@@ -78,14 +78,14 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-	ppolicyProvider := middlewares.NewPasswordPolicyProvider(config.PasswordPolicy)
+	ppolicyProvider := middleware.NewPasswordPolicyProvider(config.PasswordPolicy)
 
 	var metricsProvider metrics.Provider
 	if config.Telemetry.Metrics.Enabled {
 		metricsProvider = metrics.NewPrometheus()
 	}
 
-	return middlewares.Providers{
+	return middleware.Providers{
 		Authorizer:      authorizer,
 		UserProvider:    userProvider,
 		Regulator:       regulator,

@@ -11,7 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 
 	duo "github.com/authelia/authelia/v4/internal/duo"
-	middlewares "github.com/authelia/authelia/v4/internal/middlewares"
+	middleware "github.com/authelia/authelia/v4/internal/middleware"
 )
 
 // MockAPI is a mock of API interface.
@@ -38,7 +38,7 @@ func (m *MockAPI) EXPECT() *MockAPIMockRecorder {
 }
 
 // AuthCall mocks base method.
-func (m *MockAPI) AuthCall(arg0 *middlewares.AutheliaCtx, arg1 url.Values) (*duo.AuthResponse, error) {
+func (m *MockAPI) AuthCall(arg0 *middleware.AutheliaCtx, arg1 url.Values) (*duo.AuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthCall", arg0, arg1)
 	ret0, _ := ret[0].(*duo.AuthResponse)
@@ -53,7 +53,7 @@ func (mr *MockAPIMockRecorder) AuthCall(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // Call mocks base method.
-func (m *MockAPI) Call(arg0 *middlewares.AutheliaCtx, arg1 url.Values, arg2, arg3 string) (*duo.Response, error) {
+func (m *MockAPI) Call(arg0 *middleware.AutheliaCtx, arg1 url.Values, arg2, arg3 string) (*duo.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Call", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*duo.Response)
@@ -68,7 +68,7 @@ func (mr *MockAPIMockRecorder) Call(arg0, arg1, arg2, arg3 interface{}) *gomock.
 }
 
 // PreAuthCall mocks base method.
-func (m *MockAPI) PreAuthCall(arg0 *middlewares.AutheliaCtx, arg1 url.Values) (*duo.PreAuthResponse, error) {
+func (m *MockAPI) PreAuthCall(arg0 *middleware.AutheliaCtx, arg1 url.Values) (*duo.PreAuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PreAuthCall", arg0, arg1)
 	ret0, _ := ret[0].(*duo.PreAuthResponse)

@@ -12,11 +12,11 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 )
 
 // CreateDefaultServer Create Authelia's internal webserver with the given configuration and providers.
-func CreateDefaultServer(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
+func CreateDefaultServer(config schema.Configuration, providers middleware.Providers) (server *fasthttp.Server, listener net.Listener, err error) {
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError(),
 		Handler:               handleRouter(config, providers),

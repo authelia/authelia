@@ -9,14 +9,14 @@ import (
 	"text/template"
 
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/middleware"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
-func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, session, theme string, https bool) middlewares.RequestHandler {
+func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, session, theme string, https bool) middleware.RequestHandler {
 	logger := logging.Logger()
 
 	a, err := assets.Open(publicDir + file)
@@ -34,9 +34,9 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		logger.Fatalf("Unable to parse %s template: %s", file, err)
 	}
 
-	return func(ctx *middlewares.AutheliaCtx) {
+	return func(ctx *middleware.AutheliaCtx) {
 		base := ""
-		if baseURL := ctx.UserValueBytes(middlewares.UserValueKeyBaseURL); baseURL != nil {
+		if baseURL := ctx.UserValueBytes(middleware.UserValueKeyBaseURL); baseURL != nil {
 			base = baseURL.(string)
 		}
 
