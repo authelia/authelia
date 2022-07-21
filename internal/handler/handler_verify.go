@@ -56,7 +56,7 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 
 		if authn, err = handleVerifyGETAuthn(ctx, profileRefreshEnabled, profileRefreshInterval); err != nil {
 			switch {
-			case authn.Type == AuthTypeAuthorization && (errors.Is(err, errMissingAuthorizationHeaderSchemeBasicForced) || errors.Is(err, authentication.ErrUserNotFound)):
+			case authn.Type == AuthTypeAuthorization:
 				break
 			default:
 				ctx.Logger.Errorf("Failed to validate the authentication state: %+v", err)
@@ -79,10 +79,9 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 
 		switch isAuthorizationMatching(levelRequired, authn.Level) {
 		case Forbidden:
-			ctx.Logger.Infof("Access to '%s' is forbidden to user '%s'", targetURL, authn.Details.Username)
-			ctx.ReplyForbidden()
+			handleVerifyGETUnauthorized(ctx, method, targetURL, &authn, true)
 		case NotAuthorized:
-			handleVerifyGETUnauthorized(ctx, method, targetURL, &authn)
+			handleVerifyGETUnauthorized(ctx, method, targetURL, &authn, false)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, &authn)
 		}
@@ -238,7 +237,7 @@ func handleVerifyGETAuthnHeader(ctx *middleware.AutheliaCtx) (authn Authenticati
 	forced := false
 
 	switch {
-	case bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")):
+	case bytes.Equal(ctx.QueryArgs().PeekBytes(queryArgAuth), valueBasic):
 		forced = true
 		header = headerAuthorization
 	default:
@@ -298,46 +297,64 @@ func handleVerifyGETAuthnHeaderBasic(ctx *middleware.AutheliaCtx, header, value 
 	return authn, nil
 }
 
-func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, targetURL *url.URL, authn *Authentication) {
+func fmtFriendlyUsername(username string) string {
+	switch username {
+	case "":
+		return "<anonymous>"
+	default:
+		return username
+	}
+}
+
+func fmtFriendlyMethod(method string) string {
+	switch method {
+	case "":
+		return "unknown"
+	default:
+		return method
+	}
+}
+
+func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, targetURL *url.URL, authn *Authentication, forbidden bool) {
 	var (
-		username string
+		termAccess string
+		statusCode int
 	)
 
 	switch {
-	case authn.Details.Username == "":
-		username = "<anonymous>"
+	case forbidden:
+		termAccess = "forbidden"
+		statusCode = fasthttp.StatusForbidden
 	default:
-		username = authn.Details.Username
+		termAccess = "not authorized"
+		statusCode = fasthttp.StatusUnauthorized
 	}
 
-	rm := string(method)
+	strMethod := string(method)
+
+	rd, rm, username := string(ctx.QueryArgs().PeekBytes(queryArgRD)), fmtFriendlyMethod(strMethod), fmtFriendlyUsername(authn.Details.Username)
 
 	if authn.Type == AuthTypeAuthorization {
-		ctx.Logger.Infof("Access to '%s' (method %s) is not authorized to user '%s', responding with 401 Unauthorized and a Basic scheme WWW-Authenticate header", targetURL, method, username)
-		ctx.ReplyUnauthorized()
-		ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerWWWAuthenticateValueBasic)
+		ctx.Logger.Infof("Access to '%s' (method %s) is %s to user '%s', responding with 401 Unauthorized and a Basic scheme WWW-Authenticate header", targetURL, rm, termAccess, username)
+
+		switch {
+		case forbidden:
+			ctx.ReplyForbidden()
+		default:
+			ctx.ReplyUnauthorized()
+			ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerWWWAuthenticateValueBasic)
+		}
 
 		return
 	}
 
-	rd, statusCode := string(ctx.QueryArgs().PeekBytes(queryArgRD)), fasthttp.StatusUnauthorized
-
 	var (
-		friendlyRequestMethod string
-
 		redirectionURL *url.URL
 
 		err error
 	)
 
-	switch rm {
-	case "":
-		friendlyRequestMethod = "unknown"
-	default:
-		friendlyRequestMethod = string(method)
-	}
-
-	if redirectionURL, err = handleVerifyGETRedirectionURL(rd, rm, targetURL); err != nil {
+	if redirectionURL, err = handleVerifyGETRedirectionURL(rd, strMethod, targetURL, forbidden); err != nil {
 		ctx.Logger.Errorf("Failed to determine redirect URL: %v", err)
 		ctx.ReplyBadRequest()
 
@@ -345,8 +362,8 @@ func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, tar
 	}
 
 	if redirectionURL == nil {
-		ctx.Logger.Infof("Access to '%s' (method %s) is not authorized to user '%s', responding with 401 Unauthorized without a Location header", targetURL, friendlyRequestMethod, username)
-		ctx.ReplyUnauthorized()
+		ctx.Logger.Infof("Access to '%s' (method %s) is %s to user '%s', responding with 401 Unauthorized without a Location header", targetURL, rm, termAccess, username)
+		ctx.ReplyStatusCode(statusCode)
 
 		return
 	}
@@ -359,7 +376,7 @@ func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, tar
 	case ctx.IsXHR() || !ctx.AcceptsMIME(headerAcceptsMIMETextHTML) || nginx:
 		break
 	default:
-		switch rm {
+		switch strMethod {
 		case fasthttp.MethodGet, fasthttp.MethodOptions, "":
 			statusCode = fasthttp.StatusFound
 		default:
@@ -367,7 +384,7 @@ func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, tar
 		}
 	}
 
-	ctx.Logger.Infof("Access to '%s' (method %s) is not authorized to user '%s', responding with %d %s with Location header '%s'", targetURL, friendlyRequestMethod, username, statusCode, fasthttp.StatusMessage(statusCode), redirectionURL)
+	ctx.Logger.Infof("Access to '%s' (method %s) is %s to user '%s', responding with %d %s with Location header '%s'", targetURL, rm, termAccess, username, statusCode, fasthttp.StatusMessage(statusCode), redirectionURL)
 	ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 }
 

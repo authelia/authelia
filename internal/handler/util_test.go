@@ -87,11 +87,11 @@ func TestIsSchemeSecure(t *testing.T) {
 		have     *url.URL
 		expected bool
 	}{
-		{"ShouldConsiderHTTPSSecure", mustParseURL("https://example.com"), true},
-		{"ShouldConsiderWSSSecure", mustParseURL("wss://example.com"), true},
-		{"ShouldNotConsiderHTTPSecure", mustParseURL("http://example.com"), false},
-		{"ShouldNotConsiderWSSecure", mustParseURL("ws://example.com"), false},
-		{"ShouldNotConsiderTCPSecure", mustParseURL("tcp://example.com"), false},
+		{"ShouldConsiderHTTPSSecure", MustParseURL("https://example.com"), true},
+		{"ShouldConsiderWSSSecure", MustParseURL("wss://example.com"), true},
+		{"ShouldNotConsiderHTTPSecure", MustParseURL("http://example.com"), false},
+		{"ShouldNotConsiderWSSecure", MustParseURL("ws://example.com"), false},
+		{"ShouldNotConsiderTCPSecure", MustParseURL("tcp://example.com"), false},
 	}
 
 	for _, tc := range testCases {
@@ -110,12 +110,12 @@ func TestIsURLUnderProtectedDomain(t *testing.T) {
 		domain   string
 		expected bool
 	}{
-		{"ShouldConsiderSubdomainUnderProtectedDomain", mustParseURL("https://app.example.com"), "example.com", true},
-		{"ShouldConsiderWSSSubdomainUnderProtectedDomain", mustParseURL("wss://app.example.com"), "example.com", true},
-		{"ShouldConsiderExactDomainUnderProtectedDomain", mustParseURL("https://example.com"), "example.com", true},
-		{"ShouldNotConsiderDifferentDomainProtected", mustParseURL("https://app.not.com"), "example.com", false},
-		{"ShouldNotConsiderSubSubDomainProtected", mustParseURL("https://app.home.example.com"), "example.com", false},
-		{"ShouldNotConsiderBadDomainProtected", mustParseURL("https://com"), "example.com", false},
+		{"ShouldConsiderSubdomainUnderProtectedDomain", MustParseURL("https://app.example.com"), "example.com", true},
+		{"ShouldConsiderWSSSubdomainUnderProtectedDomain", MustParseURL("wss://app.example.com"), "example.com", true},
+		{"ShouldConsiderExactDomainUnderProtectedDomain", MustParseURL("https://example.com"), "example.com", true},
+		{"ShouldNotConsiderDifferentDomainProtected", MustParseURL("https://app.not.com"), "example.com", false},
+		{"ShouldNotConsiderSubSubDomainProtected", MustParseURL("https://app.home.example.com"), "example.com", false},
+		{"ShouldNotConsiderBadDomainProtected", MustParseURL("https://com"), "example.com", false},
 	}
 
 	for _, tc := range testCases {
@@ -189,14 +189,4 @@ func TestGetProfileRefreshSettings(t *testing.T) {
 			assert.Equal(t, tc.expectedInterval, actualInterval)
 		})
 	}
-}
-
-func mustParseURL(input string) *url.URL {
-	u, err := url.ParseRequestURI(input)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return u
 }

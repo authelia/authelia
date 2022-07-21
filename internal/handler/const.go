@@ -44,6 +44,12 @@ const (
 var (
 	queryArgRD    = []byte("rd")
 	queryArgProxy = []byte("proxy")
+	queryArgAuth  = []byte("auth")
+)
+
+var (
+	valueEmpty = []byte("")
+	valueBasic = []byte("basic")
 )
 
 const (

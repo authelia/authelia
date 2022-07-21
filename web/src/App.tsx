@@ -15,6 +15,7 @@ import {
     RegisterWebauthnRoute,
     ResetPasswordStep2Route,
     ResetPasswordStep1Route,
+    ForbiddenRoute,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
@@ -29,6 +30,7 @@ import {
 } from "@utils/Configuration";
 import RegisterOneTimePassword from "@views/DeviceRegistration/RegisterOneTimePassword";
 import RegisterWebauthn from "@views/DeviceRegistration/RegisterWebauthn";
+import ForbiddenView from "@views/Forbidden/ForbiddenView";
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 import ConsentView from "@views/LoginPortal/ConsentView/ConsentView";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
@@ -93,6 +95,7 @@ const App: React.FC<Props> = (props: Props) => {
                                 <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />
+                                <Route path={ForbiddenRoute} element={<ForbiddenView />} />
                                 <Route
                                     path={`${IndexRoute}*`}
                                     element={

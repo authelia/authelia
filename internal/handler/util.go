@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 
@@ -19,8 +21,6 @@ import (
 
 func isURLUnderProtectedDomain(u *url.URL, domain string) bool {
 	hostname := u.Hostname()
-
-	fmt.Println(hostname, domain)
 
 	if hostname == domain {
 		return true
@@ -40,6 +40,10 @@ func isSchemeSecure(u *url.URL) bool {
 }
 
 func headerAuthorizationParseBasic(value []byte) (username, password string, err error) {
+	if bytes.Equal(value, valueEmpty) {
+		return "", "", fmt.Errorf("header is malformed: empty value")
+	}
+
 	parts := strings.SplitN(string(value), " ", 2)
 
 	if len(parts) != 2 {
@@ -110,13 +114,17 @@ func isSessionInactiveTooLong(ctx *middleware.AutheliaCtx, userSession *session.
 	return isInactiveTooLong
 }
 
-func handleVerifyGETRedirectionURL(rd, rm string, targetURL *url.URL) (redirectionURL *url.URL, err error) {
+func handleVerifyGETRedirectionURL(rd, rm string, targetURL *url.URL, forbidden bool) (redirectionURL *url.URL, err error) {
 	if rd == "" {
 		return nil, nil
 	}
 
 	if redirectionURL, err = url.Parse(rd); err != nil {
 		return nil, err
+	}
+
+	if forbidden {
+		redirectionURL.Path = path.Join(redirectionURL.Path, "forbidden")
 	}
 
 	args := url.Values{
