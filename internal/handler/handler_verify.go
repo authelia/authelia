@@ -29,7 +29,7 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 		)
 
 		if targetURL, err = ctx.GetOriginalURL(); err != nil {
-			ctx.Logger.Errorf("Unable to parse Endpoint URL: %+v", err)
+			ctx.Logger.Errorf("Failed to parse Endpoint URL: %+v", err)
 
 			ctx.ReplyUnauthorized()
 
@@ -45,7 +45,7 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 		}
 
 		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
-			ctx.Logger.Errorf("Endpoint URL '%s' is not on a domain which is a direct subdomain of the session domain %s", targetURL, ctx.Configuration.Session.Domain)
+			ctx.Logger.Errorf("Endpoint URL '%s' is not on a domain which is a direct subdomain of the configured session domain '%s'", targetURL, ctx.Configuration.Session.Domain)
 
 			ctx.ReplyUnauthorized()
 
@@ -55,11 +55,11 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 		var authn Authentication
 
 		if authn, err = handleVerifyGETAuthn(ctx, profileRefreshEnabled, profileRefreshInterval); err != nil {
-			switch authn.Type {
-			case AuthTypeAuthorization:
+			switch {
+			case authn.Type == AuthTypeAuthorization && (errors.Is(err, errMissingAuthorizationHeaderSchemeBasicForced) || errors.Is(err, authentication.ErrUserNotFound)):
 				break
 			default:
-				ctx.Logger.Errorf("Authentication Failure: %v", err)
+				ctx.Logger.Errorf("Failed to validate the authentication state: %+v", err)
 				ctx.ReplyUnauthorized()
 
 				return
@@ -79,7 +79,7 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 
 		switch isAuthorizationMatching(levelRequired, authn.Level) {
 		case Forbidden:
-			ctx.Logger.Infof("Access to %s is forbidden to user '%s'", targetURL.String(), authn.Details.Username)
+			ctx.Logger.Infof("Access to '%s' is forbidden to user '%s'", targetURL, authn.Details.Username)
 			ctx.ReplyForbidden()
 		case NotAuthorized:
 			handleVerifyGETUnauthorized(ctx, method, targetURL, &authn)
@@ -94,11 +94,11 @@ func handleVerifyGETAuthn(ctx *middleware.AutheliaCtx, profileRefreshEnabled boo
 		return Authentication{Level: authentication.NotAuthenticated, Type: authn.Type}, err
 	}
 
-	if authn.Type == AuthTypeNone {
-		authn = handleVerifyGETAuthnCookie(ctx, profileRefreshEnabled, profileRefreshInterval)
+	if authn.Type != AuthTypeNone {
+		return authn, nil
 	}
 
-	return authn, nil
+	return handleVerifyGETAuthnCookie(ctx, profileRefreshEnabled, profileRefreshInterval), nil
 }
 
 func handleVerifyGETAuthnCookie(ctx *middleware.AutheliaCtx, profileRefreshEnabled bool, profileRefreshInterval time.Duration) (authn Authentication) {
@@ -110,14 +110,14 @@ func handleVerifyGETAuthnCookie(ctx *middleware.AutheliaCtx, profileRefreshEnabl
 
 	if invalid := handleVerifyGETAuthnCookieValidate(ctx, &userSession, profileRefreshEnabled, profileRefreshInterval); invalid {
 		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
-			ctx.Logger.Errorf("Unable to destroy user session: %v", err)
+			ctx.Logger.Errorf("Unable to destroy user session: %+v", err)
 		}
 
 		return authn
 	}
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.Errorf("Unable to save updated user session: %v", err)
+		ctx.Logger.Errorf("Unable to save updated user session: %+v", err)
 	}
 
 	return Authentication{
@@ -136,13 +136,13 @@ func handleVerifyGETAuthnCookieValidate(ctx *middleware.AutheliaCtx, userSession
 	isAnonymous := userSession.Username == ""
 
 	if isAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
-		ctx.Logger.Errorf("invalid session: the user is anonymous but their authentication level is '%s': this may be a sign of a compromise", userSession.AuthenticationLevel)
+		ctx.Logger.Errorf("Session for anonymous user has an authentication level of '%s': this may be a sign of a compromise", userSession.AuthenticationLevel)
 
 		return true
 	}
 
 	if invalid = handleVerifyGETAuthnCookieValidateInactivity(ctx, userSession, isAnonymous); invalid {
-		ctx.Logger.Infof("invalid session: TODO")
+		ctx.Logger.Infof("Session for user '%s' not marked as remembereded has exceeded configured session inactivity", userSession.Username)
 
 		return true
 	}
@@ -152,6 +152,8 @@ func handleVerifyGETAuthnCookieValidate(ctx *middleware.AutheliaCtx, userSession
 	}
 
 	if username := ctx.Request.Header.PeekBytes(headerSessionUsername); username != nil && !strings.EqualFold(string(username), userSession.Username) {
+		ctx.Logger.Warnf("Session for user '%s' does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", userSession.Username, username)
+
 		return true
 	}
 
@@ -231,27 +233,27 @@ func handleVerifyGETAuthnCookieValidateUpdate(ctx *middleware.AutheliaCtx, userS
 }
 
 func handleVerifyGETAuthnHeader(ctx *middleware.AutheliaCtx) (authn Authentication, err error) {
-	var basicValue, basicHeader []byte
+	var header, value []byte
 
-	basicForced := false
+	forced := false
 
 	switch {
 	case bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")):
-		basicForced = true
-		basicHeader = headerAuthorization
+		forced = true
+		header = headerAuthorization
 	default:
-		basicHeader = headerProxyAuthorization
+		header = headerProxyAuthorization
 	}
 
-	basicValue = ctx.Request.Header.PeekBytes(basicHeader)
+	value = ctx.Request.Header.PeekBytes(header)
 
 	switch {
-	case basicForced && basicValue == nil:
-		return Authentication{Type: AuthTypeAuthorization}, fmt.Errorf("basic auth requested via query arg, but no value provided via %s header", basicHeader)
-	case basicValue != nil:
-		return handleVerifyGETAuthnHeaderBasic(ctx, basicHeader, basicValue, basicForced)
+	case forced && value == nil:
+		return Authentication{Level: authentication.NotAuthenticated, Type: AuthTypeAuthorization}, errMissingAuthorizationHeaderSchemeBasicForced
+	case value != nil:
+		return handleVerifyGETAuthnHeaderBasic(ctx, header, value, forced)
 	default:
-		return Authentication{}, nil
+		return Authentication{Level: authentication.NotAuthenticated, Type: AuthTypeNone}, nil
 	}
 }
 
@@ -277,10 +279,16 @@ func handleVerifyGETAuthnHeaderBasic(ctx *middleware.AutheliaCtx, header, value 
 	}
 
 	if !valid {
-		return authn, fmt.Errorf("user %s is not authenticated", username)
+		return authn, fmt.Errorf("credentials for username '%s' are invalid", username)
 	}
 
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.Logger.Errorf("Error occurred while attempting to get user details for user '%s': the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login", username)
+
+			return authn, err
+		}
+
 		return authn, fmt.Errorf("unable to retrieve details for user '%s': %w", username, err)
 	}
 

@@ -128,11 +128,17 @@ type PasswordPolicyBody struct {
 // AuthType is an auth type.
 type AuthType int
 
-// Auth Types.
 const (
+	// AuthTypeNone is a nil Authentication AuthType.
 	AuthTypeNone AuthType = iota
+
+	// AuthTypeCookie is an Authentication AuthType based on the Cookie header.
 	AuthTypeCookie
+
+	// AuthTypeProxyAuthorization is an Authentication AuthType based on the Proxy-Authorization header.
 	AuthTypeProxyAuthorization
+
+	// AuthTypeAuthorization is an Authentication AuthType based on the Authorization header.
 	AuthTypeAuthorization
 )
 
