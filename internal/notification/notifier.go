@@ -1,6 +1,8 @@
 package notification
 
 import (
+	"net/mail"
+
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
@@ -8,5 +10,5 @@ import (
 type Notifier interface {
 	model.StartupCheck
 
-	Send(recipient, subject, body, htmlBody string) (err error)
+	Send(recipient mail.Address, subject, body, htmlBody string) (err error)
 }

@@ -14,6 +14,7 @@ server:
 telemetry:
   metrics:
     enabled: true
+    address: tcp://0.0.0.0:9959
 
 log:
   level: debug

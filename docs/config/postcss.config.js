@@ -22,6 +22,11 @@ module.exports = {
         'alert-link',
         'container-xxl',
         'container-fluid',
+        'offcanvas-backdrop',
+        'img-fluid',
+        'lazyload',
+        'blur-up',
+        'figcaption',
         ...whitelister([
           './assets/scss/components/_alerts.scss',
           './assets/scss/components/_buttons.scss',

@@ -18,6 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
@@ -115,6 +116,12 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
+
+	var err error
+
+	if providers.Templates, err = templates.New(templates.Config{}); err != nil {
+		panic(err)
+	}
 
 	request := &fasthttp.RequestCtx{}
 	request.Request.Header.Set("X-Original-URL", "https://example.com")

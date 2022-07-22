@@ -1,0 +1,37 @@
+{{ $fillImage := .Scratch.Get "fillImage" }}
+{{ if not $fillImage -}}
+  {{ $fillImage = site.Params.fillImage }}
+{{ end -}}
+
+{{ $image := .Resources.GetMatch (printf "**%s" (index .Params.images 0)) }}
+{{ if not $image -}}
+  {{ $image = resources.Get (printf "%s%s" "images/" site.Params.defaultImage) }}
+{{ end -}}
+
+{{ $image = $image.Fill $fillImage }}
+{{ $lqip := $image.Resize site.Params.lqipWidth -}}
+
+{{ $imgSrc := "" -}}
+{{ $imgSrcSet := slice -}}
+
+{{ $widths := site.Params.landscapePhotoWidths -}}
+{{ if gt $image.Height $image.Width -}}
+  {{ $widths = site.Params.portraitPhotoWidths -}}
+{{ end -}}
+
+{{ range $widths -}}
+  {{ $srcUrl := (printf "%dx" . | $image.Resize).Permalink -}}
+  {{ if eq $imgSrc "" -}}{{ $imgSrc = $srcUrl -}}{{ end -}}
+  {{ $imgSrcSet = $imgSrcSet | append (printf "%s %dw" $srcUrl .) -}}
+{{ end -}}
+{{ $imgSrcSet = (delimit $imgSrcSet ",") -}}
+
+{{ if gt $image.Width site.Params.smallLimit -}}
+  <figure class="figure">
+    <img class="figure-img img-fluid lazyload blur-up" data-sizes="auto" src="{{ $lqip.Permalink }}" data-srcset="{{ $imgSrcSet }}" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="{{ .Title }}">
+    <noscript><img class="figure-img img-fluid" sizes="100vw" srcset="{{ $imgSrcSet }}" src="{{ $image.Permalink }}" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="{{ .Title }}"></noscript>
+    <!-- {{ with .Title }}<figcaption class="figure-caption">{{ . | safeHTML }}</figcaption>{{ end -}} -->
+  </figure>
+{{ else -}}
+  <img class="img-fluid lazyload blur-up" src="{{ $lqip.Permalink }}" data-src="{{ $image.Permalink }}" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="{{ .Title }}">
+{{ end -}}

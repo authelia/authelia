@@ -5,7 +5,6 @@ disableHugoGeneratorInject = true
 enableEmoji = true
 enableGitInfo = true
 enableRobotsTXT = true
-languageCode = "en-US"
 paginate = 7
 rssLimit = 10
 title = "Authelia"
@@ -60,12 +59,28 @@ rel  = "sitemap"
 
 [taxonomies]
   contributor = "contributors"
+  category = "categories"
+  tag = "tags"
 
 [permalinks]
   blog = "/blog/:title/"
 
 [minify.tdewolff.html]
   keepWhitespace = false
+
+[related]
+  threshold = 80
+  includeNewer = true
+  toLower = false
+    [[related.indices]]
+    name = "categories"
+    weight = 100
+    [[related.indices]]
+    name = "tags"
+    weight = 80
+    [[related.indices]]
+    name = "date"
+    weight = 10
 
 [module]
   [module.hugoVersion]
@@ -79,6 +94,9 @@ rel  = "sitemap"
     source = "static"
     target = "static"
   [[module.mounts]]
+    source = "layouts"
+    target = "layouts"
+  [[module.mounts]]
     source = "node_modules/flexsearch"
     target = "assets/js/vendor/flexsearch"
   [[module.mounts]]
@@ -87,3 +105,6 @@ rel  = "sitemap"
   [[module.mounts]]
     source = "node_modules/mermaid"
     target = "assets/js/vendor/mermaid"
+  [[module.mounts]]
+    source = "node_modules/@hyas/images/layouts"
+    target = "layouts"

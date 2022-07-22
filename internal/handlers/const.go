@@ -28,10 +28,6 @@ var (
 	headerRemoteEmail     = []byte("Remote-Email")
 )
 
-var (
-	headerContentTypeValueDefault = []byte("text/plain; charset=utf-8")
-)
-
 const (
 	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota

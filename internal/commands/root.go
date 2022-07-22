@@ -166,7 +166,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	if !config.NTP.DisableStartupCheck && !providers.Authorizer.IsSecondFactorEnabled() {
 		logger.Debug("The NTP startup check was skipped due to there being no configured 2FA access control rules")
 	} else if err = doStartupCheck(logger, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
-		logger.Errorf("Failure running the user provider startup check: %+v", err)
+		logger.Errorf("Failure running the ntp provider startup check: %+v", err)
 
 		if !config.NTP.DisableFailure {
 			failures = append(failures, "ntp")
