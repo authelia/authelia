@@ -170,7 +170,9 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasWebauthn: false,
 				HasDuo:      false,
 			},
-			config:  &schema.Configuration{},
+			config: &schema.Configuration{
+				Session: schema.SessionConfiguration{Domain: "example.com"},
+			},
 			loadErr: nil,
 			saveErr: nil,
 		},
@@ -188,7 +190,9 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasWebauthn: false,
 				HasDuo:      true,
 			},
-			config:  &schema.Configuration{},
+			config: &schema.Configuration{
+				Session: schema.SessionConfiguration{Domain: "example.com"},
+			},
 			loadErr: nil,
 			saveErr: nil,
 		},
@@ -206,7 +210,10 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasWebauthn: false,
 				HasDuo:      true,
 			},
-			config:  &schema.Configuration{DuoAPI: schema.DuoAPIConfiguration{Disable: true}},
+			config: &schema.Configuration{
+				DuoAPI:  schema.DuoAPIConfiguration{Disable: true},
+				Session: schema.SessionConfiguration{Domain: "example.com"},
+			},
 			loadErr: nil,
 			saveErr: nil,
 		},
@@ -228,6 +235,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				TOTP: schema.TOTPConfiguration{
 					Disable: true,
 				},
+				Session: schema.SessionConfiguration{Domain: "example.com"},
 			},
 			loadErr: nil,
 			saveErr: nil,
@@ -246,7 +254,9 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 				HasWebauthn: true,
 				HasDuo:      true,
 			},
-			config:  &schema.Configuration{},
+			config: &schema.Configuration{
+				Session: schema.SessionConfiguration{Domain: "example.com"},
+			},
 			loadErr: nil,
 			saveErr: errors.New("could not save"),
 		},
