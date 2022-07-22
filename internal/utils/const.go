@@ -63,7 +63,7 @@ const (
 
 const (
 	// Hour is an int based representation of the time unit.
-	Hour = time.Minute * 60 //nolint:revive
+	Hour = time.Minute * 60
 
 	// Day is an int based representation of the time unit.
 	Day = Hour * 24
