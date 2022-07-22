@@ -143,7 +143,11 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 
 // hasUserBeenInactiveTooLong checks whether the user has been inactive for too long.
 func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) {
-	domain := ctx.GetCurrentSessionDomain()
+	domain, err := ctx.GetCurrentSessionDomain()
+	if err != nil {
+		return false, err
+	}
+
 	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
 	if err != nil {
@@ -185,9 +189,13 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 		}
 
 		if inactiveLongEnough {
-			domain := ctx.GetCurrentSessionDomain()
-			sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
+			domain, err := ctx.GetCurrentSessionDomain()
+			if err != nil {
+				ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+				return "", "", nil, nil, authentication.NotAuthenticated, err
+			}
 
+			sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 			if err != nil {
 				ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
 				return "", "", nil, nil, authentication.NotAuthenticated, err
@@ -206,7 +214,12 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 	err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval)
 	if err != nil {
 		if err == authentication.ErrUserNotFound {
-			domain := ctx.GetCurrentSessionDomain()
+			domain, err := ctx.GetCurrentSessionDomain()
+			if err != nil {
+				ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+				return userSession.Username, userSession.DisplayName, userSession.Groups, userSession.Emails, authentication.NotAuthenticated, err
+			}
+
 			sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
 			if err != nil {
@@ -466,7 +479,14 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
-		domain := ctx.GetCurrentSessionDomain()
+		domain, err2 := ctx.GetCurrentSessionDomain()
+		if err2 != nil {
+			ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+			err = err2
+
+			return
+		}
+
 		sessionProvider, err2 := ctx.Providers.SessionProvider.Get(domain)
 
 		if err2 != nil {

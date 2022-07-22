@@ -69,6 +69,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	configuration := schema.Configuration{}
 	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 	configuration.Session.Name = "authelia_session"
+	configuration.Session.Domain = "example.com"
 	configuration.AccessControl.DefaultPolicy = "deny"
 	configuration.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},
@@ -116,10 +117,12 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.TOTP = mockAuthelia.TOTPMock
 
 	request := &fasthttp.RequestCtx{}
+	request.Request.Header.Set("X-Original-URL", "https://example.com")
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
 	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
+
 	mockAuthelia.Ctx = ctx
 
 	logger, hook := test.NewNullLogger()

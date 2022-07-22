@@ -26,9 +26,15 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("unable to parse body during logout: %s", err), messageOperationFailed)
 	}
 
-	domain := ctx.GetCurrentSessionDomain()
-	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
+	domain, err := ctx.GetCurrentSessionDomain()
+	if err != nil {
+		ctx.Error(fmt.Errorf(logFmtErrObtainSessionProvider, domain, err), messageOperationFailed)
+		respondUnauthorized(ctx, messageMFAValidationFailed)
 
+		return
+	}
+
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 	if err != nil {
 		ctx.Error(fmt.Errorf(logFmtErrObtainSessionProvider, domain, err), messageOperationFailed)
 		respondUnauthorized(ctx, messageMFAValidationFailed)

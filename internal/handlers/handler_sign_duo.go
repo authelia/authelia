@@ -244,11 +244,20 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 
 // HandleAllow handler for successful logins.
 func HandleAllow(ctx *middlewares.AutheliaCtx, targetURL string) {
+	// fmt.Printf("-------------- %s --------------------\n", "1").
 	userSession := ctx.GetSession()
 
-	domain := ctx.GetCurrentSessionDomain()
-	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
+	domain, err := ctx.GetCurrentSessionDomain()
+	if err != nil {
+		fmt.Printf("-------------- %s --------------------\n", err)
+		ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+		respondUnauthorized(ctx, messageMFAValidationFailed)
 
+		return
+	}
+	// fmt.Printf("-------------- %s --------------------\n", domain).
+
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 	if err != nil {
 		ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
 		respondUnauthorized(ctx, messageMFAValidationFailed)

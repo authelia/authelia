@@ -60,7 +60,7 @@ const (
 	logFmtErrSessionSave           = "Could not save session with the %s during %s authentication for user '%s': %+v"
 	logFmtErrObtainProfileDetails  = "Could not obtain profile details during %s authentication for user '%s': %+v"
 	logFmtTraceProfileDetails      = "Profile details for user '%s' => groups: %s, emails %s"
-	logFmtErrObtainSessionProvider = "Could not get seccion for domain '%s': %s"
+	logFmtErrObtainSessionProvider = "could not get seccion for domain '%s': %s"
 )
 
 const (

@@ -84,9 +84,15 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		domain := ctx.GetCurrentSessionDomain()
-		sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
+		domain, err := ctx.GetCurrentSessionDomain()
+		if err != nil {
+			ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+			respondUnauthorized(ctx, messageMFAValidationFailed)
 
+			return
+		}
+
+		sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 		if err != nil {
 			ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
 			respondUnauthorized(ctx, messageMFAValidationFailed)

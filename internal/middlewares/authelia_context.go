@@ -192,16 +192,19 @@ func (ctx *AutheliaCtx) XOriginalURL() []byte {
 
 // GetSession return the user session. Any update will be saved in cache.
 func (ctx *AutheliaCtx) GetSession() session.UserSession {
-	domain := ctx.GetCurrentSessionDomain()
-	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
+	domain, err := ctx.GetCurrentSessionDomain()
+	if err != nil {
+		ctx.Logger.Errorf("Could not get session for domain '%s': %s", domain, err)
+		return session.NewDefaultUserSession()
+	}
 
+	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 	if err != nil {
 		ctx.Logger.Errorf("Could not get session for domain '%s': %s", domain, err)
 		return session.NewDefaultUserSession()
 	}
 
 	userSession, err := sessionProvider.GetSession(ctx.RequestCtx)
-
 	if err != nil {
 		ctx.Logger.Error("unable to retrieve user session: ", err)
 		return session.NewDefaultUserSession()
@@ -212,7 +215,11 @@ func (ctx *AutheliaCtx) GetSession() session.UserSession {
 
 // SaveSession save the content of the session.
 func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
-	domain := ctx.GetCurrentSessionDomain()
+	domain, err := ctx.GetCurrentSessionDomain()
+	if err != nil {
+		return err
+	}
+
 	sessionProvider, err := ctx.Providers.SessionProvider.Get(domain)
 
 	if err != nil {
@@ -371,30 +378,29 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 }
 
 // GetCurrentSessionDomain returns the cookie_domain linked to requested domain.
-func (ctx *AutheliaCtx) GetCurrentSessionDomain() string {
+func (ctx *AutheliaCtx) GetCurrentSessionDomain() (string, error) {
 	url, err := ctx.GetOriginalURL()
 	if err != nil {
-		return ctx.GetDefaultDomain()
+		return "", fmt.Errorf("could not get original URL")
 	}
 
 	hostname := url.Hostname()
 
 	if ctx.Configuration.Session.Domain != "" {
 		if strings.HasSuffix(hostname, ctx.Configuration.Session.Domain) {
-			return ctx.Configuration.Session.Domain
+			return ctx.Configuration.Session.Domain, nil
 		}
 	}
 
 	for _, domainConfig := range ctx.Configuration.Session.Domains {
 		for _, domain := range domainConfig.Domains {
 			if (strings.HasPrefix(domain, "*.") && strings.HasSuffix(hostname, domain[2:])) || domain == hostname {
-				// if hostname == domain {.
-				return domainConfig.CookieDomain
+				return domainConfig.CookieDomain, nil
 			}
 		}
 	}
 
-	return ""
+	return "", fmt.Errorf("'%s' domain is not under protected domains (%s) (%v)", hostname, ctx.Configuration.Session.Domain, ctx.Configuration.Session.Domains)
 }
 
 // GetDefaultDomain return the default root domain
