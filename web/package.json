@@ -163,7 +163,7 @@
     "eslint-formatter-rdjson": "1.0.5",
     "eslint-import-resolver-typescript": "2.7.1",
     "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-jsx-a11y": "6.6.0",
+    "eslint-plugin-jsx-a11y": "6.6.1",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-react": "7.30.1",
     "eslint-plugin-react-hooks": "4.6.0",
