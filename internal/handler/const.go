@@ -41,10 +41,20 @@ const (
 	headerAcceptsMIMETextHTML = "text/html"
 )
 
+const (
+	queryArgStrRD          = "rd"
+	queryArgStrRM          = "rm"
+	queryArgStrCode        = "code"
+	queryArgStrMessage     = "message"
+	queryArgStrTitle       = "title"
+	queryArgStrDescription = "description"
+	queryArgStrMethod      = "method"
+	queryArgStrURL         = "url"
+)
+
 var (
-	queryArgRD    = []byte("rd")
-	queryArgProxy = []byte("proxy")
-	queryArgAuth  = []byte("auth")
+	queryArgRD   = []byte(queryArgStrRD)
+	queryArgAuth = []byte("auth")
 )
 
 var (

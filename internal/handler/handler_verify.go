@@ -28,25 +28,7 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 			err       error
 		)
 
-		if targetURL, err = ctx.GetOriginalURL(); err != nil {
-			ctx.Logger.Errorf("Failed to parse Endpoint URL: %+v", err)
-
-			ctx.ReplyUnauthorized()
-
-			return
-		}
-
-		if !isSchemeSecure(targetURL) {
-			ctx.Logger.Errorf("Endpoint URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", targetURL, targetURL.Scheme)
-
-			ctx.ReplyUnauthorized()
-
-			return
-		}
-
-		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
-			ctx.Logger.Errorf("Endpoint URL '%s' is not on a domain which is a direct subdomain of the configured session domain '%s'", targetURL, ctx.Configuration.Session.Domain)
-
+		if targetURL = handleVerifyGETTargetURL(ctx); targetURL == nil {
 			ctx.ReplyUnauthorized()
 
 			return
@@ -86,6 +68,82 @@ func VerifyGET(config schema.AuthenticationBackendConfiguration) middleware.Requ
 			setForwardedHeaders(&ctx.Response.Header, &authn)
 		}
 	}
+}
+
+// VerifyGETProxyNGINX returns the handler verifying if a request is allowed to go through.
+func VerifyGETProxyNGINX(config schema.AuthenticationBackendConfiguration) middleware.RequestHandler {
+	profileRefreshEnabled, profileRefreshInterval := getProfileRefreshSettings(config)
+
+	return func(ctx *middleware.AutheliaCtx) {
+		var (
+			targetURL *url.URL
+			err       error
+		)
+
+		if targetURL = handleVerifyGETTargetURL(ctx); targetURL == nil {
+			ctx.ReplyUnauthorized()
+
+			return
+		}
+
+		var authn Authentication
+
+		if authn, err = handleVerifyGETAuthn(ctx, profileRefreshEnabled, profileRefreshInterval); err != nil {
+			switch {
+			case authn.Type == AuthTypeAuthorization:
+				break
+			default:
+				ctx.Logger.Errorf("Failed to validate the authentication state: %+v", err)
+				ctx.ReplyUnauthorized()
+
+				return
+			}
+		}
+
+		method := ctx.XForwardedMethod()
+
+		levelRequired := ctx.Providers.Authorizer.GetRequiredLevel(
+			authorization.Subject{
+				Username: authn.Details.Username,
+				Groups:   authn.Details.Groups,
+				IP:       ctx.RemoteIP(),
+			},
+			authorization.NewObjectRaw(targetURL, method),
+		)
+
+		switch isAuthorizationMatching(levelRequired, authn.Level) {
+		case Forbidden:
+			handleVerifyGETProxyNGINXUnauthorized(ctx, method, targetURL, &authn, true)
+		case NotAuthorized:
+			handleVerifyGETProxyNGINXUnauthorized(ctx, method, targetURL, &authn, false)
+		case Authorized:
+			setForwardedHeaders(&ctx.Response.Header, &authn)
+		}
+	}
+}
+
+func handleVerifyGETTargetURL(ctx *middleware.AutheliaCtx) (targetURL *url.URL) {
+	var err error
+
+	if targetURL, err = ctx.GetOriginalURL(); err != nil {
+		ctx.Logger.Errorf("Failed to parse Endpoint URL: %+v", err)
+
+		return nil
+	}
+
+	if !isSchemeSecure(targetURL) {
+		ctx.Logger.Errorf("Endpoint URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", targetURL, targetURL.Scheme)
+
+		return nil
+	}
+
+	if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
+		ctx.Logger.Errorf("Endpoint URL '%s' is not on a domain which is a direct subdomain of the configured session domain '%s'", targetURL, ctx.Configuration.Session.Domain)
+
+		return nil
+	}
+
+	return targetURL
 }
 
 func handleVerifyGETAuthn(ctx *middleware.AutheliaCtx, profileRefreshEnabled bool, profileRefreshInterval time.Duration) (authn Authentication, err error) {
@@ -368,12 +426,8 @@ func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, tar
 		return
 	}
 
-	proxy := string(ctx.QueryArgs().PeekBytes(queryArgProxy))
-
-	nginx := proxy == queryArgProxyValueNGINX
-
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME(headerAcceptsMIMETextHTML) || nginx:
+	case ctx.IsXHR() || !ctx.AcceptsMIME(headerAcceptsMIMETextHTML):
 		break
 	default:
 		switch strMethod {
@@ -386,6 +440,55 @@ func handleVerifyGETUnauthorized(ctx *middleware.AutheliaCtx, method []byte, tar
 
 	ctx.Logger.Infof("Access to '%s' (method %s) is %s to user '%s', responding with %d %s with Location header '%s'", targetURL, rm, termAccess, username, statusCode, fasthttp.StatusMessage(statusCode), redirectionURL)
 	ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+}
+
+func handleVerifyGETProxyNGINXUnauthorized(ctx *middleware.AutheliaCtx, method []byte, targetURL *url.URL, authn *Authentication, forbidden bool) {
+	var (
+		termAccess string
+	)
+
+	switch {
+	case forbidden:
+		termAccess = "forbidden"
+	default:
+		termAccess = "not authorized"
+	}
+
+	strMethod := string(method)
+
+	rd, rm, username := string(ctx.QueryArgs().PeekBytes(queryArgRD)), fmtFriendlyMethod(strMethod), fmtFriendlyUsername(authn.Details.Username)
+
+	if authn.Type == AuthTypeAuthorization {
+		ctx.Logger.Infof("Access to '%s' (method %s) is %s to user '%s', responding with 401 Unauthorized and a Basic scheme WWW-Authenticate header", targetURL, rm, termAccess, username)
+
+		ctx.ReplyUnauthorized()
+		ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerWWWAuthenticateValueBasic)
+
+		return
+	}
+
+	var (
+		redirectionURL *url.URL
+
+		err error
+	)
+
+	if redirectionURL, err = handleVerifyGETRedirectionURL(rd, strMethod, targetURL, forbidden); err != nil {
+		ctx.Logger.Errorf("Failed to determine redirect URL: %v", err)
+		ctx.ReplyBadRequest()
+
+		return
+	}
+
+	if redirectionURL == nil {
+		ctx.Logger.Errorf("Redirection URL parameter was not specified and is required for this endpoint.")
+		ctx.ReplyBadRequest()
+
+		return
+	}
+
+	ctx.Logger.Infof("Access to '%s' (method %s) is %s to user '%s', responding with %d %s with Location header '%s'", targetURL, rm, termAccess, username, fasthttp.StatusUnauthorized, fasthttp.StatusMessage(fasthttp.StatusUnauthorized), redirectionURL)
+	ctx.SpecialRedirect(redirectionURL.String(), fasthttp.StatusUnauthorized)
 }
 
 // generateVerifySessionHasUpToDateProfileTraceLogs is used to generate trace logs only when trace logging is enabled.

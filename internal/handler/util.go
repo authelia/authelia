@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -123,16 +124,27 @@ func handleVerifyGETRedirectionURL(rd, rm string, targetURL *url.URL, forbidden 
 		return nil, err
 	}
 
+	args := url.Values{}
+
 	if forbidden {
-		redirectionURL.Path = path.Join(redirectionURL.Path, "forbidden")
-	}
+		redirectionURL.Path = path.Join(redirectionURL.Path, "error")
+		args = url.Values{
+			queryArgStrCode:        []string{strconv.Itoa(fasthttp.StatusForbidden)},
+			queryArgStrMessage:     []string{fasthttp.StatusMessage(fasthttp.StatusForbidden)},
+			queryArgStrTitle:       []string{"Access Denied"},
+			queryArgStrDescription: []string{"Your access to this resource is forbidden"},
+			queryArgStrURL:         []string{targetURL.String()},
+		}
 
-	args := url.Values{
-		"rd": []string{targetURL.String()},
-	}
+		if rm != "" {
+			args.Set(queryArgStrMethod, rm)
+		}
+	} else {
+		args.Set(queryArgStrRD, targetURL.String())
 
-	if rm != "" {
-		args.Set("rm", rm)
+		if rm != "" {
+			args.Set(queryArgStrRM, rm)
+		}
 	}
 
 	redirectionURL.RawQuery = args.Encode()
