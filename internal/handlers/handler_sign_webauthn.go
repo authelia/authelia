@@ -171,19 +171,8 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if domain, err := ctx.GetCurrentSessionDomain(); err == nil {
-		sessionProvider, _ := ctx.Providers.SessionProvider.Get(domain)
-		if err = sessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
-			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeWebauthn, userSession.Username, err)
-
-			respondUnauthorized(ctx, messageMFAValidationFailed)
-
-			return
-		}
-	} else {
-		ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+	if err := regenerateSession(ctx, user.Username); err != nil {
 		respondUnauthorized(ctx, messageMFAValidationFailed)
-
 		return
 	}
 
@@ -210,4 +199,24 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	} else {
 		Handle2FAResponse(ctx, requestBody.TargetURL)
 	}
+}
+
+func regenerateSession(ctx *middlewares.AutheliaCtx, username string) error {
+	domain, err := ctx.GetCurrentSessionDomain()
+
+	if err != nil {
+		ctx.Logger.Errorf(logFmtErrObtainSessionProvider, domain, err)
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return err
+	}
+
+	sessionProvider, _ := ctx.Providers.SessionProvider.Get(domain)
+	if err = sessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
+		ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeWebauthn, username, err)
+
+		return err
+	}
+
+	return nil
 }

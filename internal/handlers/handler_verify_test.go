@@ -1372,6 +1372,7 @@ func TestIsSessionInactiveTooLong(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := mocks.NewMockAutheliaCtx(t)
+			ctx.Ctx.Request.Header.Set("X-Original-URL", "https://example.com")
 
 			defer ctx.Close()
 
