@@ -395,7 +395,7 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 func (ctx *AutheliaCtx) GetCurrentSessionDomain() (string, error) {
 	url, err := ctx.GetOriginalURL()
 	if err != nil {
-		return "", fmt.Errorf("could not get original URL")
+		return "", fmt.Errorf("could not get original URL: %s", err)
 	}
 
 	hostname := url.Hostname()

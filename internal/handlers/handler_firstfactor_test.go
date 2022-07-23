@@ -24,6 +24,8 @@ type FirstFactorSuite struct {
 
 func (s *FirstFactorSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 }
 
 func (s *FirstFactorSuite) TearDownTest() {
@@ -339,6 +341,8 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 }
 
 func (s *FirstFactorRedirectionSuite) TearDownTest() {

@@ -24,6 +24,9 @@ type FetchSuite struct {
 
 func (s *FetchSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
+
 	// Set the initial user session.
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -100,6 +103,8 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		}
 
 		mock := mocks.NewMockAutheliaCtx(t)
+		mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+		mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 
 		// Set the initial user session.
 		userSession := mock.Ctx.GetSession()
@@ -269,6 +274,8 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			}
 
 			mock := mocks.NewMockAutheliaCtx(t)
+			mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+			mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 
 			if resp.config != nil {
 				mock.Ctx.Configuration = *resp.config
@@ -380,6 +387,8 @@ type SaveSuite struct {
 
 func (s *SaveSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	// Set the initial user session.
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername

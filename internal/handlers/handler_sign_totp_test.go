@@ -23,6 +23,8 @@ type HandlerSignTOTPSuite struct {
 
 func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	err := s.mock.Ctx.SaveSession(userSession)

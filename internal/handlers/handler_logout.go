@@ -49,7 +49,7 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 
 	redirectionURL, err := url.Parse(body.TargetURL)
 	if err == nil {
-		responseBody.SafeTargetURL = utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.ProtectedDomains)
+		responseBody.SafeTargetURL = utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.GetProtectedDomains())
 	}
 
 	if body.TargetURL != "" {

@@ -124,7 +124,6 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	}
 
 	request := &fasthttp.RequestCtx{}
-	request.Request.Header.Set("X-Original-URL", "https://example.com")
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
@@ -143,6 +142,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 // NewMockAutheliaCtxWithUserSession create an instance of AutheliaCtx mock with predefined user session.
 func NewMockAutheliaCtxWithUserSession(t *testing.T, userSession session.UserSession) *MockAutheliaCtx {
 	mock := NewMockAutheliaCtx(t)
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 

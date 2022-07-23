@@ -20,6 +20,8 @@ type StateGetSuite struct {
 
 func (s *StateGetSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 }
 
 func (s *StateGetSuite) TearDownTest() {

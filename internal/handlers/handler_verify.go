@@ -518,10 +518,9 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.ProtectedDomains) {
+		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.GetProtectedDomains()) {
 			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
 				targetURL.String(), ctx.Configuration.Session.Domain)
-			// ctx.ReplyUnauthorized().
 			ctx.ReplyForbidden()
 
 			return
