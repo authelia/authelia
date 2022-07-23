@@ -469,9 +469,9 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 
 func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
-	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 	defer mock.Close()
 
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 	mock.Clock.Set(time.Now())
 
 	userSession := mock.Ctx.GetSession()

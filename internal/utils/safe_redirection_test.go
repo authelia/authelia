@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func isURLSafe(requestURI string, domain string) bool { //nolint:unparam
+func isURLSafe(requestURI string, domain ...string) bool {
 	url, _ := url.ParseRequestURI(requestURI)
 	return IsRedirectionSafe(*url, domain)
 }
@@ -25,18 +25,18 @@ func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
 }
 
 func TestIsRedirectionURISafe_CannotParseURI(t *testing.T) {
-	_, err := IsRedirectionURISafe("http//invalid", "example.com")
+	_, err := IsRedirectionURISafe("http//invalid", []string{"example.com"})
 	assert.EqualError(t, err, "Unable to parse redirection URI http//invalid: parse \"http//invalid\": invalid URI for request")
 }
 
 func TestIsRedirectionURISafe_InvalidRedirectionURI(t *testing.T) {
-	valid, err := IsRedirectionURISafe("http://myurl.com/myresource", "example.com")
+	valid, err := IsRedirectionURISafe("http://myurl.com/myresource", []string{"example.com"})
 	assert.NoError(t, err)
 	assert.False(t, valid)
 }
 
 func TestIsRedirectionURISafe_ValidRedirectionURI(t *testing.T) {
-	valid, err := IsRedirectionURISafe("http://myurl.example.com/myresource", "example.com")
+	valid, err := IsRedirectionURISafe("http://myurl.example.com/myresource", []string{"myurl.example.com"})
 	assert.NoError(t, err)
 	assert.False(t, valid)
 }

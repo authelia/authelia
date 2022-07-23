@@ -193,6 +193,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 		if err != nil {
 			return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy session for user '%s' after the session has been inactive too long: %w", userSession.Username, err)
 		}
+
 		ctx.Logger.Warnf("Session destroyed for user '%s' after exceeding configured session inactivity and not being marked as remembered", userSession.Username)
 
 		return "", "", nil, nil, authentication.NotAuthenticated, nil

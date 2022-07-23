@@ -43,13 +43,13 @@ type SessionConfiguration struct {
 	Expiration         time.Duration                `koanf:"expiration"`
 	Inactivity         time.Duration                `koanf:"inactivity"`
 	RememberMeDuration time.Duration                `koanf:"remember_me_duration"`
-	// protectedDomains   []string                     `koanf:"-"`
+	// protectedDomains   []string                     `koanf:"-"`.
 
 	Redis *RedisSessionConfiguration `koanf:"redis"`
 }
 
 // GetProtectedDomains return the list of protected domains
-// TODO: may require refactoring for performance
+// TODO: may require refactoring for performance.
 func (s *SessionConfiguration) GetProtectedDomains() []string {
 	var protectedDomains []string
 	if s.Domain != "" {
@@ -61,7 +61,6 @@ func (s *SessionConfiguration) GetProtectedDomains() []string {
 	}
 
 	return protectedDomains
-
 }
 
 // DomainSessionConfiguration represents the configuration related to a domain configuration in a multi domain environment.

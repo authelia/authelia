@@ -11,8 +11,8 @@ func IsRedirectionSafe(url url.URL, protectedDomains []string) bool {
 	if url.Scheme != "https" {
 		return false
 	}
-	hostname := url.Hostname()
 
+	hostname := url.Hostname()
 	for _, domain := range protectedDomains {
 		if (strings.HasPrefix(domain, "*.") && strings.HasSuffix(hostname, domain[2:])) || domain == hostname {
 			return true
