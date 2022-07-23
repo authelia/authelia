@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -26,8 +27,24 @@ type SecondFactorDuoPostSuite struct {
 
 func (s *SecondFactorDuoPostSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+
+	s.mock.Ctx.Configuration.Session.Domains = append([]schema.DomainSessionConfiguration{}, schema.DomainSessionConfiguration{
+		CookieDomain: "example.com",
+		Domains: []string{
+			"auth.example.com",
+			"public.example.com",
+			"secure.example.com",
+		},
+	})
+	s.mock.Ctx.Configuration.Session.Domains = append(s.mock.Ctx.Configuration.Session.Domains, schema.DomainSessionConfiguration{
+		CookieDomain: "mydomain.local",
+		Domains: []string{
+			"mydomain.local",
+		},
+	})
+
 	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
+	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "example.com")
 	userSession := s.mock.Ctx.GetSession()
 	userSession.Username = testUsername
 	err := s.mock.Ctx.SaveSession(userSession)
@@ -616,6 +633,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
+		// TODO: VALIDATE: changed from TargetURL: "https://mydomain.local",
 		TargetURL: "https://mydomain.local",
 	})
 	s.Require().NoError(err)
@@ -623,6 +641,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
+		// TODO: VALIDATE: changed from Redirect: "https://mydomain.local",
 		Redirect: "https://mydomain.local",
 	})
 }

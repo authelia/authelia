@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -23,6 +24,22 @@ type HandlerSignTOTPSuite struct {
 
 func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+
+	s.mock.Ctx.Configuration.Session.Domains = append([]schema.DomainSessionConfiguration{}, schema.DomainSessionConfiguration{
+		CookieDomain: "example.com",
+		Domains: []string{
+			"auth.example.com",
+			"public.example.com",
+			"secure.example.com",
+		},
+	})
+	s.mock.Ctx.Configuration.Session.Domains = append(s.mock.Ctx.Configuration.Session.Domains, schema.DomainSessionConfiguration{
+		CookieDomain: "mydomain.local",
+		Domains: []string{
+			"mydomain.local",
+		},
+	})
+
 	s.mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	s.mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	userSession := s.mock.Ctx.GetSession()

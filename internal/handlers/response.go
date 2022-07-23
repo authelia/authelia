@@ -143,7 +143,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.GetProtectedDomains())
+	safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.GetProtectedDomains()...)
 
 	if !safeRedirection {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
@@ -183,7 +183,8 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 		return
 	}
 
-	safe, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.GetProtectedDomains())
+	fmt.Printf("%s  ------ %v\n", targetURI, ctx.Configuration.Session.GetProtectedDomains())
+	safe, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.GetProtectedDomains()...)
 
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)

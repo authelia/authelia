@@ -23,6 +23,12 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 			"secure.example.com",
 		},
 	})
+	config.Domains = append(config.Domains, schema.DomainSessionConfiguration{
+		CookieDomain: "mydomain.local",
+		Domains: []string{
+			"mydomain.local",
+		},
+	})
 
 	return config
 }
@@ -373,6 +379,7 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Domain = ""
+	config.Domains = []schema.DomainSessionConfiguration{}
 
 	ValidateSession(&config, validator)
 
