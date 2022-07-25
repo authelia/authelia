@@ -24,7 +24,7 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	embeddedPath, _ := fs.Sub(assets, "public_html")
 
 	header := []byte(fasthttp.HeaderCacheControl)
-	headerValue := []byte("max-age=14400")
+	headerValue := []byte("max-age=86400")
 
 	handler := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
 
