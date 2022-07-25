@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	"crypto/sha256"
+	"crypto/sha1"
 	"embed"
 	"errors"
 	"fmt"
@@ -11,10 +11,8 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -27,65 +25,15 @@ var locales embed.FS
 //go:embed public_html
 var assets embed.FS
 
-func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
-	var (
-		err     error
-		entries []fs.DirEntry
-	)
-
-	if entries, err = embedFS.ReadDir(root); err != nil {
-		fmt.Printf("readdir err for dir '%s': %v\n", root, err)
-
-		return
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			getEmbedETags(embedFS, filepath.Join(root, entry.Name()), etags)
-
-			continue
-		}
-
-		p := filepath.Join(root, entry.Name())
-
-		var data []byte
-
-		if data, err = embedFS.ReadFile(p); err != nil {
-			fmt.Printf("readfile err for '%s': %v\n", p, err)
-			continue
-		}
-
-		sum := sha256.New()
-
-		sum.Write(data)
-
-		etags[p] = []byte(fmt.Sprintf("%x", sum.Sum(nil)))
-
-		fmt.Printf("%s: %s\n", p, etags[p])
-	}
-
-}
-
-func newPublicHTMLEmbeddedHandler2() fasthttp.RequestHandler {
+func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	etags := map[string][]byte{}
 
 	getEmbedETags(assets, "public_html", etags)
 
-	fmt.Printf("final etags:\n")
-
-	for key, etag := range etags {
-		fmt.Printf("%s: %s\n", key, etag)
-
-	}
-
 	return func(ctx *fasthttp.RequestCtx) {
 		p := path.Join("public_html", string(ctx.Path()))
 
-		fmt.Printf("looking for etag for %s\n", p)
-
 		if etag, ok := etags[p]; ok {
-			fmt.Printf("etag for %s found: %s\n", p, etag)
-
 			ctx.Response.Header.SetBytesKV(headerETag, etag)
 			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 
@@ -94,8 +42,6 @@ func newPublicHTMLEmbeddedHandler2() fasthttp.RequestHandler {
 
 				return
 			}
-		} else {
-			fmt.Printf("etag for %s not found\n", p)
 		}
 
 		var (
@@ -116,31 +62,6 @@ func newPublicHTMLEmbeddedHandler2() fasthttp.RequestHandler {
 
 		ctx.SetContentType(contentType)
 		ctx.SetBody(data)
-	}
-}
-
-func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
-	embeddedPath, _ := fs.Sub(assets, "public_html")
-
-	handler := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
-
-	return func(ctx *fasthttp.RequestCtx) {
-		handler(ctx)
-
-		setCacheControl(ctx)
-	}
-}
-
-func setCacheControl(ctx *fasthttp.RequestCtx) {
-	uri := path.Base(string(ctx.Path()))
-
-	if strings.HasPrefix(uri, "index.") {
-		ext := path.Ext(uri)
-
-		switch ext {
-		case css, js:
-			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlReact)
-		}
 	}
 }
 
@@ -187,6 +108,39 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		middlewares.SetContentTypeApplicationJSON(ctx)
 
 		ctx.SetBody(data)
+	}
+}
+
+func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
+	var (
+		err     error
+		entries []fs.DirEntry
+	)
+
+	if entries, err = embedFS.ReadDir(root); err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			getEmbedETags(embedFS, filepath.Join(root, entry.Name()), etags)
+
+			continue
+		}
+
+		p := filepath.Join(root, entry.Name())
+
+		var data []byte
+
+		if data, err = embedFS.ReadFile(p); err != nil {
+			continue
+		}
+
+		sum := sha1.New()
+
+		sum.Write(data)
+
+		etags[p] = []byte(fmt.Sprintf("%x", sum.Sum(nil)))
 	}
 }
 

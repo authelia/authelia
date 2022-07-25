@@ -108,7 +108,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
 	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
 
-	handlerPublicHTML := newPublicHTMLEmbeddedHandler2()
+	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
 	middleware := middlewares.NewBridgeBuilder(config, providers).

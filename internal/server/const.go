@@ -46,9 +46,6 @@ var (
 )
 
 const (
-	css = ".css"
-	js  = ".js"
-
 	dev         = "dev"
 	f           = "false"
 	t           = "true"
@@ -62,7 +59,6 @@ var (
 	headerIfNoneMatch  = []byte(fasthttp.HeaderIfNoneMatch)
 	headerCacheControl = []byte(fasthttp.HeaderCacheControl)
 
-	headerValueCacheControlReact         = []byte("public, max-age=31536000, immutable")
 	headerValueCacheControlETaggedAssets = []byte("public, max-age=0, must-revalidate")
 )
 
