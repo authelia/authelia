@@ -18,7 +18,7 @@ func newDefaultConfig() schema.Configuration {
 	config.Log.Level = "info"
 	config.Log.Format = "text"
 	config.JWTSecret = testJWTSecret
-	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfiguration{
+	config.AuthenticationBackend.File = &schema.FileAuthenticationBackendConfig{
 		Path: "/a/path",
 	}
 	config.AccessControl = schema.AccessControlConfiguration{

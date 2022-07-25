@@ -17,7 +17,7 @@ func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
 	backendConfig := schema.AuthenticationBackendConfiguration{}
 
 	backendConfig.LDAP = &schema.LDAPAuthenticationBackendConfiguration{}
-	backendConfig.File = &schema.FileAuthenticationBackendConfiguration{
+	backendConfig.File = &schema.FileAuthenticationBackendConfig{
 		Path: "/tmp",
 	}
 
@@ -46,7 +46,7 @@ type FileBasedAuthenticationBackend struct {
 func (suite *FileBasedAuthenticationBackend) SetupTest() {
 	suite.validator = schema.NewStructValidator()
 	suite.config = schema.AuthenticationBackendConfiguration{}
-	suite.config.File = &schema.FileAuthenticationBackendConfiguration{Path: "/a/path", Password: &schema.PasswordConfiguration{
+	suite.config.File = &schema.FileAuthenticationBackendConfig{Path: "/a/path", Password: &schema.PasswordConfig{
 		Algorithm:   schema.DefaultPasswordConfiguration.Algorithm,
 		Iterations:  schema.DefaultPasswordConfiguration.Iterations,
 		Parallelism: schema.DefaultPasswordConfiguration.Parallelism,
@@ -87,7 +87,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenMemoryNotMo
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenBlank() {
-	suite.config.File.Password = &schema.PasswordConfiguration{}
+	suite.config.File.Password = &schema.PasswordConfig{}
 
 	suite.Assert().Equal(0, suite.config.File.Password.KeyLength)
 	suite.Assert().Equal(0, suite.config.File.Password.Iterations)
@@ -110,7 +110,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenOnlySHA512Set() {
-	suite.config.File.Password = &schema.PasswordConfiguration{}
+	suite.config.File.Password = &schema.PasswordConfig{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "sha512"
 

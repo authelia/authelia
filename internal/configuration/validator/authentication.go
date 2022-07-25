@@ -45,7 +45,7 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfigura
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
-func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendConfig, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))
 	}
@@ -58,7 +58,7 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendC
 }
 
 // ValidatePasswordConfiguration validates the file auth backend password configuration.
-func ValidatePasswordConfiguration(config *schema.PasswordConfiguration, validator *schema.StructValidator) {
+func ValidatePasswordConfiguration(config *schema.PasswordConfig, validator *schema.StructValidator) {
 	// Salt Length.
 	switch {
 	case config.SaltLength == 0:
@@ -84,13 +84,13 @@ func ValidatePasswordConfiguration(config *schema.PasswordConfiguration, validat
 	}
 }
 
-func validateFileAuthenticationBackendSHA512(config *schema.PasswordConfiguration) {
+func validateFileAuthenticationBackendSHA512(config *schema.PasswordConfig) {
 	// Iterations (time).
 	if config.Iterations == 0 {
 		config.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
 	}
 }
-func validateFileAuthenticationBackendArgon2id(config *schema.PasswordConfiguration, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendArgon2id(config *schema.PasswordConfig, validator *schema.StructValidator) {
 	// Iterations (time).
 	if config.Iterations == 0 {
 		config.Iterations = schema.DefaultPasswordConfiguration.Iterations

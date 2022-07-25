@@ -56,6 +56,8 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
+	github.com/go-crypt/crypt v0.0.0-20220717120837-2548fe6ba917 // indirect
+	github.com/go-crypt/x v0.0.0-20220717035548-f7ba0d122fba // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect

@@ -4,10 +4,10 @@ import (
 	_ "embed" // Embed users_database.template.yml.
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/go-crypt/crypt"
 	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -16,29 +16,17 @@ import (
 
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
-	configuration *schema.FileAuthenticationBackendConfiguration
-	database      *DatabaseModel
-	lock          *sync.Mutex
-}
-
-// UserDetailsModel is the model of user details in the file database.
-type UserDetailsModel struct {
-	HashedPassword string   `yaml:"password" valid:"required"`
-	DisplayName    string   `yaml:"displayname" valid:"required"`
-	Email          string   `yaml:"email"`
-	Groups         []string `yaml:"groups"`
-}
-
-// DatabaseModel is the model of users file database.
-type DatabaseModel struct {
-	Users map[string]UserDetailsModel `yaml:"users" valid:"required"`
+	config   *schema.FileAuthenticationBackendConfig
+	hash     crypt.Hash
+	database *DatabaseModel
+	lock     *sync.Mutex
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
-func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfiguration) *FileUserProvider {
+func NewFileUserProvider(config *schema.FileAuthenticationBackendConfig) *FileUserProvider {
 	logger := logging.Logger()
 
-	errs := checkDatabase(configuration.Path)
+	errs := checkDatabase(config.Path)
 	if errs != nil {
 		for _, err := range errs {
 			logger.Error(err)
@@ -47,38 +35,58 @@ func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfigur
 		os.Exit(1)
 	}
 
-	database, err := readDatabase(configuration.Path)
+	databaseYAML, err := readDatabase(config.Path)
 	if err != nil {
 		// Panic since the file does not exist when Authelia is starting.
 		panic(err)
 	}
 
-	// Early check whether hashed passwords are correct for all users.
-	err = checkPasswordHashes(database)
-	if err != nil {
+	var database *DatabaseModel
+
+	if database, err = databaseYAML.ToDatabaseModel(); err != nil {
 		panic(err)
 	}
 
+	var hash crypt.Hash
+
+	fmt.Printf("%+v\n", config.Password)
+
+	switch config.Password.Algorithm {
+	case "sha2crypt", "sha512":
+		hash = crypt.NewSHA2CryptHash().
+			WithRounds(config.Password.SHA2Crypt.Rounds).
+			WithSaltLength(config.Password.SHA2Crypt.SaltLength)
+	case "argon2", "argon2id":
+		hash = crypt.NewArgon2Hash().
+			WithVariant(crypt.NewArgon2Variant(config.Password.Argon2.Variant)).
+			WithT(config.Password.Argon2.Iterations).
+			WithM(config.Password.Argon2.Memory).
+			WithP(config.Password.Argon2.Parallelism).
+			WithK(config.Password.Argon2.KeyLength).
+			WithS(config.Password.Argon2.SaltLength)
+	case "pbkdf2":
+		hash = crypt.NewPBKDF2Hash().
+			WithVariant(crypt.NewPBKDF2Variant(config.Password.PBKDF2.Variant)).
+			WithIterations(config.Password.PBKDF2.Iterations).
+			WithKeyLength(config.Password.PBKDF2.KeyLength).
+			WithSaltLength(config.Password.PBKDF2.SaltLength)
+	case "scrypt":
+		hash = crypt.NewScryptHash().
+			WithLN(config.Password.SCrypt.Rounds).
+			WithP(config.Password.SCrypt.Parallelism).
+			WithR(config.Password.SCrypt.BlockSize)
+	case "bcrypt":
+		hash = crypt.NewBcryptHash().
+			WithVariant(crypt.NewBcryptVariant(config.Password.BCrypt.Variant)).
+			WithCost(config.Password.BCrypt.Rounds)
+	}
+
 	return &FileUserProvider{
-		configuration: configuration,
-		database:      database,
-		lock:          &sync.Mutex{},
+		config:   config,
+		hash:     hash,
+		database: database,
+		lock:     &sync.Mutex{},
 	}
-}
-
-func checkPasswordHashes(database *DatabaseModel) error {
-	for u, v := range database.Users {
-		v.HashedPassword = strings.ReplaceAll(v.HashedPassword, "{CRYPT}", "")
-		_, err := ParseHash(v.HashedPassword)
-
-		if err != nil {
-			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
-		}
-
-		database.Users[u] = v
-	}
-
-	return nil
 }
 
 func checkDatabase(path string) []error {
@@ -114,13 +122,13 @@ func generateDatabaseFromTemplate(path string) error {
 	return nil
 }
 
-func readDatabase(path string) (*DatabaseModel, error) {
+func readDatabase(path string) (*YAMLDatabaseModel, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read database from file %s: %s", path, err)
 	}
 
-	db := DatabaseModel{}
+	db := YAMLDatabaseModel{}
 
 	err = yaml.Unmarshal(content, &db)
 	if err != nil {
@@ -140,14 +148,9 @@ func readDatabase(path string) (*DatabaseModel, error) {
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
-func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
+func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
 	if details, ok := p.database.Users[username]; ok {
-		ok, err := CheckPassword(password, details.HashedPassword)
-		if err != nil {
-			return false, err
-		}
-
-		return ok, nil
+		return details.Digest.MatchAdvanced(password)
 	}
 
 	return false, ErrUserNotFound
@@ -168,38 +171,26 @@ func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
 }
 
 // UpdatePassword update the password of the given user.
-func (p *FileUserProvider) UpdatePassword(username string, newPassword string) error {
+func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	details, ok := p.database.Users[username]
 	if !ok {
 		return ErrUserNotFound
 	}
 
-	algorithm, err := ConfigAlgoToCryptoAlgo(p.configuration.Password.Algorithm)
-	if err != nil {
+	if details.Digest, err = p.hash.Hash(newPassword); err != nil {
 		return err
 	}
-
-	hash, err := HashPassword(
-		newPassword, "", algorithm, p.configuration.Password.Iterations,
-		p.configuration.Password.Memory*1024, p.configuration.Password.Parallelism,
-		p.configuration.Password.KeyLength, p.configuration.Password.SaltLength)
-
-	if err != nil {
-		return err
-	}
-
-	details.HashedPassword = hash
 
 	p.lock.Lock()
 	p.database.Users[username] = details
 
-	b, err := yaml.Marshal(p.database)
+	b, err := yaml.Marshal(p.database.ToYAMLDatabaseModel())
 	if err != nil {
 		p.lock.Unlock()
 		return err
 	}
 
-	err = os.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
+	err = os.WriteFile(p.config.Path, b, fileAuthenticationMode)
 	p.lock.Unlock()
 
 	return err

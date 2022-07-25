@@ -33,26 +33,68 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password string `koanf:"password"`
 }
 
-// FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
-type FileAuthenticationBackendConfiguration struct {
-	Path     string                 `koanf:"path"`
-	Password *PasswordConfiguration `koanf:"password"`
+// FileAuthenticationBackendConfig represents the configuration related to file-based backend.
+type FileAuthenticationBackendConfig struct {
+	Path     string          `koanf:"path"`
+	Password *PasswordConfig `koanf:"password"`
 }
 
-// PasswordConfiguration represents the configuration related to password hashing.
-type PasswordConfiguration struct {
-	Iterations  int    `koanf:"iterations"`
-	KeyLength   int    `koanf:"key_length"`
-	SaltLength  int    `koanf:"salt_length"`
-	Algorithm   string `koanf:"algorithm"`
-	Memory      int    `koanf:"memory"`
-	Parallelism int    `koanf:"parallelism"`
+// PasswordConfig represents the configuration related to password hashing.
+type PasswordConfig struct {
+	Algorithm string `koanf:"algorithm"`
+
+	Argon2    Argon2PasswordConfig    `koanf:"argon2"`
+	SHA2Crypt SHA2CryptPasswordConfig `koanf:"sha2crypt"`
+	PBKDF2    PBKDF2PasswordConfig    `koanf:"pbkdf2"`
+	BCrypt    BCryptPasswordConfig    `koanf:"bcrypt"`
+	SCrypt    SCryptPasswordConfig    `koanf:"scrypt"`
+
+	Iterations  int `koanf:"iterations"`
+	KeyLength   int `koanf:"key_length"`
+	SaltLength  int `koanf:"salt_length"`
+	Memory      int `koanf:"memory"`
+	Parallelism int `koanf:"parallelism"`
+}
+
+type Argon2PasswordConfig struct {
+	Variant     string `koanf:"variant"`
+	Iterations  uint32 `koanf:"iterations"`
+	Memory      uint32 `koanf:"memory"`
+	Parallelism uint32 `koanf:"parallelism"`
+	KeyLength   uint32 `koanf:"key_length"`
+	SaltLength  uint32 `koanf:"salt_length"`
+}
+
+type SHA2CryptPasswordConfig struct {
+	Variant    string `koanf:"variant"`
+	Rounds     uint32 `koanf:"rounds"`
+	SaltLength uint32 `koanf:"salt_length"`
+}
+
+type PBKDF2PasswordConfig struct {
+	Variant    string `koanf:"variant"`
+	Iterations int    `koanf:"iterations"`
+	KeyLength  uint32 `koanf:"key_length"`
+	SaltLength uint32 `koanf:"salt_length"`
+}
+
+type BCryptPasswordConfig struct {
+	Variant string `koanf:"variant"`
+	Rounds  int    `koanf:"rounds"`
+}
+
+type SCryptPasswordConfig struct {
+	Rounds      uint32 `koanf:"rounds"`
+	BlockSize   uint32 `koanf:"block_size"`
+	Parallelism uint8  `koanf:"parallelism"`
+	KeyLength   uint32 `koanf:"key_length"`
+	SaltLength  uint32 `koanf:"salt_length"`
 }
 
 // AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
 type AuthenticationBackendConfiguration struct {
 	LDAP *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
-	File *FileAuthenticationBackendConfiguration `koanf:"file"`
+	File *FileAuthenticationBackendConfig        `koanf:"file"`
 
 	PasswordReset PasswordResetAuthenticationBackendConfiguration `koanf:"password_reset"`
 
@@ -66,7 +108,7 @@ type PasswordResetAuthenticationBackendConfiguration struct {
 }
 
 // DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
-var DefaultPasswordConfiguration = PasswordConfiguration{
+var DefaultPasswordConfiguration = PasswordConfig{
 	Iterations:  3,
 	KeyLength:   32,
 	SaltLength:  16,
@@ -76,17 +118,19 @@ var DefaultPasswordConfiguration = PasswordConfiguration{
 }
 
 // DefaultCIPasswordConfiguration represents the default configuration related to Argon2id hashing for CI.
-var DefaultCIPasswordConfiguration = PasswordConfiguration{
-	Iterations:  3,
-	KeyLength:   32,
-	SaltLength:  16,
-	Algorithm:   argon2id,
-	Memory:      64,
-	Parallelism: 4,
+var DefaultCIPasswordConfiguration = PasswordConfig{
+	Algorithm: "argon2",
+	Argon2: Argon2PasswordConfig{
+		Iterations:  3,
+		Memory:      64,
+		Parallelism: 4,
+		KeyLength:   32,
+		SaltLength:  16,
+	},
 }
 
 // DefaultPasswordSHA512Configuration represents the default configuration related to SHA512 hashing.
-var DefaultPasswordSHA512Configuration = PasswordConfiguration{
+var DefaultPasswordSHA512Configuration = PasswordConfig{
 	Iterations: 50000,
 	SaltLength: 16,
 	Algorithm:  "sha512",

@@ -154,7 +154,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		provider := NewFileUserProvider(&config)
-		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "$6$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].Digest.Encode(), "$6$"))
 		err := provider.UpdatePassword("harry", "newpassword")
 		assert.NoError(t, err)
 
@@ -163,7 +163,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		ok, err := provider.CheckUserPassword("harry", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].HashedPassword, "$argon2id$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["harry"].Digest.Encode(), "$argon2id$"))
 	})
 }
 
@@ -175,7 +175,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		config.Password.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)
-		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "$argon2id$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["john"].Digest.Encode(), "$argon2id$"))
 		err := provider.UpdatePassword("john", "newpassword")
 		assert.NoError(t, err)
 
@@ -184,7 +184,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		ok, err := provider.CheckUserPassword("john", "newpassword")
 		assert.NoError(t, err)
 		assert.True(t, ok)
-		assert.True(t, strings.HasPrefix(provider.database.Users["john"].HashedPassword, "$6$"))
+		assert.True(t, strings.HasPrefix(provider.database.Users["john"].Digest.Encode(), "$6$"))
 	})
 }
 
@@ -261,16 +261,9 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 }
 
 var (
-	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfiguration{
-		Path: "",
-		Password: &schema.PasswordConfiguration{
-			Iterations:  schema.DefaultCIPasswordConfiguration.Iterations,
-			KeyLength:   schema.DefaultCIPasswordConfiguration.KeyLength,
-			SaltLength:  schema.DefaultCIPasswordConfiguration.SaltLength,
-			Algorithm:   schema.DefaultCIPasswordConfiguration.Algorithm,
-			Memory:      schema.DefaultCIPasswordConfiguration.Memory,
-			Parallelism: schema.DefaultCIPasswordConfiguration.Parallelism,
-		},
+	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfig{
+		Path:     "",
+		Password: &schema.DefaultCIPasswordConfiguration,
 	}
 )
 
