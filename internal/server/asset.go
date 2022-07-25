@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // Usage is for collision avoidance not security.
 	"embed"
 	"errors"
 	"fmt"
@@ -136,7 +136,7 @@ func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
 			continue
 		}
 
-		sum := sha1.New()
+		sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
 
 		sum.Write(data)
 
