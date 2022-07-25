@@ -1,10 +1,13 @@
 package server
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"embed"
 	"errors"
 	"fmt"
 	"io/fs"
+	"mime"
 	"net/http"
 	"path"
 	"strings"
@@ -12,6 +15,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
+	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -21,6 +25,79 @@ var locales embed.FS
 
 //go:embed public_html
 var assets embed.FS
+
+func getEmbedETags(embedFS embed.FS) (etags map[string][]byte) {
+	var (
+		err     error
+		entries []fs.DirEntry
+	)
+
+	if entries, err = embedFS.ReadDir("public_html"); err != nil {
+		return nil
+	}
+
+	var data []byte
+
+	etags = map[string][]byte{}
+
+	sum := sha256.New()
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		if data, err = embedFS.ReadFile(entry.Name()); err != nil {
+			continue
+		}
+
+		sum.Write(data)
+
+		etags[entry.Name()] = []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+
+		sum.Reset()
+	}
+
+	return etags
+}
+
+func newPublicHTMLEmbeddedHandler2() fasthttp.RequestHandler {
+	etags := getEmbedETags(assets)
+
+	return func(ctx *fasthttp.RequestCtx) {
+		p := path.Join("public_html", string(ctx.Path()))
+
+		if etag, ok := etags[p]; ok {
+			ctx.Response.Header.SetBytesKV(headerETag, etag)
+			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+			if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+				ctx.SetStatusCode(fasthttp.StatusNotModified)
+
+				return
+			}
+		}
+
+		var (
+			data []byte
+			err  error
+		)
+
+		if data, err = assets.ReadFile(p); err != nil {
+			hfsHandleErr(ctx, err)
+
+			return
+		}
+
+		contentType := mime.TypeByExtension(path.Ext(p))
+		if len(contentType) == 0 {
+			contentType = http.DetectContentType(data)
+		}
+
+		ctx.SetContentType(contentType)
+		ctx.SetBody(data)
+	}
+}
 
 func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	embeddedPath, _ := fs.Sub(assets, "public_html")
@@ -96,15 +173,10 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		writeStatus(ctx, fasthttp.StatusNotFound)
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 	case errors.Is(err, fs.ErrPermission):
-		writeStatus(ctx, fasthttp.StatusForbidden)
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusForbidden)
 	default:
-		writeStatus(ctx, fasthttp.StatusInternalServerError)
+		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
 	}
-}
-
-func writeStatus(ctx *fasthttp.RequestCtx, status int) {
-	ctx.SetStatusCode(status)
-	ctx.SetBodyString(fmt.Sprintf("%d %s", status, fasthttp.StatusMessage(status)))
 }

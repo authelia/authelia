@@ -58,9 +58,12 @@ const (
 )
 
 var (
+	headerETag         = []byte(fasthttp.HeaderETag)
+	headerIfNoneMatch  = []byte(fasthttp.HeaderIfNoneMatch)
 	headerCacheControl = []byte(fasthttp.HeaderCacheControl)
 
-	headerValueCacheControlReact = []byte("public, max-age=31536000, immutable")
+	headerValueCacheControlReact         = []byte("public, max-age=31536000, immutable")
+	headerValueCacheControlETaggedAssets = []byte("public, max-age=0, must-revalidate")
 )
 
 const healthCheckEnv = `# Written by Authelia Process
