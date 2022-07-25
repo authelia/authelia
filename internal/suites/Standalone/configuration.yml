@@ -25,9 +25,23 @@ authentication_backend:
 
 session:
   domain: example.com
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
+  expiration: 3600
+  inactivity: 300
   remember_me_duration: 1y
+  portal_url: https://auth.example.com
+  domains:
+    - domain: "!example2.com"
+      portal_url: https://auth.example2.com
+      expiration: 3600
+      inactivity: 300
+      remember_me_duration: 1y
+    - domain: internal.example.com
+      portal_url: https://auth.internal.example.com
+      expiration: 3600
+      inactivity: 300
+      remember_me_duration: 1y
+    - domain: examp.com
+      portal_url: https://examp.com/auth
 
 storage:
   encryption_key: a_not_so_secure_encryption_key

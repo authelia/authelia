@@ -24,6 +24,7 @@ func ValidateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	}
 
 	validateSession(config, validator)
+	validateSessionDomains(config, validator)
 }
 
 func validateSession(config *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -39,12 +40,12 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 		config.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration // 1 month.
 	}
 
-	if config.Domain == "" {
-		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
-	}
-
-	if strings.HasPrefix(config.Domain, "*.") {
-		validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, config.Domain))
+	// adding legacy session.domain to domains list.
+	if config.Domain != "" {
+		config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+			Domain:    config.Domain,
+			PortalURL: config.PortalURL,
+		})
 	}
 
 	if config.SameSite == "" {
@@ -52,6 +53,69 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 	} else if !utils.IsStringInSlice(config.SameSite, validSessionSameSiteValues) {
 		validator.Push(fmt.Errorf(errFmtSessionSameSite, strings.Join(validSessionSameSiteValues, "', '"), config.SameSite))
 	}
+}
+
+func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
+	if len(config.Domains) == 0 {
+		validator.Push(fmt.Errorf(errFmtSessionDomainRequired))
+	}
+
+	cookieDomainList := make([]string, 0, len(config.Domains))
+
+	for index := range config.Domains {
+		if err := validateDomainName(config.Domains[index].Domain); err != nil {
+			validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, config.Domains[index].Domain))
+		}
+
+		// ensure there's not duplicated domain_cookie.
+		if sliceContainsString(cookieDomainList, config.Domains[index].Domain) {
+			validator.Push(fmt.Errorf(errFmtSessionDupplicatedDomainCookie, config.Domains[index].Domain, index))
+		}
+
+		if config.Domains[index].PortalURL == "" {
+			validator.PushWarning(fmt.Errorf(errFmtSessionPortalURLUndefined, config.Domains[index].Domain))
+		}
+
+		cookieDomainList = append(cookieDomainList, config.Domains[index].Domain)
+
+		if config.Domains[index].Expiration <= 0 {
+			config.Domains[index].Expiration = config.Expiration
+		}
+
+		if config.Domains[index].Inactivity <= 0 {
+			config.Domains[index].Inactivity = config.Inactivity
+		}
+
+		if config.Domains[index].RememberMeDuration <= 0 && config.Domains[index].RememberMeDuration != schema.RememberMeDisabled {
+			config.Domains[index].RememberMeDuration = config.RememberMeDuration
+		}
+	}
+}
+
+// validateDomainName returns error if the domain name is invalid.
+func validateDomainName(domain string) error {
+	if domain == "" {
+		return fmt.Errorf(errFmtSessionOptionRequired, "domain")
+	}
+
+	if strings.HasPrefix(domain, "*.") {
+		return fmt.Errorf(errFmtSessionDomainMustBeRoot, domain)
+	}
+
+	// TODO: create a validation regexp.
+
+	return nil
+}
+
+// sliceContainsString returns true if str is found in slice.
+func sliceContainsString(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+
+	return false
 }
 
 func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.StructValidator) {
