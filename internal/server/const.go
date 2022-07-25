@@ -42,6 +42,9 @@ var (
 )
 
 const (
+	css = ".css"
+	js  = ".js"
+
 	dev         = "dev"
 	f           = "false"
 	t           = "true"
