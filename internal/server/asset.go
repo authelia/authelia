@@ -23,7 +23,16 @@ var assets embed.FS
 func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	embeddedPath, _ := fs.Sub(assets, "public_html")
 
-	return fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+	header := []byte(fasthttp.HeaderCacheControl)
+	headerValue := []byte("max-age=14400")
+
+	handler := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
+
+	return func(ctx *fasthttp.RequestCtx) {
+		handler(ctx)
+
+		ctx.Response.Header.SetBytesKV(header, headerValue)
+	}
 }
 
 func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
