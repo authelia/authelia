@@ -33,7 +33,7 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		handler(ctx)
 
-		uri := string(ctx.Path())
+		uri := path.Base(string(ctx.Path()))
 
 		if strings.HasPrefix(uri, "index.") {
 			ext := path.Ext(uri)
