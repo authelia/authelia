@@ -25,23 +25,24 @@ var assets embed.FS
 func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	embeddedPath, _ := fs.Sub(assets, "public_html")
 
-	header := []byte(fasthttp.HeaderCacheControl)
-	headerValue := []byte("public, max-age=31536000, immutable")
-
 	handler := fasthttpadaptor.NewFastHTTPHandler(http.FileServer(http.FS(embeddedPath)))
 
 	return func(ctx *fasthttp.RequestCtx) {
 		handler(ctx)
 
-		uri := path.Base(string(ctx.Path()))
+		setCacheControl(ctx)
+	}
+}
 
-		if strings.HasPrefix(uri, "index.") {
-			ext := path.Ext(uri)
+func setCacheControl(ctx *fasthttp.RequestCtx) {
+	uri := path.Base(string(ctx.Path()))
 
-			switch ext {
-			case css, js:
-				ctx.Response.Header.SetBytesKV(header, headerValue)
-			}
+	if strings.HasPrefix(uri, "index.") {
+		ext := path.Ext(uri)
+
+		switch ext {
+		case css, js:
+			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlReact)
 		}
 	}
 }

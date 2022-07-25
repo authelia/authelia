@@ -1,5 +1,9 @@
 package server
 
+import (
+	"github.com/valyala/fasthttp"
+)
+
 const (
 	embeddedAssets = "public_html/"
 	swaggerAssets  = embeddedAssets + "api/"
@@ -51,6 +55,12 @@ const (
 	localhost   = "localhost"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
+)
+
+var (
+	headerCacheControl = []byte(fasthttp.HeaderCacheControl)
+
+	headerValueCacheControlReact = []byte("public, max-age=31536000, immutable")
 )
 
 const healthCheckEnv = `# Written by Authelia Process
