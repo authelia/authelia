@@ -28,10 +28,10 @@ session:
   expiration: 3600
   inactivity: 300
   remember_me_duration: 1y
-  portal_url: https://auth.example.com
+  portal_url: https://login.example.com
   domains:
-    - domain: "!example2.com"
-      portal_url: https://auth.example2.com
+    - domain: "example2.com"
+      portal_url: https://login.example2.com
       expiration: 3600
       inactivity: 300
       remember_me_duration: 1y
