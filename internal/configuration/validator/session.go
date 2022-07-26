@@ -42,10 +42,14 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 	// adding legacy session.domain to domains list.
 	if config.Domain != "" {
-		config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
-			Domain:    config.Domain,
-			PortalURL: config.PortalURL,
-		})
+		last := len(config.Domains) - 1
+		// workaround for failing tests when validator is called twice.
+		if last < 0 || config.Domains[last].Domain != config.Domain {
+			config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+				Domain:    config.Domain,
+				PortalURL: config.PortalURL,
+			})
+		}
 	}
 
 	if config.SameSite == "" {
@@ -57,7 +61,7 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 func validateSessionDomains(config *schema.SessionConfiguration, validator *schema.StructValidator) {
 	if len(config.Domains) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionDomainRequired))
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
 	}
 
 	cookieDomainList := make([]string, 0, len(config.Domains))

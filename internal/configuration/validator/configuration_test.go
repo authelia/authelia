@@ -25,9 +25,10 @@ func newDefaultConfig() schema.Configuration {
 		DefaultPolicy: "two_factor",
 	}
 	config.Session = schema.SessionConfiguration{
-		Domain: "example.com",
-		Name:   "authelia_session",
-		Secret: "secret",
+		Domain:    "example.com",
+		Name:      "authelia_session",
+		Secret:    "secret",
+		PortalURL: "login.example.com",
 	}
 	config.Storage.EncryptionKey = testEncryptionKey
 	config.Storage.Local = &schema.LocalStorageConfiguration{

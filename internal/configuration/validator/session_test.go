@@ -14,6 +14,7 @@ func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
 	config.Domain = "example.com"
+	config.PortalURL = "login.example.com"
 
 	return config
 }
@@ -358,6 +359,7 @@ func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
 	config.Domain = ""
+	config.Domains = []schema.SessionDomainConfiguration{}
 
 	ValidateSession(&config, validator)
 
