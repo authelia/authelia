@@ -50,7 +50,7 @@ func NewLDAPUserProvider(config schema.AuthenticationBackendConfiguration, certP
 
 func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
-		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
 
 	tlsConfig := utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool)

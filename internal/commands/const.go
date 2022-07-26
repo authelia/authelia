@@ -310,6 +310,39 @@ This subcommand allows preforming cryptographic certificate, key pair, etc tasks
 
 	cmdAutheliaCryptoExample = `authelia crypto --help`
 
+	cmdAutheliaCryptoHashShort = "Perform cryptographic hash operations"
+
+	cmdAutheliaCryptoHashLong = `Perform cryptographic hash operations.
+
+This subcommand allows preforming hashing cryptographic tasks.`
+
+	cmdAutheliaCryptoHashExample = `authelia crypto hash --help`
+
+	cmdAutheliaCryptoHashValidateShort = "Perform cryptographic hash validations"
+
+	cmdAutheliaCryptoHashValidateLong = `Perform cryptographic hash validations.
+
+This subcommand allows preforming cryptographic hash validations. i.e. checking hash digests against a password.`
+
+	cmdAutheliaCryptoHashValidateExample = `authelia crypto hash validate --help
+authelia crypto hash validate '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8Cw5diHgGfe5pE0iJvxcVG3.CVnQe.' -- 'p@ssw0rd'`
+
+	cmdAutheliaCryptoHashGenerateShort = "Generate cryptographic hash digests"
+
+	cmdAutheliaCryptoHashGenerateLong = `Generate cryptographic hash digests.
+
+This subcommand allows generating cryptographic hash digests.`
+
+	cmdAutheliaCryptoHashGenerateExample = `authelia crypto hash generate --help`
+
+	fmtCmdAutheliaCryptoHashGenerateSubShort = "Generate cryptographic %s hash digests"
+
+	fmtCmdAutheliaCryptoHashGenerateSubLong = `Generate cryptographic %s hash digests.
+
+This subcommand allows generating cryptographic %s hash digests.`
+
+	fmtCmdAutheliaCryptoHashGenerateSubExample = `authelia crypto hash generate %s --help`
+
 	cmdAutheliaCryptoCertificateShort = "Perform certificate cryptographic operations"
 
 	cmdAutheliaCryptoCertificateLong = `Perform certificate cryptographic operations.
@@ -323,6 +356,8 @@ This subcommand allows preforming certificate cryptographic tasks.`
 	fmtCmdAutheliaCryptoCertificateSubLong = `Perform %s certificate cryptographic operations.
 
 This subcommand allows preforming %s certificate cryptographic tasks.`
+
+	fmtCmdAutheliaCryptoCertificateSubExample = `authelia crypto certificate %s --help`
 
 	cmdAutheliaCryptoCertificateRSAExample = `authelia crypto certificate rsa --help`
 
@@ -444,11 +479,29 @@ const (
 	cmdFlagNamePKCS8 = "pkcs8"
 	cmdFlagNameBits  = "bits"
 	cmdFlagNameCurve = "curve"
+
+	cmdFlagNameVariant     = "variant"
+	cmdFlagNameCost        = "cost"
+	cmdFlagNameIterations  = "iterations"
+	cmdFlagNameParallelism = "parallelism"
+	cmdFlagNameBlockSize   = "block-size"
+	cmdFlagNameMemory      = "memory"
+	cmdFlagNameKeySize     = "key-size"
+	cmdFlagNameSaltSize    = "salt-size"
+	cmdFlagNameProfile     = "profile"
 )
 
 const (
+	cmdUseHash          = "hash"
+	cmdUseHashArgon2    = "argon2"
+	cmdUseHashSHA2Crypt = "sha2crypt"
+	cmdUseHashPBKDF2    = "pbkdf2"
+	cmdUseHashBCrypt    = "bcrypt"
+	cmdUseHashSCrypt    = "scrypt"
+
 	cmdUseCertificate = "certificate"
 	cmdUseGenerate    = "generate"
+	cmdUseValidate    = "validate"
 	cmdUseRequest     = "request"
 	cmdUsePair        = "pair"
 	cmdUseRSA         = "rsa"

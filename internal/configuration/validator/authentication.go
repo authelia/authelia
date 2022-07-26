@@ -51,7 +51,7 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendC
 	}
 
 	if config.Password == nil {
-		config.Password = &schema.DefaultPasswordConfiguration
+		config.Password = &schema.DefaultPasswordConfig
 	} else {
 		ValidatePasswordConfiguration(config.Password, validator)
 	}
@@ -59,91 +59,136 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendC
 
 // ValidatePasswordConfiguration validates the file auth backend password configuration.
 func ValidatePasswordConfiguration(config *schema.PasswordConfig, validator *schema.StructValidator) {
-	// Salt Length.
-	switch {
-	case config.SaltLength == 0:
-		config.SaltLength = schema.DefaultPasswordConfiguration.SaltLength
-	case config.SaltLength < 8:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordSaltLength, config.SaltLength))
+	validateFileAuthenticationBackendPasswordConfigLegacy(config)
+
+	if config.Algorithm == "" {
+		config.Algorithm = schema.DefaultPasswordConfig.Algorithm
 	}
 
-	switch config.Algorithm {
+	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
+	validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config, validator)
+}
+
+func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.PasswordConfig, validator *schema.StructValidator) {
+	switch config.Argon2.Variant {
 	case "":
-		config.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
-		fallthrough
-	case hashArgon2id:
-		validateFileAuthenticationBackendArgon2id(config, validator)
-	case hashSHA512:
-		validateFileAuthenticationBackendSHA512(config)
+		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
+	case "argon2id", "argon2i", "argon2d":
+		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm))
+		validator.Push(fmt.Errorf("TODO"))
 	}
 
-	if config.Iterations < 1 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidIterations, config.Iterations))
+	if config.Argon2.Iterations == 0 {
+		config.Argon2.Iterations = schema.DefaultPasswordConfig.Argon2.Iterations
+	}
+
+	if config.Argon2.Iterations == 0 {
+		config.Argon2.Iterations = schema.DefaultPasswordConfig.Argon2.Iterations
+	}
+
+	if config.Argon2.Memory == 0 {
+		config.Argon2.Memory = schema.DefaultPasswordConfig.Argon2.Memory
+	}
+
+	if config.Argon2.Parallelism == 0 {
+		config.Argon2.Parallelism = schema.DefaultPasswordConfig.Argon2.Parallelism
+	}
+
+	if config.Argon2.KeyLength == 0 {
+		config.Argon2.KeyLength = schema.DefaultPasswordConfig.Argon2.KeyLength
+	}
+
+	if config.Argon2.SaltLength == 0 {
+		config.Argon2.SaltLength = schema.DefaultPasswordConfig.Argon2.SaltLength
 	}
 }
 
-func validateFileAuthenticationBackendSHA512(config *schema.PasswordConfig) {
-	// Iterations (time).
-	if config.Iterations == 0 {
-		config.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
+func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.PasswordConfig, validator *schema.StructValidator) {
+	switch config.SHA2Crypt.Variant {
+	case "":
+		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
+	case "sha256", "sha512":
+		break
+	default:
+		validator.Push(fmt.Errorf("TODO"))
+	}
+
+	if config.SHA2Crypt.Rounds == 0 {
+		config.SHA2Crypt.Rounds = schema.DefaultPasswordConfig.SHA2Crypt.Rounds
+	}
+
+	if config.SHA2Crypt.SaltLength == 0 {
+		config.SHA2Crypt.SaltLength = schema.DefaultPasswordConfig.SHA2Crypt.SaltLength
 	}
 }
-func validateFileAuthenticationBackendArgon2id(config *schema.PasswordConfig, validator *schema.StructValidator) {
-	// Iterations (time).
-	if config.Iterations == 0 {
-		config.Iterations = schema.DefaultPasswordConfiguration.Iterations
-	}
 
-	// Parallelism.
-	if config.Parallelism == 0 {
-		config.Parallelism = schema.DefaultPasswordConfiguration.Parallelism
-	} else if config.Parallelism < 1 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidParallelism, config.Parallelism))
-	}
+func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.PasswordConfig) {
+	switch config.Algorithm {
+	case hashSHA512:
+		config.Algorithm = "sha2crypt"
+		config.SHA2Crypt.Variant = hashSHA512
 
-	// Memory.
-	if config.Memory == 0 {
-		config.Memory = schema.DefaultPasswordConfiguration.Memory
-	} else if config.Memory < config.Parallelism*8 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidMemory, config.Parallelism, config.Parallelism*8, config.Memory))
-	}
+		if config.Iterations > 0 {
+			config.SHA2Crypt.Rounds = uint32(config.Iterations)
+		}
 
-	// Key Length.
-	if config.KeyLength == 0 {
-		config.KeyLength = schema.DefaultPasswordConfiguration.KeyLength
-	} else if config.KeyLength < 16 {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength, config.KeyLength))
+		if config.SaltLength > 0 {
+			config.SHA2Crypt.SaltLength = uint32(config.SaltLength)
+		}
+	case hashArgon2id:
+		config.Algorithm = "argon2"
+		config.Argon2.Variant = hashArgon2id
+
+		if config.Iterations > 0 {
+			config.Argon2.Iterations = uint32(config.Iterations)
+		}
+
+		if config.Memory > 0 {
+			config.Argon2.Memory = uint32(config.Memory) * 1024
+		}
+
+		if config.Parallelism > 0 {
+			config.Argon2.Parallelism = uint32(config.Parallelism)
+		}
+
+		if config.KeyLength > 0 {
+			config.Argon2.KeyLength = uint32(config.KeyLength)
+		}
+
+		if config.SaltLength > 0 {
+			config.Argon2.SaltLength = uint32(config.SaltLength)
+		}
 	}
 }
 
 func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
-	if config.LDAP.Timeout == 0 {
-		config.LDAP.Timeout = schema.DefaultLDAPAuthenticationBackendConfiguration.Timeout
-	}
-
 	if config.LDAP.Implementation == "" {
-		config.LDAP.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
+		config.LDAP.Implementation = schema.LDAPImplementationCustom
 	}
 
-	if config.LDAP.TLS == nil {
-		config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-	} else if config.LDAP.TLS.MinimumVersion == "" {
-		config.LDAP.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
-	}
-
-	if _, err := utils.TLSStringToTLSConfigVersion(config.LDAP.TLS.MinimumVersion); err != nil {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSMinVersion, config.LDAP.TLS.MinimumVersion, err))
-	}
+	var implementation *schema.LDAPAuthenticationBackendConfiguration
 
 	switch config.LDAP.Implementation {
 	case schema.LDAPImplementationCustom:
-		setDefaultImplementationCustomLDAPAuthenticationBackend(config.LDAP)
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom
 	case schema.LDAPImplementationActiveDirectory:
-		setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(config.LDAP)
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory
 	default:
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join([]string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory}, "', '")))
+	}
+
+	if implementation != nil {
+		setDefaultImplementationLDAPAuthenticationBackendProfileMisc(config.LDAP, implementation)
+		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.LDAP, implementation)
+	}
+
+	if config.LDAP.TLS != nil {
+		if _, err := utils.TLSStringToTLSConfigVersion(config.LDAP.TLS.MinimumVersion); err != nil {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSMinVersion, config.LDAP.TLS.MinimumVersion, err))
+		}
+	} else {
+		config.LDAP.TLS = &schema.TLSConfig{}
 	}
 
 	if strings.Contains(config.LDAP.UsersFilter, "{0}") {
@@ -165,6 +210,52 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfi
 	}
 
 	validateLDAPRequiredParameters(config, validator)
+}
+
+func setDefaultImplementationLDAPAuthenticationBackendProfileMisc(config *schema.LDAPAuthenticationBackendConfiguration, implementation *schema.LDAPAuthenticationBackendConfiguration) {
+	if config.Timeout == 0 {
+		config.Timeout = implementation.Timeout
+	}
+
+	if implementation.TLS == nil {
+		return
+	}
+
+	if config.TLS == nil {
+		config.TLS = implementation.TLS
+	} else if config.TLS.MinimumVersion == "" {
+		config.TLS.MinimumVersion = implementation.TLS.MinimumVersion
+	}
+}
+
+func ldapImplementationShouldSetStr(config, implementation string) bool {
+	return config == "" && implementation != ""
+}
+
+func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.LDAPAuthenticationBackendConfiguration, implementation *schema.LDAPAuthenticationBackendConfiguration) {
+	if ldapImplementationShouldSetStr(config.UsersFilter, implementation.UsersFilter) {
+		config.UsersFilter = implementation.UsersFilter
+	}
+
+	if ldapImplementationShouldSetStr(config.UsernameAttribute, implementation.UsernameAttribute) {
+		config.UsernameAttribute = implementation.UsernameAttribute
+	}
+
+	if ldapImplementationShouldSetStr(config.DisplayNameAttribute, implementation.DisplayNameAttribute) {
+		config.DisplayNameAttribute = implementation.DisplayNameAttribute
+	}
+
+	if ldapImplementationShouldSetStr(config.MailAttribute, implementation.MailAttribute) {
+		config.MailAttribute = implementation.MailAttribute
+	}
+
+	if ldapImplementationShouldSetStr(config.GroupsFilter, implementation.GroupsFilter) {
+		config.GroupsFilter = implementation.GroupsFilter
+	}
+
+	if ldapImplementationShouldSetStr(config.GroupNameAttribute, implementation.GroupNameAttribute) {
+		config.GroupNameAttribute = implementation.GroupNameAttribute
+	}
 }
 
 func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
@@ -235,49 +326,5 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackendConfigur
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
 	} else if !strings.HasPrefix(config.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.LDAP.GroupsFilter, ")") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.LDAP.GroupsFilter, config.LDAP.GroupsFilter))
-	}
-}
-
-func setDefaultImplementationActiveDirectoryLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendConfiguration) {
-	if config.UsersFilter == "" {
-		config.UsersFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsersFilter
-	}
-
-	if config.UsernameAttribute == "" {
-		config.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.UsernameAttribute
-	}
-
-	if config.DisplayNameAttribute == "" {
-		config.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.DisplayNameAttribute
-	}
-
-	if config.MailAttribute == "" {
-		config.MailAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.MailAttribute
-	}
-
-	if config.GroupsFilter == "" {
-		config.GroupsFilter = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupsFilter
-	}
-
-	if config.GroupNameAttribute == "" {
-		config.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration.GroupNameAttribute
-	}
-}
-
-func setDefaultImplementationCustomLDAPAuthenticationBackend(config *schema.LDAPAuthenticationBackendConfiguration) {
-	if config.UsernameAttribute == "" {
-		config.UsernameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.UsernameAttribute
-	}
-
-	if config.GroupNameAttribute == "" {
-		config.GroupNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.GroupNameAttribute
-	}
-
-	if config.MailAttribute == "" {
-		config.MailAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.MailAttribute
-	}
-
-	if config.DisplayNameAttribute == "" {
-		config.DisplayNameAttribute = schema.DefaultLDAPAuthenticationBackendConfiguration.DisplayNameAttribute
 	}
 }

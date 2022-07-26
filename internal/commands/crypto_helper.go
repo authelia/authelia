@@ -416,7 +416,20 @@ func cryptoGetCertificateFromCmd(cmd *cobra.Command) (certificate *x509.Certific
 	return certificate, nil
 }
 
-func fmtCryptoUse(use string) string {
+func fmtCryptoHashUse(use string) string {
+	switch use {
+	case cmdUseHashArgon2:
+		return "Argon2"
+	case cmdUseHashSHA2Crypt:
+		return "SHA2 Crypt"
+	case cmdUseHashPBKDF2:
+		return "PBKDF2"
+	default:
+		return use
+	}
+}
+
+func fmtCryptoCertificateUse(use string) string {
 	switch use {
 	case cmdUseEd25519:
 		return "Ed25519"

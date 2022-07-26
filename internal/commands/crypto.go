@@ -26,6 +26,7 @@ func newCryptoCmd() (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newCryptoCertificateCmd(),
+		newCryptoHashCmd(),
 		newCryptoPairCmd(),
 	)
 
@@ -52,25 +53,16 @@ func newCryptoCertificateCmd() (cmd *cobra.Command) {
 
 func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
 	var (
-		example, useFmt string
+		useFmt string
 	)
 
-	useFmt = fmtCryptoUse(use)
-
-	switch use {
-	case cmdUseRSA:
-		example = cmdAutheliaCryptoCertificateRSAExample
-	case cmdUseECDSA:
-		example = cmdAutheliaCryptoCertificateECDSAExample
-	case cmdUseEd25519:
-		example = cmdAutheliaCryptoCertificateEd25519Example
-	}
+	useFmt = fmtCryptoCertificateUse(use)
 
 	cmd = &cobra.Command{
 		Use:     use,
 		Short:   fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubShort, useFmt),
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubLong, useFmt, useFmt),
-		Example: example,
+		Example: fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubExample, use),
 		Args:    cobra.NoArgs,
 	}
 
@@ -90,7 +82,7 @@ func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
 	cmdFlagsCryptoCertificateCommon(cmd)
 	cmdFlagsCryptoCertificateRequest(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	cmd.Short = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestShort, algorithmFmt, cryptoCertCSROut)
 	cmd.Long = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestLong, algorithmFmt, cryptoCertCSROut, algorithmFmt, cryptoCertCSROut)
@@ -136,7 +128,7 @@ func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
 		example, useFmt string
 	)
 
-	useFmt = fmtCryptoUse(use)
+	useFmt = fmtCryptoCertificateUse(use)
 
 	switch use {
 	case cmdUseRSA:
@@ -170,7 +162,7 @@ func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 
 	cmdFlagsCryptoPrivateKey(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	switch category {
 	case cmdUseCertificate:

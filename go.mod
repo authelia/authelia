@@ -10,6 +10,7 @@ require (
 	github.com/fasthttp/router v1.4.10
 	github.com/fasthttp/session/v2 v2.4.11
 	github.com/go-asn1-ber/asn1-ber v1.5.4
+	github.com/go-crypt/crypt v0.0.0-20220726043327-7508f3d5dbdf
 	github.com/go-ldap/ldap/v3 v3.4.3
 	github.com/go-rod/rod v0.108.1
 	github.com/go-sql-driver/mysql v1.6.0
@@ -29,7 +30,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
 	github.com/prometheus/client_golang v1.12.2
-	github.com/simia-tech/crypt v0.5.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
@@ -56,7 +56,6 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-crypt/crypt v0.0.0-20220717120837-2548fe6ba917 // indirect
 	github.com/go-crypt/x v0.0.0-20220717035548-f7ba0d122fba // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/revoke v0.1.2 // indirect
