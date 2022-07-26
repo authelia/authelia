@@ -73,11 +73,17 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 
 		// ensure there's not duplicated domain_cookie.
 		if sliceContainsString(cookieDomainList, config.Domains[index].Domain) {
-			validator.Push(fmt.Errorf(errFmtSessionDupplicatedDomainCookie, config.Domains[index].Domain, index))
+			validator.Push(fmt.Errorf(errFmtSessionDuplicatedDomainCookie, config.Domains[index].Domain, index))
 		}
 
-		if config.Domains[index].PortalURL == "" {
+		// subdomains are not allowed.
+		if sliceHasSuffix(cookieDomainList, config.Domains[index].Domain) {
+			validator.Push(fmt.Errorf(errFmtSessionSubdomainConflict, config.Domains[index].Domain))
+		}
+
+		if err := validatePortalURL(config.Domains[index].PortalURL, config.Domains[index].Domain); err != nil {
 			validator.PushWarning(fmt.Errorf(errFmtSessionPortalURLUndefined, config.Domains[index].Domain))
+			config.Domains[index].PortalURL = ""
 		}
 
 		cookieDomainList = append(cookieDomainList, config.Domains[index].Domain)
@@ -111,10 +117,35 @@ func validateDomainName(domain string) error {
 	return nil
 }
 
+func validatePortalURL(url string, domain string) error {
+	if url == "" {
+		return fmt.Errorf(errFmtSessionPortalURLUndefined, domain)
+	}
+
+	// TODO: if domain is not part of url should return error.
+
+	return nil
+}
+
 // sliceContainsString returns true if str is found in slice.
 func sliceContainsString(slice []string, str string) bool {
 	for _, s := range slice {
 		if s == str {
+			return true
+		}
+	}
+
+	return false
+}
+
+// sliceContainsString returns true if an element of slice has specified suffix(str) or str has a slice element as suffix.
+func sliceHasSuffix(slice []string, str string) bool {
+	for _, s := range slice {
+		if strings.HasSuffix(s, str) {
+			return true
+		}
+
+		if strings.HasSuffix(str, s) {
 			return true
 		}
 	}

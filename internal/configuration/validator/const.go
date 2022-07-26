@@ -230,8 +230,9 @@ const (
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
 
-	errFmtSessionDupplicatedDomainCookie = "session: domains: duplicated domain '%s' option for domain index %d"
-	errFmtSessionPortalURLUndefined      = "session: portal_url is not defined for domain '%s'"
+	errFmtSessionDuplicatedDomainCookie = "session: domains: duplicated domain '%s' option for domain index %d"
+	errFmtSessionSubdomainConflict      = "session: the specified (sub)domain '%s' has confict with an existent domain"
+	errFmtSessionPortalURLUndefined     = "session: portal_url is not defined for domain '%s'"
 )
 
 // Regulation Error Consts.

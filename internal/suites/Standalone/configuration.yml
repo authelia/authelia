@@ -35,8 +35,8 @@ session:
       expiration: 3600
       inactivity: 300
       remember_me_duration: 1y
-    - domain: examp.com
-      portal_url: https://examp.com/auth
+    - domain: example3.com
+      portal_url: https://example3.com/auth
 
 storage:
   encryption_key: a_not_so_secure_encryption_key
