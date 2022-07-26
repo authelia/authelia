@@ -48,6 +48,10 @@ const (
 )
 
 const (
+	workflowOpenIDConnect = "openid_connect"
+)
+
+const (
 	logFmtErrParseRequestBody     = "Failed to parse %s request body: %+v"
 	logFmtErrWriteResponseBody    = "Failed to write %s response body for user '%s': %+v"
 	logFmtErrRegulationFail       = "Failed to perform %s authentication regulation for user '%s': %+v"
@@ -70,11 +74,6 @@ const (
 	deny   = "deny"
 	enroll = "enroll"
 	auth   = "auth"
-)
-
-const (
-	accept = "accept"
-	reject = "reject"
 )
 
 const authPrefix = "Basic "

@@ -7,36 +7,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/google/uuid"
-
 	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// NullUUID is a nullable uuid.UUID.
-type NullUUID struct {
-	uuid.UUID
-	Valid bool
-}
-
-// Value is the NullUUID implementation of the databases/sql driver.Valuer.
-func (u NullUUID) Value() (value driver.Value, err error) {
-	if !u.Valid {
-		return nil, nil
-	}
-
-	return u.UUID.Value()
-}
-
-// Scan is the NullUUID implementation of the sql.Scanner.
-func (u *NullUUID) Scan(src interface{}) (err error) {
-	if src == nil {
-		u.UUID, u.Valid = uuid.UUID{}, false
-
-		return nil
-	}
-
-	return u.UUID.Scan(src)
-}
 
 // NewIP easily constructs a new IP.
 func NewIP(value net.IP) (ip IP) {

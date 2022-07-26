@@ -41,7 +41,7 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     consent.Subject.String(),
+				Subject:     consent.Subject.UUID.String(),
 				Issuer:      issuer,
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
@@ -57,7 +57,7 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 					"kid": kid,
 				},
 			},
-			Subject:  consent.Subject.String(),
+			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
 		Extra:       map[string]interface{}{},
@@ -142,9 +142,10 @@ type ConsentGetResponseBody struct {
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
-	ClientID       string `json:"client_id"`
-	AcceptOrReject string `json:"accept_or_reject"`
-	PreConfigure   bool   `json:"pre_configure"`
+	ClientID     string `json:"client_id"`
+	ConsentID    string `json:"consent_id"`
+	Consent      bool   `json:"consent"`
+	PreConfigure bool   `json:"pre_configure"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.
