@@ -18,16 +18,19 @@ type configurationBody struct {
 type signTOTPRequestBody struct {
 	Token     string `json:"token" valid:"required"`
 	TargetURL string `json:"targetURL"`
+	Workflow  string `json:"workflow"`
 }
 
 // signWebauthnRequestBody model of the request body of Webauthn authentication endpoint.
 type signWebauthnRequestBody struct {
 	TargetURL string `json:"targetURL"`
+	Workflow  string `json:"workflow"`
 }
 
 type signDuoRequestBody struct {
 	TargetURL string `json:"targetURL"`
 	Passcode  string `json:"passcode"`
+	Workflow  string `json:"workflow"`
 }
 
 // preferred2FAMethodBody the selected 2FA method.
@@ -40,6 +43,7 @@ type firstFactorRequestBody struct {
 	Username       string `json:"username" valid:"required"`
 	Password       string `json:"password" valid:"required"`
 	TargetURL      string `json:"targetURL"`
+	Workflow       string `json:"workflow"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
 	// KeepMeLoggedIn: Cannot require this field because of https://github.com/asaskevich/govalidator/pull/329

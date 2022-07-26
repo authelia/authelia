@@ -865,12 +865,12 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {
-	s.Assert().Equal(Bypass, PolicyToLevel(bypass))
-	s.Assert().Equal(OneFactor, PolicyToLevel(oneFactor))
-	s.Assert().Equal(TwoFactor, PolicyToLevel(twoFactor))
-	s.Assert().Equal(Denied, PolicyToLevel(deny))
+	s.Assert().Equal(Bypass, StringToLevel(bypass))
+	s.Assert().Equal(OneFactor, StringToLevel(oneFactor))
+	s.Assert().Equal(TwoFactor, StringToLevel(twoFactor))
+	s.Assert().Equal(Denied, StringToLevel(deny))
 
-	s.Assert().Equal(Denied, PolicyToLevel("whatever"))
+	s.Assert().Equal(Denied, StringToLevel("whatever"))
 }
 
 func TestRunSuite(t *testing.T) {
@@ -929,7 +929,8 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithNoOIDC(t *testing.T) {
 	authorizer := NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = TwoFactor
+	config.AccessControl.Rules[0].Policy = twoFactor
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 }
 
@@ -958,22 +959,24 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 	authorizer := NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = TwoFactor
+	config.AccessControl.Rules[0].Policy = twoFactor
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = OneFactor
+	config.AccessControl.Rules[0].Policy = oneFactor
+	authorizer = NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
 	config.IdentityProviders.OIDC.Clients[0].Policy = twoFactor
-
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = OneFactor
+	config.AccessControl.Rules[0].Policy = oneFactor
 	config.IdentityProviders.OIDC.Clients[0].Policy = oneFactor
-
+	authorizer = NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.defaultPolicy = TwoFactor
-
+	config.AccessControl.DefaultPolicy = twoFactor
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 }
