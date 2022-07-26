@@ -7,7 +7,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20220628180508-bed46d1be614
-	github.com/fasthttp/router v1.4.10
+	github.com/fasthttp/router v1.4.11
 	github.com/fasthttp/session/v2 v2.4.12
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-ldap/ldap/v3 v3.4.4
