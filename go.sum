@@ -217,8 +217,8 @@ github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojt
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
 github.com/fasthttp/router v1.4.10 h1:C8z6K1pTqhLjSv97/qCY9tZiiPT8JuFwDoO9E2HJFWQ=
 github.com/fasthttp/router v1.4.10/go.mod h1:FGSUOg9SQ/tU864SfD23kG/HwfD0akXqOqhTQ27gTFQ=
-github.com/fasthttp/session/v2 v2.4.11 h1:ZPiKk0pkBl7umMVq1nOdvRgjn9Kfc5RzusPjnYckP84=
-github.com/fasthttp/session/v2 v2.4.11/go.mod h1:mHFWv73p5vYJaTZQDPokykT4GVOxfOoHGag/DlX8FzU=
+github.com/fasthttp/session/v2 v2.4.12 h1:uSDcAczBO42dvE24F2LH7CgDlSnZX7ka2EQT82j9e1E=
+github.com/fasthttp/session/v2 v2.4.12/go.mod h1:v/ptqGiqJCxsf//YmTuaGnvqdm03LJs18ylVOC04vD8=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fatih/structs v1.0.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
@@ -945,7 +945,6 @@ github.com/mattn/go-sqlite3 v1.9.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOq
 github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.11.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
-github.com/mattn/go-sqlite3 v1.14.13/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/go-sqlite3 v1.14.14 h1:qZgc/Rwetq+MtyE18WhzjokPD93dNqLGNT3QJuLvBGw=
 github.com/mattn/go-sqlite3 v1.14.14/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/goveralls v0.0.2/go.mod h1:8d1ZMHsd7fW6IRPKQh46F2WRpyib5/X4FOpevwGNQEw=
