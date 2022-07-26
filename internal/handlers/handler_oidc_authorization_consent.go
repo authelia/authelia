@@ -238,7 +238,7 @@ func getOIDCAuthorizationRedirectURL(issuer *url.URL, requester fosite.Authorize
 
 	query := redirectURL.Query()
 	query.Set("rd", authorizationURL.String())
-	query.Set("workflow", "openid_connect")
+	query.Set("workflow", workflowOpenIDConnect)
 
 	redirectURL.RawQuery = query.Encode()
 
