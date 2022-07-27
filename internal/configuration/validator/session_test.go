@@ -375,7 +375,7 @@ func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
 
 	ValidateSession(&config, validator)
 
-	assert.False(t, validator.HasWarnings())
+
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
 }
