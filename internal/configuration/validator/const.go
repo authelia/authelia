@@ -232,7 +232,9 @@ const (
 
 	errFmtSessionDuplicatedDomainCookie = "session: domains: duplicated domain '%s' option for domain index %d"
 	errFmtSessionSubdomainConflict      = "session: the specified (sub)domain '%s' has confict with an existent domain"
+	errFmtSessionInvalidDomainName      = "session: invalid domain name '%s'"
 	errFmtSessionPortalURLUndefined     = "session: portal_url is not defined for domain '%s'"
+	errFmtSessionPortalURLInvalid       = "session: portal_url '%s' is not part of domain '%s'"
 )
 
 // Regulation Error Consts.

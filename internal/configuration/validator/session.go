@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -68,7 +69,7 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 
 	for index := range config.Domains {
 		if err := validateDomainName(config.Domains[index].Domain); err != nil {
-			validator.Push(fmt.Errorf(errFmtSessionDomainMustBeRoot, config.Domains[index].Domain))
+			validator.Push(err)
 		}
 
 		// ensure there's not duplicated domain_cookie.
@@ -82,7 +83,8 @@ func validateSessionDomains(config *schema.SessionConfiguration, validator *sche
 		}
 
 		if err := validatePortalURL(config.Domains[index].PortalURL, config.Domains[index].Domain); err != nil {
-			validator.PushWarning(fmt.Errorf(errFmtSessionPortalURLUndefined, config.Domains[index].Domain))
+			validator.PushWarning(err)
+
 			config.Domains[index].PortalURL = ""
 		}
 
@@ -112,7 +114,11 @@ func validateDomainName(domain string) error {
 		return fmt.Errorf(errFmtSessionDomainMustBeRoot, domain)
 	}
 
-	// TODO: create a validation regexp.
+	// validate that domain name has not invalid characters.
+	re := regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9]$`)
+	if !re.MatchString(domain) {
+		return fmt.Errorf(errFmtSessionInvalidDomainName, domain)
+	}
 
 	return nil
 }
@@ -122,7 +128,10 @@ func validatePortalURL(url string, domain string) error {
 		return fmt.Errorf(errFmtSessionPortalURLUndefined, domain)
 	}
 
-	// TODO: if domain is not part of url should return error.
+	// TODO: validate using url.
+	if !strings.Contains(url, domain) {
+		return fmt.Errorf(errFmtSessionPortalURLInvalid, url, domain)
+	}
 
 	return nil
 }
