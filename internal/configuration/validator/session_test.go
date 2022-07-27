@@ -10,11 +10,16 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+const (
+	exampleDotCom = "example.com"
+)
+
 func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
-	config.Domain = "example.com"
+	config.Domain = exampleDotCom
 	config.PortalURL = "login.example.com"
+	config.Domains = []schema.SessionDomainConfiguration{}
 
 	return config
 }
@@ -378,6 +383,68 @@ func TestShouldRaiseErrorWhenDomainIsWildcard(t *testing.T) {
 	assert.Len(t, validator.Warnings(), 1)
 	assert.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '*.example.com'")
+}
+
+func TestShouldRaiseErrorWhenDomainNameIsInvalid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Domain = "example!.com"
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 1)
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionInvalidDomainName, "example!.com"))
+}
+
+func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Domain = ""
+	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+		Domain:    exampleDotCom,
+		PortalURL: "login.example.com",
+	})
+	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+		Domain:    exampleDotCom,
+		PortalURL: "login.example.com",
+	})
+
+	ValidateSession(&config, validator)
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionDuplicatedDomainCookie, exampleDotCom, 1))
+}
+
+func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Domain = ""
+	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+		Domain:    exampleDotCom,
+		PortalURL: "login.example.com",
+	})
+	config.Domains = append(config.Domains, schema.SessionDomainConfiguration{
+		Domain:    "internal.example.com",
+		PortalURL: "login.internal.example.com",
+	})
+
+	ValidateSession(&config, validator)
+	assert.False(t, validator.HasWarnings())
+	assert.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSubdomainConflict, "internal.example.com"))
+}
+
+func TestShouldRaiseErrorWhenPortalUrlIsInvalid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Domain = exampleDotCom
+	config.PortalURL = "example2.com/login"
+
+	ValidateSession(&config, validator)
+	assert.True(t, validator.HasWarnings())
+	assert.False(t, validator.HasErrors())
+	assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtSessionPortalURLInvalid, "example2.com/login", exampleDotCom))
 }
 
 func TestShouldRaiseErrorWhenSameSiteSetIncorrectly(t *testing.T) {
