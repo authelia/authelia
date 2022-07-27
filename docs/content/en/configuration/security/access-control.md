@@ -169,7 +169,7 @@ access_control:
     policy: bypass
 ```
 
-### domain_regex
+#### domain_regex
 
 {{< confkey type="list(string)" required="yes" >}}
 
@@ -188,7 +188,7 @@ When used in conjunction with [domain](#domain) the rule will match when either 
 
 In addition to standard regex patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
 
-#### Examples
+##### Examples
 
 *An advanced multiple domain regex example with user/group matching. This will match the user `john` in the groups
 `example` and `example1`, when the request is made to `user-john.example.com`, `group-example.example.com`, or

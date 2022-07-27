@@ -2,6 +2,7 @@ package middlewares_test
 
 import (
 	"fmt"
+	"net/mail"
 	"testing"
 	"time"
 
@@ -80,7 +81,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -120,7 +121,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq("john@example.com"), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)

@@ -14,13 +14,17 @@ func TestURLPathFullClean(t *testing.T) {
 		have     string
 		expected string
 	}{
+		{"ShouldReturnFullPathSingleSlash", "https://example.com/", "/"},
+		{"ShouldReturnFullPathSingleSlashWithQuery", "https://example.com/?query=1&alt=2", "/?query=1&alt=2"},
 		{"ShouldReturnFullPathNormal", "https://example.com/test", "/test"},
-		{"ShouldReturnFullPathWithQuery", "https://example.com/test?query=1", "/test?query=1"},
-		{"ShouldReturnCleanedPath", "https://example.com/five/../test?query=1", "/test?query=1"},
-		{"ShouldReturnCleanedPathEscaped", "https://example.com/five/..%2ftest?query=1", "/test?query=1"},
-		{"ShouldReturnCleanedPathEscapedExtra", "https://example.com/five/..%2ftest?query=1", "/test?query=1"},
-		{"ShouldReturnCleanedPathEscapedExtraSurrounding", "https://example.com/five/%2f..%2f/test?query=1", "/test?query=1"},
-		{"ShouldReturnCleanedPathEscapedPeriods", "https://example.com/five/%2f%2e%2e%2f/test?query=1", "/test?query=1"},
+		{"ShouldReturnFullPathNormalWithSlashSuffix", "https://example.com/test/", "/test/"},
+		{"ShouldReturnFullPathNormalWithSlashSuffixAndQuery", "https://example.com/test/?query=1&alt=2", "/test/?query=1&alt=2"},
+		{"ShouldReturnFullPathWithQuery", "https://example.com/test?query=1&alt=2", "/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPath", "https://example.com/five/../test?query=1&alt=2", "/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPathEscaped", "https://example.com/five/..%2ftest?query=1&alt=2", "/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPathEscapedExtra", "https://example.com/five/..%2ftest?query=1&alt=2", "/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPathEscapedExtraSurrounding", "https://example.com/five/%2f..%2f/test?query=1&alt=2", "/test?query=1&alt=2"},
+		{"ShouldReturnCleanedPathEscapedPeriods", "https://example.com/five/%2f%2e%2e%2f/test?query=1&alt=2", "/test?query=1&alt=2"},
 	}
 
 	for _, tc := range testCases {

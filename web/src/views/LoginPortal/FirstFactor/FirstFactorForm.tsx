@@ -13,6 +13,7 @@ import { usePageVisibility } from "@hooks/PageVisibility";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
+import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
 import { AuthenticationLevel } from "@services/State";
@@ -34,6 +35,7 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
+    const workflow = useWorkflow();
 
     const [state, fetchState, ,] = useAutheliaState();
     const [rememberMe, setRememberMe] = useState(false);
@@ -87,7 +89,7 @@ const FirstFactorForm = function (props: Props) {
 
         props.onAuthenticationStart();
         try {
-            const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod);
+            const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);

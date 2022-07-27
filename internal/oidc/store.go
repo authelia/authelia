@@ -28,7 +28,7 @@ func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider s
 	}
 
 	for _, client := range config.Clients {
-		policy := authorization.PolicyToLevel(client.Policy)
+		policy := authorization.StringToLevel(client.Policy)
 		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.Policy, policy)
 
 		store.clients[client.ID] = NewClient(client)

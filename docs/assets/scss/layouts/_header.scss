@@ -39,6 +39,8 @@
 @include media-breakpoint-up(lg) {
   .navbar {
     z-index: 1025;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
   }
 }
 
@@ -87,13 +89,19 @@
 }
 
 button#doks-languages {
-  margin-right: -0.5625rem;
-  margin-left: 0.75rem;
+  margin: 0.25rem 0 0;
+
+  @include media-breakpoint-up(lg) {
+    margin: 0.25rem 0.5rem 0 0.25rem;
+  }
 }
 
 button#doks-versions {
-  margin-right: -0.5625rem;
-  margin-left: 0;
+  margin: 0.25rem 0 0;
+
+  @include media-breakpoint-up(lg) {
+    margin: 0.25rem 0.5rem 0 0.25rem;
+  }
 }
 
 .offcanvas .nav-link {
@@ -185,6 +193,14 @@ button#doks-versions {
   padding-right: 4rem;
   border: 1px solid transparent;
   background: $gray-100;
+
+  @include media-breakpoint-up(md) {
+    width: calc(100% + 2rem);
+  }
+
+  @include media-breakpoint-up(lg) {
+    width: 100%;
+  }
 }
 
 .form-control.is-search:focus {
@@ -206,6 +222,14 @@ button#doks-versions {
   content: "Ctrl + /";
   border: 1px solid $gray-300;
   border-radius: 0.25rem;
+
+  @include media-breakpoint-up(md) {
+    right: -1.4625rem;
+  }
+
+  @include media-breakpoint-up(lg) {
+    right: 0.3125rem;
+  }
 }
 
 /*
@@ -389,6 +413,11 @@ button#doks-versions {
 
 .btn-menu {
   margin-left: 1rem;
+  border: transparent;
+}
+
+.btn-doks-light {
+  border: transparent;
 }
 
 .btn-menu,
@@ -402,23 +431,29 @@ button#doks-versions {
 .btn-doks-light:hover,
 .doks-sidebar-toggle:hover {
   background: $pink-100;
+  border: transparent;
 }
 
 .btn-menu:focus,
+.btn-doks-light:focus,
 .doks-sidebar-toggle:focus,
 .doks-mode-toggle:focus {
   outline: 0;
+  border: transparent;
 }
 
-.doks-sidebar-toggle .doks-collapse {
+.doks-sidebar-toggle .doks-collapse,
+.doks-toc-toggle .doks-collapse {
   display: none;
 }
 
-.doks-sidebar-toggle:not(.collapsed) .doks-expand {
+.doks-sidebar-toggle:not(.collapsed) .doks-expand,
+.doks-toc-toggle:not(.collapsed) .doks-expand {
   display: none;
 }
 
-.doks-sidebar-toggle:not(.collapsed) .doks-collapse {
+.doks-sidebar-toggle:not(.collapsed) .doks-collapse,
+.doks-toc-toggle:not(.collapsed) .doks-collapse {
   display: inline-block;
 }
 
@@ -442,4 +477,17 @@ button#doks-versions {
 
 .dropdown-item:active {
   color: inherit;
+}
+
+.social-link {
+  padding-left: 0.5rem;
+
+  @include media-breakpoint-up(md) {
+    padding-left: 0;
+  }
+
+  @include media-breakpoint-up(lg) {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+  }
 }
