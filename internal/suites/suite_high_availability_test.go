@@ -239,7 +239,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 
 	verifyAuthorization := func(username string) func(t *testing.T) {
 		return func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer func() {
 				s.collectScreenshot(ctx.Err(), s.Page)
 				cancel()
