@@ -155,7 +155,7 @@
     "@typescript-eslint/eslint-plugin": "5.31.0",
     "@typescript-eslint/parser": "5.31.0",
     "@vitejs/plugin-react": "2.0.0",
-    "esbuild": "0.14.50",
+    "esbuild": "0.14.51",
     "esbuild-jest": "0.5.0",
     "eslint": "8.20.0",
     "eslint-config-prettier": "8.5.0",
