@@ -268,7 +268,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectNewDeviceAfterSavedDeviceIsN
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypassed() {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	var PreAuthAPIResponse = duo.PreAuthResponse{
