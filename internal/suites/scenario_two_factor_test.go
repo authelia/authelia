@@ -75,7 +75,7 @@ func (s *TwoFactorSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 }
 
 func (s *TwoFactorSuite) TestShouldFailTwoFactor() {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
