@@ -2,7 +2,7 @@
 title: "Access Control"
 description: "Configuring the Access Control or RBAC settings."
 lead: "Authelia supports a comprehensive access control system. This section describes configuring this."
-date: 2022-03-20T12:52:27+11:00
+date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
 menu:
@@ -169,7 +169,7 @@ access_control:
     policy: bypass
 ```
 
-### domain_regex
+#### domain_regex
 
 {{< confkey type="list(string)" required="yes" >}}
 
@@ -186,20 +186,9 @@ strings. When it's a list of strings the rule matches when __any__ of the domain
 When used in conjunction with [domain](#domain) the rule will match when either the [domain](#domain) or the
 [domain_regex](#domain_regex) criteria matches.
 
-This criteria takes any standard go regex pattern to match the requests. We additionally utilize two special named match
-groups which match attributes of the user:
+In addition to standard regex patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
 
-| Group Name |    Match Value    |
-|:----------:|:-----------------:|
-|    User    |     username      |
-|   Group    | groups (contains) |
-
-For the group match it matches if the user has any group name that matches, and both matches are case-insensitive due to
-the fact domain names should not be compared in a case-sensitive way as per the
-[RFC4343](https://www.rfc-editor.org/rfc/rfc4343.html) abstract and
-[RFC3986 Section 3.2.2](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2).
-
-#### Examples
+##### Examples
 
 *An advanced multiple domain regex example with user/group matching. This will match the user `john` in the groups
 `example` and `example1`, when the request is made to `user-john.example.com`, `group-example.example.com`, or
@@ -395,6 +384,8 @@ strings. If any one of the regular expressions in the list matches the request i
 for debugging these regular expressions is called [Regex 101](https://regex101.com/) (ensure you pick the `Golang`
 option).
 
+In addition to standard regex patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
+
 *__Note:__ Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0
 they match the entire path including the query parameters. When upgrading you may be required to alter some of your
 resource rules to get them to operate as they previously did.*
@@ -455,6 +446,20 @@ performed 2FA then they will be allowed to access the resource.
 
 This policy requires the user to complete 2FA successfully. This is currently the highest level of authentication
 policy available.
+
+## Named Regex Groups
+
+Some criteria allow matching named regex groups. These are the groups we accept:
+
+| Group Name |    Match Value    |
+|:----------:|:-----------------:|
+|    User    |     username      |
+|   Group    | groups (contains) |
+
+For the group name `Group` the regex pattern matches if the user has the specific group name matching the pattern. Both
+regex groups are case-insensitive due to the fact that the regex groups are used in domain criteria and domain names
+should not be compared in a case-sensitive way as per the [RFC4343](https://www.rfc-editor.org/rfc/rfc4343.html)
+abstract and [RFC3986 Section 3.2.2](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2).
 
 ## Detailed example
 

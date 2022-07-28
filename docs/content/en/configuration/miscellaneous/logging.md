@@ -2,7 +2,7 @@
 title: "Log"
 description: "Configuring the Log Settings."
 lead: "Authelia performs logging to various locations. This section describes how to configure and tune this."
-date: 2022-03-20T12:52:27+11:00
+date: 2021-06-01T14:09:50+10:00
 draft: false
 images: []
 menu:

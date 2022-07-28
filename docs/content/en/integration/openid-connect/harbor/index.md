@@ -1,8 +1,8 @@
 ---
 title: "Harbor"
-description: "Integrating Harbor with Authelia via OpenID Connect."
+description: "Integrating Harbor with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-05-16T21:44:13+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -43,7 +43,7 @@ To configure [Harbor] to utilize Authelia as an [OpenID Connect] Provider:
 2. Visit Configuration
 3. Visit Authentication
 4. Select `OIDC` from the `Auth Mode` drop down
-5. Enter the following information:
+5. Set the following values:
    1. OIDC Provider Name: `Authelia`
    2. OIDC Provider Endpoint: `https://auth.example.com`
    3. OIDC Client ID: `harbor`

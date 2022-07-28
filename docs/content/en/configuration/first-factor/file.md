@@ -2,7 +2,7 @@
 title: "File"
 description: "File"
 lead: "Authelia supports a file based first factor user provider. This section describes configuring this."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -18,7 +18,6 @@ aliases:
 
 ```yaml
 authentication_backend:
-  disable_reset_password: false
   file:
     path: /config/users.yml
     password:

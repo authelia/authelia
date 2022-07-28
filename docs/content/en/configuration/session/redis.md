@@ -2,7 +2,7 @@
 title: "Redis"
 description: "Redis Session Configuration"
 lead: "Configuring the Redis Session Storage."
-date: 2022-03-20T12:52:27+11:00
+date: 2021-04-11T21:25:03+10:00
 draft: false
 images: []
 menu:
@@ -80,11 +80,14 @@ through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 {{< confkey type="string" required="no" >}}
 
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
+
 The password for [redis authentication](https://redis.io/commands/auth).
 
-We recommend generating a random string with 64 characters or more for this purposes which can be done by following the
-[Generating a Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string)
-guide.
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 ### database_index
 
@@ -134,9 +137,16 @@ be authenticated with traditional [requirepass] authentication.
 
 {{< confkey type="string" required="no (yes if sentinel_username is supplied)" >}}
 
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
+
 The password for the [redis sentinel] connection. If specified with sentinel_username, configures Authelia to
 authenticate to the Redis Sentinel with ACL-based authentication. Otherwise, this is used for [requirepass]
 authentication.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 #### nodes
 

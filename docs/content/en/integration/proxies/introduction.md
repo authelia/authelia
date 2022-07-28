@@ -2,7 +2,7 @@
 title: "Proxies"
 description: "An integration guide for Authelia and several supported reverse proxies"
 lead: "An introduction into integrating Authelia with a reverse proxy."
-date: 2022-03-20T20:23:41+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -17,6 +17,12 @@ aliases:
 __Authelia__ works in collaboration with several reverse proxies. In this section you will find the documentation of the
 various tested proxies with examples of how you may configure them. We are eager for users to help us provide better
 examples of already documented proxies, as well as provide us examples of undocumented proxies.
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Support
 

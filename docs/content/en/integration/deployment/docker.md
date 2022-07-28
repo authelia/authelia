@@ -2,7 +2,7 @@
 title: "Docker"
 description: "A guide on installing Authelia in Docker."
 lead: "This is one of the primary ways we deliver Authelia to users and the recommended path."
-date: 2022-05-27T22:24:38+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -27,18 +27,36 @@ existing [Docker Compose].
 * [Bundle: lite](#lite)
 * [Bundle: local](#local)
 
+### Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
 ### Standalone Example
 
-The following is an example [Docker Compose] deployment with just *Authelia* and no bundled applications or proxies.
+The following is an examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
+proxies.
 
 It expects the following:
 
 * The file `data/authelia/config/configuration.yml` is present and the configuration file.
-* The files `data/authelia/secrets/*` exist and contain the relevant secrets.
+* The directory `data/authelia/secrets/` exists and contain the relevant [secret](../../configuration/methods/secrets.md) files:
+  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/miscellaneous/introduction.md#jwt_secret)
+  * A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
+  * A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
+  * A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryption_key)
 * You're using PostgreSQL.
 * You have an external network named `net` which is in bridge mode.
 
+#### Using Secrets
+
+Use this [Standalone Example](#standalone-example) if you want to use
+[docker secrets](https://docs.docker.com/engine/swarm/secrets/).
+
+{{< details "docker-compose.yml" >}}
 ```yaml
+---
 version: "3.8"
 secrets:
   JWT_SECRET:
@@ -49,10 +67,6 @@ secrets:
     file: ${PWD}/data/authelia/secrets/STORAGE_PASSWORD
   STORAGE_ENCRYPTION_KEY:
     file: ${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY
-  OIDC_HMAC_KEY:
-    file: ${PWD}/data/authelia/secrets/OIDC_HMAC_KEY
-  OIDC_PRIVATE_KEY:
-    file: ${PWD}/data/authelia/secrets/OIDC_PRIVATE_KEY
 services:
   authelia:
     container_name: authelia
@@ -63,35 +77,31 @@ services:
         aliases: []
     expose:
       - 9091
-    secrets: [JWT_SECRET, SESSION_SECRET, STORAGE_PASSWORD, STORAGE_ENCRYPTION_KEY, OIDC_HMAC_KEY, OIDC_PRIVATE_KEY]
+    secrets: [JWT_SECRET, SESSION_SECRET, STORAGE_PASSWORD, STORAGE_ENCRYPTION_KEY]
     environment:
       AUTHELIA_JWT_SECRET_FILE: /run/secrets/JWT_SECRET
       AUTHELIA_SESSION_SECRET_FILE: /run/secrets/SESSION_SECRET
       AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /run/secrets/STORAGE_PASSWORD
       AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /run/secrets/STORAGE_ENCRYPTION_KEY
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE: /run/secrets/OIDC_HMAC_KEY
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /run/secrets/OIDC_PRIVATE_KEY
     volumes:
       - ${PWD}/data/authelia/config:/config
 networks:
   net:
     external: true
     name: net
+...
 ```
+{{< /details >}}
 
-#### Running the Proxy on the Host Instead of in a Container
+#### Using a Secrets Volume
 
-If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
-configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
-users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
-architectural choice our users make and you should expect to do your own research to figure this out where possible.
+Use this [Standalone Example](#standalone-example) if you want to use a standard
+[docker volume](https://docs.docker.com/storage/volumes/) or bind mount for your secrets.
 
-The example below includes the additional `ports` option which must be added in order to allow communication to
-*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
-[Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
-localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
-
+{{< details "docker-compose.yml" >}}
 ```yaml
+---
+version: "3.8"
 services:
   authelia:
     container_name: authelia
@@ -102,9 +112,21 @@ services:
         aliases: []
     expose:
       - 9091
-    ports:
-      - "127.0.0.1:9091:9091"
+    environment:
+      AUTHELIA_JWT_SECRET_FILE: /secrets/JWT_SECRET
+      AUTHELIA_SESSION_SECRET_FILE: /secrets/SESSION_SECRET
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /secrets/STORAGE_PASSWORD
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /secrets/STORAGE_ENCRYPTION_KEY
+    volumes:
+      - ${PWD}/data/authelia/config:/config
+      - ${PWD}/data/authelia/secrets:/secrets
+networks:
+  net:
+    external: true
+    name: net
 ```
+...
+{{< /details >}}
 
 ### Bundles
 
@@ -155,6 +177,39 @@ running the following command:
 ```bash
 grep -Eo '"https://.*" ' ./authelia/notification.txt.
 ```
+
+## FAQ
+
+#### Running the Proxy on the Host Instead of in a Container
+
+If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
+configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
+users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
+architectural choice our users make and you should expect to do your own research to figure this out where possible.
+
+The example below includes the additional `ports` option which must be added in order to allow communication to
+*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
+[Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
+localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
+
+{{< details "docker-compose.yml" >}}
+```yaml
+---
+services:
+  authelia:
+    container_name: authelia
+    image: docker.io/authelia/authelia:latest
+    restart: unless-stopped
+    networks:
+      net:
+        aliases: []
+    expose:
+      - 9091
+    ports:
+      - "127.0.0.1:9091:9091"
+...
+```
+{{< /details >}}
 
 [Docker]: https://docker.com
 [Docker Compose]: https://docs.docker.com/compose/

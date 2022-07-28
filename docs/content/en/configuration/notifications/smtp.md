@@ -2,7 +2,7 @@
 title: "SMTP"
 description: "Configuring the SMTP Notifications Settings."
 lead: "Authelia can send emails to users through an SMTP server. This section describes how to configure this."
-date: 2022-03-20T12:52:27+11:00
+date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
 menu:
@@ -56,7 +56,9 @@ host: "[fd00:1111:2222:3333::1]"
 
 {{< confkey type="integer" required="yes" >}}
 
-The port the SMTP service is listening on.
+The port the SMTP service is listening on. Port 465 is treated as a special port where the entire connection is over
+TLS. This port was formerly known as the SMTPS port but is now known as the SUBMISSIONS port i.e. SUBMISSION Secure. All
+other ports expect to perform a STARTTLS negotiation.
 
 ### timeout
 
@@ -74,12 +76,14 @@ The username sent for authentication with the SMTP server. Paired with the passw
 
 {{< confkey type="string" required="no" >}}
 
-The password sent for authentication with the SMTP server. Paired with the username. Can also be defined using a
-[secret](../methods/secrets.md) which is the recommended for containerized deployments.
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
 
-We recommend generating a random string with 64 characters or more for this purposes which can be done by following the
-[Generating a Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string)
-guide.
+The password paired with the [username](#username) sent for authentication with the SMTP server.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 ### sender
 

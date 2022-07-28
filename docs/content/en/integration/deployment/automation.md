@@ -2,7 +2,7 @@
 title: "Automation"
 description: "Automated Deployment of Authelia."
 lead: "Authelia has several features which make automation easy."
-date: 2022-05-28T08:20:42+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -14,6 +14,12 @@ toc: true
 
 1. The [configuration](../../configuration/prologue/introduction.md) can be defined statically by YAML.
 2. Most areas of the configuration can be defined by [environment variables](../../configuration/methods/environment.md).
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Ansible
 

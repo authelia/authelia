@@ -2,7 +2,7 @@
 title: "Session"
 description: "Session Configuration"
 lead: "Configuring the Session / Cookie settings."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -82,12 +82,14 @@ state but it's available as an option anyway.
 
 {{< confkey type="string" required="yes" >}}
 
-The secret key used to encrypt session data in Redis. It's recommended this is set using a
-[secret](../methods/secrets.md).
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
 
-We recommend generating a random string with 64 characters or more for this purposes which can be done by following the
-[Generating a Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string)
-guide.
+The secret key used to encrypt session data in Redis.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters.
 
 ### expiration
 
@@ -124,6 +126,3 @@ this to `-1` disables this feature entirely.
 Configuration of this section has an impact on security. You should read notes in
 [security measures](../../overview/security/measures.md#session-security) for more information.
 
-## Loading a password from a secret instead of inside the configuration
-
-Password can also be defined using a [secret](../methods/secrets.md).

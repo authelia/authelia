@@ -1,8 +1,8 @@
 ---
 title: "OpenID Connect"
-description: "An introduction into integrating Authelia with an OpenID Connect relying party."
-lead: "An introduction into integrating Authelia with an OpenID Connect relying party."
-date: 2022-05-15T13:52:27+10:00
+description: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
+lead: "An introduction into integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -24,13 +24,14 @@ to configure [OpenID Connect].
 
 ### openid
 
-This is the default scope for openid. This field is forced on every client by the configuration validation that Authelia
-does.
+This is the default scope for [OpenID Connect]. This field is forced on every client by the configuration validation
+that Authelia does.
 
-*__Important Note:__ The subject identifiers or `sub` claim has been changed to a [RFC4122] UUID V4 to identify the
-individual user as per the [Subject Identifier Types] specification. Please use the claim `preferred_username` instead.*
+*__Important Note:__ The subject identifiers or `sub` [Claim] has been changed to a [RFC4122] UUID V4 to identify the
+individual user as per the [Subject Identifier Types] section of the [OpenID Connect] specification. Please use the
+`preferred_username` [Claim] instead.*
 
-|   Claim   |   JWT Type    | Authelia Attribute |                         Description                         |
+|  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
 |:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
 |    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
 |    jti    | string(uuid)  |       *N/A*        |     A [RFC4122] UUID V4 representing the JWT Identifier     |
@@ -46,17 +47,28 @@ individual user as per the [Subject Identifier Types] specification. Please use 
 |    azp    |    string     |    id (client)     |                    The authorized party                     |
 | client_id |    string     |    id (client)     |                        The client id                        |
 
+### offline_access
+
+This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
+an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
+issued token credentials, effectively it allows the relying party to obtain new tokens periodically.
+
+Generally unless an application supports this and actively requests this scope they should not be granted this scope via
+the client configuration.
+
 ### groups
 
-This scope includes the groups the authentication backend reports the user is a member of in the token.
+This scope includes the groups the authentication backend reports the user is a member of in the [Claims] of the
+[ID Token].
 
-| Claim  |   JWT Type    | Authelia Attribute |                                               Description                                               |
-|:------:|:-------------:|:------------------:|:-------------------------------------------------------------------------------------------------------:|
-| groups | array[string] |       groups       | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
+| [Claim] |   JWT Type    | Authelia Attribute |                                               Description                                               |
+|:-------:|:-------------:|:------------------:|:-------------------------------------------------------------------------------------------------------:|
+| groups  | array[string] |       groups       | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
 
 ### email
 
-This scope includes the email information the authentication backend reports about the user in the token.
+This scope includes the email information the authentication backend reports about the user in the [Claims] of the
+[ID Token].
 
 |     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
 |:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
@@ -66,7 +78,8 @@ This scope includes the email information the authentication backend reports abo
 
 ### profile
 
-This scope includes the profile information the authentication backend reports about the user in the token.
+This scope includes the profile information the authentication backend reports about the user in the [Claims] of the
+[ID Token].
 
 |       Claim        | JWT Type | Authelia Attribute |               Description                |
 |:------------------:|:--------:|:------------------:|:----------------------------------------:|
@@ -75,14 +88,14 @@ This scope includes the profile information the authentication backend reports a
 
 ## Authentication Method References
 
-Authelia currently supports adding the `amr` claim to the [ID Token] utilizing the [RFC8176] Authentication Method
+Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
 Reference values.
 
-The values this claim has are not strictly defined by the [OpenID Connect] specification. As such, some backends may
+The values this [Claim] has are not strictly defined by the [OpenID Connect] specification. As such, some backends may
 expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
 it then you're encouraged to create an issue.
 
-Below is a list of the potential values we place in the claim and their meaning:
+Below is a list of the potential values we place in the [Claim] and their meaning:
 
 | Value |                           Description                            | Factor | Channel  |
 |:-----:|:----------------------------------------------------------------:|:------:|:--------:|
@@ -133,6 +146,11 @@ These endpoints implement OpenID Connect elements.
 |    [Revocation]     |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+[Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
+[Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
+
+[Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
+[Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 
 [OpenID Connect]: https://openid.net/connect/
 

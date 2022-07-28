@@ -1,6 +1,7 @@
 import React from "react";
 
-import { Grid, Typography, useTheme } from "@material-ui/core";
+import { Grid, Theme, Typography, useTheme } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import ReactLoading from "react-loading";
 
 export interface Props {
@@ -9,9 +10,11 @@ export interface Props {
 
 const BaseLoadingPage = function (props: Props) {
     const theme = useTheme();
+    const styles = useStyles();
+
     return (
-        <Grid container alignItems="center" justifyContent="center" style={{ minHeight: "100vh" }}>
-            <Grid item style={{ textAlign: "center", display: "inline-block" }}>
+        <Grid container className={styles.gridOuter}>
+            <Grid item className={styles.gridInner}>
                 <ReactLoading width={64} height={64} color={theme.custom.loadingBar} type="bars" />
                 <Typography>{props.message}...</Typography>
             </Grid>
@@ -20,3 +23,15 @@ const BaseLoadingPage = function (props: Props) {
 };
 
 export default BaseLoadingPage;
+
+const useStyles = makeStyles((theme: Theme) => ({
+    gridOuter: {
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+    },
+    gridInner: {
+        textAlign: "center",
+        display: "inline-block",
+    },
+}));

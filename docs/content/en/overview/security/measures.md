@@ -2,7 +2,7 @@
 title: "Measures"
 description: "An overview of the security measures Authelia implements."
 lead: "An overview of the security measures Authelia implements."
-date: 2022-05-13T12:34:15+10:00
+date: 2018-08-26T23:46:15+02:00
 draft: false
 images: []
 menu:
@@ -224,7 +224,7 @@ To configure mutual TLS, please refer to [this document](../../configuration/mis
 ### Reset Password
 
 It's possible to disable the reset password functionality and is an optional adjustment to consider for anyone wanting
-to increase security. See the [configuration](../../configuration/first-factor/introduction.md#disable_reset_password)
+to increase security. See the [configuration](../../configuration/first-factor/introduction.md#disable)
 for more information.
 
 ### Session security

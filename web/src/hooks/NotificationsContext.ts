@@ -1,6 +1,7 @@
 import { createContext, useContext, useRef } from "react";
 
-import { Level } from "@components/ColoredSnackbarContent";
+import { AlertColor } from "@mui/material";
+
 import { Notification } from "@models/Notifications";
 
 const defaultOptions = {
@@ -19,7 +20,7 @@ export default NotificationsContext;
 export function useNotifications() {
     let useNotificationsProps = useContext(NotificationsContext);
 
-    const notificationBuilder = (level: Level) => {
+    const notificationBuilder = (level: AlertColor) => {
         return (message: string, timeout?: number) => {
             useNotificationsProps.setNotification({
                 level,

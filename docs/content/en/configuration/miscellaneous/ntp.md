@@ -2,7 +2,7 @@
 title: "NTP"
 description: "Configuring the NTP Settings."
 lead: "Authelia checks the system time is in sync with an NTP server. This section describes how to configure and tune this."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -14,11 +14,12 @@ aliases:
   - /docs/configuration/ntp.html
 ---
 
-Authelia has the ability to check the system time against an NTP server. Currently this only occurs at startup. This
-section configures and tunes the settings for this check which is primarily used to ensure
+Authelia has the ability to check the system time against an NTP server, which at the present time is checked only
+during startup. This section configures and tunes the settings for this check which is primarily used to ensure
 [TOTP](../second-factor/time-based-one-time-password.md) can be accurately validated.
 
-In the instance of inability to contact the NTP server Authelia will just log an error and will continue to run.
+In the instance of inability to contact the NTP server or an issue with the synchronization Authelia will fail to start
+unless configured otherwise.
 
 ## Configuration
 

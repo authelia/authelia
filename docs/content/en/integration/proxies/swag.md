@@ -2,7 +2,7 @@
 title: "SWAG"
 description: "An integration guide for Authelia and the SWAG reverse proxy"
 lead: "A guide on integrating Authelia with SWAG."
-date: 2022-05-17T10:57:38+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -29,6 +29,12 @@ only need to enabled two includes.
 
 *__Note:__ All paths in this guide are the locations inside the container. You will have to either edit the files within
 the container or adapt the path to the path you have mounted the relevant container path to.*
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Requirements
 

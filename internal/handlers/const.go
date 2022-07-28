@@ -28,10 +28,6 @@ var (
 	headerRemoteEmail     = []byte("Remote-Email")
 )
 
-var (
-	headerContentTypeValueDefault = []byte("text/plain; charset=utf-8")
-)
-
 const (
 	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota
@@ -49,6 +45,10 @@ const (
 	messageUnableToResetPassword           = "Unable to reset your password."
 	messageMFAValidationFailed             = "Authentication failed, please retry later."
 	messagePasswordWeak                    = "Your supplied password does not meet the password policy requirements"
+)
+
+const (
+	workflowOpenIDConnect = "openid_connect"
 )
 
 const (
@@ -74,11 +74,6 @@ const (
 	deny   = "deny"
 	enroll = "enroll"
 	auth   = "auth"
-)
-
-const (
-	accept = "accept"
-	reject = "reject"
 )
 
 const authPrefix = "Basic "

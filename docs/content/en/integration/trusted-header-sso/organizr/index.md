@@ -2,7 +2,7 @@
 title: "Organizr"
 description: "Trusted Header SSO Integration for Organizr"
 lead: ""
-date: 2022-05-16T16:34:50+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

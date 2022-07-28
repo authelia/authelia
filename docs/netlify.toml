@@ -3,8 +3,8 @@
   functions = "functions"
 
 [build.environment]
-  NODE_VERSION = "17.8.0"
-  NPM_VERSION = "8.5.5"
+  NODE_VERSION = "16.16.0"
+  NPM_VERSION = "8.11.0"
 
 [context.production]
   command = "npm run build"
@@ -30,7 +30,6 @@
     ignorePeriod = 0
     providers = [
       "google",
-      "bing",
       "yandex"
     ]
 

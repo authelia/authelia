@@ -2,7 +2,7 @@
 title: "MySQL"
 description: "MySQL Configuration"
 lead: "The MySQL storage provider which supports both MySQL and MariaDB."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -86,12 +86,14 @@ The username paired with the password used to connect to the database.
 
 {{< confkey type="string" required="yes" >}}
 
-The password paired with the username used to connect to the database. Can also be defined using a
-[secret](../methods/secrets.md) which is also the recommended way when running as a container.
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
 
-We recommend generating a random string with 64 characters or more for this purposes which can be done by following the
-[Generating a Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string)
-guide.
+The password paired with the [username](#username) used to connect to the database.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 ### timeout
 

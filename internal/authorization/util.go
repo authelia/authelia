@@ -9,8 +9,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// PolicyToLevel converts a string policy to int authorization level.
-func PolicyToLevel(policy string) Level {
+// StringToLevel converts a string policy to int authorization level.
+func StringToLevel(policy string) Level {
 	switch policy {
 	case bypass:
 		return Bypass
@@ -25,8 +25,8 @@ func PolicyToLevel(policy string) Level {
 	return Denied
 }
 
-// LevelToPolicy converts a int authorization level to string policy.
-func LevelToPolicy(level Level) (policy string) {
+// LevelToString converts a int authorization level to string policy.
+func LevelToString(level Level) (policy string) {
 	switch level {
 	case Bypass:
 		return bypass
@@ -70,7 +70,7 @@ func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 	return nil
 }
 
-func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []SubjectObjectMatcher) {
+func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []AccessControlDomain) {
 	for _, domainRule := range domainRules {
 		domains = append(domains, NewAccessControlDomain(domainRule))
 	}
@@ -84,7 +84,7 @@ func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) 
 
 func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []AccessControlResource) {
 	for _, resourceRule := range resourceRules {
-		resources = append(resources, AccessControlResource{Pattern: resourceRule})
+		resources = append(resources, NewAccessControlResource(resourceRule))
 	}
 
 	return resources

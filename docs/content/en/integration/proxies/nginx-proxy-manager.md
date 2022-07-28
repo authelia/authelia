@@ -2,7 +2,7 @@
 title: "NGINX Proxy Manager"
 description: "An integration guide for Authelia and the NGINX Proxy Manager reverse proxy"
 lead: "A guide on integrating Authelia with NGINX Proxy Manager."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -25,6 +25,12 @@ throughout this documentation and in the [See Also](#see-also) section.*
 
 While this proxy is supported we don't have any specific documentation for it at the present time. Please see the
 [NGINX integration documentation](nginx.md) for hints on how to configure this.
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Requirements
 

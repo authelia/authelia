@@ -1,5 +1,9 @@
 package server
 
+import (
+	"github.com/valyala/fasthttp"
+)
+
 const (
 	embeddedAssets = "public_html/"
 	swaggerAssets  = embeddedAssets + "api/"
@@ -50,6 +54,14 @@ const (
 	schemeHTTPS = "https"
 )
 
+var (
+	headerETag         = []byte(fasthttp.HeaderETag)
+	headerIfNoneMatch  = []byte(fasthttp.HeaderIfNoneMatch)
+	headerCacheControl = []byte(fasthttp.HeaderCacheControl)
+
+	headerValueCacheControlETaggedAssets = []byte("public, max-age=0, must-revalidate")
+)
+
 const healthCheckEnv = `# Written by Authelia Process
 X_AUTHELIA_HEALTHCHECK=1
 X_AUTHELIA_HEALTHCHECK_SCHEME=%s
@@ -59,7 +71,6 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
 const (
-	cspDefaultTemplate    = "default-src 'self'; object-src 'none'; style-src 'self' 'nonce-%s'"
-	cspDefaultDevTemplate = "default-src 'self' 'unsafe-eval'; object-src 'none'; style-src 'self' 'nonce-%s'"
-	cspNoncePlaceholder   = "${NONCE}"
+	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
+	cspNoncePlaceholder = "${NONCE}"
 )

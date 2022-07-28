@@ -2,7 +2,7 @@
 title: "Common"
 description: "Common configuration options and notations."
 lead: "This section details common configuration elements within the Authelia configuration. This section is mainly used as a reference for other sections as necessary."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -35,7 +35,7 @@ The way this format works is you can either configure an integer or a string in 
 supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in blocks
 of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units of `h`.
 
-While you can use multiple of these blocks in combination, ee suggest keeping it simple and use a single value.
+While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value.
 
 ### Unit Legend
 
@@ -56,6 +56,32 @@ While you can use multiple of these blocks in combination, ee suggest keeping it
 | 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |
 |         1 day         | `1d` or `24h` or `86400` or `86400s`  |
 |       10 hours        | `10h` or `600m` or `9h60m` or `36000` |
+
+## Address
+
+The address type is a string that takes the following format:
+
+```text
+[<scheme>://]<ip>[:<port>]
+```
+
+The square brackets indicate optional sections, and the angled brackets indicate required sections. The following
+sections elaborate on this. Sections may only be optional for the purposes of parsing, there may be a configuration
+requirement that one of these is provided.
+
+### scheme
+
+The entire scheme is optional, but if the scheme host delimiter `://` is in the string, the scheme must be present. The
+scheme must be one of `tcp://`, or `udp://`. The default scheme is `tcp://`.
+
+### ip
+
+The IP is required. If specifying an IPv6 it should be wrapped in square brackets. For example for the IPv6 address
+`::1` with the `tcp://` scheme and port `80`: `tcp://[::1]:80`.
+
+### port
+
+The entire port is optional, but if the host port delimiter `:` exists it must also include a numeric port.
 
 ## Regular Expressions
 
@@ -89,7 +115,7 @@ This section documents the usage.
 {{< confkey type="string" required="no" >}}
 
 The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
-require to use a direct IP address for the address of the backend service but want to verify a specific SNI.
+require an IP address for the host of the backend service but want to verify a specific certificate server name.
 
 ### skip_verify
 

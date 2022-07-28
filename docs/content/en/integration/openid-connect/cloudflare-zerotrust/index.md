@@ -1,8 +1,8 @@
 ---
 title: "Cloudflare Zero Trust"
-description: "Integrating Cloudflare Zero Trust with Authelia via OpenID Connect."
+description: "Integrating Cloudflare Zero Trust with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-05-17T07:45:58+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -42,7 +42,7 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect] 
 3. Visit `Authentication`
 4. Under `Login nethods` select `Add new`
 5. Select `OpenID Connect`
-6. Enter the following values:
+6. Set the following values:
    1. Name: `Authelia`
    2. App ID: `cloudflare`
    3. Client Secret: `cloudflare_client_secret`

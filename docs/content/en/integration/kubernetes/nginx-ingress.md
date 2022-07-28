@@ -2,13 +2,13 @@
 title: "NGINX Ingress"
 description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 lead: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
   integration:
     parent: "kubernetes"
-weight: 530
+weight: 551
 toc: true
 ---
 
@@ -17,6 +17,12 @@ official one [nginx-ingress-controller]. Currently we only have support docs for
 
 The [nginx documentation](../proxies/nginx.md) may also be useful for crafting advanced snippets to use with annotations
 even though it's not specific to Kubernetes.
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## NGINX Ingress Controller (ingress-nginx)
 
@@ -30,11 +36,12 @@ DNS domain name of `cluster.local`.
 
 ```yaml
 annotations:
+  nginx.ingress.kubernetes.io/auth-method: GET
+  nginx.ingress.kubernetes.io/auth-url: http://authelia.default.svc.cluster.local/api/verify
+  nginx.ingress.kubernetes.io/auth-signin: https://auth.example.com?rm=$request_method
   nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
-  nginx.ingress.kubernetes.io/auth-signin: https://auth.example.com
   nginx.ingress.kubernetes.io/auth-snippet: |
     proxy_set_header X-Forwarded-Method $request_method;
-  nginx.ingress.kubernetes.io/auth-url: http://authelia.default.svc.cluster.local/api/verify
 ```
 
 [ingress-nginx]: https://kubernetes.github.io/ingress-nginx/

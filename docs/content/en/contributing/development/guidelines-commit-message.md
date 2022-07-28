@@ -2,7 +2,7 @@
 title: "Commit Message Guidelines"
 description: "Authelia Development Commit Message Guidelines"
 lead: "This section covers the git commit message guidelines we use for development."
-date: 2022-05-15T13:52:27+10:00
+date: 2021-01-30T19:29:07+11:00
 draft: false
 images: []
 menu:

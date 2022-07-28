@@ -37,7 +37,7 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfigura
 	if config.PasswordReset.CustomURL.String() != "" {
 		switch config.PasswordReset.CustomURL.Scheme {
 		case schemeHTTP, schemeHTTPS:
-			config.DisableResetPassword = false
+			config.PasswordReset.Disable = false
 		default:
 			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.PasswordReset.CustomURL.String(), config.PasswordReset.CustomURL.Scheme))
 		}
@@ -197,7 +197,7 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackendConfigur
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUnauthenticatedBindWithPassword))
 		}
 
-		if !config.DisableResetPassword {
+		if !config.PasswordReset.Disable {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled))
 		}
 	} else {

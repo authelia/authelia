@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 func TestShouldConfigureSMTPNotifierWithTLS11(t *testing.T) {
@@ -22,7 +23,7 @@ func TestShouldConfigureSMTPNotifierWithTLS11(t *testing.T) {
 		},
 	}
 
-	notifier := NewSMTPNotifier(config.SMTP, nil)
+	notifier := NewSMTPNotifier(config.SMTP, nil, &templates.Provider{})
 
 	assert.Equal(t, "smtp.example.com", notifier.tlsConfig.ServerName)
 	assert.Equal(t, uint16(tls.VersionTLS11), notifier.tlsConfig.MinVersion)
@@ -41,7 +42,7 @@ func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *tes
 		},
 	}
 
-	notifier := NewSMTPNotifier(config.SMTP, nil)
+	notifier := NewSMTPNotifier(config.SMTP, nil, &templates.Provider{})
 
 	assert.Equal(t, "smtp.golang.org", notifier.tlsConfig.ServerName)
 	assert.Equal(t, uint16(tls.VersionTLS12), notifier.tlsConfig.MinVersion)

@@ -2,7 +2,7 @@
 title: "Envoy"
 description: "An integration guide for Authelia and the Envoy reverse proxy"
 lead: "A guide on integrating Authelia with the Envoy reverse proxy."
-date: 2022-05-15T13:52:27+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -27,6 +27,12 @@ It's currently not certain, but fairly likely that [Envoy] is supported by __Aut
 and thus if anyone has this working please let us know.
 
 We will aim to perform documentation for this on our own but there is no current timeframe.
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Trusted Proxies
 

@@ -31,13 +31,13 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	}
 
 	if p.features.Extensions.TLS && !p.config.StartTLS && !strings.HasPrefix(p.config.URL, "ldaps://") {
-		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly" +
-			"recommend enabling the StartTLS option or using the scheme 'ldaps://' to secure connections with your" +
+		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly " +
+			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
 			"LDAP Server.")
 	}
 
 	if !p.features.Extensions.TLS && p.config.StartTLS {
-		p.log.Info("Your LDAP Server does not appear to support TLS but you enabled StartTLS which may result" +
+		p.log.Info("Your LDAP Server does not appear to support TLS but you enabled StartTLS which may result " +
 			"in an error.")
 	}
 

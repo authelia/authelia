@@ -1,13 +1,13 @@
 {{ define "main" }}
 	<div class="row flex-xl-nowrap">
-		<div class="col-lg-5 col-xl-4 docs-sidebar d-none d-lg-block">
+		<div class="col-lg-5 col-xl-4 docs-sidebar{{ if ne .Site.Params.options.navbarSticky true }} docs-sidebar-top{{ end }} d-none d-lg-block">
 			<nav {{ if eq .Site.Params.menu.section.collapsibleSidebar false }}id="sidebar-default" {{ end }}class="docs-links" aria-label="Main navigation">
-        {{ partial "sidebar/docs-menu.html" . }}
+				{{ partial "sidebar/docs-menu.html" . }}
 			</nav>
 		</div>
 		{{ if ne .Params.toc false -}}
-		<nav class="docs-toc d-none d-xl-block col-xl-3" aria-label="Secondary navigation">
-      {{ partial "sidebar/docs-toc.html" . }}
+		<nav class="docs-toc{{ if ne .Site.Params.options.navbarSticky true }} docs-toc-top{{ end }} d-none d-xl-block col-xl-3" aria-label="Secondary navigation">
+			{{ partial "sidebar/docs-toc.html" . }}
 		</nav>
 		{{ end -}}
 		{{ if .Params.toc -}}
@@ -28,7 +28,7 @@
 			<p class="lead">{{ .Params.lead | safeHTML }}</p>
 			{{ if ne .Params.toc false -}}
 			<nav class="d-xl-none" aria-label="Quaternary navigation">
-        {{ partial "sidebar/docs-toc.html" . }}
+				{{ partial "sidebar/docs-toc.html" . }}
 			</nav>
 			{{ end -}}
 			{{ .Content }}
@@ -40,7 +40,7 @@
 					{{ partial "main/edit-page.html" . }}
 				{{ end -}}
 			</div>
-      {{ partial "main/docs-navigation.html" . }}
+			{{ partial "main/docs-navigation.html" . }}
 			<!--
 			{{ if not .Site.Params.options.collapsibleSidebar -}}
 				{{ partial "main/docs-navigation.html" . }}

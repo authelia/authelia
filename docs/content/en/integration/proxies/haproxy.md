@@ -2,7 +2,7 @@
 title: "HAProxy"
 description: "An integration guide for Authelia and the HAProxy reverse proxy"
 lead: "A guide on integrating Authelia with the HAProxy reverse proxy."
-date: 2022-03-20T20:23:41+11:00
+date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
 menu:
@@ -21,6 +21,12 @@ aliases:
 method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Requirements
 

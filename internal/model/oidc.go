@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mohae/deepcopy"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 
@@ -16,10 +17,12 @@ import (
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
-func NewOAuth2ConsentSession(subject NullUUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+	valid := subject.ID() != 0
+
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
-		Subject:           subject,
+		Subject:           uuid.NullUUID{UUID: subject, Valid: valid},
 		Form:              r.GetRequestForm().Encode(),
 		RequestedAt:       r.GetRequestedAt(),
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
@@ -40,16 +43,13 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 	var (
 		subject       string
 		sessionOpenID *OpenIDSession
+		ok            bool
 		sessionData   []byte
 	)
 
-	s := r.GetSession()
-
-	switch t := s.(type) {
-	case *OpenIDSession:
-		sessionOpenID = t
-	default:
-		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", s)
+	sessionOpenID, ok = r.GetSession().(*OpenIDSession)
+	if !ok {
+		return nil, fmt.Errorf("can't convert type '%T' to an *OAuth2Session", r.GetSession())
 	}
 
 	subject = sessionOpenID.GetSubject()
@@ -86,10 +86,10 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 
 // OAuth2ConsentSession stores information about an OAuth2.0 Consent.
 type OAuth2ConsentSession struct {
-	ID          int       `db:"id"`
-	ChallengeID uuid.UUID `db:"challenge_id"`
-	ClientID    string    `db:"client_id"`
-	Subject     NullUUID  `db:"subject"`
+	ID          int           `db:"id"`
+	ChallengeID uuid.UUID     `db:"challenge_id"`
+	ClientID    string        `db:"client_id"`
+	Subject     uuid.NullUUID `db:"subject"`
 
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`
@@ -163,16 +163,6 @@ type OAuth2BlacklistedJTI struct {
 	ExpiresAt time.Time `db:"expires_at"`
 }
 
-// OpenIDSession holds OIDC Session information.
-type OpenIDSession struct {
-	*openid.DefaultSession `json:"id_token"`
-
-	ChallengeID uuid.UUID `db:"challenge_id"`
-	ClientID    string
-
-	Extra map[string]interface{} `json:"extra"`
-}
-
 // OAuth2Session represents a OAuth2.0 session.
 type OAuth2Session struct {
 	ID                int                      `db:"id"`
@@ -228,4 +218,23 @@ func (s OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, st
 		Form:              values,
 		Session:           session,
 	}, nil
+}
+
+// OpenIDSession holds OIDC Session information.
+type OpenIDSession struct {
+	*openid.DefaultSession `json:"id_token"`
+
+	ChallengeID uuid.UUID `db:"challenge_id"`
+	ClientID    string
+
+	Extra map[string]interface{} `json:"extra"`
+}
+
+// Clone copies the OpenIDSession to a new fosite.Session.
+func (s *OpenIDSession) Clone() fosite.Session {
+	if s == nil {
+		return nil
+	}
+
+	return deepcopy.Copy(s).(fosite.Session)
 }

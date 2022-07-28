@@ -2,7 +2,7 @@
 title: "LDAP"
 description: "Configuring LDAP"
 lead: "Authelia supports an LDAP server based first factor user provider. This section describes configuring this."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -196,8 +196,7 @@ referrals to be followed when performing write operations.
 server and utilizing a service account.*
 
 Permits binding to the server without a password. For this option to be enabled both the [password](#password)
-configuration option must be blank and [disable_reset_password](introduction.md#disable_reset_password) must be
-disabled.
+configuration option must be blank and the [password_reset disable](introduction.md#disable) option must be `true`.
 
 ### user
 
@@ -209,8 +208,14 @@ The distinguished name of the user paired with the password to bind with for loo
 
 {{< confkey type="string" required="yes" >}}
 
-The password of the user paired with the user to bind with for lookup and password change operations.
-Can also be defined using a [secret](../methods/secrets.md) which is the recommended for containerized deployments.
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
+
+The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+characters and the user password is changed to this value.
 
 ## Refresh Interval
 

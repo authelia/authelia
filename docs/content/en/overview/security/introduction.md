@@ -2,7 +2,7 @@
 title: "Security"
 description: "An overview introduction into Authelia's security features."
 lead: "An overview introduction into Authelia's security features."
-date: 2022-05-13T12:34:15+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

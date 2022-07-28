@@ -2,7 +2,7 @@
 title: "Metrics"
 description: "Configuring the Metrics Telemetry settings"
 lead: "Configuring the Metrics Telemetry settings."
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -20,7 +20,7 @@ toc: true
 telemetry:
   metrics:
     enabled: false
-    address: "0.0.0.0:9959"
+    address: "tcp://0.0.0.0:9959"
 ```
 
 ## Options
@@ -33,10 +33,10 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 ### address
 
-{{< confkey type="address" default="0.0.0.0:9959" required="no" >}}
+{{< confkey type="address" default="tcp://0.0.0.0:9959" required="no" >}}
 
-Configures the listener address for the [Prometheus] HTTP Metrics Exporter. The address must be a IPv4 or IPv6 address
-followed by the port in the `<address>:<port>` format.
+Configures the listener address for the [Prometheus] HTTP Metrics Exporter. This configuration key uses the
+[Address](../prologue/common.md#address) format. The scheme must be `tcp://` or empty.
 
 ## See More
 

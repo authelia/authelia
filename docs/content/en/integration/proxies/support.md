@@ -2,7 +2,7 @@
 title: "Support"
 description: "An support matrix for Authelia and several supported reverse proxies"
 lead: "This documentation details a support matrix for Authelia features and specific reverse proxies as well as several caveats etc."
-date: 2022-05-13T12:34:15+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -25,7 +25,7 @@ aliases:
 |        [Caddy]        |          [<i class="icon-support-full"></i>](caddy.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
 |     [Traefik] 1.x     |        [<i class="icon-support-full"></i>](traefikv1.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
 |        [Envoy]        |         [<i class="icon-support-unknown"></i>](envoy.md)         |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Skipper]       |        [<i class="icon-support-unknown"></i>](skipper.md)        |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
+|       [Skipper]       |         [<i class="icon-support-full"></i>](skipper.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
 |       [Apache]        | [<i class="icon-support-none" alt="Not Supported"></i>](#apache) |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
 |         [IIS]         |            [<i class="icon-support-none"></i>](#iis)             |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
 

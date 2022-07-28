@@ -61,26 +61,12 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 	userSession := ctx.GetSession()
 
-	var subject model.NullUUID
-
-	if userSession.Username != "" {
-		if subject.UUID, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving subject for user '%s': %+v", requester.GetID(), client.GetID(), userSession.Username, err)
-
-			ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not retrieve the subject."))
-
-			return
-		}
-
-		subject.Valid = true
-	}
-
 	var (
 		consent *model.OAuth2ConsentSession
 		handled bool
 	)
 
-	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, subject, rw, r, requester); handled {
+	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
 		return
 	}
 

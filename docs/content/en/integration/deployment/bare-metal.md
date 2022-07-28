@@ -2,7 +2,7 @@
 title: "Bare-Metal"
 description: "Deploying Authelia on Bare-Metal."
 lead: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
-date: 2022-05-27T22:24:38+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -14,6 +14,12 @@ toc: true
 
 There are several ways to achieve this, as *Authelia* runs as a daemon. We do not provide specific examples for running
 *Authelia* as a service excluding the [systemd unit](#systemd) files.
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## systemd
 

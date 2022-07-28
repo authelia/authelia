@@ -2,7 +2,7 @@
 title: "Caddy"
 description: "An integration guide for Authelia and the Caddy reverse proxy"
 lead: "A guide on integrating Authelia with the Caddy reverse proxy."
-date: 2022-05-13T12:06:00+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -25,6 +25,12 @@ be plugins that work fine provided they support the forward authentication speci
 method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
+
+## Get Started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
 
 ## Requirements
 
@@ -72,8 +78,7 @@ support to ensure the basic example covers your use case in a secure way.
 
 #### Subdomain
 
-##### Caddyfile
-
+{{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
@@ -105,11 +110,11 @@ nextcloud.example.com {
         }
 }
 ```
+{{< /details >}}
 
 #### Subpath
 
-##### Caddyfile
-
+{{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
@@ -145,7 +150,7 @@ example.com {
         }
 }
 ```
-
+{{< /details >}}
 ### Advanced example
 
 The advanced example allows for more flexible customization, however the [basic example](#basic-examples) should be
@@ -153,8 +158,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 
 *__Important:__ Making a mistake when configuring the advanced example could lead to authentication bypass or errors.*
 
-##### Caddyfile
-
+{{< details "Caddyfile" >}}
 ```caddyfile
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#forwarded-header-trust#trusted-proxies
@@ -173,55 +177,37 @@ auth.example.com {
 
 # Protected Endpoint.
 nextcloud.example.com {
-        route {
-                reverse_proxy authelia:9091 {
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
+        reverse_proxy authelia:9091 {
+                ## This import needs to be included if you're relying on a trusted proxies configuration.
+                import trusted_proxy_list
 
-                        method GET
-                        rewrite "/api/verify?rd=https://auth.example.com/"
+                method GET
+                rewrite "/api/verify?rd=https://auth.example.com/"
 
-                        header_up X-Forwarded-Method {method}
-                        header_up X-Forwarded-Uri {uri}
+                header_up X-Forwarded-Method {method}
+                header_up X-Forwarded-Uri {uri}
 
-                        ## If the auth request:
-                        ##   1. Responds with a status code IN the 200-299 range.
-                        ## Then:
-                        ##   1. Proxy the request to the backend.
-                        ##   2. Copy the relevant headers from the auth request and provide them to the backend.
-                        @good status 2xx
-                        handle_response @good {
-                                request_header {
-                                        Remote-User {http.reverse_proxy.header.Remote-User}
-                                        Remote-Groups {http.reverse_proxy.header.Remote-Groups}
-                                        Remote-Name {http.reverse_proxy.header.Remote-Name}
-                                        Remote-Email {http.reverse_proxy.header.Remote-Email}
-                                }
-                        }
-
-                        ## If the auth request:
-                        ##   1. Responds with a status code NOT IN the 200-299 range.
-                        ## Then:
-                        ##   1. Respond with the status code of the auth request.
-                        ##   1. Copy the response except for several headers.
-                        @denied {
-                                status 1xx 3xx 4xx 5xx
-                        }
-                        handle_response @denied {
-                                copy_response
-                                copy_response_headers {
-                                        exclude Connection Keep-Alive Te Trailers Transfer-Encoding Upgrade
-                                }
-                        }
+                ## If the auth request:
+                ##   1. Responds with a status code IN the 200-299 range.
+                ## Then:
+                ##   1. Proxy the request to the backend.
+                ##   2. Copy the relevant headers from the auth request and provide them to the backend.
+                @good status 2xx
+                handle_response @good {
+                        request_header Remote-User {http.reverse_proxy.header.Remote-User}
+                        request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
+                        request_header Remote-Name {http.reverse_proxy.header.Remote-Name}
+                        request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
                 }
+        }
 
-                reverse_proxy nextcloud:80 {
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
-                }
+        reverse_proxy nextcloud:80 {
+                ## This import needs to be included if you're relying on a trusted proxies configuration.
+                import trusted_proxy_list
         }
 }
 ```
+{{< /details >}}
 
 ## See Also
 

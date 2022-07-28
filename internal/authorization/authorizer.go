@@ -9,39 +9,48 @@ import (
 type Authorizer struct {
 	defaultPolicy Level
 	rules         []*AccessControlRule
+	mfa           bool
 	configuration *schema.Configuration
 }
 
 // NewAuthorizer create an instance of authorizer with a given access control configuration.
-func NewAuthorizer(configuration *schema.Configuration) *Authorizer {
-	return &Authorizer{
-		defaultPolicy: PolicyToLevel(configuration.AccessControl.DefaultPolicy),
+func NewAuthorizer(configuration *schema.Configuration) (authorizer *Authorizer) {
+	authorizer = &Authorizer{
+		defaultPolicy: StringToLevel(configuration.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(configuration.AccessControl),
 		configuration: configuration,
 	}
-}
 
-// IsSecondFactorEnabled return true if at least one policy is set to second factor.
-func (p Authorizer) IsSecondFactorEnabled() bool {
-	if p.defaultPolicy == TwoFactor {
-		return true
+	if authorizer.defaultPolicy == TwoFactor {
+		authorizer.mfa = true
+
+		return authorizer
 	}
 
-	for _, rule := range p.rules {
+	for _, rule := range authorizer.rules {
 		if rule.Policy == TwoFactor {
-			return true
+			authorizer.mfa = true
+
+			return authorizer
 		}
 	}
 
-	if p.configuration.IdentityProviders.OIDC != nil {
-		for _, client := range p.configuration.IdentityProviders.OIDC.Clients {
+	if authorizer.configuration.IdentityProviders.OIDC != nil {
+		for _, client := range authorizer.configuration.IdentityProviders.OIDC.Clients {
 			if client.Policy == twoFactor {
-				return true
+				authorizer.mfa = true
+
+				return authorizer
 			}
 		}
 	}
 
-	return false
+	return authorizer
+}
+
+// IsSecondFactorEnabled return true if at least one policy is set to second factor.
+func (p Authorizer) IsSecondFactorEnabled() bool {
+	return p.mfa
 }
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
@@ -79,7 +88,7 @@ func (p Authorizer) GetRuleMatchResults(subject Subject, object Object) (results
 			Skipped: skipped,
 
 			MatchDomain:        isMatchForDomains(subject, object, rule),
-			MatchResources:     isMatchForResources(object, rule),
+			MatchResources:     isMatchForResources(subject, object, rule),
 			MatchMethods:       isMatchForMethods(object, rule),
 			MatchNetworks:      isMatchForNetworks(subject, rule),
 			MatchSubjects:      isMatchForSubjects(subject, rule),

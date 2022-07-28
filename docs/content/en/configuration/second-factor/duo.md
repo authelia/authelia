@@ -2,7 +2,7 @@
 title: "Duo / Mobile Push"
 description: "Configuring the Duo Mobile Push Notification Second Factor Method."
 lead: ""
-date: 2022-03-20T12:52:27+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -47,20 +47,22 @@ true.
 
 {{< confkey type="string" required="yes" >}}
 
-The [Duo] API hostname supplied by [Duo].
+The [Duo] API hostname. This is provided in the [Duo] dashboard.
 
 ### integration_key
 
 {{< confkey type="string" required="yes" >}}
 
-The non-secret [Duo] integration key. Similar to a client identifier.
+The non-secret [Duo] integration key. Similar to a client identifier. This is provided in the [Duo] dashboard.
 
 ### secret_key
 
 {{< confkey type="string" required="yes" >}}
 
-The secret [Duo] key used to verify your application is valid. It's recommended to set this via a
-[secret](../methods/secrets.md).
+*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
+especially for containerized deployments.*
+
+The secret [Duo] key used to verify your application is valid. This is provided in the [Duo] dashboard.
 
 ### enable_self_enrollment
 
