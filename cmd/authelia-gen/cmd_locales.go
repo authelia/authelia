@@ -19,29 +19,37 @@ func newLocalesCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "locales",
 		Short: "Generate locales files",
-		RunE:  runE,
+		RunE:  localesRunE,
 	}
 
 	cmd.AddCommand(newGitHubIssueTemplatesCmd())
 
+	cmd.Flags().String("root", "./", "The repository root")
+
 	return cmd
 }
 
-func runE(cmd *cobra.Command, args []string) (err error) {
-	data, err := getLanguages("./internal/server/locales/")
+func localesRunE(cmd *cobra.Command, args []string) (err error) {
+	var root string
+
+	if root, err = cmd.Flags().GetString("root"); err != nil {
+		return err
+	}
+
+	data, err := getLanguages(filepath.Join(root, "internal/server/locales/"))
 	if err != nil {
 		return err
 	}
 
-	file := "./web/src/i18n/index.ts"
+	fileWebI18N := filepath.Join(root, "web/src/i18n/index.ts")
 
 	var (
 		f        *os.File
 		dataJSON []byte
 	)
 
-	if f, err = os.Create(file); err != nil {
-		return fmt.Errorf("failed to create file '%s': %w", file, err)
+	if f, err = os.Create(fileWebI18N); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", fileWebI18N, err)
 	}
 
 	if err = tmplWebI18NIndex.Execute(f, data); err != nil {
@@ -52,8 +60,10 @@ func runE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if err = os.WriteFile("./docs/data/languages.json", dataJSON, 0644); err != nil {
-		return err
+	fileDocsLanguages := filepath.Join(root, "docs/data/languages.json")
+
+	if err = os.WriteFile(fileDocsLanguages, dataJSON, 0600); err != nil {
+		return fmt.Errorf("failed to write file '%s': %w", fileDocsLanguages, err)
 	}
 
 	return nil
@@ -61,12 +71,17 @@ func runE(cmd *cobra.Command, args []string) (err error) {
 
 func getLanguages(dir string) (languages *Languages, err error) {
 	var locales []string
+
 	languages = &Languages{
 		DefaultLocale:    defaultLocale,
 		DefaultNamespace: defaultNamespace,
 	}
 
-	if err = filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+	if err = filepath.Walk(dir, func(path string, info fs.FileInfo, errWalk error) (err error) {
+		if errWalk != nil {
+			return errWalk
+		}
+
 		nameLower := strings.ToLower(info.Name())
 		ext := filepath.Ext(nameLower)
 		ns := strings.Replace(nameLower, ext, "", 1)
@@ -98,13 +113,14 @@ func getLanguages(dir string) (languages *Languages, err error) {
 			return nil
 		}
 
-		lang, err := language.Parse(locale)
-		if err != nil {
+		var tag language.Tag
+
+		if tag, err = language.Parse(locale); err != nil {
 			fmt.Println(err)
 		}
 
 		l := Language{
-			Display:    display.English.Tags().Name(lang),
+			Display:    display.English.Tags().Name(tag),
 			Locale:     locale,
 			Namespaces: []string{ns},
 		}

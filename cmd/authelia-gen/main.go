@@ -18,7 +18,7 @@ func newRootCmd() *cobra.Command {
 
 	cmd.PersistentFlags().StringP("cwd", "C", "", "Sets the CWD for git commands")
 
-	cmd.AddCommand(newAllCmd(), newCodeCmd(), newDocsCmd(), newGitHubCmd(), newLocalesCmd())
+	cmd.AddCommand(newAllCmd(), newCodeCmd(), newDocsCmd(), newGitHubCmd(), newLocalesCmd(), newCommitLintCmd())
 
 	return cmd
 }

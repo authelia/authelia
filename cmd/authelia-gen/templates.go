@@ -12,7 +12,8 @@ var templatesFS embed.FS
 
 var (
 	funcMap = template.FuncMap{
-		"stringsContains": stringsContains,
+		"stringsContains": strings.Contains,
+		"join":            strings.Join,
 	}
 
 	tmplCodeConfigurationSchemaKeys = template.Must(newTMPL("internal_configuration_schema_keys.go"))
@@ -20,13 +21,14 @@ var (
 	tmplIssueTemplateFeature        = template.Must(newTMPL("github_issue_template_feature.yml"))
 	tmplWebI18NIndex                = template.Must(newTMPL("web_i18n_index.ts"))
 	tmplDotCommitLintRC             = template.Must(newTMPL("dot_commitlintrc.js"))
+	tmplDocsCommitMessageGuidelines = template.Must(newTMPL("docs-contributing-development-commitmsg.md"))
 )
 
 func newTMPL(name string) (tmpl *template.Template, err error) {
-	return template.New(name).Funcs(funcMap).Parse(MustLoadTmplFS(name))
+	return template.New(name).Funcs(funcMap).Parse(mustLoadTmplFS(name))
 }
 
-func MustLoadTmplFS(tmpl string) string {
+func mustLoadTmplFS(tmpl string) string {
 	var (
 		content []byte
 		err     error
@@ -37,8 +39,4 @@ func MustLoadTmplFS(tmpl string) string {
 	}
 
 	return string(content)
-}
-
-func stringsContains(haystack, needle string) bool {
-	return strings.Contains(haystack, needle)
 }

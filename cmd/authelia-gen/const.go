@@ -8,3 +8,10 @@ const (
 	defaultLocale    = "en"
 	defaultNamespace = "portal"
 )
+
+const (
+	pathCmd                         = "cmd"
+	pathInternal                    = "internal"
+	pathDocsCommitMessageGuidelines = "docs/content/en/contributing/development/guidelines-commit-message.md"
+	pathDocsCommitLintConfig        = "web/.commitlintrc.js"
+)
