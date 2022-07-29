@@ -54,6 +54,18 @@ The logo is just the Authelia circle logo without any text.
 
 {{< figure src="/images/branding/logo.svg" link="/images/branding/logo.svg" target="_blank" alt="Authelia Logo" width="150" ignoreStaticImages="false" >}}
 
+### Logo (Cropped)
+
+The logo is the same as the standard logo without padding.
+
+#### Logo (Cropped) Files
+
+[PSD](https://www.authelia.com/images/branding/logo-cropped.psd) | [SVG](https://www.authelia.com/images/branding/logo-cropped.svg) | [PNG](https://www.authelia.com/images/branding/logo-cropped.png)
+
+#### Logo (Cropped) Example
+
+{{< figure src="/images/branding/logo-cropped.svg" link="/images/branding/logo-cropped.svg" target="_blank" alt="Authelia Logo" width="150" ignoreStaticImages="false" >}}
+
 ### Title
 
 The title is the Authelia circle logo with the `authelia` branded text.
