@@ -49,10 +49,13 @@ oidc_providers:
     client_id: "synapse"
     client_secret: "synapse_client_secret"
     allow_existing_users: true
-    scopes: ["openid", "profile"]
+    scopes: ["openid", "profile", "email"]
     user_mapping_provider:
       config:
-        localpart_template: "{{ openid.preferred_username }}"
+        subject_claim: "sub"
+        localpart_template: "{{ user.preferred_username }}"
+        display_name_template: "{{ user.name }}"
+        email_template: "{{ user.email }}"
 ```
 
 ### Authelia
@@ -69,6 +72,7 @@ which will operate with the above example:
   scopes:
     - openid
     - profile
+    - email
   redirect_uris:
     - https://synapse.example.com/_synapse/client/oidc/callback
   userinfo_signing_algorithm: none
