@@ -20,10 +20,10 @@ body:
       label: Suggested Milestone
       description: What milestone is suggested for this feature?
       options:
-        - v4.36.0
         - v4.37.0
         - v4.38.0
         - v4.39.0
+        - v4.40.0
         - v5.0.0
     validations:
       required: true

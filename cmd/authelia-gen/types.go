@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -50,15 +51,19 @@ const (
 )
 
 var labelPriorityDescriptions = [...]string{
-	"critical",
-	"high",
-	"medium",
-	"normal",
-	"low",
+	"Critical",
+	"High",
+	"Medium",
+	"Normal",
+	"Low",
 }
 
 func (p labelPriority) String() string {
-	return fmt.Sprintf("%s/%d-%s", labelAreaPrefixPriority, p+1, labelPriorityDescriptions[p])
+	return fmt.Sprintf("%s/%d-%s", labelAreaPrefixPriority, p+1, strings.ToLower(labelPriorityDescriptions[p]))
+}
+
+func (p labelPriority) Description() string {
+	return labelPriorityDescriptions[p]
 }
 
 type labelStatus int

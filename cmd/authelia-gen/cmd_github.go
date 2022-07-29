@@ -34,8 +34,8 @@ func newGitHubIssueTemplatesCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesFeatureCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "feature",
-		Short: "Generate GitHub feature issue template",
+		Use:   "feature-request",
+		Short: "Generate GitHub feature request issue template",
 		RunE:  cmdGitHubIssueTemplatesFeatureRunE,
 	}
 
@@ -184,7 +184,7 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	data := &tmplIssueTemplateData{
 		Labels:   []string{labelTypePotentialBug.String(), labelStatusNeedsTriage.String(), labelPriorityNormal.String()},
 		Versions: tagsRecent,
-		Proxies:  []string{"Caddy", "Traefik", "nginx", "SWAG", "NGINX Proxy Manager", "HAProxy"},
+		Proxies:  []string{"Caddy", "Traefik", "NGINX", "SWAG", "NGINX Proxy Manager", "HAProxy"},
 	}
 
 	if err = tmplGitHubIssueTemplateBug.Execute(f, data); err != nil {
