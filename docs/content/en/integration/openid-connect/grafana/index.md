@@ -42,6 +42,8 @@ To configure [Grafana] to utilize Authelia as an [OpenID Connect] Provider:
 1. Add the following Generic OAuth configuration to the [Grafana] configuration:
 
 ```ruby
+[server]
+root_url = https://grafana.example.com
 [auth.generic_oauth]
 enabled = true
 name = Authelia
