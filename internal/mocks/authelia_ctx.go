@@ -70,6 +70,14 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	configuration := schema.Configuration{}
 	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
 	configuration.Session.Name = "authelia_session"
+	configuration.Session.Domains = []schema.SessionDomainConfiguration{
+		{
+			Domain: "example.com",
+		},
+		{
+			Domain: "example2.com",
+		},
+	}
 	configuration.AccessControl.DefaultPolicy = "deny"
 	configuration.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},

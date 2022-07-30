@@ -104,7 +104,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	if !utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
+	if !utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domains) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
@@ -147,7 +147,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 
 	var safe bool
 
-	if safe, err = utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain); err != nil {
+	if safe, err = utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domains); err != nil {
 		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)
 
 		return

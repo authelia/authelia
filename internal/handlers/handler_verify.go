@@ -19,14 +19,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
-	return strings.HasSuffix(url.Hostname(), domain)
-}
-
-func isSchemeHTTPS(url *url.URL) bool {
-	return url.Scheme == "https"
-}
-
 func isSchemeWSS(url *url.URL) bool {
 	return url.Scheme == "wss"
 }
@@ -440,7 +432,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+		if !utils.IsSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
 			ctx.Logger.Errorf("Scheme of target URL %s must be secure since cookies are "+
 				"only transported over a secure connection for security reasons", targetURL.String())
 			ctx.ReplyUnauthorized()
@@ -448,7 +440,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		if !isURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domain) {
+		if !utils.IsURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domains) {
 			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
 				targetURL.String(), ctx.Configuration.Session.Domain)
 			ctx.ReplyUnauthorized()
