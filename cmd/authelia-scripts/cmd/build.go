@@ -144,8 +144,7 @@ func buildFrontend(branch string) {
 }
 
 func buildSwagger() {
-	swaggerVer := "4.13.0"
-	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+swaggerVer+".tar.gz -O ./v"+swaggerVer+".tar.gz")
+	cmd := utils.CommandWithStdout("bash", "-c", "wget -q https://github.com/swagger-api/swagger-ui/archive/v"+versionSwaggerUI+".tar.gz -O ./v"+versionSwaggerUI+".tar.gz")
 
 	err := cmd.Run()
 	if err != nil {
@@ -159,14 +158,14 @@ func buildSwagger() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+swaggerVer+".tar.gz", "swagger-ui-"+swaggerVer+"/dist")
+	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+".tar.gz", "swagger-ui-"+versionSwaggerUI+"/dist")
 
 	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("rm", "./v"+swaggerVer+".tar.gz")
+	cmd = utils.CommandWithStdout("rm", "./v"+versionSwaggerUI+".tar.gz")
 
 	err = cmd.Run()
 	if err != nil {

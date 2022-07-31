@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
@@ -23,10 +26,17 @@ func newCodeCmd() *cobra.Command {
 		RunE:  rootSubCommandsRunE,
 	}
 
-	cmd.AddCommand(newCodeKeysCmd())
+	cmd.AddCommand(newCodeKeysCmd(), newCodeScriptsCmd())
 
-	cmd.PersistentFlags().String(cmdFlagFileConfigKeys, fileCodeConfigKeys, "Sets the path of the keys file")
-	cmd.PersistentFlags().String(cmdFlagPackageConfigKeys, "schema", "Sets the package name of the keys file")
+	return cmd
+}
+
+func newCodeScriptsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "scripts",
+		Short: "Generate the generated portion of the authelia-scripts command",
+		RunE:  codeScriptsRunE,
+	}
 
 	return cmd
 }
@@ -39,6 +49,76 @@ func newCodeKeysCmd() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		root, pathScriptsGen string
+		resp                 *http.Response
+	)
+
+	data := &tmplScriptsGEnData{}
+
+	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
+		return err
+	}
+
+	if pathScriptsGen, err = cmd.Flags().GetString(cmdFlagFileScriptsGen); err != nil {
+		return err
+	}
+
+	if data.Package, err = cmd.Flags().GetString(cmdFlagPackageScriptsGen); err != nil {
+		return err
+	}
+
+	if resp, err = http.Get("https://api.github.com/repos/swagger-api/swagger-ui/tags"); err != nil {
+		return fmt.Errorf("failed to get latest version of the Swagger UI: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	var (
+		respJSON []GitHubTagsJSON
+		respRaw  []byte
+	)
+
+	if respRaw, err = io.ReadAll(resp.Body); err != nil {
+		return fmt.Errorf("failed to get latest version of the Swagger UI: %w", err)
+	}
+
+	if err = json.Unmarshal(respRaw, &respJSON); err != nil {
+		return fmt.Errorf("failed to get latest version of the Swagger UI: %w", err)
+	}
+
+	if len(respJSON) < 1 {
+		return fmt.Errorf("failed to get latest version of the Swagger UI: the api returned zero results")
+	}
+
+	data.VersionSwaggerUI = respJSON[0].Name
+
+	fullPathScriptsGen := filepath.Join(root, pathScriptsGen)
+
+	var f *os.File
+
+	if f, err = os.Create(fullPathScriptsGen); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", fullPathScriptsGen, err)
+	}
+
+	if err = tmplScriptsGen.Execute(f, data); err != nil {
+		_ = f.Close()
+
+		return fmt.Errorf("failed to write output file '%s': %w", fullPathScriptsGen, err)
+	}
+
+	if err = f.Close(); err != nil {
+		return fmt.Errorf("failed to close output file '%s': %w", fullPathScriptsGen, err)
+	}
+
+	return nil
+}
+
+type GitHubTagsJSON struct {
+	Name string `json:"name"`
 }
 
 func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {

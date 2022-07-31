@@ -22,6 +22,7 @@ var (
 	tmplWebI18NIndex                = template.Must(newTMPL("web_i18n_index.ts"))
 	tmplDotCommitLintRC             = template.Must(newTMPL("dot_commitlintrc.js"))
 	tmplDocsCommitMessageGuidelines = template.Must(newTMPL("docs-contributing-development-commitmsg.md"))
+	tmplScriptsGen                  = template.Must(newTMPL("cmd-authelia-scripts-gen.go"))
 )
 
 func newTMPL(name string) (tmpl *template.Template, err error) {

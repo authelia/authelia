@@ -13,6 +13,7 @@ const (
 	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/development/guidelines-commit-message.md"
 
 	fileCodeConfigKeys = "internal/configuration/schema/keys.go"
+	fileScriptsGen     = "cmd/authelia-scripts/cmd/gen.go"
 
 	dirDocsContent      = "docs/content"
 	dirDocsCLIReference = dirDocsContent + "/en/reference/cli"
@@ -36,6 +37,11 @@ const (
 )
 
 const (
+	pkgConfigSchema = "schema"
+	pkgScriptsGen   = "cmd"
+)
+
+const (
 	cmdFlagRoot                        = "dir.root"
 	cmdFlagDirLocales                  = "dir.locales"
 	cmdFlagDocsCLIReference            = "dir.docs.cli-reference"
@@ -43,10 +49,12 @@ const (
 	cmdFlagDocsDataLanguages           = "file.docs.data.languages"
 	cmdFlagCwd                         = "cwd"
 	cmdFlagFileConfigKeys              = "file.configuration-keys"
+	cmdFlagFileScriptsGen              = "file.scripts.gen"
 	cmdFlagFileConfigCommitLint        = "file.commit-lint-config"
 	cmdFlagFileDocsCommitMsgGuidelines = "file.docs-commit-msg-guidelines"
 	cmdFlagFileWebI18N                 = "file.web-i18n"
 	cmdFlagFeatureRequest              = "file.feature-request"
 	cmdFlagBugReport                   = "file.bug-report"
-	cmdFlagPackageConfigKeys           = "package.configuration-keys"
+	cmdFlagPackageConfigKeys           = "package.configuration.keys"
+	cmdFlagPackageScriptsGen           = "package.scripts.gen"
 )

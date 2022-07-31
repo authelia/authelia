@@ -18,6 +18,11 @@ type tmplConfigurationKeysData struct {
 	Package   string
 }
 
+type tmplScriptsGEnData struct {
+	Package          string
+	VersionSwaggerUI string
+}
+
 // Languages is the docs json model for the Authelia languages configuration.
 type Languages struct {
 	DefaultLocale    string     `json:"localeDefault"`
