@@ -18,9 +18,9 @@
     }
   },
   "dependencies": {
-    "@emotion/cache": "11.9.3",
-    "@emotion/react": "11.9.3",
-    "@emotion/styled": "11.9.3",
+    "@emotion/cache": "11.10.0",
+    "@emotion/react": "11.10.0",
+    "@emotion/styled": "11.10.0",
     "@fortawesome/fontawesome-svg-core": "6.1.2",
     "@fortawesome/free-regular-svg-icons": "6.1.2",
     "@fortawesome/free-solid-svg-icons": "6.1.2",
@@ -147,7 +147,7 @@
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "13.3.0",
     "@types/jest": "28.1.6",
-    "@types/node": "16.11.46",
+    "@types/node": "16.11.47",
     "@types/qrcode.react": "1.0.2",
     "@types/react": "18.0.15",
     "@types/react-dom": "18.0.6",
