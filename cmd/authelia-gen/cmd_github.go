@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,7 @@ func newGitHubCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "github",
 		Short: "Generate GitHub files",
+		RunE:  rootSubCommandsRunE,
 	}
 
 	cmd.AddCommand(newGitHubIssueTemplatesCmd())
@@ -25,6 +27,7 @@ func newGitHubIssueTemplatesCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "issue-templates",
 		Short: "Generate GitHub issue templates",
+		RunE:  rootSubCommandsRunE,
 	}
 
 	cmd.AddCommand(newGitHubIssueTemplatesBugReportCmd(), newGitHubIssueTemplatesFeatureCmd())
@@ -39,9 +42,6 @@ func newGitHubIssueTemplatesFeatureCmd() *cobra.Command {
 		RunE:  cmdGitHubIssueTemplatesFeatureRunE,
 	}
 
-	cmd.Flags().Int("versions", 5, "the maximum number of minor versions to list")
-	cmd.Flags().StringP("file", "f", "./.github/ISSUE_TEMPLATE/feature.yml", "Sets the path of the issue template file")
-
 	return cmd
 }
 
@@ -52,24 +52,25 @@ func newGitHubIssueTemplatesBugReportCmd() *cobra.Command {
 		RunE:  cmdGitHubIssueTemplatesBugReportRunE,
 	}
 
-	cmd.Flags().Int("versions", 5, "the maximum number of minor versions to list")
-	cmd.Flags().StringP("file", "f", "./.github/ISSUE_TEMPLATE/bug_report.yml", "Sets the path of the  issue template file")
-
 	return cmd
 }
 
 func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		cwd, file                                       string
+		cwd, file, root                                 string
 		tags, tagsFuture                                []string
 		latestMajor, latestMinor, latestPatch, versions int
 	)
 
-	if cwd, err = cmd.Flags().GetString("cwd"); err != nil {
+	if cwd, err = cmd.Flags().GetString(cmdFlagCwd); err != nil {
 		return err
 	}
 
-	if file, err = cmd.Flags().GetString("file"); err != nil {
+	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
+		return err
+	}
+
+	if file, err = cmd.Flags().GetString(cmdFlagFeatureRequest); err != nil {
 		return err
 	}
 
@@ -101,8 +102,10 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 		f *os.File
 	)
 
-	if f, err = os.Create(file); err != nil {
-		return fmt.Errorf("failed to create file '%s': %w", file, err)
+	fullPath := filepath.Join(root, file)
+
+	if f, err = os.Create(fullPath); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", fullPath, err)
 	}
 
 	data := &tmplIssueTemplateData{
@@ -119,19 +122,22 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 
 func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		cwd, file             string
+		cwd, file, dirRoot    string
 		tags, tagsRecent      []string
 		latestMinor, versions int
 	)
 
-	if cwd, err = cmd.Flags().GetString("cwd"); err != nil {
+	if cwd, err = cmd.Flags().GetString(cmdFlagCwd); err != nil {
 		return err
 	}
 
-	if file, err = cmd.Flags().GetString("file"); err != nil {
+	if dirRoot, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
 		return err
 	}
 
+	if file, err = cmd.Flags().GetString(cmdFlagBugReport); err != nil {
+		return err
+	}
 	if versions, err = cmd.Flags().GetInt("versions"); err != nil {
 		return err
 	}
@@ -177,8 +183,10 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		f *os.File
 	)
 
-	if f, err = os.Create(file); err != nil {
-		return fmt.Errorf("failed to create file '%s': %w", file, err)
+	fullPath := filepath.Join(dirRoot, file)
+
+	if f, err = os.Create(fullPath); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", fullPath, err)
 	}
 
 	data := &tmplIssueTemplateData{

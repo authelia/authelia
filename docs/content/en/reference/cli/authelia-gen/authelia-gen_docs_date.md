@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen docs cli"
-description: "Reference for the authelia-gen docs cli command."
+title: "authelia-gen docs date"
+description: "Reference for the authelia-gen docs date command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2022-07-31T12:55:34+10:00
 draft: false
 images: []
 menu:
@@ -12,18 +12,20 @@ weight: 330
 toc: true
 ---
 
-## authelia-gen docs cli
+## authelia-gen docs date
 
-Generate CLI docs
+Generate doc dates
 
 ```
-authelia-gen docs cli [flags]
+authelia-gen docs date [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for cli
+      --commit-since string   The commit to check the logs since
+      --commit-until string   The commit to check the logs until (default "HEAD")
+  -h, --help                  help for date
 ```
 
 ### Options inherited from parent commands

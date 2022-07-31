@@ -45,7 +45,8 @@ func newCommitLintCmd() *cobra.Command {
 
 	cmd.AddCommand(newGitHubIssueTemplatesCmd())
 
-	cmd.Flags().String("root", ".", "The repository root")
+	cmd.Flags().String(cmdFlagFileConfigCommitLint, fileCICommitLintConfig, "The commit lint javascript configuration file in relation to the root")
+	cmd.Flags().String(cmdFlagFileDocsCommitMsgGuidelines, fileDocsCommitMessageGuidelines, "The commit message guidelines documentation file in relation to the root")
 
 	return cmd
 }
@@ -106,9 +107,17 @@ func getGoPackages(dir string) (pkgs []string, err error) {
 }
 
 func commitLintRunE(cmd *cobra.Command, args []string) (err error) {
-	var root string
+	var root, pathCommitLintConfig, pathDocsCommitMessageGuidelines string
 
-	if root, err = cmd.Flags().GetString("root"); err != nil {
+	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
+		return err
+	}
+
+	if pathCommitLintConfig, err = cmd.Flags().GetString(cmdFlagFileConfigCommitLint); err != nil {
+		return err
+	}
+
+	if pathDocsCommitMessageGuidelines, err = cmd.Flags().GetString(cmdFlagFileDocsCommitMsgGuidelines); err != nil {
 		return err
 	}
 
@@ -129,11 +138,11 @@ func commitLintRunE(cmd *cobra.Command, args []string) (err error) {
 		pkgs []string
 	)
 
-	if cmds, err = getGoPackages(filepath.Join(root, pathCmd)); err != nil {
+	if cmds, err = getGoPackages(filepath.Join(root, subPathCmd)); err != nil {
 		return err
 	}
 
-	if pkgs, err = getGoPackages(filepath.Join(root, pathInternal)); err != nil {
+	if pkgs, err = getGoPackages(filepath.Join(root, subPathInternal)); err != nil {
 		return err
 	}
 
@@ -142,7 +151,7 @@ func commitLintRunE(cmd *cobra.Command, args []string) (err error) {
 
 	for _, scope := range commitScopesExtra {
 		switch scope.Name {
-		case "cmd":
+		case subPathCmd:
 			data.Scopes.Extra = append(data.Scopes.Extra, NameDescriptionTmpl{Name: scope.Name, Description: fmt.Sprintf(scope.Description, strings.Join(cmds, "|"))})
 		default:
 			data.Scopes.Extra = append(data.Scopes.Extra, scope)
@@ -182,32 +191,32 @@ func commitLintRunE(cmd *cobra.Command, args []string) (err error) {
 
 	var f *os.File
 
-	outPathCommitLintConfig := filepath.Join(root, pathDocsCommitLintConfig)
+	fullPathCommitLintConfig := filepath.Join(root, pathCommitLintConfig)
 
-	if f, err = os.Create(outPathCommitLintConfig); err != nil {
-		return fmt.Errorf("failed to create output file '%s': %w", outPathCommitLintConfig, err)
+	if f, err = os.Create(fullPathCommitLintConfig); err != nil {
+		return fmt.Errorf("failed to create output file '%s': %w", fullPathCommitLintConfig, err)
 	}
 
 	if err = tmplDotCommitLintRC.Execute(f, data); err != nil {
-		return fmt.Errorf("failed to write output file '%s': %w", outPathCommitLintConfig, err)
+		return fmt.Errorf("failed to write output file '%s': %w", fullPathCommitLintConfig, err)
 	}
 
 	if err = f.Close(); err != nil {
-		return fmt.Errorf("failed to close output file '%s': %w", outPathCommitLintConfig, err)
+		return fmt.Errorf("failed to close output file '%s': %w", fullPathCommitLintConfig, err)
 	}
 
-	outPathGuidelinesMD := filepath.Join(root, pathDocsCommitMessageGuidelines)
+	fullPathDocsCommitMessageGuidelines := filepath.Join(root, pathDocsCommitMessageGuidelines)
 
-	if f, err = os.Create(outPathGuidelinesMD); err != nil {
-		return fmt.Errorf("failed to create output file '%s': %w", outPathGuidelinesMD, err)
+	if f, err = os.Create(fullPathDocsCommitMessageGuidelines); err != nil {
+		return fmt.Errorf("failed to create output file '%s': %w", fullPathDocsCommitMessageGuidelines, err)
 	}
 
 	if err = tmplDocsCommitMessageGuidelines.Execute(f, data); err != nil {
-		return fmt.Errorf("failed to write output file '%s': %w", outPathGuidelinesMD, err)
+		return fmt.Errorf("failed to write output file '%s': %w", fullPathDocsCommitMessageGuidelines, err)
 	}
 
 	if err = f.Close(); err != nil {
-		return fmt.Errorf("failed to close output file '%s': %w", outPathGuidelinesMD, err)
+		return fmt.Errorf("failed to close output file '%s': %w", fullPathDocsCommitMessageGuidelines, err)
 	}
 
 	return nil

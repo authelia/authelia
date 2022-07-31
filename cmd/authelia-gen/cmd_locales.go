@@ -22,34 +22,45 @@ func newLocalesCmd() *cobra.Command {
 		RunE:  localesRunE,
 	}
 
-	cmd.AddCommand(newGitHubIssueTemplatesCmd())
-
-	cmd.Flags().String("root", "./", "The repository root")
-
 	return cmd
 }
 
 func localesRunE(cmd *cobra.Command, args []string) (err error) {
-	var root string
+	var (
+		root, pathLocales                       string
+		pathWebI18NIndex, pathDocsDataLanguages string
+	)
 
-	if root, err = cmd.Flags().GetString("root"); err != nil {
+	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
 		return err
 	}
 
-	data, err := getLanguages(filepath.Join(root, "internal/server/locales/"))
+	if pathLocales, err = cmd.Flags().GetString(cmdFlagDirLocales); err != nil {
+		return err
+	}
+
+	if pathWebI18NIndex, err = cmd.Flags().GetString(cmdFlagFileWebI18N); err != nil {
+		return err
+	}
+
+	if pathDocsDataLanguages, err = cmd.Flags().GetString(cmdFlagDocsDataLanguages); err != nil {
+		return err
+	}
+
+	data, err := getLanguages(filepath.Join(root, pathLocales))
 	if err != nil {
 		return err
 	}
 
-	fileWebI18N := filepath.Join(root, "web/src/i18n/index.ts")
+	fullPathWebI18NIndex := filepath.Join(root, pathWebI18NIndex)
 
 	var (
 		f        *os.File
 		dataJSON []byte
 	)
 
-	if f, err = os.Create(fileWebI18N); err != nil {
-		return fmt.Errorf("failed to create file '%s': %w", fileWebI18N, err)
+	if f, err = os.Create(fullPathWebI18NIndex); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", fullPathWebI18NIndex, err)
 	}
 
 	if err = tmplWebI18NIndex.Execute(f, data); err != nil {
@@ -60,10 +71,10 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	fileDocsLanguages := filepath.Join(root, "docs/data/languages.json")
+	fullPathDocsDataLanguages := filepath.Join(root, pathDocsDataLanguages)
 
-	if err = os.WriteFile(fileDocsLanguages, dataJSON, 0600); err != nil {
-		return fmt.Errorf("failed to write file '%s': %w", fileDocsLanguages, err)
+	if err = os.WriteFile(fullPathDocsDataLanguages, dataJSON, 0600); err != nil {
+		return fmt.Errorf("failed to write file '%s': %w", fullPathDocsDataLanguages, err)
 	}
 
 	return nil
@@ -73,8 +84,8 @@ func getLanguages(dir string) (languages *Languages, err error) {
 	var locales []string
 
 	languages = &Languages{
-		DefaultLocale:    defaultLocale,
-		DefaultNamespace: defaultNamespace,
+		DefaultLocale:    localeDefault,
+		DefaultNamespace: localeNamespaceDefault,
 	}
 
 	if err = filepath.Walk(dir, func(path string, info fs.FileInfo, errWalk error) (err error) {

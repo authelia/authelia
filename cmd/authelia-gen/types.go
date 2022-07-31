@@ -20,8 +20,8 @@ type tmplConfigurationKeysData struct {
 
 // Languages is the docs json model for the Authelia languages configuration.
 type Languages struct {
-	DefaultLocale    string     `json:"defaultLocale"`
-	DefaultNamespace string     `json:"defaultNamespace"`
+	DefaultLocale    string     `json:"localeDefault"`
+	DefaultNamespace string     `json:"localeNamespaceDefault"`
 	Namespaces       []string   `json:"namespaces"`
 	Languages        []Language `json:"languages"`
 }

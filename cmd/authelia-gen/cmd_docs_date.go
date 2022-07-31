@@ -22,7 +22,6 @@ func newDocsDateCmd() *cobra.Command {
 		RunE:  docsDateRunE,
 	}
 
-	cmd.Flags().StringP("directory", "d", "./docs/content", "The directory to modify")
 	cmd.Flags().String("commit-until", "HEAD", "The commit to check the logs until")
 	cmd.Flags().String("commit-since", "", "The commit to check the logs since")
 
@@ -31,14 +30,18 @@ func newDocsDateCmd() *cobra.Command {
 
 func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		dir, cwd, commitUtil, commitSince, commitFilter string
+		root, pathDocsContent, cwd, commitUtil, commitSince, commitFilter string
 	)
 
-	if dir, err = cmd.Flags().GetString("directory"); err != nil {
+	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
 		return err
 	}
 
-	if cwd, err = cmd.Flags().GetString("cwd"); err != nil {
+	if pathDocsContent, err = cmd.Flags().GetString(cmdFlagDocsContent); err != nil {
+		return err
+	}
+
+	if cwd, err = cmd.Flags().GetString(cmdFlagCwd); err != nil {
 		return err
 	}
 
@@ -54,7 +57,7 @@ func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 		commitFilter = fmt.Sprintf("%s...%s", commitUtil, commitSince)
 	}
 
-	return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+	return filepath.Walk(filepath.Join(root, pathDocsContent), func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -161,7 +164,7 @@ func replaceDates(path string, date time.Time, dateGit *time.Time) {
 	for scanner.Scan() {
 		if found < 2 && frontmatter < 2 {
 			switch {
-			case scanner.Text() == frontmatterDelimiterLine:
+			case scanner.Text() == delimiterLineFrontMatter:
 				buf.Write(scanner.Bytes())
 				frontmatter++
 			case frontmatter != 0 && strings.HasPrefix(scanner.Text(), "date: "):
@@ -205,13 +208,13 @@ func getFrontmatter(path string) []byte {
 
 	for scanner.Scan() {
 		if start {
-			if scanner.Text() == frontmatterDelimiterLine {
+			if scanner.Text() == delimiterLineFrontMatter {
 				break
 			}
 
 			buf.Write(scanner.Bytes())
 			buf.Write(newline)
-		} else if scanner.Text() == frontmatterDelimiterLine {
+		} else if scanner.Text() == delimiterLineFrontMatter {
 			start = true
 		}
 	}
