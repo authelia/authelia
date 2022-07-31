@@ -27,6 +27,15 @@ var verifyGetCfg = schema.AuthenticationBackendConfiguration{
 	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
 }
 
+var ConfigAuthz = schema.Configuration{
+	Session: schema.SessionConfiguration{
+		Domain: "example.com",
+	},
+	AuthenticationBackend: schema.AuthenticationBackendConfiguration{
+		RefreshInterval: schema.RefreshIntervalDefault,
+	},
+}
+
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -67,8 +76,7 @@ func TestShouldRaiseWhenXForwardedProtoIsNotParsable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 
 	_, err := mock.Ctx.GetOriginalURL()
-	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL !:;;:,://myhost.local/: parse \"!:;;:,://myhost.local/\": invalid URI for request", err.Error())
+	assert.EqualError(t, err, "failed to parse URL '!:;;:,://myhost.local/': parse \"!:;;:,://myhost.local/\": invalid URI for request")
 }
 
 func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
@@ -80,8 +88,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
 
 	_, err := mock.Ctx.GetOriginalURL()
-	require.Error(t, err)
-	assert.Equal(t, "Unable to parse URL https://myhost.local!:;;:,: parse \"https://myhost.local!:;;:,\": invalid port \":,\" after host", err.Error())
+	assert.EqualError(t, err, "failed to parse URL 'https://myhost.local!:;;:,': parse \"https://myhost.local!:;;:,\": invalid port \":,\" after host")
 }
 
 // Test parseBasicAuth.
@@ -124,25 +131,25 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 	type Rule struct {
 		Policy           string
 		AuthLevel        authentication.Level
-		ExpectedMatching authorizationMatching
+		ExpectedMatching AuthzResult
 	}
 
 	rules := []Rule{
-		{"bypass", authentication.NotAuthenticated, Authorized},
-		{"bypass", authentication.OneFactor, Authorized},
-		{"bypass", authentication.TwoFactor, Authorized},
+		{"bypass", authentication.NotAuthenticated, AuthzResultAuthorized},
+		{"bypass", authentication.OneFactor, AuthzResultAuthorized},
+		{"bypass", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"one_factor", authentication.NotAuthenticated, NotAuthorized},
-		{"one_factor", authentication.OneFactor, Authorized},
-		{"one_factor", authentication.TwoFactor, Authorized},
+		{"one_factor", authentication.NotAuthenticated, AuthzResultUnauthorized},
+		{"one_factor", authentication.OneFactor, AuthzResultAuthorized},
+		{"one_factor", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"two_factor", authentication.NotAuthenticated, NotAuthorized},
-		{"two_factor", authentication.OneFactor, NotAuthorized},
-		{"two_factor", authentication.TwoFactor, Authorized},
+		{"two_factor", authentication.NotAuthenticated, AuthzResultUnauthorized},
+		{"two_factor", authentication.OneFactor, AuthzResultUnauthorized},
+		{"two_factor", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"deny", authentication.NotAuthenticated, NotAuthorized},
-		{"deny", authentication.OneFactor, Forbidden},
-		{"deny", authentication.TwoFactor, Forbidden},
+		{"deny", authentication.NotAuthenticated, AuthzResultUnauthorized},
+		{"deny", authentication.OneFactor, AuthzResultForbidden},
+		{"deny", authentication.TwoFactor, AuthzResultForbidden},
 	}
 
 	u, _ := url.ParseRequestURI("https://test.example.com")
@@ -197,9 +204,13 @@ func (s *BasicAuthorizationSuite) TestShouldNotBeAbleToParseBasicAuth() {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpaaaaaaaaaaaaaaaa")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	authz := NewAuthzBuilder().WithImplementationLegacy().Build()
 
-	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
@@ -220,9 +231,18 @@ func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
@@ -243,9 +263,18 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
@@ -266,9 +295,18 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
@@ -289,9 +327,18 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
@@ -312,9 +359,18 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 403, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgOk() {
@@ -336,9 +392,18 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgOk() {
 			Groups: []string{"dev", "admins"},
 		}, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(s.T(), []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingNoHeader() {
@@ -348,9 +413,16 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingNoHeader() 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
@@ -364,9 +436,16 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader
 	mock.Ctx.Request.Header.Set("Authorization", "")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
@@ -384,9 +463,16 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPasswo
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(false, nil)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
@@ -400,9 +486,16 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	assert.Equal(s.T(), 401, mock.Ctx.Response.StatusCode())
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
 	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
 	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
@@ -423,10 +516,19 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
-	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
-	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
-		"https://test.example.com", actualStatus, expStatus)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
+
 }
 
 func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
@@ -440,10 +542,18 @@ func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
-	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
-	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
-		"https://test.example.com", actualStatus, expStatus)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
@@ -461,10 +571,18 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
-	expStatus, actualStatus := 401, mock.Ctx.Response.StatusCode()
-	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
-		"https://test.example.com", actualStatus, expStatus)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
 func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
@@ -479,18 +597,24 @@ func TestShouldNotCrashOnEmptyEmail(t *testing.T) {
 	userSession.AuthenticationLevel = authentication.OneFactor
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
-	fmt.Printf("Time is %v\n", userSession.RefreshTTL)
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
 
-	expStatus, actualStatus := 200, mock.Ctx.Response.StatusCode()
-	assert.Equal(t, expStatus, actualStatus, "URL=%s -> StatusCode=%d != ExpectedStatusCode=%d",
-		"https://bypass.example.com", actualStatus, expStatus)
-	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Email"))
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
+	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerRemoteEmail))
 }
 
 type Pair struct {
@@ -504,6 +628,25 @@ type Pair struct {
 func (p Pair) String() string {
 	return fmt.Sprintf("url=%s, username=%s, auth_lvl=%d, exp_status=%d",
 		p.URL, p.Username, p.AuthenticationLevel, p.ExpectedStatusCode)
+}
+
+func TestShouldVerifyAuthorizationsUsingOnlyAuthorizationHeader(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithStrategyAuthorization().
+		WithConfig(&config).
+		Build()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
@@ -527,6 +670,13 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
 	}
 
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.String(), func(t *testing.T) {
@@ -546,17 +696,18 @@ func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 
 			mock.Ctx.Request.Header.Set("X-Original-URL", testCase.URL)
 
-			VerifyGET(verifyGetCfg)(mock.Ctx)
+			authz.Handler(mock.Ctx)
+
 			expStatus, actualStatus := testCase.ExpectedStatusCode, mock.Ctx.Response.StatusCode()
 			assert.Equal(t, expStatus, actualStatus, "URL=%s -> AuthLevel=%d, StatusCode=%d != ExpectedStatusCode=%d",
 				testCase.URL, testCase.AuthenticationLevel, actualStatus, expStatus)
 
-			if testCase.ExpectedStatusCode == 200 && testCase.Username != "" {
-				assert.Equal(t, []byte(testCase.Username), mock.Ctx.Response.Header.Peek("Remote-User"))
-				assert.Equal(t, []byte("john.doe@example.com"), mock.Ctx.Response.Header.Peek("Remote-Email"))
+			if testCase.ExpectedStatusCode == fasthttp.StatusOK && testCase.Username != "" {
+				assert.Equal(t, []byte(testCase.Username), mock.Ctx.Response.Header.PeekBytes(headerRemoteUser))
+				assert.Equal(t, []byte("john.doe@example.com"), mock.Ctx.Response.Header.PeekBytes(headerRemoteEmail))
 			} else {
-				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-User"))
-				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek("Remote-Email"))
+				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerRemoteUser))
+				assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerRemoteEmail))
 			}
 		})
 	}
@@ -585,7 +736,14 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -618,7 +776,14 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -647,7 +812,14 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	// Check the session is still active.
 	newUserSession := mock.Ctx.GetSession()
@@ -680,7 +852,14 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	// The session has been destroyed.
 	newUserSession := mock.Ctx.GetSession()
@@ -715,11 +894,19 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryStrArgumentRedirect, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
@@ -734,27 +921,34 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryStrArgumentRedirect, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
 
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryStrArgumentRedirect, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "POST")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	authz.Handler(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=POST\">303 See Other</a>",
 		string(mock.Ctx.Response.Body()))
-	assert.Equal(t, 303, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusSeeOther, mock.Ctx.Response.StatusCode())
 }
 
 func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *testing.T) {
@@ -778,7 +972,14 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	// The resource if forbidden.
 	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
@@ -807,7 +1008,14 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock.Ctx.Request.SetHost("mydomain.com")
 	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
@@ -888,9 +1096,14 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	cfg := verifyGetCfg
-	cfg.RefreshInterval = "disable"
-	verifyGet := VerifyGET(cfg)
+	config := ConfigAuthz
+
+	config.AuthenticationBackend.RefreshInterval = "disable"
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
 
@@ -908,11 +1121,11 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	verifyGet(mock.Ctx)
+	authz.Handler(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	verifyGet(mock.Ctx)
+	authz.Handler(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has not been updated.
@@ -925,7 +1138,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 	assert.Equal(t, "users", userSession.Groups[1])
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	verifyGet(mock.Ctx)
+	authz.Handler(mock.Ctx)
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is not removed from the session.
@@ -971,10 +1184,16 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	config := verifyGetCfg
-	config.RefreshInterval = schema.ProfileRefreshDisabled
+	config := ConfigAuthz
+	config.AuthenticationBackend.RefreshInterval = schema.ProfileRefreshDisabled
 
-	VerifyGET(config)(mock.Ctx)
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
 	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
@@ -1017,8 +1236,16 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
 	userSession = mock.Ctx.GetSession()
@@ -1032,9 +1259,9 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1)
 
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	authz.Handler(mock.Ctx)
 
-	assert.Equal(t, 401, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 
 	userSession = mock.Ctx.GetSession()
 	assert.Equal(t, "", userSession.Username)
@@ -1057,7 +1284,12 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 		},
 	}
 
-	verifyGet := VerifyGET(verifyGetCfg)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(2)
 
@@ -1076,14 +1308,14 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	verifyGet(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Request should get refresh settings and new user details.
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	verifyGet(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has been updated since admin.example.com has a group subject and refresh is enabled.
 	userSession = mock.Ctx.GetSession()
@@ -1101,8 +1333,8 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
-	verifyGet(mock.Ctx)
-	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is removed from the session.
 	userSession = mock.Ctx.GetSession()
@@ -1128,7 +1360,12 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
 
-	verifyGet := VerifyGET(verifyGetCfg)
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
 
 	mock.Clock.Set(time.Now())
 
@@ -1144,12 +1381,12 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	verifyGet(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
-	verifyGet(mock.Ctx)
-	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has been updated since grafana.example.com has a group subject and refresh is enabled.
 	userSession = mock.Ctx.GetSession()
@@ -1181,8 +1418,8 @@ func TestShouldGetAddedUserGroupsFromBackend(t *testing.T) {
 	)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://grafana.example.com")
-	VerifyGET(verifyGetCfg)(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	authz.Handler(mock.Ctx)
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is removed from the session.
 	userSession = mock.Ctx.GetSession()
@@ -1201,7 +1438,7 @@ func TestShouldCheckValidSessionUsernameHeaderAndReturn200(t *testing.T) {
 
 	mock.Clock.Set(time.Now())
 
-	expectedStatusCode := 200
+	expectedStatusCode := fasthttp.StatusOK
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -1213,10 +1450,18 @@ func TestShouldCheckValidSessionUsernameHeaderAndReturn200(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, testUsername)
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "", string(mock.Ctx.Response.Body()))
+	assert.Equal(t, "200 OK", string(mock.Ctx.Response.Body()))
 }
 
 func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
@@ -1225,7 +1470,7 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	mock.Clock.Set(time.Now())
 
-	expectedStatusCode := 401
+	expectedStatusCode := fasthttp.StatusUnauthorized
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -1237,7 +1482,15 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, "root")
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "401 Unauthorized", string(mock.Ctx.Response.Body()))
@@ -1288,29 +1541,38 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	require.NoError(t, err)
 
 	// Should respond 200 OK.
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryStrArgumentRedirect, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 
 	// Should respond 302 Found.
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryStrArgumentRedirect, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	authz.Handler(mock.Ctx)
 	assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&rm=GET", string(mock.Ctx.Response.Header.Peek("Location")))
 
 	// Should respond 401 Unauthorized.
-	mock.Ctx.QueryArgs().Del("rd")
+	mock.Ctx.QueryArgs().Del(queryStrArgumentRedirect)
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
-	VerifyGET(verifyGetCfg)(mock.Ctx)
+	authz.Handler(mock.Ctx)
 	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 }

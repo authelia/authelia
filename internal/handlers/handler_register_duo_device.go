@@ -26,7 +26,7 @@ func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		if result == auth {
+		if result == cauth {
 			if devices == nil {
 				ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
 
@@ -37,7 +37,7 @@ func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
 				return
 			}
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, Devices: devices}); err != nil {
+			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: cauth, Devices: devices}); err != nil {
 				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
 			}
 

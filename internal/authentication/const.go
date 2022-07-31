@@ -10,8 +10,10 @@ type Level int
 const (
 	// NotAuthenticated if the user is not authenticated yet.
 	NotAuthenticated Level = iota
+
 	// OneFactor if the user has passed first factor only.
 	OneFactor
+
 	// TwoFactor if the user has passed two factors.
 	TwoFactor
 )

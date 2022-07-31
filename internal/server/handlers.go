@@ -164,8 +164,25 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	authzBuilder := handlers.NewAuthzBuilder().WithConfig(&config)
+
+	authzImplLegacy := authzBuilder.WithImplementationLegacy().Build()
+
+	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(authzImplLegacy.Handler)))
+	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(authzImplLegacy.Handler)))
+
+	r.GET("/api/authz/legacy", middlewares.Wrap(metricsVRMW, middleware(authzImplLegacy.Handler)))
+	r.HEAD("/api/authz/legacy", middlewares.Wrap(metricsVRMW, middleware(authzImplLegacy.Handler)))
+
+	authzImplForwardAuth := authzBuilder.WithImplementationForwardAuth().Build()
+
+	r.GET("/api/authz/forward-auth", middlewares.Wrap(metricsVRMW, middleware(authzImplForwardAuth.Handler)))
+	r.HEAD("/api/authz/forward-auth", middlewares.Wrap(metricsVRMW, middleware(authzImplForwardAuth.Handler)))
+
+	authzImplAuthRequest := authzBuilder.WithImplementationAuthRequest().Build()
+
+	r.GET("/api/authz/auth-request", middlewares.Wrap(metricsVRMW, middleware(authzImplAuthRequest.Handler)))
+	r.HEAD("/api/authz/auth-request", middlewares.Wrap(metricsVRMW, middleware(authzImplAuthRequest.Handler)))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 

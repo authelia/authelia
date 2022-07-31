@@ -122,7 +122,7 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 		HandleAllow(ctx, bodyJSON)
 
 		return "", "", nil
-	case auth:
+	case cauth:
 		device, method, err = HandleAutoSelection(ctx, devices, userSession.Username)
 		if err != nil {
 			return "", "", err
@@ -168,7 +168,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 		HandleAllow(ctx, bodyJSON)
 
 		return "", "", nil
-	case auth:
+	case cauth:
 		if devices == nil {
 			ctx.Logger.Debugf("Duo user: %s has no compatible device/method available removing preferred device", userSession.Username)
 
@@ -214,7 +214,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	if len(devices) > 1 {
 		ctx.Logger.Debugf("Multiple devices available for Duo user: %s require manual selection", username)
 
-		if err := ctx.SetJSONBody(DuoSignResponse{Result: auth, Devices: devices}); err != nil {
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: cauth, Devices: devices}); err != nil {
 			return "", "", fmt.Errorf("unable to set JSON body in response")
 		}
 
@@ -224,7 +224,7 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 	if len(devices[0].Capabilities) > 1 {
 		ctx.Logger.Debugf("Multiple methods available for Duo user: %s require manual selection", username)
 
-		if err := ctx.SetJSONBody(DuoSignResponse{Result: auth, Devices: devices}); err != nil {
+		if err := ctx.SetJSONBody(DuoSignResponse{Result: cauth, Devices: devices}); err != nil {
 			return "", "", fmt.Errorf("unable to set JSON body in response")
 		}
 

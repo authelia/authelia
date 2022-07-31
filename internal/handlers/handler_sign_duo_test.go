@@ -80,7 +80,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -218,7 +218,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -258,7 +258,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -268,7 +268,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
-	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: cauth, Devices: apiDevices})
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
@@ -298,7 +298,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -426,7 +426,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -466,7 +466,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -509,7 +509,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -558,7 +558,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -603,7 +603,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -652,7 +652,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
@@ -699,7 +699,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	values.Set("username", "john")
 
 	preAuthResponse := duo.PreAuthResponse{}
-	preAuthResponse.Result = auth
+	preAuthResponse.Result = cauth
 	preAuthResponse.Devices = duoDevices
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)

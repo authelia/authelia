@@ -19,7 +19,7 @@ func DuoPreAuth(ctx *middlewares.AutheliaCtx, duoAPI duo.API) (string, string, [
 		return "", "", nil, "", err
 	}
 
-	if preAuthResponse.Result == auth {
+	if preAuthResponse.Result == cauth {
 		var supportedDevices []DuoDevice
 
 		for _, device := range preAuthResponse.Devices {

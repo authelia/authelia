@@ -10,8 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -186,11 +184,11 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 
 		location.RawQuery = query.Encode()
 
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is sufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToString(client.Policy))
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is sufficient for client level '%s'", requester.GetID(), client.GetID(), userSession.AuthenticationLevel, client.Policy)
 	} else {
 		location = getOIDCAuthorizationRedirectURL(issuer, requester)
 
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is insufficient for client level '%s'", requester.GetID(), client.GetID(), authentication.LevelToString(userSession.AuthenticationLevel), authorization.LevelToString(client.Policy))
+		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' authentication level '%s' is insufficient for client level '%s'", requester.GetID(), client.GetID(), userSession.AuthenticationLevel, client.Policy)
 	}
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected to '%s'", requester.GetID(), client.GetID(), location)
@@ -237,8 +235,8 @@ func getOIDCAuthorizationRedirectURL(issuer *url.URL, requester fosite.Authorize
 	authorizationURL.RawQuery = requester.GetRequestForm().Encode()
 
 	query := redirectURL.Query()
-	query.Set("rd", authorizationURL.String())
-	query.Set("workflow", workflowOpenIDConnect)
+	query.Set(queryStrArgumentRedirect, authorizationURL.String())
+	query.Set(queryStrArgumentWorkflow, workflowOpenIDConnect)
 
 	redirectURL.RawQuery = query.Encode()
 

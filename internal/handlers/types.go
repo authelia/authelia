@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"net/url"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 // MethodList is the list of available methods.
 type MethodList = []string
 
-type authorizationMatching int
+type AuthzResult int
 
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
@@ -127,4 +130,37 @@ type PasswordPolicyBody struct {
 	RequireLowercase bool   `json:"require_lowercase"`
 	RequireNumber    bool   `json:"require_number"`
 	RequireSpecial   bool   `json:"require_special"`
+}
+
+// AuthnType is an auth type.
+type AuthnType int
+
+const (
+	// AuthnTypeNone is a nil Authentication AuthnType.
+	AuthnTypeNone AuthnType = iota
+
+	// AuthnTypeCookie is an Authentication AuthnType based on the Cookie header.
+	AuthnTypeCookie
+
+	// AuthnTypeProxyAuthorization is an Authentication AuthnType based on the Proxy-Authorization header.
+	AuthnTypeProxyAuthorization
+
+	// AuthnTypeAuthorization is an Authentication AuthnType based on the Authorization header.
+	AuthnTypeAuthorization
+)
+
+type AuthnObject struct {
+	URL    *url.URL
+	Method string
+}
+
+// Authn is authentication.
+type Authn struct {
+	Username string
+	Method   string
+
+	Details authentication.UserDetails
+	Level   authentication.Level
+	Object  authorization.Object
+	Type    AuthnType
 }

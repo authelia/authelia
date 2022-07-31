@@ -131,10 +131,10 @@ func (ctx *AutheliaCtx) ReplyBadRequest() {
 
 // XForwardedProto return the content of the X-Forwarded-Proto header.
 func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
-	proto = ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedProto)
+	proto = ctx.Request.Header.PeekBytes(headerXForwardedProto)
 
 	if proto == nil {
-		if ctx.RequestCtx.IsTLS() {
+		if ctx.IsTLS() {
 			return protoHTTPS
 		}
 
@@ -144,17 +144,22 @@ func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 	return proto
 }
 
+// XOriginalMethod return the content of the X-Original-Method header.
+func (ctx *AutheliaCtx) XOriginalMethod() (method []byte) {
+	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
+}
+
 // XForwardedMethod return the content of the X-Forwarded-Method header.
 func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
-	return ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
+	return ctx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
 // XForwardedHost return the content of the X-Forwarded-Host header.
 func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
-	host = ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedHost)
+	host = ctx.Request.Header.PeekBytes(headerXForwardedHost)
 
 	if host == nil {
-		return ctx.RequestCtx.Host()
+		return ctx.Host()
 	}
 
 	return host
@@ -162,10 +167,10 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 
 // XForwardedURI return the content of the X-Forwarded-URI header.
 func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
-	uri = ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedURI)
+	uri = ctx.Request.Header.PeekBytes(headerXForwardedURI)
 
 	if len(uri) == 0 {
-		return ctx.RequestCtx.RequestURI()
+		return ctx.RequestURI()
 	}
 
 	return uri
@@ -210,7 +215,7 @@ func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
 
 // XOriginalURL return the content of the X-Original-URL header.
 func (ctx *AutheliaCtx) XOriginalURL() []byte {
-	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
+	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
 // GetSession return the user session. Any update will be saved in cache.
@@ -275,20 +280,8 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 	return ctx.RequestCtx.RemoteIP()
 }
 
-// GetOriginalURL extract the URL from the request headers (X-Original-URL or X-Forwarded-* headers).
-func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
-	originalURL := ctx.XOriginalURL()
-	if originalURL != nil {
-		parsedURL, err := url.ParseRequestURI(string(originalURL))
-		if err != nil {
-			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
-		}
-
-		ctx.Logger.Trace("Using X-Original-URL header content as targeted site URL")
-
-		return parsedURL, nil
-	}
-
+// GetForwardedURL extract the URL from the request headers (X-Forwarded-* headers).
+func (ctx *AutheliaCtx) GetForwardedURL() (forwardedURL *url.URL, err error) {
 	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
 
 	if forwardedProto == nil {
@@ -299,21 +292,28 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 		return nil, errMissingXForwardedHost
 	}
 
-	var requestURI string
+	requestURI := utils.BytesJoin(forwardedProto, protoHostSeparator, forwardedHost, forwardedURI)
 
-	forwardedProto = append(forwardedProto, protoHostSeparator...)
-	requestURI = string(append(forwardedProto,
-		append(forwardedHost, forwardedURI...)...))
-
-	parsedURL, err := url.ParseRequestURI(requestURI)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse URL %s: %v", requestURI, err)
+	if forwardedURL, err = url.ParseRequestURI(string(requestURI)); err != nil {
+		return nil, fmt.Errorf("failed to parse URL '%s': %w", requestURI, err)
 	}
 
-	ctx.Logger.Tracef("Using X-Fowarded-Proto, X-Forwarded-Host and X-Forwarded-URI headers " +
-		"to construct targeted site URL")
+	return forwardedURL, nil
+}
 
-	return parsedURL, nil
+// GetOriginalURL extract the URL from the request headers (X-Original-URL or X-Forwarded-* headers).
+func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
+	originalURL := ctx.XOriginalURL()
+	if originalURL != nil {
+		parsedURL, err := url.ParseRequestURI(string(originalURL))
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse URL extracted from X-Original-URL header: %v", err)
+		}
+
+		return parsedURL, nil
+	}
+
+	return ctx.GetForwardedURL()
 }
 
 // IsXHR returns true if the request is a XMLHttpRequest.

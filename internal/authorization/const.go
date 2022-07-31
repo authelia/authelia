@@ -6,10 +6,13 @@ type Level int
 const (
 	// Bypass bypass level.
 	Bypass Level = iota
+
 	// OneFactor one factor level.
 	OneFactor
+
 	// TwoFactor two factor level.
 	TwoFactor
+
 	// Denied denied level.
 	Denied
 )

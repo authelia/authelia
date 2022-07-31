@@ -16,7 +16,7 @@ type Authorizer struct {
 // NewAuthorizer create an instance of authorizer with a given access control configuration.
 func NewAuthorizer(configuration *schema.Configuration) (authorizer *Authorizer) {
 	authorizer = &Authorizer{
-		defaultPolicy: StringToLevel(configuration.AccessControl.DefaultPolicy),
+		defaultPolicy: NewLevel(configuration.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(configuration.AccessControl),
 		configuration: configuration,
 	}

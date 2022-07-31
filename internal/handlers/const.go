@@ -18,8 +18,11 @@ const (
 )
 
 var (
-	headerAuthorization      = []byte(fasthttp.HeaderAuthorization)
+	headerAuthorization   = []byte(fasthttp.HeaderAuthorization)
+	headerWWWAuthenticate = []byte(fasthttp.HeaderWWWAuthenticate)
+
 	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
+	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
 
 	headerSessionUsername = []byte("Session-Username")
 	headerRemoteUser      = []byte("Remote-User")
@@ -29,12 +32,40 @@ var (
 )
 
 const (
-	// Forbidden means the user is forbidden the access to a resource.
-	Forbidden authorizationMatching = iota
-	// NotAuthorized means the user can access the resource with more permissions.
-	NotAuthorized authorizationMatching = iota
-	// Authorized means the user is authorized given her current permissions.
-	Authorized authorizationMatching = iota
+	queryStrArgumentRedirect      = "rd"
+	queryStrArgumentRequestMethod = "rm"
+	queryStrArgumentWorkflow      = "workflow"
+)
+
+var (
+	headerValueAuthenticateBasic = []byte(`Basic realm="Authorization Required"`)
+
+	queryArgumentRedirect = []byte(queryStrArgumentRedirect)
+	queryArgumentAuth     = []byte("auth")
+)
+
+const (
+	headerAuthorizationSchemeBasic = "Basic"
+)
+
+const (
+	headerAcceptsMIMETextHTML = "text/html"
+)
+
+var (
+	valueEmpty = []byte("")
+	valueBasic = []byte("basic")
+)
+
+const (
+	// AuthzResultForbidden means the user is forbidden the access to a resource.
+	AuthzResultForbidden AuthzResult = iota
+
+	// AuthzResultUnauthorized means the user can access the resource with more permissions.
+	AuthzResultUnauthorized
+
+	// AuthzResultAuthorized means the user is authorized given her current permissions.
+	AuthzResultAuthorized
 )
 
 const (
@@ -73,7 +104,7 @@ const (
 	allow  = "allow"
 	deny   = "deny"
 	enroll = "enroll"
-	auth   = "auth"
+	cauth  = "auth"
 )
 
 const authPrefix = "Basic "
