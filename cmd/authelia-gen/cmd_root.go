@@ -37,6 +37,8 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().String(cmdFlagPackageConfigKeys, pkgConfigSchema, "Sets the package name of the keys file")
 	cmd.PersistentFlags().String(cmdFlagFileScriptsGen, fileScriptsGen, "Sets the path of the authelia-scripts gen file")
 	cmd.PersistentFlags().String(cmdFlagPackageScriptsGen, pkgScriptsGen, "Sets the package name of the authelia-scripts gen file")
+	cmd.PersistentFlags().String(cmdFlagFileConfigCommitLint, fileCICommitLintConfig, "The commit lint javascript configuration file in relation to the root")
+	cmd.PersistentFlags().String(cmdFlagFileDocsCommitMsgGuidelines, fileDocsCommitMessageGuidelines, "The commit message guidelines documentation file in relation to the root")
 
 	cmd.AddCommand(newCodeCmd(), newDocsCmd(), newGitHubCmd(), newLocalesCmd(), newCommitLintCmd())
 

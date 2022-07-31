@@ -45,9 +45,6 @@ func newCommitLintCmd() *cobra.Command {
 
 	cmd.AddCommand(newGitHubIssueTemplatesCmd())
 
-	cmd.Flags().String(cmdFlagFileConfigCommitLint, fileCICommitLintConfig, "The commit lint javascript configuration file in relation to the root")
-	cmd.Flags().String(cmdFlagFileDocsCommitMsgGuidelines, fileDocsCommitMessageGuidelines, "The commit message guidelines documentation file in relation to the root")
-
 	return cmd
 }
 
