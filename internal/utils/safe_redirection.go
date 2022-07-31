@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -29,4 +30,22 @@ func IsRedirectionURISafe(uri string, protectedDomains []schema.SessionDomainCon
 	}
 
 	return targetURL != nil && IsRedirectionSafe(*targetURL, protectedDomains), nil
+}
+
+// GetPortalURL gets redirection URL from session configuration.
+func GetPortalURL(uri string, domains []schema.SessionDomainConfiguration) string {
+	targetURL, err := url.ParseRequestURI(uri)
+	if err != nil {
+		return ""
+	}
+
+	hostname := targetURL.Hostname()
+
+	for _, domain := range domains {
+		if strings.HasSuffix(hostname, domain.Domain) {
+			return domain.PortalURL
+		}
+	}
+
+	return ""
 }

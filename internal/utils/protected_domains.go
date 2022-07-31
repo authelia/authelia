@@ -11,7 +11,7 @@ import (
 func IsURLUnderProtectedDomain(url *url.URL, domains []schema.SessionDomainConfiguration) bool {
 	hostname := url.Hostname()
 	for _, domain := range domains {
-		if strings.HasSuffix(hostname, domain.Domain) {
+		if strings.HasSuffix(hostname, domain.Domain) && domain.Domain != "" {
 			return true
 		}
 	}
