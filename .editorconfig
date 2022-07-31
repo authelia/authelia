@@ -15,6 +15,10 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
+[*.conf]
+indent_style = space
+indent_size = 4
+
 [web/**]
 indent_style = space
 

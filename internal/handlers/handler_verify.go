@@ -206,11 +206,6 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		friendlyRequestMethod = rm
 	}
 
-	if rd == "" {
-		rd = utils.GetPortalURL(targetURL.String(), ctx.Configuration.Session.Domains)
-		ctx.Logger.Debugf("Portal URL for target url '%s': '%s'", targetURL.String(), rd)
-	}
-
 	if rd != "" {
 		switch rm {
 		case "":
