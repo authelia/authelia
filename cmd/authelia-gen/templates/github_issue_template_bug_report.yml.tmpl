@@ -24,7 +24,8 @@ body:
     id: version
     attributes:
       label: Version
-      description: What version of Authelia are you using?
+      description: What version or versions of Authelia can you reproduce this bug on?
+      multiple: true
       options:
       {{- range .Versions }}
         - {{ . }}
