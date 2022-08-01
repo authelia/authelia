@@ -13,7 +13,7 @@ RUN yarn install --frozen-lockfile && yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.18.4-alpine AS builder-backend
+FROM golang:1.18.5-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
