@@ -16,9 +16,10 @@ import (
 
 func newDocsCLICmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cli",
-		Short: "Generate CLI docs",
-		RunE:  docsCLIRunE,
+		Use:               "cli",
+		Short:             "Generate CLI docs",
+		RunE:              docsCLIRunE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -71,6 +72,16 @@ func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func genCLIDoc(cmd *cobra.Command, path string) (err error) {
+	if _, err = os.Stat(path); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	if err == nil || !os.IsNotExist(err) {
+		if err = os.RemoveAll(path); err != nil {
+			return fmt.Errorf("failed to remove docs: %w", err)
+		}
+	}
+
 	if err = os.Mkdir(path, 0755); err != nil {
 		if !os.IsExist(err) {
 			return err

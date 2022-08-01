@@ -9,12 +9,13 @@ import (
 
 func newServeCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "serve [config]",
-		Short:   cmdServeShort,
-		Long:    cmdServeLong,
-		Example: cmdServeExample,
-		Args:    cobra.MinimumNArgs(1),
-		Run:     cmdServeRun,
+		Use:               "serve [config]",
+		Short:             cmdServeShort,
+		Long:              cmdServeLong,
+		Example:           cmdServeExample,
+		Args:              cobra.MinimumNArgs(1),
+		Run:               cmdServeRun,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

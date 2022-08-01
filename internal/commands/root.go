@@ -22,14 +22,15 @@ func NewRootCmd() (cmd *cobra.Command) {
 	version := utils.Version()
 
 	cmd = &cobra.Command{
-		Use:     "authelia",
-		Short:   fmt.Sprintf(fmtCmdAutheliaShort, version),
-		Long:    fmt.Sprintf(fmtCmdAutheliaLong, version),
-		Example: cmdAutheliaExample,
-		Version: version,
-		Args:    cobra.NoArgs,
-		PreRun:  newCmdWithConfigPreRun(true, true, true),
-		Run:     cmdRootRun,
+		Use:               "authelia",
+		Short:             fmt.Sprintf(fmtCmdAutheliaShort, version),
+		Long:              fmt.Sprintf(fmtCmdAutheliaLong, version),
+		Example:           cmdAutheliaExample,
+		Version:           version,
+		Args:              cobra.NoArgs,
+		PreRun:            newCmdWithConfigPreRun(true, true, true),
+		Run:               cmdRootRun,
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{})

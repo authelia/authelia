@@ -17,9 +17,10 @@ func init() {
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "authelia-gen",
-		Short: "Authelia's generator tooling",
-		RunE:  rootSubCommandsRunE,
+		Use:               "authelia-gen",
+		Short:             "Authelia's generator tooling",
+		RunE:              rootSubCommandsRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.PersistentFlags().StringP(cmdFlagCwd, "C", "", "Sets the CWD for git commands")

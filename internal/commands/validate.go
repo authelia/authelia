@@ -10,12 +10,13 @@ import (
 
 func newValidateConfigCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "validate-config",
-		Short:   cmdAutheliaValidateConfigShort,
-		Long:    cmdAutheliaValidateConfigLong,
-		Example: cmdAutheliaValidateConfigExample,
-		Args:    cobra.NoArgs,
-		RunE:    cmdValidateConfigRunE,
+		Use:               "validate-config",
+		Short:             cmdAutheliaValidateConfigShort,
+		Long:              cmdAutheliaValidateConfigLong,
+		Example:           cmdAutheliaValidateConfigExample,
+		Args:              cobra.NoArgs,
+		RunE:              cmdValidateConfigRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})

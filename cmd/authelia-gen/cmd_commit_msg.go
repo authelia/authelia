@@ -38,9 +38,10 @@ type NameDescriptionTmpl struct {
 
 func newCommitLintCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "commit-lint",
-		Short: "Generate commit lint files",
-		RunE:  commitLintRunE,
+		Use:               "commit-lint",
+		Short:             "Generate commit lint files",
+		RunE:              commitLintRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newGitHubIssueTemplatesCmd())

@@ -9,12 +9,13 @@ import (
 
 func newCICmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "ci",
-		Short:   cmdCIShort,
-		Long:    cmdCILong,
-		Example: cmdCIExample,
-		Args:    cobra.NoArgs,
-		Run:     cmdCIRun,
+		Use:               "ci",
+		Short:             cmdCIShort,
+		Long:              cmdCILong,
+		Example:           cmdCIExample,
+		Args:              cobra.NoArgs,
+		Run:               cmdCIRun,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

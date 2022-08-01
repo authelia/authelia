@@ -13,9 +13,10 @@ import (
 
 func newGitHubCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "github",
-		Short: "Generate GitHub files",
-		RunE:  rootSubCommandsRunE,
+		Use:               "github",
+		Short:             "Generate GitHub files",
+		RunE:              rootSubCommandsRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newGitHubIssueTemplatesCmd())
@@ -25,9 +26,10 @@ func newGitHubCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "issue-templates",
-		Short: "Generate GitHub issue templates",
-		RunE:  rootSubCommandsRunE,
+		Use:               "issue-templates",
+		Short:             "Generate GitHub issue templates",
+		RunE:              rootSubCommandsRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newGitHubIssueTemplatesBugReportCmd(), newGitHubIssueTemplatesFeatureCmd())
@@ -37,9 +39,10 @@ func newGitHubIssueTemplatesCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesFeatureCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "feature-request",
-		Short: "Generate GitHub feature request issue template",
-		RunE:  cmdGitHubIssueTemplatesFeatureRunE,
+		Use:               "feature-request",
+		Short:             "Generate GitHub feature request issue template",
+		RunE:              cmdGitHubIssueTemplatesFeatureRunE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -47,9 +50,10 @@ func newGitHubIssueTemplatesFeatureCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesBugReportCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bug-report",
-		Short: "Generate GitHub bug report issue template",
-		RunE:  cmdGitHubIssueTemplatesBugReportRunE,
+		Use:               "bug-report",
+		Short:             "Generate GitHub bug report issue template",
+		RunE:              cmdGitHubIssueTemplatesBugReportRunE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

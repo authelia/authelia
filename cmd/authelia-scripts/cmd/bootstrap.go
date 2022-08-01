@@ -14,12 +14,13 @@ import (
 
 func newBootstrapCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "bootstrap",
-		Short:   cmdBootstrapShort,
-		Long:    cmdBootstrapLong,
-		Example: cmdBootstrapExample,
-		Args:    cobra.NoArgs,
-		Run:     cmdBootstrapRun,
+		Use:               "bootstrap",
+		Short:             cmdBootstrapShort,
+		Long:              cmdBootstrapLong,
+		Example:           cmdBootstrapExample,
+		Args:              cobra.NoArgs,
+		Run:               cmdBootstrapRun,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

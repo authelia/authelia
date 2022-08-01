@@ -21,9 +21,10 @@ import (
 
 func newCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "code",
-		Short: "Generate code",
-		RunE:  rootSubCommandsRunE,
+		Use:               "code",
+		Short:             "Generate code",
+		RunE:              rootSubCommandsRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newCodeKeysCmd(), newCodeScriptsCmd())
@@ -33,9 +34,10 @@ func newCodeCmd() *cobra.Command {
 
 func newCodeScriptsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "scripts",
-		Short: "Generate the generated portion of the authelia-scripts command",
-		RunE:  codeScriptsRunE,
+		Use:               "scripts",
+		Short:             "Generate the generated portion of the authelia-scripts command",
+		RunE:              codeScriptsRunE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -43,9 +45,10 @@ func newCodeScriptsCmd() *cobra.Command {
 
 func newCodeKeysCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "keys",
-		Short: "Generate the list of valid configuration keys",
-		RunE:  codeKeysRunE,
+		Use:               "keys",
+		Short:             "Generate the list of valid configuration keys",
+		RunE:              codeKeysRunE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

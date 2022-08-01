@@ -17,9 +17,10 @@ import (
 
 func newLocalesCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "locales",
-		Short: "Generate locales files",
-		RunE:  localesRunE,
+		Use:               "locales",
+		Short:             "Generate locales files",
+		RunE:              localesRunE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

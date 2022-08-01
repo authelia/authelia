@@ -17,9 +17,10 @@ import (
 
 func newDocsDateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "date",
-		Short: "Generate doc dates",
-		RunE:  docsDateRunE,
+		Use:               "date",
+		Short:             "Generate doc dates",
+		RunE:              docsDateRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().String("commit-until", "HEAD", "The commit to check the logs until")

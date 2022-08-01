@@ -14,12 +14,13 @@ import (
 
 func newHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "hash-password [flags] -- <password>",
-		Short:   cmdAutheliaHashPasswordShort,
-		Long:    cmdAutheliaHashPasswordLong,
-		Example: cmdAutheliaHashPasswordExample,
-		Args:    cobra.MinimumNArgs(1),
-		RunE:    cmdHashPasswordRunE,
+		Use:               "hash-password [flags] -- <password>",
+		Short:             cmdAutheliaHashPasswordShort,
+		Long:              cmdAutheliaHashPasswordLong,
+		Example:           cmdAutheliaHashPasswordExample,
+		Args:              cobra.MinimumNArgs(1),
+		RunE:              cmdHashPasswordRunE,
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordSHA512Configuration.Iterations))
