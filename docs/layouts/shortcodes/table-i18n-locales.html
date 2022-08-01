@@ -1,20 +1,5 @@
-<table>
-  <thead>
-  <tr>
-    <th style="text-align:center">Language</th>
-    <th style="text-align:center">Locale</th>
-    <th style="text-align:center">Namespaces</th>
-    <th style="text-align:center">Fallbacks</th>
-  </tr>
-  </thead>
-  <tbody>
-  {{- range $.Site.Data.languages.languages }}
-  <tr>
-    <td style="text-align:center">{{ .display }}</td>
-    <td style="text-align:center">{{ .locale }}</td>
-    <td style="text-align:center">{{ range $i, $v := .namespaces }}{{ if eq $i 0 }}{{ $v }}{{ else }}, {{ $v }}{{ end }}{{ end }}</td>
-    <td style="text-align:center">{{ range $i, $v := .fallbacks }}{{ if eq $i 0 }}{{ $v }}{{ else }}, {{ $v }}{{ end }}{{ end }}</td>
-  </tr>
-  {{- end }}
-  </tbody>
-</table>
+| Language | Locale | Namespaces | Fallbacks |
+|:--------:|:------:|:----------:|:---------:|
+{{- range $.Site.Data.languages.languages }}
+|{{ .display }}|{{ .locale }}|{{ range $i, $v := .namespaces }}{{ if eq $i 0 }}{{ $v }}{{ else }}, {{ $v }}{{ end }}{{ end }}|{{ range $i, $v := .fallbacks }}{{ if eq $i 0 }}{{ $v }}{{ else }}, {{ $v }}{{ end }}{{ end }}|
+{{- end }}
