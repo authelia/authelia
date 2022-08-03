@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/valyala/fasthttp"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -134,11 +132,15 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpointConfi
 
 			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
 		case AuthnStrategyHeaderProxyAuthorization:
-			logger.Debugf("adding strategy ProxyHeaderAuthorization")
+			logger.Debugf("adding strategy HeaderProxyAuthorization")
 
 			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
+		case AuthnStrategyHeaderAuthRequestProxyAuthorization:
+			logger.Debugf("adding strategy HeaderAuthRequestProxyAuthorization")
+
+			b.strategies = append(b.strategies, NewHeaderAuthRequestProxyAuthorizationAuthnStrategy())
 		case AuthnStrategyHeaderLegacy:
-			logger.Debugf("adding strategy LegacyHeader")
+			logger.Debugf("adding strategy HeaderLegacy")
 
 			b.strategies = append(b.strategies, NewHeaderLegacyAuthnStrategy())
 		}
@@ -186,15 +188,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		case AuthzImplLegacy:
 			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
-			authz.strategies = []AuthnStrategy{
-				&HeaderAuthnStrategy{
-					authn:              AuthnTypeProxyAuthorization,
-					headerAuthorize:    headerProxyAuthorization,
-					handleAuthenticate: true,
-					statusAuthenticate: fasthttp.StatusUnauthorized,
-				},
-				NewCookieSessionAuthnStrategy(b.config.RefreshInterval),
-			}
+			authz.strategies = []AuthnStrategy{NewHeaderAuthRequestProxyAuthorizationAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		default:
 			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		}

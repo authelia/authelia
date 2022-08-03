@@ -54,6 +54,19 @@ func NewHeaderProxyAuthorizationAuthnStrategy() *HeaderAuthnStrategy {
 	}
 }
 
+// NewHeaderAuthRequestProxyAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization
+// and WWW-Authenticate headers, and the 401 Proxy Auth Required response. This is a special AuthnStrategy for the
+// AuthRequest implementation.
+func NewHeaderAuthRequestProxyAuthorizationAuthnStrategy() *HeaderAuthnStrategy {
+	return &HeaderAuthnStrategy{
+		authn:              AuthnTypeProxyAuthorization,
+		headerAuthorize:    headerProxyAuthorization,
+		headerAuthenticate: headerWWWAuthenticate,
+		handleAuthenticate: true,
+		statusAuthenticate: fasthttp.StatusUnauthorized,
+	}
+}
+
 // NewHeaderLegacyAuthnStrategy creates a new HeaderLegacyAuthnStrategy.
 func NewHeaderLegacyAuthnStrategy() *HeaderLegacyAuthnStrategy {
 	return &HeaderLegacyAuthnStrategy{}

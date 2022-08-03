@@ -62,7 +62,7 @@ var DefaultServerConfig = ServerConfig{
 				Implementation: "AuthRequest",
 				AuthnStrategies: []ServerAuthnStrategyAuthzEndpointConfig{
 					{
-						Name: "HeaderProxyAuthorization",
+						Name: "HeaderAuthRequestProxyAuthorization",
 					},
 					{
 						Name: "CookieSession",

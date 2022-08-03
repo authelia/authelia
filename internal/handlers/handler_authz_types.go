@@ -69,10 +69,11 @@ type AuthzImplementation int
 
 // AuthnStrategy names.
 const (
-	AuthnStrategyCookieSession            = "CookieSession"
-	AuthnStrategyHeaderAuthorization      = "HeaderAuthorization"
-	AuthnStrategyHeaderProxyAuthorization = "HeaderProxyAuthorization"
-	AuthnStrategyHeaderLegacy             = "HeaderLegacy"
+	AuthnStrategyCookieSession                       = "CookieSession"
+	AuthnStrategyHeaderAuthorization                 = "HeaderAuthorization"
+	AuthnStrategyHeaderProxyAuthorization            = "HeaderProxyAuthorization"
+	AuthnStrategyHeaderAuthRequestProxyAuthorization = "HeaderAuthRequestProxyAuthorization"
+	AuthnStrategyHeaderLegacy                        = "HeaderLegacy"
 )
 
 const (
