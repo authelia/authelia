@@ -26,6 +26,8 @@ func authzObjectVerifyStandard(ctx *middlewares.AutheliaCtx, object authorizatio
 }
 
 func authzHandleAuthorizedStandard(ctx *middlewares.AutheliaCtx, authn *Authn) {
+	ctx.Logger.Debugf("Sending 200 for %+v", authn)
+
 	ctx.ReplyStatusCode(fasthttp.StatusOK)
 
 	if authn.Details.Username != "" {
