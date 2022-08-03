@@ -26,7 +26,7 @@ func newDocsCLICmd() *cobra.Command {
 	return cmd
 }
 
-func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
+func docsCLIRunE(cmd *cobra.Command, _ []string) (err error) {
 	var root string
 
 	if root, err = cmd.Flags().GetString("directory"); err != nil {

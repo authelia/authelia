@@ -181,8 +181,8 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
-			TLS: schema.ServerTLSConfiguration{
+		Server: schema.ServerConfig{
+			TLS: schema.ServerTLSConfig{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
 			},
@@ -210,8 +210,8 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
-			TLS: schema.ServerTLSConfiguration{
+		Server: schema.ServerConfig{
+			TLS: schema.ServerTLSConfig{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
 			},
@@ -247,8 +247,8 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 	defer certificateContext.Close()
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
-			TLS: schema.ServerTLSConfiguration{
+		Server: schema.ServerConfig{
+			TLS: schema.ServerTLSConfig{
 				Certificate: certificateContext.Certificates[0].CertFile.Name(),
 				Key:         certificateContext.Certificates[0].KeyFile.Name(),
 			},
@@ -298,8 +298,8 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 	require.NoError(t, err)
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
-			TLS: schema.ServerTLSConfiguration{
+		Server: schema.ServerConfig{
+			TLS: schema.ServerTLSConfig{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
 				Key:                certificateContext.Certificates[0].KeyFile.Name(),
 				ClientCertificates: []string{clientCert.CertFile.Name()},
@@ -341,8 +341,8 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 	require.NoError(t, err)
 
 	tlsServerContext, err := NewTLSServerContext(schema.Configuration{
-		Server: schema.ServerConfiguration{
-			TLS: schema.ServerTLSConfiguration{
+		Server: schema.ServerConfig{
+			TLS: schema.ServerTLSConfig{
 				Certificate:        certificateContext.Certificates[0].CertFile.Name(),
 				Key:                certificateContext.Certificates[0].KeyFile.Name(),
 				ClientCertificates: []string{clientCert.CertFile.Name()},

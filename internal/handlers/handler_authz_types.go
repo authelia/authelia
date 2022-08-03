@@ -67,6 +67,14 @@ const (
 // AuthzImplementation represents an Authz implementation.
 type AuthzImplementation int
 
+// AuthnStrategy names.
+const (
+	AuthnStrategyCookieSession            = "CookieSession"
+	AuthnStrategyHeaderAuthorization      = "HeaderAuthorization"
+	AuthnStrategyHeaderProxyAuthorization = "HeaderProxyAuthorization"
+	AuthnStrategyHeaderLegacy             = "HeaderLegacy"
+)
+
 const (
 	// AuthzImplLegacy is the legacy Authz implementation (VerifyGET).
 	AuthzImplLegacy AuthzImplementation = iota
@@ -78,3 +86,17 @@ const (
 	// the ingress-nginx k8s ingress.
 	AuthzImplAuthRequest
 )
+
+// String returns the text representation of this AuthzImplementation.
+func (i AuthzImplementation) String() string {
+	switch i {
+	case AuthzImplLegacy:
+		return "Legacy"
+	case AuthzImplForwardAuth:
+		return "ForwardAuth"
+	case AuthzImplAuthRequest:
+		return "AuthRequest"
+	default:
+		return ""
+	}
+}

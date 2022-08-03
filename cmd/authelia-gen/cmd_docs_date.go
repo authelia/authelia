@@ -29,7 +29,7 @@ func newDocsDateCmd() *cobra.Command {
 	return cmd
 }
 
-func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
+func docsDateRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		dir, cwd, commitUtil, commitSince, commitFilter string
 	)

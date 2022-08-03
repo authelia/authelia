@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"strconv"
@@ -166,6 +167,20 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	authzBuilder := handlers.NewAuthzBuilder().WithConfig(&config)
 
+	for name, endpoint := range config.Server.Endpoints.Authz {
+		path := fmt.Sprintf("/api/authz/%s", name)
+
+		authz := authzBuilder.WithEndpointConfig(&endpoint).Build()
+
+		r.GET(path, middlewares.Wrap(metricsVRMW, middleware(authz.Handler)))
+		r.HEAD(path, middlewares.Wrap(metricsVRMW, middleware(authz.Handler)))
+
+		if name == "legacy" {
+			r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(authz.Handler)))
+			r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(authz.Handler)))
+		}
+	}
+
 	authzImplLegacy := authzBuilder.WithImplementationLegacy().Build()
 
 	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(authzImplLegacy.Handler)))
@@ -243,11 +258,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
-	if config.Server.EnablePprof {
+	if config.Server.Endpoints.EnablePprof {
 		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 	}
 
-	if config.Server.EnableExpvars {
+	if config.Server.Endpoints.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 

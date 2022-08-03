@@ -21,15 +21,16 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.Equal(t, schema.DefaultServerConfiguration.Host, config.Server.Host)
-	assert.Equal(t, schema.DefaultServerConfiguration.Port, config.Server.Port)
-	assert.Equal(t, schema.DefaultServerConfiguration.ReadBufferSize, config.Server.ReadBufferSize)
-	assert.Equal(t, schema.DefaultServerConfiguration.WriteBufferSize, config.Server.WriteBufferSize)
-	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Key, config.Server.TLS.Key)
-	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Certificate, config.Server.TLS.Certificate)
-	assert.Equal(t, schema.DefaultServerConfiguration.Path, config.Server.Path)
-	assert.Equal(t, schema.DefaultServerConfiguration.EnableExpvars, config.Server.EnableExpvars)
-	assert.Equal(t, schema.DefaultServerConfiguration.EnablePprof, config.Server.EnablePprof)
+	assert.Equal(t, schema.DefaultServerConfig.Host, config.Server.Host)
+	assert.Equal(t, schema.DefaultServerConfig.Port, config.Server.Port)
+	assert.Equal(t, schema.DefaultServerConfig.ReadBufferSize, config.Server.ReadBufferSize)
+	assert.Equal(t, schema.DefaultServerConfig.WriteBufferSize, config.Server.WriteBufferSize)
+	assert.Equal(t, schema.DefaultServerConfig.TLS.Key, config.Server.TLS.Key)
+	assert.Equal(t, schema.DefaultServerConfig.TLS.Certificate, config.Server.TLS.Certificate)
+	assert.Equal(t, schema.DefaultServerConfig.Path, config.Server.Path)
+	assert.Equal(t, schema.DefaultServerConfig.Endpoints.EnableExpvars, config.Server.Endpoints.EnableExpvars)
+	assert.Equal(t, schema.DefaultServerConfig.Endpoints.EnablePprof, config.Server.Endpoints.EnablePprof)
+	assert.Equal(t, schema.DefaultServerConfig.Endpoints.Authz, config.Server.Endpoints.Authz)
 }
 
 func TestShouldSetDefaultConfig(t *testing.T) {
@@ -41,14 +42,14 @@ func TestShouldSetDefaultConfig(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.Equal(t, schema.DefaultServerConfiguration.ReadBufferSize, config.Server.ReadBufferSize)
-	assert.Equal(t, schema.DefaultServerConfiguration.WriteBufferSize, config.Server.WriteBufferSize)
+	assert.Equal(t, schema.DefaultServerConfig.ReadBufferSize, config.Server.ReadBufferSize)
+	assert.Equal(t, schema.DefaultServerConfig.WriteBufferSize, config.Server.WriteBufferSize)
 }
 
 func TestShouldParsePathCorrectly(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.ServerConfig{
 			Path: "apple",
 		},
 	}
@@ -64,7 +65,7 @@ func TestShouldParsePathCorrectly(t *testing.T) {
 func TestShouldRaiseOnNegativeValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.ServerConfig{
 			ReadBufferSize:  -1,
 			WriteBufferSize: -1,
 		},
@@ -81,7 +82,7 @@ func TestShouldRaiseOnNegativeValues(t *testing.T) {
 func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.ServerConfig{
 			Path: "app le",
 		},
 	}
@@ -96,7 +97,7 @@ func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 func TestShouldRaiseOnForwardSlashInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
-		Server: schema.ServerConfiguration{
+		Server: schema.ServerConfig{
 			Path: "app/le",
 		},
 	}

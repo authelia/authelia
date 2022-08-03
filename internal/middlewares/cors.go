@@ -66,7 +66,7 @@ func (b *CORSPolicyBuilder) Build() (policy *CORSPolicy) {
 	return policy
 }
 
-func (b CORSPolicyBuilder) buildOrigins() (origins [][]byte) {
+func (b *CORSPolicyBuilder) buildOrigins() (origins [][]byte) {
 	if len(b.origins) != 0 {
 		if len(b.origins) == 1 && b.origins[0] == "*" {
 			origins = append(origins, []byte(b.origins[0]))
@@ -80,7 +80,7 @@ func (b CORSPolicyBuilder) buildOrigins() (origins [][]byte) {
 	return origins
 }
 
-func (b CORSPolicyBuilder) buildHeaders() (headers []byte) {
+func (b *CORSPolicyBuilder) buildHeaders() (headers []byte) {
 	if len(b.headers) != 0 {
 		h := b.headers
 
@@ -104,7 +104,7 @@ func (b CORSPolicyBuilder) buildHeaders() (headers []byte) {
 	return headers
 }
 
-func (b CORSPolicyBuilder) buildVary() (vary []byte) {
+func (b *CORSPolicyBuilder) buildVary() (vary []byte) {
 	if b.varySet {
 		if len(b.vary) != 0 {
 			vary = utils.JoinAndCanonicalizeHeaders(headerSeparator, b.vary...)

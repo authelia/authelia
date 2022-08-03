@@ -29,7 +29,7 @@ func newCodeKeysCmd() *cobra.Command {
 	return cmd
 }
 
-func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
+func codeKeysRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		file string
 

@@ -19,7 +19,7 @@ type Configuration struct {
 	Regulation            RegulationConfiguration            `koanf:"regulation"`
 	Storage               StorageConfiguration               `koanf:"storage"`
 	Notifier              NotifierConfiguration              `koanf:"notifier"`
-	Server                ServerConfiguration                `koanf:"server"`
+	Server                ServerConfig                       `koanf:"server"`
 	Telemetry             TelemetryConfig                    `koanf:"telemetry"`
 	Webauthn              WebauthnConfiguration              `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration        `koanf:"password_policy"`

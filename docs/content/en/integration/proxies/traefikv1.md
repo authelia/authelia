@@ -90,9 +90,9 @@ services:
       - 'traefik.frontend.rule=Host:traefik.example.com'
       - 'traefik.port=8081'
     ports:
-      - 80:80
-      - 443:443
-      - 8081:8081
+      - '80:80'
+      - '443:443'
+      - '8081:8081'
     restart: unless-stopped
     command:
       - '--api'

@@ -4,7 +4,7 @@ services:
   openldap-admin:
     image: osixia/phpldapadmin:0.9.0
     ports:
-      - 9090:80
+      - '9090:80'
     environment:
       - PHPLDAPADMIN_LDAP_HOSTS=openldap
       - PHPLDAPADMIN_HTTPS=false

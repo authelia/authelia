@@ -18,14 +18,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewCookieAuthnStrategy creates a new CookieAuthnStrategy using the Authorization and WWW-Authenticate
-// headers, and the 407 Proxy Auth Required response.
-func NewCookieAuthnStrategy(refreshInterval time.Duration) *CookieAuthnStrategy {
+// NewSessionCookieAuthnStrategy creates a new SessionCookieAuthnStrategy.
+func NewSessionCookieAuthnStrategy(refreshInterval time.Duration) *SessionCookieAuthnStrategy {
 	if refreshInterval < time.Second*0 {
-		return &CookieAuthnStrategy{}
+		return &SessionCookieAuthnStrategy{}
 	}
 
-	return &CookieAuthnStrategy{
+	return &SessionCookieAuthnStrategy{
 		refreshEnabled:  true,
 		refreshInterval: refreshInterval,
 	}
@@ -60,14 +59,14 @@ func NewLegacyHeaderAuthnStrategy() *LegacyHeaderAuthnStrategy {
 	return &LegacyHeaderAuthnStrategy{}
 }
 
-// CookieAuthnStrategy is a session cookie AuthnStrategy.
-type CookieAuthnStrategy struct {
+// SessionCookieAuthnStrategy is a session cookie AuthnStrategy.
+type SessionCookieAuthnStrategy struct {
 	refreshEnabled  bool
 	refreshInterval time.Duration
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *CookieAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
+func (s *SessionCookieAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
 	authn = Authn{
 		Type:  AuthnTypeCookie,
 		Level: authentication.NotAuthenticated,
@@ -101,12 +100,12 @@ func (s *CookieAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, er
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
-func (s *CookieAuthnStrategy) CanHandleUnauthorized() (handle bool) {
+func (s *SessionCookieAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return false
 }
 
 // HandleUnauthorized is the Unauthorized handler for the cookie AuthnStrategy.
-func (s *CookieAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
+func (s *SessionCookieAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
 }
 
 // HeaderAuthnStrategy is a header AuthnStrategy.

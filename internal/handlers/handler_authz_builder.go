@@ -26,7 +26,7 @@ func (b *AuthzBuilder) WithStrategies(strategies ...AuthnStrategy) *AuthzBuilder
 
 // WithStrategyCookie adds the Cookie header strategy to the strategies in this builder.
 func (b *AuthzBuilder) WithStrategyCookie(refreshInterval time.Duration) *AuthzBuilder {
-	b.strategies = append(b.strategies, NewCookieAuthnStrategy(refreshInterval))
+	b.strategies = append(b.strategies, NewSessionCookieAuthnStrategy(refreshInterval))
 
 	return b
 }
@@ -100,6 +100,36 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 	return b
 }
 
+// WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
+// WithConfig or WithAuthzConfig.
+func (b *AuthzBuilder) WithEndpointConfig(config *schema.ServerAuthzEndpointConfig) *AuthzBuilder {
+	switch config.Implementation {
+	case AuthzImplForwardAuth.String():
+		b.WithImplementationForwardAuth()
+	case AuthzImplAuthRequest.String():
+		b.WithImplementationAuthRequest()
+	default:
+		b.WithImplementationLegacy()
+	}
+
+	b.WithStrategies()
+
+	for _, strategy := range config.AuthnStrategies {
+		switch strategy.Name {
+		case AuthnStrategyCookieSession:
+			b.strategies = append(b.strategies, NewSessionCookieAuthnStrategy(b.config.RefreshInterval))
+		case AuthnStrategyHeaderAuthorization:
+			b.strategies = append(b.strategies, NewAuthorizationHeaderAuthnStrategy())
+		case AuthnStrategyHeaderProxyAuthorization:
+			b.strategies = append(b.strategies, NewProxyAuthorizationHeaderAuthnStrategy())
+		case AuthnStrategyHeaderLegacy:
+			b.strategies = append(b.strategies, NewLegacyHeaderAuthnStrategy())
+		}
+	}
+
+	return b
+}
+
 // WithAuthzConfig allows configuring the Authz config by providing a AuthzConfig directly. Recommended this is only
 // used in testing and WithConfig is used instead.
 func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
@@ -120,7 +150,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	if len(authz.strategies) == 0 {
 		switch b.impl {
 		case AuthzImplLegacy:
-			authz.strategies = []AuthnStrategy{NewLegacyHeaderAuthnStrategy(), NewCookieAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewLegacyHeaderAuthnStrategy(), NewSessionCookieAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
 			authz.strategies = []AuthnStrategy{
 				&HeaderAuthnStrategy{
@@ -129,10 +159,10 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 					handleAuthenticate: true,
 					statusAuthenticate: fasthttp.StatusUnauthorized,
 				},
-				NewCookieAuthnStrategy(0),
+				NewSessionCookieAuthnStrategy(0),
 			}
 		default:
-			authz.strategies = []AuthnStrategy{NewProxyAuthorizationHeaderAuthnStrategy(), NewCookieAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewProxyAuthorizationHeaderAuthnStrategy(), NewSessionCookieAuthnStrategy(b.config.RefreshInterval)}
 		}
 	}
 
