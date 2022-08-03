@@ -12,6 +12,8 @@ import (
 )
 
 func authzObjectVerifyStandard(ctx *middlewares.AutheliaCtx, object authorization.Object) (err error) {
+	ctx.Logger.Debugf("Responding 200")
+
 	if !isSchemeSecure(&object.URL) {
 		return fmt.Errorf("target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
 	}
