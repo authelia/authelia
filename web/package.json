@@ -18,7 +18,7 @@
     }
   },
   "dependencies": {
-    "@emotion/cache": "11.10.0",
+    "@emotion/cache": "11.10.1",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@fortawesome/fontawesome-svg-core": "6.1.2",
@@ -155,7 +155,7 @@
     "@typescript-eslint/eslint-plugin": "5.32.0",
     "@typescript-eslint/parser": "5.32.0",
     "@vitejs/plugin-react": "2.0.0",
-    "esbuild": "0.14.51",
+    "esbuild": "0.14.53",
     "esbuild-jest": "0.5.0",
     "eslint": "8.21.0",
     "eslint-config-prettier": "8.5.0",
