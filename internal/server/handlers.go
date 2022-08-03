@@ -165,12 +165,12 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	authzBuilder := handlers.NewAuthzBuilder().WithConfig(&config)
-
 	for name, endpoint := range config.Server.Endpoints.Authz {
 		path := fmt.Sprintf("/api/authz/%s", name)
 
-		authz := authzBuilder.WithEndpointConfig(endpoint).Build()
+		logging.Logger().Debugf("Registering endpoint '%s' with config %+v", path, endpoint)
+
+		authz := handlers.NewAuthzBuilder().WithConfig(&config).WithEndpointConfig(endpoint).Build()
 
 		r.GET(path, middlewares.Wrap(metricsVRMW, middleware(authz.Handler)))
 		r.HEAD(path, middlewares.Wrap(metricsVRMW, middleware(authz.Handler)))

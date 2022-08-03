@@ -17,9 +17,7 @@ func authzGetObjectImplLegacy(ctx *middlewares.AutheliaCtx) (object authorizatio
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	object = authorization.NewObjectRaw(targetURL, ctx.XForwardedMethod())
-
-	return object, nil
+	return authorization.NewObjectRaw(targetURL, ctx.XForwardedMethod()), nil
 }
 
 func authzHandleUnauthorizedImplLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {

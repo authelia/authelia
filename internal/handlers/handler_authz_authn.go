@@ -18,21 +18,21 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewSessionCookieAuthnStrategy creates a new SessionCookieAuthnStrategy.
-func NewSessionCookieAuthnStrategy(refreshInterval time.Duration) *SessionCookieAuthnStrategy {
+// NewCookieSessionAuthnStrategy creates a new CookieSessionAuthnStrategy.
+func NewCookieSessionAuthnStrategy(refreshInterval time.Duration) *CookieSessionAuthnStrategy {
 	if refreshInterval < time.Second*0 {
-		return &SessionCookieAuthnStrategy{}
+		return &CookieSessionAuthnStrategy{}
 	}
 
-	return &SessionCookieAuthnStrategy{
+	return &CookieSessionAuthnStrategy{
 		refreshEnabled:  true,
 		refreshInterval: refreshInterval,
 	}
 }
 
-// NewAuthorizationHeaderAuthnStrategy creates a new HeaderAuthnStrategy using the Authorization and WWW-Authenticate
+// NewHeaderAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Authorization and WWW-Authenticate
 // headers, and the 407 Proxy Auth Required response.
-func NewAuthorizationHeaderAuthnStrategy() *HeaderAuthnStrategy {
+func NewHeaderAuthorizationAuthnStrategy() *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeAuthorization,
 		headerAuthorize:    headerAuthorization,
@@ -42,9 +42,9 @@ func NewAuthorizationHeaderAuthnStrategy() *HeaderAuthnStrategy {
 	}
 }
 
-// NewProxyAuthorizationHeaderAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization and
+// NewHeaderProxyAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization and
 // Proxy-Authenticate headers, and the 407 Proxy Auth Required response.
-func NewProxyAuthorizationHeaderAuthnStrategy() *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthnStrategy() *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -54,19 +54,19 @@ func NewProxyAuthorizationHeaderAuthnStrategy() *HeaderAuthnStrategy {
 	}
 }
 
-// NewLegacyHeaderAuthnStrategy creates a new LegacyHeaderAuthnStrategy.
-func NewLegacyHeaderAuthnStrategy() *LegacyHeaderAuthnStrategy {
-	return &LegacyHeaderAuthnStrategy{}
+// NewHeaderLegacyAuthnStrategy creates a new HeaderLegacyAuthnStrategy.
+func NewHeaderLegacyAuthnStrategy() *HeaderLegacyAuthnStrategy {
+	return &HeaderLegacyAuthnStrategy{}
 }
 
-// SessionCookieAuthnStrategy is a session cookie AuthnStrategy.
-type SessionCookieAuthnStrategy struct {
+// CookieSessionAuthnStrategy is a session cookie AuthnStrategy.
+type CookieSessionAuthnStrategy struct {
 	refreshEnabled  bool
 	refreshInterval time.Duration
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *SessionCookieAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
+func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
 	authn = Authn{
 		Type:  AuthnTypeCookie,
 		Level: authentication.NotAuthenticated,
@@ -100,12 +100,12 @@ func (s *SessionCookieAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Au
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
-func (s *SessionCookieAuthnStrategy) CanHandleUnauthorized() (handle bool) {
+func (s *CookieSessionAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return false
 }
 
 // HandleUnauthorized is the Unauthorized handler for the cookie AuthnStrategy.
-func (s *SessionCookieAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
+func (s *CookieSessionAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
 }
 
 // HeaderAuthnStrategy is a header AuthnStrategy.
@@ -185,11 +185,11 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, _
 	}
 }
 
-// LegacyHeaderAuthnStrategy is a legacy header AuthnStrategy which can be switched based on the query parameters.
-type LegacyHeaderAuthnStrategy struct{}
+// HeaderLegacyAuthnStrategy is a legacy header AuthnStrategy which can be switched based on the query parameters.
+type HeaderLegacyAuthnStrategy struct{}
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *LegacyHeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
+func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, err error) {
 	var (
 		username, password string
 		value, header      []byte
@@ -255,12 +255,12 @@ func (s *LegacyHeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Aut
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
-func (s *LegacyHeaderAuthnStrategy) CanHandleUnauthorized() (handle bool) {
+func (s *HeaderLegacyAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return true
 }
 
 // HandleUnauthorized is the Unauthorized handler for the Legacy header AuthnStrategy.
-func (s *LegacyHeaderAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
+func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
 	switch authn.Type {
 	case AuthnTypeProxyAuthorization:
 		ctx.ReplyStatusCode(fasthttp.StatusUnauthorized)

@@ -19,10 +19,14 @@ func (a *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if object, err = a.fObjectGet(ctx); err != nil {
+		ctx.Logger.Errorf("Error getting object: %v", err)
+
 		ctx.ReplyUnauthorized()
 
 		return
 	}
+
+	ctx.Logger.Debugf("Object is: %s %v", object.Method, object)
 
 	if !isSchemeSecure(&object.URL) {
 		ctx.Logger.Errorf("Target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
@@ -39,6 +43,8 @@ func (a *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	ctx.Logger.Errorf("Portal URL is: %v", portalURL)
 
 	var (
 		authn         Authn

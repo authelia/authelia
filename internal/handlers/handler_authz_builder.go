@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -26,21 +27,21 @@ func (b *AuthzBuilder) WithStrategies(strategies ...AuthnStrategy) *AuthzBuilder
 
 // WithStrategyCookie adds the Cookie header strategy to the strategies in this builder.
 func (b *AuthzBuilder) WithStrategyCookie(refreshInterval time.Duration) *AuthzBuilder {
-	b.strategies = append(b.strategies, NewSessionCookieAuthnStrategy(refreshInterval))
+	b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(refreshInterval))
 
 	return b
 }
 
 // WithStrategyAuthorization adds the Authorization header strategy to the strategies in this builder.
 func (b *AuthzBuilder) WithStrategyAuthorization() *AuthzBuilder {
-	b.strategies = append(b.strategies, NewAuthorizationHeaderAuthnStrategy())
+	b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
 
 	return b
 }
 
 // WithStrategyProxyAuthorization adds the Proxy-Authorization header strategy to the strategies in this builder.
 func (b *AuthzBuilder) WithStrategyProxyAuthorization() *AuthzBuilder {
-	b.strategies = append(b.strategies, NewProxyAuthorizationHeaderAuthnStrategy())
+	b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
 
 	return b
 }
@@ -103,12 +104,20 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpointConfig) *AuthzBuilder {
+	logger := logging.Logger()
+
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
+		logger.Debugf("adding endpoint as ForwardAuth")
+
 		b.WithImplementationForwardAuth()
 	case AuthzImplAuthRequest.String():
+		logger.Debugf("adding endpoint as AuthRequest")
+
 		b.WithImplementationAuthRequest()
 	default:
+		logger.Debugf("adding endpoint as Legacy")
+
 		b.WithImplementationLegacy()
 	}
 
@@ -117,13 +126,21 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerAuthzEndpointConfi
 	for _, strategy := range config.AuthnStrategies {
 		switch strategy.Name {
 		case AuthnStrategyCookieSession:
-			b.strategies = append(b.strategies, NewSessionCookieAuthnStrategy(b.config.RefreshInterval))
+			logger.Debugf("adding strategy CookieSession")
+
+			b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(b.config.RefreshInterval))
 		case AuthnStrategyHeaderAuthorization:
-			b.strategies = append(b.strategies, NewAuthorizationHeaderAuthnStrategy())
+			logger.Debugf("adding strategy HeaderAuthorization")
+
+			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy())
 		case AuthnStrategyHeaderProxyAuthorization:
-			b.strategies = append(b.strategies, NewProxyAuthorizationHeaderAuthnStrategy())
+			logger.Debugf("adding strategy ProxyHeaderAuthorization")
+
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy())
 		case AuthnStrategyHeaderLegacy:
-			b.strategies = append(b.strategies, NewLegacyHeaderAuthnStrategy())
+			logger.Debugf("adding strategy LegacyHeader")
+
+			b.strategies = append(b.strategies, NewHeaderLegacyAuthnStrategy())
 		}
 	}
 
@@ -140,6 +157,8 @@ func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
 
 // Build returns a new Authz from the currently configured options in this builder.
 func (b *AuthzBuilder) Build() (authz *Authz) {
+	logger := logging.Logger()
+
 	authz = &Authz{
 		config:            b.config,
 		strategies:        b.strategies,
@@ -147,10 +166,25 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		fHandleAuthorized: authzHandleAuthorizedStandard,
 	}
 
+	logger.Debugf("building endpoint with config %+v", b.config)
+
+	for _, strat := range b.strategies {
+		switch s := strat.(type) {
+		case *CookieSessionAuthnStrategy:
+			logger.Debugf("has strategy CookieSession")
+		case *HeaderAuthnStrategy:
+			logger.Debugf("has strategy Header type %s", s.headerAuthorize)
+		case *HeaderLegacyAuthnStrategy:
+			logger.Debugf("has strategy LegacyHeader")
+		}
+	}
+
 	if len(authz.strategies) == 0 {
+		logger.Debugf("building endpoint with default straegies for impl %s", b.impl)
+
 		switch b.impl {
 		case AuthzImplLegacy:
-			authz.strategies = []AuthnStrategy{NewLegacyHeaderAuthnStrategy(), NewSessionCookieAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
 			authz.strategies = []AuthnStrategy{
 				&HeaderAuthnStrategy{
@@ -159,10 +193,10 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 					handleAuthenticate: true,
 					statusAuthenticate: fasthttp.StatusUnauthorized,
 				},
-				NewSessionCookieAuthnStrategy(0),
+				NewCookieSessionAuthnStrategy(b.config.RefreshInterval),
 			}
 		default:
-			authz.strategies = []AuthnStrategy{NewProxyAuthorizationHeaderAuthnStrategy(), NewSessionCookieAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		}
 	}
 
