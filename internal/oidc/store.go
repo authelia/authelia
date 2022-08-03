@@ -38,7 +38,7 @@ func NewOpenIDConnectStore(config *schema.OpenIDConnectConfiguration, provider s
 }
 
 // GenerateOpaqueUserID either retrieves or creates an opaque user id from a sectorID and username.
-func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
+func (s *OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, username string) (opaqueID *model.UserOpaqueIdentifier, err error) {
 	if opaqueID, err = s.provider.LoadUserOpaqueIdentifierBySignature(ctx, "openid", sectorID, username); err != nil {
 		return nil, err
 	} else if opaqueID == nil {
@@ -55,7 +55,7 @@ func (s OpenIDConnectStore) GenerateOpaqueUserID(ctx context.Context, sectorID, 
 }
 
 // GetSubject returns a subject UUID for a username. If it exists, it returns the existing one, otherwise it creates and saves it.
-func (s OpenIDConnectStore) GetSubject(ctx context.Context, sectorID, username string) (subject uuid.UUID, err error) {
+func (s *OpenIDConnectStore) GetSubject(ctx context.Context, sectorID, username string) (subject uuid.UUID, err error) {
 	var opaqueID *model.UserOpaqueIdentifier
 
 	if opaqueID, err = s.GenerateOpaqueUserID(ctx, sectorID, username); err != nil {
@@ -66,7 +66,7 @@ func (s OpenIDConnectStore) GetSubject(ctx context.Context, sectorID, username s
 }
 
 // GetClientPolicy retrieves the policy from the client with the matching provided id.
-func (s OpenIDConnectStore) GetClientPolicy(id string) (level authorization.Level) {
+func (s *OpenIDConnectStore) GetClientPolicy(id string) (level authorization.Level) {
 	client, err := s.GetFullClient(id)
 	if err != nil {
 		return authorization.TwoFactor
@@ -75,8 +75,8 @@ func (s OpenIDConnectStore) GetClientPolicy(id string) (level authorization.Leve
 	return client.Policy
 }
 
-// GetFullClient returns a fosite.Client asserted as an Client matching the provided id.
-func (s OpenIDConnectStore) GetFullClient(id string) (client *Client, err error) {
+// GetFullClient returns a fosite.Client asserted as a Client matching the provided id.
+func (s *OpenIDConnectStore) GetFullClient(id string) (client *Client, err error) {
 	client, ok := s.clients[id]
 	if !ok {
 		return nil, fosite.ErrNotFound
@@ -86,7 +86,7 @@ func (s OpenIDConnectStore) GetFullClient(id string) (client *Client, err error)
 }
 
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
-func (s OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
+func (s *OpenIDConnectStore) IsValidClientID(id string) (valid bool) {
 	_, err := s.GetFullClient(id)
 
 	return err == nil

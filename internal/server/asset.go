@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	"crypto/sha1" //
+	"crypto/sha1" //nolint:gosec // Usage is for collision avoidance not security.
 	"embed"
 	"errors"
 	"fmt"
