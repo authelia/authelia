@@ -22,11 +22,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var verifyGetCfg = schema.AuthenticationBackendConfiguration{
-	RefreshInterval: schema.RefreshIntervalDefault,
-	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
-}
-
 var ConfigAuthz = schema.Configuration{
 	Session: schema.SessionConfiguration{
 		Domain: "example.com",
@@ -39,7 +34,7 @@ var ConfigAuthz = schema.Configuration{
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
-	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", schemeHTTPS)
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/abc")
 	originalURL, err := mock.Ctx.GetOriginalURL()
@@ -62,7 +57,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", schemeHTTPS)
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
 	assert.Equal(t, "Missing header X-Forwarded-Host", err.Error())
@@ -83,7 +78,7 @@ func TestShouldRaiseWhenXForwardedURIIsNotParsable(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", schemeHTTPS)
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "myhost.local")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "!:;;:,")
 
@@ -528,7 +523,6 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
-
 }
 
 func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
@@ -651,23 +645,23 @@ func TestShouldVerifyAuthorizationsUsingOnlyAuthorizationHeader(t *testing.T) {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 401},
-		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, 200},
-		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
-		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
-		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://test.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
+		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusOK},
+		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
+		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
+		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
 
-		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
-		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},
-		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},
-		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 401},
-		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
+		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusForbidden},
+		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusOK},
+		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusOK},
+		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusUnauthorized},
+		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusForbidden},
 
-		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
-		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
-		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
-		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 200},
-		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, 403},
+		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, fasthttp.StatusForbidden},
+		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, fasthttp.StatusOK},
+		{"https://one-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, fasthttp.StatusOK},
+		{"https://two-factor.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, fasthttp.StatusOK},
+		{"https://deny.example.com", "john", []string{"john.doe@example.com"}, authentication.TwoFactor, fasthttp.StatusForbidden},
 	}
 
 	config := ConfigAuthz
@@ -910,7 +904,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
-	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 
 	// Check the inactivity timestamp has been updated to current time in the new session.
 	newUserSession := mock.Ctx.GetSession()
@@ -937,7 +931,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 
 	assert.Equal(t, "<a href=\"https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&amp;rm=GET\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
-	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
 
 	mock.Ctx.QueryArgs().Add(queryStrArgumentRedirect, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
@@ -982,7 +976,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 	authz.Handler(mock.Ctx)
 
 	// The resource if forbidden.
-	assert.Equal(t, 403, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 
 	// Check the inactivity timestamp has been updated to current time in the new session.
 	newUserSession := mock.Ctx.GetSession()
@@ -1122,11 +1116,11 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	authz.Handler(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
 	authz.Handler(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Check Refresh TTL has not been updated.
 	userSession = mock.Ctx.GetSession()
@@ -1139,7 +1133,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com")
 	authz.Handler(mock.Ctx)
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Check admin group is not removed from the session.
 	userSession = mock.Ctx.GetSession()
@@ -1194,7 +1188,7 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
 
 	authz.Handler(mock.Ctx)
 
-	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
 	// Session time should NOT have been updated, it should still have a refresh TTL 1 minute in the past.
 	userSession = mock.Ctx.GetSession()
@@ -1494,29 +1488,6 @@ func TestShouldCheckInvalidSessionUsernameHeaderAndReturn401(t *testing.T) {
 
 	assert.Equal(t, expectedStatusCode, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "401 Unauthorized", string(mock.Ctx.Response.Body()))
-}
-
-func TestGetProfileRefreshSettings(t *testing.T) {
-	cfg := verifyGetCfg
-
-	refresh, interval := getProfileRefreshSettings(cfg)
-
-	assert.Equal(t, true, refresh)
-	assert.Equal(t, 5*time.Minute, interval)
-
-	cfg.RefreshInterval = schema.ProfileRefreshDisabled
-
-	refresh, interval = getProfileRefreshSettings(cfg)
-
-	assert.Equal(t, false, refresh)
-	assert.Equal(t, time.Duration(0), interval)
-
-	cfg.RefreshInterval = schema.ProfileRefreshAlways
-
-	refresh, interval = getProfileRefreshSettings(cfg)
-
-	assert.Equal(t, true, refresh)
-	assert.Equal(t, time.Duration(0), interval)
 }
 
 func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.T) {

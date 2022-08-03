@@ -20,11 +20,11 @@ import (
 )
 
 func isSchemeHTTPS(url *url.URL) bool {
-	return url.Scheme == "https"
+	return url.Scheme == schemeHTTPS
 }
 
 func isSchemeWSS(url *url.URL) bool {
-	return url.Scheme == "wss"
+	return url.Scheme == schemeWSS
 }
 
 // parseBasicAuth parses an HTTP Basic Authentication string.
@@ -197,13 +197,6 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	// endpoint to provide the URL of the login portal. The target URL of the user
 	// is computed from X-Forwarded-* headers or X-Original-URL.
 	rd := string(ctx.QueryArgs().PeekBytes(queryArgumentRedirect))
-
-	switch rm {
-	case "":
-		fRequestMethod = "unknown"
-	default:
-		fRequestMethod = rm
-	}
 
 	if rd != "" {
 		switch rm {

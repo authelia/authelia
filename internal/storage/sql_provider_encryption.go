@@ -259,11 +259,11 @@ func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) 
 	return nil
 }
 
-func (p SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {
+func (p *SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {
 	return utils.Encrypt(clearText, &p.key)
 }
 
-func (p SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
+func (p *SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
 	return utils.Decrypt(cipherText, &p.key)
 }
 

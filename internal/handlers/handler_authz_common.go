@@ -45,6 +45,4 @@ func authzHandleUnauthorizedAuthorizationBasic(ctx *middlewares.AutheliaCtx, aut
 	ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
 
 	ctx.ReplyUnauthorized()
-
-	return
 }

@@ -10,7 +10,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func (a Authz) Handler(ctx *middlewares.AutheliaCtx) {
+// Handler is the middlewares.RequestHandler for Authz.
+func (a *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	var (
 		object    authorization.Object
 		portalURL *url.URL
@@ -83,7 +84,7 @@ func (a Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func (a Authz) getPortalURL(ctx *middlewares.AutheliaCtx, object *authorization.Object) (portalURL *url.URL, err error) {
+func (a *Authz) getPortalURL(ctx *middlewares.AutheliaCtx, object *authorization.Object) (portalURL *url.URL, err error) {
 	if len(a.config.Domains) == 1 {
 		portalURL = a.config.Domains[0].PortalURL
 
@@ -114,7 +115,7 @@ func (a Authz) getPortalURL(ctx *middlewares.AutheliaCtx, object *authorization.
 	return nil, fmt.Errorf("doesn't appear to be a protected domain")
 }
 
-func (a Authz) getRedirectionURL(object *authorization.Object, portalURL *url.URL) (redirectionURL *url.URL) {
+func (a *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.URL) (redirectionURL *url.URL) {
 	if portalURL == nil {
 		return nil
 	}
@@ -134,14 +135,14 @@ func (a Authz) getRedirectionURL(object *authorization.Object, portalURL *url.UR
 	return redirectionURL
 }
 
-func (a Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, authenticator AuthnStrategy, err error) {
+func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, authenticator AuthnStrategy, err error) {
 	for _, authenticator = range a.strategies {
 		if authn, err = authenticator.Get(ctx); err != nil {
 			if authenticator.CanHandleUnauthorized() {
 				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, authenticator, nil
-			} else {
-				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, nil, err
 			}
+
+			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, nil, err
 		}
 
 		if authn.Level != authentication.NotAuthenticated {

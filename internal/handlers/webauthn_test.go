@@ -158,7 +158,7 @@ func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.
 
 	ctx.Ctx.Request.Header.Set("X-Forwarded-Host", "example.com")
 	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+	ctx.Ctx.Request.Header.Set("X-Forwarded-Proto", schemeHTTPS)
 
 	w, err := newWebauthn(ctx.Ctx)
 

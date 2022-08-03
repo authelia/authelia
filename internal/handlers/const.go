@@ -32,6 +32,11 @@ var (
 )
 
 const (
+	schemeHTTPS = "https"
+	schemeWSS   = "wss"
+)
+
+const (
 	queryStrArgumentRedirect      = "rd"
 	queryStrArgumentRequestMethod = "rm"
 	queryStrArgumentWorkflow      = "workflow"
@@ -48,24 +53,9 @@ const (
 	headerAuthorizationSchemeBasic = "Basic"
 )
 
-const (
-	headerAcceptsMIMETextHTML = "text/html"
-)
-
 var (
 	valueEmpty = []byte("")
 	valueBasic = []byte("basic")
-)
-
-const (
-	// AuthzResultForbidden means the user is forbidden the access to a resource.
-	AuthzResultForbidden AuthzResult = iota
-
-	// AuthzResultUnauthorized means the user can access the resource with more permissions.
-	AuthzResultUnauthorized
-
-	// AuthzResultAuthorized means the user is authorized given her current permissions.
-	AuthzResultAuthorized
 )
 
 const (

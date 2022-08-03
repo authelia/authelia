@@ -133,7 +133,7 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 	return p.schemaMigrate(ctx, currentVersion, version)
 }
 
-//nolint: gocyclo
+// nolint: gocyclo
 func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err error) {
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
@@ -246,7 +246,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration model.Sc
 	return p.schemaMigrateFinalize(ctx, migration)
 }
 
-func (p SQLProvider) schemaMigrateFinalize(ctx context.Context, migration model.SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, migration model.SchemaMigration) (err error) {
 	return p.schemaMigrateFinalizeAdvanced(ctx, migration.Before(), migration.After())
 }
 

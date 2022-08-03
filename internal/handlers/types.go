@@ -1,16 +1,12 @@
 package handlers
 
 import (
-	"net/url"
-
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 // MethodList is the list of available methods.
 type MethodList = []string
-
-type AuthzResult int
 
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
@@ -148,11 +144,6 @@ const (
 	// AuthnTypeAuthorization is an Authentication AuthnType based on the Authorization header.
 	AuthnTypeAuthorization
 )
-
-type AuthnObject struct {
-	URL    *url.URL
-	Method string
-}
 
 // Authn is authentication.
 type Authn struct {

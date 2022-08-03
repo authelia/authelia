@@ -31,7 +31,7 @@ func friendlyUsername(username string) (fusername string) {
 }
 
 func isSchemeSecure(u *url.URL) bool {
-	return u.Scheme == "https" || u.Scheme == "wss"
+	return u.Scheme == schemeHTTPS || u.Scheme == schemeWSS
 }
 
 func isURLUnderProtectedDomain(url *url.URL, domain string) bool {

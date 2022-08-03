@@ -13,10 +13,8 @@ import (
 func authzGetObjectImplAuthRequest(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
 	var targetURL *url.URL
 
-	targetURL, err = url.ParseRequestURI(string(ctx.XOriginalURL()))
-
-	if targetURL, err = ctx.GetOriginalURL(); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
+	if targetURL, err = url.ParseRequestURI(string(ctx.XOriginalURL())); err != nil {
+		return object, fmt.Errorf("failed to parse header X-Original-URL: %w", err)
 	}
 
 	return authorization.NewObjectRaw(targetURL, ctx.XOriginalMethod()), nil
