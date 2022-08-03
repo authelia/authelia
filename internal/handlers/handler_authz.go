@@ -19,14 +19,13 @@ func (a *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if object, err = a.fObjectGet(ctx); err != nil {
+		// TODO: Adjust.
 		ctx.Logger.Errorf("Error getting object: %v", err)
 
 		ctx.ReplyUnauthorized()
 
 		return
 	}
-
-	ctx.Logger.Debugf("Object is: %s %+v", object.Method, object)
 
 	if !isSchemeSecure(&object.URL) {
 		ctx.Logger.Errorf("Target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)
@@ -44,14 +43,13 @@ func (a *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Portal URL is: %+v", portalURL)
-
 	var (
 		authn         Authn
 		authenticator AuthnStrategy
 	)
 
 	if authn, authenticator, err = a.authn(ctx); err != nil {
+		// TODO: Adjust.
 		ctx.Logger.Errorf("LOG ME: Target URL '%s' does not appear to be a protected domain: %+v", object.URL.String(), err)
 
 		ctx.ReplyUnauthorized()
@@ -60,9 +58,7 @@ func (a *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	}
 
 	authn.Object = object
-	authn.Username, authn.Method = friendlyUsername(authn.Details.Username), friendlyMethod(authn.Object.Method)
-
-	ctx.Logger.Debugf("Authn is: %+v", authn)
+	authn.Method = friendlyMethod(authn.Object.Method)
 
 	required := ctx.Providers.Authorizer.GetRequiredLevel(
 		authorization.Subject{
@@ -146,7 +142,7 @@ func (a *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.U
 func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, authenticator AuthnStrategy, err error) {
 	for _, authenticator = range a.strategies {
 		if authn, err = authenticator.Get(ctx); err != nil {
-			ctx.Logger.Debugf("error: %+v", err)
+			ctx.Logger.Debugf("Error occured processing authentication: %+v", err)
 
 			if authenticator.CanHandleUnauthorized() {
 				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, authenticator, nil
