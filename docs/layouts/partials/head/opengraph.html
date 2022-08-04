@@ -1,6 +1,10 @@
 <meta property="og:locale" content="{{ .Site.Params.ogLocale }}">
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
-<meta property="og:title" content="{{ .Title }}">
+{{ if .IsHome -}}
+<meta property="og:title" content="{{ .Site.Params.title }} {{ .Site.Params.titleSeparator }} {{ .Site.Params.titleAddition }}">
+{{ else -}}
+<meta property="og:title" content="{{ .Title }} {{ .Site.Params.titleSeparator }} {{ humanize .Section }}">
+{{ end -}}
 <meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{if .IsPage}}{{ .Summary }}{{ else }}{{ with .Site.Params.description }}{{ . }}{{ end }}{{ end }}{{ end }}">
 {{ if $.Scratch.Get "paginator" -}}
   {{ $paginator := .Paginate (where .Site.RegularPages.ByDate.Reverse "Section" "blog" ) -}}
