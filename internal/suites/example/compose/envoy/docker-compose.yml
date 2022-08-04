@@ -1,0 +1,11 @@
+---
+version: '3'
+services:
+  caddy:
+    image: envoyproxy/envoy:v1.23.0
+    volumes:
+      - ./example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.100
+...

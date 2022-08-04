@@ -1,0 +1,150 @@
+static_resources:
+  listeners:
+    - name: listener_0
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8080
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                use_remote_address: true
+                skip_xff_append: false
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: login_service
+                      domains: ["login.example.com"]
+                      routes:
+                        - match:
+                            prefix: "/.well-known/"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            prefix: "/api/"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            prefix: "/locales/"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            path: "/jwks.json"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: authelia-frontend
+                    - name: mail_service
+                      domains: ["mail.example.com"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: smtp
+                    - name: http_service
+                      domains: ["*.example.com"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: httpbin
+                http_filters:
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: /api/verify?rd=https%3A%2F%2Flogin.example.com%3A8080%2F
+                        server_uri:
+                          uri: authelia:9091
+                          cluster: authelia
+                          timeout: 0.25s
+                        authorization_request:
+                          allowed_headers:
+                            patterns:
+                              - exact: cookie
+                              - exact: proxy-authorization
+                          headers_to_add:
+                            - key: X-Forwarded-Proto
+                              value: '%REQ(:SCHEME)%'
+                            - key: X-Forwarded-Method
+                              value: '%REQ(:METHOD)%'
+                            - key: X-Forwarded-Uri
+                              value: '%REQ(:PATH)%'
+                            - key: X-Forwarded-For
+                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - prefix: remote-
+                              - exact: set-cookie
+                      failure_mode_allow: false
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+    - name: authelia-frontend
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: authelia
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia-frontend
+                      port_value: 3000
+    - name: authelia-backend
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: nextcloud
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia-backend
+                      port_value: 9091
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context: {}
+    - name: smtp
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: authelia
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: smtp
+                      port_value: 1000
+    - name: httpbin
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: authelia
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: smtp
+                      port_value: 8000
