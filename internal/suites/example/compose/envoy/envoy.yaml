@@ -107,10 +107,23 @@ static_resources:
         endpoints:
           - lb_endpoints:
               - endpoint:
+                  health_check_config:
+                    hostname: authelia-frontend
+                    port_value: 3000
                   address:
                     socket_address:
                       address: authelia-frontend
                       port_value: 3000
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia-backend
+                      port_value: 9091
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context: {}
     - name: authelia-backend
       connect_timeout: 0.25s
       type: LOGICAL_DNS
