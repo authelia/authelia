@@ -121,7 +121,7 @@ static_resources:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
               http_service:
-                path_prefix: /api/verify
+                path_prefix: /api/verify?rd=https%3A%2F%2Fauth.example.com%2F
                 server_uri:
                   uri: authelia:9091
                   cluster: authelia
