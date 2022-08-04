@@ -36,11 +36,12 @@ DNS domain name of `cluster.local`.
 
 ```yaml
 annotations:
+  nginx.ingress.kubernetes.io/auth-method: GET
+  nginx.ingress.kubernetes.io/auth-url: http://authelia.default.svc.cluster.local/api/verify
+  nginx.ingress.kubernetes.io/auth-signin: https://auth.example.com?rm=$request_method
   nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
-  nginx.ingress.kubernetes.io/auth-signin: https://auth.example.com
   nginx.ingress.kubernetes.io/auth-snippet: |
     proxy_set_header X-Forwarded-Method $request_method;
-  nginx.ingress.kubernetes.io/auth-url: http://authelia.default.svc.cluster.local/api/verify
 ```
 
 [ingress-nginx]: https://kubernetes.github.io/ingress-nginx/

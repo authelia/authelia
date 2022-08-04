@@ -37,7 +37,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	}
 
 	if !p.features.Extensions.TLS && p.config.StartTLS {
-		p.log.Info("Your LDAP Server does not appear to support TLS but you enabled StartTLS which may result" +
+		p.log.Info("Your LDAP Server does not appear to support TLS but you enabled StartTLS which may result " +
 			"in an error.")
 	}
 

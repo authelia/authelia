@@ -35,7 +35,7 @@ The way this format works is you can either configure an integer or a string in 
 supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in blocks
 of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units of `h`.
 
-While you can use multiple of these blocks in combination, ee suggest keeping it simple and use a single value.
+While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value.
 
 ### Unit Legend
 
@@ -115,7 +115,7 @@ This section documents the usage.
 {{< confkey type="string" required="no" >}}
 
 The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
-require to use a direct IP address for the address of the backend service but want to verify a specific SNI.
+require an IP address for the host of the backend service but want to verify a specific certificate server name.
 
 ### skip_verify
 

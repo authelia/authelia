@@ -11,6 +11,25 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+func TestLevelToString(t *testing.T) {
+	testCases := []struct {
+		have     Level
+		expected string
+	}{
+		{Bypass, "bypass"},
+		{OneFactor, "one_factor"},
+		{TwoFactor, "two_factor"},
+		{Denied, "deny"},
+		{99, "deny"},
+	}
+
+	for _, tc := range testCases {
+		t.Run("Expected_"+tc.expected, func(t *testing.T) {
+			assert.Equal(t, tc.expected, LevelToString(tc.have))
+		})
+	}
+}
+
 func TestShouldNotParseInvalidSubjects(t *testing.T) {
 	subjectsSchema := [][]string{{"groups:z"}, {"group:z", "users:b"}}
 	subjectsACL := schemaSubjectsToACL(subjectsSchema)
@@ -184,7 +203,7 @@ func TestShouldParseACLNetworks(t *testing.T) {
 	assert.Equal(t, fourthNetwork, networksCacheMap["fec0::1/128"])
 }
 
-func TestShouldReturnCorrectValidationLevel(t *testing.T) {
+func TestIsAuthLevelSufficient(t *testing.T) {
 	assert.False(t, IsAuthLevelSufficient(authentication.NotAuthenticated, Denied))
 	assert.False(t, IsAuthLevelSufficient(authentication.OneFactor, Denied))
 	assert.False(t, IsAuthLevelSufficient(authentication.TwoFactor, Denied))

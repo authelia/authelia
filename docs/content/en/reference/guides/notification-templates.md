@@ -58,7 +58,38 @@ This is a basic example:
 Some Additional examples for specific purposes can be found in the
 [examples directory on GitHub](https://github.com/authelia/authelia/tree/master/examples/templates/notifications).
 
+## Envelope Template
+
+There is also a special envelope template. This is the email envelope which contains the content of the other templates
+when sent via the SMTP notifier. It's *__strongly recommended__* that you do not modify this template unless you know
+what you're doing. If you really want to modify it the name of the file must be `Envelope.tmpl`.
+
+This template contains the following placeholders:
+
+In template files, you can use the following placeholders which are automatically injected into the templates:
+
+|       Placeholder       |                                 Description                                 |
+|:-----------------------:|:---------------------------------------------------------------------------:|
+|   `{{ .ProcessID }}`    |                          The Authelia Process ID.                           |
+|      `{{ .UUID }}`      | A string representation of a UUID v4 generated specifically for this email. |
+|      `{{ .Host }}`      |                           The configured [host].                            |
+|   `{{ .ServerName }}`   |                      The configured TLS [server_name].                      |
+|  `{{ .SenderDomain }}`  |               The domain portion of the configured [sender].                |
+|   `{{ .Identifier }}`   |                        The configured [identifier].                         |
+|      `{{ .From }}`      |            The string representation of the configured [sender].            |
+|       `{{ .To }}`       |         The string representation of the recipients email address.          |
+|    `{{ .Subject }}`     |                             The email subject.                              |
+|      `{{ .Date }}`      |             The time.Time of the email envelope being rendered.             |
+|    `{{ .Boundary }}`    |       The random alphanumeric 20 character multi-part email boundary.       |
+| `{{ .Body.PlainText }}` |                    The plain text version of the email.                     |
+|   `{{ .Body.HTML }}`    |                       The HTML version of the email.                        |
+
 ## Original Templates
 
 The original template content can be found on
-[GitHub](https://github.com/authelia/authelia/tree/master/internal/templates).
+[GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/notification).
+
+[host]: ../../configuration/notifications/smtp.md#host
+[server_name]: ../../configuration/notifications/smtp.md#tls
+[sender]: ../../configuration/notifications/smtp.md#sender
+[identifier]: ../../configuration/notifications/smtp.md#identifier

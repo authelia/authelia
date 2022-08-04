@@ -669,16 +669,22 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 			Policy:    twoFactor,
 			Resources: createSliceRegexRule(s.T(), []string{"^/a/longer/rule/.*$"}),
 		}).
+		WithRule(schema.ACLRule{
+			Domains:   []string{"resource.example.com"},
+			Policy:    twoFactor,
+			Resources: createSliceRegexRule(s.T(), []string{"^/an/exact/path/$"}),
+		}).
 		Build()
 
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/abc", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/one_factor/abc", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/abc", "GET", Bypass)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/ABC", "GET", Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/an/exact/path/", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/../a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..//a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2f/a/longer/rule/abc", "GET", TwoFactor)
@@ -697,6 +703,7 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2fa/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2F/a/longer/rule/abc", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2Fa/longer/rule/abc", "GET", TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2Fan/exact/path/", "GET", TwoFactor)
 }
 
 // This test assures that rules without domains (not allowed by schema validator at this time) will pass validation correctly.
@@ -858,12 +865,12 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 }
 
 func (s *AuthorizerSuite) TestPolicyToLevel() {
-	s.Assert().Equal(Bypass, PolicyToLevel(bypass))
-	s.Assert().Equal(OneFactor, PolicyToLevel(oneFactor))
-	s.Assert().Equal(TwoFactor, PolicyToLevel(twoFactor))
-	s.Assert().Equal(Denied, PolicyToLevel(deny))
+	s.Assert().Equal(Bypass, StringToLevel(bypass))
+	s.Assert().Equal(OneFactor, StringToLevel(oneFactor))
+	s.Assert().Equal(TwoFactor, StringToLevel(twoFactor))
+	s.Assert().Equal(Denied, StringToLevel(deny))
 
-	s.Assert().Equal(Denied, PolicyToLevel("whatever"))
+	s.Assert().Equal(Denied, StringToLevel("whatever"))
 }
 
 func TestRunSuite(t *testing.T) {
@@ -922,7 +929,8 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithNoOIDC(t *testing.T) {
 	authorizer := NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = TwoFactor
+	config.AccessControl.Rules[0].Policy = twoFactor
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 }
 
@@ -951,22 +959,24 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 	authorizer := NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = TwoFactor
+	config.AccessControl.Rules[0].Policy = twoFactor
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = OneFactor
+	config.AccessControl.Rules[0].Policy = oneFactor
+	authorizer = NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
 	config.IdentityProviders.OIDC.Clients[0].Policy = twoFactor
-
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.rules[0].Policy = OneFactor
+	config.AccessControl.Rules[0].Policy = oneFactor
 	config.IdentityProviders.OIDC.Clients[0].Policy = oneFactor
-
+	authorizer = NewAuthorizer(config)
 	assert.False(t, authorizer.IsSecondFactorEnabled())
 
-	authorizer.defaultPolicy = TwoFactor
-
+	config.AccessControl.DefaultPolicy = twoFactor
+	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
 }

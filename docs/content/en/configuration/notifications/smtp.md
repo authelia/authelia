@@ -56,7 +56,9 @@ host: "[fd00:1111:2222:3333::1]"
 
 {{< confkey type="integer" required="yes" >}}
 
-The port the SMTP service is listening on.
+The port the SMTP service is listening on. Port 465 is treated as a special port where the entire connection is over
+TLS. This port was formerly known as the SMTPS port but is now known as the SUBMISSIONS port i.e. SUBMISSION Secure. All
+other ports expect to perform a STARTTLS negotiation.
 
 ### timeout
 
