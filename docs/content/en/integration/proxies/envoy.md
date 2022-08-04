@@ -130,7 +130,6 @@ static_resources:
                   allowed_headers:
                     patterns:
                       - exact: cookie
-                      - exact: authorization
                       - exact: proxy-authorization
                   headers_to_add:
                     - key: X-Forwarded-Proto

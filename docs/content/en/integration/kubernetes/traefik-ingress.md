@@ -40,7 +40,7 @@ every namespace you need to use it.
 Regardless if you're using the [Traefik Kubernetes Ingress] or purely the [Traefik Kubernetes CRD], you must configure
 the [Traefik Kubernetes CRD] as far as we're aware at this time in order to configure a [ForwardAuth] [Middleware].
 
-This is an example [Middleware] manifest. This eample assumes that you have deployed an Authelia pod and you have
+This is an example [Middleware] manifest. This example assumes that you have deployed an Authelia pod and you have
 configured it to be served on the URL `https://auth.example.com` and there is a Kubernetes Service with the name
 `authelia` in the `default` namespace with TCP port `80` configured to route to the Authelia pod's HTTP port and that
 your cluster is configured with the default DNS domain name of `cluster.local`.
