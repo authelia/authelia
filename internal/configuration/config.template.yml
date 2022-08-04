@@ -58,12 +58,6 @@ server:
   read_buffer_size: 4096
   write_buffer_size: 4096
 
-  ## Enables the pprof endpoint.
-  enable_pprof: false
-
-  ## Enables the expvars endpoint.
-  enable_expvars: false
-
   ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
   disable_healthcheck: false

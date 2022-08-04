@@ -81,7 +81,7 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 		ctx.Logger.Error(marshalErr)
 	}
 
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(b)
 	ctx.Logger.Debug(err)
 }
@@ -90,7 +90,7 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 func (ctx *AutheliaCtx) ReplyStatusCode(statusCode int) {
 	ctx.Response.Reset()
 	ctx.SetStatusCode(statusCode)
-	ctx.SetContentTypeBytes(contentTypeTextPlain)
+	ctx.SetContentTypeTextPlain()
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
@@ -108,7 +108,7 @@ func (ctx *AutheliaCtx) ReplyJSON(data interface{}, statusCode int) (err error) 
 		ctx.SetStatusCode(statusCode)
 	}
 
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(body)
 
 	return nil
@@ -236,7 +236,7 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 
 // ReplyOK is a helper method to reply ok.
 func (ctx *AutheliaCtx) ReplyOK() {
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(okMessageBytes)
 }
 
@@ -259,6 +259,31 @@ func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
 	}
 
 	return nil
+}
+
+// SetContentTypeApplicationJSON sets the Content-Type header to 'application/json; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeApplicationJSON() {
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+}
+
+// SetContentTypeTextPlain sets the Content-Type header to 'text/plain; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeTextPlain() {
+	ctx.SetContentTypeBytes(contentTypeTextPlain)
+}
+
+// SetContentTypeTextHTML sets the Content-Type header to 'text/html; charset=utf-8'.
+func (ctx *AutheliaCtx) SetContentTypeTextHTML() {
+	ctx.SetContentTypeBytes(contentTypeTextHTML)
+}
+
+// SetContentSecurityPolicy sets the Content-Security-Policy header.
+func (ctx *AutheliaCtx) SetContentSecurityPolicy(value string) {
+	ctx.Response.Header.SetBytesK(headerContentSecurityPolicy, value)
+}
+
+// SetContentSecurityPolicyBytes sets the Content-Security-Policy header.
+func (ctx *AutheliaCtx) SetContentSecurityPolicyBytes(value []byte) {
+	ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, value)
 }
 
 // SetJSONBody Set json body.

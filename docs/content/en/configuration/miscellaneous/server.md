@@ -24,8 +24,6 @@ server:
   path: ""
   read_buffer_size: 4096
   write_buffer_size: 4096
-  enable_pprof: false
-  enable_expvars: false
   disable_healthcheck: false
   tls:
     key: ""
@@ -33,6 +31,19 @@ server:
     client_certificates: []
   headers:
     csp_template: ""
+  endpoints:
+    enable_pprof: false
+    enable_expvars: false
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+        authn_strategies: []
+      auth-request:
+        implementation: AuthRequest
+        authn_strategies: []
+      legacy:
+        implementation: Legacy
+        authn_strategies: []
 ```
 
 ## Options
@@ -107,18 +118,6 @@ Configures the maximum request size. The default of 4096 is generally sufficient
 
 Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
-### enable_pprof
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Enables the go pprof endpoints.
-
-### enable_expvars
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Enables the go expvars endpoints.
-
 ### disable_healthcheck
 
 {{< confkey type="boolean" default="false" required="no" >}}
@@ -173,6 +172,32 @@ nonce value of the Authelia react bundle. This is an advanced option to customiz
 about how browsers utilize and understand this header before attempting to customize it.
 
 For example, the default CSP template is `default-src 'self'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'`.
+
+### endpoints
+
+#### enable_pprof
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.*
+
+Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
+
+#### enable_expvars
+
+*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.*
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
+
+#### authz
+
+This is an *__advanced__* option allowing configuration of the authorization endpoints and has its own section.
+Generally this does not need to be configured for most use cases. See the
+[authz configuration](./server-endpoints-authz.md) for more information.
 
 ## Additional Notes
 

@@ -15,19 +15,19 @@ aliases:
   - /docs/home/supported-proxies.html
 ---
 
-|         Proxy         |                      [Standard](#standard)                       |                              [Kubernetes](#kubernetes)                               |    [XHR Redirect](#xhr-redirect)     |  [Request Method](#request-method)   |
-|:---------------------:|:----------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:------------------------------------:|:------------------------------------:|
-|       [Traefik]       |         [<i class="icon-support-full"></i>](traefik.md)          | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [NGINX]        |          [<i class="icon-support-full"></i>](nginx.md)           |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-| [NGINX Proxy Manager] |   [<i class="icon-support-full"></i>](nginx-proxy-manager.md)    |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|        [SWAG]         |           [<i class="icon-support-full"></i>](swag.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|       [HAProxy]       |         [<i class="icon-support-full"></i>](haproxy.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
-|        [Caddy]        |          [<i class="icon-support-full"></i>](caddy.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|     [Traefik] 1.x     |        [<i class="icon-support-full"></i>](traefikv1.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [Envoy]        |         [<i class="icon-support-unknown"></i>](envoy.md)         |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Skipper]       |         [<i class="icon-support-full"></i>](skipper.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Apache]        | [<i class="icon-support-none" alt="Not Supported"></i>](#apache) |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
-|         [IIS]         |            [<i class="icon-support-none"></i>](#iis)             |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
+|         Proxy         | Implementation |                      [Standard](#standard)                       |                              [Kubernetes](#kubernetes)                               |    [XHR Redirect](#xhr-redirect)     |  [Request Method](#request-method)   |
+|:---------------------:|:--------------:|:----------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:------------------------------------:|:------------------------------------:|
+|       [Traefik]       | [ForwardAuth]  |         [<i class="icon-support-full"></i>](traefik.md)          | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
+|        [NGINX]        | [AuthRequest]  |          [<i class="icon-support-full"></i>](nginx.md)           |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
+| [NGINX Proxy Manager] | [AuthRequest]  |   [<i class="icon-support-full"></i>](nginx-proxy-manager.md)    |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
+|        [SWAG]         | [AuthRequest]  |           [<i class="icon-support-full"></i>](swag.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
+|       [HAProxy]       | [AuthRequest]  |         [<i class="icon-support-full"></i>](haproxy.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
+|        [Caddy]        | [ForwardAuth]  |          [<i class="icon-support-full"></i>](caddy.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
+|     [Traefik] 1.x     | [ForwardAuth]  |        [<i class="icon-support-full"></i>](traefikv1.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
+|        [Envoy]        |      N/A       |         [<i class="icon-support-unknown"></i>](envoy.md)         |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
+|       [Skipper]       | [ForwardAuth]  |         [<i class="icon-support-full"></i>](skipper.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
+|       [Apache]        |      N/A       | [<i class="icon-support-none" alt="Not Supported"></i>](#apache) |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
+|         [IIS]         |      N/A       |            [<i class="icon-support-none"></i>](#iis)             |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
 
 Legend:
 
@@ -37,6 +37,9 @@ Legend:
 | <i class="icon-support-unknown"></i> |       Unknown       |
 | <i class="icon-support-partial"></i> | Partially Supported |
 |  <i class="icon-support-none"></i>   |    Not Supported    |
+
+[ForwardAuth]: ./
+[AuthRequest]: ./
 
 ## Support
 
