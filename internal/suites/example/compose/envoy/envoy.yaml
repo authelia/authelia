@@ -130,7 +130,7 @@ static_resources:
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: nextcloud
+        cluster_name: authelia-backend
         endpoints:
           - lb_endpoints:
               - endpoint:
@@ -149,7 +149,7 @@ static_resources:
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: authelia
+        cluster_name: smtp
         endpoints:
           - lb_endpoints:
               - endpoint:
@@ -163,7 +163,7 @@ static_resources:
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: authelia
+        cluster_name: httpbin
         endpoints:
           - lb_endpoints:
               - endpoint:
