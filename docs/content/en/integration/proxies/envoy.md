@@ -44,10 +44,143 @@ how you can configure multiple IP ranges. You should customize this example to f
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
 trust entire subnets unless that subnet only has trusted proxies and no other services.*
 
-## Potential
+## Configuration
+
+Below you will find commented examples of the following configuration:
+
+* Authelia Portal
+* Protected Endpoint (Nextcloud)
+
+### Theoretical Example
 
 Support for [Envoy] should be possible via [Envoy]'s
 [external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
+
+{{< details "envoy.yaml" >}}
+```yaml
+static_resources:
+  listeners:
+  - name: listener_http
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 80
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          codec_type: auto
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: backend
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                redirect:
+                  https_redirect: true
+            http_filters:
+            - name: envoy.filters.http.router
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  - name: listener_https
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 443
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          use_remote_address: true
+          skip_xff_append: false
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: whoami_service
+              domains: ["nextcloud.example.com"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: nextcloud
+            - name: authelia_service
+              domains: ["auth.example.com"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: authelia
+          http_filters:
+          - name: envoy.filters.http.ext_authz
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              http_service:
+                path_prefix: /api/verify
+                server_uri:
+                  uri: authelia:9091
+                  cluster: authelia
+                  timeout: 0.25s
+                authorization_request:
+                  allowed_headers:
+                    patterns:
+                      - exact: cookie
+                      - exact: authorization
+                      - exact: proxy-authorization
+                  headers_to_add:
+                    - key: X-Forwarded-Proto
+                      value: '%REQ(:SCHEME)%'
+                    - key: X-Forwarded-Method
+                      value: '%REQ(:METHOD)%'
+                    - key: X-Forwarded-Uri
+                      value: '%REQ(:PATH)%'
+                    - key: X-Forwarded-For
+                      value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                authorization_response:
+                  allowed_upstream_headers:
+                    patterns:
+                      - prefix: remote-
+                      - exact: set-cookie
+              failure_mode_allow: false
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+  - name: nextcloud
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: nextcloud
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: nextcloud
+                port_value: 80
+  - name: authelia
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: authelia
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: authelia
+                port_value: 9091
+```
+{{< /details >}}
 
 ## See Also
 

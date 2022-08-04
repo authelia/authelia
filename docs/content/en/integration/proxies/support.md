@@ -24,7 +24,7 @@ aliases:
 |       [HAProxy]       |         [<i class="icon-support-full"></i>](haproxy.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
 |        [Caddy]        |          [<i class="icon-support-full"></i>](caddy.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
 |     [Traefik] 1.x     |        [<i class="icon-support-full"></i>](traefikv1.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [Envoy]        |         [<i class="icon-support-unknown"></i>](envoy.md)         |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
+|        [Envoy]        |          [<i class="icon-support-full"></i>](envoy.md)           |                          <i class="icon-support-full"></i>                           | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
 |       [Skipper]       |         [<i class="icon-support-full"></i>](skipper.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
 |       [Apache]        | [<i class="icon-support-none" alt="Not Supported"></i>](#apache) |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
 |         [IIS]         |            [<i class="icon-support-none"></i>](#iis)             |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
@@ -87,8 +87,8 @@ available in [Kubernetes]. You would likely have to build your own [HAProxy] ima
 
 ### Envoy
 
-[Envoy] is currently not documented however we believe it is likely to be technically supported. This should be possible
-via [Envoy]'s [external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
+[Envoy] is currently only partially documented however it is technically supported via [Envoy]'s
+[external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
 
 ### Caddy
 
