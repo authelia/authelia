@@ -1,7 +1,7 @@
 ---
 version: '3'
 services:
-  caddy:
+  envoy:
     image: envoyproxy/envoy:v1.23.0
     volumes:
       - ./example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml
