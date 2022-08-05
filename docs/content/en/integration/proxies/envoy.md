@@ -157,6 +157,10 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: authelia
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
