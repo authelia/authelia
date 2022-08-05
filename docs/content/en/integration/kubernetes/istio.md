@@ -32,28 +32,32 @@ kind: IstioOperator
 spec:
   meshConfig:
     extensionProviders:
-    - name: "authelia"
-      envoyExtAuthzHttp:
-      service: "authelia.default.svc.cluster.local"
-      port: 80
-      pathPrefix: "/api/verify"
-      includeRequestHeadersInCheck:
-      - cookie
-      - proxy-authorization
-      headersToUpstreamOnAllow:
-      - 'remote-*'
-      - 'set-cookie'
-      includeAdditionalHeadersInCheck:
-        X-Forwarded-Method: '%REQ(:METHOD)%'
-        X-Forwarded-Proto: '%REQ(:SCHEME)%'
-        X-Forwarded-Host: '%REQ(:AUTHORITY)%'
-        X-Forwarded-URI: '%REQ(:PATH)%'
-        X-Forwarded-For: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+      - name: 'authelia'
+        envoyExtAuthzHttp:
+          service: 'authelia.default.svc.cluster.local'
+          port: 80
+          pathPrefix: '/api/verify'
+          includeRequestHeadersInCheck:
+            - accept
+            - cookie
+            - proxy-authorization
+          headersToUpstreamOnAllow:
+            - 'authorization'
+            - 'proxy-authorization'
+            - 'remote-*'
+            - 'authelia-*'
+          includeAdditionalHeadersInCheck:
+            X-Authelia-URL: 'https://auth.example.com/'
+            X-Forwarded-Method: '%REQ(:METHOD)%'
+            X-Forwarded-Proto: '%REQ(:SCHEME)%'
+            X-Forwarded-Host: '%REQ(:AUTHORITY)%'
+            X-Forwarded-URI: '%REQ(:PATH)%'
+            X-Forwarded-For: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
 ```
 
 ### Authorization Policy
 
-The following [Authorization Policy] applies the above filter to the `nextcloud.example.com` domain:
+The following [Authorization Policy] applies the above filter extension provider to the `nextcloud.example.com` domain:
 
 ```yaml
 apiVersion: security.istio.io/v1beta1
@@ -66,10 +70,10 @@ spec:
   provider:
     name:  'authelia'
   rules:
-  - to:
-    - operation:
-        hosts:
-        - 'nextcloud.example.com'
+    - to:
+        - operation:
+            hosts:
+              - 'nextcloud.example.com'
 ```
 
 ## See Also

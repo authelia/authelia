@@ -49,6 +49,7 @@ Below you will find commented examples of the following configuration:
 Support for [Envoy] should be possible via [Envoy]'s
 [external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
 
+{{< details "docker-compose.yaml" >}}
 ```yaml
 ---
 version: "3.8"
@@ -96,6 +97,7 @@ services:
       PGID: "1000"
       TZ: "Australia/Melbourne"
 ```
+{{< /details >}}
 
 {{< details "envoy.yaml" >}}
 ```yaml
@@ -166,7 +168,7 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
                       http_service:
-                        path_prefix: /api/verify?rd=https%3A%2F%2Fauth.example.com%2F
+                        path_prefix: '/api/verify'
                         server_uri:
                           uri: authelia:9091
                           cluster: authelia
@@ -174,9 +176,12 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
+                              - exact: accept
                               - exact: cookie
                               - exact: proxy-authorization
                           headers_to_add:
+                            - key: X-Authelia-URL
+                              value: 'https://auth.example.com/'
                             - key: X-Forwarded-Method
                               value: '%REQ(:METHOD)%'
                             - key: X-Forwarded-Proto
@@ -190,8 +195,10 @@ static_resources:
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
                               - prefix: remote-
-                              - exact: set-cookie
+                              - prefix: authelia-
                       failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
