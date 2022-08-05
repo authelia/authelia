@@ -44,9 +44,10 @@ spec:
       - 'remote-*'
       - 'set-cookie'
       includeAdditionalHeadersInCheck:
-        X-Forwarded-Proto: '%REQ(:SCHEME)%'
         X-Forwarded-Method: '%REQ(:METHOD)%'
-        X-Forwarded-Uri: '%REQ(:PATH)%'
+        X-Forwarded-Proto: '%REQ(:SCHEME)%'
+        X-Forwarded-Host: '%REQ(:AUTHORITY)%'
+        X-Forwarded-URI: '%REQ(:PATH)%'
         X-Forwarded-For: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
 ```
 
