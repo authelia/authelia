@@ -171,6 +171,16 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return uri
 }
 
+// XAutheliaURL return the content of the X-Authelia-URL header.
+func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXAutheliaURL)
+}
+
+// QueryArgRedirect return the content of the rd query argument.
+func (ctx *AutheliaCtx) QueryArgRedirect() (val []byte) {
+	return ctx.RequestCtx.QueryArgs().PeekBytes(queryArgRedirect)
+}
+
 // BasePath returns the base_url as per the path visited by the client.
 func (ctx *AutheliaCtx) BasePath() (base string) {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
@@ -317,14 +327,14 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 }
 
 // IsXHR returns true if the request is a XMLHttpRequest.
-func (ctx AutheliaCtx) IsXHR() (xhr bool) {
+func (ctx *AutheliaCtx) IsXHR() (xhr bool) {
 	requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith)
 
 	return requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR)
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
-func (ctx AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
+func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 	accepts := strings.Split(string(ctx.Request.Header.PeekBytes(headerAccept)), ",")
 
 	for i, accept := range accepts {

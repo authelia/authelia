@@ -181,7 +181,6 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
 	var (
 		statusCode            int
-		redirectionURL        string
 		friendlyUsername      string
 		friendlyRequestMethod string
 	)
@@ -201,10 +200,6 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		return
 	}
 
-	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-	// endpoint to provide the URL of the login portal. The target URL of the user
-	// is computed from X-Forwarded-* headers or X-Original-URL.
-	rd := string(ctx.QueryArgs().Peek("rd"))
 	rm := string(method)
 
 	switch rm {
@@ -214,17 +209,22 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		friendlyRequestMethod = rm
 	}
 
-	if rd != "" {
-		switch rm {
-		case "":
-			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		default:
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
+	redirectionURL := ctxGetPortalURL(ctx)
+
+	if redirectionURL != nil {
+		qry := redirectionURL.Query()
+
+		qry.Set("rd", targetURL.String())
+
+		if rm != "" {
+			qry.Set("rm", rm)
 		}
+
+		redirectionURL.RawQuery = qry.Encode()
 	}
 
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || rd == "":
+	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch rm {
@@ -235,9 +235,9 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		}
 	}
 
-	if redirectionURL != "" {
+	if redirectionURL != nil {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL, statusCode)
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
