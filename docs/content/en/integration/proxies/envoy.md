@@ -154,21 +154,21 @@ static_resources:
                             cluster: nextcloud
                     - name: authelia_service
                       domains: ["auth.example.com"]
+                      typed_per_filter_config:
+                        envoy.filters.http.ext_authz:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                          disabled: true
                       routes:
                         - match:
                             prefix: "/"
                           route:
                             cluster: authelia
-                          typed_per_filter_config:
-                            envoy.filters.http.ext_authz:
-                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
-                              disabled: true
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
                       http_service:
-                        path_prefix: '/api/verify'
+                        path_prefix: '/api/verify/'
                         server_uri:
                           uri: authelia:9091
                           cluster: authelia
