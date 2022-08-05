@@ -176,6 +176,11 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return uri
 }
 
+// XAutheliaURL return the content of the X-Authelia-URL header.
+func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
+	return ctx.Request.Header.PeekBytes(headerXAutheliaURL)
+}
+
 // BasePath returns the base_url as per the path visited by the client.
 func (ctx *AutheliaCtx) BasePath() (base string) {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {

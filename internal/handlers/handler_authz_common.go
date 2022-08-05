@@ -11,6 +11,33 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
+func authzPortalURLFromHeader(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+	rawURL := ctx.XAutheliaURL()
+
+	if rawURL == nil {
+		return nil, fmt.Errorf("missing X-Authelia-URL header")
+	}
+
+	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+		return nil, err
+	}
+
+	return portalURL, nil
+}
+
+func authzPortalURLFromQuery(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+	rawURL := ctx.QueryArgs().PeekBytes(queryArgumentRedirect)
+	if rawURL == nil {
+		return nil, nil
+	}
+
+	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+		return nil, err
+	}
+
+	return portalURL, nil
+}
+
 func authzObjectVerifyStandard(ctx *middlewares.AutheliaCtx, object authorization.Object) (err error) {
 	if !isSchemeSecure(&object.URL) {
 		return fmt.Errorf("target URL '%s' has an insecure scheme '%s', only the 'https' and 'wss' schemes are supported so session cookies can be transmitted securely", object.URL.String(), object.URL.Scheme)

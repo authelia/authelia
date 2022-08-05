@@ -92,13 +92,8 @@ func (a *Authz) getPortalURL(ctx *middlewares.AutheliaCtx, object *authorization
 	if len(a.config.Domains) == 1 {
 		portalURL = a.config.Domains[0].PortalURL
 
-		if portalURL == nil {
-			rd := ctx.QueryArgs().PeekBytes(queryArgumentRedirect)
-			if rd == nil {
-				return nil, nil
-			}
-
-			if portalURL, err = url.ParseRequestURI(string(rd)); err != nil {
+		if portalURL == nil && a.fPortalURL != nil {
+			if portalURL, err = a.fPortalURL(ctx); err != nil {
 				return nil, err
 			}
 		}
@@ -142,7 +137,7 @@ func (a *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.U
 func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, authenticator AuthnStrategy, err error) {
 	for _, authenticator = range a.strategies {
 		if authn, err = authenticator.Get(ctx); err != nil {
-			ctx.Logger.Debugf("Error occured processing authentication: %+v", err)
+			ctx.Logger.Debugf("Error occurred processing authentication: %+v", err)
 
 			if authenticator.CanHandleUnauthorized() {
 				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, authenticator, nil

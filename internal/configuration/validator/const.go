@@ -298,7 +298,7 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 
 var validLogLevels = []string{"trace", "debug", "info", "warn", "error"}
 
-var validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", "Legacy"}
+var validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", "ExtAuthz", "Legacy"}
 var validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
 
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}

@@ -21,6 +21,8 @@ var (
 	headerXOriginalMethod  = []byte("X-Original-Method")
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
 
+	headerXAutheliaURL = []byte("X-Authelia-URL")
+
 	headerVary   = []byte(fasthttp.HeaderVary)
 	headerAllow  = []byte(fasthttp.HeaderAllow)
 	headerOrigin = []byte(fasthttp.HeaderOrigin)

@@ -67,6 +67,14 @@ func (b *AuthzBuilder) WithImplementationAuthRequest() *AuthzBuilder {
 	return b
 }
 
+// WithImplementationExtAuthz configures this builder to output an Authz which is used with the ExtAuthz
+// implementation traditionally used by Envoy.
+func (b *AuthzBuilder) WithImplementationExtAuthz() *AuthzBuilder {
+	b.impl = AuthzImplExtAuthz
+
+	return b
+}
+
 // WithConfig allows configuring the Authz config by providing a *schema.Configuration. This function converts it to
 // an AuthzConfig and assigns it to the builder.
 func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
@@ -162,12 +170,18 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	case AuthzImplLegacy:
 		authz.fObjectGet = authzGetObjectImplLegacy
 		authz.fHandleUnauthorized = authzHandleUnauthorizedImplLegacy
+		authz.fPortalURL = authzPortalURLFromQuery
 	case AuthzImplForwardAuth:
 		authz.fObjectGet = authzGetObjectImplForwardAuth
 		authz.fHandleUnauthorized = authzHandleUnauthorizedImplForwardAuth
+		authz.fPortalURL = authzPortalURLFromQuery
 	case AuthzImplAuthRequest:
 		authz.fObjectGet = authzGetObjectImplAuthRequest
 		authz.fHandleUnauthorized = authzHandleUnauthorizedImplAuthRequest
+	case AuthzImplExtAuthz:
+		authz.fObjectGet = authzGetObjectImplExtAuthz
+		authz.fHandleUnauthorized = authzHandleUnauthorizedImplExtAuthz
+		authz.fPortalURL = authzPortalURLFromHeader
 	}
 
 	return authz

@@ -15,6 +15,8 @@ type Authz struct {
 	fObjectGet    func(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error)
 	fObjectVerify func(ctx *middlewares.AutheliaCtx, object authorization.Object) (err error)
 
+	fPortalURL func(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error)
+
 	strategies []AuthnStrategy
 
 	fHandleAuthorized   func(ctx *middlewares.AutheliaCtx, authn *Authn)
@@ -86,6 +88,9 @@ const (
 	// AuthzImplAuthRequest is the modern Auth Request Authz implementation which is used by NGINX and modelled after
 	// the ingress-nginx k8s ingress.
 	AuthzImplAuthRequest
+
+	// AuthzImplExtAuthz is the modern ExtAuthz Authz implementation which is used by Envoy.
+	AuthzImplExtAuthz
 )
 
 // String returns the text representation of this AuthzImplementation.
@@ -97,6 +102,8 @@ func (i AuthzImplementation) String() string {
 		return "ForwardAuth"
 	case AuthzImplAuthRequest:
 		return "AuthRequest"
+	case AuthzImplExtAuthz:
+		return "ExtAuthz"
 	default:
 		return ""
 	}

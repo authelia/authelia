@@ -80,6 +80,17 @@ var DefaultServerConfig = ServerConfig{
 					},
 				},
 			},
+			"ext-authz": {
+				Implementation: "ExtAuthz",
+				AuthnStrategies: []ServerAuthnStrategyAuthzEndpointConfig{
+					{
+						Name: "HeaderProxyAuthorization",
+					},
+					{
+						Name: "CookieSession",
+					},
+				},
+			},
 		},
 	},
 }

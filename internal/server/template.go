@@ -8,10 +8,11 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
