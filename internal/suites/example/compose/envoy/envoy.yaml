@@ -139,7 +139,7 @@ static_resources:
                   address:
                     socket_address:
                       address: smtp
-                      port_value: 1000
+                      port_value: 1080
     - name: httpbin
       connect_timeout: 0.25s
       type: LOGICAL_DNS
