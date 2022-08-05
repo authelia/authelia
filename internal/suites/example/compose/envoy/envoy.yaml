@@ -13,6 +13,10 @@ static_resources:
                 stat_prefix: ingress_http
                 use_remote_address: true
                 skip_xff_append: false
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
                 route_config:
                   name: local_route
                   virtual_hosts:
@@ -38,7 +42,7 @@ static_resources:
                         - match:
                             prefix: "/"
                           route:
-                            cluster: authelia-frontend
+                            cluster: authelia-backend
                     - name: mail_service
                       domains: ["mail.example.com"]
                       routes:
@@ -101,33 +105,6 @@ static_resources:
                     private_key:
                       filename: /etc/ssl/server.key
   clusters:
-    - name: authelia-frontend
-      connect_timeout: 0.25s
-      type: STRICT_DNS
-      dns_lookup_family: V4_ONLY
-      lb_policy: ROUND_ROBIN
-      load_assignment:
-        cluster_name: authelia
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  health_check_config:
-                    hostname: authelia-frontend
-                    port_value: 3000
-                  address:
-                    socket_address:
-                      address: authelia-frontend
-                      port_value: 3000
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: authelia-backend
-                      port_value: 9091
-      transport_socket:
-        name: envoy.transport_sockets.tls
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-          common_tls_context: {}
     - name: authelia-backend
       connect_timeout: 0.25s
       type: LOGICAL_DNS
