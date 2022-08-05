@@ -50,9 +50,13 @@ static_resources:
                       domains: ["*.example.com"]
                       routes:
                         - match:
-                            prefix: "/"
+                            prefix: "/headers"
                           route:
                             cluster: httpbin
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: nginx-backend
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
@@ -99,7 +103,7 @@ static_resources:
   clusters:
     - name: authelia-frontend
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
+      type: STRICT_DNS
       dns_lookup_family: V4_ONLY
       lb_policy: ROUND_ROBIN
       load_assignment:
@@ -169,5 +173,19 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: smtp
+                      address: httpbin
                       port_value: 8000
+    - name: nginx-backend
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: nginx-backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: nginx-backend
+                      port_value: 80
