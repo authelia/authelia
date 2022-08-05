@@ -21,7 +21,7 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: login_service
-                      domains: ["login.example.com"]
+                      domains: ["login.example.com:8080"]
                       routes:
                         - match:
                             prefix: "/.well-known/"
@@ -44,14 +44,14 @@ static_resources:
                           route:
                             cluster: authelia-backend
                     - name: mail_service
-                      domains: ["mail.example.com"]
+                      domains: ["mail.example.com:8080"]
                       routes:
                         - match:
                             prefix: "/"
                           route:
                             cluster: smtp
                     - name: http_service
-                      domains: ["*.example.com"]
+                      domains: ["*.example.com:8080"]
                       routes:
                         - match:
                             prefix: "/headers"
@@ -69,7 +69,7 @@ static_resources:
                         path_prefix: /api/verify?rd=https%3A%2F%2Flogin.example.com%3A8080%2F
                         server_uri:
                           uri: authelia:9091
-                          cluster: authelia
+                          cluster: authelia-backend
                           timeout: 0.25s
                         authorization_request:
                           allowed_headers:
@@ -77,10 +77,12 @@ static_resources:
                               - exact: cookie
                               - exact: proxy-authorization
                           headers_to_add:
-                            - key: X-Forwarded-Proto
-                              value: '%REQ(:SCHEME)%'
                             - key: X-Forwarded-Method
                               value: '%REQ(:METHOD)%'
+                            - key: X-Forwarded-Proto
+                              value: '%REQ(:SCHEME)%'
+                            - key: X-Forwarded-Host
+                              value: '%REQ(:AUTHORITY)%'
                             - key: X-Forwarded-Uri
                               value: '%REQ(:PATH)%'
                             - key: X-Forwarded-For
