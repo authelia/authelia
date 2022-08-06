@@ -12,11 +12,15 @@ func IsRedirectionSafe(url url.URL, protectedDomain string) bool {
 		return false
 	}
 
-	if !strings.HasSuffix(url.Hostname(), protectedDomain) {
-		return false
+	if url.Hostname() == protectedDomain {
+		return true
 	}
 
-	return true
+	if strings.HasSuffix(url.Hostname(), fmt.Sprintf(".%s", protectedDomain)) {
+		return true
+	}
+
+	return false
 }
 
 // IsRedirectionURISafe determines whether the URI is safe to be redirected to.

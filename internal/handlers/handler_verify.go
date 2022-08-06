@@ -212,6 +212,14 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	redirectionURL := ctxGetPortalURL(ctx)
 
 	if redirectionURL != nil {
+		if !utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.Domain) {
+			ctx.Logger.Errorf("Configured Portal URL '%s' does not appear to be able to write cookies for the '%s' domain", redirectionURL, ctx.Configuration.Session.Domain)
+
+			ctx.ReplyUnauthorized()
+
+			return
+		}
+
 		qry := redirectionURL.Query()
 
 		qry.Set("rd", targetURL.String())

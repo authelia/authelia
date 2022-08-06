@@ -521,6 +521,7 @@ func TestShouldRedirectAuthorizations(t *testing.T) {
 		{"ShouldReturnSeeOtherMethodPATCH", "PATCH", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
 		{"ShouldReturnSeeOtherMethodPUT", "PUT", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
 		{"ShouldReturnSeeOtherMethodDELETE", "DELETE", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnUnauthorizedBadDomain", "GET", "https://test.example.com/", "https://auth.notexample.com/", fasthttp.StatusUnauthorized},
 	}
 
 	handler := VerifyGET(verifyGetCfg)
@@ -584,14 +585,14 @@ func TestShouldRedirectAuthorizations(t *testing.T) {
 
 					handler(mock.Ctx)
 
-					if xhr {
+					if xhr && tc.expected != fasthttp.StatusUnauthorized {
 						assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 					} else {
 						assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
 					}
 
 					switch {
-					case xhr:
+					case xhr && tc.expected != fasthttp.StatusUnauthorized:
 						href := utils.StringHTMLEscape(fmt.Sprintf("%s?rd=%s%s", autheliaURL.String(), url.QueryEscape(originalURL.String()), rm))
 						assert.Equal(t, fmt.Sprintf("<a href=\"%s\">%d %s</a>", href, fasthttp.StatusUnauthorized, fasthttp.StatusMessage(fasthttp.StatusUnauthorized)), string(mock.Ctx.Response.Body()))
 					case tc.expected >= fasthttp.StatusMultipleChoices && tc.expected < fasthttp.StatusBadRequest:
@@ -907,11 +908,11 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	mock.Ctx.Request.SetHost("mydomain.com")
-	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.example.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
+	assert.Equal(t, "<a href=\"https://auth.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 }
 
@@ -930,13 +931,13 @@ func TestShouldURLEncodeRedirectionHeader(t *testing.T) {
 	require.NoError(t, err)
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
-	mock.Ctx.Request.Header.Set("X-Authelia-URL", "https://auth.mydomain.com")
+	mock.Ctx.Request.Header.Set("X-Authelia-URL", "https://auth.example.com")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	mock.Ctx.Request.SetHost("mydomain.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
+	assert.Equal(t, "<a href=\"https://auth.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 }
 
