@@ -14,7 +14,7 @@ func IsRedirectionSafe(url url.URL, protectedDomains []schema.SessionDomainConfi
 		return false
 	}
 
-	if !IsURLUnderProtectedDomain(&url, protectedDomains) {
+	if protected, _ := IsURLUnderProtectedDomain(&url, protectedDomains); !protected {
 		return false
 	}
 

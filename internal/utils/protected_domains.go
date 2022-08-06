@@ -8,15 +8,15 @@ import (
 )
 
 // IsURLUnderProtectedDomain returns true if specied url is under Authelia's protected domains.
-func IsURLUnderProtectedDomain(url *url.URL, domains []schema.SessionDomainConfiguration) bool {
+func IsURLUnderProtectedDomain(url *url.URL, domains []schema.SessionDomainConfiguration) (bool, string) {
 	hostname := url.Hostname()
 	for _, domain := range domains {
 		if strings.HasSuffix(hostname, domain.Domain) && domain.Domain != "" {
-			return true
+			return true, domain.Domain
 		}
 	}
 
-	return false
+	return false, ""
 }
 
 // IsSchemeHTTPS return true if url scheme is https.

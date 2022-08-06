@@ -378,7 +378,7 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (r
 	return refresh, refreshInterval
 }
 
-func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
+func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration, cookieDomain string) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	authHeader := headerProxyAuthorization
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
 		authHeader = headerAuthorization
@@ -398,7 +398,11 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 		return isBasicAuth, username, name, groups, emails, authLevel, err
 	}
 
+	// TODO: search session using cookieDomain.
+	fmt.Printf("buscar sesion para dominio %s", cookieDomain)
+
 	userSession := ctx.GetSession()
+
 	if username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval); err != nil {
 		return isBasicAuth, username, name, groups, emails, authLevel, err
 	}
@@ -440,7 +444,9 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
-		if !utils.IsURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domains) {
+		isUnderProtectedDomain, cookieDomain := utils.IsURLUnderProtectedDomain(targetURL, ctx.Configuration.Session.Domains)
+		if !isUnderProtectedDomain {
+			// TODO: refactor error message to support multiple domains.
 			ctx.Logger.Errorf("Target URL %s is not under the protected domain %s",
 				targetURL.String(), ctx.Configuration.Session.Domain)
 			ctx.ReplyUnauthorized()
@@ -448,8 +454,10 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 			return
 		}
 
+		ctx.Logger.Debugf("Target URL %s is under protected domain '%s'", targetURL.String(), cookieDomain)
+
 		method := ctx.XForwardedMethod()
-		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
+		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval, cookieDomain)
 
 		if err != nil {
 			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
