@@ -103,6 +103,9 @@ static_resources:
                           allowed_upstream_headers:
                             patterns:
                               - prefix: remote-
+                          allowed_client_headers:
+                            patterns:
+                              - exact: set-cookie
                       failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
