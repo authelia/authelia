@@ -71,6 +71,15 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
+		domainSession, err := ctx.GetDomainSession()
+		if err != nil {
+			ctx.Logger.Errorf("%s", err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
 		userSession := ctx.GetSession()
 		newSession := session.NewDefaultUserSession()
 
@@ -83,7 +92,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		if err = ctx.Providers.SessionProvider.RegenerateSession(ctx.RequestCtx); err != nil {
+		if err = ctx.RegenerateSession(); err != nil {
 			ctx.Logger.Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username, err)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -92,11 +101,11 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		}
 
 		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
-		keepMeLoggedIn := ctx.Providers.SessionProvider.RememberMe != schema.RememberMeDisabled && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
+		keepMeLoggedIn := domainSession.RememberMe != schema.RememberMeDisabled && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
 		// Set the cookie to expire if remember me is enabled and the user has asked us to.
 		if keepMeLoggedIn {
-			err = ctx.Providers.SessionProvider.UpdateExpiration(ctx.RequestCtx, ctx.Providers.SessionProvider.RememberMe)
+			err = domainSession.UpdateExpiration(ctx.RequestCtx, domainSession.RememberMe)
 			if err != nil {
 				ctx.Logger.Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, bodyJSON.Username, err)
 

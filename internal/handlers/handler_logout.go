@@ -26,7 +26,7 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("unable to parse body during logout: %s", err), messageOperationFailed)
 	}
 
-	err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx)
+	err = ctx.DestroySession()
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to destroy session during logout: %s", err), messageOperationFailed)
 	}

@@ -121,13 +121,17 @@ func setForwardedHeaders(headers *fasthttp.ResponseHeader, username, name string
 }
 
 func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isUserAnonymous bool) (isInactiveTooLong bool) {
-	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(ctx.Providers.SessionProvider.Inactivity.Seconds()) == 0 {
+	domainSession, err := ctx.GetDomainSession()
+	if err != nil {
+		return false
+	}
+	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(domainSession.Inactivity.Seconds()) == 0 {
 		return false
 	}
 
-	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(ctx.Providers.SessionProvider.Inactivity).Before(ctx.Clock.Now())
+	isInactiveTooLong = time.Unix(userSession.LastActivity, 0).Add(domainSession.Inactivity).Before(ctx.Clock.Now())
 
-	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(ctx.Providers.SessionProvider.Inactivity.Seconds()))
+	ctx.Logger.Tracef("Inactivity report for user '%s'. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", userSession.Username, ctx.Clock.Now().Unix(), userSession.LastActivity, int(domainSession.Inactivity.Seconds()))
 
 	return isInactiveTooLong
 }
@@ -144,7 +148,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 	if isSessionInactiveTooLong(ctx, userSession, isUserAnonymous) {
 		// Destroy the session a new one will be regenerated on next request.
-		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+		if err = ctx.DestroySession(); err != nil {
 			return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("unable to destroy session for user '%s' after the session has been inactive too long: %w", userSession.Username, err)
 		}
 
@@ -155,7 +159,7 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 	if err = verifySessionHasUpToDateProfile(ctx, targetURL, userSession, refreshProfile, refreshProfileInterval); err != nil {
 		if err == authentication.ErrUserNotFound {
-			if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+			if err = ctx.DestroySession(); err != nil {
 				ctx.Logger.Errorf("Unable to destroy user session after provider refresh didn't find the user: %v", err)
 			}
 
@@ -378,7 +382,7 @@ func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (r
 	return refresh, refreshInterval
 }
 
-func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration, cookieDomain string) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
+func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	authHeader := headerProxyAuthorization
 	if bytes.Equal(ctx.QueryArgs().Peek("auth"), []byte("basic")) {
 		authHeader = headerAuthorization
@@ -398,9 +402,6 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 		return isBasicAuth, username, name, groups, emails, authLevel, err
 	}
 
-	// TODO: search session using cookieDomain.
-	fmt.Printf("buscar sesion para dominio %s", cookieDomain)
-
 	userSession := ctx.GetSession()
 
 	if username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval); err != nil {
@@ -411,7 +412,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 	if sessionUsername != nil && !strings.EqualFold(string(sessionUsername), username) {
 		ctx.Logger.Warnf("Possible cookie hijack or attempt to bypass security detected destroying the session and sending 401 response")
 
-		if err = ctx.Providers.SessionProvider.DestroySession(ctx.RequestCtx); err != nil {
+		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.Errorf("Unable to destroy user session after handler could not match them to their %s header: %s", headerSessionUsername, err)
 		}
 
@@ -457,7 +458,7 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		ctx.Logger.Debugf("Target URL %s is under protected domain '%s'", targetURL.String(), cookieDomain)
 
 		method := ctx.XForwardedMethod()
-		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval, cookieDomain)
+		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
 
 		if err != nil {
 			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)

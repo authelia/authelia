@@ -53,6 +53,9 @@ access_control:
     - domain: singlefactor.example.com
       policy: one_factor
 
+    - domain: singlefactor.example2.com
+      policy: one_factor
+
     - domain: public.example.com
       policy: bypass
 
@@ -89,6 +92,7 @@ access_control:
         - "^/users/bob/.*$"
       subject: "user:bob"
       policy: two_factor
+
 
 regulation:
   # Set it to 0 to disable max_retries.
