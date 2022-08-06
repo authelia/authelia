@@ -53,6 +53,10 @@ spec:
             X-Forwarded-Host: '%REQ(:AUTHORITY)%'
             X-Forwarded-URI: '%REQ(:PATH)%'
             X-Forwarded-For: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+          headersToDownstreamOnDeny:
+            - set-cookie
+          headersToDownstreamOnAllow:
+            - set-cookie
 ```
 
 ### Authorization Policy

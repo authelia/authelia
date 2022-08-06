@@ -199,6 +199,12 @@ static_resources:
                               - exact: proxy-authorization
                               - prefix: remote-
                               - prefix: authelia-
+                          allowed_client_headers:
+                            patterns:
+                              - exact: set-cookie
+                          allowed_client_headers_on_success:
+                            patterns:
+                              - exact: set-cookie
                       failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
