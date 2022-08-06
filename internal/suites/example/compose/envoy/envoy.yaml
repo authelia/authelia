@@ -1,3 +1,4 @@
+---
 static_resources:
   listeners:
     - name: listener_0
@@ -9,7 +10,7 @@ static_resources:
         - filters:
             - name: envoy.filters.network.http_connection_manager
               typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager  # yamllint disable-line rule:line-length
                 stat_prefix: ingress_http
                 use_remote_address: true
                 skip_xff_append: false
@@ -140,31 +141,31 @@ static_resources:
       load_assignment:
         cluster_name: authelia-frontend
         endpoints:
-        - locality:
-            region: dev
-          priority: 0
-          lb_endpoints:
-            - endpoint:
-                health_check_config:
-                  hostname: authelia-frontend
-                  port_value: 3000
-                address:
-                  socket_address:
-                    address: authelia-frontend
+          - locality:
+              region: dev
+            priority: 0
+            lb_endpoints:
+              - endpoint:
+                  health_check_config:
+                    hostname: authelia-frontend
                     port_value: 3000
-        - locality:
-            region: ci
-          priority: 1
-          lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: authelia-backend
-                    port_value: 9091
-              metadata:
-                filter_metadata:
-                  envoy.transport_socket_match:
-                    enableTLS: true
+                  address:
+                    socket_address:
+                      address: authelia-frontend
+                      port_value: 3000
+          - locality:
+              region: ci
+            priority: 1
+            lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia-backend
+                      port_value: 9091
+                metadata:
+                  filter_metadata:
+                    envoy.transport_socket_match:
+                      enableTLS: true
     - name: authelia-backend
       connect_timeout: 0.25s
       type: LOGICAL_DNS
@@ -226,3 +227,4 @@ static_resources:
                     socket_address:
                       address: nginx-backend
                       port_value: 80
+...
