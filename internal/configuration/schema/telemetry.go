@@ -28,9 +28,9 @@ var DefaultTelemetryConfig = TelemetryConfig{
 			Write: 4096,
 		},
 		Timeouts: ServerTimeouts{
-			Read:  time.Second * 10,
-			Write: time.Second * 10,
-			Idle:  time.Second * 10,
+			Read:  time.Second * 2,
+			Write: time.Second * 2,
+			Idle:  time.Second * 30,
 		},
 	},
 }
