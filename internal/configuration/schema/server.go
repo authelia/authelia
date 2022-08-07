@@ -6,15 +6,13 @@ import (
 
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
-	Host      string `koanf:"host"`
-	Port      int    `koanf:"port"`
-	Path      string `koanf:"path"`
-	AssetPath string `koanf:"asset_path"`
-	// ReadBufferSize     int    `koanf:"read_buffer_size"`
-	// WriteBufferSize    int    `koanf:"write_buffer_size"`
-	EnablePprof        bool `koanf:"enable_pprof"`
-	EnableExpvars      bool `koanf:"enable_expvars"`
-	DisableHealthcheck bool `koanf:"disable_healthcheck"`
+	Host               string `koanf:"host"`
+	Port               int    `koanf:"port"`
+	Path               string `koanf:"path"`
+	AssetPath          string `koanf:"asset_path"`
+	EnablePprof        bool   `koanf:"enable_pprof"`
+	EnableExpvars      bool   `koanf:"enable_expvars"`
+	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
 	TLS     ServerTLSConfiguration     `koanf:"tls"`
 	Headers ServerHeadersConfiguration `koanf:"headers"`
