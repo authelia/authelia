@@ -51,13 +51,6 @@ server:
   ## Useful to allow overriding of specific static assets.
   # asset_path: /config/assets/
 
-  ## Buffers usually should be configured to be the same value.
-  ## Explanation at https://www.authelia.com/c/server#buffer-sizes
-  ## Read buffer size adjusts the server's max incoming request size in bytes.
-  ## Write buffer size does the same for outgoing responses.
-  read_buffer_size: 4096
-  write_buffer_size: 4096
-
   ## Enables the pprof endpoint.
   enable_pprof: false
 
