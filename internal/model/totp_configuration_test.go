@@ -9,12 +9,12 @@ import (
 )
 
 /*
-	TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret.
-	This test is vital to ensuring the TOTP configuration is marshalled correctly. If encoding/json suddenly changes
-	upstream and the json tag value of '-' doesn't exclude the field from marshalling then this test will pickup this
-	issue prior to code being shipped.
+TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret.
+This test is vital to ensuring the TOTP configuration is marshalled correctly. If encoding/json suddenly changes
+upstream and the json tag value of '-' doesn't exclude the field from marshalling then this test will pickup this
+issue prior to code being shipped.
 
-	For this reason it's essential that the marshalled object contains all values populated, especially the secret.
+For this reason it's essential that the marshalled object contains all values populated, especially the secret.
 */
 func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) {
 	object := TOTPConfiguration{
