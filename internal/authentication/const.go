@@ -11,9 +11,9 @@ const (
 	// NotAuthenticated if the user is not authenticated yet.
 	NotAuthenticated Level = iota
 	// OneFactor if the user has passed first factor only.
-	OneFactor Level = iota
+	OneFactor
 	// TwoFactor if the user has passed two factors.
-	TwoFactor Level = iota
+	TwoFactor
 )
 
 const (

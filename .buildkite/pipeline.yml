@@ -16,7 +16,7 @@ steps:
     if: build.branch != "master"
 
   - wait:  # yamllint disable-line rule:empty-values
-    if: build.pull_request.repository.fork != true && build.branch !~ /^(dependabot|renovate)\/.*/
+    if: build.pull_request.repository.fork != true && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/  # yamllint disable-line rule:line-length
 
   # Manual intervention by team required to deploy for forked PRs (prevent secret leakage).
   - block: "Public fork needs approval"

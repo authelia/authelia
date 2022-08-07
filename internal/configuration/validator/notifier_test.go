@@ -29,7 +29,7 @@ func (suite *NotifierSuite) SetupTest() {
 }
 
 /*
-	Common Tests.
+Common Tests.
 */
 func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() {
 	ValidateNotifier(&suite.config, suite.validator)
@@ -69,7 +69,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 }
 
 /*
-	SMTP Tests.
+SMTP Tests.
 */
 func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	ValidateNotifier(&suite.config, suite.validator)
@@ -146,7 +146,7 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
 }
 
 /*
-	File Tests.
+File Tests.
 */
 func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 	suite.config.SMTP = nil

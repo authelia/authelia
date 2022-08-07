@@ -46,7 +46,7 @@ gitlab_rails['omniauth_providers'] = [
   {
     name: "openid_connect",
     label: "Authelia",
-    icon: "https://avatars.githubusercontent.com/u/59122411?s=280&v=4",
+    icon: "https://www.authelia.com/images/branding/logo-cropped.png",
     args: {
       name: "openid_connect",
       scope: ["openid","profile","email","groups"],
