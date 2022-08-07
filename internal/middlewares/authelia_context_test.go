@@ -76,6 +76,8 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 
 func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+
 	defer mock.Close()
 
 	mock.Ctx.RequestCtx.Request.SetRequestURI("/2fa/one-time-password")
@@ -89,6 +91,8 @@ func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {
 func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
+
+	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
 
 	mock.Ctx.RequestCtx.Request.SetRequestURI("/2fa/one-time-password")
 	mock.Ctx.RequestCtx.Request.SetHost("localhost")

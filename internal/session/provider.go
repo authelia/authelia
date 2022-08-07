@@ -51,7 +51,6 @@ func NewProvider(config schema.SessionConfiguration, certPool *x509.CertPool) *P
 
 	// configuring extra root domains.
 	for _, domain := range config.Domains {
-		fmt.Printf("%v", domain)
 		c.config.Domain = domain.Domain
 		provider.sessions[domain.Domain] = &Session{
 			sessionHolder: fasthttpsession.New(c.config),
