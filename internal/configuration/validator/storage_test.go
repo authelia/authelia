@@ -166,26 +166,6 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', 'verify-full' but it is configured as 'unknown'")
 }
 
-// Deprecated. TODO: Remove in v4.36.0.
-func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeMappedForDeprecations() {
-	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
-		SQLStorageConfiguration: schema.SQLStorageConfiguration{
-			Host:     "pg",
-			Username: "myuser",
-			Password: "pass",
-			Database: "database",
-		},
-		SSLMode: "require",
-	}
-
-	ValidateStorage(suite.config, suite.validator)
-
-	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Assert().Len(suite.validator.Errors(), 0)
-
-	suite.Assert().Equal(suite.config.PostgreSQL.SSL.Mode, "require")
-}
-
 func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
 	suite.config.EncryptionKey = ""
 	suite.config.Local = &schema.LocalStorageConfiguration{

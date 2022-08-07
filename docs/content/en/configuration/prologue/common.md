@@ -133,3 +133,46 @@ The key `minimum_version` controls the minimum TLS version Authelia will use whe
 The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
 are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
 this value.
+
+## Server Buffers
+
+### read
+
+{{< confkey type="integer " default="4096" required="no" >}}
+
+Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
+
+### write
+
+{{< confkey type="integer " default="4096" required="no" >}}
+
+Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
+
+## Server Timeouts
+
+### read
+
+{{< confkey type="duration " default="10s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server read timeout.
+
+### write
+
+{{< confkey type="duration " default="10s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server write timeout.
+
+### idle
+
+{{< confkey type="duration " default="10s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server write timeout.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func recoverErr(i any) error {
+func recoverErr(i interface{}) error {
 	switch v := i.(type) {
 	case nil:
 		return nil

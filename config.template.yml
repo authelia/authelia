@@ -85,6 +85,32 @@ server:
     ## The CSP Template. Read the docs.
     csp_template: ""
 
+  ## Server Buffers configuration.
+  buffers:
+
+    ## Buffers usually should be configured to be the same value.
+    ## Explanation at https://www.authelia.com/c/server#buffer-sizes
+    ## Read buffer size adjusts the server's max incoming request size in bytes.
+    ## Write buffer size does the same for outgoing responses.
+
+    ## Read buffer.
+    read: 0
+
+    ## Write buffer.
+    write: 0
+
+  ## Server Timeouts configuration.
+  timeouts:
+
+    ## Read timeout.
+    read: 0
+
+    ## Write timeout.
+    write: 0
+
+    ## Idle timeout.
+    idle: 0
+
 ##
 ## Log Configuration
 ##
@@ -115,6 +141,27 @@ telemetry:
 
     ## The address to listen on for metrics. This should be on a different port to the main server.port value.
     address: tcp://0.0.0.0:9959
+
+    ## Metrics Server Buffers configuration.
+    buffers:
+
+      ## Read buffer.
+      read: 0
+
+      ## Write buffer.
+      write: 0
+
+    ## Metrics Server Timeouts configuration.
+    timeouts:
+
+      ## Read timeout.
+      read: 0
+
+      ## Write timeout.
+      write: 0
+
+      ## Idle timeout.
+      idle: 0
 
 ##
 ## TOTP Configuration

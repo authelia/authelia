@@ -2,6 +2,7 @@ package schema
 
 import (
 	"net"
+	"time"
 )
 
 // TelemetryConfig represents the telemetry config.
@@ -22,5 +23,14 @@ type TelemetryMetricsConfig struct {
 var DefaultTelemetryConfig = TelemetryConfig{
 	Metrics: TelemetryMetricsConfig{
 		Address: &Address{true, "tcp", net.ParseIP("0.0.0.0"), 9959},
+		Buffers: ServerBuffers{
+			Read:  4096,
+			Write: 4096,
+		},
+		Timeouts: ServerTimeouts{
+			Read:  time.Second * 10,
+			Write: time.Second * 10,
+			Idle:  time.Second * 10,
+		},
 	},
 }
