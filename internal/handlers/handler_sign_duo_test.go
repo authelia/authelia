@@ -581,9 +581,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
 
 	s.mock.Ctx.Configuration.Session.Domains = []schema.SessionDomainConfiguration{
-		{
-			Domain: "mydomain.local",
-		},
+		{Domain: "example.com"},
+		{Domain: "mydomain.local"},
 	}
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").

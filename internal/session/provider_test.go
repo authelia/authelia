@@ -14,14 +14,29 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-func TestShouldInitializerSession(t *testing.T) {
-	ctx := &fasthttp.RequestCtx{}
+func newTestSession() (*Session, error) {
 	configuration := schema.SessionConfiguration{}
 	configuration.Domain = testDomain
 	configuration.Name = testName
 	configuration.Expiration = testExpiration
+	configuration.Domains = []schema.SessionDomainConfiguration{
+		{
+			Domain:     testDomain,
+			Expiration: testExpiration,
+		},
+	}
 
 	provider := NewProvider(configuration, nil)
+
+	return provider.Get(testDomain)
+}
+
+func TestShouldInitializerSession(t *testing.T) {
+	ctx := &fasthttp.RequestCtx{}
+
+	provider, err := newTestSession()
+	require.NoError(t, err)
+
 	session, err := provider.GetSession(ctx)
 	require.NoError(t, err)
 
@@ -31,18 +46,15 @@ func TestShouldInitializerSession(t *testing.T) {
 func TestShouldUpdateSession(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
-	configuration := schema.SessionConfiguration{}
-	configuration.Domain = testDomain
-	configuration.Name = testName
-	configuration.Expiration = testExpiration
+	provider, err := newTestSession()
+	require.NoError(t, err)
 
-	provider := NewProvider(configuration, nil)
 	session, _ := provider.GetSession(ctx)
 
 	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
-	err := provider.SaveSession(ctx, session)
+	err = provider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
@@ -56,22 +68,19 @@ func TestShouldUpdateSession(t *testing.T) {
 
 func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
-	configuration := schema.SessionConfiguration{}
 
 	timeOneFactor := time.Unix(1625048140, 0)
 	timeTwoFactor := time.Unix(1625048150, 0)
 	timeZeroFactor := time.Unix(0, 0)
 
-	configuration.Domain = testDomain
-	configuration.Name = testName
-	configuration.Expiration = testExpiration
+	provider, err := newTestSession()
+	require.NoError(t, err)
 
-	provider := NewProvider(configuration, nil)
 	session, _ := provider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
 
-	err := provider.SaveSession(ctx, session)
+	err = provider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
@@ -129,22 +138,19 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 
 func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
-	configuration := schema.SessionConfiguration{}
 
 	timeOneFactor := time.Unix(1625048140, 0)
 	timeTwoFactor := time.Unix(1625048150, 0)
 	timeZeroFactor := time.Unix(0, 0)
 
-	configuration.Domain = testDomain
-	configuration.Name = testName
-	configuration.Expiration = testExpiration
+	provider, err := newTestSession()
+	require.NoError(t, err)
 
-	provider := NewProvider(configuration, nil)
 	session, _ := provider.GetSession(ctx)
 
 	session.SetOneFactor(timeOneFactor, &authentication.UserDetails{Username: testUsername}, false)
 
-	err := provider.SaveSession(ctx, session)
+	err = provider.SaveSession(ctx, session)
 	require.NoError(t, err)
 
 	session, err = provider.GetSession(ctx)
@@ -292,30 +298,27 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 
 func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
-	configuration := schema.SessionConfiguration{}
-	configuration.Domain = testDomain
-	configuration.Name = testName
-	configuration.Expiration = testExpiration
+	domainSession, err := newTestSession()
+	require.NoError(t, err)
 
-	provider := NewProvider(configuration, nil)
-	session, err := provider.GetSession(ctx)
+	session, err := domainSession.GetSession(ctx)
 	require.NoError(t, err)
 
 	session.Username = testUsername
 	session.AuthenticationLevel = authentication.TwoFactor
 
-	err = provider.SaveSession(ctx, session)
+	err = domainSession.SaveSession(ctx, session)
 	require.NoError(t, err)
 
-	newUserSession, err := provider.GetSession(ctx)
+	newUserSession, err := domainSession.GetSession(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, testUsername, newUserSession.Username)
 	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
 
-	err = provider.DestroySession(ctx)
+	err = domainSession.DestroySession(ctx)
 	require.NoError(t, err)
 
-	newUserSession, err = provider.GetSession(ctx)
+	newUserSession, err = domainSession.GetSession(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)

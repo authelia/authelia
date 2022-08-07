@@ -134,6 +134,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
+	// Set X-Forwarded-Host for compatibility with multi-root-domain implementation.
+	request.Request.Header.Set("X-Forwarded-Host", "example.com")
+
 	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
 	mockAuthelia.Ctx = ctx
 

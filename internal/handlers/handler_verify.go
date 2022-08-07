@@ -125,6 +125,7 @@ func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session
 	if err != nil {
 		return false
 	}
+
 	if userSession.KeepMeLoggedIn || isUserAnonymous || int64(domainSession.Inactivity.Seconds()) == 0 {
 		return false
 	}

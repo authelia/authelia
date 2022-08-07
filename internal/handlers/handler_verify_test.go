@@ -43,6 +43,8 @@ func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
 
 func TestShouldRaiseWhenNoHeaderProvidedToDetectTargetURL(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+
 	defer mock.Close()
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
@@ -53,6 +55,7 @@ func TestShouldRaiseWhenNoXForwardedHostHeaderProvidedToDetectTargetURL(t *testi
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
+	mock.Ctx.Request.Header.Del("X-Forwarded-Host")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	_, err := mock.Ctx.GetOriginalURL()
 	assert.Error(t, err)
@@ -570,10 +573,11 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
+	fmt.Printf("%v", mock.Ctx.Configuration.Session.Domains)
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -603,10 +607,10 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = time.Second * 10
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = time.Second * 10
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -632,7 +636,7 @@ func TestShouldKeepSessionWhenUserCheckedRememberMeAndIsInactiveForTooLong(t *te
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -664,7 +668,7 @@ func TestShouldKeepSessionWhenInactivityTimeoutHasNotBeenExceeded(t *testing.T) 
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
 
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
@@ -700,10 +704,10 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	clock := mocks.TestingClock{}
 	clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
 
 	past := clock.Now().Add(-1 * time.Hour)
 
@@ -763,7 +767,7 @@ func TestShouldUpdateInactivityTimestampEvenWhenHittingForbiddenResources(t *tes
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
 
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
@@ -1233,10 +1237,10 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
-	mock.Ctx.Configuration.Session.Inactivity = testInactivity
+	mock.Ctx.Configuration.Session.Domains[0].Inactivity = testInactivity
 	// Reload the session provider since the configuration is indirect.
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
-	assert.Equal(t, time.Second*10, mock.Ctx.Providers.SessionProvider.Inactivity)
+	assert.Equal(t, time.Second*10, mock.Ctx.Configuration.Session.Domains[0].Inactivity)
 
 	userSession := mock.Ctx.GetSession()
 	userSession.Username = testUsername
@@ -1325,7 +1329,7 @@ func TestIsSessionInactiveTooLong(t *testing.T) {
 
 			defer ctx.Close()
 
-			ctx.Ctx.Configuration.Session.Inactivity = tc.inactivity
+			ctx.Ctx.Configuration.Session.Domains[0].Inactivity = tc.inactivity
 			ctx.Ctx.Providers.SessionProvider = session.NewProvider(ctx.Ctx.Configuration.Session, nil)
 
 			ctx.Clock.Set(tc.now)
