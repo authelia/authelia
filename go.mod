@@ -1,6 +1,6 @@
 module github.com/authelia/authelia/v4
 
-go 1.17
+go 1.19
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
