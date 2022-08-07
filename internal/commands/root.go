@@ -97,14 +97,20 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 
 	defer signal.Stop(quit)
 
-	group, ctx := errgroup.WithContext(ctx)
+	g, ctx := errgroup.WithContext(ctx)
 
 	var (
 		mainServer, metricsServer     *fasthttp.Server
 		mainListener, metricsListener net.Listener
 	)
 
-	group.Go(func() (err error) {
+	g.Go(func() (err error) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.WithError(recoverErr(rec)).Errorf("Critical error in server caught (recovered)")
+			}
+		}()
+
 		if mainServer, mainListener, err = server.CreateDefaultServer(*config, providers); err != nil {
 			return err
 		}
@@ -118,10 +124,16 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		return nil
 	})
 
-	group.Go(func() (err error) {
+	g.Go(func() (err error) {
 		if providers.Metrics == nil {
 			return nil
 		}
+
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.WithError(recoverErr(rec)).Errorf("Critical error in metrics server caught (recovered)")
+			}
+		}()
 
 		if metricsServer, metricsListener, err = server.CreateMetricsServer(config.Telemetry.Metrics); err != nil {
 			return err
@@ -150,15 +162,17 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 	var err error
 
 	if err = mainServer.Shutdown(); err != nil {
-
+		log.WithError(err).Errorf("Error occurred shutting down the server")
 	}
 
-	if err = metricsServer.Shutdown(); err != nil {
-
+	if metricsServer != nil {
+		if err = metricsServer.Shutdown(); err != nil {
+			log.WithError(err).Errorf("Error occurred shutting down the metrics server")
+		}
 	}
 
-	if err = group.Wait(); err != nil {
-
+	if err = g.Wait(); err != nil {
+		log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
 }
 
