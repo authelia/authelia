@@ -52,6 +52,26 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect] Provider:
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
+#### Gitea App.ini
+The following variables should be setup to enable 'auto' user creation -  
+```
+[openid]
+ENABLE_OPENID_SIGNIN = false
+ENABLE_OPENID_SIGNUP = true
+WHITELISTED_URIS     = auth.domain.com
+
+[service]
+DISABLE_REGISTRATION                          = false
+ALLOW_ONLY_EXTERNAL_REGISTRATION              = true
+SHOW_REGISTRATION_BUTTON                      = false
+```
+* 'ENABLE_OPENID_SIGNIN' - shows an additional OpenID section on the login page. Setting this to false removes it - this allows all auth to be instigated by Authelia.
+* 'ENABLE_OPENID_SIGNUP' - this allows the OIDC user to sign up with Gitea, with the user passed from your Authelia login session.
+* 'WHITELISTED_URIS' - this restricts the login/OIDC source to be Authelia
+* 'DISABLE_REGISTRATION' - this disables general user (non-OIDC) registration
+* 'ALLOW_ONLY_EXTERNAL_REGISTRATION' - this allows registration via OIDC only
+* 'SHOW_REGISTRATION_BUTTON' - This hides the sign up button so manual registrations via the home page are not possible
+
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
