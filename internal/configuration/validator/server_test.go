@@ -3,6 +3,7 @@ package validator
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,8 +24,8 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 
 	assert.Equal(t, schema.DefaultServerConfiguration.Host, config.Server.Host)
 	assert.Equal(t, schema.DefaultServerConfiguration.Port, config.Server.Port)
-	assert.Equal(t, schema.DefaultServerConfiguration.ReadBufferSize, config.Server.ReadBufferSize)
-	assert.Equal(t, schema.DefaultServerConfiguration.WriteBufferSize, config.Server.WriteBufferSize)
+	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
+	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Key, config.Server.TLS.Key)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Certificate, config.Server.TLS.Certificate)
 	assert.Equal(t, schema.DefaultServerConfiguration.Path, config.Server.Path)
@@ -41,8 +42,8 @@ func TestShouldSetDefaultConfig(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.Equal(t, schema.DefaultServerConfiguration.ReadBufferSize, config.Server.ReadBufferSize)
-	assert.Equal(t, schema.DefaultServerConfiguration.WriteBufferSize, config.Server.WriteBufferSize)
+	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
+	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
 }
 
 func TestShouldParsePathCorrectly(t *testing.T) {
@@ -61,21 +62,32 @@ func TestShouldParsePathCorrectly(t *testing.T) {
 	assert.Equal(t, "/apple", config.Server.Path)
 }
 
-func TestShouldRaiseOnNegativeValues(t *testing.T) {
+func TestShouldDefaultOnNegativeValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		Server: schema.ServerConfiguration{
-			ReadBufferSize:  -1,
-			WriteBufferSize: -1,
+			Buffers: schema.ServerBuffers{
+				Read:  -1,
+				Write: -1,
+			},
+			Timeouts: schema.ServerTimeouts{
+				Read:  time.Second * -1,
+				Write: time.Second * -1,
+				Idle:  time.Second * -1,
+			},
 		},
 	}
 
 	ValidateServer(config, validator)
 
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 0)
 
-	assert.EqualError(t, validator.Errors()[0], "server: option 'read_buffer_size' must be above 0 but it is configured as '-1'")
-	assert.EqualError(t, validator.Errors()[1], "server: option 'write_buffer_size' must be above 0 but it is configured as '-1'")
+	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
+	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
+
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Read, config.Server.Timeouts.Read)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Write, config.Server.Timeouts.Write)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Idle, config.Server.Timeouts.Idle)
 }
 
 func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {

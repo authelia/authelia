@@ -28,9 +28,6 @@ type PostgreSQLStorageConfiguration struct {
 	Schema                  string `koanf:"schema"`
 
 	SSL PostgreSQLSSLStorageConfiguration `koanf:"ssl"`
-
-	// Deprecated. TODO: Remove in v4.36.0.
-	SSLMode string `koanf:"sslmode"`
 }
 
 // PostgreSQLSSLStorageConfiguration represents the SSL configuration of a PostgreSQL database.
