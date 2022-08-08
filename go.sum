@@ -239,6 +239,8 @@ github.com/go-asn1-ber/asn1-ber v1.5.4/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkPro
 github.com/go-bindata/go-bindata v3.1.1+incompatible/go.mod h1:xK8Dsgwmeed+BBsSy2XTopBn/8uK2HWuGSnA11C3Joo=
 github.com/go-crypt/crypt v0.0.0-20220808013407-8514e11573a1 h1:dkKoMcNnPKdpF6facD5bfVKO0EoYHF8CnGmHLPEtuRQ=
 github.com/go-crypt/crypt v0.0.0-20220808013407-8514e11573a1/go.mod h1:8TBw8KxKfugnODduZ+9b/koZi7n85M6rakwpjxuEmOI=
+github.com/go-crypt/crypt v0.1.0 h1:Gu8fX4xDcjDBpq1LJ7NdHqRoZyVQCcmw5ByaOhgsGKQ=
+github.com/go-crypt/crypt v0.1.0/go.mod h1:8TBw8KxKfugnODduZ+9b/koZi7n85M6rakwpjxuEmOI=
 github.com/go-crypt/x v0.0.0-20220717035548-f7ba0d122fba h1:cNYaxYN2BNOqv9Anf5zsNXd7W1AlOjqw//MmDSL5kOI=
 github.com/go-crypt/x v0.0.0-20220717035548-f7ba0d122fba/go.mod h1:UEH8AxW6Ryk4m7sRZyfsxGLgcjSj8uGBBJVwW90w8sg=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
