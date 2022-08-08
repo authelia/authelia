@@ -115,8 +115,6 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 			return err
 		}
 
-		log.Infof("Starting main server on port: %s", mainListener.Addr().String())
-
 		if err = mainServer.Serve(mainListener); err != nil {
 			return err
 		}
@@ -138,8 +136,6 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		if metricsServer, metricsListener, err = server.CreateMetricsServer(config.Telemetry.Metrics); err != nil {
 			return err
 		}
-
-		log.Infof("Starting metrics server on port: %s", metricsListener.Addr().String())
 
 		if err = metricsServer.Serve(metricsListener); err != nil {
 			return err
