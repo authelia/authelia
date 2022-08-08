@@ -79,7 +79,7 @@ server:
     csp_template: ""
 
   ## Server Buffers configuration.
-  buffers:
+  # buffers:
 
     ## Buffers usually should be configured to be the same value.
     ## Explanation at https://www.authelia.com/c/server#buffer-sizes
@@ -87,22 +87,22 @@ server:
     ## Write buffer size does the same for outgoing responses.
 
     ## Read buffer.
-    read: 0
+    # read: 4096
 
     ## Write buffer.
-    write: 0
+    # write: 4096
 
   ## Server Timeouts configuration.
-  timeouts:
+  # timeouts:
 
     ## Read timeout.
-    read: 0
+    # read: 2s
 
     ## Write timeout.
-    write: 0
+    # write: 2s
 
     ## Idle timeout.
-    idle: 0
+    # idle: 30s
 
 ##
 ## Log Configuration
@@ -136,25 +136,25 @@ telemetry:
     address: tcp://0.0.0.0:9959
 
     ## Metrics Server Buffers configuration.
-    buffers:
+    # buffers:
 
       ## Read buffer.
-      read: 0
+      # read: 4096
 
       ## Write buffer.
-      write: 0
+      # write: 4096
 
     ## Metrics Server Timeouts configuration.
-    timeouts:
+    # timeouts:
 
       ## Read timeout.
-      read: 0
+      # read: 2s
 
       ## Write timeout.
-      write: 0
+      # write: 2s
 
       ## Idle timeout.
-      idle: 0
+      # idle: 30s
 
 ##
 ## TOTP Configuration
