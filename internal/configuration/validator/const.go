@@ -258,7 +258,6 @@ const (
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
-	errFmtServerBufferSize           = "server: option '%s_buffer_size' must be above 0 but it is configured as '%d'"
 )
 
 const (
