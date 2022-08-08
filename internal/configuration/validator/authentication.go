@@ -10,7 +10,7 @@ import (
 )
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
-func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP == nil && config.File == nil {
 		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
 	}
@@ -45,38 +45,42 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackendConfigura
 }
 
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
-func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackendConfig, validator *schema.StructValidator) {
+func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackend, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))
 	}
 
-	if config.Password == nil {
-		config.Password = &schema.DefaultPasswordConfig
-	} else {
-		ValidatePasswordConfiguration(config.Password, validator)
-	}
+	ValidatePasswordConfiguration(&config.Password, validator)
 }
 
 // ValidatePasswordConfiguration validates the file auth backend password configuration.
-func ValidatePasswordConfiguration(config *schema.PasswordConfig, validator *schema.StructValidator) {
+func ValidatePasswordConfiguration(config *schema.Password, validator *schema.StructValidator) {
 	validateFileAuthenticationBackendPasswordConfigLegacy(config)
 
-	if config.Algorithm == "" {
+	switch config.Algorithm {
+	case "":
 		config.Algorithm = schema.DefaultPasswordConfig.Algorithm
+	case "argon2", "sha2crypt", "pbkdf2", "bcrypt", "scrypt":
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm, strings.Join([]string{"argon2", "sha2crypt", "pbkdf2", "bcrypt", "scrypt"}, "', '")))
 	}
 
 	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
 	validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config, validator)
+	validateFileAuthenticationBackendPasswordConfigPBKDF2(config, validator)
+	validateFileAuthenticationBackendPasswordConfigBCrypt(config, validator)
+	validateFileAuthenticationBackendPasswordConfigSCrypt(config, validator)
 }
 
-func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.PasswordConfig, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Password, validator *schema.StructValidator) {
 	switch config.Argon2.Variant {
 	case "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
 	case "argon2id", "argon2i", "argon2d":
 		break
 	default:
-		validator.Push(fmt.Errorf("TODO"))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "argon2", config.Argon2.Variant, strings.Join([]string{"argon2id", "argon2i", "argon2d"}, "', '")))
 	}
 
 	if config.Argon2.Iterations == 0 {
@@ -104,18 +108,18 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.PasswordConfig, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Password, validator *schema.StructValidator) {
 	switch config.SHA2Crypt.Variant {
 	case "":
 		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
 	case "sha256", "sha512":
 		break
 	default:
-		validator.Push(fmt.Errorf("TODO"))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "sha2crypt", config.SHA2Crypt.Variant, strings.Join([]string{"sha256", "sha512"}, "', '")))
 	}
 
-	if config.SHA2Crypt.Rounds == 0 {
-		config.SHA2Crypt.Rounds = schema.DefaultPasswordConfig.SHA2Crypt.Rounds
+	if config.SHA2Crypt.Iterations == 0 {
+		config.SHA2Crypt.Iterations = schema.DefaultPasswordConfig.SHA2Crypt.Iterations
 	}
 
 	if config.SHA2Crypt.SaltLength == 0 {
@@ -123,51 +127,111 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.PasswordConfig) {
+func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Password, validator *schema.StructValidator) {
+	switch config.PBKDF2.Variant {
+	case "":
+		config.PBKDF2.Variant = schema.DefaultPasswordConfig.PBKDF2.Variant
+	case "sha1", "sha224", "sha256", "sha384", "sha512":
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "pbkdf2", config.PBKDF2.Variant, strings.Join([]string{"sha1", "sha224", "sha256", "sha384", "sha512"}, "', '")))
+	}
+
+	if config.PBKDF2.Iterations == 0 {
+		config.PBKDF2.Iterations = schema.DefaultPasswordConfig.PBKDF2.Iterations
+	}
+
+	if config.PBKDF2.KeyLength == 0 {
+		config.PBKDF2.KeyLength = schema.DefaultPasswordConfig.PBKDF2.KeyLength
+	}
+
+	if config.PBKDF2.SaltLength == 0 {
+		config.PBKDF2.SaltLength = schema.DefaultPasswordConfig.PBKDF2.SaltLength
+	}
+}
+
+func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Password, validator *schema.StructValidator) {
+	switch config.BCrypt.Variant {
+	case "":
+		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
+	case "standard", "sha256":
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "bcrypt", config.PBKDF2.Variant, strings.Join([]string{"standard", "sha256"}, "', '")))
+	}
+
+	if config.BCrypt.Cost == 0 {
+		config.BCrypt.Cost = schema.DefaultPasswordConfig.BCrypt.Cost
+	}
+}
+
+func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Password, validator *schema.StructValidator) {
+	if config.SCrypt.Iterations == 0 {
+		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
+	}
+
+	if config.SCrypt.BlockSize == 0 {
+		config.SCrypt.BlockSize = schema.DefaultPasswordConfig.SCrypt.BlockSize
+	}
+
+	if config.SCrypt.Parallelism == 0 {
+		config.SCrypt.Parallelism = schema.DefaultPasswordConfig.SCrypt.Parallelism
+	}
+
+	if config.SCrypt.KeyLength == 0 {
+		config.SCrypt.KeyLength = schema.DefaultPasswordConfig.SCrypt.KeyLength
+	}
+
+	if config.SCrypt.SaltLength == 0 {
+		config.SCrypt.SaltLength = schema.DefaultPasswordConfig.SCrypt.SaltLength
+	}
+}
+
+func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Password) {
 	switch config.Algorithm {
 	case hashSHA512:
 		config.Algorithm = "sha2crypt"
 		config.SHA2Crypt.Variant = hashSHA512
 
 		if config.Iterations > 0 {
-			config.SHA2Crypt.Rounds = uint32(config.Iterations)
+			config.SHA2Crypt.Iterations = config.Iterations
 		}
 
 		if config.SaltLength > 0 {
-			config.SHA2Crypt.SaltLength = uint32(config.SaltLength)
+			config.SHA2Crypt.SaltLength = config.SaltLength
 		}
 	case hashArgon2id:
 		config.Algorithm = "argon2"
 		config.Argon2.Variant = hashArgon2id
 
 		if config.Iterations > 0 {
-			config.Argon2.Iterations = uint32(config.Iterations)
+			config.Argon2.Iterations = config.Iterations
 		}
 
 		if config.Memory > 0 {
-			config.Argon2.Memory = uint32(config.Memory) * 1024
+			config.Argon2.Memory = config.Memory * 1024
 		}
 
 		if config.Parallelism > 0 {
-			config.Argon2.Parallelism = uint32(config.Parallelism)
+			config.Argon2.Parallelism = config.Parallelism
 		}
 
 		if config.KeyLength > 0 {
-			config.Argon2.KeyLength = uint32(config.KeyLength)
+			config.Argon2.KeyLength = config.KeyLength
 		}
 
 		if config.SaltLength > 0 {
-			config.Argon2.SaltLength = uint32(config.SaltLength)
+			config.Argon2.SaltLength = config.SaltLength
 		}
 	}
 }
 
-func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP.Implementation == "" {
 		config.LDAP.Implementation = schema.LDAPImplementationCustom
 	}
 
-	var implementation *schema.LDAPAuthenticationBackendConfiguration
+	var implementation *schema.LDAPAuthenticationBackend
 
 	switch config.LDAP.Implementation {
 	case schema.LDAPImplementationCustom:
@@ -212,7 +276,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfi
 	validateLDAPRequiredParameters(config, validator)
 }
 
-func setDefaultImplementationLDAPAuthenticationBackendProfileMisc(config *schema.LDAPAuthenticationBackendConfiguration, implementation *schema.LDAPAuthenticationBackendConfiguration) {
+func setDefaultImplementationLDAPAuthenticationBackendProfileMisc(config *schema.LDAPAuthenticationBackend, implementation *schema.LDAPAuthenticationBackend) {
 	if config.Timeout == 0 {
 		config.Timeout = implementation.Timeout
 	}
@@ -232,7 +296,7 @@ func ldapImplementationShouldSetStr(config, implementation string) bool {
 	return config == "" && implementation != ""
 }
 
-func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.LDAPAuthenticationBackendConfiguration, implementation *schema.LDAPAuthenticationBackendConfiguration) {
+func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.LDAPAuthenticationBackend, implementation *schema.LDAPAuthenticationBackend) {
 	if ldapImplementationShouldSetStr(config.UsersFilter, implementation.UsersFilter) {
 		config.UsersFilter = implementation.UsersFilter
 	}
@@ -258,7 +322,7 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 	}
 }
 
-func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) {
 	var (
 		parsedURL *url.URL
 		err       error
@@ -282,7 +346,7 @@ func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBacke
 	}
 }
 
-func validateLDAPRequiredParameters(config *schema.AuthenticationBackendConfiguration, validator *schema.StructValidator) {
+func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP.PermitUnauthenticatedBind {
 		if config.LDAP.Password != "" {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUnauthenticatedBindWithPassword))

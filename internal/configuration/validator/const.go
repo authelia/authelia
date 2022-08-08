@@ -23,8 +23,13 @@ const (
 
 // Hashing constants.
 const (
-	hashArgon2id = "argon2id"
-	hashSHA512   = "sha512"
+	hashArgon2    = "argon2"
+	hashArgon2id  = "argon2id"
+	hashSHA512    = "sha512"
+	hashSHA2Crypt = "sha2crypt"
+	hashPBKDF2    = "pbkdf2"
+	hashSCrypt    = "scrypt"
+	hashBCrypt    = "bcrypt"
 )
 
 // Scheme constants.
@@ -58,6 +63,10 @@ const (
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 )
 
+const (
+	errSuffixMustBeOneOf = "is configured as '%s' but must be one of the following values: '%s'"
+)
+
 // Authentication Backend Error constants.
 const (
 	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
@@ -73,7 +82,7 @@ const (
 	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
 		"must be 2 or more but it is configured a '%d'"
 	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
-		"must be either 'argon2id' or 'sha512' but it is configured as '%s'"
+		errSuffixMustBeOneOf
 	errFmtFileAuthBackendPasswordInvalidIterations = "authentication_backend: file: password: option " +
 		"'iterations' must be 1 or more but it is configured as '%d'"
 	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = "authentication_backend: file: password: option " +
@@ -83,6 +92,8 @@ const (
 	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = "authentication_backend: file: password: option 'memory' " +
 		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
 		"with parallelism %d it should be at least %d but it is configured as '%d'"
+	errFmtFileAuthBackendPasswordInvalidVariant = "authentication_backend: file: password: %s: " +
+		"option 'variant' " + errSuffixMustBeOneOf
 
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
@@ -91,7 +102,7 @@ const (
 	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
 		"'minimum_tls_version' is invalid: %s: %w"
 	errFmtLDAPAuthBackendImplementation = "authentication_backend: ldap: option 'implementation' " +
-		"is configured as '%s' but must be one of the following values: '%s'"
+		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
 	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
@@ -295,9 +306,11 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+
 var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
 var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+
 var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 
 var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
@@ -307,9 +320,13 @@ var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFact
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
+
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+
 var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)

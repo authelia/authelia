@@ -17,7 +17,7 @@ import (
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
-	config    schema.LDAPAuthenticationBackendConfiguration
+	config    schema.LDAPAuthenticationBackend
 	tlsConfig *tls.Config
 	dialOpts  []ldap.DialOpt
 	log       *logrus.Logger
@@ -42,13 +42,13 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(config schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
+func NewLDAPUserProvider(config schema.AuthenticationBackend, certPool *x509.CertPool) (provider *LDAPUserProvider) {
 	provider = newLDAPUserProvider(*config.LDAP, config.PasswordReset.Disable, certPool, nil)
 
 	return provider
 }
 
-func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}

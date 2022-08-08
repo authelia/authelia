@@ -39,24 +39,16 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 	}
 
 	_ = os.Mkdir("/tmp/noperms/", 0000)
-	errors := checkDatabase("/tmp/noperms/users_database.yml")
+	err := checkDatabase("/tmp/noperms/users_database.yml")
 
-	require.Len(t, errors, 3)
-
-	require.EqualError(t, errors[0], "Unable to find database file: /tmp/noperms/users_database.yml")
-	require.EqualError(t, errors[1], "Generating database file: /tmp/noperms/users_database.yml")
-	require.EqualError(t, errors[2], "Unable to generate /tmp/noperms/users_database.yml: open /tmp/noperms/users_database.yml: permission denied")
+	require.EqualError(t, err, "Unable to find database file: /tmp/noperms/users_database.yml")
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
-	errors := checkDatabase("./nonexistent.yml")
+	err := checkDatabase("./nonexistent.yml")
 	_ = os.Remove("./nonexistent.yml")
 
-	require.Len(t, errors, 3)
-
-	require.EqualError(t, errors[0], "Unable to find database file: ./nonexistent.yml")
-	require.EqualError(t, errors[1], "Generating database file: ./nonexistent.yml")
-	require.EqualError(t, errors[2], "Generated database at: ./nonexistent.yml")
+	require.EqualError(t, err, "user authentication database file doesn't exist at path './nonexistent.yml' and has been generated")
 }
 
 func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
@@ -207,8 +199,8 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 	WithDatabase(UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		config.Password.Algorithm = "sha512"
-		config.Password.Iterations = 50000
+		config.Password.Algorithm = "sha2crypt"
+		config.Password.SHA2Crypt.Iterations = 50000
 
 		provider := NewFileUserProvider(&config)
 
@@ -313,7 +305,7 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 }
 
 var (
-	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackendConfig{
+	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackend{
 		Path:     "",
 		Password: &schema.DefaultCIPasswordConfig,
 	}
@@ -430,6 +422,7 @@ users:
       - admins
       - dev
 `)
+
 var BadArgon2idHashSaltContent = []byte(`
 users:
   john:

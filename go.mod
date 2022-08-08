@@ -10,7 +10,7 @@ require (
 	github.com/fasthttp/router v1.4.11
 	github.com/fasthttp/session/v2 v2.4.12
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.0.0-20220726043327-7508f3d5dbdf
+	github.com/go-crypt/crypt v0.0.0-20220808013407-8514e11573a1
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.108.2
 	github.com/go-sql-driver/mysql v1.6.0

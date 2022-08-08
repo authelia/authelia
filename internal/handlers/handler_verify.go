@@ -366,7 +366,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	return nil
 }
 
-func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
+func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
 	if cfg.LDAP != nil {
 		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
 			refresh = false
@@ -426,7 +426,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 }
 
 // VerifyGET returns the handler verifying if a request is allowed to go through.
-func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
+func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {

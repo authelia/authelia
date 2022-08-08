@@ -10,23 +10,28 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func NewFileUserDatabase(p string) (database *FileUserDatabase) {
+// NewFileUserDatabase creates a new FileUserDatabase.
+func NewFileUserDatabase(filePath string) (database *FileUserDatabase) {
 	return &FileUserDatabase{
-		Mutex: &sync.Mutex{},
-		Path:  p,
-		Users: map[string]FileUserDatabaseUser{},
+		RWMutex: &sync.RWMutex{},
+		Path:    filePath,
+		Users:   map[string]DatabaseUserDetails{},
+		Emails:  map[string]string{},
 	}
 }
 
+// FileUserDatabase is a user details database that is concurrency safe database and can be reloaded.
 type FileUserDatabase struct {
-	*sync.Mutex
+	*sync.RWMutex
 
-	Path  string
-	Users map[string]FileUserDatabaseUser
+	Path   string
+	Users  map[string]DatabaseUserDetails
+	Emails map[string]string
 }
 
+// Save the database to disk.
 func (m *FileUserDatabase) Save() (err error) {
-	m.Lock()
+	m.RLock()
 
 	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
 		m.Unlock()
@@ -34,11 +39,12 @@ func (m *FileUserDatabase) Save() (err error) {
 		return err
 	}
 
-	m.Unlock()
+	m.RUnlock()
 
 	return nil
 }
 
+// Load the database from disk.
 func (m *FileUserDatabase) Load() (err error) {
 	yml := &DatabaseModel{Users: map[string]UserDetailsModel{}}
 
@@ -46,30 +52,36 @@ func (m *FileUserDatabase) Load() (err error) {
 		return fmt.Errorf("error reading the authentication database: %w", err)
 	}
 
-	var db *FileUserDatabase
-
-	if db, err = yml.ToDatabaseModel(); err != nil {
-		return fmt.Errorf("error decoding the authentication database: %w", err)
-	}
-
 	m.Lock()
 
-	m.Users = db.Users
+	defer m.Unlock()
 
-	m.Unlock()
+	if err = yml.ReadToFileUserDatabase(m); err != nil {
+		return fmt.Errorf("error decoding the authentication database: %w", err)
+	}
 
 	return nil
 }
 
-func (m FileUserDatabase) GetUserDetails(username string) (user *FileUserDatabaseUser, err error) {
+// GetUserDetails get a DatabaseUserDetails given a username as a value type.
+func (m *FileUserDatabase) GetUserDetails(username string) (user DatabaseUserDetails, err error) {
+	m.RLock()
+
+	defer m.RUnlock()
+
 	if details, ok := m.Users[username]; ok {
-		return &details, nil
+		return details, nil
 	}
 
-	return nil, ErrUserNotFound
+	return user, ErrUserNotFound
 }
 
-func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserDatabaseUser) {
+// SetUserDetails sets the DatabaseUserDetails for a given user.
+func (m *FileUserDatabase) SetUserDetails(username string, details *DatabaseUserDetails) {
+	if details == nil {
+		return
+	}
+
 	m.Lock()
 
 	m.Users[username] = *details
@@ -77,27 +89,43 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserData
 	m.Unlock()
 }
 
-func (m FileUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
+// ToDatabaseModel converts the FileUserDatabase into the DatabaseModel for saving.
+func (m *FileUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
 	model = &DatabaseModel{
 		Users: map[string]UserDetailsModel{},
 	}
+
+	m.RLock()
 
 	for user, details := range m.Users {
 		model.Users[user] = details.ToUserDetailsModel()
 	}
 
+	m.RUnlock()
+
 	return model
 }
 
-// FileUserDatabaseUser is the model of user details in the file database.
-type FileUserDatabaseUser struct {
+// DatabaseUserDetails is the model of user details in the file database.
+type DatabaseUserDetails struct {
 	Digest      crypt.Digest
 	DisplayName string
 	Email       string
 	Groups      []string
 }
 
-func (m FileUserDatabaseUser) ToUserDetailsModel() (model UserDetailsModel) {
+// ToUserDetails converts DatabaseUserDetails into a *UserDetails given a username.
+func (m DatabaseUserDetails) ToUserDetails(username string) (details *UserDetails) {
+	return &UserDetails{
+		Username:    username,
+		DisplayName: m.DisplayName,
+		Emails:      []string{m.Email},
+		Groups:      m.Groups,
+	}
+}
+
+// ToUserDetailsModel convets DatabaseUserDetails into a UserDetailsModel.
+func (m DatabaseUserDetails) ToUserDetailsModel() (model UserDetailsModel) {
 	return UserDetailsModel{
 		HashedPassword: m.Digest.Encode(),
 		DisplayName:    m.DisplayName,
@@ -111,32 +139,39 @@ type DatabaseModel struct {
 	Users map[string]UserDetailsModel `yaml:"users" valid:"required"`
 }
 
-func (m DatabaseModel) ToDatabaseModel() (model *FileUserDatabase, err error) {
-	model = &FileUserDatabase{
-		Users: map[string]FileUserDatabaseUser{},
-	}
+// ReadToFileUserDatabase reads the DatabaseModel into a FileUserDatabase.
+func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error) {
+	users := map[string]DatabaseUserDetails{}
+	emails := map[string]string{}
 
-	var udm *FileUserDatabaseUser
+	var udm *DatabaseUserDetails
 
 	for user, details := range m.Users {
 		if udm, err = details.ToDatabaseUserDetailsModel(); err != nil {
-			return nil, fmt.Errorf("failed to parse hash for user '%s': %w", user, err)
+			return fmt.Errorf("failed to parse hash for user '%s': %w", user, err)
 		}
 
-		model.Users[user] = *udm
+		users[user] = *udm
+
+		if udm.Email != "" {
+			emails[udm.Email] = user
+		}
 	}
 
-	return model, nil
+	db.Users, db.Emails = users, emails
+
+	return nil
 }
 
-func (m *DatabaseModel) Read(p string) (err error) {
+// Read a DatabaseModel from disk.
+func (m *DatabaseModel) Read(filePath string) (err error) {
 	var (
 		content []byte
 		ok      bool
 	)
 
-	if content, err = os.ReadFile(p); err != nil {
-		return fmt.Errorf("failed to read the '%s' file: %w", p, err)
+	if content, err = os.ReadFile(filePath); err != nil {
+		return fmt.Errorf("failed to read the '%s' file: %w", filePath, err)
 	}
 
 	if err = yaml.Unmarshal(content, m); err != nil {
@@ -154,7 +189,8 @@ func (m *DatabaseModel) Read(p string) (err error) {
 	return nil
 }
 
-func (m *DatabaseModel) Write(p string) (err error) {
+// Write a DatabaseModel to disk.
+func (m *DatabaseModel) Write(fileName string) (err error) {
 	var (
 		data []byte
 	)
@@ -163,7 +199,7 @@ func (m *DatabaseModel) Write(p string) (err error) {
 		return err
 	}
 
-	return os.WriteFile(p, data, fileAuthenticationMode)
+	return os.WriteFile(fileName, data, fileAuthenticationMode)
 }
 
 // UserDetailsModel is the model of user details in the file database.
@@ -174,14 +210,15 @@ type UserDetailsModel struct {
 	Groups         []string `yaml:"groups"`
 }
 
-func (m UserDetailsModel) ToDatabaseUserDetailsModel() (model *FileUserDatabaseUser, err error) {
+// ToDatabaseUserDetailsModel converts a UserDetailsModel into a *DatabaseUserDetails.
+func (m UserDetailsModel) ToDatabaseUserDetailsModel() (model *DatabaseUserDetails, err error) {
 	var d crypt.Digest
 
 	if d, err = crypt.Decode(m.HashedPassword); err != nil {
 		return nil, err
 	}
 
-	return &FileUserDatabaseUser{
+	return &DatabaseUserDetails{
 		Digest:      d,
 		DisplayName: m.DisplayName,
 		Email:       m.Email,

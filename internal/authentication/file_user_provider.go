@@ -13,13 +13,13 @@ import (
 
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
-	config   *schema.FileAuthenticationBackendConfig
+	config   *schema.FileAuthenticationBackend
 	hash     crypt.Hash
 	database *FileUserDatabase
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
-func NewFileUserProvider(config *schema.FileAuthenticationBackendConfig) (provider *FileUserProvider) {
+func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *FileUserProvider) {
 	return &FileUserProvider{
 		config:   config,
 		database: NewFileUserDatabase(config.Path),
@@ -37,23 +37,18 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 
 // GetDetails retrieve the groups a user belongs to.
 func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
-	var d *FileUserDatabaseUser
+	var d DatabaseUserDetails
 
 	if d, err = p.database.GetUserDetails(username); err != nil {
 		return nil, err
 	}
 
-	return &UserDetails{
-		Username:    username,
-		DisplayName: d.DisplayName,
-		Groups:      d.Groups,
-		Emails:      []string{d.Email},
-	}, nil
+	return d.ToUserDetails(username), nil
 }
 
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
-	var details *FileUserDatabaseUser
+	var details DatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
 		return err
@@ -63,7 +58,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 		return err
 	}
 
-	p.database.SetUserDetails(username, details)
+	p.database.SetUserDetails(username, &details)
 
 	if err = p.database.Save(); err != nil {
 		return err
@@ -74,8 +69,14 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 
 // StartupCheck implements the startup check provider interface.
 func (p *FileUserProvider) StartupCheck() (err error) {
+	if err = checkDatabase(p.config.Path); err != nil {
+		logging.Logger().WithError(err).Errorf("Error checking user authentication YAML database")
+
+		return fmt.Errorf("one or more errors occurred checking the authentication database")
+	}
+
 	switch p.config.Password.Algorithm {
-	case "argon2", "argon2id", "":
+	case hashArgon2, "":
 		p.hash = crypt.NewArgon2Hash().
 			WithVariant(crypt.NewArgon2Variant(p.config.Password.Argon2.Variant)).
 			WithT(p.config.Password.Argon2.Iterations).
@@ -83,38 +84,28 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 			WithP(p.config.Password.Argon2.Parallelism).
 			WithK(p.config.Password.Argon2.KeyLength).
 			WithS(p.config.Password.Argon2.SaltLength)
-	case "sha2crypt", "sha512":
+	case hashSHA2Crypt:
 		p.hash = crypt.NewSHA2CryptHash().
 			WithVariant(crypt.NewSHA2CryptVariant(p.config.Password.SHA2Crypt.Variant)).
-			WithRounds(p.config.Password.SHA2Crypt.Rounds).
+			WithRounds(p.config.Password.SHA2Crypt.Iterations).
 			WithSaltLength(p.config.Password.SHA2Crypt.SaltLength)
-	case "pbkdf2":
+	case hashPBKDF2:
 		p.hash = crypt.NewPBKDF2Hash().
 			WithVariant(crypt.NewPBKDF2Variant(p.config.Password.PBKDF2.Variant)).
 			WithIterations(p.config.Password.PBKDF2.Iterations).
 			WithKeyLength(p.config.Password.PBKDF2.KeyLength).
 			WithSaltLength(p.config.Password.PBKDF2.SaltLength)
-	case "scrypt":
+	case hashSCrypt:
 		p.hash = crypt.NewScryptHash().
-			WithLN(p.config.Password.SCrypt.Rounds).
+			WithLN(p.config.Password.SCrypt.Iterations).
 			WithP(p.config.Password.SCrypt.Parallelism).
 			WithR(p.config.Password.SCrypt.BlockSize)
-	case "bcrypt":
+	case hashBCrypt:
 		p.hash = crypt.NewBcryptHash().
 			WithVariant(crypt.NewBcryptVariant(p.config.Password.BCrypt.Variant)).
 			WithCost(p.config.Password.BCrypt.Cost)
 	default:
 		return fmt.Errorf("algorithm '%s' is unknown", p.config.Password.Algorithm)
-	}
-
-	logger := logging.Logger()
-
-	if errs := checkDatabase(p.config.Path); errs != nil {
-		for _, err = range errs {
-			logger.Error(err)
-		}
-
-		return fmt.Errorf("one or more errors occurred checking the authentication database")
 	}
 
 	p.database = NewFileUserDatabase(p.config.Path)
@@ -126,22 +117,15 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	return nil
 }
 
-func checkDatabase(path string) []error {
-	var err error
-
-	if _, err = os.Stat(path); err != nil {
-		errs := []error{
-			fmt.Errorf("Unable to find database file: %v", path),
-			fmt.Errorf("Generating database file: %v", path),
+func checkDatabase(path string) (err error) {
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		if err = os.WriteFile(path, userYAMLTemplate, 0600); err != nil {
+			return fmt.Errorf("user authentication database file doesn't exist at path '%s' and could not be generated: %w", path, err)
 		}
 
-		if err = generateDatabaseFromTemplate(path); err != nil {
-			errs = append(errs, err)
-		} else {
-			errs = append(errs, fmt.Errorf("Generated database at: %v", path))
-		}
-
-		return errs
+		return fmt.Errorf("user authentication database file doesn't exist at path '%s' and has been generated", path)
+	} else if err != nil {
+		return fmt.Errorf("error checking user authentication database file: %w", err)
 	}
 
 	return nil
@@ -149,12 +133,3 @@ func checkDatabase(path string) []error {
 
 //go:embed users_database.template.yml
 var userYAMLTemplate []byte
-
-func generateDatabaseFromTemplate(path string) error {
-	err := os.WriteFile(path, userYAMLTemplate, 0600)
-	if err != nil {
-		return fmt.Errorf("Unable to generate %v: %v", path, err)
-	}
-
-	return nil
-}

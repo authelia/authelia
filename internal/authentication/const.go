@@ -75,36 +75,16 @@ const (
 	none = "none"
 )
 
-// CryptAlgo the crypt representation of an algorithm used in the prefix of the hash.
-type CryptAlgo string
-
 const (
-	// HashingAlgorithmArgon2id Argon2id hash identifier.
-	HashingAlgorithmArgon2id CryptAlgo = argon2id
-	// HashingAlgorithmSHA512 SHA512 hash identifier.
-	HashingAlgorithmSHA512 CryptAlgo = "6"
+	hashArgon2    = "argon2"
+	hashSHA2Crypt = "sha2crypt"
+	hashPBKDF2    = "pbkdf2"
+	hashSCrypt    = "scrypt"
+	hashBCrypt    = "bcrypt"
 )
-
-// These are the default values from the upstream crypt module we use them to for GetInt
-// and they need to be checked when updating github.com/simia-tech/crypt.
-const (
-	HashingDefaultArgon2idTime        = 1
-	HashingDefaultArgon2idMemory      = 32 * 1024
-	HashingDefaultArgon2idParallelism = 4
-	HashingDefaultArgon2idKeyLength   = 32
-	HashingDefaultSHA512Iterations    = 5000
-)
-
-// HashingPossibleSaltCharacters represents valid hashing runes.
-var HashingPossibleSaltCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/"
 
 // ErrUserNotFound indicates the user wasn't found in the authentication backend.
 var ErrUserNotFound = errors.New("user not found")
-
-const argon2id = "argon2id"
-const sha512 = "sha512"
-
-const testPassword = "my;secure*password"
 
 const fileAuthenticationMode = 0600
 
