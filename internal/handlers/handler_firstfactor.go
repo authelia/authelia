@@ -81,7 +81,15 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		userSession := ctx.GetSession()
+		userSession, err := domainSession.GetSession(ctx.RequestCtx)
+		if err != nil {
+			ctx.Logger.Errorf("%s", err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
 		newSession := session.NewDefaultUserSession()
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
