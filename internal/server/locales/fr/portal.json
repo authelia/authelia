@@ -5,6 +5,7 @@
 	"Access your profile information": "Accéder aux informations de votre profil",
 	"An email has been sent to your address to complete the process": "Un mail a été envoyé à votre adresse pour compléter le processus.",
 	"Authenticated": "Authentifié",
+	"Automatically refresh these permissions without user interaction": "Actualiser automatiquement ces permissions sans interaction utilisateur",
 	"Cancel": "Annuler",
 	"Client ID": "Identifiant client : {{client_id}}",
 	"Consent Request": "Demande de consentement",
