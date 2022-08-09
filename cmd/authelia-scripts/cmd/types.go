@@ -15,6 +15,13 @@ type HostEntry struct {
 	IP     string
 }
 
+// DockerImages represents some of the data from the docker images API.
+type DockerImages []struct {
+	Architecture string      `json:"architecture"`
+	Variant      interface{} `json:"variant"`
+	Digest       string      `json:"digest"`
+}
+
 // Build represents a builds metadata.
 type Build struct {
 	Branch string
