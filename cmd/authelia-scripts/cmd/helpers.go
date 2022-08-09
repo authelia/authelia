@@ -72,8 +72,8 @@ func (b build) ContainerLabels() (labels map[string]string) {
 		version = fmt.Sprintf("%s-dirty+%s.%s", b.Tag, b.Branch, b.Commit)
 	}
 
-	if strings.HasPrefix(version, "v") {
-		version = version[:1]
+	if strings.HasPrefix(version, "v") && len(version) > 1 {
+		version = version[1:]
 	}
 
 	labels = map[string]string{
@@ -90,7 +90,7 @@ func (b build) ContainerLabels() (labels map[string]string) {
 		"org.opencontainers.image.title":         "authelia",
 		"org.opencontainers.image.description":   "Authelia is an open-source authentication and authorization server providing two-factor authentication and single sign-on (SSO) for your applications via a web portal.",
 		"org.opencontainers.image.base.digest":   "",
-		"org.opencontainers.image.base.name":     "",
+		"org.opencontainers.image.base.name":     "library/alpine",
 	}
 
 	return labels
