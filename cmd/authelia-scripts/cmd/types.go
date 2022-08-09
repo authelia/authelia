@@ -16,10 +16,25 @@ type HostEntry struct {
 }
 
 // DockerImages represents some of the data from the docker images API.
-type DockerImages []struct {
+type DockerImages []DockerImage
+
+// DockerImage represents some of the data from the docker images API.
+type DockerImage struct {
 	Architecture string      `json:"architecture"`
 	Variant      interface{} `json:"variant"`
 	Digest       string      `json:"digest"`
+	OS           string      `json:"os"`
+}
+
+// String returns the os/arch/variant string.
+func (d DockerImage) String() string {
+	parts := []string{d.OS, d.Architecture}
+
+	if d.Variant != nil {
+		parts = append(parts, d.Variant.(string))
+	}
+
+	return strings.Join(parts, "/")
 }
 
 // Build represents a builds metadata.
