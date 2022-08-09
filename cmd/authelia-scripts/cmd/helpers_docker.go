@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -8,11 +11,20 @@ import (
 type Docker struct{}
 
 // Build build a docker image.
-func (d *Docker) Build(tag, dockerfile, target, ldflags string) error {
-	return utils.CommandWithStdout(
-		"docker", "build", "-t", tag, "-f", dockerfile,
-		"--progress=plain", "--build-arg", "LDFLAGS_EXTRA="+ldflags,
-		target).Run()
+func (d *Docker) Build(tag, dockerfile, target string, buildMetaData *build) error {
+	args := []string{"build", "-t", tag, "-f", dockerfile, "--progress=plain"}
+
+	for label, value := range buildMetaData.ContainerLabels() {
+		if value == "" {
+			continue
+		}
+
+		args = append(args, "--label", fmt.Sprintf("%s=%s", label, value))
+	}
+
+	args = append(args, "--build-arg", "LDFLAGS_EXTRA="+strings.Join(buildMetaData.XFlags(), " "), target)
+
+	return utils.CommandWithStdout("docker", args...).Run()
 }
 
 // Tag tag a docker image.
