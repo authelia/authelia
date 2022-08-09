@@ -76,9 +76,7 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		var digest string
 
 		for _, image := range images {
-			fmt.Printf("platform: %s, image: %s\n", platform, image.String())
-
-			if platform != image.String() {
+			if !image.Match(platform) {
 				continue
 			}
 
@@ -88,17 +86,17 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		}
 
 		if digest == "" {
-			fmt.Printf("Skipping %s\n", platform)
+			fmt.Printf("Skipping %s (digest not found)\n", platform)
 			continue
 		}
+
+		fmt.Printf("Building %s with digest %s\n", platform, digest)
 
 		finalArgs := make([]string, len(args))
 
 		copy(finalArgs, args)
 
-		finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=library/alpine:"+baseImageTag, "--label", "org.opencontainers.image.base.digest="+digest, "--platform", platform, "--builder", "buildx", "--push", ".")
-
-		fmt.Printf("Building %s with digest %s and args %+v\n", platform, digest, finalArgs)
+		finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag, "--label", "org.opencontainers.image.base.digest="+digest, "--platform", platform, "--builder", "buildx", "--push", ".")
 
 		if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
 			return err

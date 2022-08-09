@@ -26,15 +26,21 @@ type DockerImage struct {
 	OS           string      `json:"os"`
 }
 
-// String returns the os/arch/variant string.
-func (d DockerImage) String() string {
+// Match returns true if this image matches the platform.
+func (d DockerImage) Match(platform string) bool {
 	parts := []string{d.OS, d.Architecture}
 
-	if d.Variant != nil {
-		parts = append(parts, d.Variant.(string))
+	if strings.Join(parts, "/") == platform {
+		return true
 	}
 
-	return strings.Join(parts, "/")
+	if d.Variant == nil {
+		return false
+	}
+
+	parts = append(parts, d.Variant.(string))
+
+	return strings.Join(parts, "/") == platform
 }
 
 // Build represents a builds metadata.
