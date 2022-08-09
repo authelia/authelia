@@ -17,8 +17,8 @@ type RodSuite struct {
 type CommandSuite struct {
 	suite.Suite
 
-	testArg     string 
-	coverageArg string 
+	testArg     string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
+	coverageArg string //nolint:structcheck // TODO: Remove when bug fixed: https://github.com/golangci/golangci-lint/issues/537.
 
 	*DockerEnvironment
 }
