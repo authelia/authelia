@@ -67,10 +67,10 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	configuration := schema.Configuration{}
-	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
-	configuration.Session.Name = "authelia_session"
-	configuration.Session.Domains = []schema.SessionDomainConfiguration{
+	config := schema.Configuration{}
+	config.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
+	config.Session.Name = "authelia_session"
+	config.Session.Domains = []schema.SessionDomainConfiguration{
 		{
 			Domain: "example.com",
 		},
@@ -78,8 +78,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 			Domain: "example2.com",
 		},
 	}
-	configuration.AccessControl.DefaultPolicy = "deny"
-	configuration.AccessControl.Rules = []schema.ACLRule{{
+	config.AccessControl.DefaultPolicy = "deny"
+	config.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},
 		Policy:  "bypass",
 	}, {
@@ -114,12 +114,12 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Notifier = mockAuthelia.NotifierMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
-		&configuration)
+		&config)
 
 	providers.SessionProvider = session.NewProvider(
-		configuration.Session, nil)
+		config.Session, nil)
 
-	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
@@ -137,7 +137,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	// Set X-Forwarded-Host for compatibility with multi-root-domain implementation.
 	request.Request.Header.Set("X-Forwarded-Host", "example.com")
 
-	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
+	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx
 
 	logger, hook := test.NewNullLogger()
