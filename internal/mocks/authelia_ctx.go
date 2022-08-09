@@ -18,6 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
@@ -66,11 +67,12 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	configuration := schema.Configuration{}
-	configuration.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
-	configuration.Session.Name = "authelia_session"
-	configuration.AccessControl.DefaultPolicy = "deny"
-	configuration.AccessControl.Rules = []schema.ACLRule{{
+	config := schema.Configuration{}
+	config.Session.RememberMeDuration = schema.DefaultSessionConfiguration.RememberMeDuration
+	config.Session.Name = "authelia_session"
+	config.Session.Domain = "example.com"
+	config.AccessControl.DefaultPolicy = "deny"
+	config.AccessControl.Rules = []schema.ACLRule{{
 		Domains: []string{"bypass.example.com"},
 		Policy:  "bypass",
 	}, {
@@ -105,21 +107,27 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Notifier = mockAuthelia.NotifierMock
 
 	providers.Authorizer = authorization.NewAuthorizer(
-		&configuration)
+		&config)
 
 	providers.SessionProvider = session.NewProvider(
-		configuration.Session, nil)
+		config.Session, nil)
 
-	providers.Regulator = regulation.NewRegulator(configuration.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
+
+	var err error
+
+	if providers.Templates, err = templates.New(templates.Config{}); err != nil {
+		panic(err)
+	}
 
 	request := &fasthttp.RequestCtx{}
 	// Set a cookie to identify this client throughout the test.
 	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
-	ctx := middlewares.NewAutheliaCtx(request, configuration, providers)
+	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx
 
 	logger, hook := test.NewNullLogger()

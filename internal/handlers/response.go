@@ -9,49 +9,47 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
-func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
+func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
+	if len(targetURI) == 0 {
+		ctx.Error(fmt.Errorf("unable to parse target URL %s: empty value", targetURI), messageAuthenticationFailed)
+
+		return
+	}
+
+	var (
+		targetURL *url.URL
+		err       error
+	)
+
+	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
+		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	var (
+		id     string
+		client *oidc.Client
+	)
+
+	if id = targetURL.Query().Get("client_id"); len(id) == 0 {
+		ctx.Error(fmt.Errorf("unable to get client id from from URL '%s'", targetURL), messageAuthenticationFailed)
+
+		return
+	}
+
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(id); err != nil {
+		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from URL '%s': %w", id, targetURL, err), messageAuthenticationFailed)
+
+		return
+	}
+
 	userSession := ctx.GetSession()
-
-	if userSession.ConsentChallengeID == nil {
-		ctx.Logger.Errorf("Unable to handle OIDC workflow response because the user session doesn't contain a consent challenge id")
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
-
-	externalRootURL, err := ctx.ExternalRootURL()
-	if err != nil {
-		ctx.Logger.Errorf("Unable to determine external Base URL: %v", err)
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
-
-	consent, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, *userSession.ConsentChallengeID)
-	if err != nil {
-		ctx.Logger.Errorf("Unable to load consent session from database: %v", err)
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
-
-	client, err := ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID)
-	if err != nil {
-		ctx.Logger.Errorf("Unable to find client for the consent session: %v", err)
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
@@ -60,57 +58,18 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
-		ctx.Logger.Errorf("Unable to find subject for the consent session: %v", err)
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
-
-	consent.Subject.Valid = true
-
-	var preConsent *model.OAuth2ConsentSession
-
-	if preConsent, err = getOIDCPreConfiguredConsentFromClientAndConsent(ctx, client, consent); err != nil {
-		ctx.Logger.Errorf("Unable to lookup pre-configured consent for the consent session: %v", err)
-
-		respondUnauthorized(ctx, messageOperationFailed)
-
-		return
-	}
-
-	if userSession.ConsentChallengeID != nil && preConsent == nil {
-		if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s/consent", externalRootURL)}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-		}
-
-		return
-	}
-
-	if userSession.ConsentChallengeID != nil {
-		userSession.ConsentChallengeID = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.Errorf("Unable to update user session: %v", err)
-
-			respondUnauthorized(ctx, messageOperationFailed)
-
-			return
-		}
-	}
-
-	if err = ctx.SetJSONBody(redirectResponse{Redirect: fmt.Sprintf("%s%s?%s", externalRootURL, oidc.AuthorizationPath, consent.Form)}); err != nil {
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
 		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 	}
 }
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
-	if targetURI == "" {
+	var err error
+
+	if len(targetURI) == 0 {
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
-			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
-			if err != nil {
+			if err = ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}); err != nil {
 				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
 		} else {
@@ -120,9 +79,11 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	targetURL, err := url.ParseRequestURI(targetURI)
-	if err != nil {
+	var targetURL *url.URL
+
+	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
 		ctx.Error(fmt.Errorf("unable to parse target URL %s: %s", targetURI, err), messageAuthenticationFailed)
+
 		return
 	}
 
@@ -143,63 +104,66 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	safeRedirection := utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain)
-
-	if !safeRedirection {
+	if !utils.URLDomainHasSuffix(*targetURL, ctx.Configuration.Session.Domain) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
-			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
-			if err != nil {
+			if err = ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}); err != nil {
 				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 			}
-		} else {
-			ctx.ReplyOK()
+
+			return
 		}
+
+		ctx.ReplyOK()
 
 		return
 	}
 
 	ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
-	err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
 
-	if err != nil {
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
 		ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
 	}
 }
 
 // Handle2FAResponse handle the redirection upon 2FA authentication.
 func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
-	if targetURI == "" {
-		if ctx.Configuration.DefaultRedirectionURL != "" {
-			err := ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL})
-			if err != nil {
-				ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-			}
-		} else {
+	var err error
+
+	if len(targetURI) == 0 {
+		if len(ctx.Configuration.DefaultRedirectionURL) == 0 {
 			ctx.ReplyOK()
+
+			return
+		}
+
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: ctx.Configuration.DefaultRedirectionURL}); err != nil {
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
 		}
 
 		return
 	}
 
-	safe, err := utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain)
+	var safe bool
 
-	if err != nil {
+	if safe, err = utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain); err != nil {
 		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)
+
 		return
 	}
 
 	if safe {
 		ctx.Logger.Debugf("Redirection URL %s is safe", targetURI)
-		err := ctx.SetJSONBody(redirectResponse{Redirect: targetURI})
 
-		if err != nil {
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
 			ctx.Logger.Errorf("Unable to set redirection URL in body: %s", err)
 		}
-	} else {
-		ctx.ReplyOK()
+
+		return
 	}
+
+	ctx.ReplyOK()
 }
 
 func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {

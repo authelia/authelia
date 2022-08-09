@@ -20,7 +20,7 @@ type SMTPNotifierConfiguration struct {
 	Identifier          string        `koanf:"identifier"`
 	Sender              mail.Address  `koanf:"sender"`
 	Subject             string        `koanf:"subject"`
-	StartupCheckAddress string        `koanf:"startup_check_address"`
+	StartupCheckAddress mail.Address  `koanf:"startup_check_address"`
 	DisableRequireTLS   bool          `koanf:"disable_require_tls"`
 	DisableHTMLEmails   bool          `koanf:"disable_html_emails"`
 	TLS                 *TLSConfig    `koanf:"tls"`
@@ -39,7 +39,7 @@ var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
 	Timeout:             time.Second * 5,
 	Subject:             "[Authelia] {title}",
 	Identifier:          "localhost",
-	StartupCheckAddress: "test@authelia.com",
+	StartupCheckAddress: mail.Address{Name: "Authelia Test", Address: "test@authelia.com"},
 	TLS: &TLSConfig{
 		MinimumVersion: "TLS1.2",
 	},

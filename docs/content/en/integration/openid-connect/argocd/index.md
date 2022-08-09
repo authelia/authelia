@@ -81,6 +81,7 @@ which will operate with the above example:
     - groups
     - email
     - profile
+    - offline_access
   userinfo_signing_algorithm: none
 ```
 

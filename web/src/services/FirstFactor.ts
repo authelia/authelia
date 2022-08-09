@@ -8,6 +8,7 @@ interface PostFirstFactorBody {
     keepMeLoggedIn: boolean;
     targetURL?: string;
     requestMethod?: string;
+    workflow?: string;
 }
 
 export async function postFirstFactor(
@@ -16,6 +17,7 @@ export async function postFirstFactor(
     rememberMe: boolean,
     targetURL?: string,
     requestMethod?: string,
+    workflow?: string,
 ) {
     const data: PostFirstFactorBody = {
         username,
@@ -29,6 +31,10 @@ export async function postFirstFactor(
 
     if (requestMethod) {
         data.requestMethod = requestMethod;
+    }
+
+    if (workflow) {
+        data.workflow = workflow;
     }
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);

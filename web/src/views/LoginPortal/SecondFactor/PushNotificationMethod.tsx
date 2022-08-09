@@ -8,6 +8,7 @@ import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useWorkflow } from "@hooks/Workflow";
 import {
     completePushNotificationSignIn,
     completeDuoDeviceSelectionProcess,
@@ -44,6 +45,7 @@ const PushNotificationMethod = function (props: Props) {
     const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
+    const workflow = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
@@ -93,7 +95,7 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL);
+            const res = await completePushNotificationSignIn(redirectionURL, workflow);
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
@@ -136,6 +138,7 @@ const PushNotificationMethod = function (props: Props) {
         props.authenticationLevel,
         props.duoSelfEnrollment,
         redirectionURL,
+        workflow,
         mounted,
         onSignInErrorCallback,
         onSignInSuccessCallback,
