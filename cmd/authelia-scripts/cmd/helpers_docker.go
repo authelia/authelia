@@ -76,16 +76,13 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		var digest string
 
 		for _, image := range images {
-			arch := image.Architecture
-			if image.Variant != nil {
-				arch += "/" + image.Variant.(string)
+			if platform != image.String() {
+				continue
 			}
 
-			if arch == platform {
-				digest = image.Digest
+			digest = image.Digest
 
-				break
-			}
+			break
 		}
 
 		if digest == "" {
@@ -93,13 +90,13 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 			continue
 		}
 
-		var finalArgs []string
+		finalArgs := make([]string, len(args))
 
 		copy(finalArgs, args)
 
 		finalArgs = append(finalArgs, "--label", fmt.Sprintf(`"org.opencontainers.image.base.name=library/alpine:%s"`, baseImageTag), "--label", fmt.Sprintf(`"org.opencontainers.image.base.digest=%s"`, digest), "--platform", platform, "--builder", "buildx", "--push", ".")
 
-		fmt.Printf("Building %s with digest %s\n", platform, digest)
+		fmt.Printf("Building %s with digest %s and args %+v\n", platform, digest, finalArgs)
 
 		if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
 			return err
