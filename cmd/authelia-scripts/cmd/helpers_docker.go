@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -39,7 +40,24 @@ func (d *Docker) Login(username, password, registry string) error {
 
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(tag1, tag2 string) error {
-	return utils.CommandWithStdout("docker", "build", "-t", tag1, "-t", tag2, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".").Run()
+	args := []string{"build", "-t", tag1, "-t", tag2}
+
+	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	if err != nil {
+		return err
+	}
+
+	for label, value := range buildMetaData.ContainerLabels() {
+		if value == "" {
+			continue
+		}
+
+		args = append(args, "--label", fmt.Sprintf("%s=%s", label, value))
+	}
+
+	args = append(args, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
+
+	return utils.CommandWithStdout("docker", args...).Run()
 }
 
 // PublishReadme push README.md to dockerhub.
