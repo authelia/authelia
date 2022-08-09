@@ -97,7 +97,9 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 
 		copy(finalArgs, args)
 
-		finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=library/alpine:"+baseImageTag, "--label", "org.opencontainers.image.base.digest="+digest, "--platform", platform, "--builder", "buildx", "--push", ".")
+		finalArgs = append(finalArgs, "--label", fmt.Sprintf(`"org.opencontainers.image.base.name=library/alpine:%s"`, baseImageTag), "--label", fmt.Sprintf(`"org.opencontainers.image.base.digest=%s"`, digest), "--platform", platform, "--builder", "buildx", "--push", ".")
+
+		fmt.Printf("Building %s with digest %s\n", platform, digest)
 
 		if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
 			return err
