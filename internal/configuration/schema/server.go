@@ -1,19 +1,24 @@
 package schema
 
+import (
+	"time"
+)
+
 // ServerConfiguration represents the configuration of the http server.
 type ServerConfiguration struct {
 	Host               string `koanf:"host"`
 	Port               int    `koanf:"port"`
 	Path               string `koanf:"path"`
 	AssetPath          string `koanf:"asset_path"`
-	ReadBufferSize     int    `koanf:"read_buffer_size"`
-	WriteBufferSize    int    `koanf:"write_buffer_size"`
 	EnablePprof        bool   `koanf:"enable_pprof"`
 	EnableExpvars      bool   `koanf:"enable_expvars"`
 	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
 	TLS     ServerTLSConfiguration     `koanf:"tls"`
 	Headers ServerHeadersConfiguration `koanf:"headers"`
+
+	Buffers  ServerBuffers  `koanf:"buffers"`
+	Timeouts ServerTimeouts `koanf:"timeouts"`
 }
 
 // ServerTLSConfiguration represents the configuration of the http servers TLS options.
@@ -30,8 +35,15 @@ type ServerHeadersConfiguration struct {
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.
 var DefaultServerConfiguration = ServerConfiguration{
-	Host:            "0.0.0.0",
-	Port:            9091,
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
+	Host: "0.0.0.0",
+	Port: 9091,
+	Buffers: ServerBuffers{
+		Read:  4096,
+		Write: 4096,
+	},
+	Timeouts: ServerTimeouts{
+		Read:  time.Second * 2,
+		Write: time.Second * 2,
+		Idle:  time.Second * 30,
+	},
 }
