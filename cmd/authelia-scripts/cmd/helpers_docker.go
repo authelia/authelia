@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -12,7 +14,7 @@ import (
 type Docker struct{}
 
 // Build build a docker image.
-func (d *Docker) Build(tag, dockerfile, target string, buildMetaData *build) error {
+func (d *Docker) Build(tag, dockerfile, target string, buildMetaData *Build) error {
 	args := []string{"build", "-t", tag, "-f", dockerfile, "--progress=plain"}
 
 	for label, value := range buildMetaData.ContainerLabels() {
@@ -55,9 +57,54 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		args = append(args, "--label", fmt.Sprintf("%s=%s", label, value))
 	}
 
-	args = append(args, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
+	baseImageTag := "3.16.1"
 
-	return utils.CommandWithStdout("docker", args...).Run()
+	resp, err := http.Get("https://hub.docker.com/v2/repositories/library/alpine/tags/" + baseImageTag + "/images")
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	images := DockerImages{}
+
+	if err = json.NewDecoder(resp.Body).Decode(&images); err != nil {
+		return err
+	}
+
+	for _, platform := range []string{"linux/amd64", "linux/arm/v7", "linux/arm64"} {
+		var digest string
+
+		for _, image := range images {
+			arch := image.Architecture
+			if image.Variant != nil {
+				arch += "/" + image.Variant.(string)
+			}
+
+			if arch == platform {
+				digest = image.Digest
+
+				break
+			}
+		}
+
+		if digest == "" {
+			fmt.Printf("Skipping %s\n", platform)
+			continue
+		}
+
+		var finalArgs []string
+
+		copy(finalArgs, args)
+
+		finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=library/alpine:"+baseImageTag, "--label", "org.opencontainers.image.base.digest="+digest, "--platform", platform, "--builder", "buildx", "--push", ".")
+
+		if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // PublishReadme push README.md to dockerhub.
