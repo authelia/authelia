@@ -74,6 +74,7 @@ func IsRedirectionURISafe(uri string, protectedDomains []schema.SessionDomainCon
 }
 
 // GetPortalURL gets redirection URL from session configuration.
+// TODO: write test
 func GetPortalURL(uri string, domains []schema.SessionDomainConfiguration) string {
 	targetURL, err := url.ParseRequestURI(uri)
 	if err != nil {

@@ -136,11 +136,11 @@ func validatePortalURL(url string, domain string) error {
 // sliceHasSuffix returns true if an element of slice has specified suffix(str) or str has a slice element as suffix.
 func sliceHasSuffix(slice []string, str string) bool {
 	for _, s := range slice {
-		if strings.HasSuffix(s, str) {
+		if strings.HasSuffix(s, "."+str) {
 			return true
 		}
 
-		if strings.HasSuffix(str, s) {
+		if strings.HasSuffix(str, "."+s) {
 			return true
 		}
 	}
