@@ -44,6 +44,10 @@ func (d *Docker) Login(username, password, registry string) error {
 func (d *Docker) Manifest(tag string, registries []string) error {
 	args := []string{"buildx", "bake", "-f", "docker-bake.hcl", "--builder", "buildx", "--push"}
 
+	for _, registry := range registries {
+		args = append(args, "-t", fmt.Sprintf("%s/%s:%s", registry, DockerImageName, tag))
+	}
+
 	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		return err
@@ -90,13 +94,6 @@ func (d *Docker) Manifest(tag string, registries []string) error {
 	for key, value := range flags {
 		args = append(args, "--set", fmt.Sprintf("%s=%s", key, value))
 	}
-
-	var bakeTags []string
-	for _, registry := range registries {
-		bakeTags = append(bakeTags, fmt.Sprintf("%s/%s:%s", registry, DockerImageName, tag))
-	}
-
-	args = append(args, "--set", fmt.Sprintf("base.tags=%s", strings.Join(bakeTags, ",")))
 
 	fmt.Printf("Building with docker %s\n", strings.Join(args, " "))
 
