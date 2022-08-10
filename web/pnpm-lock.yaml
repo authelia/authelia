@@ -11,7 +11,7 @@ specifiers:
   '@fortawesome/free-solid-svg-icons': 6.1.2
   '@fortawesome/react-fontawesome': 0.2.0
   '@mui/icons-material': 5.8.4
-  '@mui/material': 5.9.3
+  '@mui/material': 5.10.0
   '@mui/styles': 5.9.3
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.3.0
@@ -57,7 +57,7 @@ specifiers:
   react-router-dom: 6.3.0
   react-test-renderer: 18.2.0
   typescript: 4.7.4
-  vite: 3.0.4
+  vite: 3.0.5
   vite-plugin-eslint: 1.7.0
   vite-plugin-istanbul: 2.9.0
   vite-plugin-svgr: 2.2.1
@@ -72,8 +72,8 @@ dependencies:
   '@fortawesome/free-regular-svg-icons': 6.1.2
   '@fortawesome/free-solid-svg-icons': 6.1.2
   '@fortawesome/react-fontawesome': 0.2.0_tebjjym7ugcdduvdrfbg7ugwxq
-  '@mui/icons-material': 5.8.4_cj4qjnqz5mgdcxqceumq6irqta
-  '@mui/material': 5.9.3_sqzxty2p7kxc2tmue4tecplwku
+  '@mui/icons-material': 5.8.4_coxa3mmk7xdciqqsybg7vi3uaa
+  '@mui/material': 5.10.0_sqzxty2p7kxc2tmue4tecplwku
   '@mui/styles': 5.9.3_ug65io7jkbhmo4fihdmbrh3ina
   axios: 0.27.2
   classnames: 2.3.1
@@ -103,7 +103,7 @@ devDependencies:
   '@types/zxcvbn': 4.4.1
   '@typescript-eslint/eslint-plugin': 5.33.0_njno5y7ry2l2lcmiu4tywxkwnq
   '@typescript-eslint/parser': 5.33.0_qugx7qdu5zevzvxaiqyxfiwquq
-  '@vitejs/plugin-react': 2.0.0_vite@3.0.4
+  '@vitejs/plugin-react': 2.0.0_vite@3.0.5
   esbuild: 0.14.54
   esbuild-jest: 0.5.0_esbuild@0.14.54
   eslint: 8.21.0
@@ -124,11 +124,11 @@ devDependencies:
   prettier: 2.7.1
   react-test-renderer: 18.2.0_react@18.2.0
   typescript: 4.7.4
-  vite: 3.0.4
-  vite-plugin-eslint: 1.7.0_eslint@8.21.0+vite@3.0.4
+  vite: 3.0.5
+  vite-plugin-eslint: 1.7.0_eslint@8.21.0+vite@3.0.5
   vite-plugin-istanbul: 2.9.0
-  vite-plugin-svgr: 2.2.1_vite@3.0.4
-  vite-tsconfig-paths: 3.5.0_vite@3.0.4
+  vite-plugin-svgr: 2.2.1_vite@3.0.5
+  vite-tsconfig-paths: 3.5.0_vite@3.0.5
 
 packages:
 
@@ -2517,7 +2517,7 @@ packages:
       react-is: 18.2.0
     dev: false
 
-  /@mui/icons-material/5.8.4_cj4qjnqz5mgdcxqceumq6irqta:
+  /@mui/icons-material/5.8.4_coxa3mmk7xdciqqsybg7vi3uaa:
     resolution: {integrity: sha512-9Z/vyj2szvEhGWDvb+gG875bOGm8b8rlHBKOD1+nA3PcgC3fV6W1AU6pfOorPeBfH2X4mb9Boe97vHvaSndQvA==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -2529,13 +2529,13 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.18.6
-      '@mui/material': 5.9.3_sqzxty2p7kxc2tmue4tecplwku
+      '@mui/material': 5.10.0_sqzxty2p7kxc2tmue4tecplwku
       '@types/react': 18.0.17
       react: 18.2.0
     dev: false
 
-  /@mui/material/5.9.3_sqzxty2p7kxc2tmue4tecplwku:
-    resolution: {integrity: sha512-idDJajnfnDr+2pI6h2tzWtWoZJmVHNk6aSjISirMuVOGy0ugWpsCE+KW4++GS7aTCujXm9+cl5bWAyXvGjiPIQ==}
+  /@mui/material/5.10.0_sqzxty2p7kxc2tmue4tecplwku:
+    resolution: {integrity: sha512-MSEzkE2vhpM37m8Gh3+TcZCWL70p+MxzNvS8FHugBB6YZpafhBFmFKX7/pYJ2kVD87PpUhNR4szWub7/ohE02Q==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
@@ -2555,7 +2555,7 @@ packages:
       '@emotion/react': 11.10.0_ug65io7jkbhmo4fihdmbrh3ina
       '@emotion/styled': 11.10.0_lzabd6uj4wst47copsenr4b56q
       '@mui/base': 5.0.0-alpha.92_zxljzmqdrxwnuenbkrz77w74uy
-      '@mui/system': 5.9.3_4thu2zqr4v2ubfoxjiyrxa5urm
+      '@mui/system': 5.10.0_4thu2zqr4v2ubfoxjiyrxa5urm
       '@mui/types': 7.1.5_@types+react@18.0.17
       '@mui/utils': 5.9.3_react@18.2.0
       '@types/react': 18.0.17
@@ -2586,8 +2586,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@mui/styled-engine/5.8.7_rq3l25qc4qpq3j4w6o4x7hatzy:
-    resolution: {integrity: sha512-tVqtowjbYmiRq+qcqXK731L9eWoL9H8xTRhuTgaDGKdch1zlt4I2UwInUe1w2N9N/u3/jHsFbLcl1Un3uOwpQg==}
+  /@mui/styled-engine/5.10.0_rq3l25qc4qpq3j4w6o4x7hatzy:
+    resolution: {integrity: sha512-V0MmOx7KBDomDYg2/dRItVsvrpHpd51uZZiNqeuXiZruUJ1vPwtxztpvtSjX/xKvIxN7C0mxf8jmuwVUn6uaEA==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.4.1
@@ -2639,8 +2639,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@mui/system/5.9.3_4thu2zqr4v2ubfoxjiyrxa5urm:
-    resolution: {integrity: sha512-EXQV2POwncstHLYII+G4VSYdEFun1TjBbQSBDK76DbIkug8nPjtjAZ+3Kgk3/NoFIigW+vQ9cDVUZtlbRH6YMQ==}
+  /@mui/system/5.10.0_4thu2zqr4v2ubfoxjiyrxa5urm:
+    resolution: {integrity: sha512-HNu3LdA+37cWqgJBEhOF4F5LX4WVmvg6SoHRfajRO0neKXLdooibMP3W1bhSd27QcPxyMUmvY9/Dlp9znDeCRw==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
@@ -2659,7 +2659,7 @@ packages:
       '@emotion/react': 11.10.0_ug65io7jkbhmo4fihdmbrh3ina
       '@emotion/styled': 11.10.0_lzabd6uj4wst47copsenr4b56q
       '@mui/private-theming': 5.9.3_ug65io7jkbhmo4fihdmbrh3ina
-      '@mui/styled-engine': 5.8.7_rq3l25qc4qpq3j4w6o4x7hatzy
+      '@mui/styled-engine': 5.10.0_rq3l25qc4qpq3j4w6o4x7hatzy
       '@mui/types': 7.1.5_@types+react@18.0.17
       '@mui/utils': 5.9.3_react@18.2.0
       '@types/react': 18.0.17
@@ -3343,7 +3343,7 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
-  /@vitejs/plugin-react/2.0.0_vite@3.0.4:
+  /@vitejs/plugin-react/2.0.0_vite@3.0.5:
     resolution: {integrity: sha512-zHkRR+X4zqEPNBbKV2FvWSxK7Q6crjMBVIAYroSU8Nbb4M3E5x4qOiLoqJBHtXgr27kfednXjkwr3lr8jS6Wrw==}
     engines: {node: '>=14.18.0'}
     peerDependencies:
@@ -3356,7 +3356,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.18.6_@babel+core@7.18.6
       magic-string: 0.26.2
       react-refresh: 0.14.0
-      vite: 3.0.4
+      vite: 3.0.5
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7400,8 +7400,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /postcss/8.4.14:
-    resolution: {integrity: sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==}
+  /postcss/8.4.16:
+    resolution: {integrity: sha512-ipHE1XBvKzm5xI7hiHCZJCSugxvsdq2mPnsq5+UF+VHCjiBvtDrlxJfMBToWaP9D5XlgNmcFGqoHmUn0EYEaRQ==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
       nanoid: 3.3.4
@@ -8627,7 +8627,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-plugin-eslint/1.7.0_eslint@8.21.0+vite@3.0.4:
+  /vite-plugin-eslint/1.7.0_eslint@8.21.0+vite@3.0.5:
     resolution: {integrity: sha512-Kz2HwBeAArmsE0QmWSm+e7CaEQrfMkEZpFw4hngoy6JmERjw7WUH8HLbG1OkreOKX4iIUReOss9N1Mkw4wEk8g==}
     peerDependencies:
       eslint: '>=7'
@@ -8637,7 +8637,7 @@ packages:
       '@types/eslint': 8.4.5
       eslint: 8.21.0
       rollup: 2.77.0
-      vite: 3.0.4
+      vite: 3.0.5
     dev: true
 
   /vite-plugin-istanbul/2.9.0:
@@ -8651,19 +8651,19 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.2.1_vite@3.0.4:
+  /vite-plugin-svgr/2.2.1_vite@3.0.5:
     resolution: {integrity: sha512-+EqwahbwjETJH/ssA/66dNYyKN1cO0AStq96MuXmq5maU7AePBMf2lDKfQna49tJZAjtRz+R899BWCsUUP45Fg==}
     peerDependencies:
       vite: ^2.6.0 || 3
     dependencies:
       '@rollup/pluginutils': 4.2.1
       '@svgr/core': 6.3.1
-      vite: 3.0.4
+      vite: 3.0.5
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/3.5.0_vite@3.0.4:
+  /vite-tsconfig-paths/3.5.0_vite@3.0.5:
     resolution: {integrity: sha512-NKIubr7gXgh/3uniQaOytSg+aKWPrjquP6anAy+zCWEn6h9fB8z2/qdlfQrTgZWaXJ2pHVlllrSdRZltHn9P4g==}
     peerDependencies:
       vite: '>2.0.0-0'
@@ -8672,13 +8672,13 @@ packages:
       globrex: 0.1.2
       recrawl-sync: 2.2.2
       tsconfig-paths: 4.0.0
-      vite: 3.0.4
+      vite: 3.0.5
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/3.0.4:
-    resolution: {integrity: sha512-NU304nqnBeOx2MkQnskBQxVsa0pRAH5FphokTGmyy8M3oxbvw7qAXts2GORxs+h/2vKsD+osMhZ7An6yK6F1dA==}
+  /vite/3.0.5:
+    resolution: {integrity: sha512-bRvrt9Tw8EGW4jj64aYFTnVg134E8hgDxyl/eEHnxiGqYk7/pTPss6CWlurqPOUzqvEoZkZ58Ws+Iu8MB87iMA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -8697,7 +8697,7 @@ packages:
         optional: true
     dependencies:
       esbuild: 0.14.54
-      postcss: 8.4.14
+      postcss: 8.4.16
       resolve: 1.22.1
       rollup: 2.77.0
     optionalDependencies:
