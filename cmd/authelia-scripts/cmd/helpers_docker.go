@@ -42,11 +42,7 @@ func (d *Docker) Login(username, password, registry string) error {
 
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(tag string, registries []string) error {
-	args := []string{"buildx", "bake", "-f", "docker-bake.hcl"}
-
-	for _, registry := range registries {
-		args = append(args, "-t", fmt.Sprintf("%s/%s:%s", registry, DockerImageName, tag))
-	}
+	args := []string{"buildx", "bake", "-f", "docker-bake.hcl", "--builder", "buildx", "--push"}
 
 	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
@@ -95,11 +91,14 @@ func (d *Docker) Manifest(tag string, registries []string) error {
 		args = append(args, "--set", fmt.Sprintf("%s=%s", key, value))
 	}
 
-	args = append(args, "--builder", "buildx", "--push")
-
 	fmt.Printf("Building with docker %s\n", strings.Join(args, " "))
 
-	if err = utils.CommandWithStdout("docker", args...).Run(); err != nil {
+	cmd := utils.CommandWithStdout("docker", args...)
+
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "IMAGE_TAG="+tag)
+
+	if err = cmd.Run(); err != nil {
 		return err
 	}
 

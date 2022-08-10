@@ -1,9 +1,14 @@
+variable "IMAGE_TAG" {
+	default = "test"
+}
+
 group "default" {
 	targets = ["amd64", "arm", "arm64"]
 }
 
 target "base" {
 	dockerfile = "Dockerfile"
+	tags = ["docker.io/authelia/authelia:${IMAGE_TAG}", "ghcr.io/authelia/authelia:${IMAGE_TAG}"]
 	labels = {
 		"org.opencontainers.image.url" = "https://github.com/authelia/authelia/pkgs/container/authelia"
 		"org.opencontainers.image.documentation" = "https://www.authelia.com"
