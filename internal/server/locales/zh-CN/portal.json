@@ -5,6 +5,7 @@
 	"Access your profile information": "访问您的个人资料信息",
 	"An email has been sent to your address to complete the process": "一封电子邮件已经发送到您的地址来完成该进程。",
 	"Authenticated": "已认证",
+	"Automatically refresh these permissions without user interaction": "在不通知您的情况下访问以上数据",
 	"Cancel": "取消",
 	"Client ID": "客户端 ID: {{client_id}}",
 	"Consent Request": "同意请求",
