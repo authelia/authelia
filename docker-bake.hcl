@@ -1,5 +1,5 @@
 group "default" {
-	targets = ["amd64", "arm, "arm64"]
+	targets = ["amd64", "arm", "arm64"]
 }
 
 target "base" {
@@ -19,7 +19,7 @@ target "amd64" {
 	platforms = ["linux/amd64"]
 }
 
-target "arm {
+target "arm" {
 	inherits = ["base"]
 	platforms = ["linux/arm/v7"]
 }
