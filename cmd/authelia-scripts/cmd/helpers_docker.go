@@ -42,7 +42,7 @@ func (d *Docker) Login(username, password, registry string) error {
 
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(tag string, registries []string) error {
-	args := []string{"build", "bake", "-f", "docker-bake.hcl", "--builder", "buildx", "--push"}
+	args := []string{"buildx", "bake", "-f", "docker-bake.hcl", "--builder", "buildx", "--push"}
 
 	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
