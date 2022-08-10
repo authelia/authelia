@@ -179,10 +179,7 @@ func login(docker *Docker, registry string) {
 func deployManifest(docker *Docker, tag string) {
 	log.Infof("Docker manifest %s:%s will be deployed on %s and %s", DockerImageName, tag, dockerhub, ghcr)
 
-	dockerhub := dockerhub + "/" + DockerImageName + ":" + tag
-	ghcr := ghcr + "/" + DockerImageName + ":" + tag
-
-	if err := docker.Manifest(dockerhub, ghcr); err != nil {
+	if err := docker.Manifest(tag, []string{dockerhub, ghcr}); err != nil {
 		log.Fatal(err)
 	}
 }

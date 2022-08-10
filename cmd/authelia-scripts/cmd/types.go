@@ -92,6 +92,50 @@ func (b Build) XFlags() []string {
 	}
 }
 
+func (b Build) BakeSetFlags(baseName, digestAMD64, digestARM, digestARM64 string) (flags map[string]string) {
+	var version string
+
+	switch {
+	case b.Clean && b.Tagged:
+		version = utils.VersionAdv(b.Tag, b.State(), b.Commit, b.Branch, b.Extra)
+	case b.Clean:
+		version = fmt.Sprintf("%s-pre+%s.%s", b.Tag, b.Branch, b.Commit)
+	case b.Tagged:
+		version = fmt.Sprintf("%s-dirty", b.Tag)
+	default:
+		version = fmt.Sprintf("%s-dirty+%s.%s", b.Tag, b.Branch, b.Commit)
+	}
+
+	if strings.HasPrefix(version, "v") && len(version) > 1 {
+		version = version[1:]
+	}
+
+	flags = map[string]string{
+		"base.labels.org.opencontainers.image.created":  b.Date.Format(time.RFC3339),
+		"base.labels.org.opencontainers.image.source":   fmt.Sprintf("https://github.com/authelia/authelia/tree/%s", b.Commit),
+		"base.labels.org.opencontainers.image.version":  version,
+		"base.labels.org.opencontainers.image.revision": b.Commit,
+	}
+
+	if baseName != "" {
+		flags["base.labels.org.opencontainers.image.base.name"] = baseName
+	}
+
+	if digestAMD64 != "" {
+		flags["amd64.labels.org.opencontainers.image.base.digest"] = digestAMD64
+	}
+
+	if digestARM != "" {
+		flags["arm.labels.org.opencontainers.image.base.digest"] = digestARM
+	}
+
+	if digestARM != "" {
+		flags["arm64.labels.org.opencontainers.image.base.digest"] = digestARM64
+	}
+
+	return flags
+}
+
 // ContainerLabels returns the container labels for this Build.
 func (b Build) ContainerLabels() (labels map[string]string) {
 	var version string

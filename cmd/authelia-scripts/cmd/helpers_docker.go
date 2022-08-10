@@ -41,23 +41,15 @@ func (d *Docker) Login(username, password, registry string) error {
 }
 
 // Manifest push a docker manifest to dockerhub.
-func (d *Docker) Manifest(tag1, tag2 string) error {
-	args := []string{"build", "-t", tag1, "-t", tag2}
+func (d *Docker) Manifest(tag string, registries []string) error {
+	args := []string{"build", "bake", "-f", "docker-bake.hcl"}
 
 	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		return err
 	}
 
-	for label, value := range buildMetaData.ContainerLabels() {
-		if value == "" {
-			continue
-		}
-
-		args = append(args, "--label", fmt.Sprintf("%s=%s", label, value))
-	}
-
-	baseImageTag := "3.16.1"
+	baseImageTag := "3.16.2"
 
 	resp, err := http.Get("https://hub.docker.com/v2/repositories/library/alpine/tags/" + baseImageTag + "/images")
 	if err != nil {
@@ -72,35 +64,46 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		return err
 	}
 
-	for _, platform := range []string{"linux/amd64", "linux/arm/v7", "linux/arm64"} {
-		var digest string
+	var (
+		digestAMD64, digestARM, digestARM64 string
+	)
 
+	for _, platform := range []string{"linux/amd64", "linux/arm/v7", "linux/arm64"} {
 		for _, image := range images {
 			if !image.Match(platform) {
 				continue
 			}
 
-			digest = image.Digest
-
-			break
+			switch platform {
+			case "linux/amd64":
+				digestAMD64 = image.Digest
+			case "linux/arm/v7":
+				digestARM = image.Digest
+			case "linux/arm64":
+				digestARM64 = image.Digest
+			}
 		}
+	}
 
-		if digest == "" {
-			fmt.Printf("Skipping %s (digest not found)\n", platform)
-			continue
-		}
+	flags := buildMetaData.BakeSetFlags("docker.io/library/alpine:"+baseImageTag, digestAMD64, digestARM, digestARM64)
 
-		fmt.Printf("Building %s with digest %s\n", platform, digest)
+	for key, value := range flags {
+		args = append(args, "--set", fmt.Sprintf("%s=%s", key, value))
+	}
 
-		finalArgs := make([]string, len(args))
+	var bakeTags []string
+	for _, registry := range registries {
+		bakeTags = append(bakeTags, fmt.Sprintf("%s/%s:%s", registry, DockerImageName, tag))
+	}
 
-		copy(finalArgs, args)
+	args = append(args, "--set", fmt.Sprintf("base.tags=%s", strings.Join(bakeTags, ",")))
 
-		finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag, "--label", "org.opencontainers.image.base.digest="+digest, "--platform", platform, "--builder", "buildx", "--push", ".")
+	args = append(args, "--builder", "buildx", "--push")
 
-		if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
-			return err
-		}
+	fmt.Printf("Building with docker %s", strings.Join(args, " "))
+
+	if err = utils.CommandWithStdout("docker", args...).Run(); err != nil {
+		return err
 	}
 
 	return nil
