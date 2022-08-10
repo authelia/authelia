@@ -42,7 +42,7 @@ func (d *Docker) Login(username, password, registry string) error {
 
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(tag string, registries []string) error {
-	args := []string{"buildx", "bake", "-f", "docker-bake.hcl", "--builder", "buildx", "--push"}
+	args := []string{"buildx", "bake", "-f", "docker-bake.hcl"}
 
 	for _, registry := range registries {
 		args = append(args, "-t", fmt.Sprintf("%s/%s:%s", registry, DockerImageName, tag))
@@ -94,6 +94,8 @@ func (d *Docker) Manifest(tag string, registries []string) error {
 	for key, value := range flags {
 		args = append(args, "--set", fmt.Sprintf("%s=%s", key, value))
 	}
+
+	args = append(args, "--builder", "buildx", "--push")
 
 	fmt.Printf("Building with docker %s\n", strings.Join(args, " "))
 
