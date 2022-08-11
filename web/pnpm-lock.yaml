@@ -40,7 +40,7 @@ specifiers:
   eslint-plugin-react-hooks: 4.6.0
   husky: 8.0.1
   i18next: 21.9.0
-  i18next-browser-languagedetector: 6.1.4
+  i18next-browser-languagedetector: 6.1.5
   i18next-http-backend: 1.4.1
   jest: 28.1.3
   jest-environment-jsdom: 28.1.3
@@ -78,7 +78,7 @@ dependencies:
   axios: 0.27.2
   classnames: 2.3.1
   i18next: 21.9.0
-  i18next-browser-languagedetector: 6.1.4
+  i18next-browser-languagedetector: 6.1.5
   i18next-http-backend: 1.4.1
   qrcode.react: 3.1.0_react@18.2.0
   query-string: 7.1.1
@@ -5919,10 +5919,10 @@ packages:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
     dev: false
 
-  /i18next-browser-languagedetector/6.1.4:
-    resolution: {integrity: sha512-wukWnFeU7rKIWT66VU5i8I+3Zc4wReGcuDK2+kuFhtoxBRGWGdvYI9UQmqNL/yQH1KogWwh+xGEaIPH8V/i2Zg==}
+  /i18next-browser-languagedetector/6.1.5:
+    resolution: {integrity: sha512-11t7b39oKeZe4uyMxLSPnfw28BCPNLZgUk7zyufex0zKXZ+Bv+JnmJgoB+IfQLZwDt1d71PM8vwBX1NCgliY3g==}
     dependencies:
-      '@babel/runtime': 7.18.6
+      '@babel/runtime': 7.18.9
     dev: false
 
   /i18next-http-backend/1.4.1:
