@@ -307,7 +307,7 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 var (
 	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackend{
 		Path:     "",
-		Password: &schema.DefaultCIPasswordConfig,
+		Password: schema.DefaultCIPasswordConfig,
 	}
 )
 
