@@ -57,6 +57,7 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		}
 
 		annotations += fmt.Sprintf("annotation.%s=%s,", label, value)
+		args = append(args, "--label", fmt.Sprintf("%s=%s", label, value))
 	}
 
 	var baseImageTag string
@@ -100,9 +101,13 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 		}
 	}
 
-	args = append(args, "--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+annotations+"annotation.org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag+",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
+	finalArgs := make([]string, len(args))
 
-	if err = utils.CommandWithStdout("docker", args...).Run(); err != nil {
+	copy(finalArgs, args)
+
+	finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag, "--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+annotations+"annotation.org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag+",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
+
+	if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
 		return err
 	}
 
