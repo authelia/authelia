@@ -37,7 +37,7 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect] Provider, you either need to edit the config file, or specify overrides in the containers enviroment variables.  
+To configure [Grafana] to utilize Authelia as an [OpenID Connect] Provider, you either need to edit the config file, or specify overrides in the containers environment variables.  
 
 #### Method 1: Configuration Files
 1. Add the following Generic OAuth configuration to the [Grafana] configuration:
@@ -62,7 +62,7 @@ name_attribute_path = name
 use_pkce = true
 ```
 
-#### Method 2: Container Enviroment Variables
+#### Method 2: Container Environment Variables
 **GF_AUTH_GENERIC_OAUTH_NAME=**`Authelia`  
 **GF_AUTH_GENERIC_OAUTH_ENABLED=**`true`  
 **GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=**`true`  
