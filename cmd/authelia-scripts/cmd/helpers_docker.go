@@ -65,6 +65,7 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 	from, err := getDockerfileDirective("Dockerfile", "FROM")
 	if err == nil {
 		baseImageTag = from[strings.IndexRune(from, ':')+1:]
+		args = append(args, "--label", "org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag)
 	}
 
 	resp, err := http.Get("https://hub.docker.com/v2/repositories/library/alpine/tags/" + baseImageTag + "/images")
@@ -105,7 +106,7 @@ func (d *Docker) Manifest(tag1, tag2 string) error {
 
 	copy(finalArgs, args)
 
-	finalArgs = append(finalArgs, "--label", "org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag, "--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+annotations+"annotation.org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag+",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
+	finalArgs = append(finalArgs, "--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+annotations+"annotation.org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag+",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
 
 	if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
 		return err
