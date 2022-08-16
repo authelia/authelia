@@ -21,11 +21,19 @@ const (
 	policyDeny      = "deny"
 )
 
+const (
+	digestSHA1   = "sha1"
+	digestSHA224 = "sha224"
+	digestSHA256 = "sha256"
+	digestSHA384 = "sha384"
+	digestSHA512 = "sha512"
+)
+
 // Hashing constants.
 const (
 	hashArgon2    = "argon2"
 	hashArgon2id  = "argon2id"
-	hashSHA512    = "sha512"
+	hashSHA512    = digestSHA512
 	hashSHA2Crypt = "sha2crypt"
 	hashPBKDF2    = "pbkdf2"
 	hashSCrypt    = "scrypt"
@@ -79,19 +87,8 @@ const (
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
-	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
-		"must be 2 or more but it is configured a '%d'"
 	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
 		errSuffixMustBeOneOf
-	errFmtFileAuthBackendPasswordInvalidIterations = "authentication_backend: file: password: option " +
-		"'iterations' must be 1 or more but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = "authentication_backend: file: password: option " +
-		"'key_length' must be 16 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidParallelism = "authentication_backend: file: password: option " +
-		"'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = "authentication_backend: file: password: option 'memory' " +
-		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
-		"with parallelism %d it should be at least %d but it is configured as '%d'"
 	errFmtFileAuthBackendPasswordInvalidVariant = "authentication_backend: file: password: %s: " +
 		"option 'variant' " + errSuffixMustBeOneOf
 
@@ -295,6 +292,14 @@ const (
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
+
+var validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
+
+var validPBKDF2Variants = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
+
+var validBCryptVariants = []string{"standard", digestSHA256}
+
+var validHashAlgorithms = []string{hashArgon2id, hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2, hashSHA512}
 
 var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
 

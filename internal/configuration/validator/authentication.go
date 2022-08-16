@@ -57,13 +57,13 @@ func validateFileAuthenticationBackend(config *schema.FileAuthenticationBackend,
 func ValidatePasswordConfiguration(config *schema.Password, validator *schema.StructValidator) {
 	validateFileAuthenticationBackendPasswordConfigLegacy(config)
 
-	switch config.Algorithm {
-	case "":
+	switch {
+	case config.Algorithm == "":
 		config.Algorithm = schema.DefaultPasswordConfig.Algorithm
-	case "argon2", "sha2crypt", "pbkdf2", "bcrypt", "scrypt":
+	case utils.IsStringInSlice(config.Algorithm, validHashAlgorithms):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm, strings.Join([]string{"argon2", "sha2crypt", "pbkdf2", "bcrypt", "scrypt"}, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, config.Algorithm, strings.Join(validHashAlgorithms, "', '")))
 	}
 
 	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
@@ -109,13 +109,13 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 }
 
 func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Password, validator *schema.StructValidator) {
-	switch config.SHA2Crypt.Variant {
-	case "":
+	switch {
+	case config.SHA2Crypt.Variant == "":
 		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
-	case "sha256", "sha512":
+	case utils.IsStringInSlice(config.SHA2Crypt.Variant, validSHA2CryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "sha2crypt", config.SHA2Crypt.Variant, strings.Join([]string{"sha256", "sha512"}, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "sha2crypt", config.SHA2Crypt.Variant, strings.Join(validSHA2CryptVariants, "', '")))
 	}
 
 	if config.SHA2Crypt.Iterations == 0 {
@@ -128,13 +128,13 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 }
 
 func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Password, validator *schema.StructValidator) {
-	switch config.PBKDF2.Variant {
-	case "":
+	switch {
+	case config.PBKDF2.Variant == "":
 		config.PBKDF2.Variant = schema.DefaultPasswordConfig.PBKDF2.Variant
-	case "sha1", "sha224", "sha256", "sha384", "sha512":
+	case utils.IsStringInSlice(config.PBKDF2.Variant, validPBKDF2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "pbkdf2", config.PBKDF2.Variant, strings.Join([]string{"sha1", "sha224", "sha256", "sha384", "sha512"}, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "pbkdf2", config.PBKDF2.Variant, strings.Join(validPBKDF2Variants, "', '")))
 	}
 
 	if config.PBKDF2.Iterations == 0 {
@@ -151,13 +151,13 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 }
 
 func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Password, validator *schema.StructValidator) {
-	switch config.BCrypt.Variant {
-	case "":
+	switch {
+	case config.BCrypt.Variant == "":
 		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
-	case "standard", "sha256":
+	case utils.IsStringInSlice(config.BCrypt.Variant, validBCryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "bcrypt", config.PBKDF2.Variant, strings.Join([]string{"standard", "sha256"}, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "bcrypt", config.PBKDF2.Variant, strings.Join(validBCryptVariants, "', '")))
 	}
 
 	if config.BCrypt.Cost == 0 {
@@ -165,7 +165,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Password, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Password, _ *schema.StructValidator) {
 	if config.SCrypt.Iterations == 0 {
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
 	}
