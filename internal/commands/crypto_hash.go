@@ -2,9 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"syscall"
 
 	"github.com/go-crypt/crypt"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 func newCryptoHashCmd() (cmd *cobra.Command) {
@@ -47,11 +49,13 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		Short:   fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubShort, useFmt),
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubLong, useFmt, useFmt),
 		Example: fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubExample, use),
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
+
+	cmdFlagPassword(cmd, true)
 
 	switch use {
 	case cmdUseHashArgon2:
@@ -102,7 +106,9 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 func cryptoHashGenerateArgon2RunE(cmd *cobra.Command, args []string) (err error) {
 	var profile, password, variant string
 
-	password = args[0]
+	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+		return err
+	}
 
 	hash := crypt.NewArgon2Hash()
 
@@ -184,7 +190,7 @@ func cryptoHashGenerateArgon2RunE(cmd *cobra.Command, args []string) (err error)
 		return err
 	}
 
-	fmt.Println(digest.Encode())
+	fmt.Printf("Digest: %s", digest.Encode())
 
 	return nil
 }
@@ -192,7 +198,9 @@ func cryptoHashGenerateArgon2RunE(cmd *cobra.Command, args []string) (err error)
 func cryptoHashGenerateSHA2CryptRunE(cmd *cobra.Command, args []string) (err error) {
 	var password, variant string
 
-	password = args[0]
+	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+		return err
+	}
 
 	hash := crypt.NewSHA2CryptHash()
 
@@ -225,7 +233,7 @@ func cryptoHashGenerateSHA2CryptRunE(cmd *cobra.Command, args []string) (err err
 		return err
 	}
 
-	fmt.Println(digest.Encode())
+	fmt.Printf("Digest: %s", digest.Encode())
 
 	return nil
 }
@@ -233,7 +241,9 @@ func cryptoHashGenerateSHA2CryptRunE(cmd *cobra.Command, args []string) (err err
 func cryptoHashGeneratePBKDF2RunE(cmd *cobra.Command, args []string) (err error) {
 	var password, variant string
 
-	password = args[0]
+	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+		return err
+	}
 
 	hash := crypt.NewPBKDF2Hash()
 
@@ -270,7 +280,7 @@ func cryptoHashGeneratePBKDF2RunE(cmd *cobra.Command, args []string) (err error)
 		return err
 	}
 
-	fmt.Println(digest.Encode())
+	fmt.Printf("Digest: %s", digest.Encode())
 
 	return nil
 }
@@ -278,7 +288,9 @@ func cryptoHashGeneratePBKDF2RunE(cmd *cobra.Command, args []string) (err error)
 func cryptoHashGenerateBCryptRunE(cmd *cobra.Command, args []string) (err error) {
 	var password, variant string
 
-	password = args[0]
+	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+		return err
+	}
 
 	hash := crypt.NewBcryptHash()
 
@@ -307,13 +319,17 @@ func cryptoHashGenerateBCryptRunE(cmd *cobra.Command, args []string) (err error)
 		return err
 	}
 
-	fmt.Println(digest.Encode())
+	fmt.Printf("Digest: %s", digest.Encode())
 
 	return nil
 }
 
 func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error) {
-	password := args[0]
+	var password string
+
+	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+		return err
+	}
 
 	hash := crypt.NewScryptHash()
 
@@ -347,22 +363,29 @@ func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error)
 		return err
 	}
 
-	fmt.Println(digest.Encode())
+	fmt.Printf("Digest: %s", digest.Encode())
 
 	return nil
 }
 
 func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     fmt.Sprintf("%s [flags] <digest> -- <password>", cmdUseValidate),
+		Use:     fmt.Sprintf("%s [flags] -- '<digest>'", cmdUseValidate),
 		Short:   cmdAutheliaCryptoHashValidateShort,
 		Long:    cmdAutheliaCryptoHashValidateLong,
 		Example: cmdAutheliaCryptoHashValidateExample,
-		Args:    cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			var valid bool
+			var (
+				password string
+				valid    bool
+			)
 
-			if valid, err = crypt.CheckPassword(args[1], args[0]); err != nil {
+			if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+				return fmt.Errorf("error occurred trying to obtain the password: %w", err)
+			}
+
+			if valid, err = crypt.CheckPassword(password, args[0]); err != nil {
 				return fmt.Errorf("error occurred trying to validate the password against the digest: %w", err)
 			}
 
@@ -377,7 +400,60 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 		},
 	}
 
+	cmdFlagPassword(cmd, false)
+
 	return cmd
+}
+
+func cmdCryptoHashGetPassword(cmd *cobra.Command) (password string, err error) {
+	if cmd.Flags().Changed(cmdFlagNamePassword) {
+		return cmd.Flags().GetString(cmdFlagNamePassword)
+	}
+
+	var (
+		data      []byte
+		noConfirm bool
+	)
+
+	if data, err = hashReadPasswordWithPrompt("Enter Password: "); err != nil {
+		return "", fmt.Errorf("failed to read the password from the terminal: %w", err)
+	}
+
+	password = string(data)
+
+	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
+		if data, err = hashReadPasswordWithPrompt("Confirm Password: "); err != nil {
+			return "", fmt.Errorf("failed to read the password from the terminal: %w", err)
+		}
+
+		if password != string(data) {
+			fmt.Println("")
+
+			return "", fmt.Errorf("the password did not match the confirmation password")
+		}
+	}
+
+	fmt.Println("")
+
+	return password, nil
+}
+
+func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
+	fmt.Print(prompt)
+
+	data, err = term.ReadPassword(int(syscall.Stdin))
+
+	fmt.Println("")
+
+	return data, err
+}
+
+func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {
+	cmd.Flags().String(cmdFlagNamePassword, "", "manually supply the password rather than using the prompt")
+
+	if noConfirm {
+		cmd.Flags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
+	}
 }
 
 func cmdFlagIterations(cmd *cobra.Command, value int) {

@@ -480,6 +480,8 @@ const (
 	cmdFlagNameBits  = "bits"
 	cmdFlagNameCurve = "curve"
 
+	cmdFlagNamePassword    = "password"
+	cmdFlagNameNoConfirm   = "no-confirm"
 	cmdFlagNameVariant     = "variant"
 	cmdFlagNameCost        = "cost"
 	cmdFlagNameIterations  = "iterations"
