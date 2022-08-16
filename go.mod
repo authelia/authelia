@@ -35,7 +35,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.38.0
+	github.com/valyala/fasthttp v1.39.0
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
