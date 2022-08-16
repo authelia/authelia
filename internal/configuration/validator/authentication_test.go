@@ -48,7 +48,7 @@ func (suite *FileBasedAuthenticationBackend) SetupTest() {
 
 	suite.validator = schema.NewStructValidator()
 	suite.config = schema.AuthenticationBackend{}
-	suite.config.File = &schema.FileAuthenticationBackend{Path: "/a/path", Password: &password}
+	suite.config.File = &schema.FileAuthenticationBackend{Path: "/a/path", Password: password}
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldValidateCompleteConfiguration() {
@@ -82,7 +82,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenMemoryNotMo
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenBlank() {
-	suite.config.File.Password = &schema.Password{}
+	suite.config.File.Password = schema.Password{}
 
 	suite.Assert().Equal(0, suite.config.File.Password.KeyLength)
 	suite.Assert().Equal(0, suite.config.File.Password.Iterations)
@@ -105,11 +105,14 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationSHA512() {
-	suite.config.File.Password = &schema.Password{}
+	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
-	suite.config.File.Password.Algorithm = "sha512"
-	suite.config.File.Password.Iterations = 1000000
-	suite.config.File.Password.SaltLength = 64
+
+	suite.config.File.Password = schema.Password{
+		Algorithm:  "sha512",
+		Iterations: 1000000,
+		SaltLength: 64,
+	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -118,12 +121,12 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.Assert().Equal("sha2crypt", suite.config.File.Password.Algorithm)
 	suite.Assert().Equal("sha512", suite.config.File.Password.SHA2Crypt.Variant)
-	suite.Assert().Equal(uint32(1000000), suite.config.File.Password.SHA2Crypt.Iterations)
-	suite.Assert().Equal(uint32(64), suite.config.File.Password.SHA2Crypt.SaltLength)
+	suite.Assert().Equal(1000000, suite.config.File.Password.SHA2Crypt.Iterations)
+	suite.Assert().Equal(64, suite.config.File.Password.SHA2Crypt.SaltLength)
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationWhenOnlySHA512Set() {
-	suite.config.File.Password = &schema.Password{}
+	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "sha512"
 

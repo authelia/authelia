@@ -110,25 +110,25 @@ func cryptoHashGenerateArgon2RunE(cmd *cobra.Command, args []string) (err error)
 
 	hash := crypt.NewArgon2Hash()
 
-	var t, m, p, k, s uint32
+	var t, m, p, k, s int
 
-	if t, err = cmd.Flags().GetUint32(cmdFlagNameIterations); err != nil {
+	if t, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
 		return err
 	}
 
-	if m, err = cmd.Flags().GetUint32(cmdFlagNameMemory); err != nil {
+	if m, err = cmd.Flags().GetInt(cmdFlagNameMemory); err != nil {
 		return err
 	}
 
-	if p, err = cmd.Flags().GetUint32(cmdFlagNameParallelism); err != nil {
+	if p, err = cmd.Flags().GetInt(cmdFlagNameParallelism); err != nil {
 		return err
 	}
 
-	if k, err = cmd.Flags().GetUint32(cmdFlagNameKeySize); err != nil {
+	if k, err = cmd.Flags().GetInt(cmdFlagNameKeySize); err != nil {
 		return err
 	}
 
-	if s, err = cmd.Flags().GetUint32(cmdFlagNameSaltSize); err != nil {
+	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
 		return err
 	}
 
@@ -200,13 +200,13 @@ func cryptoHashGenerateSHA2CryptRunE(cmd *cobra.Command, args []string) (err err
 
 	hash := crypt.NewSHA2CryptHash()
 
-	var i, s uint32
+	var i, s int
 
-	if i, err = cmd.Flags().GetUint32(cmdFlagNameIterations); err != nil {
+	if i, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
 		return err
 	}
 
-	if s, err = cmd.Flags().GetUint32(cmdFlagNameSaltSize); err != nil {
+	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
 		return err
 	}
 
@@ -241,17 +241,17 @@ func cryptoHashGeneratePBKDF2RunE(cmd *cobra.Command, args []string) (err error)
 
 	hash := crypt.NewPBKDF2Hash()
 
-	var i, k, s uint32
+	var i, k, s int
 
-	if i, err = cmd.Flags().GetUint32(cmdFlagNameIterations); err != nil {
+	if i, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
 		return err
 	}
 
-	if k, err = cmd.Flags().GetUint32(cmdFlagNameKeySize); err != nil {
+	if k, err = cmd.Flags().GetInt(cmdFlagNameKeySize); err != nil {
 		return err
 	}
 
-	if s, err = cmd.Flags().GetUint32(cmdFlagNameSaltSize); err != nil {
+	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
 		return err
 	}
 
@@ -323,29 +323,29 @@ func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error)
 
 	hash := crypt.NewScryptHash()
 
-	var ln, r, p, k, s uint32
+	var ln, r, p, k, s int
 
-	if ln, err = cmd.Flags().GetUint32(cmdFlagNameIterations); err != nil {
+	if ln, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
 		return err
 	}
 
-	if r, err = cmd.Flags().GetUint32(cmdFlagNameBlockSize); err != nil {
+	if r, err = cmd.Flags().GetInt(cmdFlagNameBlockSize); err != nil {
 		return err
 	}
 
-	if p, err = cmd.Flags().GetUint32(cmdFlagNameParallelism); err != nil {
+	if p, err = cmd.Flags().GetInt(cmdFlagNameParallelism); err != nil {
 		return err
 	}
 
-	if k, err = cmd.Flags().GetUint32(cmdFlagNameKeySize); err != nil {
+	if k, err = cmd.Flags().GetInt(cmdFlagNameKeySize); err != nil {
 		return err
 	}
 
-	if s, err = cmd.Flags().GetUint32(cmdFlagNameSaltSize); err != nil {
+	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
 		return err
 	}
 
-	hash.WithLN(ln).WithR(r).WithP(uint8(p)).WithKeySize(k).WithSaltSize(s)
+	hash.WithLN(ln).WithR(r).WithP(p).WithKeySize(k).WithSaltSize(s)
 
 	var digest crypt.Digest
 
