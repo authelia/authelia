@@ -237,8 +237,6 @@ github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8/go.mod h1:xkRDCp4j0
 github.com/go-asn1-ber/asn1-ber v1.5.4 h1:vXT6d/FNDiELJnLb6hGNa309LMsrCoYFvpwHDF0+Y1A=
 github.com/go-asn1-ber/asn1-ber v1.5.4/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
 github.com/go-bindata/go-bindata v3.1.1+incompatible/go.mod h1:xK8Dsgwmeed+BBsSy2XTopBn/8uK2HWuGSnA11C3Joo=
-github.com/go-crypt/crypt v0.0.0-20220808013407-8514e11573a1 h1:dkKoMcNnPKdpF6facD5bfVKO0EoYHF8CnGmHLPEtuRQ=
-github.com/go-crypt/crypt v0.0.0-20220808013407-8514e11573a1/go.mod h1:8TBw8KxKfugnODduZ+9b/koZi7n85M6rakwpjxuEmOI=
 github.com/go-crypt/crypt v0.1.0 h1:Gu8fX4xDcjDBpq1LJ7NdHqRoZyVQCcmw5ByaOhgsGKQ=
 github.com/go-crypt/crypt v0.1.0/go.mod h1:8TBw8KxKfugnODduZ+9b/koZi7n85M6rakwpjxuEmOI=
 github.com/go-crypt/x v0.0.0-20220717035548-f7ba0d122fba h1:cNYaxYN2BNOqv9Anf5zsNXd7W1AlOjqw//MmDSL5kOI=
