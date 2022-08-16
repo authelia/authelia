@@ -40,11 +40,7 @@ func newCryptoHashGenerateCmd() (cmd *cobra.Command) {
 }
 
 func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
-	var (
-		useFmt string
-	)
-
-	useFmt = fmtCryptoHashUse(use)
+	useFmt := fmtCryptoHashUse(use)
 
 	cmd = &cobra.Command{
 		Use:     use,
@@ -65,7 +61,7 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		cmdFlagSaltSize(cmd)
 
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", "id", "variant, options are 'id', 'i', and 'd'")
-		cmd.Flags().Uint32P(cmdFlagNameMemory, "m", 65536, "memory in kibibytes")
+		cmd.Flags().IntP(cmdFlagNameMemory, "m", 65536, "memory in kibibytes")
 		cmd.Flags().String(cmdFlagNameProfile, "low-memory", "profile to use, options are low-memory and recommended")
 
 		cmd.RunE = cryptoHashGenerateArgon2RunE
@@ -86,7 +82,7 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		cmd.RunE = cryptoHashGeneratePBKDF2RunE
 	case cmdUseHashBCrypt:
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", "standard", "variant, options are 'standard' and 'sha256'")
-		cmd.Flags().Uint8P(cmdFlagNameCost, "c", 13, "hashing cost")
+		cmd.Flags().IntP(cmdFlagNameCost, "c", 13, "hashing cost")
 
 		cmd.RunE = cryptoHashGenerateBCryptRunE
 	case cmdUseHashSCrypt:
@@ -95,7 +91,7 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		cmdFlagSaltSize(cmd)
 		cmdFlagParallelism(cmd, 1)
 
-		cmd.Flags().Uint32P(cmdFlagNameBlockSize, "r", 8, "block size")
+		cmd.Flags().IntP(cmdFlagNameBlockSize, "r", 8, "block size")
 
 		cmd.RunE = cryptoHashGenerateSCryptRunE
 	}
@@ -286,9 +282,9 @@ func cryptoHashGenerateBCryptRunE(cmd *cobra.Command, args []string) (err error)
 
 	hash := crypt.NewBcryptHash()
 
-	var i uint32
+	var i int
 
-	if i, err = cmd.Flags().GetUint32(cmdFlagNameIterations); err != nil {
+	if i, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
 		return err
 	}
 
@@ -303,7 +299,7 @@ func cryptoHashGenerateBCryptRunE(cmd *cobra.Command, args []string) (err error)
 		return fmt.Errorf("variant '%s' is not valid: valid variants are 'sha1', 'sha224', 'sha256', 'sha385', and 'sha512'", variant)
 	}
 
-	hash.WithVariant(crypt.NewBcryptVariant(variant)).WithCost(int(i))
+	hash.WithVariant(crypt.NewBcryptVariant(variant)).WithCost(i)
 
 	var digest crypt.Digest
 
@@ -317,9 +313,7 @@ func cryptoHashGenerateBCryptRunE(cmd *cobra.Command, args []string) (err error)
 }
 
 func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error) {
-	var password string
-
-	password = args[0]
+	password := args[0]
 
 	hash := crypt.NewScryptHash()
 
@@ -386,18 +380,18 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdFlagIterations(cmd *cobra.Command, value uint32) {
-	cmd.Flags().Uint32P(cmdFlagNameIterations, "i", value, "number of iterations")
+func cmdFlagIterations(cmd *cobra.Command, value int) {
+	cmd.Flags().IntP(cmdFlagNameIterations, "i", value, "number of iterations")
 }
 
 func cmdFlagKeySize(cmd *cobra.Command) {
-	cmd.Flags().Uint32P(cmdFlagNameKeySize, "k", 32, "key size in bytes")
+	cmd.Flags().IntP(cmdFlagNameKeySize, "k", 32, "key size in bytes")
 }
 
 func cmdFlagSaltSize(cmd *cobra.Command) {
-	cmd.Flags().Uint32P(cmdFlagNameSaltSize, "s", 16, "salt size in bytes")
+	cmd.Flags().IntP(cmdFlagNameSaltSize, "s", 16, "salt size in bytes")
 }
 
-func cmdFlagParallelism(cmd *cobra.Command, value uint32) {
-	cmd.Flags().Uint32P(cmdFlagNameParallelism, "p", value, "parallelism or threads")
+func cmdFlagParallelism(cmd *cobra.Command, value int) {
+	cmd.Flags().IntP(cmdFlagNameParallelism, "p", value, "parallelism or threads")
 }

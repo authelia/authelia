@@ -52,11 +52,7 @@ func newCryptoCertificateCmd() (cmd *cobra.Command) {
 }
 
 func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
-	var (
-		useFmt string
-	)
-
-	useFmt = fmtCryptoCertificateUse(use)
+	useFmt := fmtCryptoCertificateUse(use)
 
 	cmd = &cobra.Command{
 		Use:     use,
