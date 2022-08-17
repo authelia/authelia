@@ -74,8 +74,6 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	bufHTML := new(bytes.Buffer)
-
 	disableHTML := false
 	if ctx.Configuration.Notifier.SMTP != nil {
 		disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
@@ -87,30 +85,42 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		RemoteIP:    ctx.RemoteIP().String(),
 	}
 
+	buf := &bytes.Buffer{}
+
+	var (
+		bodyHTML, bodyText []byte
+	)
+
 	if !disableHTML {
-		if err = ctx.Providers.Templates.ExecuteEmailPasswordResetTemplate(bufHTML, values, templates.HTMLFormat); err != nil {
+		if err = ctx.Providers.Templates.ExecuteEmailPasswordResetTemplate(buf, values, templates.HTMLFormat); err != nil {
 			ctx.Logger.Error(err)
 			ctx.ReplyOK()
 
 			return
 		}
+
+		bodyHTML = buf.Bytes()
+
+		buf.Reset()
 	}
 
-	bufText := new(bytes.Buffer)
-
-	if err = ctx.Providers.Templates.ExecuteEmailPasswordResetTemplate(bufText, values, templates.PlainTextFormat); err != nil {
+	if err = ctx.Providers.Templates.ExecuteEmailPasswordResetTemplate(buf, values, templates.PlainTextFormat); err != nil {
 		ctx.Logger.Error(err)
 		ctx.ReplyOK()
 
 		return
 	}
 
+	bodyText = buf.Bytes()
+
+	buf.Reset()
+
 	addresses := userInfo.Addresses()
 
 	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
 		username, addresses[0])
 
-	if err = ctx.Providers.Notifier.Send(addresses[0], "Password changed successfully", bufText.String(), bufHTML.String()); err != nil {
+	if err = ctx.Providers.Notifier.Send(addresses[0], "Password changed successfully", bodyText, bodyHTML); err != nil {
 		ctx.Logger.Error(err)
 		ctx.ReplyOK()
 

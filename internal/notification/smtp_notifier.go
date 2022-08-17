@@ -1,11 +1,13 @@
 package notification
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
+	"mime/quotedprintable"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -52,7 +54,7 @@ type SMTPNotifier struct {
 }
 
 // Send is used to email a recipient.
-func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) (err error) {
+func (n *SMTPNotifier) Send(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error) {
 	if err = n.dial(); err != nil {
 		return fmt.Errorf(fmtSMTPDialError, err)
 	}
@@ -65,7 +67,7 @@ func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string
 	}
 
 	// Compose and send the email body to the server.
-	if err = n.compose(recipient, title, body, htmlBody); err != nil {
+	if err = n.compose(recipient, subject, bodyText, bodyHTML); err != nil {
 		return fmt.Errorf(fmtSMTPGenericError, smtpCommandDATA, err)
 	}
 
@@ -237,7 +239,7 @@ func (n *SMTPNotifier) auth() (err error) {
 	return nil
 }
 
-func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody string) (err error) {
+func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error) {
 	n.log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient.String())
 
 	if !n.config.DisableRequireTLS {
@@ -261,6 +263,13 @@ func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody str
 		return err
 	}
 
+	var bodyTextEncoded string
+
+	if bodyTextEncoded, err = encodeBodyTextQuotedPrintable(bodyText); err != nil {
+		n.log.Debugf("Notifier SMTP client error while encoding body text: %v", err)
+		return err
+	}
+
 	values := templates.EmailEnvelopeValues{
 		ProcessID:    os.Getpid(),
 		UUID:         muuid.String(),
@@ -270,12 +279,12 @@ func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody str
 		Identifier:   n.config.Identifier,
 		From:         n.config.Sender.String(),
 		To:           recipient.String(),
-		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", title),
+		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", subject),
 		Date:         time.Now(),
 		Boundary:     utils.RandomString(30, utils.AlphaNumericCharacters, true),
 		Body: templates.EmailEnvelopeBodyValues{
-			PlainText: body,
-			HTML:      htmlBody,
+			PlainText: bodyTextEncoded,
+			HTML:      string(bodyHTML),
 		},
 	}
 
@@ -300,4 +309,20 @@ func (n *SMTPNotifier) cleanup() {
 	}
 
 	n.client = nil
+}
+
+func encodeBodyTextQuotedPrintable(body []byte) (output string, err error) {
+	buf := &bytes.Buffer{}
+
+	q := quotedprintable.NewWriter(buf)
+
+	if _, err = q.Write(body); err != nil {
+		return "", fmt.Errorf("failed to encode text: %w", err)
+	}
+
+	if err = q.Close(); err != nil {
+		return "", fmt.Errorf("failed to close writer: %w", err)
+	}
+
+	return buf.String(), nil
 }
