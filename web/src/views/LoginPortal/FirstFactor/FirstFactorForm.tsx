@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, { MutableRefObject, useEffect, useRef, useState, useMemo } from "react";
 
 import { Grid, Button, FormControlLabel, Checkbox, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -49,6 +49,7 @@ const FirstFactorForm = function (props: Props) {
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
     const visible = usePageVisibility();
     const { t: translate } = useTranslation();
+    const loginChannel = useMemo(() => new BroadcastChannel("login"), []);
 
     useEffect(() => {
         const timeout = setTimeout(() => usernameRef.current.focus(), 10);
@@ -59,9 +60,12 @@ const FirstFactorForm = function (props: Props) {
         if (visible) {
             fetchState();
         }
-        const timer = setInterval(() => fetchState(), 1000);
-        return () => clearInterval(timer);
-    }, [visible, fetchState]);
+        loginChannel.addEventListener("message", (ev) => {
+            if (ev.data) {
+                props.onAuthenticationSuccess(redirectionURL);
+            }
+        });
+    }, [loginChannel, redirectionURL, props]);
 
     useEffect(() => {
         if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
@@ -90,6 +94,7 @@ const FirstFactorForm = function (props: Props) {
         props.onAuthenticationStart();
         try {
             const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
+            loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
