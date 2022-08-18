@@ -285,11 +285,17 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		Body:         string(body),
 	}
 
-	if err = n.templates.ExecuteEmailEnvelope(wc, values); err != nil {
+	content := &bytes.Buffer{}
+
+	if err = n.templates.ExecuteEmailEnvelope(content, values); err != nil {
 		n.log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %v", err)
 
 		return err
 	}
+
+	fmt.Print(content.String())
+
+	_, _ = wc.Write(content.Bytes())
 
 	if err = wc.Close(); err != nil {
 		n.log.Debugf("Notifier SMTP client error while closing the WriteCloser: %v", err)
