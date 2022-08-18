@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
-	"mime/quotedprintable"
+	"mime/multipart"
 	"net"
 	"net/mail"
 	"net/smtp"
+	"net/textproto"
 	"os"
 	"strings"
 	"time"
@@ -263,11 +265,9 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		return err
 	}
 
-	var bodyTextEncoded string
-
-	if bodyTextEncoded, err = encodeBodyTextQuotedPrintable(bodyText); err != nil {
-		n.log.Debugf("Notifier SMTP client error while encoding body text: %v", err)
-		return err
+	boundary, body, err := compose(bodyText, bodyHTML)
+	if err != nil {
+		return fmt.Errorf("failed to build multipart email: %w", err)
 	}
 
 	values := templates.EmailEnvelopeValues{
@@ -281,11 +281,8 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		To:           recipient.String(),
 		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", subject),
 		Date:         time.Now(),
-		Boundary:     utils.RandomString(30, utils.AlphaNumericCharacters, true),
-		Body: templates.EmailEnvelopeBodyValues{
-			PlainText: bodyTextEncoded,
-			HTML:      string(bodyHTML),
-		},
+		Boundary:     boundary,
+		Body:         string(body),
 	}
 
 	if err = n.templates.ExecuteEmailEnvelope(wc, values); err != nil {
@@ -302,6 +299,63 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 	return nil
 }
 
+func compose(bodyText, bodyHTML []byte) (boundary string, body []byte, err error) {
+	buf := &bytes.Buffer{}
+
+	wr := multipart.NewWriter(buf)
+
+	boundary = wr.Boundary()
+
+	var (
+		part io.Writer
+		wc   io.WriteCloser
+	)
+
+	if len(bodyHTML) > 0 {
+		if part, err = wr.CreatePart(textproto.MIMEHeader{
+			"Content-Type":              []string{`text/html; charset="utf8"`},
+			"Content-Transfer-Encoding": []string{`base64`},
+			"Content-Disposition":       []string{`inline`},
+		}); err != nil {
+			return boundary, nil, err
+		}
+
+		wc = base64.NewEncoder(base64.StdEncoding, part)
+
+		if _, err = wc.Write(bodyHTML); err != nil {
+			return boundary, nil, err
+		}
+
+		if err = wc.Close(); err != nil {
+			return boundary, nil, err
+		}
+	}
+
+	if part, err = wr.CreatePart(textproto.MIMEHeader{
+		"Content-Type":              []string{`text/plain; charset="utf8"`},
+		"Content-Transfer-Encoding": []string{`base64`},
+		"Content-Disposition":       []string{`inline`},
+	}); err != nil {
+		return boundary, nil, err
+	}
+
+	wc = base64.NewEncoder(base64.StdEncoding, part)
+
+	if _, err = wc.Write(bodyText); err != nil {
+		return boundary, nil, err
+	}
+
+	if err = wc.Close(); err != nil {
+		return boundary, nil, err
+	}
+
+	if err = wr.Close(); err != nil {
+		return boundary, nil, err
+	}
+
+	return boundary, buf.Bytes(), nil
+}
+
 // Closes the connection properly.
 func (n *SMTPNotifier) cleanup() {
 	if err := n.client.Quit(); err != nil {
@@ -309,20 +363,4 @@ func (n *SMTPNotifier) cleanup() {
 	}
 
 	n.client = nil
-}
-
-func encodeBodyTextQuotedPrintable(body []byte) (output string, err error) {
-	buf := &bytes.Buffer{}
-
-	q := quotedprintable.NewWriter(buf)
-
-	if _, err = q.Write(body); err != nil {
-		return "", fmt.Errorf("failed to encode text: %w", err)
-	}
-
-	if err = q.Close(); err != nil {
-		return "", fmt.Errorf("failed to close writer: %w", err)
-	}
-
-	return buf.String(), nil
 }
