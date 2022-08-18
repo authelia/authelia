@@ -1,7 +1,7 @@
 import { Configuration } from "@models/Configuration";
 import { ConfigurationPath } from "@services/Api";
 import { Get } from "@services/Client";
-import { toEnum, Method2FA } from "@services/UserInfo";
+import { Method2FA, toEnum } from "@services/UserInfo";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];
