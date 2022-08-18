@@ -335,6 +335,10 @@ func compose(bodyText, bodyHTML []byte) (boundary string, body []byte, err error
 		if err = wc.Close(); err != nil {
 			return boundary, nil, err
 		}
+
+		if _, err = part.Write(rfc2822NewLine); err != nil {
+			return boundary, nil, err
+		}
 	}
 
 	if part, err = wr.CreatePart(textproto.MIMEHeader{
@@ -352,6 +356,10 @@ func compose(bodyText, bodyHTML []byte) (boundary string, body []byte, err error
 	}
 
 	if err = wc.Close(); err != nil {
+		return boundary, nil, err
+	}
+
+	if _, err = part.Write(rfc2822NewLine); err != nil {
 		return boundary, nil, err
 	}
 

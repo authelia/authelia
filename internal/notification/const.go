@@ -22,3 +22,5 @@ const (
 	fmtSMTPGenericError = "error performing %s with the SMTP server: %w"
 	fmtSMTPDialError    = "error dialing the SMTP server: %w"
 )
+
+var rfc2822NewLine = []byte("\r\r")
