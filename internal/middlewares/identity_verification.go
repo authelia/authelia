@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/mail"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -62,13 +63,27 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		uri, err := ctx.ExternalRootURL()
-		if err != nil {
+		var (
+			uri       string
+			parsedURI *url.URL
+		)
+
+		if uri, err = ctx.ExternalRootURL(); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
-		link := fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss)
+		if parsedURI, err = url.ParseRequestURI(uri); err != nil {
+			ctx.Error(err, messageOperationFailed)
+			return
+		}
+
+		parsedURI = parsedURI.JoinPath(args.TargetEndpoint)
+
+		query := parsedURI.Query()
+		query.Set("token", ss)
+
+		parsedURI.RawQuery = query.Encode()
 
 		disableHTML := false
 		if ctx.Configuration.Notifier.SMTP != nil {
@@ -77,42 +92,30 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		values := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
-			LinkURL:     link,
+			LinkURL:     parsedURI.String(),
 			LinkText:    args.MailButtonContent,
 			DisplayName: identity.DisplayName,
 			RemoteIP:    ctx.RemoteIP().String(),
 		}
 
-		buf := &bytes.Buffer{}
-
-		var (
-			bodyHTML, bodyText []byte
-		)
+		bufHTML, bufText := &bytes.Buffer{}, &bytes.Buffer{}
 
 		if !disableHTML {
-			if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(buf, values, templates.HTMLFormat); err != nil {
+			if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufHTML, values, templates.HTMLFormat); err != nil {
 				ctx.Error(err, messageOperationFailed)
 				return
 			}
-
-			bodyHTML = buf.Bytes()
-
-			buf.Reset()
 		}
 
-		if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(buf, values, templates.PlainTextFormat); err != nil {
+		if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufText, values, templates.PlainTextFormat); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
-		bodyText = buf.Bytes()
-
-		buf.Reset()
-
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bodyText, bodyHTML); err != nil {
+		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bufText.Bytes(), bufHTML.Bytes()); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
