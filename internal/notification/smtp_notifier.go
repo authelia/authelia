@@ -294,12 +294,12 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 	}
 
 	if len(bodyHTML) != 0 {
-		if err = multipartWrite(mwr, "text/html", bodyHTML); err != nil {
+		if err = multipartWrite(mwr, "text/html", smtpEncodingBinary, bodyHTML); err != nil {
 			return fmt.Errorf("failed to write text/html part: %w", err)
 		}
 	}
 
-	if err = multipartWrite(mwr, "text/plain", bodyText); err != nil {
+	if err = multipartWrite(mwr, "text/plain", smtpEncodingBinary, bodyText); err != nil {
 		return fmt.Errorf("failed to write text/html part: %w", err)
 	}
 
@@ -315,7 +315,7 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 	return nil
 }
 
-func multipartWrite(mwr *multipart.Writer, ct string, data []byte) (err error) {
+func multipartWrite(mwr *multipart.Writer, ct, encoding string, data []byte) (err error) {
 	var (
 		wc io.WriteCloser
 		wr io.Writer
@@ -323,7 +323,7 @@ func multipartWrite(mwr *multipart.Writer, ct string, data []byte) (err error) {
 
 	header := textproto.MIMEHeader{
 		"Content-Disposition":       []string{`inline`},
-		"Content-Transfer-Encoding": []string{"quoted-printable"},
+		"Content-Transfer-Encoding": []string{encoding},
 		"Content-Type":              []string{fmt.Sprintf(`%s; charset="utf8"`, ct)},
 	}
 
@@ -331,7 +331,12 @@ func multipartWrite(mwr *multipart.Writer, ct string, data []byte) (err error) {
 		return err
 	}
 
-	wc = quotedprintable.NewWriter(wr)
+	switch encoding {
+	case smtpEncodingQuotedPrintable:
+		wc = quotedprintable.NewWriter(wr)
+	case smtpEncodingBinary, smtpEncoding7bit:
+		wc = utils.NewWriteCloser(wr)
+	}
 
 	if _, err = wc.Write(data); err != nil {
 		_ = wc.Close()

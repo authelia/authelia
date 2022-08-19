@@ -16,6 +16,10 @@ const (
 	smtpCommandAUTH     = "AUTH"
 	smtpCommandMAIL     = "MAIL"
 	smtpCommandRCPT     = "RCPT"
+
+	smtpEncodingQuotedPrintable = "quoted-printable"
+	smtpEncodingBinary          = "binary"
+	smtpEncoding7bit            = "7bit"
 )
 
 const (
