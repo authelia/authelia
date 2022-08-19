@@ -293,14 +293,14 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		return err
 	}
 
+	if err = multipartWrite(mwr, "text/plain", smtpEncodingBinary, bodyText); err != nil {
+		return fmt.Errorf("failed to write text/html part: %w", err)
+	}
+
 	if len(bodyHTML) != 0 {
 		if err = multipartWrite(mwr, "text/html", smtpEncodingBinary, bodyHTML); err != nil {
 			return fmt.Errorf("failed to write text/html part: %w", err)
 		}
-	}
-
-	if err = multipartWrite(mwr, "text/plain", smtpEncodingBinary, bodyText); err != nil {
-		return fmt.Errorf("failed to write text/html part: %w", err)
 	}
 
 	if err = mwr.Close(); err != nil {
