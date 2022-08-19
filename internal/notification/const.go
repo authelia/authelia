@@ -23,4 +23,6 @@ const (
 	fmtSMTPDialError    = "error dialing the SMTP server: %w"
 )
 
-var rfc2822NewLine = []byte("\r\r")
+var (
+	rfc2822DoubleNewLine = []byte("\r\n\r\n")
+)

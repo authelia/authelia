@@ -25,17 +25,17 @@ type Provider struct {
 }
 
 // ExecuteEmailEnvelope writes the envelope template to the given io.Writer.
-func (p Provider) ExecuteEmailEnvelope(wr io.Writer, data EmailEnvelopeValues) (err error) {
+func (p *Provider) ExecuteEmailEnvelope(wr io.Writer, data EmailEnvelopeValues) (err error) {
 	return p.templates.notification.envelope.Execute(wr, data)
 }
 
 // ExecuteEmailPasswordResetTemplate writes the password reset template to the given io.Writer.
-func (p Provider) ExecuteEmailPasswordResetTemplate(wr io.Writer, data EmailPasswordResetValues, format Format) (err error) {
+func (p *Provider) ExecuteEmailPasswordResetTemplate(wr io.Writer, data EmailPasswordResetValues, format Format) (err error) {
 	return p.templates.notification.passwordReset.Get(format).Execute(wr, data)
 }
 
 // ExecuteEmailIdentityVerificationTemplate writes the identity verification template to the given io.Writer.
-func (p Provider) ExecuteEmailIdentityVerificationTemplate(wr io.Writer, data EmailIdentityVerificationValues, format Format) (err error) {
+func (p *Provider) ExecuteEmailIdentityVerificationTemplate(wr io.Writer, data EmailIdentityVerificationValues, format Format) (err error) {
 	return p.templates.notification.identityVerification.Get(format).Execute(wr, data)
 }
 

@@ -1,14 +1,13 @@
 package notification
 
 import (
-	"bytes"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -265,12 +264,7 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		return err
 	}
 
-	boundary, body, err := compose(bodyText, bodyHTML)
-	if err != nil {
-		return fmt.Errorf("failed to build multipart email: %w", err)
-	}
-
-	values := templates.EmailEnvelopeValues{
+	data := templates.EmailEnvelopeValues{
 		ProcessID:    os.Getpid(),
 		UUID:         muuid.String(),
 		Host:         n.config.Host,
@@ -281,21 +275,37 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		To:           recipient.String(),
 		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", subject),
 		Date:         time.Now(),
-		Boundary:     boundary,
-		Body:         string(body),
 	}
 
-	content := &bytes.Buffer{}
-
-	if err = n.templates.ExecuteEmailEnvelope(content, values); err != nil {
+	if err = n.templates.ExecuteEmailEnvelope(wc, data); err != nil {
 		n.log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %v", err)
 
 		return err
 	}
 
-	fmt.Print(content.String())
+	mwr := multipart.NewWriter(wc)
 
-	_, _ = wc.Write(content.Bytes())
+	if _, err = wc.Write([]byte(fmt.Sprintf(`Content-Type: multipart/alternative; boundary="%s"`, mwr.Boundary()))); err != nil {
+		return err
+	}
+
+	if _, err = wc.Write(rfc2822DoubleNewLine); err != nil {
+		return err
+	}
+
+	if len(bodyHTML) != 0 {
+		if err = multipartWrite(mwr, "text/html", bodyHTML); err != nil {
+			return fmt.Errorf("failed to write text/html part: %w", err)
+		}
+	}
+
+	if err = multipartWrite(mwr, "text/plain", bodyText); err != nil {
+		return fmt.Errorf("failed to write text/html part: %w", err)
+	}
+
+	if err = mwr.Close(); err != nil {
+		return fmt.Errorf("failed to finalize the multipart content: %w", err)
+	}
 
 	if err = wc.Close(); err != nil {
 		n.log.Debugf("Notifier SMTP client error while closing the WriteCloser: %v", err)
@@ -305,69 +315,33 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 	return nil
 }
 
-func compose(bodyText, bodyHTML []byte) (boundary string, body []byte, err error) {
-	buf := &bytes.Buffer{}
-
-	wr := multipart.NewWriter(buf)
-
-	boundary = wr.Boundary()
-
+func multipartWrite(mwr *multipart.Writer, ct string, data []byte) (err error) {
 	var (
-		part io.Writer
-		wc   io.WriteCloser
+		wc io.WriteCloser
+		wr io.Writer
 	)
 
-	if len(bodyHTML) > 0 {
-		if part, err = wr.CreatePart(textproto.MIMEHeader{
-			"Content-Type":              []string{`text/html; charset="utf8"`},
-			"Content-Transfer-Encoding": []string{`base64`},
-			"Content-Disposition":       []string{`inline`},
-		}); err != nil {
-			return boundary, nil, err
-		}
-
-		wc = base64.NewEncoder(base64.StdEncoding, part)
-
-		if _, err = wc.Write(bodyHTML); err != nil {
-			return boundary, nil, err
-		}
-
-		if err = wc.Close(); err != nil {
-			return boundary, nil, err
-		}
-
-		if _, err = part.Write(rfc2822NewLine); err != nil {
-			return boundary, nil, err
-		}
-	}
-
-	if part, err = wr.CreatePart(textproto.MIMEHeader{
-		"Content-Type":              []string{`text/plain; charset="utf8"`},
-		"Content-Transfer-Encoding": []string{`base64`},
+	header := textproto.MIMEHeader{
 		"Content-Disposition":       []string{`inline`},
-	}); err != nil {
-		return boundary, nil, err
+		"Content-Transfer-Encoding": []string{"quoted-printable"},
+		"Content-Type":              []string{fmt.Sprintf(`%s; charset="utf8"`, ct)},
 	}
 
-	wc = base64.NewEncoder(base64.StdEncoding, part)
-
-	if _, err = wc.Write(bodyText); err != nil {
-		return boundary, nil, err
+	if wr, err = mwr.CreatePart(header); err != nil {
+		return err
 	}
 
-	if err = wc.Close(); err != nil {
-		return boundary, nil, err
+	wc = quotedprintable.NewWriter(wr)
+
+	if _, err = wc.Write(data); err != nil {
+		_ = wc.Close()
+
+		return err
 	}
 
-	if _, err = part.Write(rfc2822NewLine); err != nil {
-		return boundary, nil, err
-	}
+	_ = wc.Close()
 
-	if err = wr.Close(); err != nil {
-		return boundary, nil, err
-	}
-
-	return boundary, buf.Bytes(), nil
+	return nil
 }
 
 // Closes the connection properly.

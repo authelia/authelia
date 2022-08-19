@@ -62,6 +62,4 @@ type EmailEnvelopeValues struct {
 	To           string
 	Subject      string
 	Date         time.Time
-	Boundary     string
-	Body         string
 }
