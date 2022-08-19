@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/mail"
-	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -64,26 +63,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		}
 
 		var (
-			uri       string
-			parsedURI *url.URL
+			uri string
 		)
 
 		if uri, err = ctx.ExternalRootURL(); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
-
-		if parsedURI, err = url.ParseRequestURI(uri); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
-		parsedURI = parsedURI.JoinPath(args.TargetEndpoint)
-
-		query := parsedURI.Query()
-		query.Set("token", ss)
-
-		parsedURI.RawQuery = query.Encode()
 
 		disableHTML := false
 		if ctx.Configuration.Notifier.SMTP != nil {
@@ -92,7 +78,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		values := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
-			LinkURL:     parsedURI.String(),
+			LinkURL:     fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss),
 			LinkText:    args.MailButtonContent,
 			DisplayName: identity.DisplayName,
 			RemoteIP:    ctx.RemoteIP().String(),
