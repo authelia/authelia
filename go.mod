@@ -13,7 +13,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.109.1
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/go-webauthn/webauthn v0.3.4
+	github.com/go-webauthn/webauthn v0.4.0
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
@@ -58,7 +58,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-webauthn/revoke v0.1.2 // indirect
+	github.com/go-webauthn/revoke v0.1.3 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
@@ -103,7 +103,7 @@ require (
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/gson v0.7.1 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
+	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8 // indirect
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
