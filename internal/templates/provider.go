@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 )
@@ -41,6 +42,18 @@ func (p *Provider) ExecuteEmailIdentityVerificationTemplate(wr io.Writer, data E
 
 func (p *Provider) load() (err error) {
 	var errs []error
+
+	if tPath, embed, data, err := readTemplate(TemplateNameEmailEnvelope, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
+		errs = append(errs, err)
+	} else {
+		if embed && (bytes.Contains(data, []byte("{{ .Boundary }}")) ||
+			bytes.Contains(data, []byte("{{ .Body.PlainText }}")) ||
+			bytes.Contains(data, []byte("{{ .Body.HTML }}"))) {
+			errs = append(errs, fmt.Errorf("the evelope template override appears to contain removed placeholders"))
+		} else if p.templates.notification.envelope, err = parseTemplate(TemplateNameEmailEnvelope, tPath, embed, data); err != nil {
+			errs = append(errs, err)
+		}
+	}
 
 	if p.templates.notification.envelope, err = loadTemplate(TemplateNameEmailEnvelope, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
