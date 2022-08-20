@@ -1,4 +1,4 @@
-import { InitiateResetPasswordPath, CompleteResetPasswordPath, ResetPasswordPath } from "@services/Api";
+import { CompleteResetPasswordPath, InitiateResetPasswordPath, ResetPasswordPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 
 export async function initiateResetPasswordProcess(username: string) {
