@@ -23,6 +23,7 @@ type SMTPNotifierConfiguration struct {
 	StartupCheckAddress mail.Address  `koanf:"startup_check_address"`
 	DisableRequireTLS   bool          `koanf:"disable_require_tls"`
 	DisableHTMLEmails   bool          `koanf:"disable_html_emails"`
+	DisableStartTLS     bool          `koanf:"disable_start_tls"`
 	TLS                 *TLSConfig    `koanf:"tls"`
 }
 

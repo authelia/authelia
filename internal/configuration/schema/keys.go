@@ -164,6 +164,7 @@ var Keys = []string{
 	"notifier.smtp.startup_check_address",
 	"notifier.smtp.disable_require_tls",
 	"notifier.smtp.disable_html_emails",
+	"notifier.smtp.disable_start_tls",
 	"notifier.smtp.tls.minimum_version",
 	"notifier.smtp.tls.skip_verify",
 	"notifier.smtp.tls.server_name",
