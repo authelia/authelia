@@ -18,8 +18,21 @@ const (
 	smtpCommandRCPT     = "RCPT"
 
 	smtpEncodingQuotedPrintable = "quoted-printable"
-	smtpEncodingBinary          = "binary"
-	smtpEncoding7bit            = "7bit"
+	smtpEncoding8bit            = "8bit"
+
+	smtpContentTypeTextPlain        = "text/plain"
+	smtpContentTypeTextHTML         = "text/html"
+	smtpFmtContentType              = `%s; charset="UTF-8"`
+	smtpFmtContentDispositionInline = "inline"
+
+	smtpExtSTARTTLS = smtpCommandSTARTTLS
+	smtpExt8BITMIME = "8BITMIME"
+)
+
+const (
+	headerContentType             = "Content-Type"
+	headerContentDisposition      = "Content-Disposition"
+	headerContentTransferEncoding = "Content-Transfer-Encoding"
 )
 
 const (

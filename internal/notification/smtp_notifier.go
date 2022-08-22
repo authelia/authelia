@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"mime/quotedprintable"
 	"net"
 	"net/mail"
 	"net/smtp"
-	"net/textproto"
 	"os"
 	"strings"
 	"time"
@@ -164,7 +162,7 @@ func (n *SMTPNotifier) startTLS() error {
 		return nil
 	}
 
-	switch ok, _ := n.client.Extension("STARTTLS"); ok {
+	switch ok, _ := n.client.Extension(smtpExtSTARTTLS); ok {
 	case true:
 		n.log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
 
@@ -293,12 +291,15 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		return err
 	}
 
-	if err = multipartWrite(mwr, "text/plain", smtpEncodingBinary, bodyText); err != nil {
-		return fmt.Errorf("failed to write text/html part: %w", err)
+	ext8BITMIME, _ := n.client.Extension(smtpExt8BITMIME)
+
+	if err = multipartWrite(mwr, smtpMIMEHeaders(ext8BITMIME, smtpContentTypeTextPlain, bodyText), bodyText); err != nil {
+		return fmt.Errorf("failed to write text/plain part: %w", err)
 	}
 
 	if len(bodyHTML) != 0 {
-		if err = multipartWrite(mwr, "text/html", smtpEncodingBinary, bodyHTML); err != nil {
+		if err = multipartWrite(mwr,
+			smtpMIMEHeaders(ext8BITMIME, smtpContentTypeTextHTML, bodyText), bodyHTML); err != nil {
 			return fmt.Errorf("failed to write text/html part: %w", err)
 		}
 	}
@@ -311,40 +312,6 @@ func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText,
 		n.log.Debugf("Notifier SMTP client error while closing the WriteCloser: %v", err)
 		return err
 	}
-
-	return nil
-}
-
-func multipartWrite(mwr *multipart.Writer, ct, encoding string, data []byte) (err error) {
-	var (
-		wc io.WriteCloser
-		wr io.Writer
-	)
-
-	header := textproto.MIMEHeader{
-		"Content-Disposition":       []string{`inline`},
-		"Content-Transfer-Encoding": []string{encoding},
-		"Content-Type":              []string{fmt.Sprintf(`%s; charset="utf8"`, ct)},
-	}
-
-	if wr, err = mwr.CreatePart(header); err != nil {
-		return err
-	}
-
-	switch encoding {
-	case smtpEncodingQuotedPrintable:
-		wc = quotedprintable.NewWriter(wr)
-	case smtpEncodingBinary, smtpEncoding7bit:
-		wc = utils.NewWriteCloser(wr)
-	}
-
-	if _, err = wc.Write(data); err != nil {
-		_ = wc.Close()
-
-		return err
-	}
-
-	_ = wc.Close()
 
 	return nil
 }
