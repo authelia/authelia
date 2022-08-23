@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@commitlint/cli': 17.0.3
   '@commitlint/config-conventional': 17.0.3
-  '@emotion/cache': 11.10.2
+  '@emotion/cache': 11.10.3
   '@emotion/react': 11.10.0
   '@emotion/styled': 11.10.0
   '@fortawesome/fontawesome-svg-core': 6.1.2
@@ -65,7 +65,7 @@ specifiers:
   zxcvbn: 4.4.2
 
 dependencies:
-  '@emotion/cache': 11.10.2
+  '@emotion/cache': 11.10.3
   '@emotion/react': 11.10.0_ug65io7jkbhmo4fihdmbrh3ina
   '@emotion/styled': 11.10.0_lzabd6uj4wst47copsenr4b56q
   '@fortawesome/fontawesome-svg-core': 6.1.2
@@ -2220,8 +2220,8 @@ packages:
       stylis: 4.0.13
     dev: false
 
-  /@emotion/cache/11.10.2:
-    resolution: {integrity: sha512-GPR4PovENRvYDbCEnDRecPZYJzWdNMsM+Jn+13MC5uImVNbMyKwzv95DUHy5PDcgfPtKoDtfLU6emF1grrbQDg==}
+  /@emotion/cache/11.10.3:
+    resolution: {integrity: sha512-Psmp/7ovAa8appWh3g51goxu/z3iVms7JXOreq136D8Bbn6dYraPnmL6mdM8GThEx9vwSn92Fz+mGSjBzN8UPQ==}
     dependencies:
       '@emotion/memoize': 0.8.0
       '@emotion/sheet': 1.2.0
@@ -2258,7 +2258,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.18.9
       '@emotion/babel-plugin': 11.10.0
-      '@emotion/cache': 11.10.2
+      '@emotion/cache': 11.10.3
       '@emotion/serialize': 1.1.0
       '@emotion/utils': 1.2.0
       '@emotion/weak-memoize': 0.3.0
@@ -2832,7 +2832,7 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.18.9
-      '@emotion/cache': 11.10.2
+      '@emotion/cache': 11.10.3
       '@emotion/react': 11.10.0_ug65io7jkbhmo4fihdmbrh3ina
       '@emotion/styled': 11.10.0_lzabd6uj4wst47copsenr4b56q
       csstype: 3.1.0
