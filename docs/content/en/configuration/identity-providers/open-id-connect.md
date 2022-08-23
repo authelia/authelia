@@ -418,6 +418,8 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 
 The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
 
+`none` will send the response with content type 'application/json'; `RS256` will send the response with content type 'application/jwt'
+
 ## Integration
 
 To integrate Authelia's [OpenID Connect] implementation with a relying party please see the
