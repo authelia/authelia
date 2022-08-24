@@ -59,7 +59,7 @@ specifiers:
   typescript: 4.7.4
   vite: 3.0.9
   vite-plugin-eslint: 1.8.1
-  vite-plugin-istanbul: 3.0.0
+  vite-plugin-istanbul: 3.0.1
   vite-plugin-svgr: 2.2.1
   vite-tsconfig-paths: 3.5.0
   zxcvbn: 4.4.2
@@ -126,7 +126,7 @@ devDependencies:
   typescript: 4.7.4
   vite: 3.0.9
   vite-plugin-eslint: 1.8.1_eslint@8.22.0+vite@3.0.9
-  vite-plugin-istanbul: 3.0.0
+  vite-plugin-istanbul: 3.0.1
   vite-plugin-svgr: 2.2.1_vite@3.0.9
   vite-tsconfig-paths: 3.5.0_vite@3.0.9
 
@@ -9112,8 +9112,8 @@ packages:
       vite: 3.0.9
     dev: true
 
-  /vite-plugin-istanbul/3.0.0:
-    resolution: {integrity: sha512-cQ6TZ0VgFpPz0FKlfg9O7cpAqaB7iMXdiEolgTgBixA9kxi6O+VRVy1Z/vJ93TWsfub9V0t+rpHKKYJkt4VdUg==}
+  /vite-plugin-istanbul/3.0.1:
+    resolution: {integrity: sha512-b6yBg7WHXHTaULcyb/d17/YXFcYrV6nHTiqYxOIhhbIFjgp8CgVkuP3iGQU1vRxeutrIwTa4pFNmS4uZSAKhGA==}
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       istanbul-lib-instrument: 5.2.0
