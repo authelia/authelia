@@ -124,7 +124,7 @@ Note: make sure that the `userinfo_signing_algorithm` is set to `none`, or Komga
 
 ## See Also
 
-* [Portainer OAuth Documentation](https://docs.portainer.io/admin/settings/authentication/oauth)
+* [Komga Social login Documentation](https://komga.org/installation/oauth2.html)
 
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org
