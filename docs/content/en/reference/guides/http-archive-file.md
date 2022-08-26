@@ -27,6 +27,12 @@ present in an environment.
 
 ## Sanitization
 
+### Domain
+
+See the dedicated [Domain Sanitization](domain-sanitizaiton.md) reference guide.
+
+### Security Sensitive Information
+
 *__Important:__ this file may contain sensitive information which should be sanitized manually before sharing it
 anywhere with anyone. Sensitive information can vary wildly but some of the key areas that may be sensitive when
 exporting this for troubleshooting with Authelia are:*
@@ -36,13 +42,6 @@ exporting this for troubleshooting with Authelia are:*
   - `/api/firstfactor`: username / password
   - `/api/*/identity/start`: the token query parameter
   - `/api/secondfactor/*`: the post data
-
-__*Important:*__ In addition to above, some users may wish to hide their domain. It's critical for these purposes that
-you hide your domain in a very specific way. Supposing you purchased the domain `abc123.com` and are running services on
-`auth.abc123.com`, `app.abc123.com`, and so on; you should replace all instances of `abc123.com` with `example.com`.
-
-In instances where there are multiple domains it's recommended these domains are replaced with `example1.com`,
-`example2.com`, etc.
 
 ## Instructions
 
