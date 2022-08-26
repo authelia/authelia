@@ -48,6 +48,7 @@ which will operate with the above example:
 
 ```yaml
 - id: vault
+  description: HashiCorp Vault
   secret: vault_client_secret
   public: false
   authorization_policy: two_factor
