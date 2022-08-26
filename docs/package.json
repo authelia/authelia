@@ -39,16 +39,17 @@
   },
   "devDependencies": {
     "@babel/cli": "7.18.10",
-    "@babel/core": "7.18.10",
+    "@babel/core": "7.18.13",
     "@babel/preset-env": "7.18.10",
     "@fullhuman/postcss-purgecss": "4.1.3",
-    "@hyas/images": "0.2.2",
+    "@hyas/images": "0.2.3",
+    "@popperjs/core": "2.11.6",
     "auto-changelog": "2.4.0",
     "autoprefixer": "10.4.8",
     "bootstrap": "5.2.0",
     "bootstrap-icons": "1.9.1",
     "clipboard": "2.0.11",
-    "eslint": "8.21.0",
+    "eslint": "8.22.0",
     "exec-bin": "1.0.0",
     "flexsearch": "0.7.21",
     "highlight.js": "11.6.0",
@@ -56,20 +57,17 @@
     "instant.page": "5.1.1",
     "katex": "0.16.0",
     "lazysizes": "5.3.2",
-    "markdownlint-cli2": "0.5.0",
+    "markdownlint-cli2": "0.5.1",
     "netlify-plugin-submit-sitemap": "0.4.0",
     "node-fetch": "3.2.10",
     "postcss": "8.4.16",
     "postcss-cli": "10.0.0",
     "purgecss-whitelister": "2.4.0",
     "shx": "0.3.4",
-    "stylelint": "14.9.1",
+    "stylelint": "14.11.0",
     "stylelint-config-standard-scss": "4.0.0"
   },
   "otherDependencies": {
     "hugo": "0.101.0"
-  },
-  "dependencies": {
-    "@popperjs/core": "2.11.5"
   }
 }
