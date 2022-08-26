@@ -37,12 +37,13 @@ This example makes the following assumptions:
 
 ### Application
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect] Provider, you either need to edit the config file, or specify overrides in the containers environment variables.  
+To configure [Grafana] to utilize Authelia as an [OpenID Connect] Provider you have two effective options:
 
-#### Method 1: Configuration Files
-1. Add the following Generic OAuth configuration to the [Grafana] configuration:
+#### Configuration File
 
-```ruby
+Add the following Generic OAuth configuration to the [Grafana] configuration:
+
+```ini
 [server]
 root_url = https://grafana.example.com
 [auth.generic_oauth]
@@ -62,24 +63,26 @@ name_attribute_path = name
 use_pkce = true
 ```
 
-#### Method 2: Container Environment Variables
-**GF_AUTH_GENERIC_OAUTH_NAME=**`Authelia`  
-**GF_AUTH_GENERIC_OAUTH_ENABLED=**`true`  
-**GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=**`true`  
-**GF_AUTH_GENERIC_OAUTH_CLIENT_ID=**`grafana`  
-**GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=**`grafana_client_secret`  
-**GF_AUTH_GENERIC_OAUTH_SCOPES=**`openid profile email groups`  
-**GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_NAME=**`email`  
-**GF_AUTH_GENERIC_OAUTH_AUTH_URL=**`https://auth.example.com/api/oidc/authorization`  
-**GF_AUTH_GENERIC_OAUTH_TOKEN_URL=**`https://auth.example.com/api/oidc/token`  
-**GF_AUTH_GENERIC_OAUTH_API_URL=**`https://auth.example.com/api/oidc/userinfo`  
-**GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE=**`true`  
-**GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES=**`false`  
-**GF_AUTH_GENERIC_OAUTH_ICON=**`signin`  
-**GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH=**`preferred_username`  
-**GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH=**`groups`  
-**GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH=**`name`  
-**GF_AUTH_GENERIC_OAUTH_USE_PKCE=**`true`  
+#### Environment Variables
+
+Configure the following environment variables:
+
+|                  Variable                   |                      Value                      |
+|:-------------------------------------------:|:-----------------------------------------------:|
+|             GF_SERVER_ROOT_URL              |           https://grafana.example.com           |
+|        GF_AUTH_GENERIC_OAUTH_ENABLED        |                      true                       |
+|         GF_AUTH_GENERIC_OAUTH_NAME          |                    Authelia                     |
+|       GF_AUTH_GENERIC_OAUTH_CLIENT_ID       |                     grafana                     |
+|     GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET     |              grafana_client_secret              |
+|        GF_AUTH_GENERIC_OAUTH_SCOPES         |           openid profile email groups           |
+|     GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES      |                      false                      |
+|       GF_AUTH_GENERIC_OAUTH_AUTH_URL        | https://auth.example.com/api/oidc/authorization |
+|       GF_AUTH_GENERIC_OAUTH_TOKEN_URL       |     https://auth.example.com/api/oidc/token     |
+|        GF_AUTH_GENERIC_OAUTH_API_URL        |   https://auth.example.com/api/oidc/userinfo    |
+| GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH  |               preferred_username                |
+| GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                     groups                      |
+|  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
+|       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
 
 ### Authelia
 
@@ -89,16 +92,17 @@ which will operate with the above example:
 
 ```yaml
 - id: grafana
+  description: Grafana
   secret: grafana_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://grafana.example.com/login/generic_oauth
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://grafana.example.com/login/generic_oauth
   userinfo_signing_algorithm: none
 ```
 
