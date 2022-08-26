@@ -1,6 +1,6 @@
-import React, { ReactNode, Fragment } from "react";
+import React, { Fragment, ReactNode } from "react";
 
-import { Typography, Link, Theme, Box } from "@mui/material";
+import { Box, Link, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";

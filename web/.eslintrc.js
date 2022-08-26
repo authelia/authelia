@@ -30,5 +30,14 @@ module.exports = {
                 },
             },
         ],
+        "sort-imports": [
+            "error",
+            {
+                ignoreCase: false,
+                ignoreDeclarationSort: true,
+                ignoreMemberSort: false,
+                allowSeparatedGroups: false,
+            },
+        ],
     },
 };

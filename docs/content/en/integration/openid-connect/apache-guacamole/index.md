@@ -58,16 +58,17 @@ The following YAML configuration is an example __Authelia__
 
 ```yaml
 - id: guacamole
+  description: Apache Guacamole
   secret: guacamole_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://guacamole.example.com
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://guacamole.example.com
   response_types:
     - id_token
   grant_types:
