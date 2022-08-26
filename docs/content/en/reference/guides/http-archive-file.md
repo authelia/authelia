@@ -46,23 +46,24 @@ In instances where there are multiple domains it's recommended these domains are
 
 ## Instructions
 
-The following are instructions on how to perform valuable HAR exports:
+The following are instructions on how to perform valuable HAR exports. The instructions for Chrome / Chromium should be
+applicable in all Chromium based browsers, and likewise for Firefox based browsers.
 
 1. Open your browser.
 2. Open a blank tab.
 3. Press Ctrl + Shift + I to open the browser Developer Tools.
-4. Open the Network tab.
+4. Open the `Network` tab.
 5. Ensure the browser persists logs:
    1. Firefox:
       1. Select the `Network Settings` cog symbol at the top right of the `Network` tab.
       2. Ensure `Persist Logs` is checked.
-   2. Chrome:
+   2. Chrome / Chromium:
       1. Ensure `Preserve logs` in the top left of the `Network` tab is checked.
 6. Perform your intended requests, or the requests that have been requested.
 7. Export the HAR File:
    1. Firefox:
       1. Select the `Network Settings` cog symbol at the top right of the `Network` tab.
       2. Select `Save All AS HAR`.
-   2. Chrome:
+   2. Chrome / Chromium:
       1. Right click any request in the `Network` tab.
       2. Select `Save all as HAR with content` at the bottom of the dialogue.
