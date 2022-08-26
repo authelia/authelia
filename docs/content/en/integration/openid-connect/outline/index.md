@@ -33,6 +33,9 @@ This example makes the following assumptions:
 * __Client ID:__ `outline`
 * __Client Secret:__ `outline_client_secret`
 
+*__Important Note:__ At the time of this writing [Outline] requires the `offline_access` scope by default. Failure to include this scope will result
+in an error as [Outline] will attempt to use a refresh token that is never issued.*
+
 ## Configuration
 
 ### Application
@@ -51,7 +54,7 @@ OIDC_TOKEN_URI=https://auth.example.com/api/oidc/token
 OIDC_USERINFO_URI=https://auth.example.com/api/oidc/userinfo
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
-OIDC_SCOPES="openid profile email"
+OIDC_SCOPES="openid offline_access profile email"
 ```
 
 ### Authelia
@@ -70,6 +73,7 @@ which will operate with the above example:
     - https://outline.example.com/auth/oidc.callback
   scopes:
     - openid
+    - offline_access
     - profile
     - email
   userinfo_signing_algorithm: none
