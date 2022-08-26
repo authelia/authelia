@@ -21,7 +21,9 @@ make including all headers which includes cookies, forms submitted, etc.
 
 This format allows users to open the developer tools, perform several actions, and then export a file with all of the
 requests that still exist in the network tab of the developer tools. This file is stored in JSON which makes it easy to
-view what information exists before sharing it.
+view what information exists before sharing it. Subsequently users may import this file on another browser and see all
+of these requests which makes it easier to debug certain situations without having to replicate an environment or be
+present in an environment.
 
 ## Sanitization
 
