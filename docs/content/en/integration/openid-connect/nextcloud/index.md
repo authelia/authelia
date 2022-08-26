@@ -86,15 +86,16 @@ which will operate with the above example:
 
 ```yaml
 - id: nextcloud
+  description: NextCloud
   secret: nextcloud_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://nextcloud.example.com/apps/oidc_login/oidc
   scopes:
     - openid
     - profile
     - groups
-  redirect_uris:
-    - https://nextcloud.example.com/apps/oidc_login/oidc
   userinfo_signing_algorithm: none
 ```
 
