@@ -62,6 +62,9 @@ which will operate with the above example:
 ```yaml
 - id: argocd
   description: Argo CD
+  secret: argocd_client_secret
+  public: false
+  authorization_policy: two_factor
   redirect_uris:
     - https://argocd.example.com/auth/callback
   scopes:
@@ -69,11 +72,11 @@ which will operate with the above example:
     - groups
     - email
     - profile
-  secret: argocd_client_secret
   userinfo_signing_algorithm: none
 - id: argocd-cli
   description: Argo CD (CLI)
   public: true
+  authorization_policy: two_factor
   redirect_uris:
     - http://localhost:8085/auth/callback
   scopes:

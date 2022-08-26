@@ -60,16 +60,17 @@ which will operate with the above example:
 
 ```yaml
 - id: cloudflare
+  description: Cloudflare ZeroTrust
   secret: cloudflare_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://example-team.cloudflareaccess.com/cdn-cgi/access/callback
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://example-team.cloudflareaccess.com/cdn-cgi/access/callback
   userinfo_signing_algorithm: none
 ```
 
