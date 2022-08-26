@@ -68,15 +68,16 @@ which will operate with the above example:
 
 ```yaml
 - id: synapse
+  description: Synapse
   secret: synapse_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://synapse.example.com/_synapse/client/oidc/callback
   scopes:
     - openid
     - profile
     - email
-  redirect_uris:
-    - https://synapse.example.com/_synapse/client/oidc/callback
   userinfo_signing_algorithm: none
 ```
 

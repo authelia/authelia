@@ -60,12 +60,12 @@ which will operate with the above example:
   secret: bookstack_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://bookstack.example.com/oidc/callback
   scopes:
     - openid
     - profile
     - email
-  redirect_uris:
-    - https://bookstack.example.com/oidc/callback
   userinfo_signing_algorithm: none
 ```
 

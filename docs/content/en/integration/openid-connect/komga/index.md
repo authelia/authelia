@@ -71,15 +71,15 @@ which will operate with the above example:
 ```yaml
 - id: komga
   description: Komga
-  secret: `komga_client_secret`
+  secret: komga_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://komga.example.com/login/oauth2/code/authelia
   scopes:
     - openid
     - preferred_username
     - email
-  redirect_uris:
-    - https://komga.example.com/login/oauth2/code/authelia
   grant_types:
     - authorization_code
   userinfo_signing_algorithm: none

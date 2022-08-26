@@ -52,14 +52,14 @@ which will operate with the above example:
   secret: vault_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://vault.example.com/oidc/callback
+    - https://vault.example.com/ui/vault/auth/oidc/oidc/callback
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://vault.example.com/oidc/callback
-    - https://vault.example.com/ui/vault/auth/oidc/oidc/callback
   userinfo_signing_algorithm: none
 ```
 
