@@ -418,9 +418,9 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 
 The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
 
-| Signing Algorithm | Encoding     |            Content Type             |
-|:-----------------:|:-------------|:-----------------------------------:|
-|      `none`       | JSON         | `application/json; charset="UTF-8"` |
+| Signing Algorithm |   Encoding   |            Content Type             |
+|:-----------------:|:------------:|:-----------------------------------:|
+|      `none`       |     JSON     | `application/json; charset="UTF-8"` |
 |      `RS256`      | JWT (Signed) | `application/jwt; charset="UTF-8"`  |
 
 ## Integration
