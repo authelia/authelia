@@ -75,37 +75,8 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		return fmt.Errorf("one or more errors occurred checking the authentication database")
 	}
 
-	switch p.config.Password.Algorithm {
-	case hashArgon2, "":
-		p.hash = crypt.NewArgon2Hash().
-			WithVariant(crypt.NewArgon2Variant(p.config.Password.Argon2.Variant)).
-			WithT(p.config.Password.Argon2.Iterations).
-			WithM(p.config.Password.Argon2.Memory).
-			WithP(p.config.Password.Argon2.Parallelism).
-			WithK(p.config.Password.Argon2.KeyLength).
-			WithS(p.config.Password.Argon2.SaltLength)
-	case hashSHA2Crypt:
-		p.hash = crypt.NewSHA2CryptHash().
-			WithVariant(crypt.NewSHA2CryptVariant(p.config.Password.SHA2Crypt.Variant)).
-			WithRounds(p.config.Password.SHA2Crypt.Iterations).
-			WithSaltLength(p.config.Password.SHA2Crypt.SaltLength)
-	case hashPBKDF2:
-		p.hash = crypt.NewPBKDF2Hash().
-			WithVariant(crypt.NewPBKDF2Variant(p.config.Password.PBKDF2.Variant)).
-			WithIterations(p.config.Password.PBKDF2.Iterations).
-			WithKeyLength(p.config.Password.PBKDF2.KeyLength).
-			WithSaltLength(p.config.Password.PBKDF2.SaltLength)
-	case hashSCrypt:
-		p.hash = crypt.NewScryptHash().
-			WithLN(p.config.Password.SCrypt.Iterations).
-			WithP(p.config.Password.SCrypt.Parallelism).
-			WithR(p.config.Password.SCrypt.BlockSize)
-	case hashBCrypt:
-		p.hash = crypt.NewBcryptHash().
-			WithVariant(crypt.NewBcryptVariant(p.config.Password.BCrypt.Variant)).
-			WithCost(p.config.Password.BCrypt.Cost)
-	default:
-		return fmt.Errorf("algorithm '%s' is unknown", p.config.Password.Algorithm)
+	if p.hash, err = NewFileCryptoHashFromConfig(p.config); err != nil {
+		return err
 	}
 
 	p.database = NewFileUserDatabase(p.config.Path)
@@ -115,6 +86,48 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	}
 
 	return nil
+}
+
+// NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
+func NewFileCryptoHashFromConfig(config *schema.FileAuthenticationBackend) (hash crypt.Hash, err error) {
+	switch config.Password.Algorithm {
+	case hashArgon2, "":
+		hash = crypt.NewArgon2Hash().
+			WithVariant(crypt.NewArgon2Variant(config.Password.Argon2.Variant)).
+			WithT(config.Password.Argon2.Iterations).
+			WithM(config.Password.Argon2.Memory).
+			WithP(config.Password.Argon2.Parallelism).
+			WithK(config.Password.Argon2.KeyLength).
+			WithS(config.Password.Argon2.SaltLength)
+	case hashSHA2Crypt:
+		hash = crypt.NewSHA2CryptHash().
+			WithVariant(crypt.NewSHA2CryptVariant(config.Password.SHA2Crypt.Variant)).
+			WithRounds(config.Password.SHA2Crypt.Iterations).
+			WithSaltLength(config.Password.SHA2Crypt.SaltLength)
+	case hashPBKDF2:
+		hash = crypt.NewPBKDF2Hash().
+			WithVariant(crypt.NewPBKDF2Variant(config.Password.PBKDF2.Variant)).
+			WithIterations(config.Password.PBKDF2.Iterations).
+			WithKeyLength(config.Password.PBKDF2.KeyLength).
+			WithSaltLength(config.Password.PBKDF2.SaltLength)
+	case hashSCrypt:
+		hash = crypt.NewScryptHash().
+			WithLN(config.Password.SCrypt.Iterations).
+			WithP(config.Password.SCrypt.Parallelism).
+			WithR(config.Password.SCrypt.BlockSize)
+	case hashBCrypt:
+		hash = crypt.NewBcryptHash().
+			WithVariant(crypt.NewBcryptVariant(config.Password.BCrypt.Variant)).
+			WithCost(config.Password.BCrypt.Cost)
+	default:
+		return nil, fmt.Errorf("algorithm '%s' is unknown", config.Password.Algorithm)
+	}
+
+	if err = hash.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate hash settings: %w", err)
+	}
+
+	return hash, nil
 }
 
 func checkDatabase(path string) (err error) {

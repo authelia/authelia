@@ -61,7 +61,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		}
 
 		baseURL := scheme + "://" + string(ctx.XForwardedHost()) + base + "/"
-		nonce := utils.RandomString(32, utils.AlphaNumericCharacters, true)
+		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric, true)
 
 		switch extension := filepath.Ext(file); extension {
 		case ".html":

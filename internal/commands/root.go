@@ -42,6 +42,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newBuildInfoCmd(),
 		newCryptoCmd(),
+		newCryptoHashPasswordCmd(),
 		newStorageCmd(),
 		newValidateConfigCmd(),
 		newAccessControlCommand(),

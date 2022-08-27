@@ -109,9 +109,24 @@ const (
 	HoursInYear  = HoursInDay * 365
 )
 
-var (
-	// AlphaNumericCharacters are literally just valid alphanumeric chars.
-	AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const (
+	// CharSetAlphabetic are literally just valid alphabetic printable ASCII chars.
+	CharSetAlphabetic = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	// CharSetNumeric are literally just valid numeric chars.
+	CharSetNumeric = "0123456789"
+
+	// CharSetNumericHex are literally just valid hexadecimal printable ASCII chars.
+	CharSetNumericHex = CharSetNumeric + "ABCDEF"
+
+	// CharSetSymbolic are literally just valid symbolic printable ASCII chars.
+	CharSetSymbolic = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+
+	// CharSetAlphaNumeric are literally just valid alphanumeric printable ASCII chars.
+	CharSetAlphaNumeric = CharSetAlphabetic + CharSetNumeric
+
+	// CharSetASCII are literally just valid printable ASCII chars.
+	CharSetASCII = CharSetAlphabetic + CharSetNumeric + CharSetSymbolic
 )
 
 var htmlEscaper = strings.NewReplacer(

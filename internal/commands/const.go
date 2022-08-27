@@ -310,6 +310,22 @@ This subcommand allows preforming cryptographic certificate, key pair, etc tasks
 
 	cmdAutheliaCryptoExample = `authelia crypto --help`
 
+	cmdAutheliaCryptoRandShort = "Generate a cryptographically secure random string"
+
+	cmdAutheliaCryptoRandLong = `Generate a cryptographically secure random string.
+
+This subcommand allows generating cryptographically secure random strings for use for encryption keys, HMAC keys, etc.`
+
+	cmdAutheliaCryptoRandExample = `authelia crypto rand --help
+authelia crypto rand --length 80
+authelia crypto rand -n 80
+authelia crypto rand --charset alphanumeric
+authelia crypto rand --charset alphabetic
+authelia crypto rand --charset ascii
+authelia crypto rand --charset numeric
+authelia crypto rand --charset numeric-hex
+authelia crypto rand --characters 0123456789ABCDEF`
+
 	cmdAutheliaCryptoHashShort = "Perform cryptographic hash operations"
 
 	cmdAutheliaCryptoHashLong = `Perform cryptographic hash operations.
@@ -358,12 +374,6 @@ This subcommand allows preforming certificate cryptographic tasks.`
 This subcommand allows preforming %s certificate cryptographic tasks.`
 
 	fmtCmdAutheliaCryptoCertificateSubExample = `authelia crypto certificate %s --help`
-
-	cmdAutheliaCryptoCertificateRSAExample = `authelia crypto certificate rsa --help`
-
-	cmdAutheliaCryptoCertificateECDSAExample = `authelia crypto certificate ecdsa --help`
-
-	cmdAutheliaCryptoCertificateEd25519Example = `authelia crypto certificate ed25519 --help`
 
 	fmtCmdAutheliaCryptoCertificateGenerateRequestShort = "Generate an %s private key and %s"
 
@@ -491,6 +501,10 @@ const (
 	cmdFlagNameKeySize     = "key-size"
 	cmdFlagNameSaltSize    = "salt-size"
 	cmdFlagNameProfile     = "profile"
+
+	cmdFlagNameCharSet    = "charset"
+	cmdFlagNameCharacters = "characters"
+	cmdFlagNameLength     = "length"
 )
 
 const (
@@ -501,6 +515,8 @@ const (
 	cmdUseHashBCrypt    = "bcrypt"
 	cmdUseHashSCrypt    = "scrypt"
 
+	cmdUseCrypto      = "crypto"
+	cmdUseRand        = "rand"
 	cmdUseCertificate = "certificate"
 	cmdUseGenerate    = "generate"
 	cmdUseValidate    = "validate"

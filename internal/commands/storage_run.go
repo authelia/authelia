@@ -406,7 +406,7 @@ func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string
 		break
 	case storageTOTPExportFormatPNG:
 		if dir == "" {
-			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
+			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
 		}
 
 		if _, err = os.Stat(dir); !os.IsNotExist(err) {
