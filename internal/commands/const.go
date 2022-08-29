@@ -501,6 +501,8 @@ const (
 	cmdFlagNameKeySize     = "key-size"
 	cmdFlagNameSaltSize    = "salt-size"
 	cmdFlagNameProfile     = "profile"
+	cmdFlagNameSHA512      = "sha512"
+	cmdFlagNameConfig      = "config"
 
 	cmdFlagNameCharSet    = "charset"
 	cmdFlagNameCharacters = "characters"
@@ -508,6 +510,7 @@ const (
 )
 
 const (
+	cmdUseHashPassword  = "hash-password [flags] -- '<password>'"
 	cmdUseHash          = "hash"
 	cmdUseHashArgon2    = "argon2"
 	cmdUseHashSHA2Crypt = "sha2crypt"
@@ -530,6 +533,8 @@ const (
 const (
 	cryptoCertPubCertOut = "certificate"
 	cryptoCertCSROut     = "certificate signing request"
+
+	prefixFilePassword = "authentication_backend.file.password"
 )
 
 var (

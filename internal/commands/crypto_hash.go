@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 	"syscall"
 
 	"github.com/go-crypt/crypt"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -16,7 +18,7 @@ import (
 
 func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "hash-password [flags] -- '<password>'",
+		Use:     cmdUseHashPassword,
 		Short:   cmdAutheliaHashPasswordShort,
 		Long:    cmdAutheliaHashPasswordLong,
 		Example: cmdAutheliaHashPasswordExample,
@@ -24,98 +26,44 @@ func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
 		RunE:    cmdHashPasswordRunE,
 	}
 
-	cmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordConfig.SHA2Crypt.Iterations))
-	cmd.Flags().IntP("iterations", "i", schema.DefaultPasswordConfig.Argon2.Iterations, "set the number of hashing iterations")
-	cmd.Flags().IntP("memory", "m", schema.DefaultPasswordConfig.Argon2.Memory, "[argon2id] set the amount of memory param (in MB)")
-	cmd.Flags().IntP("parallelism", "p", schema.DefaultPasswordConfig.Argon2.Parallelism, "[argon2id] set the parallelism param")
+	cmd.Flags().BoolP(cmdFlagNameSHA512, "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordConfig.SHA2Crypt.Iterations))
+	cmd.Flags().IntP(cmdFlagNameIterations, "i", schema.DefaultPasswordConfig.Argon2.Iterations, "set the number of hashing iterations")
+	cmd.Flags().IntP(cmdFlagNameMemory, "m", schema.DefaultPasswordConfig.Argon2.Memory, "[argon2id] set the amount of memory param (in MB)")
+	cmd.Flags().IntP(cmdFlagNameParallelism, "p", schema.DefaultPasswordConfig.Argon2.Parallelism, "[argon2id] set the parallelism param")
 	cmd.Flags().IntP("key-length", "k", schema.DefaultPasswordConfig.Argon2.KeyLength, "[argon2id] set the key length param")
 	cmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordConfig.Argon2.SaltLength, "set the auto-generated salt length")
-	cmd.Flags().StringSliceP("config", "c", []string{}, "Configuration files")
+	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{}, "Configuration files")
 
 	return cmd
 }
 
 func cmdHashPasswordRunE(cmd *cobra.Command, args []string) (err error) {
-	sha512, _ := cmd.Flags().GetBool("sha512")
-	configs, _ := cmd.Flags().GetStringSlice("config")
-
-	mapDefaults := map[string]interface{}{
-		"authentication_backend.file.password.algorithm":             schema.DefaultPasswordConfig.Algorithm,
-		"authentication_backend.file.password.argon2.variant":        schema.DefaultPasswordConfig.Argon2.Variant,
-		"authentication_backend.file.password.argon2.iterations":     schema.DefaultPasswordConfig.Argon2.Iterations,
-		"authentication_backend.file.password.argon2.key_length":     schema.DefaultPasswordConfig.Argon2.KeyLength,
-		"authentication_backend.file.password.argon2.salt_length":    schema.DefaultPasswordConfig.Argon2.SaltLength,
-		"authentication_backend.file.password.argon2.parallelism":    schema.DefaultPasswordConfig.Argon2.Parallelism,
-		"authentication_backend.file.password.argon2.memory":         schema.DefaultPasswordConfig.Argon2.Memory,
-		"authentication_backend.file.password.sha2crypt.variant":     schema.DefaultPasswordConfig.SHA2Crypt.Variant,
-		"authentication_backend.file.password.sha2crypt.iterations":  schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
-		"authentication_backend.file.password.sha2crypt.salt_length": schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
-	}
-
-	var mapCLI map[string]string
-
-	switch {
-	case sha512:
-		mapDefaults["authentication_backend.file.password.algorithm"] = "sha2crypt"
-		mapCLI = map[string]string{
-			"iterations":  "authentication_backend.file.password.sha2crypt.iterations",
-			"salt-length": "authentication_backend.file.password.sha2crypt.salt_length",
-		}
-	default:
-		mapCLI = map[string]string{
-			"iterations":  "authentication_backend.file.password.argon2.iterations",
-			"key-length":  "authentication_backend.file.password.argon2.key_length",
-			"salt-length": "authentication_backend.file.password.argon2.salt_length",
-			"parallelism": "authentication_backend.file.password.argon2.parallelism",
-			"memory":      "authentication_backend.file.password.argon2.memory",
-		}
-	}
-
-	sources := configuration.NewDefaultSourcesWithDefaults(configs,
-		configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter,
-		configuration.NewMapSource(mapDefaults),
-		configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapCLI, false, false),
-	)
-
-	val := schema.NewStructValidator()
-
-	if _, config, err = configuration.Load(val, sources...); err != nil {
-		return fmt.Errorf("error occurred loading configuration: %w", err)
-	}
-
-	validator.ValidatePasswordConfiguration(&config.AuthenticationBackend.File.Password, val)
-
-	errs := val.Errors()
-
-	if len(errs) != 0 {
-		for i, e := range errs {
-			if i == 0 {
-				err = e
-				continue
-			}
-
-			err = fmt.Errorf("%v, %w", err, e)
-		}
-
-		return fmt.Errorf("errors occurred validating the password configuration: %w", err)
-	}
-
 	var (
-		hash   crypt.Hash
-		digest crypt.Digest
+		flagsMap map[string]string
+		sha512   bool
 	)
 
-	if hash, err = authentication.NewFileCryptoHashFromConfig(config.AuthenticationBackend.File); err != nil {
+	if sha512, err = cmd.Flags().GetBool(cmdFlagNameSHA512); err != nil {
 		return err
 	}
 
-	if digest, err = hash.Hash(args[0]); err != nil {
-		return fmt.Errorf("error during password hashing: %w", err)
+	switch {
+	case sha512:
+		flagsMap = map[string]string{
+			cmdFlagNameIterations: prefixFilePassword + ".sha2crypt.iterations",
+			"salt-length":         prefixFilePassword + ".sha2crypt.salt_length",
+		}
+	default:
+		flagsMap = map[string]string{
+			cmdFlagNameIterations:  prefixFilePassword + ".argon2.iterations",
+			"key-length":           prefixFilePassword + ".argon2.key_length",
+			"salt-length":          prefixFilePassword + ".argon2.salt_length",
+			cmdFlagNameParallelism: prefixFilePassword + ".argon2.parallelism",
+			cmdFlagNameMemory:      prefixFilePassword + ".argon2.memory",
+		}
 	}
 
-	fmt.Printf("Password Digest: %s\n", digest)
-
-	return nil
+	return cmdCryptoHashGenerateFinish(cmd, args, flagsMap)
 }
 
 func newCryptoHashCmd() (cmd *cobra.Command) {
@@ -164,6 +112,8 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		},
 	}
 
+	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{}, "Configuration files")
+
 	cmdFlagPassword(cmd, true)
 
 	switch use {
@@ -195,7 +145,7 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		cmd.RunE = cryptoHashGeneratePBKDF2RunE
 	case cmdUseHashBCrypt:
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", "standard", "variant, options are 'standard' and 'sha256'")
-		cmd.Flags().IntP(cmdFlagNameCost, "c", 13, "hashing cost")
+		cmd.Flags().IntP(cmdFlagNameCost, "i", 13, "hashing cost")
 
 		cmd.RunE = cryptoHashGenerateBCryptRunE
 	case cmdUseHashSCrypt:
@@ -213,268 +163,58 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 }
 
 func cryptoHashGenerateArgon2RunE(cmd *cobra.Command, args []string) (err error) {
-	var profile, password, variant string
-
-	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
-		return err
+	flagsMap := map[string]string{
+		cmdFlagNameVariant:     prefixFilePassword + ".argon2.variant",
+		cmdFlagNameIterations:  prefixFilePassword + ".argon2.iterations",
+		cmdFlagNameMemory:      prefixFilePassword + ".argon2.memory",
+		cmdFlagNameParallelism: prefixFilePassword + ".argon2.parallelism",
+		cmdFlagNameKeySize:     prefixFilePassword + ".argon2.key_length",
+		cmdFlagNameSaltSize:    prefixFilePassword + ".argon2.salt_length",
 	}
 
-	hash := crypt.NewArgon2Hash()
-
-	var t, m, p, k, s int
-
-	if t, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
-		return err
-	}
-
-	if m, err = cmd.Flags().GetInt(cmdFlagNameMemory); err != nil {
-		return err
-	}
-
-	if p, err = cmd.Flags().GetInt(cmdFlagNameParallelism); err != nil {
-		return err
-	}
-
-	if k, err = cmd.Flags().GetInt(cmdFlagNameKeySize); err != nil {
-		return err
-	}
-
-	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
-		return err
-	}
-
-	if variant, err = cmd.Flags().GetString(cmdFlagNameVariant); err != nil {
-		return err
-	}
-
-	switch variant {
-	case "id", "i", "d":
-		break
-	default:
-		return fmt.Errorf("variant '%s' is not valid: valid variants are 'id', 'i', and 'd'", variant)
-	}
-
-	hash.WithVariant(crypt.NewArgon2Variant("argon2" + variant))
-
-	if profile, err = cmd.Flags().GetString(cmdFlagNameProfile); err != nil {
-		return err
-	}
-
-	switch profile {
-	case "low-memory":
-		hash.WithProfile(crypt.Argon2ProfileRFC9106LowMemory)
-	case "recommended":
-		hash.WithProfile(crypt.Argon2ProfileRFC9106Recommended)
-	default:
-		return fmt.Errorf("profile '%s' is not valid: valid profiles are 'low-memory' and 'recommended'", profile)
-	}
-
-	if cmd.Flags().Changed(cmdFlagNameProfile) {
-		if cmd.Flags().Changed(cmdFlagNameIterations) {
-			hash.WithT(t)
-		}
-
-		if cmd.Flags().Changed(cmdFlagNameMemory) {
-			hash.WithM(m)
-		}
-
-		if cmd.Flags().Changed(cmdFlagNameParallelism) {
-			hash.WithP(p)
-		}
-
-		if cmd.Flags().Changed(cmdFlagNameKeySize) {
-			hash.WithK(k)
-		}
-
-		if cmd.Flags().Changed(cmdFlagNameSaltSize) {
-			hash.WithS(s)
-		}
-	} else {
-		hash.WithT(t).WithM(m).WithP(p).WithK(k).WithS(s)
-	}
-
-	var digest crypt.Digest
-
-	if digest, err = hash.Hash(password); err != nil {
-		return err
-	}
-
-	fmt.Printf("Digest: %s", digest.Encode())
-
-	return nil
+	return cmdCryptoHashGenerateFinish(cmd, args, flagsMap)
 }
 
 func cryptoHashGenerateSHA2CryptRunE(cmd *cobra.Command, args []string) (err error) {
-	var password, variant string
-
-	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
-		return err
+	flagsMap := map[string]string{
+		cmdFlagNameVariant:    prefixFilePassword + ".sha2crypt.variant",
+		cmdFlagNameIterations: prefixFilePassword + ".sha2crypt.iterations",
+		cmdFlagNameSaltSize:   prefixFilePassword + ".sha2crypt.salt_length",
 	}
 
-	hash := crypt.NewSHA2CryptHash()
-
-	var i, s int
-
-	if i, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
-		return err
-	}
-
-	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
-		return err
-	}
-
-	if variant, err = cmd.Flags().GetString(cmdFlagNameVariant); err != nil {
-		return err
-	}
-
-	switch variant {
-	case "sha512", "sha256", "6", "5":
-		break
-	default:
-		return fmt.Errorf("variant '%s' is not valid: valid variants are 'sha512' and 'sha256'", variant)
-	}
-
-	hash.WithVariant(crypt.NewSHA2CryptVariant(variant)).WithRounds(i).WithSaltLength(s)
-
-	var digest crypt.Digest
-
-	if digest, err = hash.Hash(password); err != nil {
-		return err
-	}
-
-	fmt.Printf("Digest: %s", digest.Encode())
-
-	return nil
+	return cmdCryptoHashGenerateFinish(cmd, args, flagsMap)
 }
 
 func cryptoHashGeneratePBKDF2RunE(cmd *cobra.Command, args []string) (err error) {
-	var password, variant string
-
-	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
-		return err
+	flagsMap := map[string]string{
+		cmdFlagNameVariant:    prefixFilePassword + ".pbkdf2.variant",
+		cmdFlagNameIterations: prefixFilePassword + ".pbkdf2.iterations",
+		cmdFlagNameKeySize:    prefixFilePassword + ".pbkdf2.key_length",
+		cmdFlagNameSaltSize:   prefixFilePassword + ".pbkdf2.salt_length",
 	}
 
-	hash := crypt.NewPBKDF2Hash()
-
-	var i, k, s int
-
-	if i, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
-		return err
-	}
-
-	if k, err = cmd.Flags().GetInt(cmdFlagNameKeySize); err != nil {
-		return err
-	}
-
-	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
-		return err
-	}
-
-	if variant, err = cmd.Flags().GetString(cmdFlagNameVariant); err != nil {
-		return err
-	}
-
-	switch variant {
-	case "sha1", "sha224", "sha256", "sha384", "sha512":
-		break
-	default:
-		return fmt.Errorf("variant '%s' is not valid: valid variants are 'sha1', 'sha224', 'sha256', 'sha385', and 'sha512'", variant)
-	}
-
-	hash.WithVariant(crypt.NewPBKDF2Variant(variant)).WithIterations(i).WithKeyLength(k).WithSaltLength(s)
-
-	var digest crypt.Digest
-
-	if digest, err = hash.Hash(password); err != nil {
-		return err
-	}
-
-	fmt.Printf("Digest: %s", digest.Encode())
-
-	return nil
+	return cmdCryptoHashGenerateFinish(cmd, args, flagsMap)
 }
 
 func cryptoHashGenerateBCryptRunE(cmd *cobra.Command, args []string) (err error) {
-	var password, variant string
-
-	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
-		return err
+	flagsMap := map[string]string{
+		cmdFlagNameVariant: prefixFilePassword + ".bcrypt.variant",
+		cmdFlagNameCost:    prefixFilePassword + ".bcrypt.cost",
 	}
 
-	hash := crypt.NewBcryptHash()
-
-	var i int
-
-	if i, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
-		return err
-	}
-
-	if variant, err = cmd.Flags().GetString(cmdFlagNameVariant); err != nil {
-		return err
-	}
-
-	switch variant {
-	case "standard", "sha256":
-		break
-	default:
-		return fmt.Errorf("variant '%s' is not valid: valid variants are 'sha1', 'sha224', 'sha256', 'sha385', and 'sha512'", variant)
-	}
-
-	hash.WithVariant(crypt.NewBcryptVariant(variant)).WithCost(i)
-
-	var digest crypt.Digest
-
-	if digest, err = hash.Hash(password); err != nil {
-		return err
-	}
-
-	fmt.Printf("Digest: %s", digest.Encode())
-
-	return nil
+	return cmdCryptoHashGenerateFinish(cmd, args, flagsMap)
 }
 
 func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error) {
-	var password string
-
-	if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
-		return err
+	flagsMap := map[string]string{
+		cmdFlagNameIterations:  prefixFilePassword + ".scrypt.iterations",
+		cmdFlagNameBlockSize:   prefixFilePassword + ".scrypt.block_size",
+		cmdFlagNameParallelism: prefixFilePassword + ".scrypt.parallelism",
+		cmdFlagNameKeySize:     prefixFilePassword + ".scrypt.key_length",
+		cmdFlagNameSaltSize:    prefixFilePassword + ".scrypt.salt_length",
 	}
 
-	hash := crypt.NewScryptHash()
-
-	var ln, r, p, k, s int
-
-	if ln, err = cmd.Flags().GetInt(cmdFlagNameIterations); err != nil {
-		return err
-	}
-
-	if r, err = cmd.Flags().GetInt(cmdFlagNameBlockSize); err != nil {
-		return err
-	}
-
-	if p, err = cmd.Flags().GetInt(cmdFlagNameParallelism); err != nil {
-		return err
-	}
-
-	if k, err = cmd.Flags().GetInt(cmdFlagNameKeySize); err != nil {
-		return err
-	}
-
-	if s, err = cmd.Flags().GetInt(cmdFlagNameSaltSize); err != nil {
-		return err
-	}
-
-	hash.WithLN(ln).WithR(r).WithP(p).WithKeySize(k).WithSaltSize(s)
-
-	var digest crypt.Digest
-
-	if digest, err = hash.Hash(password); err != nil {
-		return err
-	}
-
-	fmt.Printf("Digest: %s", digest.Encode())
-
-	return nil
+	return cmdCryptoHashGenerateFinish(cmd, args, flagsMap)
 }
 
 func newCryptoHashValidateCmd() (cmd *cobra.Command) {
@@ -490,7 +230,7 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 				valid    bool
 			)
 
-			if password, err = cmdCryptoHashGetPassword(cmd); err != nil {
+			if password, err = cmdCryptoHashGetPassword(cmd, args, false); err != nil {
 				return fmt.Errorf("error occurred trying to obtain the password: %w", err)
 			}
 
@@ -514,9 +254,125 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdCryptoHashGetPassword(cmd *cobra.Command) (password string, err error) {
+func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map[string]string) (err error) {
+	var (
+		algorithm string
+		configs   []string
+		c         schema.Password
+	)
+
+	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
+		return err
+	}
+
+	legacy := cmd.Use == cmdUseHashPassword
+
+	switch {
+	case legacy:
+		if sha512, _ := cmd.Flags().GetBool(cmdFlagNameSHA512); sha512 {
+			algorithm = cmdUseHashSHA2Crypt
+		} else {
+			algorithm = cmdUseHashArgon2
+		}
+	default:
+		algorithm = cmd.Use
+	}
+
+	if c, err = cmdCryptoHashGetConfig(algorithm, configs, cmd.Flags(), flagsMap); err != nil {
+		return err
+	}
+
+	var (
+		hash     crypt.Hash
+		digest   crypt.Digest
+		password string
+	)
+
+	if password, err = cmdCryptoHashGetPassword(cmd, args, legacy); err != nil {
+		return err
+	}
+
+	if hash, err = authentication.NewFileCryptoHashFromConfig(c); err != nil {
+		return err
+	}
+
+	if digest, err = hash.Hash(password); err != nil {
+		return err
+	}
+
+	fmt.Printf("Digest: %s", digest.Encode())
+
+	return nil
+}
+
+func cmdCryptoHashGetConfig(algorithm string, configs []string, flags *pflag.FlagSet, flagsMap map[string]string) (c schema.Password, err error) {
+	mapDefaults := map[string]interface{}{
+		prefixFilePassword + ".algorithm":             schema.DefaultPasswordConfig.Algorithm,
+		prefixFilePassword + ".argon2.variant":        schema.DefaultPasswordConfig.Argon2.Variant,
+		prefixFilePassword + ".argon2.iterations":     schema.DefaultPasswordConfig.Argon2.Iterations,
+		prefixFilePassword + ".argon2.memory":         schema.DefaultPasswordConfig.Argon2.Memory,
+		prefixFilePassword + ".argon2.parallelism":    schema.DefaultPasswordConfig.Argon2.Parallelism,
+		prefixFilePassword + ".argon2.key_length":     schema.DefaultPasswordConfig.Argon2.KeyLength,
+		prefixFilePassword + ".argon2.salt_length":    schema.DefaultPasswordConfig.Argon2.SaltLength,
+		prefixFilePassword + ".sha2crypt.variant":     schema.DefaultPasswordConfig.SHA2Crypt.Variant,
+		prefixFilePassword + ".sha2crypt.iterations":  schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
+		prefixFilePassword + ".sha2crypt.salt_length": schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
+		prefixFilePassword + ".pbkdf2.variant":        schema.DefaultPasswordConfig.PBKDF2.Variant,
+		prefixFilePassword + ".pbkdf2.iterations":     schema.DefaultPasswordConfig.PBKDF2.Iterations,
+		prefixFilePassword + ".pbkdf2.key_length":     schema.DefaultPasswordConfig.PBKDF2.KeyLength,
+		prefixFilePassword + ".pbkdf2.salt_length":    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
+		prefixFilePassword + ".bcrypt.variant":        schema.DefaultPasswordConfig.BCrypt.Variant,
+		prefixFilePassword + ".bcrypt.cost":           schema.DefaultPasswordConfig.BCrypt.Cost,
+		prefixFilePassword + ".scrypt.iterations":     schema.DefaultPasswordConfig.SCrypt.Iterations,
+		prefixFilePassword + ".scrypt.block_size":     schema.DefaultPasswordConfig.SCrypt.BlockSize,
+		prefixFilePassword + ".scrypt.parallelism":    schema.DefaultPasswordConfig.SCrypt.Parallelism,
+		prefixFilePassword + ".scrypt.key_length":     schema.DefaultPasswordConfig.SCrypt.KeyLength,
+		prefixFilePassword + ".scrypt.salt_length":    schema.DefaultPasswordConfig.SCrypt.SaltLength,
+	}
+
+	sources := configuration.NewDefaultSourcesWithDefaults(configs,
+		configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter,
+		configuration.NewMapSource(mapDefaults),
+		configuration.NewCommandLineSourceWithMapping(flags, flagsMap, false, false),
+	)
+
+	if algorithm != "" {
+		alg := map[string]interface{}{prefixFilePassword + ".algorithm": algorithm}
+
+		sources = append(sources, configuration.NewMapSource(alg))
+	}
+
+	val := schema.NewStructValidator()
+
+	if _, err = configuration.LoadAdvanced(val, prefixFilePassword, &c, sources...); err != nil {
+		return schema.Password{}, fmt.Errorf("error occurred loading configuration: %w", err)
+	}
+
+	validator.ValidatePasswordConfiguration(&c, val)
+
+	errs := val.Errors()
+
+	if len(errs) != 0 {
+		for i, e := range errs {
+			if i == 0 {
+				err = e
+				continue
+			}
+
+			err = fmt.Errorf("%v, %w", err, e)
+		}
+
+		return schema.Password{}, fmt.Errorf("errors occurred validating the password configuration: %w", err)
+	}
+
+	return c, nil
+}
+
+func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs bool) (password string, err error) {
 	if cmd.Flags().Changed(cmdFlagNamePassword) {
 		return cmd.Flags().GetString(cmdFlagNamePassword)
+	} else if useArgs && len(args) != 0 {
+		return strings.Join(args, " "), nil
 	}
 
 	var (

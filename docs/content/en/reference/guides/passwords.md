@@ -52,25 +52,24 @@ users:
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
 
-You can use Authelia binary or docker image to generate the hash of any password. The [hash-password] command has many
-tunable options, you can view them with the `authelia hash-password --help` command. For example if you wanted to
-improve the entropy you could generate a 16 byte salt and provide it with the `--salt` flag.
+You can use Authelia binary or docker image to generate the hash of any password. The [crypt hash generate] command has
+many supported algorithms. To view them run the `authelia crypto hash generate --help` command. To see the tunable
+options for an algorithm subcommand include that command before `--help`. For example for the [Argon2] algorithm use the
+`authelia crypto hash generate argon2 --help` command to see the available options.
 
-Example: `authelia hash-password --salt abcdefghijklhijl -- 'password'`.
-
-Passwords passed to [hash-password] should be single quoted if using special characters to prevent parameter
-substitution. In addition the password should be the last parameter, and should be after a `--`. For instance to
-generate a hash with the docker image just run:
+Passwords passed to [crypt hash generate] should be single quoted if using the `--password` parameter instead of the
+console prompt, especially if it has  special characters to prevent parameter substitution. For instance to generate an
+[Argon2] hash with the docker image just run:
 
 ```bash
-$ docker run authelia/authelia:latest authelia hash-password -- 'password'
-Password hash: $argon2id$v=19$m=65536$3oc26byQuSkQqksq$zM1QiTvVPrMfV6BVLs2t4gM+af5IN7euO0VB6+Q8ZFs
+$ docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyVpDDfmLrGPGFgo5E2NNqRumui4
 ```
 
 You may also use the `--config` flag to point to your existing configuration. When used, the values defined in the
 config will be used instead.
 
-See the [full CLI reference documentation](../cli/authelia/authelia_hash-password.md).
+See the [full CLI reference documentation](../cli/authelia/authelia_crypto_hash_generate.md).
 
 ### Cost
 
@@ -162,5 +161,5 @@ This table suggests the parameters for the [SHA Crypt] (`SHA512` variant) algori
 [YAML]: https://yaml.org/
 [Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
 [SHA Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
-[hash-password]: ../cli/authelia/authelia_hash-password.md
+[crypt hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition
