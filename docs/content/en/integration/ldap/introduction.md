@@ -31,8 +31,8 @@ In your Authelia configuration you will need to enter and update the following v
 * url `ldap://OpenLDAP:1389` - servers dns name & port.  
   *tip: if you have Authelia on a container network that is routable, you can just use the container name*
 * server_name `ldap01.example.com` - servers name
-* base_dn `dc=example,dc=com` - cannonical name of domain root.
-* groups_filter `dc=example,dc=com` - replace relevant section with your own domain in cannonical format, same as base_dn.
+* base_dn `dc=example,dc=com` - common name of domain root.
+* groups_filter `dc=example,dc=com` - replace relevant section with your own domain in common name format, same as base_dn.
 * user `authelia` - username for Authelia service account
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
@@ -72,8 +72,8 @@ In your Authelia configuration you will need to enter and update the following v
 * url `ldap://ldap` - servers dns name. Port will assume 389 as standard. Specify custom port with `:port` if needed.  
   *tip: if you have Authelia on a container network that is routable, you can just use the container name*
 * server_name `ldap01.example.com` - servers name
-* base_dn `dc=example,dc=com` - cannonical name of domain root.
-* groups_filter `dc=example,dc=com` - replace relevant section with your own domain in cannonical format, same as base_dn.
+* base_dn `dc=example,dc=com` - common name of domain root.
+* groups_filter `dc=example,dc=com` - replace relevant section with your own domain in common name format, same as base_dn.
 * user `authelia` - username for Authelia service account
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
