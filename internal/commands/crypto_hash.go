@@ -407,7 +407,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs bool) (
 func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Print(prompt)
 
-	data, err = term.ReadPassword(int(syscall.Stdin))
+	data, err = term.ReadPassword(int(syscall.Stdin)) //nolint:unconvert // This is a required conversion.
 
 	fmt.Println("")
 
