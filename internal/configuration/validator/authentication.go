@@ -77,10 +77,10 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	switch config.Argon2.Variant {
 	case "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
-	case "argon2id", "argon2i", "argon2d":
+	case "argon2id", "id", "argon2i", "i", "argon2d", "d":
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "argon2", config.Argon2.Variant, strings.Join([]string{"argon2id", "argon2i", "argon2d"}, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, config.Argon2.Variant, strings.Join([]string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}, "', '")))
 	}
 
 	if config.Argon2.Iterations == 0 {
@@ -115,7 +115,7 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 	case utils.IsStringInSlice(config.SHA2Crypt.Variant, validSHA2CryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "sha2crypt", config.SHA2Crypt.Variant, strings.Join(validSHA2CryptVariants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, config.SHA2Crypt.Variant, strings.Join(validSHA2CryptVariants, "', '")))
 	}
 
 	if config.SHA2Crypt.Iterations == 0 {
@@ -134,7 +134,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 	case utils.IsStringInSlice(config.PBKDF2.Variant, validPBKDF2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "pbkdf2", config.PBKDF2.Variant, strings.Join(validPBKDF2Variants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, config.PBKDF2.Variant, strings.Join(validPBKDF2Variants, "', '")))
 	}
 
 	if config.PBKDF2.Iterations == 0 {
@@ -157,7 +157,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 	case utils.IsStringInSlice(config.BCrypt.Variant, validBCryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, "bcrypt", config.PBKDF2.Variant, strings.Join(validBCryptVariants, "', '")))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, config.PBKDF2.Variant, strings.Join(validBCryptVariants, "', '")))
 	}
 
 	if config.BCrypt.Cost == 0 {
@@ -190,7 +190,7 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Password) {
 	switch config.Algorithm {
 	case hashSHA512:
-		config.Algorithm = "sha2crypt"
+		config.Algorithm = hashSHA2Crypt
 		config.SHA2Crypt.Variant = hashSHA512
 
 		if config.Iterations > 0 {
@@ -201,7 +201,7 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Passwo
 			config.SHA2Crypt.SaltLength = config.SaltLength
 		}
 	case hashArgon2id:
-		config.Algorithm = "argon2"
+		config.Algorithm = hashArgon2
 		config.Argon2.Variant = hashArgon2id
 
 		if config.Iterations > 0 {

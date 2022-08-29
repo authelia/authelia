@@ -299,7 +299,7 @@ var validPBKDF2Variants = []string{digestSHA1, digestSHA224, digestSHA256, diges
 
 var validBCryptVariants = []string{"standard", digestSHA256}
 
-var validHashAlgorithms = []string{hashArgon2id, hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2, hashSHA512}
+var validHashAlgorithms = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
 
 var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
 
