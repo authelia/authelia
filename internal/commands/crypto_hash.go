@@ -314,7 +314,7 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		return err
 	}
 
-	fmt.Printf("Digest: %s", digest.Encode())
+	fmt.Printf("Digest: %s\n", digest.Encode())
 
 	return nil
 }
