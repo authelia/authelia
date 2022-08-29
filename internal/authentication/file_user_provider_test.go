@@ -41,7 +41,7 @@ func TestShouldErrorPermissionsOnLocalFS(t *testing.T) {
 	_ = os.Mkdir("/tmp/noperms/", 0000)
 	err := checkDatabase("/tmp/noperms/users_database.yml")
 
-	require.EqualError(t, err, "Unable to find database file: /tmp/noperms/users_database.yml")
+	require.EqualError(t, err, "error checking user authentication database file: stat /tmp/noperms/users_database.yml: permission denied")
 }
 
 func TestShouldErrorAndGenerateUserDB(t *testing.T) {
