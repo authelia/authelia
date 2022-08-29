@@ -347,7 +347,9 @@ authelia crypto hash validate '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8C
 
 	cmdAutheliaCryptoHashGenerateLong = `Generate cryptographic hash digests.
 
-This subcommand allows generating cryptographic hash digests.`
+This subcommand allows generating cryptographic hash digests.
+
+See the help for the subcommands if you want to override the configuration or defaults.`
 
 	cmdAutheliaCryptoHashGenerateExample = `authelia crypto hash generate --help`
 

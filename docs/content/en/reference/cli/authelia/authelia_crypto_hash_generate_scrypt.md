@@ -36,7 +36,7 @@ authelia crypto hash generate scrypt --help
 
 ```
   -r, --block-size int    block size (default 8)
-  -c, --config strings    Configuration files
+  -c, --config strings    configuration files to load (default [configuration.yml])
   -h, --help              help for scrypt
   -i, --iterations int    number of iterations (default 16)
   -k, --key-size int      key size in bytes (default 32)

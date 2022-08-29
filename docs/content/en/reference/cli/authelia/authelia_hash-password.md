@@ -38,7 +38,7 @@ authelia hash-password --key-length=64 -- 'mypass'
 ### Options
 
 ```
-  -c, --config strings    Configuration files
+  -c, --config strings    configuration files to load (default [configuration.yml])
   -h, --help              help for hash-password
   -i, --iterations int    set the number of hashing iterations (default 3)
   -k, --key-length int    [argon2id] set the key length param (default 32)

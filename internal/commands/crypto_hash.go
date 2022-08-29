@@ -26,13 +26,14 @@ func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
 		RunE:    cmdHashPasswordRunE,
 	}
 
+	cmdFlagConfig(cmd)
+
 	cmd.Flags().BoolP(cmdFlagNameSHA512, "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordConfig.SHA2Crypt.Iterations))
 	cmd.Flags().IntP(cmdFlagNameIterations, "i", schema.DefaultPasswordConfig.Argon2.Iterations, "set the number of hashing iterations")
 	cmd.Flags().IntP(cmdFlagNameMemory, "m", schema.DefaultPasswordConfig.Argon2.Memory, "[argon2id] set the amount of memory param (in MB)")
 	cmd.Flags().IntP(cmdFlagNameParallelism, "p", schema.DefaultPasswordConfig.Argon2.Parallelism, "[argon2id] set the parallelism param")
 	cmd.Flags().IntP("key-length", "k", schema.DefaultPasswordConfig.Argon2.KeyLength, "[argon2id] set the key length param")
 	cmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordConfig.Argon2.SaltLength, "set the auto-generated salt length")
-	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{}, "Configuration files")
 	cmd.Flags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
 
 	return cmd
@@ -90,7 +91,13 @@ func newCryptoHashGenerateCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaCryptoHashGenerateShort,
 		Long:    cmdAutheliaCryptoHashGenerateLong,
 		Example: cmdAutheliaCryptoHashGenerateExample,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmdCryptoHashGenerateFinish(cmd, args, map[string]string{})
+		},
 	}
+
+	cmdFlagConfig(cmd)
+	cmdFlagPassword(cmd, true)
 
 	for _, use := range []string{cmdUseHashArgon2, cmdUseHashSHA2Crypt, cmdUseHashPBKDF2, cmdUseHashBCrypt, cmdUseHashSCrypt} {
 		cmd.AddCommand(newCryptoHashGenerateSubCmd(use))
@@ -113,8 +120,7 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		},
 	}
 
-	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{}, "Configuration files")
-
+	cmdFlagConfig(cmd)
 	cmdFlagPassword(cmd, true)
 
 	switch use {
@@ -266,9 +272,16 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		return err
 	}
 
+	// Skip config if the flag wasn't set and the default is non-existent.
+	if !cmd.Flags().Changed(cmdFlagNameConfig) {
+		configs = configFilterExisting(configs)
+	}
+
 	legacy := cmd.Use == cmdUseHashPassword
 
 	switch {
+	case cmd.Use == cmdUseGenerate:
+		break
 	case legacy:
 		if sha512, _ := cmd.Flags().GetBool(cmdFlagNameSHA512); sha512 {
 			algorithm = cmdUseHashSHA2Crypt
@@ -412,6 +425,10 @@ func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Println("")
 
 	return data, err
+}
+
+func cmdFlagConfig(cmd *cobra.Command) {
+	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
 }
 
 func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {

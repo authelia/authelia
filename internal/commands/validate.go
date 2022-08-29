@@ -29,7 +29,7 @@ func cmdValidateConfigRunE(cmd *cobra.Command, _ []string) (err error) {
 		val     *schema.StructValidator
 	)
 
-	if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
+	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
 		return err
 	}
 

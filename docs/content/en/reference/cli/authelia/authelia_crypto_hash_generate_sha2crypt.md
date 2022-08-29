@@ -35,7 +35,7 @@ authelia crypto hash generate sha2crypt --help
 ### Options
 
 ```
-  -c, --config strings    Configuration files
+  -c, --config strings    configuration files to load (default [configuration.yml])
   -h, --help              help for sha2crypt
   -i, --iterations int    number of iterations (default 150000)
       --no-confirm        skip the password confirmation prompt

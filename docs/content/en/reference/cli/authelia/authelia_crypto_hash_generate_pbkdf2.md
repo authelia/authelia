@@ -35,7 +35,7 @@ authelia crypto hash generate pbkdf2 --help
 ### Options
 
 ```
-  -c, --config strings    Configuration files
+  -c, --config strings    configuration files to load (default [configuration.yml])
   -h, --help              help for pbkdf2
   -i, --iterations int    number of iterations (default 120000)
   -k, --key-size int      key size in bytes (default 32)

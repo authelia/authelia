@@ -35,7 +35,7 @@ authelia crypto hash generate bcrypt --help
 ### Options
 
 ```
-  -c, --config strings    Configuration files
+  -c, --config strings    configuration files to load (default [configuration.yml])
   -i, --cost int          hashing cost (default 13)
   -h, --help              help for bcrypt
       --no-confirm        skip the password confirmation prompt

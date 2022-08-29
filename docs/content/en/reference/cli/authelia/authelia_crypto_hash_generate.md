@@ -22,6 +22,12 @@ Generate cryptographic hash digests.
 
 This subcommand allows generating cryptographic hash digests.
 
+See the help for the subcommands if you want to override the configuration or defaults.
+
+```
+authelia crypto hash generate [flags]
+```
+
 ### Examples
 
 ```
@@ -31,7 +37,10 @@ authelia crypto hash generate --help
 ### Options
 
 ```
-  -h, --help   help for generate
+  -c, --config strings    configuration files to load (default [configuration.yml])
+  -h, --help              help for generate
+      --no-confirm        skip the password confirmation prompt
+      --password string   manually supply the password rather than using the prompt
 ```
 
 ### SEE ALSO

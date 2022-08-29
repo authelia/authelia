@@ -29,13 +29,13 @@ import (
 func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	var configs []string
 
-	if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
+	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
 		return err
 	}
 
 	sources := make([]configuration.Source, 0, len(configs)+3)
 
-	if cmd.Flags().Changed("config") {
+	if cmd.Flags().Changed(cmdFlagNameConfig) {
 		for _, configFile := range configs {
 			if _, err := os.Stat(configFile); os.IsNotExist(err) {
 				return fmt.Errorf("could not load the provided configuration file %s: %w", configFile, err)
