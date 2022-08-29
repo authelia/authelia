@@ -393,12 +393,33 @@ authentication_backend:
   # file:
   #   path: /config/users_database.yml
   #   password:
-  #     algorithm: argon2id
-  #     iterations: 1
-  #     key_length: 32
-  #     salt_length: 16
-  #     memory: 1024
-  #     parallelism: 8
+  #     algorithm: argon2
+  #     argon2:
+  #       variant: argon2id
+  #       iterations: 3
+  #       memory: 65536
+  #       parallelism: 4
+  #       key_length: 32
+  #       salt_length: 16
+  #     scrypt:
+  #       iterations: 16
+  #       block_size: 8
+  #       parallelism: 1
+  #       key_length: 32
+  #       salt_length: 16
+  #     pbkdf2:
+  #       variant: sha512
+  #       iterations: 310000
+  #       key_length: 32
+  #       salt_length: 32
+  #     sha2crypt:
+  #       variant: sha512
+  #       iterations: 50000
+  #       salt_length: 16
+  #     bcrypt:
+  #       variant: standard
+  #       cost: 12
+
 
 ##
 ## Password Policy Configuration.

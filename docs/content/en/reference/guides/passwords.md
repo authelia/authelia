@@ -67,7 +67,16 @@ Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyV
 ```
 
 You may also use the `--config` flag to point to your existing configuration. When used, the values defined in the
-config will be used instead.
+config will be used instead. For example to generate the password with a configuration file named `configuration.yml`
+in the current directory:
+
+```bash
+$ docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+Enter Password:
+Confirm Password:
+
+Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyVpDDfmLrGPGFgo5E2NNqRumui4
+```
 
 See the [full CLI reference documentation](../cli/authelia/authelia_crypto_hash_generate.md).
 
