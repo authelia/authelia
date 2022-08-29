@@ -22,7 +22,7 @@ func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaHashPasswordShort,
 		Long:    cmdAutheliaHashPasswordLong,
 		Example: cmdAutheliaHashPasswordExample,
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		RunE:    cmdHashPasswordRunE,
 	}
 
@@ -33,6 +33,7 @@ func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
 	cmd.Flags().IntP("key-length", "k", schema.DefaultPasswordConfig.Argon2.KeyLength, "[argon2id] set the key length param")
 	cmd.Flags().IntP("salt-length", "l", schema.DefaultPasswordConfig.Argon2.SaltLength, "set the auto-generated salt length")
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{}, "Configuration files")
+	cmd.Flags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
 
 	return cmd
 }
@@ -219,7 +220,7 @@ func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error)
 
 func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     fmt.Sprintf("%s [flags] -- '<digest>'", cmdUseValidate),
+		Use:     fmt.Sprintf("%s [flags] -- <digest>", cmdUseValidate),
 		Short:   cmdAutheliaCryptoHashValidateShort,
 		Long:    cmdAutheliaCryptoHashValidateLong,
 		Example: cmdAutheliaCryptoHashValidateExample,

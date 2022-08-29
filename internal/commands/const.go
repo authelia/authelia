@@ -510,7 +510,7 @@ const (
 )
 
 const (
-	cmdUseHashPassword  = "hash-password [flags] -- '<password>'"
+	cmdUseHashPassword  = "hash-password [flags] -- [password]"
 	cmdUseHash          = "hash"
 	cmdUseHashArgon2    = "argon2"
 	cmdUseHashSHA2Crypt = "sha2crypt"
