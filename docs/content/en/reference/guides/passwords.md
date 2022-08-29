@@ -96,11 +96,11 @@ all algorithms. The main cost type measurements are:
 * CPU
 * Memory
 
-*__Important Note:__ When using algorithms that use a memory cost like [Argon2] it should be noted that this memory is
-released by Go after the hashing process completes, however the operating system may not reclaim the memory until a
-later time such as when the system is experiencing memory pressure which may cause the appearance of more memory being
-in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be reclaimed as
-long as another hashing calculation is not still utilizing it.*
+*__Important Note:__ When using algorithms that use a memory cost like [Argon2] and [Scrypt] it should be noted that
+this memory is released by Go after the hashing process completes, however the operating system may not reclaim the
+memory until a later time such as when the system is experiencing memory pressure which may cause the appearance of more
+memory being in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be
+reclaimed as long as another hashing calculation is not still utilizing it.*
 
 To get a rough estimate of how much memory should be utilized with these algorithms you can utilize the following
 command:
@@ -122,7 +122,7 @@ widely considered to be the best hashing algorithm, and in 2015 won the [Passwor
 customizable parameters including a memory parameter allowing the [cost](#cost) of computing a hash to scale into the
 future with better hardware which makes it harder to brute-force.
 
-For backwards compatibility and user choice support for the [SHA Crypt] algorithm (`SHA512` variant) is still available.
+For backwards compatibility and user choice support for the [SHA2 Crypt] algorithm (`SHA512` variant) is still available.
 While it's a reasonable hashing function given high enough iterations, as hardware improves it has a higher chance of
 being brute-forced since it only allows scaling the CPU [cost](#cost) whereas [Argon2] allows scaling both for CPU and
 Memory [cost](#cost).
@@ -131,10 +131,21 @@ Memory [cost](#cost).
 
 The algorithm that a hash is utilizing is identifiable by its prefix:
 
-|  Algorithm  | Variant  |    Prefix    |
-|:-----------:|:--------:|:------------:|
-|  [Argon2]   |   `id`   | `$argon2id$` |
-| [SHA Crypt] | `SHA512` |    `$6$`     |
+|  Algorithm   |  Variant   |      Prefix       |
+|:------------:|:----------:|:-----------------:|
+|   [Argon2]   | `argon2id` |   `$argon2id$`    |
+|   [Argon2]   | `argon2i`  |    `$argon2i$`    |
+|   [Argon2]   | `argon2d`  |    `$argon2d$`    |
+|   [Scrypt]   |    N/A     |    `$scrypt$`     |
+|   [PBKDF2]   |   `sha1`   |    `$pbkdf2$`     |
+|   [PBKDF2]   |  `sha224`  | `$pbkdf2-sha224$` |
+|   [PBKDF2]   |  `sha256`  | `$pbkdf2-sha256$` |
+|   [PBKDF2]   |  `sha384`  | `$pbkdf2-sha384$` |
+|   [PBKDF2]   | `sha512$`  | `$pbkdf2-sha512$` |
+| [SHA2 Crypt] |  `SHA256`  |       `$5$`       |
+| [SHA2 Crypt] |  `SHA512`  |       `$6$`       |
+|   [Bcrypt]   | `standard` |      `$2b$`       |
+|   [Bcrypt]   |  `sha256`  | `$bcrypt-sha256$` |
 
 See the [Crypt (C) Wiki page](https://en.wikipedia.org/wiki/Crypt_(C)) for more information.
 
@@ -148,27 +159,44 @@ adequately determine the [cost](#cost).
 While there are recommended parameters for each algorithm it's your responsibility to tune these individually for your
 particular system.
 
-#### Recommended Parameters: Argon2id
+#### Algorithm Choice
+
+We generally discourage [Bcrypt] except when needed for interoperability with legacy systems. The `argon2id` variant of
+the [Argon2] algorithm is the best choice of the algorithms available, but it's important to note that the `argon2id`
+variant is the most resilient variant, followed by the `argon2d` variant and the `argon2i` variant not being recommended.
+It's strongly recommended if you're unsure that you use `argon2id`. [Scrypt] is a likely second best algorithm. [PBKDF2]
+is practically the only choice when it comes to [FIPS-140 compliance]. The `sha512` variant of the [SHA2 Crypt]
+algorithm is also a reasonable option, but is mainly available for backwards compatability.
+
+All other algorithms and variants available exist only for interoperability and we discourage their use if a better
+algorithm is available in your scenario.
+
+#### Recommended Parameters: Argon2
 
 This table adapts the [RFC9106 Parameter Choice] recommendations to our configuration options:
 
-|  Situation  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
-|:-----------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
-| Low Memory  |       3        |        4        |     64     |    16     |    32    |
-| Recommended |       1        |        4        |    2048    |    16     |    32    |
+|  Situation  | Variant  | Iterations (t) | Parallelism (p) | Memory (m) | Salt Size | Key Size |
+|:-----------:|:--------:|:--------------:|:---------------:|:----------:|:---------:|:--------:|
+| Low Memory  | argon2id |       3        |        4        |   65536    |    16     |    32    |
+| Recommended | argon2id |       1        |        4        |  2097152   |    16     |    32    |
 
-#### Recommended Parameters: SHA512
+#### Recommended Parameters: SHA2 Crypt
 
-This table suggests the parameters for the [SHA Crypt] (`SHA512` variant) algorithm:
+This table suggests the parameters for the [SHA2 Crypt] algorithm:
 
-|  Situation   | Iterations (rounds) | Salt Size |
-|:------------:|:-------------------:|:---------:|
-| Standard CPU |        50000        |    16     |
-| High End CPU |       150000        |    16     |
+|  Situation   | Variant | Iterations (rounds) | Salt Size |
+|:------------:|:-------:|:-------------------:|:---------:|
+| Standard CPU | sha512  |        50000        |    16     |
+| High End CPU | sha512  |       150000        |    16     |
+
+[Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
+[Scrypt]: https://en.wikipedia.org/wiki/Scrypt
+[PBKDF2]: https://www.ietf.org/rfc/rfc2898.html
+[SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
+[Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
+[FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
 
 [RFC9106 Parameter Choice]: https://www.rfc-editor.org/rfc/rfc9106.html#section-4
 [YAML]: https://yaml.org/
-[Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
-[SHA Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
 [crypt hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition
