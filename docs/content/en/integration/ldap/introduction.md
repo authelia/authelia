@@ -58,7 +58,7 @@ In your Authelia configuration you will need to enter and update the following v
     user: uid=authelia,ou=service accounts,dc=example,dc=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
-Following this, restart Authelia, and you should be able to begin using LDAP intergration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
+Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
 
 ### FreeIPA
 #### Tested Version: [FreeIPA - 4.9.9/CentOS]([https://github.com/bitnami/bitnami-docker-openldap/releases/tag/2.5.13-debian-11-r7](https://www.freeipa.org/page/Releases/4.9.9))  
@@ -70,7 +70,6 @@ You can also create a group to use within Authelia if you would like granular co
 
 In your Authelia configuration you will need to enter and update the following variables - 
 * url `ldap://ldap` - servers dns name. Port will assume 389 as standard. Specify custom port with `:port` if needed.  
-  *tip: if you have Authelia on a container network that is routable, you can just use the container name*
 * server_name `ldap01.example.com` - servers name
 * base_dn `dc=example,dc=com` - common name of domain root.
 * groups_filter `dc=example,dc=com` - replace relevant section with your own domain in common name format, same as base_dn.
@@ -99,7 +98,7 @@ In your Authelia configuration you will need to enter and update the following v
     user: uid=authelia,cn=users,cn=accounts,dc=example,dc=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
-Following this, restart Authelia, and you should be able to begin using LDAP intergration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
+Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
 
 ## See Also
 [Authelia]: https://www.authelia.com
