@@ -39,7 +39,7 @@ i18n.use(Backend)
             "zh-TW": ["en"],
         },
         load: "all",
-        supportedLngs: ["de", "en", "es", "fr", "nl-NL", "ru", "sv", "sv-SE", "zh-CN", "zh-TW"],
+        supportedLngs: ["en", "de", "es", "fr", "nl-NL", "ru", "sv", "sv-SE", "zh-CN", "zh-TW"],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
         interpolation: {

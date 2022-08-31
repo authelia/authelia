@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -145,6 +146,10 @@ func getLanguages(dir string) (languages *Languages, err error) {
 	}); err != nil {
 		return nil, err
 	}
+
+	sort.Slice(languages.Languages, func(i, j int) bool {
+		return languages.Languages[i].Locale == localeDefault || languages.Languages[i].Locale < languages.Languages[j].Locale
+	})
 
 	for i, l := range languages.Languages {
 		parts := strings.SplitN(l.Locale, "-", 2)
