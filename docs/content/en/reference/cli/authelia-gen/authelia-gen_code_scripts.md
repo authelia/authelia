@@ -2,7 +2,7 @@
 title: "authelia-gen code scripts"
 description: "Reference for the authelia-gen code scripts command."
 lead: ""
-date: 2022-08-01T10:04:27+10:00
+date: 2022-08-01T10:11:13+10:00
 draft: false
 images: []
 menu:
