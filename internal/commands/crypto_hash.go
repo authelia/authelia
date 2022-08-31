@@ -125,43 +125,42 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 
 	switch use {
 	case cmdUseHashArgon2:
-		cmdFlagIterations(cmd, 3)
-		cmdFlagParallelism(cmd, 4)
-		cmdFlagKeySize(cmd)
-		cmdFlagSaltSize(cmd)
+		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.Argon2.Iterations)
+		cmdFlagParallelism(cmd, schema.DefaultPasswordConfig.Argon2.Parallelism)
+		cmdFlagKeySize(cmd, schema.DefaultPasswordConfig.Argon2.KeyLength)
+		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.Argon2.SaltLength)
 
-		cmd.Flags().StringP(cmdFlagNameVariant, "v", "id", "variant, options are 'id', 'i', and 'd'")
-		cmd.Flags().IntP(cmdFlagNameMemory, "m", 65536, "memory in kibibytes")
-		cmd.Flags().String(cmdFlagNameProfile, "low-memory", "profile to use, options are low-memory and recommended")
+		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.Argon2.Variant, "variant, options are 'argon2id', 'argon2i', and 'argon2d'")
+		cmd.Flags().IntP(cmdFlagNameMemory, "m", schema.DefaultPasswordConfig.Argon2.Memory, "memory in kibibytes")
+		cmd.Flags().String(cmdFlagNameProfile, "", "profile to use, options are low-memory and recommended")
 
 		cmd.RunE = cryptoHashGenerateArgon2RunE
 	case cmdUseHashSHA2Crypt:
-		cmdFlagIterations(cmd, 150000)
-		cmdFlagSaltSize(cmd)
+		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.SHA2Crypt.Iterations)
+		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.SHA2Crypt.SaltLength)
 
-		cmd.Flags().StringP(cmdFlagNameVariant, "v", "sha512", "variant, options are sha256 and sha512")
+		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.SHA2Crypt.Variant, "variant, options are sha256 and sha512")
 
 		cmd.RunE = cryptoHashGenerateSHA2CryptRunE
 	case cmdUseHashPBKDF2:
-		cmdFlagIterations(cmd, 120000)
-		cmdFlagKeySize(cmd)
-		cmdFlagSaltSize(cmd)
+		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.PBKDF2.Iterations)
+		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.PBKDF2.SaltLength)
 
-		cmd.Flags().StringP(cmdFlagNameVariant, "v", "sha512", "variant, options are 'sha1', 'sha224', 'sha256', 'sha384', and 'sha512'")
+		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.PBKDF2.Variant, "variant, options are 'sha1', 'sha224', 'sha256', 'sha384', and 'sha512'")
 
 		cmd.RunE = cryptoHashGeneratePBKDF2RunE
 	case cmdUseHashBCrypt:
-		cmd.Flags().StringP(cmdFlagNameVariant, "v", "standard", "variant, options are 'standard' and 'sha256'")
-		cmd.Flags().IntP(cmdFlagNameCost, "i", 13, "hashing cost")
+		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.BCrypt.Variant, "variant, options are 'standard' and 'sha256'")
+		cmd.Flags().IntP(cmdFlagNameCost, "i", schema.DefaultPasswordConfig.BCrypt.Cost, "hashing cost")
 
 		cmd.RunE = cryptoHashGenerateBCryptRunE
 	case cmdUseHashSCrypt:
-		cmdFlagIterations(cmd, 16)
-		cmdFlagKeySize(cmd)
-		cmdFlagSaltSize(cmd)
-		cmdFlagParallelism(cmd, 1)
+		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.SCrypt.Iterations)
+		cmdFlagKeySize(cmd, schema.DefaultPasswordConfig.SCrypt.KeyLength)
+		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.SCrypt.SaltLength)
+		cmdFlagParallelism(cmd, schema.DefaultPasswordConfig.SCrypt.Parallelism)
 
-		cmd.Flags().IntP(cmdFlagNameBlockSize, "r", 8, "block size")
+		cmd.Flags().IntP(cmdFlagNameBlockSize, "r", schema.DefaultPasswordConfig.SCrypt.BlockSize, "block size")
 
 		cmd.RunE = cryptoHashGenerateSCryptRunE
 	}
@@ -241,6 +240,10 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 				return fmt.Errorf("error occurred trying to obtain the password: %w", err)
 			}
 
+			if len(password) == 0 {
+				return fmt.Errorf("no password provided")
+			}
+
 			if valid, err = crypt.CheckPassword(password, args[0]); err != nil {
 				return fmt.Errorf("error occurred trying to validate the password against the digest: %w", err)
 			}
@@ -306,6 +309,10 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		return err
 	}
 
+	if len(password) == 0 {
+		return fmt.Errorf("no password provided")
+	}
+
 	if hash, err = authentication.NewFileCryptoHashFromConfig(c); err != nil {
 		return err
 	}
@@ -333,7 +340,6 @@ func cmdCryptoHashGetConfig(algorithm string, configs []string, flags *pflag.Fla
 		prefixFilePassword + ".sha2crypt.salt_length": schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
 		prefixFilePassword + ".pbkdf2.variant":        schema.DefaultPasswordConfig.PBKDF2.Variant,
 		prefixFilePassword + ".pbkdf2.iterations":     schema.DefaultPasswordConfig.PBKDF2.Iterations,
-		prefixFilePassword + ".pbkdf2.key_length":     schema.DefaultPasswordConfig.PBKDF2.KeyLength,
 		prefixFilePassword + ".pbkdf2.salt_length":    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
 		prefixFilePassword + ".bcrypt.variant":        schema.DefaultPasswordConfig.BCrypt.Variant,
 		prefixFilePassword + ".bcrypt.cost":           schema.DefaultPasswordConfig.BCrypt.Cost,
@@ -420,11 +426,17 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs bool) (
 func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Print(prompt)
 
-	data, err = term.ReadPassword(int(syscall.Stdin)) //nolint:unconvert // This is a required conversion.
+	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil { //nolint:unconvert // This is a required conversion.
+		if err.Error() == "inappropriate ioctl for device" {
+			return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use the '--password' flag or use an interactive terminal: %w", err)
+		}
+
+		return nil, err
+	}
 
 	fmt.Println("")
 
-	return data, err
+	return data, nil
 }
 
 func cmdFlagConfig(cmd *cobra.Command) {
@@ -432,7 +444,7 @@ func cmdFlagConfig(cmd *cobra.Command) {
 }
 
 func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {
-	cmd.Flags().String(cmdFlagNamePassword, "", "manually supply the password rather than using the prompt")
+	cmd.Flags().String(cmdFlagNamePassword, "", "manually supply the password rather than using the terminal prompt")
 
 	if noConfirm {
 		cmd.Flags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
@@ -443,12 +455,12 @@ func cmdFlagIterations(cmd *cobra.Command, value int) {
 	cmd.Flags().IntP(cmdFlagNameIterations, "i", value, "number of iterations")
 }
 
-func cmdFlagKeySize(cmd *cobra.Command) {
-	cmd.Flags().IntP(cmdFlagNameKeySize, "k", 32, "key size in bytes")
+func cmdFlagKeySize(cmd *cobra.Command, value int) {
+	cmd.Flags().IntP(cmdFlagNameKeySize, "k", value, "key size in bytes")
 }
 
-func cmdFlagSaltSize(cmd *cobra.Command) {
-	cmd.Flags().IntP(cmdFlagNameSaltSize, "s", 16, "salt size in bytes")
+func cmdFlagSaltSize(cmd *cobra.Command, value int) {
+	cmd.Flags().IntP(cmdFlagNameSaltSize, "s", value, "salt size in bytes")
 }
 
 func cmdFlagParallelism(cmd *cobra.Command, value int) {

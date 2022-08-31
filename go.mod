@@ -10,7 +10,7 @@ require (
 	github.com/fasthttp/router v1.4.11
 	github.com/fasthttp/session/v2 v2.4.12
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.1.7
+	github.com/go-crypt/crypt v0.1.8
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.109.2
 	github.com/go-sql-driver/mysql v1.6.0
@@ -118,4 +118,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.14
+replace github.com/mattn/go-sqlite3 v2.0.3+incompatible => github.com/mattn/go-sqlite3 v1.14.15

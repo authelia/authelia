@@ -141,10 +141,6 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 		config.PBKDF2.Iterations = schema.DefaultPasswordConfig.PBKDF2.Iterations
 	}
 
-	if config.PBKDF2.KeyLength == 0 {
-		config.PBKDF2.KeyLength = schema.DefaultPasswordConfig.PBKDF2.KeyLength
-	}
-
 	if config.PBKDF2.SaltLength == 0 {
 		config.PBKDF2.SaltLength = schema.DefaultPasswordConfig.PBKDF2.SaltLength
 	}
@@ -189,9 +185,9 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 
 func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Password) {
 	switch config.Algorithm {
-	case hashSHA512:
+	case hashLegacySHA512:
 		config.Algorithm = hashSHA2Crypt
-		config.SHA2Crypt.Variant = hashSHA512
+		config.SHA2Crypt.Variant = digestSHA512
 
 		if config.Iterations > 0 {
 			config.SHA2Crypt.Iterations = config.Iterations
@@ -200,9 +196,9 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Passwo
 		if config.SaltLength > 0 {
 			config.SHA2Crypt.SaltLength = config.SaltLength
 		}
-	case hashArgon2id:
+	case hashLegacyArgon2id:
 		config.Algorithm = hashArgon2
-		config.Argon2.Variant = hashArgon2id
+		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
 
 		if config.Iterations > 0 {
 			config.Argon2.Iterations = config.Iterations

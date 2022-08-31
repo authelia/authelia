@@ -108,7 +108,6 @@ func NewFileCryptoHashFromConfig(config schema.Password) (hash crypt.Hash, err e
 		hash = crypt.NewPBKDF2Hash().
 			WithVariant(crypt.NewPBKDF2Variant(config.PBKDF2.Variant)).
 			WithIterations(config.PBKDF2.Iterations).
-			WithKeyLength(config.PBKDF2.KeyLength).
 			WithSaltLength(config.PBKDF2.SaltLength)
 	case hashSCrypt:
 		hash = crypt.NewScryptHash().

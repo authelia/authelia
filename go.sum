@@ -239,12 +239,8 @@ github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8/go.mod h1:xkRDCp4j0
 github.com/go-asn1-ber/asn1-ber v1.5.4 h1:vXT6d/FNDiELJnLb6hGNa309LMsrCoYFvpwHDF0+Y1A=
 github.com/go-asn1-ber/asn1-ber v1.5.4/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
 github.com/go-bindata/go-bindata v3.1.1+incompatible/go.mod h1:xK8Dsgwmeed+BBsSy2XTopBn/8uK2HWuGSnA11C3Joo=
-github.com/go-crypt/crypt v0.1.5 h1:fWzKtn2DBZ1uxPkznfOBQ81rsEMTBijM/TPKAXH10f8=
-github.com/go-crypt/crypt v0.1.5/go.mod h1:pAvzyk2QdGnrC7ELmi8ZIGGDDfshjS3WLb4kja0J7Pw=
-github.com/go-crypt/crypt v0.1.6 h1:xinxAktdvVDayijgL2z1dGTQHNB2VXDAD0Gbtqg06s8=
-github.com/go-crypt/crypt v0.1.6/go.mod h1:pAvzyk2QdGnrC7ELmi8ZIGGDDfshjS3WLb4kja0J7Pw=
-github.com/go-crypt/crypt v0.1.7 h1:IT/cIoJjGq/6I1itpJBskpRoqS0xkVUCaEocSGEpgXQ=
-github.com/go-crypt/crypt v0.1.7/go.mod h1:pAvzyk2QdGnrC7ELmi8ZIGGDDfshjS3WLb4kja0J7Pw=
+github.com/go-crypt/crypt v0.1.8 h1:gxpPCvzR8Vri3U4vg2RovEaxa+4YVqoaRqiXGia2+wA=
+github.com/go-crypt/crypt v0.1.8/go.mod h1:pAvzyk2QdGnrC7ELmi8ZIGGDDfshjS3WLb4kja0J7Pw=
 github.com/go-crypt/x v0.1.1 h1:3ROvMDSCGTDx1mglDXV0mRPAY5IaxZSCMKBll2fksbI=
 github.com/go-crypt/x v0.1.1/go.mod h1:O8uv34sj3c15PxRUZrhFRxbFHHIgDL0SEYDZNNTbveQ=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
@@ -966,8 +962,9 @@ github.com/mattn/go-sqlite3 v1.9.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOq
 github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.11.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
-github.com/mattn/go-sqlite3 v1.14.14 h1:qZgc/Rwetq+MtyE18WhzjokPD93dNqLGNT3QJuLvBGw=
 github.com/mattn/go-sqlite3 v1.14.14/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
+github.com/mattn/go-sqlite3 v1.14.15 h1:vfoHhTN1af61xCRSWzFIWzx2YskyMTwHLrExkBOjvxI=
+github.com/mattn/go-sqlite3 v1.14.15/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/mattn/goveralls v0.0.2/go.mod h1:8d1ZMHsd7fW6IRPKQh46F2WRpyib5/X4FOpevwGNQEw=
 github.com/mattn/goveralls v0.0.6 h1:cr8Y0VMo/MnEZBjxNN/vh6G90SZ7IMb6lms1dzMoO+Y=
 github.com/mattn/goveralls v0.0.6/go.mod h1:h8b4ow6FxSPMQHF6o2ve3qsclnffZjYTNEKmLesRwqw=

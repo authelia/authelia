@@ -65,7 +65,6 @@ type SHA2CryptPassword struct {
 type PBKDF2Password struct {
 	Variant    string `koanf:"variant"`
 	Iterations int    `koanf:"iterations"`
-	KeyLength  int    `koanf:"key_length"`
 	SaltLength int    `koanf:"salt_length"`
 }
 
@@ -131,11 +130,10 @@ var DefaultPasswordConfig = Password{
 	PBKDF2: PBKDF2Password{
 		Variant:    sha512,
 		Iterations: 310000,
-		KeyLength:  32,
 		SaltLength: 16,
 	},
 	BCrypt: BCryptPassword{
-		Variant: sha256,
+		Variant: "standard",
 		Cost:    12,
 	},
 	SCrypt: SCryptPassword{

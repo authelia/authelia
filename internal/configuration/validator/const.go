@@ -31,9 +31,10 @@ const (
 
 // Hashing constants.
 const (
+	hashLegacyArgon2id = "argon2id"
+	hashLegacySHA512   = digestSHA512
+
 	hashArgon2    = "argon2"
-	hashArgon2id  = "argon2id"
-	hashSHA512    = digestSHA512
 	hashSHA2Crypt = "sha2crypt"
 	hashPBKDF2    = "pbkdf2"
 	hashSCrypt    = "scrypt"

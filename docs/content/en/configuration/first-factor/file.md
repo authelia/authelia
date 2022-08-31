@@ -172,12 +172,6 @@ Permitted values `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
 
 Controls the number of iterations when hashing passwords using [PBKDF2].
 
-#### key_length
-
-{{< confkey type="integer" default="32" required="no" >}}
-
-Controls the output key length when hashing passwords using [PBKDF2].
-
 #### salt_length
 
 {{< confkey type="integer" default="16" required="no" >}}
@@ -234,4 +228,3 @@ Controls the hashing cost when hashing passwords using [Bcrypt].
 [PBKDF2]: https://www.ietf.org/rfc/rfc2898.html
 [SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
 [Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
-[FIPS-140 compliance]: https://csrc.nist.gov/publications/detail/fips/140/2/final
