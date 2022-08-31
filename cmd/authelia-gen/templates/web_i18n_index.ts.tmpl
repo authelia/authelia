@@ -24,6 +24,7 @@ i18n.use(Backend)
         backend: {
             loadPath: basePath + "/locales/{{"{{lng}}"}}/{{"{{ns}}"}}.json",
         },
+        load: "all",
         ns: [{{ range $i, $value := .Namespaces }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
         defaultNS: "{{ .DefaultNamespace }}",
         fallbackLng: {
@@ -34,7 +35,6 @@ i18n.use(Backend)
             {{- end }}
             {{- end }}
         },
-        load: "all",
         supportedLngs: [{{ range $i, $value := .Languages }}{{ if eq $i 0 }}"{{ $value.Locale }}"{{ else }}, "{{ $value.Locale }}"{{ end }}{{ end }}],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,

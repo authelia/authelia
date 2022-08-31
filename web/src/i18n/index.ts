@@ -24,6 +24,7 @@ i18n.use(Backend)
         backend: {
             loadPath: basePath + "/locales/{{lng}}/{{ns}}.json",
         },
+        load: "all",
         ns: ["portal"],
         defaultNS: "portal",
         fallbackLng: {
@@ -39,7 +40,6 @@ i18n.use(Backend)
             "zh-CN": ["en"],
             "zh-TW": ["en"],
         },
-        load: "all",
         supportedLngs: ["en", "de", "es", "fr", "nl-NL", "pt-PT", "ru", "sv", "sv-SE", "zh-CN", "zh-TW"],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
