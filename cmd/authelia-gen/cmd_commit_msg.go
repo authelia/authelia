@@ -44,8 +44,6 @@ func newCommitLintCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newGitHubIssueTemplatesCmd())
-
 	return cmd
 }
 

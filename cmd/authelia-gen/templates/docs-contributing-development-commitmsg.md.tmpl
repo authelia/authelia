@@ -47,7 +47,7 @@ for, and the structure it must have.
   │       │             │
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
-  │       └─⫸ Commit Scope: {{ join .Scopes.All "|" }}
+  │       └─⫸ Commit Scope: {{ joinX .Scopes.All "|" 70 "\n  │                          " }}
   │
   └─⫸ Commit Type: {{ join .Types.List "|" }}
 ```
