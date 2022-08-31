@@ -32,9 +32,8 @@ var BuildNumber = "0"
 // Version returns the Authelia version.
 //
 // The format of the string is dependent on the values in BuildState. If tagged and clean are present it returns the
-// BuildTag i.e. v1.0.0. If dirty and tagged are present it returns <BuildTag>-dirty. Otherwise the following is the
+// BuildTag i.e. v1.0.0. If dirty and tagged are present it returns <BuildTag>-dirty. Otherwise, the following is the
 // format: untagged-<BuildTag>-dirty-<BuildExtra> (<BuildBranch>, <BuildCommit>).
-//
 func Version() (versionString string) {
 	return version(BuildTag, BuildState, BuildCommit, BuildBranch, BuildExtra)
 }

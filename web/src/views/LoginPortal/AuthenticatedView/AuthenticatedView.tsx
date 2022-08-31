@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Grid, Button, Theme } from "@mui/material";
+import { Button, Grid, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
