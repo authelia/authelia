@@ -410,8 +410,7 @@ authentication_backend:
   #     pbkdf2:
   #       variant: sha512
   #       iterations: 310000
-  #       key_length: 32
-  #       salt_length: 32
+  #       salt_length: 16
   #     sha2crypt:
   #       variant: sha512
   #       iterations: 50000
