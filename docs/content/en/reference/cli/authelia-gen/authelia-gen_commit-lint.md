@@ -51,5 +51,4 @@ authelia-gen commit-lint [flags]
 ### SEE ALSO
 
 * [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
-* [authelia-gen commit-lint issue-templates](authelia-gen_commit-lint_issue-templates.md)	 - Generate GitHub issue templates
 
