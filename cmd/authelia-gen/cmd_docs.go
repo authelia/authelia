@@ -6,9 +6,10 @@ import (
 
 func newDocsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "docs",
-		Short:             "Generate docs",
-		RunE:              rootSubCommandsRunE,
+		Use:   cmdUseDocs,
+		Short: "Generate docs",
+		RunE:  rootSubCommandsRunE,
+
 		DisableAutoGenTag: true,
 	}
 

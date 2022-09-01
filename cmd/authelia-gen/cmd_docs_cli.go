@@ -16,9 +16,10 @@ import (
 
 func newDocsCLICmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "cli",
-		Short:             "Generate CLI docs",
-		RunE:              docsCLIRunE,
+		Use:   cmdUseDocsCLI,
+		Short: "Generate CLI docs",
+		RunE:  docsCLIRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -60,11 +61,11 @@ func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if err = genCLIDoc(newRootCmd(), filepath.Join(fullPathDocsCLIReference, "authelia-gen")); err != nil {
+	if err = genCLIDoc(newRootCmd(), filepath.Join(fullPathDocsCLIReference, cmdUseRoot)); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(fullPathDocsCLIReference, "authelia-gen"); err != nil {
+	if err = genCLIDocWriteIndex(fullPathDocsCLIReference, cmdUseRoot); err != nil {
 		return err
 	}
 

@@ -18,17 +18,6 @@ body:
 
         1. Ensure an [Idea](https://github.com/authelia/authelia/discussions/new?category=ideas) has been created and
         voted on sufficiently before creating this issue type.
-  - type: dropdown
-    id: milestone
-    attributes:
-      label: Suggested Milestone
-      description: What milestone is suggested for this feature?
-      options:
-      {{- range .Versions }}
-        - {{ . }}
-	  {{- end }}
-    validations:
-      required: true
   - type: input
     id: idea-discussion
     attributes:

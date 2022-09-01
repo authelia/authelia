@@ -42,7 +42,26 @@ const (
 )
 
 const (
+	cmdUseRoot                   = "authelia-gen"
+	cmdUseCompletion             = "completion"
+	cmdUseDocs                   = "docs"
+	cmdUseDocsDate               = "date"
+	cmdUseDocsCLI                = "cli"
+	cmdUseGitHub                 = "github"
+	cmdUseGitHubIssueTemplates   = "issue-templates"
+	cmdUseGitHubIssueTemplatesFR = "feature-request"
+	cmdUseGitHubIssueTemplatesBR = "bug-report"
+	cmdUseLocales                = "locales"
+	cmdUseCommitLint             = "commit-lint"
+	cmdUseCode                   = "code"
+	cmdUseCodeScripts            = "scripts"
+	cmdUseCodeKeys               = "keys"
+)
+
+const (
 	cmdFlagRoot                        = "dir.root"
+	cmdFlagExclude                     = "exclude"
+	cmdFlagVersions                    = "versions"
 	cmdFlagDirLocales                  = "dir.locales"
 	cmdFlagDocsCLIReference            = "dir.docs.cli-reference"
 	cmdFlagDocsContent                 = "dir.docs.content"

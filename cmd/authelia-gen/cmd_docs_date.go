@@ -17,7 +17,7 @@ import (
 
 func newDocsDateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "date",
+		Use:               cmdUseDocsDate,
 		Short:             "Generate doc dates",
 		RunE:              docsDateRunE,
 		DisableAutoGenTag: true,

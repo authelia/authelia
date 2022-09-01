@@ -21,7 +21,7 @@ import (
 
 func newCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "code",
+		Use:               cmdUseCode,
 		Short:             "Generate code",
 		RunE:              rootSubCommandsRunE,
 		DisableAutoGenTag: true,
@@ -34,7 +34,7 @@ func newCodeCmd() *cobra.Command {
 
 func newCodeScriptsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "scripts",
+		Use:               cmdUseCodeScripts,
 		Short:             "Generate the generated portion of the authelia-scripts command",
 		RunE:              codeScriptsRunE,
 		DisableAutoGenTag: true,
@@ -45,7 +45,7 @@ func newCodeScriptsCmd() *cobra.Command {
 
 func newCodeKeysCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "keys",
+		Use:               cmdUseCodeKeys,
 		Short:             "Generate the list of valid configuration keys",
 		RunE:              codeKeysRunE,
 		DisableAutoGenTag: true,
@@ -120,6 +120,7 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
+// GitHubTagsJSON represents the JSON struct for the GitHub Tags API.
 type GitHubTagsJSON struct {
 	Name string `json:"name"`
 }

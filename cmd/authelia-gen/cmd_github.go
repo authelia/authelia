@@ -13,9 +13,10 @@ import (
 
 func newGitHubCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "github",
-		Short:             "Generate GitHub files",
-		RunE:              rootSubCommandsRunE,
+		Use:   cmdUseGitHub,
+		Short: "Generate GitHub files",
+		RunE:  rootSubCommandsRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -26,9 +27,10 @@ func newGitHubCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "issue-templates",
-		Short:             "Generate GitHub issue templates",
-		RunE:              rootSubCommandsRunE,
+		Use:   cmdUseGitHubIssueTemplates,
+		Short: "Generate GitHub issue templates",
+		RunE:  rootSubCommandsRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -39,9 +41,10 @@ func newGitHubIssueTemplatesCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesFeatureCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "feature-request",
-		Short:             "Generate GitHub feature request issue template",
-		RunE:              cmdGitHubIssueTemplatesFeatureRunE,
+		Use:   cmdUseGitHubIssueTemplatesFR,
+		Short: "Generate GitHub feature request issue template",
+		RunE:  cmdGitHubIssueTemplatesFeatureRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -50,9 +53,10 @@ func newGitHubIssueTemplatesFeatureCmd() *cobra.Command {
 
 func newGitHubIssueTemplatesBugReportCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "bug-report",
-		Short:             "Generate GitHub bug report issue template",
-		RunE:              cmdGitHubIssueTemplatesBugReportRunE,
+		Use:   cmdUseGitHubIssueTemplatesBR,
+		Short: "Generate GitHub bug report issue template",
+		RunE:  cmdGitHubIssueTemplatesBugReportRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -78,7 +82,7 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 		return err
 	}
 
-	if versions, err = cmd.Flags().GetInt("versions"); err != nil {
+	if versions, err = cmd.Flags().GetInt(cmdFlagVersions); err != nil {
 		return err
 	}
 
@@ -127,8 +131,9 @@ func cmdGitHubIssueTemplatesFeatureRunE(cmd *cobra.Command, args []string) (err 
 func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		cwd, file, dirRoot    string
-		tags, tagsRecent      []string
 		latestMinor, versions int
+
+		tags []string
 	)
 
 	if cwd, err = cmd.Flags().GetString(cmdFlagCwd); err != nil {
@@ -142,7 +147,8 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	if file, err = cmd.Flags().GetString(cmdFlagBugReport); err != nil {
 		return err
 	}
-	if versions, err = cmd.Flags().GetInt("versions"); err != nil {
+
+	if versions, err = cmd.Flags().GetInt(cmdFlagVersions); err != nil {
 		return err
 	}
 
@@ -163,8 +169,8 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	var (
-		parts []string
-		minor int
+		tagsRecent, parts []string
+		minor             int
 	)
 
 	for _, tag := range tags {
@@ -196,7 +202,7 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	data := &tmplIssueTemplateData{
 		Labels:   []string{labelTypePotentialBug.String(), labelStatusNeedsTriage.String(), labelPriorityNormal.String()},
 		Versions: tagsRecent,
-		Proxies:  []string{"Caddy", "Traefik", "NGINX", "SWAG", "NGINX Proxy Manager", "HAProxy"},
+		Proxies:  []string{"Caddy", "Traefik", "NGINX", "SWAG", "NGINX Proxy Manager", "HAProxy", "Envoy"},
 	}
 
 	if err = tmplGitHubIssueTemplateBug.Execute(f, data); err != nil {

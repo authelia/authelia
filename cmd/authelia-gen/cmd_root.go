@@ -17,7 +17,7 @@ func init() {
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "authelia-gen",
+		Use:               cmdUseRoot,
 		Short:             "Authelia's generator tooling",
 		RunE:              rootSubCommandsRunE,
 		DisableAutoGenTag: true,
@@ -25,10 +25,10 @@ func newRootCmd() *cobra.Command {
 
 	cmd.PersistentFlags().StringP(cmdFlagCwd, "C", "", "Sets the CWD for git commands")
 	cmd.PersistentFlags().StringP(cmdFlagRoot, "d", dirCurrent, "The repository root")
-	cmd.PersistentFlags().StringSliceP("exclude", "X", nil, "Sets the names of excluded generators")
+	cmd.PersistentFlags().StringSliceP(cmdFlagExclude, "X", nil, "Sets the names of excluded generators")
 	cmd.PersistentFlags().String(cmdFlagFeatureRequest, fileGitHubIssueTemplateFR, "Sets the path of the feature request issue template file")
 	cmd.PersistentFlags().String(cmdFlagBugReport, fileGitHubIssueTemplateBR, "Sets the path of the bug report issue template file")
-	cmd.PersistentFlags().Int("versions", 5, "the maximum number of minor versions to list in output templates")
+	cmd.PersistentFlags().Int(cmdFlagVersions, 5, "the maximum number of minor versions to list in output templates")
 	cmd.PersistentFlags().String(cmdFlagDirLocales, dirLocales, "The locales directory in relation to the root")
 	cmd.PersistentFlags().String(cmdFlagFileWebI18N, fileWebI18NIndex, "The i18n typescript configuration file in relation to the root")
 	cmd.PersistentFlags().String(cmdFlagDocsDataLanguages, fileDocsDataLanguages, "The languages docs data file in relation to the docs data folder")
@@ -49,27 +49,27 @@ func newRootCmd() *cobra.Command {
 func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 	var exclude []string
 
-	if exclude, err = cmd.Flags().GetStringSlice("exclude"); err != nil {
+	if exclude, err = cmd.Flags().GetStringSlice(cmdFlagExclude); err != nil {
 		return err
 	}
 
 	subCmds := cmd.Commands()
 
 	switch cmd.Use {
-	case "authelia-gen":
+	case cmdUseRoot:
 		sort.Slice(subCmds, func(i, j int) bool {
 			switch subCmds[j].Use {
-			case "docs":
+			case cmdUseDocs:
 				// Ensure `docs` subCmd is last.
 				return true
 			default:
 				return subCmds[i].Use < subCmds[j].Use
 			}
 		})
-	case "docs":
+	case cmdUseDocs:
 		sort.Slice(subCmds, func(i, j int) bool {
 			switch subCmds[j].Use {
-			case "date":
+			case cmdUseDocsDate:
 				// Ensure `date` subCmd is last.
 				return true
 			default:
@@ -83,7 +83,7 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	for _, subCmd := range subCmds {
-		if subCmd.Use == "completion" || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringInSlice(subCmd.Use, exclude) {
+		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringInSlice(subCmd.Use, exclude) {
 			continue
 		}
 
