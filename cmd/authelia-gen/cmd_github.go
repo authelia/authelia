@@ -202,7 +202,7 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	data := &tmplIssueTemplateData{
 		Labels:   []string{labelTypePotentialBug.String(), labelStatusNeedsTriage.String(), labelPriorityNormal.String()},
 		Versions: tagsRecent,
-		Proxies:  []string{"Caddy", "Traefik", "NGINX", "SWAG", "NGINX Proxy Manager", "HAProxy", "Envoy"},
+		Proxies:  []string{"Caddy", "Traefik", "Envoy", "NGINX", "SWAG", "NGINX Proxy Manager", "HAProxy"},
 	}
 
 	if err = tmplGitHubIssueTemplateBug.Execute(f, data); err != nil {
