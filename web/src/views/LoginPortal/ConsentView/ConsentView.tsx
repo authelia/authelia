@@ -1,18 +1,18 @@
-import React, { useEffect, Fragment, ReactNode, useState } from "react";
+import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
 import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group } from "@mui/icons-material";
 import {
     Button,
+    Checkbox,
+    FormControlLabel,
     Grid,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
+    Theme,
     Tooltip,
     Typography,
-    Checkbox,
-    FormControlLabel,
-    Theme,
 } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import LoginLayout from "@layouts/LoginLayout";
-import { acceptConsent, ConsentGetResponseBody, getConsentResponse, rejectConsent } from "@services/Consent";
+import { ConsentGetResponseBody, acceptConsent, getConsentResponse, rejectConsent } from "@services/Consent";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {}

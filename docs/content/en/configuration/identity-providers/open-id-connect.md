@@ -418,6 +418,9 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 
 The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
 
+See the [integration guide](../../integration/openid-connect/introduction.md#user-information-signing-algorithm) for
+more information.
+
 ## Integration
 
 To integrate Authelia's [OpenID Connect] implementation with a relying party please see the

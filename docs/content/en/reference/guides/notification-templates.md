@@ -18,6 +18,17 @@ two extensions; `.html` for HTML templates, and `.txt` for plaintext templates.
 This guide effectively documents the usage of the
 [template_path](../../configuration/notifications/introduction.md#template_path) notification configuration option.
 
+## Important Notes
+
+1. The templates are not covered by our stability guarantees. While we aim to avoid changes to the templates which
+   would cause users to have to manually change them changes may be necessary in order to facilitate bug fixes or
+   generally improve the templates.
+   1. This is especially important for the [Envelope Template](#envelope-template).
+   2. It is your responsibility to ensure your templates are up to date. We make no efforts in facilitating this.
+2. We may not be able to offer any direct support in debugging these templates. We only offer support and fixes to
+   the official templates.
+3. All templates __*MUST*__ be encoded in UTF-8 with CRLF line endings. The line endings __*MUST NOT*__ be a simple LF.
+
 ## Template Names
 
 |       Template       |                                    Description                                    |
@@ -60,13 +71,14 @@ Some Additional examples for specific purposes can be found in the
 
 ## Envelope Template
 
+*__Important Note:__ This template must end with a CRLF newline. Failure to include this newline will result in
+malformed emails.*
+
 There is also a special envelope template. This is the email envelope which contains the content of the other templates
 when sent via the SMTP notifier. It's *__strongly recommended__* that you do not modify this template unless you know
 what you're doing. If you really want to modify it the name of the file must be `Envelope.tmpl`.
 
-This template contains the following placeholders:
-
-In template files, you can use the following placeholders which are automatically injected into the templates:
+This template contains the following placeholders which are automatically injected into the template:
 
 |       Placeholder       |                                 Description                                 |
 |:-----------------------:|:---------------------------------------------------------------------------:|
@@ -80,9 +92,6 @@ In template files, you can use the following placeholders which are automaticall
 |       `{{ .To }}`       |         The string representation of the recipients email address.          |
 |    `{{ .Subject }}`     |                             The email subject.                              |
 |      `{{ .Date }}`      |             The time.Time of the email envelope being rendered.             |
-|    `{{ .Boundary }}`    |       The random alphanumeric 20 character multi-part email boundary.       |
-| `{{ .Body.PlainText }}` |                    The plain text version of the email.                     |
-|   `{{ .Body.HTML }}`    |                       The HTML version of the email.                        |
 
 ## Original Templates
 

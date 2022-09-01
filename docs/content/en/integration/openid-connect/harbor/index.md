@@ -65,17 +65,17 @@ which will operate with the above example:
 
 ```yaml
 - id: harbor
+  description: Harbor
   secret: harbor_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://harbor.example.com/c/oidc/callback
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://vault.example.com/oidc/callback
-    - https://vault.example.com/ui/vault/auth/oidc/oidc/callback
   userinfo_signing_algorithm: none
 ```
 

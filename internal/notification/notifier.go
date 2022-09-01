@@ -10,5 +10,5 @@ import (
 type Notifier interface {
 	model.StartupCheck
 
-	Send(recipient mail.Address, subject, body, htmlBody string) (err error)
+	Send(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error)
 }
