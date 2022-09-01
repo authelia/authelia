@@ -31,6 +31,8 @@ func newSuitesCmd() (cmd *cobra.Command) {
 		Example: cmdSuitesExample,
 		Run:     cmdSuitesListRun,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd())
@@ -46,6 +48,8 @@ func newSuitesListCmd() (cmd *cobra.Command) {
 		Example: cmdSuitesListExample,
 		Run:     cmdSuitesListRun,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -59,6 +63,8 @@ func newSuitesSetupCmd() (cmd *cobra.Command) {
 		Example: cmdSuitesSetupExample,
 		Run:     cmdSuitesSetupRun,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -72,6 +78,8 @@ func newSuitesTeardownCmd() (cmd *cobra.Command) {
 		Example: cmdSuitesTeardownExample,
 		Run:     cmdSuitesTeardownRun,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -85,6 +93,8 @@ func newSuitesTestCmd() (cmd *cobra.Command) {
 		Example: cmdSuitesTestExample,
 		Run:     cmdSuitesTestRun,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().BoolVar(&failfast, "failfast", false, "Stops tests on first failure")

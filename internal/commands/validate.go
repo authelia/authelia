@@ -16,6 +16,8 @@ func newValidateConfigCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaValidateConfigExample,
 		Args:    cobra.NoArgs,
 		RunE:    cmdValidateConfigRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
