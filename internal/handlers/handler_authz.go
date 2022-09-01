@@ -98,16 +98,18 @@ func (a *Authz) getPortalURL(ctx *middlewares.AutheliaCtx, object *authorization
 			}
 		}
 
-		if portalURL != nil && strings.HasSuffix(object.Domain, a.config.Domains[0].Name) {
-			return portalURL, nil
+		if portalURL == nil {
+			return nil, nil
 		}
 
-		return nil, fmt.Errorf("doesn't appear to be a protected domain")
-	}
-
-	for i := 0; i < len(a.config.Domains); i++ {
-		if a.config.Domains[i].Name != "" && strings.HasSuffix(object.Domain, a.config.Domains[i].Name) {
-			return a.config.Domains[i].PortalURL, nil
+		if strings.HasSuffix(object.Domain, a.config.Domains[0].Name) {
+			return portalURL, nil
+		}
+	} else {
+		for i := 0; i < len(a.config.Domains); i++ {
+			if a.config.Domains[i].Name != "" && strings.HasSuffix(object.Domain, a.config.Domains[i].Name) {
+				return a.config.Domains[i].PortalURL, nil
+			}
 		}
 	}
 
@@ -134,13 +136,13 @@ func (a *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.U
 	return redirectionURL
 }
 
-func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, authenticator AuthnStrategy, err error) {
-	for _, authenticator = range a.strategies {
-		if authn, err = authenticator.Get(ctx); err != nil {
+func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, strategy AuthnStrategy, err error) {
+	for _, strategy = range a.strategies {
+		if authn, err = strategy.Get(ctx); err != nil {
 			ctx.Logger.Debugf("Error occurred processing authentication: %+v", err)
 
-			if authenticator.CanHandleUnauthorized() {
-				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, authenticator, nil
+			if strategy.CanHandleUnauthorized() {
+				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, nil
 			}
 
 			return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, nil, err
@@ -151,8 +153,8 @@ func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, authenticator 
 		}
 	}
 
-	if authenticator.CanHandleUnauthorized() {
-		return authn, authenticator, err
+	if strategy.CanHandleUnauthorized() {
+		return authn, strategy, err
 	}
 
 	return authn, nil, nil
