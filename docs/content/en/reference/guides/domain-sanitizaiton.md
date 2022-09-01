@@ -2,7 +2,7 @@
 title: "Domain Sanitization"
 description: "This guide describes and helps users sanitize provided files to hide their domain"
 lead: "This guide describes and helps users sanitize provided files to hide their domain."
-date: 2022-06-20T10:05:55+10:00
+date: 2022-08-26T13:50:51+10:00
 draft: false
 images: []
 menu:

@@ -15,6 +15,8 @@ func newCICmd() (cmd *cobra.Command) {
 		Example: cmdCIExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdCIRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

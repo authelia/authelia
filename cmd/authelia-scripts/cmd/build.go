@@ -20,6 +20,8 @@ func newBuildCmd() (cmd *cobra.Command) {
 		Example: cmdBuildExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
