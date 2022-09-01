@@ -62,12 +62,4 @@ type EmailEnvelopeValues struct {
 	To           string
 	Subject      string
 	Date         time.Time
-	Boundary     string
-	Body         EmailEnvelopeBodyValues
-}
-
-// EmailEnvelopeBodyValues are the values used for the email envelopes bodies.
-type EmailEnvelopeBodyValues struct {
-	PlainText string
-	HTML      string
 }

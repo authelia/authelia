@@ -21,8 +21,10 @@ As with all guides in this section it's important you read the [introduction](..
 
 ## Tested Versions
 
-* Authelia: v4.35.5
-* Organizr: 2.1.1890
+* Authelia:
+  * v4.35.5
+* Organizr:
+  * 2.1.1890
 
 ## Before You Begin
 

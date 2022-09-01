@@ -768,6 +768,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "boomam",
+      "name": "boomam",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37086258?v=4",
+      "profile": "https://github.com/boomam",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Northguy",
+      "name": "Northguy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1189058?v=4",
+      "profile": "https://github.com/Northguy",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

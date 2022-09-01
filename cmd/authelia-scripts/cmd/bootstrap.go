@@ -20,6 +20,8 @@ func newBootstrapCmd() (cmd *cobra.Command) {
 		Example: cmdBootstrapExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdBootstrapRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

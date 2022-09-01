@@ -20,6 +20,8 @@ func newHashPasswordCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaHashPasswordExample,
 		Args:    cobra.MinimumNArgs(1),
 		RunE:    cmdHashPasswordRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().BoolP("sha512", "z", false, fmt.Sprintf("use sha512 as the algorithm (changes iterations to %d, change with -i)", schema.DefaultPasswordSHA512Configuration.Iterations))
