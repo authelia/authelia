@@ -80,6 +80,7 @@ body:
         - SWAG
         - NGINX Proxy Manager
         - HAProxy
+        - Envoy
     validations:
       required: true
   - type: input
