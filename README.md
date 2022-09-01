@@ -52,7 +52,7 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * Several second factor methods:
-  * **[Security Keys](https://www.authelia.com/overview/authentication/webauthn-security-key/)** that support
+  * **[Security Keys](https://www.authelia.com/overview/authentication/security-key/)** that support
     [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
   * **[Time-based One-Time password](https://www.authelia.com/overview/authentication/one-time-password/)**
     with compatible authenticator applications.
