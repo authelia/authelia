@@ -2,7 +2,7 @@
 title: "authelia-gen docs date"
 description: "Reference for the authelia-gen docs date command."
 lead: ""
-date: 2022-07-31T12:57:53+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
