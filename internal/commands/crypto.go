@@ -57,7 +57,7 @@ func newCryptoRandCmd() (cmd *cobra.Command) {
 			}
 
 			if n < 1 {
-				return fmt.Errorf("length must be more than 1")
+				return fmt.Errorf("length must be at least 1")
 			}
 
 			switch {
