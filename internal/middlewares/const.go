@@ -64,7 +64,7 @@ var (
 
 const (
 	strProtoHTTPS = "https"
-	strProtoHTTP  = "https"
+	strProtoHTTP  = "http"
 )
 
 var (
