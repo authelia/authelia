@@ -66,16 +66,17 @@ which will operate with the above example:
 
 ```yaml
 - id: portainer
+  description: Portainer
   secret: portainer_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://portainer.example.com
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://portainer.example.com
   userinfo_signing_algorithm: none
 ```
 

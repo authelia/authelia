@@ -20,12 +20,12 @@ modifications that are in harmony with the following rules which are not intende
 only intended to preserve the Authelia branding identity:
 
 1. They do not unreasonably alter the quality of the branding:
-   - Image size changes should be done only when the size is appropriate for the intended display scenario.
-   - Compression should not be applied overly aggressively for the intended display scenario.
+  - Image size changes should be done only when the size is appropriate for the intended display scenario.
+  - Compression should not be applied overly aggressively for the intended display scenario.
 2. The changes do not unreasonably alter the design of the branding and should fit one or more of the following
    categories:
-   - Layout
-   - Format
+  - Layout
+  - Format
 
 Examples of changes which fit these categories include:
 
@@ -52,7 +52,19 @@ The logo is just the Authelia circle logo without any text.
 
 #### Logo Example
 
-{{< figure src="/images/branding/logo.svg" link="/images/branding/logo.svg" target="_blank" alt="Authelia Logo" height="150" >}}
+{{< figure src="/images/branding/logo.svg" link="/images/branding/logo.svg" target="_blank" alt="Authelia Logo" width="150" ignoreStaticImages="false" >}}
+
+### Logo (Cropped)
+
+The logo is the same as the standard logo without padding.
+
+#### Logo (Cropped) Files
+
+[PSD](https://www.authelia.com/images/branding/logo-cropped.psd) | [SVG](https://www.authelia.com/images/branding/logo-cropped.svg) | [PNG](https://www.authelia.com/images/branding/logo-cropped.png)
+
+#### Logo (Cropped) Example
+
+{{< figure src="/images/branding/logo-cropped.svg" link="/images/branding/logo-cropped.svg" target="_blank" alt="Authelia Logo" width="150" ignoreStaticImages="false" >}}
 
 ### Title
 
@@ -64,5 +76,5 @@ The title is the Authelia circle logo with the `authelia` branded text.
 
 #### Title Example
 
-{{< figure src="/images/branding/title.svg" link="/images/branding/title.svg" target="_blank" alt="Authelia Title" height="150" >}}
+{{< figure src="/images/branding/title.svg" link="/images/branding/title.svg" target="_blank" alt="Authelia Title" width="300" ignoreStaticImages="false" >}}
 

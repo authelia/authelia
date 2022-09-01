@@ -15,15 +15,15 @@ toc: true
 ## Request Header Too Large
 
 The `request header too large` error with a status code of `431` indicates the HTTP request made to *Authelia* had
-headers exceeding the server [read_buffer_size](../../configuration/miscellaneous/server.md#read_buffer_size) parameter.
+headers exceeding the server [read buffer](../../configuration/miscellaneous/server.md#buffers) parameter.
 
 Usually the defaults are sufficient however some applications cause fairly large headers to be added to requests.
 
-It's suggested you increase the [read_buffer_size](../../configuration/miscellaneous/server.md#read_buffer_size)
+It's suggested you increase the [read buffer](../../configuration/miscellaneous/server.md#buffers)
 configuration option (by either doubling or quadrupling it) in order to alleviate this issue or use the reverse proxy to
 remove the excessive headers which are causing this issue.
 
-It's generally recommended the [write_buffer_size](../../configuration/miscellaneous/server.md#write_buffer_size) is
+It's generally recommended the [write buffer](../../configuration/miscellaneous/server.md#buffers) is
 also increased.
 
 ## User Has Been Inactive Too Long

@@ -6,6 +6,9 @@
 
 /** Import Bootstrap */
 @import "bootstrap/scss/bootstrap";
+
+/** Import Bootstrap Icons */
+$bootstrap-icons-font-file: "./fonts/bootstrap-icons";
 @import "bootstrap-icons/font/bootstrap-icons.scss";
 
 /** Import highlight.js */

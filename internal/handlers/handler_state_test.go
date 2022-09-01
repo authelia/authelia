@@ -52,7 +52,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 	err = json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), []byte("application/json"), s.mock.Ctx.Response.Header.ContentType())
+	assert.Equal(s.T(), []byte("application/json; charset=utf-8"), s.mock.Ctx.Response.Header.ContentType())
 	assert.Equal(s.T(), expectedBody, actualBody)
 }
 
@@ -82,7 +82,7 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	err = json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-	assert.Equal(s.T(), []byte("application/json"), s.mock.Ctx.Response.Header.ContentType())
+	assert.Equal(s.T(), []byte("application/json; charset=utf-8"), s.mock.Ctx.Response.Header.ContentType())
 	assert.Equal(s.T(), expectedBody, actualBody)
 }
 

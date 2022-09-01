@@ -4,10 +4,19 @@
 
 #suggestions {
   position: absolute;
-  left: 0;
+  right: 0;
   margin-top: 0.5rem;
   width: calc(100vw - 3rem);
+  max-width: calc(400px - 3rem);
   z-index: $zindex-dropdown;
+
+  @include media-breakpoint-up(md) {
+    right: -2rem;
+  }
+
+  @include media-breakpoint-up(lg) {
+    right: 0;
+  }
 }
 
 #suggestions a,
@@ -57,9 +66,10 @@
   color: $gray-700;
 }
 
-@include media-breakpoint-up(sm) {
+@include media-breakpoint-up(lg) {
   #suggestions {
     width: 31.125rem;
+    max-width: 31.125rem;
   }
 
   #suggestions a {

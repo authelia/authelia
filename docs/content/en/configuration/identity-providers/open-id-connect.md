@@ -384,7 +384,7 @@ Some restrictions that have been placed on clients and
 their redirect URIs are as follows:
 
 1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
-   attempt to authorize wil fail and an error will be generated.
+   attempt to authorize will fail and an error will be generated.
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
 4. The client can ignore rule 3 and use `urn:ietf:wg:oauth:2.0:oob` if it is a [public](#public) client type.
@@ -417,6 +417,9 @@ know what you're doing. Potential values are `form_post`, `query`, and `fragment
 {{< confkey type="string" default="none" required="no" >}}
 
 The algorithm used to sign the userinfo endpoint responses. This can either be `none` or `RS256`.
+
+See the [integration guide](../../integration/openid-connect/introduction.md#user-information-signing-algorithm) for
+more information.
 
 ## Integration
 

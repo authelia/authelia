@@ -7,11 +7,11 @@ const (
 	// Bypass bypass level.
 	Bypass Level = iota
 	// OneFactor one factor level.
-	OneFactor Level = iota
+	OneFactor
 	// TwoFactor two factor level.
-	TwoFactor Level = iota
+	TwoFactor
 	// Denied denied level.
-	Denied Level = iota
+	Denied
 )
 
 const (

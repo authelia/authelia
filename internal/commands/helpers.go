@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -49,11 +50,16 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
 	}
 
+	templatesProvider, err := templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath})
+	if err != nil {
+		errors = append(errors, err)
+	}
+
 	var notifier notification.Notifier
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool)
+		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool, templatesProvider)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}
@@ -89,6 +95,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		NTP:             ntpProvider,
 		Notifier:        notifier,
 		SessionProvider: sessionProvider,
+		Templates:       templatesProvider,
 		TOTP:            totpProvider,
 		PasswordPolicy:  ppolicyProvider,
 	}, warnings, errors

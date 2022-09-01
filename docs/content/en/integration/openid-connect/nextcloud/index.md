@@ -62,7 +62,7 @@ $CONFIG = array (
     ),
     'oidc_login_default_group' => 'oidc',
     'oidc_login_use_external_storage' => false,
-    'oidc_login_scope' => 'openid profile groups',
+    'oidc_login_scope' => 'openid profile email groups',
     'oidc_login_proxy_ldap' => false,
     'oidc_login_disable_registration' => true,
     'oidc_login_redir_fallback' => false,
@@ -86,15 +86,17 @@ which will operate with the above example:
 
 ```yaml
 - id: nextcloud
+  description: NextCloud
   secret: nextcloud_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://nextcloud.example.com/apps/oidc_login/oidc
   scopes:
     - openid
     - profile
+    - email
     - groups
-  redirect_uris:
-    - https://nextcloud.example.com/apps/oidc_login/oidc
   userinfo_signing_algorithm: none
 ```
 

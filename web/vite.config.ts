@@ -55,10 +55,8 @@ export default defineConfig(({ mode }) => {
             },
         },
         server: {
+            port: 3000,
             open: false,
-            hmr: {
-                clientPort: env.VITE_HMR_PORT || 3000,
-            },
         },
         plugins: [eslintPlugin({ cache: false }), htmlPlugin(), istanbulPlugin, react(), svgr(), tsconfigPaths()],
     };

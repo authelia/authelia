@@ -13,7 +13,7 @@ RUN yarn install --frozen-lockfile && yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.18.3-alpine AS builder-backend
+FROM golang:1.19.0-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -43,7 +43,7 @@ CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LD
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.16.0
+FROM alpine:3.16.2
 
 WORKDIR /app
 

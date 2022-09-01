@@ -1,10 +1,10 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline, ThemeProvider } from "@mui/material";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
 import {
@@ -13,8 +13,8 @@ import {
     LogoutRoute,
     RegisterOneTimePasswordRoute,
     RegisterWebauthnRoute,
-    ResetPasswordStep2Route,
     ResetPasswordStep1Route,
+    ResetPasswordStep2Route,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";

@@ -29,7 +29,7 @@ func (suite *NotifierSuite) SetupTest() {
 }
 
 /*
-	Common Tests.
+Common Tests.
 */
 func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() {
 	ValidateNotifier(&suite.config, suite.validator)
@@ -69,7 +69,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 }
 
 /*
-	SMTP Tests.
+SMTP Tests.
 */
 func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	ValidateNotifier(&suite.config, suite.validator)
@@ -80,6 +80,17 @@ func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	suite.Assert().Equal("example.com", suite.config.SMTP.TLS.ServerName)
 	suite.Assert().Equal("TLS1.2", suite.config.SMTP.TLS.MinimumVersion)
 	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
+}
+
+func (suite *NotifierSuite) TestSMTPShouldDefaultStartupCheckAddress() {
+	suite.Assert().Equal(mail.Address{Name: "", Address: ""}, suite.config.SMTP.StartupCheckAddress)
+
+	ValidateNotifier(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(mail.Address{Name: "Authelia Test", Address: "test@authelia.com"}, suite.config.SMTP.StartupCheckAddress)
 }
 
 func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
@@ -135,7 +146,7 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
 }
 
 /*
-	File Tests.
+File Tests.
 */
 func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 	suite.config.SMTP = nil

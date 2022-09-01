@@ -14,14 +14,14 @@ aliases:
   - /i/k8s
 ---
 
-{{< figure src="/images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" >}}
+{{< figure src="/images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}
 
 ## UNDER CONSTRUCTION
 
 The following areas are actively being worked on for Kubernetes:
 
 1. Detailed Documentation
-2. [Helm Chart](../chart.md) for Helm v3
+2. [Helm Chart](chart.md) for Helm v3
 3. Kustomize Deployment
 4. Manifest Examples
 
@@ -30,7 +30,7 @@ Users are welcome to reach out directly by using any of our various [contact opt
 ## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../prologue/get-started) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Important Notes
