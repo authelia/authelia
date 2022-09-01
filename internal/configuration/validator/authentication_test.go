@@ -80,7 +80,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenMemoryNotMo
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'memory' must at least be parallelism multiplied by 8 when using algorithm 'argon2id' with parallelism 2 it should be at least 16 but it is configured as '8'")
-}
+}.
 */
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenBlank() {
@@ -164,7 +164,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSaltLengthT
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'salt_length' must be 2 or more but it is configured a '-1'")
-}
+}.
 */
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {
@@ -199,7 +199,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenParallelism
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: option 'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '-1'")
-}
+}.
 */
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultValues() {

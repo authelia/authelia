@@ -35,6 +35,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Args:    cobra.NoArgs,
 		PreRun:  newCmdWithConfigPreRun(true, true, true),
 		Run:     cmdRootRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{})

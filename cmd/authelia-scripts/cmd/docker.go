@@ -31,6 +31,8 @@ func newDockerCmd() (cmd *cobra.Command) {
 		Example: cmdDockerExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd())
@@ -46,6 +48,8 @@ func newDockerBuildCmd() (cmd *cobra.Command) {
 		Example: cmdDockerBuildExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
@@ -61,6 +65,8 @@ func newDockerPushManifestCmd() (cmd *cobra.Command) {
 		Example: cmdDockerPushManifestExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerPushManifestRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

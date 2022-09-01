@@ -9,6 +9,8 @@ func newDocsCmd() *cobra.Command {
 		Use:   "docs",
 		Short: "Generate docs",
 		RunE:  docsRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.PersistentFlags().StringP("cwd", "C", "", "Sets the CWD for git commands")
