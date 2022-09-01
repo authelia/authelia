@@ -100,7 +100,11 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("failed to get latest version of the Swagger UI: the api returned zero results")
 	}
 
-	data.VersionSwaggerUI = respJSON[0].Name
+	if strings.HasPrefix(respJSON[0].Name, "v") {
+		data.VersionSwaggerUI = respJSON[0].Name[1:]
+	} else {
+		data.VersionSwaggerUI = respJSON[0].Name
+	}
 
 	fullPathScriptsGen := filepath.Join(root, pathScriptsGen)
 
