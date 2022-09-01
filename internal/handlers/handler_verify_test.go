@@ -506,6 +506,7 @@ func (p Pair) String() string {
 		p.URL, p.Username, p.AuthenticationLevel, p.ExpectedStatusCode)
 }
 
+// nolint:gocyclo // This is a test.
 func TestShouldRedirectAuthorizations(t *testing.T) {
 	testCases := []struct {
 		name string
