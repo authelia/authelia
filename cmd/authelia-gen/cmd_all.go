@@ -9,6 +9,8 @@ func newAllCmd() *cobra.Command {
 		Use:   "all",
 		Short: "Run all generators with default options",
 		RunE:  allRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

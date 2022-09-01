@@ -17,6 +17,8 @@ func newUnitTestCmd() (cmd *cobra.Command) {
 		Example: cmdUnitTestExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdUnitTestRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
