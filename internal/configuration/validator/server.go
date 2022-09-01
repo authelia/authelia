@@ -70,16 +70,24 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 		config.Server.Path = path.Clean("/" + config.Server.Path)
 	}
 
-	if config.Server.ReadBufferSize == 0 {
-		config.Server.ReadBufferSize = schema.DefaultServerConfig.ReadBufferSize
-	} else if config.Server.ReadBufferSize < 0 {
-		validator.Push(fmt.Errorf(errFmtServerBufferSize, "read", config.Server.ReadBufferSize))
+	if config.Server.Buffers.Read <= 0 {
+		config.Server.Buffers.Read = schema.DefaultServerConfig.Buffers.Read
 	}
 
-	if config.Server.WriteBufferSize == 0 {
-		config.Server.WriteBufferSize = schema.DefaultServerConfig.WriteBufferSize
-	} else if config.Server.WriteBufferSize < 0 {
-		validator.Push(fmt.Errorf(errFmtServerBufferSize, "write", config.Server.WriteBufferSize))
+	if config.Server.Buffers.Write <= 0 {
+		config.Server.Buffers.Write = schema.DefaultServerConfig.Buffers.Write
+	}
+
+	if config.Server.Timeouts.Read <= 0 {
+		config.Server.Timeouts.Read = schema.DefaultServerConfig.Timeouts.Read
+	}
+
+	if config.Server.Timeouts.Write <= 0 {
+		config.Server.Timeouts.Write = schema.DefaultServerConfig.Timeouts.Write
+	}
+
+	if config.Server.Timeouts.Idle <= 0 {
+		config.Server.Timeouts.Idle = schema.DefaultServerConfig.Timeouts.Idle
 	}
 
 	ValidateServerEndpoints(config, validator)

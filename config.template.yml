@@ -51,12 +51,11 @@ server:
   ## Useful to allow overriding of specific static assets.
   # asset_path: /config/assets/
 
-  ## Buffers usually should be configured to be the same value.
-  ## Explanation at https://www.authelia.com/c/server#buffer-sizes
-  ## Read buffer size adjusts the server's max incoming request size in bytes.
-  ## Write buffer size does the same for outgoing responses.
-  read_buffer_size: 4096
-  write_buffer_size: 4096
+  ## Enables the pprof endpoint.
+  enable_pprof: false
+
+  ## Enables the expvars endpoint.
+  enable_expvars: false
 
   ## Disables writing the health check vars to /app/.healthcheck.env which makes healthcheck.sh return exit code 0.
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
@@ -78,6 +77,32 @@ server:
 
     ## The CSP Template. Read the docs.
     csp_template: ""
+
+  ## Server Buffers configuration.
+  # buffers:
+
+    ## Buffers usually should be configured to be the same value.
+    ## Explanation at https://www.authelia.com/c/server#buffer-sizes
+    ## Read buffer size adjusts the server's max incoming request size in bytes.
+    ## Write buffer size does the same for outgoing responses.
+
+    ## Read buffer.
+    # read: 4096
+
+    ## Write buffer.
+    # write: 4096
+
+  ## Server Timeouts configuration.
+  # timeouts:
+
+    ## Read timeout.
+    # read: 2s
+
+    ## Write timeout.
+    # write: 2s
+
+    ## Idle timeout.
+    # idle: 30s
 
 ##
 ## Log Configuration
@@ -109,6 +134,27 @@ telemetry:
 
     ## The address to listen on for metrics. This should be on a different port to the main server.port value.
     address: tcp://0.0.0.0:9959
+
+    ## Metrics Server Buffers configuration.
+    # buffers:
+
+      ## Read buffer.
+      # read: 4096
+
+      ## Write buffer.
+      # write: 4096
+
+    ## Metrics Server Timeouts configuration.
+    # timeouts:
+
+      ## Read timeout.
+      # read: 2s
+
+      ## Write timeout.
+      # write: 2s
+
+      ## Idle timeout.
+      # idle: 30s
 
 ##
 ## TOTP Configuration

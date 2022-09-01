@@ -19,6 +19,8 @@ func newDocsCLICmd() *cobra.Command {
 		Use:   "cli",
 		Short: "Generate CLI docs",
 		RunE:  docsCLIRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP("directory", "d", "./docs/content/en/reference/cli", "The directory to store the markdown in")

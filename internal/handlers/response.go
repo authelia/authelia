@@ -104,7 +104,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	if !utils.IsRedirectionSafe(*targetURL, ctx.Configuration.Session.Domain) {
+	if !utils.URLDomainHasSuffix(*targetURL, ctx.Configuration.Session.Domain) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {

@@ -11,10 +11,9 @@ import (
 
 // NewDuoAPI create duo API instance.
 func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
-	api := new(APIImpl)
-	api.DuoApi = duoAPI
-
-	return api
+	return &APIImpl{
+		DuoApi: duoAPI,
+	}
 }
 
 // Call performs a request to the DuoAPI.

@@ -20,6 +20,8 @@ func newDocsDateCmd() *cobra.Command {
 		Use:   "date",
 		Short: "Generate doc dates",
 		RunE:  docsDateRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP("directory", "d", "./docs/content", "The directory to modify")

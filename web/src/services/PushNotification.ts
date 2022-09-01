@@ -1,7 +1,7 @@
 import {
+    CompleteDuoDeviceSelectionPath,
     CompletePushNotificationSignInPath,
     InitiateDuoDeviceSelectionPath,
-    CompleteDuoDeviceSelectionPath,
 } from "@services/Api";
 import { Get, PostWithOptionalResponse } from "@services/Client";
 

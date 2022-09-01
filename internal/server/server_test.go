@@ -192,7 +192,6 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 
 	defer tlsServerContext.Close()
 
-	fmt.Println(tlsServerContext.Port())
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 

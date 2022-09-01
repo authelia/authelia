@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState, ReactNode } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -10,15 +10,15 @@ import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useWorkflow } from "@hooks/Workflow";
 import {
-    completePushNotificationSignIn,
-    completeDuoDeviceSelectionProcess,
     DuoDevicePostRequest,
+    completeDuoDeviceSelectionProcess,
+    completePushNotificationSignIn,
     initiateDuoDeviceSelectionProcess,
 } from "@services/PushNotification";
 import { AuthenticationLevel } from "@services/State";
 import DeviceSelectionContainer, {
-    SelectedDevice,
     SelectableDevice,
+    SelectedDevice,
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 

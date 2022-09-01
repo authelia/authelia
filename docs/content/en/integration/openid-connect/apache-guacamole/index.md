@@ -2,7 +2,7 @@
 title: "Apache Guacamole"
 description: "Integrating Apache Guacamole with the Authelia OpenID Connect Provider."
 lead: ""
-date: 2022-07-13T03:42:47+10:00
+date: 2022-07-31T13:09:05+10:00
 draft: false
 images: []
 menu:
@@ -58,16 +58,17 @@ The following YAML configuration is an example __Authelia__
 
 ```yaml
 - id: guacamole
+  description: Apache Guacamole
   secret: guacamole_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://guacamole.example.com
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://guacamole.example.com
   response_types:
     - id_token
   grant_types:

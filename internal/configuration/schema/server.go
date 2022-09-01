@@ -1,18 +1,23 @@
 package schema
 
+import (
+	"time"
+)
+
 // ServerConfig represents the configuration of the http server.
 type ServerConfig struct {
 	Host               string `koanf:"host"`
 	Port               int    `koanf:"port"`
 	Path               string `koanf:"path"`
 	AssetPath          string `koanf:"asset_path"`
-	ReadBufferSize     int    `koanf:"read_buffer_size"`
-	WriteBufferSize    int    `koanf:"write_buffer_size"`
 	DisableHealthcheck bool   `koanf:"disable_healthcheck"`
 
 	TLS       ServerTLSConfig       `koanf:"tls"`
 	Headers   ServerHeadersConfig   `koanf:"headers"`
 	Endpoints ServerEndpointsConfig `koanf:"endpoints"`
+
+	Buffers  ServerBuffers  `koanf:"buffers"`
+	Timeouts ServerTimeouts `koanf:"timeouts"`
 }
 
 // ServerEndpointsConfig is the endpoints configuration for the HTTP server.
@@ -49,10 +54,17 @@ type ServerHeadersConfig struct {
 
 // DefaultServerConfig represents the default values of the ServerConfig.
 var DefaultServerConfig = ServerConfig{
-	Host:            "0.0.0.0",
-	Port:            9091,
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
+	Host: "0.0.0.0",
+	Port: 9091,
+	Buffers: ServerBuffers{
+		Read:  4096,
+		Write: 4096,
+	},
+	Timeouts: ServerTimeouts{
+		Read:  time.Second * 2,
+		Write: time.Second * 2,
+		Idle:  time.Second * 30,
+	},
 	Endpoints: ServerEndpointsConfig{
 		Authz: map[string]ServerAuthzEndpointConfig{
 			"legacy": {

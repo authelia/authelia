@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 
@@ -21,8 +22,11 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		ErrorHandler:          handleError(),
 		Handler:               handleRouter(config, providers),
 		NoDefaultServerHeader: true,
-		ReadBufferSize:        config.Server.ReadBufferSize,
-		WriteBufferSize:       config.Server.WriteBufferSize,
+		ReadBufferSize:        config.Server.Buffers.Read,
+		WriteBufferSize:       config.Server.Buffers.Write,
+		ReadTimeout:           config.Server.Timeouts.Read,
+		WriteTimeout:          config.Server.Timeouts.Write,
+		IdleTimeout:           config.Server.Timeouts.Idle,
 	}
 
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
@@ -33,7 +37,7 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 	)
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
-		connectionType, connectionScheme = "TLS", schemeHTTPS
+		connectionType, connectionScheme = connTLS, schemeHTTPS
 
 		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
 			return nil, nil, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
@@ -62,7 +66,7 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
 		}
 	} else {
-		connectionType, connectionScheme = "non-TLS", schemeHTTP
+		connectionType, connectionScheme = connNonTLS, schemeHTTP
 
 		if listener, err = net.Listen("tcp", address); err != nil {
 			return nil, nil, fmt.Errorf("unable to initialize tcp listener: %w", err)
@@ -74,13 +78,13 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		return nil, nil, fmt.Errorf("unable to configure healthcheck: %w", err)
 	}
 
-	logger := logging.Logger()
+	paths := []string{"/"}
 
-	if config.Server.Path == "" {
-		logger.Infof("Initializing server for %s connections on '%s' path '/'", connectionType, listener.Addr().String())
-	} else {
-		logger.Infof("Initializing server for %s connections on '%s' paths '/' and '%s'", connectionType, listener.Addr().String(), config.Server.Path)
+	if config.Server.Path != "" {
+		paths = append(paths, config.Server.Path)
 	}
+
+	logging.Logger().Infof(fmtLogServerInit, "server", connectionType, listener.Addr().String(), strings.Join(paths, "' and '"))
 
 	return server, listener, nil
 }
@@ -95,7 +99,14 @@ func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp
 		ErrorHandler:          handleError(),
 		NoDefaultServerHeader: true,
 		Handler:               handleMetrics(),
+		ReadBufferSize:        config.Buffers.Read,
+		WriteBufferSize:       config.Buffers.Write,
+		ReadTimeout:           config.Timeouts.Read,
+		WriteTimeout:          config.Timeouts.Write,
+		IdleTimeout:           config.Timeouts.Idle,
 	}
+
+	logging.Logger().Infof(fmtLogServerInit, "server (metrics)", connNonTLS, listener.Addr().String(), "/metrics")
 
 	return server, listener, nil
 }

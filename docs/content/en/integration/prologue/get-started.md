@@ -15,6 +15,20 @@ toc: true
 It's important to note that this guide has a layout which we suggest as the best order in areas to tackle, but you may
 obviously choose a different path if you are so inclined.
 
+## Prerequisites
+
+### Forwarded Authentication
+
+Forwarded Authentication is a simple per-request authorization flow that checks the metadata of a request and a session
+cookie to determine if a user must be forwarded to the authentication portal.
+
+Due to the fact a cookie is use, it's an intentional design decision that *__ALL__* applications/domains protected via
+this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
+
+### OpenID Connect
+
+Only requires Authelia to be use a secure scheme (`https`).
+
 ## Configuration
 
 It's important to customize the configuration for *Authelia* in advance of deploying it. The configuration is static and

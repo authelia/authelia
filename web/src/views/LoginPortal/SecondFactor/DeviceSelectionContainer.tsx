@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 
-import { Typography, Grid, Button, Container, Theme } from "@mui/material";
+import { Button, Container, Grid, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
