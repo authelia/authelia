@@ -108,6 +108,16 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 |  hwk  |                User used a hardware key to login                 |  Have  | Browser  |
 |  sms  |                      User used Duo to login                      |  Have  | External |
 
+## User Information Signing Algorithm
+
+The following table describes the response from the [UserInfo] endpoint depending on the
+[userinfo_signing_algorithm](../../configuration/identity-providers/open-id-connect.md#userinfo_signing_algorithm).
+
+| Signing Algorithm |   Encoding   |            Content Type             |
+|:-----------------:|:------------:|:-----------------------------------:|
+|      `none`       |     JSON     | `application/json; charset="UTF-8"` |
+|      `RS256`      | JWT (Signed) | `application/jwt; charset="UTF-8"`  |
+
 ## Endpoint Implementations
 
 The following section documents the endpoints we implement and their respective paths. This information can
@@ -141,7 +151,7 @@ These endpoints implement OpenID Connect elements.
 | [JSON Web Key Sets] |       https://auth.example.com/jwks.json        |        jwks_uri        |
 |   [Authorization]   | https://auth.example.com/api/oidc/authorization | authorization_endpoint |
 |       [Token]       |     https://auth.example.com/api/oidc/token     |     token_endpoint     |
-|     [Userinfo]      |   https://auth.example.com/api/oidc/userinfo    |   userinfo_endpoint    |
+|     [UserInfo]      |   https://auth.example.com/api/oidc/userinfo    |   userinfo_endpoint    |
 |   [Introspection]   | https://auth.example.com/api/oidc/introspection | introspection_endpoint |
 |    [Revocation]     |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
 
@@ -161,7 +171,7 @@ These endpoints implement OpenID Connect elements.
 
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
-[Userinfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+[UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [Introspection]: https://www.rfc-editor.org/rfc/rfc7662.html
 [Revocation]: https://www.rfc-editor.org/rfc/rfc7009.html
 

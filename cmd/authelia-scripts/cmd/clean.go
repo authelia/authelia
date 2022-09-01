@@ -15,6 +15,8 @@ func newCleanCmd() (cmd *cobra.Command) {
 		Example: cmdCleanExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdCleanRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

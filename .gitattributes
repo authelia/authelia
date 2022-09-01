@@ -1,0 +1,31 @@
+* text=auto
+
+*.go text
+*.sh text
+*.html text
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.md text
+*.json text
+*.svg text
+*.css text
+*.yaml text
+*.yml text
+*.txt text
+*.tmpl text
+*.service text
+Dockerfile text
+Dockerfile.* text
+LICENSE text
+
+*.jpg binary
+*.png binary
+*.gif binary
+*.ico binary
+
+# RFC2822 requires us to save the email templates with CRLF line endings.
+internal/templates/src/notification/* text eol=crlf
+examples/templates/notifications/*.tmpl text eol=crlf
+examples/templates/notifications/*.html text eol=crlf

@@ -9,6 +9,8 @@ func newCodeCmd() *cobra.Command {
 		Use:   "code",
 		Short: "Generate code",
 		RunE:  codeRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newCodeKeysCmd())

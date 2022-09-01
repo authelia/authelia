@@ -21,6 +21,8 @@ func newCodeKeysCmd() *cobra.Command {
 		Use:   "keys",
 		Short: "Generate the list of valid configuration keys",
 		RunE:  codeKeysRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP("file", "f", "./internal/configuration/schema/keys.go", "Sets the path of the keys file")

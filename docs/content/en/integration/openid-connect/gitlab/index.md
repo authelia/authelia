@@ -74,16 +74,17 @@ which will operate with the above example:
 
 ```yaml
 - id: gitlab
+  description: GitLab
   secret: gitlab_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://gitlab.example.com/users/auth/openid_connect/callback
   scopes:
     - openid
     - profile
     - groups
     - email
-  redirect_uris:
-    - https://gitlab.example.com/users/auth/openid_connect/callback
   userinfo_signing_algorithm: none
 ```
 

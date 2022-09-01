@@ -74,3 +74,12 @@ const (
 	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
 	cspNoncePlaceholder = "${NONCE}"
 )
+
+const (
+	connNonTLS = "non-TLS"
+	connTLS    = "TLS"
+)
+
+const (
+	fmtLogServerInit = "Initializing %s for %s connections on '%s' path '%s'"
+)

@@ -62,15 +62,14 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		uri, err := ctx.ExternalRootURL()
-		if err != nil {
+		var (
+			uri string
+		)
+
+		if uri, err = ctx.ExternalRootURL(); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
-
-		link := fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss)
-
-		bufHTML := new(bytes.Buffer)
 
 		disableHTML := false
 		if ctx.Configuration.Notifier.SMTP != nil {
@@ -79,11 +78,13 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		values := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
-			LinkURL:     link,
+			LinkURL:     fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss),
 			LinkText:    args.MailButtonContent,
 			DisplayName: identity.DisplayName,
 			RemoteIP:    ctx.RemoteIP().String(),
 		}
+
+		bufHTML, bufText := &bytes.Buffer{}, &bytes.Buffer{}
 
 		if !disableHTML {
 			if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufHTML, values, templates.HTMLFormat); err != nil {
@@ -91,8 +92,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 				return
 			}
 		}
-
-		bufText := new(bytes.Buffer)
 
 		if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufText, values, templates.PlainTextFormat); err != nil {
 			ctx.Error(err, messageOperationFailed)
@@ -102,7 +101,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bufText.String(), bufHTML.String()); err != nil {
+		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bufText.Bytes(), bufHTML.Bytes()); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

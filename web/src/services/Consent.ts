@@ -1,5 +1,5 @@
 import { ConsentPath } from "@services/Api";
-import { Post, Get } from "@services/Client";
+import { Get, Post } from "@services/Client";
 
 interface ConsentPostRequestBody {
     client_id: string;

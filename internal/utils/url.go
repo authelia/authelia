@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"net/url"
 	"path"
+	"strings"
 )
 
 // URLPathFullClean returns a URL path with the query parameters appended (full path) with the path portion parsed
@@ -26,4 +28,49 @@ func URLPathFullClean(u *url.URL) (output string) {
 	default:
 		return path.Clean(u.Path)
 	}
+}
+
+// URLDomainHasSuffix determines whether the uri has a suffix of the domain value.
+func URLDomainHasSuffix(uri url.URL, domain string) bool {
+	if uri.Scheme != https {
+		return false
+	}
+
+	if uri.Hostname() == domain {
+		return true
+	}
+
+	if strings.HasSuffix(uri.Hostname(), period+domain) {
+		return true
+	}
+
+	return false
+}
+
+// IsRedirectionSafe determines whether the URL is safe to be redirected to.
+func IsRedirectionSafe(url url.URL, protectedDomain string) bool {
+	if url.Scheme != "https" {
+		return false
+	}
+
+	if url.Hostname() == protectedDomain {
+		return true
+	}
+
+	if strings.HasSuffix(url.Hostname(), fmt.Sprintf(".%s", protectedDomain)) {
+		return true
+	}
+
+	return false
+}
+
+// IsRedirectionURISafe determines whether the URI is safe to be redirected to.
+func IsRedirectionURISafe(uri, protectedDomain string) (bool, error) {
+	targetURL, err := url.ParseRequestURI(uri)
+
+	if err != nil {
+		return false, fmt.Errorf("Unable to parse redirection URI %s: %w", uri, err)
+	}
+
+	return targetURL != nil && IsRedirectionSafe(*targetURL, protectedDomain), nil
 }
