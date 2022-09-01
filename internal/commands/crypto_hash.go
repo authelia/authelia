@@ -24,6 +24,8 @@ func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaHashPasswordExample,
 		Args:    cobra.MaximumNArgs(1),
 		RunE:    cmdHashPasswordRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdFlagConfig(cmd)
@@ -75,6 +77,8 @@ func newCryptoHashCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaCryptoHashLong,
 		Example: cmdAutheliaCryptoHashExample,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -94,6 +98,8 @@ func newCryptoHashGenerateCmd() (cmd *cobra.Command) {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmdCryptoHashGenerateFinish(cmd, args, map[string]string{})
 		},
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdFlagConfig(cmd)
@@ -118,6 +124,8 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdFlagConfig(cmd)
@@ -257,6 +265,8 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 
 			return nil
 		},
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdFlagPassword(cmd, false)

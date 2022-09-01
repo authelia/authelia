@@ -92,6 +92,8 @@ func newCryptoRandCmd() (cmd *cobra.Command) {
 
 			return nil
 		},
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP(cmdFlagNameCharSet, "c", "alphanumeric", "Sets the charset for the output, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
