@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -52,7 +53,7 @@ type SMTPNotifier struct {
 }
 
 // Send is used to email a recipient.
-func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string) (err error) {
+func (n *SMTPNotifier) Send(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error) {
 	if err = n.dial(); err != nil {
 		return fmt.Errorf(fmtSMTPDialError, err)
 	}
@@ -65,7 +66,7 @@ func (n *SMTPNotifier) Send(recipient mail.Address, title, body, htmlBody string
 	}
 
 	// Compose and send the email body to the server.
-	if err = n.compose(recipient, title, body, htmlBody); err != nil {
+	if err = n.compose(recipient, subject, bodyText, bodyHTML); err != nil {
 		return fmt.Errorf(fmtSMTPGenericError, smtpCommandDATA, err)
 	}
 
@@ -167,7 +168,7 @@ func (n *SMTPNotifier) startTLS() error {
 		return nil
 	}
 
-	switch ok, _ := n.client.Extension("STARTTLS"); ok {
+	switch ok, _ := n.client.Extension(smtpExtSTARTTLS); ok {
 	case true:
 		n.log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
 
@@ -243,7 +244,7 @@ func (n *SMTPNotifier) auth() (err error) {
 	return nil
 }
 
-func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody string) (err error) {
+func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error) {
 	n.log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient.String())
 
 	if !n.config.DisableRequireTLS {
@@ -267,7 +268,7 @@ func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody str
 		return err
 	}
 
-	values := templates.EmailEnvelopeValues{
+	data := templates.EmailEnvelopeValues{
 		ProcessID:    os.Getpid(),
 		UUID:         muuid.String(),
 		Host:         n.config.Host,
@@ -276,19 +277,41 @@ func (n *SMTPNotifier) compose(recipient mail.Address, title, body, htmlBody str
 		Identifier:   n.config.Identifier,
 		From:         n.config.Sender.String(),
 		To:           recipient.String(),
-		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", title),
+		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", subject),
 		Date:         time.Now(),
-		Boundary:     utils.RandomString(30, utils.AlphaNumericCharacters, true),
-		Body: templates.EmailEnvelopeBodyValues{
-			PlainText: body,
-			HTML:      htmlBody,
-		},
 	}
 
-	if err = n.templates.ExecuteEmailEnvelope(wc, values); err != nil {
+	if err = n.templates.ExecuteEmailEnvelope(wc, data); err != nil {
 		n.log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %v", err)
 
 		return err
+	}
+
+	mwr := multipart.NewWriter(wc)
+
+	if _, err = wc.Write([]byte(fmt.Sprintf(`Content-Type: multipart/alternative; boundary="%s"`, mwr.Boundary()))); err != nil {
+		return err
+	}
+
+	if _, err = wc.Write(rfc2822DoubleNewLine); err != nil {
+		return err
+	}
+
+	ext8BITMIME, _ := n.client.Extension(smtpExt8BITMIME)
+
+	if err = multipartWrite(mwr, smtpMIMEHeaders(ext8BITMIME, smtpContentTypeTextPlain, bodyText), bodyText); err != nil {
+		return fmt.Errorf("failed to write text/plain part: %w", err)
+	}
+
+	if len(bodyHTML) != 0 {
+		if err = multipartWrite(mwr,
+			smtpMIMEHeaders(ext8BITMIME, smtpContentTypeTextHTML, bodyText), bodyHTML); err != nil {
+			return fmt.Errorf("failed to write text/html part: %w", err)
+		}
+	}
+
+	if err = mwr.Close(); err != nil {
+		return fmt.Errorf("failed to finalize the multipart content: %w", err)
 	}
 
 	if err = wc.Close(); err != nil {

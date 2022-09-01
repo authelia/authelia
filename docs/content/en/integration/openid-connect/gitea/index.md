@@ -78,15 +78,16 @@ will operate with the above example:
 
 ```yaml
 - id: gitea
+  description: Gitea
   secret: gitea_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://gitea.example.com/user/oauth2/authelia/callback
   scopes:
     - openid
     - email
     - profile
-  redirect_uris:
-    - https://gitea.example.com/user/oauth2/authelia/callback
   userinfo_signing_algorithm: none
 ```
 

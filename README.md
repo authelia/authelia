@@ -52,7 +52,7 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * Several second factor methods:
-  * **[Security Keys](https://www.authelia.com/overview/authentication/webauthn-security-key/)** that support
+  * **[Security Keys](https://www.authelia.com/overview/authentication/security-key/)** that support
     [FIDO2]&nbsp;[Webauthn] with devices like a [YubiKey].
   * **[Time-based One-Time password](https://www.authelia.com/overview/authentication/one-time-password/)**
     with compatible authenticator applications.
@@ -303,6 +303,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/HannesJo0139"><img src="https://avatars.githubusercontent.com/u/42114183?v=4?s=100" width="100px;" alt=""/><br /><sub><b>HannesJo0139</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=HannesJo0139" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/andreas-berg"><img src="https://avatars.githubusercontent.com/u/39428693?v=4?s=100" width="100px;" alt=""/><br /><sub><b>andreas-berg</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Aandreas-berg" title="Bug reports">🐛</a></td>
     <td align="center"><a href="http://radenac.me"><img src="https://avatars.githubusercontent.com/u/47008408?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Clément Radenac</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=clem3109" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/boomam"><img src="https://avatars.githubusercontent.com/u/37086258?v=4?s=100" width="100px;" alt=""/><br /><sub><b>boomam</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=boomam" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Northguy"><img src="https://avatars.githubusercontent.com/u/1189058?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Northguy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Northguy" title="Documentation">📖</a></td>
   </tr>
 </table>
 
