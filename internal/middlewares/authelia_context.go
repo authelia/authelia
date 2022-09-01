@@ -195,7 +195,7 @@ func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
 	externalRootURL := fmt.Sprintf("%s://%s", protocol, host)
 
 	if base := ctx.BasePath(); base != "" {
-		externalBaseURL, err := url.Parse(externalRootURL)
+		externalBaseURL, err := url.ParseRequestURI(externalRootURL)
 		if err != nil {
 			return "", err
 		}

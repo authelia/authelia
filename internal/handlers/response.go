@@ -176,7 +176,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 
 	referer := ctx.Request.Header.Referer()
 	if referer != nil {
-		refererURL, err := url.Parse(string(referer))
+		refererURL, err := url.ParseRequestURI(string(referer))
 		if err == nil {
 			requestURI = refererURL.Query().Get("rd")
 			requestMethod = refererURL.Query().Get("rm")
