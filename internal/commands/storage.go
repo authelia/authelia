@@ -198,6 +198,8 @@ func newStorageUserWebAuthnCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebAuthnShort,
 		Long:    cmdAutheliaStorageUserWebAuthnLong,
 		Example: cmdAutheliaStorageUserWebAuthnExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -216,6 +218,8 @@ func newStorageUserWebAuthnListCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserWebAuthnListExample,
 		RunE:    storageWebAuthnListRunE,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -229,6 +233,8 @@ func newStorageUserWebAuthnDeleteCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserWebAuthnDeleteExample,
 		RunE:    storageWebAuthnDeleteRunE,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().Bool("all", false, "delete all of the users webauthn devices")
