@@ -10,12 +10,13 @@ import (
 
 func newXFlagsCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "xflags",
-		Short:             cmdXFlagsShort,
-		Long:              cmdXFlagsLong,
-		Example:           cmdXFlagsExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdXFlagsRun,
+		Use:     "xflags",
+		Short:   cmdXFlagsShort,
+		Long:    cmdXFlagsLong,
+		Example: cmdXFlagsExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdXFlagsRun,
+
 		DisableAutoGenTag: true,
 	}
 

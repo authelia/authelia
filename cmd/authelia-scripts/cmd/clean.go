@@ -9,12 +9,13 @@ import (
 
 func newCleanCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "clean",
-		Short:             cmdCleanShort,
-		Long:              cmdCleanLong,
-		Example:           cmdCleanExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdCleanRun,
+		Use:     "clean",
+		Short:   cmdCleanShort,
+		Long:    cmdCleanLong,
+		Example: cmdCleanExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdCleanRun,
+
 		DisableAutoGenTag: true,
 	}
 

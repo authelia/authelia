@@ -17,11 +17,12 @@ import (
 
 func newCryptoCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "crypto",
-		Short:             cmdAutheliaCryptoShort,
-		Long:              cmdAutheliaCryptoLong,
-		Example:           cmdAutheliaCryptoExample,
-		Args:              cobra.NoArgs,
+		Use:     "crypto",
+		Short:   cmdAutheliaCryptoShort,
+		Long:    cmdAutheliaCryptoLong,
+		Example: cmdAutheliaCryptoExample,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -35,11 +36,12 @@ func newCryptoCmd() (cmd *cobra.Command) {
 
 func newCryptoCertificateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               cmdUseCertificate,
-		Short:             cmdAutheliaCryptoCertificateShort,
-		Long:              cmdAutheliaCryptoCertificateLong,
-		Example:           cmdAutheliaCryptoCertificateExample,
-		Args:              cobra.NoArgs,
+		Use:     cmdUseCertificate,
+		Short:   cmdAutheliaCryptoCertificateShort,
+		Long:    cmdAutheliaCryptoCertificateLong,
+		Example: cmdAutheliaCryptoCertificateExample,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -69,11 +71,12 @@ func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
 	}
 
 	cmd = &cobra.Command{
-		Use:               use,
-		Short:             fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubShort, useFmt),
-		Long:              fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubLong, useFmt, useFmt),
-		Example:           example,
-		Args:              cobra.NoArgs,
+		Use:     use,
+		Short:   fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubShort, useFmt),
+		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubLong, useFmt, useFmt),
+		Example: example,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -84,9 +87,10 @@ func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
 
 func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               cmdUseRequest,
-		Args:              cobra.NoArgs,
-		RunE:              cryptoCertificateRequestRunE,
+		Use:  cmdUseRequest,
+		Args: cobra.NoArgs,
+		RunE: cryptoCertificateRequestRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -119,11 +123,12 @@ func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
 
 func newCryptoPairCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               cmdUsePair,
-		Short:             cmdAutheliaCryptoPairShort,
-		Long:              cmdAutheliaCryptoPairLong,
-		Example:           cmdAutheliaCryptoPairExample,
-		Args:              cobra.NoArgs,
+		Use:     cmdUsePair,
+		Short:   cmdAutheliaCryptoPairShort,
+		Long:    cmdAutheliaCryptoPairLong,
+		Example: cmdAutheliaCryptoPairExample,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -153,12 +158,13 @@ func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
 	}
 
 	cmd = &cobra.Command{
-		Use:               use,
-		Short:             fmt.Sprintf(cmdAutheliaCryptoPairSubShort, useFmt),
-		Long:              fmt.Sprintf(cmdAutheliaCryptoPairSubLong, useFmt, useFmt),
-		Example:           example,
-		Args:              cobra.NoArgs,
-		RunE:              cryptoGenerateRunE,
+		Use:     use,
+		Short:   fmt.Sprintf(cmdAutheliaCryptoPairSubShort, useFmt),
+		Long:    fmt.Sprintf(cmdAutheliaCryptoPairSubLong, useFmt, useFmt),
+		Example: example,
+		Args:    cobra.NoArgs,
+		RunE:    cryptoGenerateRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -169,9 +175,10 @@ func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
 
 func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               cmdUseGenerate,
-		Args:              cobra.NoArgs,
-		RunE:              cryptoGenerateRunE,
+		Use:  cmdUseGenerate,
+		Args: cobra.NoArgs,
+		RunE: cryptoGenerateRunE,
+
 		DisableAutoGenTag: true,
 	}
 

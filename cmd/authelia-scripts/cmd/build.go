@@ -14,12 +14,13 @@ import (
 
 func newBuildCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "build",
-		Short:             cmdBuildShort,
-		Long:              cmdBuildLong,
-		Example:           cmdBuildExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdBuildRun,
+		Use:     "build",
+		Short:   cmdBuildShort,
+		Long:    cmdBuildLong,
+		Example: cmdBuildExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdBuildRun,
+
 		DisableAutoGenTag: true,
 	}
 

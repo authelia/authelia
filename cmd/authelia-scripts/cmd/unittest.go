@@ -11,12 +11,13 @@ import (
 
 func newUnitTestCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "unittest",
-		Short:             cmdUnitTestShort,
-		Long:              cmdUnitTestLong,
-		Example:           cmdUnitTestExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdUnitTestRun,
+		Use:     "unittest",
+		Short:   cmdUnitTestShort,
+		Long:    cmdUnitTestLong,
+		Example: cmdUnitTestExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdUnitTestRun,
+
 		DisableAutoGenTag: true,
 	}
 

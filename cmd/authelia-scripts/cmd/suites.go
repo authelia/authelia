@@ -25,12 +25,13 @@ var (
 
 func newSuitesCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "suites",
-		Short:             cmdSuitesShort,
-		Long:              cmdSuitesLong,
-		Example:           cmdSuitesExample,
-		Run:               cmdSuitesListRun,
-		Args:              cobra.NoArgs,
+		Use:     "suites",
+		Short:   cmdSuitesShort,
+		Long:    cmdSuitesLong,
+		Example: cmdSuitesExample,
+		Run:     cmdSuitesListRun,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -41,12 +42,13 @@ func newSuitesCmd() (cmd *cobra.Command) {
 
 func newSuitesListCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "list",
-		Short:             cmdSuitesListShort,
-		Long:              cmdSuitesListLong,
-		Example:           cmdSuitesListExample,
-		Run:               cmdSuitesListRun,
-		Args:              cobra.NoArgs,
+		Use:     "list",
+		Short:   cmdSuitesListShort,
+		Long:    cmdSuitesListLong,
+		Example: cmdSuitesListExample,
+		Run:     cmdSuitesListRun,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -55,12 +57,13 @@ func newSuitesListCmd() (cmd *cobra.Command) {
 
 func newSuitesSetupCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "setup [suite]",
-		Short:             cmdSuitesSetupShort,
-		Long:              cmdSuitesSetupLong,
-		Example:           cmdSuitesSetupExample,
-		Run:               cmdSuitesSetupRun,
-		Args:              cobra.MaximumNArgs(1),
+		Use:     "setup [suite]",
+		Short:   cmdSuitesSetupShort,
+		Long:    cmdSuitesSetupLong,
+		Example: cmdSuitesSetupExample,
+		Run:     cmdSuitesSetupRun,
+		Args:    cobra.MaximumNArgs(1),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -69,12 +72,13 @@ func newSuitesSetupCmd() (cmd *cobra.Command) {
 
 func newSuitesTeardownCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "teardown [suite]",
-		Short:             cmdSuitesTeardownShort,
-		Long:              cmdSuitesTeardownLong,
-		Example:           cmdSuitesTeardownExample,
-		Run:               cmdSuitesTeardownRun,
-		Args:              cobra.MaximumNArgs(1),
+		Use:     "teardown [suite]",
+		Short:   cmdSuitesTeardownShort,
+		Long:    cmdSuitesTeardownLong,
+		Example: cmdSuitesTeardownExample,
+		Run:     cmdSuitesTeardownRun,
+		Args:    cobra.MaximumNArgs(1),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -83,12 +87,13 @@ func newSuitesTeardownCmd() (cmd *cobra.Command) {
 
 func newSuitesTestCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "test [suite]",
-		Short:             cmdSuitesTestShort,
-		Long:              cmdSuitesTestLong,
-		Example:           cmdSuitesTestExample,
-		Run:               cmdSuitesTestRun,
-		Args:              cobra.MaximumNArgs(1),
+		Use:     "test [suite]",
+		Short:   cmdSuitesTestShort,
+		Long:    cmdSuitesTestLong,
+		Example: cmdSuitesTestExample,
+		Run:     cmdSuitesTestRun,
+		Args:    cobra.MaximumNArgs(1),
+
 		DisableAutoGenTag: true,
 	}
 

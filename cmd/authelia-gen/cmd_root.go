@@ -17,9 +17,10 @@ func init() {
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               cmdUseRoot,
-		Short:             "Authelia's generator tooling",
-		RunE:              rootSubCommandsRunE,
+		Use:   cmdUseRoot,
+		Short: "Authelia's generator tooling",
+		RunE:  rootSubCommandsRunE,
+
 		DisableAutoGenTag: true,
 	}
 

@@ -25,12 +25,13 @@ var tags = dockerTags.FindStringSubmatch(ciTag)
 
 func newDockerCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "docker",
-		Short:             cmdDockerShort,
-		Long:              cmdDockerLong,
-		Example:           cmdDockerExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdDockerBuildRun,
+		Use:     "docker",
+		Short:   cmdDockerShort,
+		Long:    cmdDockerLong,
+		Example: cmdDockerExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdDockerBuildRun,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -41,12 +42,13 @@ func newDockerCmd() (cmd *cobra.Command) {
 
 func newDockerBuildCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "build",
-		Short:             cmdDockerBuildShort,
-		Long:              cmdDockerBuildLong,
-		Example:           cmdDockerBuildExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdDockerBuildRun,
+		Use:     "build",
+		Short:   cmdDockerBuildShort,
+		Long:    cmdDockerBuildLong,
+		Example: cmdDockerBuildExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdDockerBuildRun,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -57,12 +59,13 @@ func newDockerBuildCmd() (cmd *cobra.Command) {
 
 func newDockerPushManifestCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "push-manifest",
-		Short:             cmdDockerPushManifestShort,
-		Long:              cmdDockerPushManifestLong,
-		Example:           cmdDockerPushManifestExample,
-		Args:              cobra.NoArgs,
-		Run:               cmdDockerPushManifestRun,
+		Use:     "push-manifest",
+		Short:   cmdDockerPushManifestShort,
+		Long:    cmdDockerPushManifestLong,
+		Example: cmdDockerPushManifestExample,
+		Args:    cobra.NoArgs,
+		Run:     cmdDockerPushManifestRun,
+
 		DisableAutoGenTag: true,
 	}
 

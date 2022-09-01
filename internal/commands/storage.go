@@ -17,6 +17,7 @@ func newStorageCmd() (cmd *cobra.Command) {
 		Example:           cmdAutheliaStorageExample,
 		Args:              cobra.NoArgs,
 		PersistentPreRunE: storagePersistentPreRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -55,10 +56,11 @@ func newStorageCmd() (cmd *cobra.Command) {
 
 func newStorageEncryptionCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "encryption",
-		Short:             cmdAutheliaStorageEncryptionShort,
-		Long:              cmdAutheliaStorageEncryptionLong,
-		Example:           cmdAutheliaStorageEncryptionExample,
+		Use:     "encryption",
+		Short:   cmdAutheliaStorageEncryptionShort,
+		Long:    cmdAutheliaStorageEncryptionLong,
+		Example: cmdAutheliaStorageEncryptionExample,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -72,11 +74,12 @@ func newStorageEncryptionCmd() (cmd *cobra.Command) {
 
 func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "check",
-		Short:             cmdAutheliaStorageEncryptionCheckShort,
-		Long:              cmdAutheliaStorageEncryptionCheckLong,
-		Example:           cmdAutheliaStorageEncryptionCheckExample,
-		RunE:              storageSchemaEncryptionCheckRunE,
+		Use:     "check",
+		Short:   cmdAutheliaStorageEncryptionCheckShort,
+		Long:    cmdAutheliaStorageEncryptionCheckLong,
+		Example: cmdAutheliaStorageEncryptionCheckExample,
+		RunE:    storageSchemaEncryptionCheckRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -87,11 +90,12 @@ func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
 
 func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "change-key",
-		Short:             cmdAutheliaStorageEncryptionChangeKeyShort,
-		Long:              cmdAutheliaStorageEncryptionChangeKeyLong,
-		Example:           cmdAutheliaStorageEncryptionChangeKeyExample,
-		RunE:              storageSchemaEncryptionChangeKeyRunE,
+		Use:     "change-key",
+		Short:   cmdAutheliaStorageEncryptionChangeKeyShort,
+		Long:    cmdAutheliaStorageEncryptionChangeKeyLong,
+		Example: cmdAutheliaStorageEncryptionChangeKeyExample,
+		RunE:    storageSchemaEncryptionChangeKeyRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -102,10 +106,11 @@ func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
 
 func newStorageUserCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "user",
-		Short:             cmdAutheliaStorageUserShort,
-		Long:              cmdAutheliaStorageUserLong,
-		Example:           cmdAutheliaStorageUserExample,
+		Use:     "user",
+		Short:   cmdAutheliaStorageUserShort,
+		Long:    cmdAutheliaStorageUserLong,
+		Example: cmdAutheliaStorageUserExample,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -119,10 +124,11 @@ func newStorageUserCmd() (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "identifiers",
-		Short:             cmdAutheliaStorageUserIdentifiersShort,
-		Long:              cmdAutheliaStorageUserIdentifiersLong,
-		Example:           cmdAutheliaStorageUserIdentifiersExample,
+		Use:     "identifiers",
+		Short:   cmdAutheliaStorageUserIdentifiersShort,
+		Long:    cmdAutheliaStorageUserIdentifiersLong,
+		Example: cmdAutheliaStorageUserIdentifiersExample,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -138,11 +144,12 @@ func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersExportCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "export",
-		Short:             cmdAutheliaStorageUserIdentifiersExportShort,
-		Long:              cmdAutheliaStorageUserIdentifiersExportLong,
-		Example:           cmdAutheliaStorageUserIdentifiersExportExample,
-		RunE:              storageUserIdentifiersExport,
+		Use:     "export",
+		Short:   cmdAutheliaStorageUserIdentifiersExportShort,
+		Long:    cmdAutheliaStorageUserIdentifiersExportLong,
+		Example: cmdAutheliaStorageUserIdentifiersExportExample,
+		RunE:    storageUserIdentifiersExport,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -153,11 +160,12 @@ func newStorageUserIdentifiersExportCmd() (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "import",
-		Short:             cmdAutheliaStorageUserIdentifiersImportShort,
-		Long:              cmdAutheliaStorageUserIdentifiersImportLong,
-		Example:           cmdAutheliaStorageUserIdentifiersImportExample,
-		RunE:              storageUserIdentifiersImport,
+		Use:     "import",
+		Short:   cmdAutheliaStorageUserIdentifiersImportShort,
+		Long:    cmdAutheliaStorageUserIdentifiersImportLong,
+		Example: cmdAutheliaStorageUserIdentifiersImportExample,
+		RunE:    storageUserIdentifiersImport,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -168,11 +176,12 @@ func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "generate",
-		Short:             cmdAutheliaStorageUserIdentifiersGenerateShort,
-		Long:              cmdAutheliaStorageUserIdentifiersGenerateLong,
-		Example:           cmdAutheliaStorageUserIdentifiersGenerateExample,
-		RunE:              storageUserIdentifiersGenerate,
+		Use:     "generate",
+		Short:   cmdAutheliaStorageUserIdentifiersGenerateShort,
+		Long:    cmdAutheliaStorageUserIdentifiersGenerateLong,
+		Example: cmdAutheliaStorageUserIdentifiersGenerateExample,
+		RunE:    storageUserIdentifiersGenerate,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -185,12 +194,13 @@ func newStorageUserIdentifiersGenerateCmd() (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "add <username>",
-		Short:             cmdAutheliaStorageUserIdentifiersAddShort,
-		Long:              cmdAutheliaStorageUserIdentifiersAddLong,
-		Example:           cmdAutheliaStorageUserIdentifiersAddExample,
-		Args:              cobra.ExactArgs(1),
-		RunE:              storageUserIdentifiersAdd,
+		Use:     "add <username>",
+		Short:   cmdAutheliaStorageUserIdentifiersAddShort,
+		Long:    cmdAutheliaStorageUserIdentifiersAddLong,
+		Example: cmdAutheliaStorageUserIdentifiersAddExample,
+		Args:    cobra.ExactArgs(1),
+		RunE:    storageUserIdentifiersAdd,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -203,10 +213,11 @@ func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 
 func newStorageUserTOTPCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "totp",
-		Short:             cmdAutheliaStorageUserTOTPShort,
-		Long:              cmdAutheliaStorageUserTOTPLong,
-		Example:           cmdAutheliaStorageUserTOTPExample,
+		Use:     "totp",
+		Short:   cmdAutheliaStorageUserTOTPShort,
+		Long:    cmdAutheliaStorageUserTOTPLong,
+		Example: cmdAutheliaStorageUserTOTPExample,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -221,12 +232,13 @@ func newStorageUserTOTPCmd() (cmd *cobra.Command) {
 
 func newStorageUserTOTPGenerateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "generate <username>",
-		Short:             cmdAutheliaStorageUserTOTPGenerateShort,
-		Long:              cmdAutheliaStorageUserTOTPGenerateLong,
-		Example:           cmdAutheliaStorageUserTOTPGenerateExample,
-		RunE:              storageTOTPGenerateRunE,
-		Args:              cobra.ExactArgs(1),
+		Use:     "generate <username>",
+		Short:   cmdAutheliaStorageUserTOTPGenerateShort,
+		Long:    cmdAutheliaStorageUserTOTPGenerateLong,
+		Example: cmdAutheliaStorageUserTOTPGenerateExample,
+		RunE:    storageTOTPGenerateRunE,
+		Args:    cobra.ExactArgs(1),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -244,12 +256,13 @@ func newStorageUserTOTPGenerateCmd() (cmd *cobra.Command) {
 
 func newStorageUserTOTPDeleteCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "delete <username>",
-		Short:             cmdAutheliaStorageUserTOTPDeleteShort,
-		Long:              cmdAutheliaStorageUserTOTPDeleteLong,
-		Example:           cmdAutheliaStorageUserTOTPDeleteExample,
-		RunE:              storageTOTPDeleteRunE,
-		Args:              cobra.ExactArgs(1),
+		Use:     "delete <username>",
+		Short:   cmdAutheliaStorageUserTOTPDeleteShort,
+		Long:    cmdAutheliaStorageUserTOTPDeleteLong,
+		Example: cmdAutheliaStorageUserTOTPDeleteExample,
+		RunE:    storageTOTPDeleteRunE,
+		Args:    cobra.ExactArgs(1),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -258,11 +271,12 @@ func newStorageUserTOTPDeleteCmd() (cmd *cobra.Command) {
 
 func newStorageUserTOTPExportCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "export",
-		Short:             cmdAutheliaStorageUserTOTPExportShort,
-		Long:              cmdAutheliaStorageUserTOTPExportLong,
-		Example:           cmdAutheliaStorageUserTOTPExportExample,
-		RunE:              storageTOTPExportRunE,
+		Use:     "export",
+		Short:   cmdAutheliaStorageUserTOTPExportShort,
+		Long:    cmdAutheliaStorageUserTOTPExportLong,
+		Example: cmdAutheliaStorageUserTOTPExportExample,
+		RunE:    storageTOTPExportRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -274,11 +288,12 @@ func newStorageUserTOTPExportCmd() (cmd *cobra.Command) {
 
 func newStorageSchemaInfoCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "schema-info",
-		Short:             cmdAutheliaStorageSchemaInfoShort,
-		Long:              cmdAutheliaStorageSchemaInfoLong,
-		Example:           cmdAutheliaStorageSchemaInfoExample,
-		RunE:              storageSchemaInfoRunE,
+		Use:     "schema-info",
+		Short:   cmdAutheliaStorageSchemaInfoShort,
+		Long:    cmdAutheliaStorageSchemaInfoLong,
+		Example: cmdAutheliaStorageSchemaInfoExample,
+		RunE:    storageSchemaInfoRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -288,11 +303,12 @@ func newStorageSchemaInfoCmd() (cmd *cobra.Command) {
 // NewMigrationCmd returns a new Migration Cmd.
 func newStorageMigrateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "migrate",
-		Short:             cmdAutheliaStorageMigrateShort,
-		Long:              cmdAutheliaStorageMigrateLong,
-		Example:           cmdAutheliaStorageMigrateExample,
-		Args:              cobra.NoArgs,
+		Use:     "migrate",
+		Short:   cmdAutheliaStorageMigrateShort,
+		Long:    cmdAutheliaStorageMigrateLong,
+		Example: cmdAutheliaStorageMigrateExample,
+		Args:    cobra.NoArgs,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -307,12 +323,13 @@ func newStorageMigrateCmd() (cmd *cobra.Command) {
 
 func newStorageMigrateHistoryCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "history",
-		Short:             cmdAutheliaStorageMigrateHistoryShort,
-		Long:              cmdAutheliaStorageMigrateHistoryLong,
-		Example:           cmdAutheliaStorageMigrateHistoryExample,
-		Args:              cobra.NoArgs,
-		RunE:              storageMigrateHistoryRunE,
+		Use:     "history",
+		Short:   cmdAutheliaStorageMigrateHistoryShort,
+		Long:    cmdAutheliaStorageMigrateHistoryLong,
+		Example: cmdAutheliaStorageMigrateHistoryExample,
+		Args:    cobra.NoArgs,
+		RunE:    storageMigrateHistoryRunE,
+
 		DisableAutoGenTag: true,
 	}
 
@@ -321,12 +338,13 @@ func newStorageMigrateHistoryCmd() (cmd *cobra.Command) {
 
 func newStorageMigrateListUpCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "list-up",
-		Short:             cmdAutheliaStorageMigrateListUpShort,
-		Long:              cmdAutheliaStorageMigrateListUpLong,
-		Example:           cmdAutheliaStorageMigrateListUpExample,
-		Args:              cobra.NoArgs,
-		RunE:              newStorageMigrateListRunE(true),
+		Use:     "list-up",
+		Short:   cmdAutheliaStorageMigrateListUpShort,
+		Long:    cmdAutheliaStorageMigrateListUpLong,
+		Example: cmdAutheliaStorageMigrateListUpExample,
+		Args:    cobra.NoArgs,
+		RunE:    newStorageMigrateListRunE(true),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -335,12 +353,13 @@ func newStorageMigrateListUpCmd() (cmd *cobra.Command) {
 
 func newStorageMigrateListDownCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "list-down",
-		Short:             cmdAutheliaStorageMigrateListDownShort,
-		Long:              cmdAutheliaStorageMigrateListDownLong,
-		Example:           cmdAutheliaStorageMigrateListDownExample,
-		Args:              cobra.NoArgs,
-		RunE:              newStorageMigrateListRunE(false),
+		Use:     "list-down",
+		Short:   cmdAutheliaStorageMigrateListDownShort,
+		Long:    cmdAutheliaStorageMigrateListDownLong,
+		Example: cmdAutheliaStorageMigrateListDownExample,
+		Args:    cobra.NoArgs,
+		RunE:    newStorageMigrateListRunE(false),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -349,12 +368,13 @@ func newStorageMigrateListDownCmd() (cmd *cobra.Command) {
 
 func newStorageMigrateUpCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               storageMigrateDirectionUp,
-		Short:             cmdAutheliaStorageMigrateUpShort,
-		Long:              cmdAutheliaStorageMigrateUpLong,
-		Example:           cmdAutheliaStorageMigrateUpExample,
-		Args:              cobra.NoArgs,
-		RunE:              newStorageMigrationRunE(true),
+		Use:     storageMigrateDirectionUp,
+		Short:   cmdAutheliaStorageMigrateUpShort,
+		Long:    cmdAutheliaStorageMigrateUpLong,
+		Example: cmdAutheliaStorageMigrateUpExample,
+		Args:    cobra.NoArgs,
+		RunE:    newStorageMigrationRunE(true),
+
 		DisableAutoGenTag: true,
 	}
 
@@ -365,12 +385,13 @@ func newStorageMigrateUpCmd() (cmd *cobra.Command) {
 
 func newStorageMigrateDownCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               storageMigrateDirectionDown,
-		Short:             cmdAutheliaStorageMigrateDownShort,
-		Long:              cmdAutheliaStorageMigrateDownLong,
-		Example:           cmdAutheliaStorageMigrateDownExample,
-		Args:              cobra.NoArgs,
-		RunE:              newStorageMigrationRunE(false),
+		Use:     storageMigrateDirectionDown,
+		Short:   cmdAutheliaStorageMigrateDownShort,
+		Long:    cmdAutheliaStorageMigrateDownLong,
+		Example: cmdAutheliaStorageMigrateDownExample,
+		Args:    cobra.NoArgs,
+		RunE:    newStorageMigrationRunE(false),
+
 		DisableAutoGenTag: true,
 	}
 

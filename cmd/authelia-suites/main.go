@@ -25,35 +25,40 @@ func init() {
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:               "authelia-suites",
+		Use: "authelia-suites",
+
 		DisableAutoGenTag: true,
 	}
 
 	startCmd := &cobra.Command{
-		Use:               "setup [suite]",
-		Short:             "Setup the suite environment",
-		Run:               setupSuite,
+		Use:   "setup [suite]",
+		Short: "Setup the suite environment",
+		Run:   setupSuite,
+
 		DisableAutoGenTag: true,
 	}
 
 	setupTimeoutCmd := &cobra.Command{
-		Use:               "timeout [suite]",
-		Short:             "Run the OnSetupTimeout callback when setup times out",
-		Run:               setupTimeoutSuite,
+		Use:   "timeout [suite]",
+		Short: "Run the OnSetupTimeout callback when setup times out",
+		Run:   setupTimeoutSuite,
+
 		DisableAutoGenTag: true,
 	}
 
 	errorCmd := &cobra.Command{
-		Use:               "error [suite]",
-		Short:             "Run the OnError callback when some tests fail",
-		Run:               runErrorCallback,
+		Use:   "error [suite]",
+		Short: "Run the OnError callback when some tests fail",
+		Run:   runErrorCallback,
+
 		DisableAutoGenTag: true,
 	}
 
 	stopCmd := &cobra.Command{
-		Use:               "teardown [suite]",
-		Short:             "Teardown the suite environment",
-		Run:               teardownSuite,
+		Use:   "teardown [suite]",
+		Short: "Teardown the suite environment",
+		Run:   teardownSuite,
+
 		DisableAutoGenTag: true,
 	}
 

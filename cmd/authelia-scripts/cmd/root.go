@@ -8,10 +8,11 @@ import (
 // NewRootCmd returns the root authelia-scripts cmd.
 func NewRootCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "authelia-scripts",
-		Short:             cmdRootShort,
-		Long:              cmdRootLong,
-		Example:           cmdRootExample,
+		Use:     "authelia-scripts",
+		Short:   cmdRootShort,
+		Long:    cmdRootLong,
+		Example: cmdRootExample,
+
 		DisableAutoGenTag: true,
 	}
 
