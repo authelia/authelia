@@ -25,18 +25,22 @@ type tmplScriptsGEnData struct {
 
 // Languages is the docs json model for the Authelia languages configuration.
 type Languages struct {
-	DefaultLocale    string     `json:"localeDefault"`
-	DefaultNamespace string     `json:"localeNamespaceDefault"`
-	Namespaces       []string   `json:"namespaces"`
-	Languages        []Language `json:"languages"`
+	Defaults   DefaultsLanguages `json:"defaults"`
+	Namespaces []string          `json:"namespaces"`
+	Languages  []Language        `json:"languages"`
+}
+
+type DefaultsLanguages struct {
+	Language  Language `json:"language"`
+	Namespace string   `json:"namespace"`
 }
 
 // Language is the docs json model for a language.
 type Language struct {
 	Display    string   `json:"display"`
 	Locale     string   `json:"locale"`
-	Namespaces []string `json:"namespaces"`
-	Fallbacks  []string `json:"fallbacks"`
+	Namespaces []string `json:"namespaces,omitempty"`
+	Fallbacks  []string `json:"fallbacks,omitempty"`
 }
 
 const (

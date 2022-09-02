@@ -87,8 +87,20 @@ func getLanguages(dir string) (languages *Languages, err error) {
 	var locales []string
 
 	languages = &Languages{
-		DefaultLocale:    localeDefault,
-		DefaultNamespace: localeNamespaceDefault,
+		Defaults: DefaultsLanguages{
+			Namespace: localeNamespaceDefault,
+		},
+	}
+
+	var defaultTag language.Tag
+
+	if defaultTag, err = language.Parse(localeDefault); err != nil {
+		return nil, fmt.Errorf("failed to parse default langauge: %w", err)
+	}
+
+	languages.Defaults.Language = Language{
+		Display: display.English.Tags().Name(defaultTag),
+		Locale:  localeDefault,
 	}
 
 	if err = filepath.Walk(dir, func(path string, info fs.FileInfo, errWalk error) (err error) {
@@ -130,7 +142,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		var tag language.Tag
 
 		if tag, err = language.Parse(locale); err != nil {
-			fmt.Println(err)
+			return fmt.Errorf("failed to parse langauge '%s': %w", locale, err)
 		}
 
 		l := Language{
@@ -158,7 +170,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 			languages.Languages[i].Fallbacks = append(languages.Languages[i].Fallbacks, parts[0])
 		}
 
-		languages.Languages[i].Fallbacks = append(languages.Languages[i].Fallbacks, languages.DefaultLocale)
+		languages.Languages[i].Fallbacks = append(languages.Languages[i].Fallbacks, languages.Defaults.Language.Locale)
 	}
 
 	return languages, nil
