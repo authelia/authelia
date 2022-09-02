@@ -150,8 +150,6 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx) (authn Authn, er
 		return authn, fmt.Errorf("failed to parse content of %s header: %w", s.headerAuthorize, err)
 	}
 
-	ctx.Logger.Debugf("header parsed with username %s and password %s", username, password)
-
 	if username == "" || password == "" {
 		return authn, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, username, err)
 	}

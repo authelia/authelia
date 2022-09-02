@@ -139,8 +139,6 @@ func (a *Authz) getRedirectionURL(object *authorization.Object, portalURL *url.U
 func (a *Authz) authn(ctx *middlewares.AutheliaCtx) (authn Authn, strategy AuthnStrategy, err error) {
 	for _, strategy = range a.strategies {
 		if authn, err = strategy.Get(ctx); err != nil {
-			ctx.Logger.Debugf("Error occurred processing authentication: %+v", err)
-
 			if strategy.CanHandleUnauthorized() {
 				return Authn{Type: authn.Type, Level: authentication.NotAuthenticated}, strategy, nil
 			}
