@@ -190,8 +190,8 @@ github.com/docker/docker v17.12.0-ce-rc1.0.20201201034508-7d75c1d40d88+incompati
 github.com/docker/go-connections v0.4.0/go.mod h1:Gbd7IOopHjR8Iph03tsViu4nIes5XhDvyHbTtUxmeec=
 github.com/docker/go-units v0.3.3/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/docker/go-units v0.4.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
-github.com/duosecurity/duo_api_golang v0.0.0-20220628180508-bed46d1be614 h1:bMDvM8ZcwR2zrclTNUTgXhhHx1/WO0FJi+Y7FxuL7LY=
-github.com/duosecurity/duo_api_golang v0.0.0-20220628180508-bed46d1be614/go.mod h1:jI+QUTOK3wqIOrUl0Cwnwlgc/P6vs6pZOuQY3aKggwg=
+github.com/duosecurity/duo_api_golang v0.0.0-20220902131320-61f4e624f85c h1:WzcpjPMDu3E/aPDXFFDuHQcrBAdiAMSgHl1CwAQ/yE0=
+github.com/duosecurity/duo_api_golang v0.0.0-20220902131320-61f4e624f85c/go.mod h1:jI+QUTOK3wqIOrUl0Cwnwlgc/P6vs6pZOuQY3aKggwg=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v0.0.0-20180713052910-9f541cc9db5d/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
