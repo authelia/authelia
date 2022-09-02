@@ -118,6 +118,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 
 		if err = mainServer.Serve(mainListener); err != nil {
+			log.WithError(err).Error("Server (main) returned error")
+
 			return err
 		}
 
@@ -140,6 +142,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 
 		if err = metricsServer.Serve(metricsListener); err != nil {
+			log.WithError(err).Error("Server (metrics) returned error")
+
 			return err
 		}
 
@@ -147,10 +151,15 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 	})
 
 	select {
-	case <-quit:
-		break
+	case s := <-quit:
+		switch s {
+		case syscall.SIGINT:
+			log.Debugf("Shutdown started due to SIGINT")
+		case syscall.SIGQUIT:
+			log.Debugf("Shutdown started due to SIGQUIT")
+		}
 	case <-ctx.Done():
-		break
+		log.Debugf("Shutdown started due to context completion")
 	}
 
 	cancel()
@@ -159,8 +168,10 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 
 	var err error
 
-	if err = mainServer.Shutdown(); err != nil {
-		log.WithError(err).Errorf("Error occurred shutting down the server")
+	if mainServer != nil {
+		if err = mainServer.Shutdown(); err != nil {
+			log.WithError(err).Errorf("Error occurred shutting down the server")
+		}
 	}
 
 	if metricsServer != nil {
