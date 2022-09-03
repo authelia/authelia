@@ -34,6 +34,7 @@ const (
 const (
 	period = "."
 	https  = "https"
+	wss    = "wss"
 )
 
 // X.509 consts.
