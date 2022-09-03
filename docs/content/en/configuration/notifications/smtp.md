@@ -60,7 +60,8 @@ The port the SMTP service is listening on.
 
 A connection is securely established with TLS after a succesful STARTTLS negotiation.
 
-[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port. STARTTLS negotiation is not required for this port, the connection is implicitly established with TLS.
+[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port. 
+STARTTLS negotiation is not required for this port, the connection is implicitly established with TLS.
 
 [docs-security-smtp-port]: ../../overview/security/measures.md#smtp-ports
 

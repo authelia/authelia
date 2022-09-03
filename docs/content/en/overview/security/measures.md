@@ -147,27 +147,32 @@ If you wish to change your encryption key for any reason you can do so using the
 
 ## Notifier security measures (SMTP)
 
-The SMTP Notifier implementation does not allow connections that are not secure without changing default configuration values.
+The SMTP Notifier implementation does not allow connections that are not secure without changing default configuration 
+values.
 
 As such all SMTP connections require the following:
 
-1. A TLS Connection (STARTTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated connections require it as well_)
+1. A TLS Connection (STARTTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
+ connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
 There is an option to disable both of these security measures however they are __not recommended__.
 
-The following configuration options exist to configure the security level in order of most preferable to least preferable:
+The following configuration options exist to configure the security level in order of most preferable to least 
+preferable:
 
 ### Configuration Option: certificates_directory
 
-You can [configure a directory](../../configuration/miscellaneous/introduction.md#certificates_directory) of certificates for Authelia
+You can [configure a directory](../../configuration/miscellaneous/introduction.md#certificates_directory) of 
+certificates for Authelia
 to trust. These certificates can either be CA's or individual public certificates that should be trusted. These
 are added in addition to the environments PKI trusted certificates if available. This is useful for trusting a
 certificate that is self-signed without drastically reducing security. This is the most recommended workaround to not
 having a valid PKI trusted certificate as it gives you complete control over which ones are trusted without disabling
 critically needed validation of the identity of the target service.
 
-Read more in the [documentation](../../configuration/miscellaneous/introduction.md#certificates_directory) for this option.
+Read more in the [documentation](../../configuration/miscellaneous/introduction.md#certificates_directory) for this 
+option.
 
 ### Configuration Option: tls.skip_verify
 
@@ -180,21 +185,33 @@ attacks could intercept emails from Authelia compromising a user's security with
 
 Authelia by default ensures that the SMTP server connection is secured via TLS prior to sending sensitive information.
 
-The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) option disables this requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
+The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) option disables this 
+requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes 
+the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
 
-This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be exploited, but any router or switch along the route of the email which receives the packets could be used to silently exploit the cleartext nature of the connection to manipulate the email in transit.
+This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be 
+exploited, but any router or switch along the route of the email which receives the packets could be used to silently 
+exploit the cleartext nature of the connection to manipulate the email in transit.
 
-This is only usable currently with authentication disabled (_comment out the password_), and as such is only an option for SMTP servers that allow unauthenticated relaying (bad practice).
+This is only usable currently with authentication disabled (_comment out the password_), and as such is only an option 
+for SMTP servers that allow unauthenticated relaying (bad practice).
 
 ### SMTP Ports
 
 All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via STARTTLS.
 
-The [`submissions` service][service-submissions] (_typically port 465_) is an exception to this rule, where the connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [port for SMTP][docs-config-smtp-port] is set to `465`, Authelia will initiate TLS connections without requiring STARTTLS negotiation.
+The [`submissions` service][service-submissions] (_typically port 465_) is an exception to this rule, where the 
+connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [port for 
+SMTP][docs-config-smtp-port] is set to `465`, Authelia will initiate TLS connections without requiring STARTTLS 
+negotiation.
 
-When the `submissions` service port is available, it [should be preferred][port-465] over any STARTTLS port for submitting mail.
+When the `submissions` service port is available, it [should be preferred][port-465] over any STARTTLS port for 
+submitting mail.
 
-**NOTE:** Prior to 2018, port 465 was previously assigned for a similar purpose known as [`smtps`][port-465] (_A TLS only equivalent of the `smtp` port 25_), which it had been deprecated for . Port 465 has since been re-assigned for only supporting mail submission (_which unlike SMTP transfers via port 25, [requires authentication][smtp-auth]_), similar to port 587 (_the `submission` port, a common alternative that uses STARTTLS instead_).
+**NOTE:** Prior to 2018, port 465 was previously assigned for a similar purpose known as [`smtps`][port-465] (_A TLS 
+only equivalent of the `smtp` port 25_), which it had been deprecated for. Port 465 has since been re-assigned for only
+supporting mail submission (_which unlike SMTP transfers via port 25, [requires authentication][smtp-auth]_), similar 
+to port 587 (_the `submission` port, a common alternative that uses STARTTLS instead_).
 
 [docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
 [cleartext]: https://cwe.mitre.org/data/definitions/312.html
