@@ -191,13 +191,21 @@ exploited, but any router or switch along the route of the email which receives 
 exploit the plain text nature of the email. This is only usable currently with authentication disabled (comment out the
 password) and as such is only an option for SMTP servers that allow unauthenticated relay (bad practice).
 
-### SMTPS vs STARTTLS
+### SMTP Ports
 
-All connections start as plain text and are upgraded via STARTTLS. SMTPS is an exception to this rule where the
-connection is over TLS. As SMTPS is deprecated, the only way to configure this is to set the SMTP
-[port](../../configuration/notifications/smtp.md#port) to the officially recognized SMTPS port of 465 which will cause Authelia
-to automatically consider it to be a SMTPS connection. As such your SMTP server, if not offering SMTPS, should not be
-listening on port 465 which is bad practice anyway.
+All SMTP connections begin as [cleartext], and then negotiate to upgrade to a secure TLS connection via STARTTLS.
+
+The [`submissions` service][service-submissions] (_typically port 465_) is an exception to this rule, where the connection begins immediately secured with TLS (_similar to HTTPS_). When the configured [port for SMTP][docs-config-smtp-port] is set to `465`, Authelia will initiate TLS connections without requiring STARTTLS negotiation.
+
+When the `submissions` service port is available, it [should be preferred][port-465] over any STARTTLS port for submitting mail.
+
+**NOTE:** Prior to 2018, port 465 was previously assigned for a similar purpose known as [`smtps`][port-465] (_A TLS only equivalent of the `smtp` port 25_), which it had been deprecated for . Port 465 has since been re-assigned for only supporting mail submission (_which unlike SMTP transfers via port 25, [requires authentication][smtp-auth]_), similar to port 587 (_the `submission` port, a common alternative that uses STARTTLS instead_).
+
+[docs-config-smtp-port]: ../../configuration/notifications/smtp.md#port
+[cleartext]: https://cwe.mitre.org/data/definitions/312.html
+[service-submissions]: https://www.rfc-editor.org/rfc/rfc8314#section-7.3
+[port-465]: https://www.rfc-editor.org/rfc/rfc8314#section-3.3
+[smtp-auth]: https://www.rfc-editor.org/rfc/rfc6409#section-4.3
 
 ## Protection against open redirects
 
