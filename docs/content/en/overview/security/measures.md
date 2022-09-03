@@ -147,19 +147,16 @@ If you wish to change your encryption key for any reason you can do so using the
 
 ## Notifier security measures (SMTP)
 
-The SMTP Notifier implementation does not allow connections that are not secure without changing default configuration
-values.
+The SMTP Notifier implementation does not allow connections that are not secure without changing default configuration values.
 
 As such all SMTP connections require the following:
 
-1. TLS Connection (STARTTLS or SMTPS) has been negotiated before authentication or sending emails (unauthenticated
-connections require it as well)
+1. A TLS Connection (STARTTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
 There is an option to disable both of these security measures however they are __not recommended__.
 
-The following configuration options exist to configure the security level in order of most preferable to least
-preferable:
+The following configuration options exist to configure the security level in order of most preferable to least preferable:
 
 ### Configuration Option: certificates_directory
 
@@ -181,15 +178,13 @@ attacks could intercept emails from Authelia compromising a user's security with
 
 ### Configuration Option: disable_require_tls
 
-Authelia by default ensures that the SMTP server connection is secured via STARTTLS or SMTPS prior to sending sensitive
-information. The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) disables this requirement
-which means the emails are sent in plain text. This is the least secure option as it effectively removes the validation
-of SMTP certificates and removes the encryption offered by the STARTTLS/SMTPS connection all together.
+Authelia by default ensures that the SMTP server connection is secured via TLS prior to sending sensitive information.
 
-This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be
-exploited, but any router or switch along the route of the email which receives the packets could be used to silently
-exploit the plain text nature of the email. This is only usable currently with authentication disabled (comment out the
-password) and as such is only an option for SMTP servers that allow unauthenticated relay (bad practice).
+The [disable_require_tls](../../configuration/notifications/smtp.md#disable_require_tls) option disables this requirement which means the emails may be sent in cleartext. This is the least secure option as it effectively removes the validation of SMTP certificates and makes using an encrypted connection with TLS optional.
+
+This means not only can the vulnerabilities of the [skip_verify](#configuration-option-tlsskip_verify) option be exploited, but any router or switch along the route of the email which receives the packets could be used to silently exploit the cleartext nature of the connection to manipulate the email in transit.
+
+This is only usable currently with authentication disabled (_comment out the password_), and as such is only an option for SMTP servers that allow unauthenticated relaying (bad practice).
 
 ### SMTP Ports
 
