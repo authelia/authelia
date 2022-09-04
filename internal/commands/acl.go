@@ -208,7 +208,7 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 		return subject, object, err
 	}
 
-	parsedURL, err := url.Parse(requestURL)
+	parsedURL, err := url.ParseRequestURI(requestURL)
 	if err != nil {
 		return subject, object, err
 	}

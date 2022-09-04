@@ -23,7 +23,7 @@ type TOTPConfiguration struct {
 }
 
 // URI shows the configuration in the URI representation.
-func (c TOTPConfiguration) URI() (uri string) {
+func (c *TOTPConfiguration) URI() (uri string) {
 	v := url.Values{}
 	v.Set("secret", string(c.Secret))
 	v.Set("issuer", c.Issuer)
@@ -47,12 +47,12 @@ func (c *TOTPConfiguration) UpdateSignInInfo(now time.Time) {
 }
 
 // Key returns the *otp.Key using TOTPConfiguration.URI with otp.NewKeyFromURL.
-func (c TOTPConfiguration) Key() (key *otp.Key, err error) {
+func (c *TOTPConfiguration) Key() (key *otp.Key, err error) {
 	return otp.NewKeyFromURL(c.URI())
 }
 
 // Image returns the image.Image of the TOTPConfiguration using the Image func from the return of TOTPConfiguration.Key.
-func (c TOTPConfiguration) Image(width, height int) (img image.Image, err error) {
+func (c *TOTPConfiguration) Image(width, height int) (img image.Image, err error) {
 	var key *otp.Key
 
 	if key, err = c.Key(); err != nil {
