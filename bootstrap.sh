@@ -38,7 +38,4 @@ then
   return
 fi
 
-# install husky and other dependences
-(cd web && pnpm install)
-
 authelia-scripts bootstrap
