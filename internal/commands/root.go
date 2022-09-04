@@ -86,6 +86,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	runServers(config, providers, logger)
 }
 
+//nolint:gocyclo // Complexity is required in this function.
 func runServers(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
 	ctx := context.Background()
 
@@ -108,8 +109,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 
 	g.Go(func() (err error) {
 		defer func() {
-			if rec := recover(); rec != nil {
-				log.WithError(recoverErr(rec)).Errorf("Critical error in server caught (recovered)")
+			if r := recover(); r != nil {
+				log.WithError(recoverErr(r)).Errorf("Critical error in server caught (recovered)")
 			}
 		}()
 
@@ -132,8 +133,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 
 		defer func() {
-			if rec := recover(); rec != nil {
-				log.WithError(recoverErr(rec)).Errorf("Critical error in metrics server caught (recovered)")
+			if r := recover(); r != nil {
+				log.WithError(recoverErr(r)).Errorf("Critical error in metrics server caught (recovered)")
 			}
 		}()
 
