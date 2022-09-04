@@ -31,9 +31,9 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Error(fmt.Errorf("unable to destroy session during logout: %s", err), messageOperationFailed)
 	}
 
-	redirectionURL, err := url.Parse(body.TargetURL)
+	redirectionURL, err := url.ParseRequestURI(body.TargetURL)
 	if err == nil {
-		responseBody.SafeTargetURL = utils.IsRedirectionSafe(*redirectionURL, ctx.Configuration.Session.Domains)
+		responseBody.SafeTargetURL = utils.IsURISafeRedirection(redirectionURL, ctx.Configuration.Session.Domain)
 	}
 
 	if body.TargetURL != "" {

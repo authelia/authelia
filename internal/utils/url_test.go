@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestURLPathFullClean(t *testing.T) {
@@ -31,7 +29,7 @@ func TestURLPathFullClean(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			u, err := url.Parse(tc.have)
+			u, err := url.ParseRequestURI(tc.have)
 			require.NoError(t, err)
 
 			actual := URLPathFullClean(u)
@@ -41,44 +39,44 @@ func TestURLPathFullClean(t *testing.T) {
 	}
 }
 
-func isURLSafe(requestURI string, domains []schema.SessionDomainConfiguration) bool {
-	url, _ := url.ParseRequestURI(requestURI)
-	return IsRedirectionSafe(*url, domains)
+func isURLSafe(requestURI string, domain string) bool { //nolint:unparam
+	u, _ := url.ParseRequestURI(requestURI)
+	return IsURISafeRedirection(u, domain)
 }
 
 func TestIsRedirectionSafe_ShouldReturnTrueOnExactDomain(t *testing.T) {
-	assert.True(t, isURLSafe("https://example.com", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
+	assert.True(t, isURLSafe("https://example.com", "example.com"))
 }
 
 func TestIsRedirectionSafe_ShouldReturnFalseOnBadScheme(t *testing.T) {
-	assert.False(t, isURLSafe("http://secure.example.com", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
-	assert.False(t, isURLSafe("ftp://secure.example.com", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
-	assert.True(t, isURLSafe("https://secure.example.com", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
+	assert.False(t, isURLSafe("http://secure.example.com", "example.com"))
+	assert.False(t, isURLSafe("ftp://secure.example.com", "example.com"))
+	assert.True(t, isURLSafe("https://secure.example.com", "example.com"))
 }
 
 func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
-	assert.False(t, isURLSafe("https://secure.example.com.c", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
-	assert.False(t, isURLSafe("https://secure.example.comc", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
-	assert.False(t, isURLSafe("https://secure.example.co", []schema.SessionDomainConfiguration{{Domain: "example.com"}}))
+	assert.False(t, isURLSafe("https://secure.example.com.c", "example.com"))
+	assert.False(t, isURLSafe("https://secure.example.comc", "example.com"))
+	assert.False(t, isURLSafe("https://secure.example.co", "example.com"))
 }
 
 func TestIsRedirectionURISafe_CannotParseURI(t *testing.T) {
-	_, err := IsRedirectionURISafe("http//invalid", []schema.SessionDomainConfiguration{{Domain: "example.com"}})
-	assert.EqualError(t, err, "Unable to parse redirection URI http//invalid: parse \"http//invalid\": invalid URI for request")
+	_, err := IsURIStringSafeRedirection("http//invalid", "example.com")
+	assert.EqualError(t, err, "failed to parse URI 'http//invalid': parse \"http//invalid\": invalid URI for request")
 }
 
 func TestIsRedirectionURISafe_InvalidRedirectionURI(t *testing.T) {
-	valid, err := IsRedirectionURISafe("http://myurl.com/myresource", []schema.SessionDomainConfiguration{{Domain: "example.com"}})
+	valid, err := IsURIStringSafeRedirection("http://myurl.com/myresource", "example.com")
 	assert.NoError(t, err)
 	assert.False(t, valid)
 }
 
 func TestIsRedirectionURISafe_ValidRedirectionURI(t *testing.T) {
-	valid, err := IsRedirectionURISafe("http://myurl.example.com/myresource", []schema.SessionDomainConfiguration{{Domain: "example.com"}})
+	valid, err := IsURIStringSafeRedirection("http://myurl.example.com/myresource", "example.com")
 	assert.NoError(t, err)
 	assert.False(t, valid)
 
-	valid, err = IsRedirectionURISafe("http://example.com/myresource", []schema.SessionDomainConfiguration{{Domain: "example.com"}})
+	valid, err = IsURIStringSafeRedirection("http://example.com/myresource", "example.com")
 	assert.NoError(t, err)
 	assert.False(t, valid)
 }

@@ -5,8 +5,6 @@ import (
 	"net/url"
 	"path"
 	"strings"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // URLPathFullClean returns a URL path with the query parameters appended (full path) with the path portion parsed
@@ -32,12 +30,37 @@ func URLPathFullClean(u *url.URL) (output string) {
 	}
 }
 
-// URLDomainHasSuffix determines whether the uri has a suffix of the domain value.
-func URLDomainHasSuffix(uri url.URL, domain string) bool {
-	if uri.Scheme != https {
-		return false
+// IsURIStringSafeRedirection determines whether the URI is safe to be redirected to.
+func IsURIStringSafeRedirection(uri, protectedDomain string) (safe bool, err error) {
+	var parsedURI *url.URL
+
+	if parsedURI, err = url.ParseRequestURI(uri); err != nil {
+		return false, fmt.Errorf("failed to parse URI '%s': %w", uri, err)
 	}
 
+	return parsedURI != nil && IsURISafeRedirection(parsedURI, protectedDomain), nil
+}
+
+// IsURISafeRedirection returns true if the URI passes the IsURISecure and HasURIDomainSuffix, i.e. if the scheme is
+// secure and the given URI has a hostname that is either exactly equal to the given domain or if it has a suffix of the
+// domain prefixed with a period.
+func IsURISafeRedirection(uri *url.URL, domain string) bool {
+	return IsURISecure(uri) && HasURIDomainSuffix(uri, domain)
+}
+
+// IsURISecure returns true if the URI has a secure schemes (https or wss).
+func IsURISecure(uri *url.URL) bool {
+	switch uri.Scheme {
+	case https, wss:
+		return true
+	default:
+		return false
+	}
+}
+
+// HasURIDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
+// prefixed with a period.
+func HasURIDomainSuffix(uri *url.URL, domain string) bool {
 	if uri.Hostname() == domain {
 		return true
 	}
@@ -47,47 +70,4 @@ func URLDomainHasSuffix(uri url.URL, domain string) bool {
 	}
 
 	return false
-}
-
-// IsRedirectionSafe determines whether the URL is safe to be redirected to.
-func IsRedirectionSafe(url url.URL, protectedDomains []schema.SessionDomainConfiguration) bool {
-	if !IsSchemeHTTPS(&url) {
-		return false
-	}
-
-	if protected, _ := IsURLUnderProtectedDomain(&url, protectedDomains); !protected {
-		return false
-	}
-
-	return true
-}
-
-// IsRedirectionURISafe determines whether the URI is safe to be redirected to.
-func IsRedirectionURISafe(uri string, protectedDomains []schema.SessionDomainConfiguration) (bool, error) {
-	targetURL, err := url.ParseRequestURI(uri)
-
-	if err != nil {
-		return false, fmt.Errorf("Unable to parse redirection URI %s: %w", uri, err)
-	}
-
-	return targetURL != nil && IsRedirectionSafe(*targetURL, protectedDomains), nil
-}
-
-// GetPortalURL gets redirection URL from session configuration.
-// TODO: write test.
-func GetPortalURL(uri string, domains []schema.SessionDomainConfiguration) string {
-	targetURL, err := url.ParseRequestURI(uri)
-	if err != nil {
-		return ""
-	}
-
-	hostname := targetURL.Hostname()
-
-	for _, domain := range domains {
-		if strings.HasSuffix(hostname, domain.Domain) {
-			return domain.PortalURL
-		}
-	}
-
-	return ""
 }

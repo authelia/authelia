@@ -195,7 +195,7 @@ func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
 	externalRootURL := fmt.Sprintf("%s://%s", protocol, host)
 
 	if base := ctx.BasePath(); base != "" {
-		externalBaseURL, err := url.Parse(externalRootURL)
+		externalBaseURL, err := url.ParseRequestURI(externalRootURL)
 		if err != nil {
 			return "", err
 		}
@@ -364,14 +364,14 @@ func (ctx *AutheliaCtx) GetOriginalURL() (*url.URL, error) {
 }
 
 // IsXHR returns true if the request is a XMLHttpRequest.
-func (ctx AutheliaCtx) IsXHR() (xhr bool) {
+func (ctx *AutheliaCtx) IsXHR() (xhr bool) {
 	requestedWith := ctx.Request.Header.PeekBytes(headerXRequestedWith)
 
 	return requestedWith != nil && strings.EqualFold(string(requestedWith), headerValueXRequestedWithXHR)
 }
 
 // AcceptsMIME takes a mime type and returns true if the request accepts that type or the wildcard type.
-func (ctx AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
+func (ctx *AutheliaCtx) AcceptsMIME(mime string) (acceptsMime bool) {
 	accepts := strings.Split(string(ctx.Request.Header.PeekBytes(headerAccept)), ",")
 
 	for i, accept := range accepts {
