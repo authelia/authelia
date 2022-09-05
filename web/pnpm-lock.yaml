@@ -14,7 +14,7 @@ specifiers:
   '@mui/material': 5.10.3
   '@mui/styles': 5.10.3
   '@testing-library/jest-dom': 5.16.5
-  '@testing-library/react': 13.3.0
+  '@testing-library/react': 13.4.0
   '@types/jest': 29.0.0
   '@types/node': 16.11.56
   '@types/qrcode.react': 1.0.2
@@ -94,7 +94,7 @@ devDependencies:
   '@commitlint/cli': 17.1.2
   '@commitlint/config-conventional': 17.1.0
   '@testing-library/jest-dom': 5.16.5
-  '@testing-library/react': 13.3.0_biqbaboplfbrettd7655fr4n2y
+  '@testing-library/react': 13.4.0_biqbaboplfbrettd7655fr4n2y
   '@types/jest': 29.0.0
   '@types/node': 16.11.56
   '@types/qrcode.react': 1.0.2
@@ -1958,13 +1958,6 @@ packages:
       regenerator-runtime: 0.13.9
     dev: true
 
-  /@babel/runtime/7.18.6:
-    resolution: {integrity: sha512-t9wi7/AW6XtKahAe20Yw0/mMljKq0B1r2fPdvaAdV/KPDZewFXdaaa6K7lxmZBZ8FBNpCiAT6iHPmd6QO9bKfQ==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      regenerator-runtime: 0.13.9
-    dev: true
-
   /@babel/runtime/7.18.9:
     resolution: {integrity: sha512-lkqXDcvlFT5rvEjiu6+QYO+1GXrEHRo2LOtS7E4GtX5ESIZOgepqsZBVIj6Pv+a6zqsya9VCgiK1KAK4BvJDAw==}
     engines: {node: '>=6.9.0'}
@@ -3235,14 +3228,14 @@ packages:
       redent: 3.0.0
     dev: true
 
-  /@testing-library/react/13.3.0_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-DB79aA426+deFgGSjnf5grczDPiL4taK3hFaa+M5q7q20Kcve9eQottOG5kZ74KEr55v0tU2CQormSSDK87zYQ==}
+  /@testing-library/react/13.4.0_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-sXOGON+WNTh3MLE9rve97ftaZukN3oNf2KjDy7YTx6hcTO2uuLHuCGynMDhFwGw/jYf4OJ2Qk0i4i79qMNNkyw==}
     engines: {node: '>=12'}
     peerDependencies:
       react: ^18.0.0 || 18
       react-dom: ^18.0.0 || 18
     dependencies:
-      '@babel/runtime': 7.18.6
+      '@babel/runtime': 7.18.9
       '@testing-library/dom': 8.16.0
       '@types/react-dom': 18.0.6
       react: 18.2.0
