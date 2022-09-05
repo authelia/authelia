@@ -5,15 +5,22 @@ import { initReactI18next } from "react-i18next";
 
 import { getBasePath } from "@utils/BasePath";
 
+import LocalStorageCustomDetector from "./localStorageCustom";
+
 const basePath = getBasePath();
 
+const detector = new LanguageDetector();
+
+detector.addDetector(LocalStorageCustomDetector);
+
 i18n.use(Backend)
-    .use(LanguageDetector)
+    .use(detector)
     .use(initReactI18next)
     .init({
         detection: {
-            order: ["querystring", "navigator"],
+            order: ["querystring", "localStorageCustom", "navigator"],
             lookupQuerystring: "lng",
+            lookupLocalStorage: "lng",
         },
         backend: {
             loadPath: basePath + "/locales/{{lng}}/{{ns}}.json",
