@@ -145,7 +145,7 @@
     "@commitlint/cli": "17.1.2",
     "@commitlint/config-conventional": "17.1.0",
     "@testing-library/jest-dom": "5.16.5",
-    "@testing-library/react": "13.3.0",
+    "@testing-library/react": "13.4.0",
     "@types/jest": "29.0.0",
     "@types/node": "16.11.56",
     "@types/qrcode.react": "1.0.2",
