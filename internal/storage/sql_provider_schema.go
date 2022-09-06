@@ -246,7 +246,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration model.Sc
 	return p.schemaMigrateFinalize(ctx, migration)
 }
 
-func (p SQLProvider) schemaMigrateFinalize(ctx context.Context, migration model.SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, migration model.SchemaMigration) (err error) {
 	return p.schemaMigrateFinalizeAdvanced(ctx, migration.Before(), migration.After())
 }
 
