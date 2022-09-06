@@ -20,19 +20,21 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-//go:embed locales
-var locales embed.FS
+var (
+	//go:embed public_html
+	assets embed.FS
 
-//go:embed public_html
-var assets embed.FS
+	//go:embed locales
+	locales embed.FS
+)
 
 func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	etags := map[string][]byte{}
 
-	getEmbedETags(assets, "public_html", etags)
+	getEmbedETags(assets, assetsRoot, etags)
 
 	return func(ctx *fasthttp.RequestCtx) {
-		p := path.Join("public_html", string(ctx.Path()))
+		p := path.Join(assetsRoot, string(ctx.Path()))
 
 		if etag, ok := etags[p]; ok {
 			ctx.Response.Header.SetBytesKV(headerETag, etag)
@@ -67,7 +69,14 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 }
 
 func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
-	var languages []string
+	var (
+		languages, dirs []string
+	)
+
+	aliases := map[string]string{
+		"sv": "sv-SE",
+		"zh": "zh-CN",
+	}
 
 	entries, err := locales.ReadDir("locales")
 	if err == nil {
@@ -82,6 +91,10 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 					continue
 				default:
 					lng = strings.SplitN(entry.Name(), "-", 2)[0]
+				}
+
+				if !utils.IsStringInSlice(entry.Name(), dirs) {
+					dirs = append(dirs, entry.Name())
 				}
 
 				if utils.IsStringInSlice(lng, languages) {
@@ -109,12 +122,22 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 
 		var data []byte
 
-		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
-			if utils.IsStringInSliceFold(language, languages) {
-				data = []byte("{}")
-			}
+		if alias, ok := aliases[locale]; ok {
+			data, _ = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", alias, namespace))
+		} else if utils.IsStringInSlice(locale, dirs) {
+			data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace))
+		} else {
+			l := language + "-" + strings.ToUpper(language)
 
-			if len(data) == 0 {
+			if utils.IsStringInSlice(l, dirs) {
+				data, err = locales.ReadFile(fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace))
+			}
+		}
+
+		if len(data) == 0 {
+			if utils.IsStringInSlice(language, languages) {
+				data = []byte("{}")
+			} else {
 				hfsHandleErr(ctx, err)
 
 				return
