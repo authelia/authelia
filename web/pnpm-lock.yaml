@@ -32,7 +32,7 @@ specifiers:
   eslint-config-prettier: 8.5.0
   eslint-config-react-app: 7.0.1
   eslint-formatter-rdjson: 1.0.5
-  eslint-import-resolver-typescript: 3.5.0
+  eslint-import-resolver-typescript: 3.5.1
   eslint-plugin-import: 2.26.0
   eslint-plugin-jsx-a11y: 6.6.1
   eslint-plugin-prettier: 4.2.1
@@ -108,10 +108,10 @@ devDependencies:
   esbuild-jest: 0.5.0_esbuild@0.15.7
   eslint: 8.23.0
   eslint-config-prettier: 8.5.0_eslint@8.23.0
-  eslint-config-react-app: 7.0.1_xtjcca5b5s6wg3vs7qgixrf3ju
+  eslint-config-react-app: 7.0.1_kfikkqgawcftzz7ejhh6bajdu4
   eslint-formatter-rdjson: 1.0.5
-  eslint-import-resolver-typescript: 3.5.0_faomjyrlgqmwswvqymymzkxcqi
-  eslint-plugin-import: 2.26.0_w2cwme5qheqqgomeab6zvby7zu
+  eslint-import-resolver-typescript: 3.5.1_faomjyrlgqmwswvqymymzkxcqi
+  eslint-plugin-import: 2.26.0_ikxfxf6lcdzwf3sfhs76tj4x7m
   eslint-plugin-jsx-a11y: 6.6.1_eslint@8.23.0
   eslint-plugin-prettier: 4.2.1_tgumt6uwl2md3n6uqnggd6wvce
   eslint-plugin-react: 7.31.7_eslint@8.23.0
@@ -5147,7 +5147,7 @@ packages:
       eslint: 8.23.0
     dev: true
 
-  /eslint-config-react-app/7.0.1_xtjcca5b5s6wg3vs7qgixrf3ju:
+  /eslint-config-react-app/7.0.1_kfikkqgawcftzz7ejhh6bajdu4:
     resolution: {integrity: sha512-K6rNzvkIeHaTd8m/QEh1Zko0KI7BACWkkneSs6s9cKZC/J27X3eZR6Upt1jkmZ/4FK+XUOPPxMEN7+lbUXfSlA==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -5166,7 +5166,7 @@ packages:
       confusing-browser-globals: 1.0.11
       eslint: 8.23.0
       eslint-plugin-flowtype: 8.0.3_eslint@8.23.0
-      eslint-plugin-import: 2.26.0_w2cwme5qheqqgomeab6zvby7zu
+      eslint-plugin-import: 2.26.0_ikxfxf6lcdzwf3sfhs76tj4x7m
       eslint-plugin-jest: 25.7.0_l5ajoqm2dmv4a3mf7wsz3tpj6y
       eslint-plugin-jsx-a11y: 6.6.1_eslint@8.23.0
       eslint-plugin-react: 7.31.7_eslint@8.23.0
@@ -5195,8 +5195,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-import-resolver-typescript/3.5.0_faomjyrlgqmwswvqymymzkxcqi:
-    resolution: {integrity: sha512-DEfpfuk+O/T5e9HBZOxocmwMuUGkvQQd5WRiMJF9kKNT9amByqOyGlWoAZAQiv0SZSy4GMtG1clmnvQA/RzA0A==}
+  /eslint-import-resolver-typescript/3.5.1_faomjyrlgqmwswvqymymzkxcqi:
+    resolution: {integrity: sha512-U7LUjNJPYjNsHvAUAkt/RU3fcTSpbllA0//35B4eLYTX74frmOepbt7F7J3D1IGtj9k21buOpaqtDd4ZlS/BYQ==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     peerDependencies:
       eslint: '*'
@@ -5205,7 +5205,7 @@ packages:
       debug: 4.3.4
       enhanced-resolve: 5.10.0
       eslint: 8.23.0
-      eslint-plugin-import: 2.26.0_w2cwme5qheqqgomeab6zvby7zu
+      eslint-plugin-import: 2.26.0_ikxfxf6lcdzwf3sfhs76tj4x7m
       get-tsconfig: 4.2.0
       globby: 13.1.2
       is-core-module: 2.10.0
@@ -5215,7 +5215,7 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-module-utils/2.7.3_rszvc74bkfyrvqo4siqwqi35qm:
+  /eslint-module-utils/2.7.3_7liths4w263er5tix7tpkwznyq:
     resolution: {integrity: sha512-088JEC7O3lDZM9xGe0RerkOMd0EjFl+Yvd1jPWIkMT5u3H9+HC34mWWPnqPrN13gieT9pBOO+Qt07Nb/6TresQ==}
     engines: {node: '>=4'}
     peerDependencies:
@@ -5236,7 +5236,7 @@ packages:
       '@typescript-eslint/parser': 5.36.2_yqf6kl63nyoq5megxukfnom5rm
       debug: 3.2.7
       eslint-import-resolver-node: 0.3.6
-      eslint-import-resolver-typescript: 3.5.0_faomjyrlgqmwswvqymymzkxcqi
+      eslint-import-resolver-typescript: 3.5.1_faomjyrlgqmwswvqymymzkxcqi
       find-up: 2.1.0
     transitivePeerDependencies:
       - supports-color
@@ -5260,7 +5260,7 @@ packages:
       string-natural-compare: 3.0.1
     dev: true
 
-  /eslint-plugin-import/2.26.0_w2cwme5qheqqgomeab6zvby7zu:
+  /eslint-plugin-import/2.26.0_ikxfxf6lcdzwf3sfhs76tj4x7m:
     resolution: {integrity: sha512-hYfi3FXaM8WPLf4S1cikh/r4IxnO6zrhZbEGz2b660EJRbuxgpDS5gkCuYgGWg2xxh2rBuIr4Pvhve/7c31koA==}
     engines: {node: '>=4'}
     peerDependencies:
@@ -5277,7 +5277,7 @@ packages:
       doctrine: 2.1.0
       eslint: 8.23.0
       eslint-import-resolver-node: 0.3.6
-      eslint-module-utils: 2.7.3_rszvc74bkfyrvqo4siqwqi35qm
+      eslint-module-utils: 2.7.3_7liths4w263er5tix7tpkwznyq
       has: 1.0.3
       is-core-module: 2.9.0
       is-glob: 4.0.3
