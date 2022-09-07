@@ -28,6 +28,11 @@ func newLocalesCmd() *cobra.Command {
 	return cmd
 }
 
+var localeAliases = map[string]string{
+	"sv": "sv-SE",
+	"zh": "zh-CN",
+}
+
 func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		root, pathLocales                       string
@@ -139,39 +144,75 @@ func getLanguages(dir string) (languages *Languages, err error) {
 			return nil
 		}
 
+		var localeReal string
+
+		parts := strings.SplitN(locale, "-", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], parts[1]) {
+			localeReal = parts[0]
+		} else {
+			localeReal = locale
+		}
+
 		var tag language.Tag
 
-		if tag, err = language.Parse(locale); err != nil {
-			return fmt.Errorf("failed to parse langauge '%s': %w", locale, err)
+		if tag, err = language.Parse(localeReal); err != nil {
+			return fmt.Errorf("failed to parse langauge '%s': %w", localeReal, err)
 		}
 
 		l := Language{
 			Display:    display.English.Tags().Name(tag),
-			Locale:     locale,
+			Locale:     localeReal,
 			Namespaces: []string{ns},
+			Fallbacks:  []string{languages.Defaults.Language.Locale},
+			Tag:        tag,
 		}
 
 		languages.Languages = append(languages.Languages, l)
 
-		locales = append(locales, locale)
+		locales = append(locales, l.Locale)
 
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 
+	var langs []Language
+
+	for i, lang := range languages.Languages {
+		p := lang.Tag.Parent()
+
+		if p.String() == "und" || strings.Contains(p.String(), "-") {
+			continue
+		}
+
+		if utils.IsStringInSlice(p.String(), locales) {
+			continue
+		}
+
+		if p.String() != lang.Locale {
+			lang.Fallbacks = append([]string{p.String()}, lang.Fallbacks...)
+		}
+
+		languages.Languages[i] = lang
+
+		l := Language{
+			Display:    display.English.Tags().Name(p),
+			Locale:     p.String(),
+			Namespaces: lang.Namespaces,
+			Fallbacks:  []string{languages.Defaults.Language.Locale},
+			Tag:        p,
+		}
+
+		langs = append(langs, l)
+
+		locales = append(locales, l.Locale)
+	}
+
+	languages.Languages = append(languages.Languages, langs...)
+
 	sort.Slice(languages.Languages, func(i, j int) bool {
 		return languages.Languages[i].Locale == localeDefault || languages.Languages[i].Locale < languages.Languages[j].Locale
 	})
-
-	for i, l := range languages.Languages {
-		parts := strings.SplitN(l.Locale, "-", 2)
-		if len(parts) == 2 && utils.IsStringInSlice(parts[0], locales) {
-			languages.Languages[i].Fallbacks = append(languages.Languages[i].Fallbacks, parts[0])
-		}
-
-		languages.Languages[i].Fallbacks = append(languages.Languages[i].Fallbacks, languages.Defaults.Language.Locale)
-	}
 
 	return languages, nil
 }

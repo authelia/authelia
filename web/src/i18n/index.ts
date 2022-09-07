@@ -39,7 +39,7 @@ i18n.use(Backend)
             "sv-SE": ["sv", "en"],
             zh: ["en"],
             "zh-CN": ["zh", "en"],
-            "zh-TW": ["zh", "en"],
+            "zh-TW": ["en"],
         },
         supportedLngs: ["en", "de", "es", "fr", "nl", "pt", "ru", "sv", "sv-SE", "zh", "zh-CN", "zh-TW"],
         lowerCaseLng: false,

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"golang.org/x/text/language"
 )
 
 type tmplIssueTemplateData struct {
@@ -41,6 +43,8 @@ type Language struct {
 	Locale     string   `json:"locale"`
 	Namespaces []string `json:"namespaces,omitempty"`
 	Fallbacks  []string `json:"fallbacks,omitempty"`
+
+	Tag language.Tag `json:"-"`
 }
 
 const (
