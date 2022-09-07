@@ -73,6 +73,10 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		languages, dirs []string
 	)
 
+	etags := map[string][]byte{}
+
+	getEmbedETags(locales, "locales", etags)
+
 	aliases := map[string]string{
 		"sv": "sv-SE",
 		"zh": "zh-CN",
@@ -120,21 +124,40 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 			locale = fmt.Sprintf("%s-%s", language, variant)
 		}
 
-		var data []byte
+		var asset string
 
 		if alias, ok := aliases[locale]; ok {
-			data, _ = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", alias, namespace))
+			asset = fmt.Sprintf("locales/%s/%s.json", alias, namespace)
 		} else if utils.IsStringInSlice(locale, dirs) {
-			data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace))
+			asset = fmt.Sprintf("locales/%s/%s.json", locale, namespace)
 		} else {
 			l := language + "-" + strings.ToUpper(language)
 
 			if utils.IsStringInSlice(l, dirs) {
-				data, err = locales.ReadFile(fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace))
+				asset = fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace)
 			}
 		}
 
-		if len(data) == 0 {
+		if asset == "" {
+			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+
+			return
+		}
+
+		if etag, ok := etags[asset]; ok {
+			ctx.Response.Header.SetBytesKV(headerETag, etag)
+			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+			if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+				ctx.SetStatusCode(fasthttp.StatusNotModified)
+
+				return
+			}
+		}
+
+		var data []byte
+
+		if data, err = locales.ReadFile(asset); err != nil {
 			if utils.IsStringInSlice(language, languages) {
 				data = []byte("{}")
 			} else {
