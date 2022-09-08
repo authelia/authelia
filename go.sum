@@ -215,8 +215,8 @@ github.com/envoyproxy/go-control-plane v0.9.10-0.20210907150352-cf90f659a021/go.
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
-github.com/fasthttp/router v1.4.11 h1:99BvgVxeS2oOZBHnKr/okpdPq1jkn8WvYA2trh/71LY=
-github.com/fasthttp/router v1.4.11/go.mod h1:luEEYkGBSAmYyPaMeIUGNgqY+FdHHYDOK9Kivaw7aNo=
+github.com/fasthttp/router v1.4.12 h1:QEgK+UKARaC1bAzJgnIhdUMay6nwp+YFq6VGPlyKN1o=
+github.com/fasthttp/router v1.4.12/go.mod h1:41Qdc4Z4T2pWVVtATHCnoUnOtxdBoeKEYJTXhHwbxCQ=
 github.com/fasthttp/session/v2 v2.4.12 h1:uSDcAczBO42dvE24F2LH7CgDlSnZX7ka2EQT82j9e1E=
 github.com/fasthttp/session/v2 v2.4.12/go.mod h1:v/ptqGiqJCxsf//YmTuaGnvqdm03LJs18ylVOC04vD8=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
