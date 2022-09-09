@@ -24,7 +24,7 @@
 	"Lost your device?": "丢失了您的设备？",
 	"Methods": "方法",
 	"Must be at least {{len}} characters in length": "长度必须至少为 {{len}} 个字符",
-	"Must have at least one UPPERCASE letter": "必须至少有一个UPERCASE 字母",
+	"Must have at least one UPPERCASE letter": "必须至少有一个大写字母",
 	"Must have at least one lowercase letter": "必须至少有一个小写字母",
 	"Must have at least one number": "必须至少有一个数字",
 	"Must have at least one special character": "必须至少有一个特殊字符",

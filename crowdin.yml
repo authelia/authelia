@@ -12,5 +12,8 @@ files:
         "en-EN": en
         "es-ES": es
         "fr-FR": fr
+        "nl-NL": nl
+        "pt-PT": pt
         "ru-RU": ru
+        "zh-CH": zh
 ...

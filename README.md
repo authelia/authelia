@@ -305,6 +305,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://radenac.me"><img src="https://avatars.githubusercontent.com/u/47008408?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Clément Radenac</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=clem3109" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/boomam"><img src="https://avatars.githubusercontent.com/u/37086258?v=4?s=100" width="100px;" alt=""/><br /><sub><b>boomam</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=boomam" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/Northguy"><img src="https://avatars.githubusercontent.com/u/1189058?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Northguy</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Northguy" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/polarathene"><img src="https://avatars.githubusercontent.com/u/5098581?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Brennan Kinney</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=polarathene" title="Documentation">📖</a></td>
   </tr>
 </table>
 

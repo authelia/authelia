@@ -87,7 +87,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
+	_, requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
 			Groups:   groups,
