@@ -815,6 +815,11 @@ notifier:
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/c/secrets
     # hmac_secret: this_is_a_secret_abc123abc123abc
 
+    ## The issuer_certificate_chain is an optional PEM encoded certificate chain. It's used in conjuction with the
+    ## issuer_private_key to sign JWT's. All certificates in the chain must be within the validity period, and every
+    ## certificate included must be signed by the following certificate if provided.
+    # issuer_certificate_chain: |
+
     ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
     ## Issuer Private Key can also be set using a secret: https://www.authelia.com/c/secrets
     # issuer_private_key: |

@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"crypto/rsa"
 	"time"
 
 	"github.com/ory/fosite"
@@ -35,7 +34,7 @@ func NewSession() (session *model.OpenIDSession) {
 func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]interface{},
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
-		extra = make(map[string]interface{})
+		extra = map[string]interface{}{}
 	}
 
 	session = &model.OpenIDSession{
@@ -122,10 +121,8 @@ type Client struct {
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
 // It additionally allows us to add keys for the purpose of key rotation in the future.
 type KeyManager struct {
-	activeKeyID string
-	keys        map[string]*rsa.PrivateKey
-	keySet      *jose.JSONWebKeySet
-	strategy    *RS256JWTStrategy
+	jwk  *JWK
+	jwks *jose.JSONWebKeySet
 }
 
 // PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
