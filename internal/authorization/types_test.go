@@ -9,7 +9,7 @@ import (
 )
 
 func TestShouldAppendQueryParamToURL(t *testing.T) {
-	targetURL, err := url.Parse("https://domain.example.com/api?type=none")
+	targetURL, err := url.ParseRequestURI("https://domain.example.com/api?type=none")
 
 	require.NoError(t, err)
 
@@ -22,7 +22,7 @@ func TestShouldAppendQueryParamToURL(t *testing.T) {
 }
 
 func TestShouldCreateNewObjectFromRaw(t *testing.T) {
-	targetURL, err := url.Parse("https://domain.example.com/api")
+	targetURL, err := url.ParseRequestURI("https://domain.example.com/api")
 
 	require.NoError(t, err)
 
@@ -55,7 +55,7 @@ func TestShouldCleanURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.have, func(t *testing.T) {
-			have, err := url.Parse(tc.have + tc.havePath)
+			have, err := url.ParseRequestURI(tc.have + tc.havePath)
 			require.NoError(t, err)
 
 			object := NewObject(have, tc.method)
@@ -66,7 +66,7 @@ func TestShouldCleanURL(t *testing.T) {
 			assert.Equal(t, tc.expectedPathClean, object.Path)
 			assert.Equal(t, tc.method, object.Method)
 
-			have, err = url.Parse(tc.have)
+			have, err = url.ParseRequestURI(tc.have)
 			require.NoError(t, err)
 
 			path, err := url.ParseRequestURI(tc.havePath)

@@ -95,7 +95,7 @@ func validateOIDCOptionsCORSAllowedOrigins(config *schema.OpenIDConnectConfigura
 func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.OpenIDConnectConfiguration) {
 	for _, client := range config.Clients {
 		for _, redirectURI := range client.RedirectURIs {
-			uri, err := url.Parse(redirectURI)
+			uri, err := url.ParseRequestURI(redirectURI)
 			if err != nil || (uri.Scheme != schemeHTTP && uri.Scheme != schemeHTTPS) || uri.Hostname() == "localhost" {
 				continue
 			}
@@ -116,6 +116,7 @@ func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration,
 		}
 	}
 }
+
 func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, duplicateIDs := false, false
 

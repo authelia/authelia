@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 
@@ -71,8 +72,23 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 	entries, err := locales.ReadDir("locales")
 	if err == nil {
 		for _, entry := range entries {
-			if entry.IsDir() && len(entry.Name()) == 2 {
-				languages = append(languages, entry.Name())
+			if entry.IsDir() {
+				var lng string
+
+				switch len(entry.Name()) {
+				case 2:
+					lng = entry.Name()
+				case 0:
+					continue
+				default:
+					lng = strings.SplitN(entry.Name(), "-", 2)[0]
+				}
+
+				if utils.IsStringInSlice(lng, languages) {
+					continue
+				}
+
+				languages = append(languages, lng)
 			}
 		}
 	}
@@ -94,7 +110,7 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		var data []byte
 
 		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
-			if variant != "" && utils.IsStringInSliceFold(language, languages) {
+			if utils.IsStringInSliceFold(language, languages) {
 				data = []byte("{}")
 			}
 

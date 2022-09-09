@@ -14,7 +14,7 @@ aliases:
   - /r/webauthn
 ---
 
-[WebAuthn] requires urgent implementation as it is being deprecated by Chrome. It is a modern evolution of the
+[WebAuthn] requires urgent implementation as [Chrome removed support of their U2F API since August 2022][chrome-removed-u2f]. It is a modern evolution of the
 [FIDO U2F] protocol and is very similar in many ways. It even includes a backwards compatability extension called
 the [FIDO AppID Extension] which allows a previously registered [FIDO U2F] device to be used with the protocol to
 authenticate.
@@ -64,6 +64,7 @@ registration.
 
 [FIDO U2F]: https://fidoalliance.org/specs/u2f-specs-master/fido-u2f-overview.html
 [WebAuthn]: https://www.w3.org/TR/webauthn-2/
+[chrome-removed-u2f]: https://developer.chrome.com/blog/deps-rems-95/#deprecate-u2f-api-cryptotoken
 [Passwordless Login]: https://www.w3.org/TR/webauthn-2/#client-side-discoverable-public-key-credential-source
 [Conveyancing Preference]: https://www.w3.org/TR/webauthn-2/#enum-attestation-convey
 [User Verification Requirement]: https://www.w3.org/TR/webauthn-2/#enum-userVerificationRequirement
