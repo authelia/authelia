@@ -12,6 +12,8 @@ linters-settings:
     check-all: true
   goimports:
     local-prefixes: github.com/authelia/authelia
+  revive:
+    confidence: 0.8
 
 linters:
   enable:
