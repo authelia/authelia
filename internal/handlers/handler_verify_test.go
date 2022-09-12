@@ -140,7 +140,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		{"two_factor", authentication.OneFactor, NotAuthorized},
 		{"two_factor", authentication.TwoFactor, Authorized},
 
-		{"deny", authentication.NotAuthenticated, NotAuthorized},
+		{"deny", authentication.NotAuthenticated, Forbidden},
 		{"deny", authentication.OneFactor, Forbidden},
 		{"deny", authentication.TwoFactor, Forbidden},
 	}
@@ -506,7 +506,7 @@ func (p Pair) String() string {
 		p.URL, p.Username, p.AuthenticationLevel, p.ExpectedStatusCode)
 }
 
-// nolint:gocyclo // This is a test.
+//nolint:gocyclo // This is a test.
 func TestShouldRedirectAuthorizations(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -515,14 +515,14 @@ func TestShouldRedirectAuthorizations(t *testing.T) {
 
 		expected int
 	}{
-		{"ShouldReturnFoundMethodNone", "", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
-		{"ShouldReturnFoundMethodGET", "GET", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
-		{"ShouldReturnFoundMethodOPTIONS", "OPTIONS", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
-		{"ShouldReturnSeeOtherMethodPOST", "POST", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
-		{"ShouldReturnSeeOtherMethodPATCH", "PATCH", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
-		{"ShouldReturnSeeOtherMethodPUT", "PUT", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
-		{"ShouldReturnSeeOtherMethodDELETE", "DELETE", "https://test.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
-		{"ShouldReturnUnauthorizedBadDomain", "GET", "https://test.example.com/", "https://auth.notexample.com/", fasthttp.StatusUnauthorized},
+		{"ShouldReturnFoundMethodNone", "", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
+		{"ShouldReturnFoundMethodGET", "GET", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
+		{"ShouldReturnFoundMethodOPTIONS", "OPTIONS", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
+		{"ShouldReturnSeeOtherMethodPOST", "POST", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnSeeOtherMethodPATCH", "PATCH", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnSeeOtherMethodPUT", "PUT", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnSeeOtherMethodDELETE", "DELETE", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnUnauthorizedBadDomain", "GET", "https://one-factor.example.com/", "https://auth.notexample.com/", fasthttp.StatusUnauthorized},
 	}
 
 	handler := VerifyGET(verifyGetCfg)
@@ -612,11 +612,12 @@ func TestShouldRedirectAuthorizations(t *testing.T) {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 401},
+		// should apply default policy.
+		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 403},
 		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, 200},
 		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
 		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
-		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 403},
 
 		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
 		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},

@@ -64,9 +64,14 @@ var (
 	headerValueCohort                  = []byte("interest-cohort=()")
 )
 
+const (
+	strProtoHTTPS = "https"
+	strProtoHTTP  = "http"
+)
+
 var (
-	protoHTTPS = []byte("https")
-	protoHTTP  = []byte("http")
+	protoHTTPS = []byte(strProtoHTTPS)
+	protoHTTP  = []byte(strProtoHTTP)
 
 	queryArgRedirect = []byte("rd")
 
