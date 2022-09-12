@@ -65,9 +65,14 @@ var (
 	headerValueCohort                  = []byte("interest-cohort=()")
 )
 
+const (
+	strProtoHTTPS = "https"
+	strProtoHTTP  = "http"
+)
+
 var (
-	protoHTTPS = []byte("https")
-	protoHTTP  = []byte("http")
+	protoHTTPS = []byte(strProtoHTTPS)
+	protoHTTP  = []byte(strProtoHTTP)
 
 	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
 	UserValueKeyBaseURL = []byte("base_url")

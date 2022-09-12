@@ -139,7 +139,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 			errs = append(errs, err)
 		}
 
-		if err = p.schemaEncryptionCheckU2F(ctx); err != nil {
+		if err = p.schemaEncryptionCheckWebauthn(ctx); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -210,9 +210,9 @@ func (p *SQLProvider) schemaEncryptionCheckTOTP(ctx context.Context) (err error)
 	return nil
 }
 
-func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) {
+func (p *SQLProvider) schemaEncryptionCheckWebauthn(ctx context.Context) (err error) {
 	var (
-		device  model.U2FDevice
+		device  model.WebauthnDevice
 		row     int
 		invalid int
 		total   int
@@ -226,7 +226,7 @@ func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) 
 		if rows, err = p.db.QueryxContext(ctx, p.sqlSelectWebauthnDevices, pageSize, pageSize*page); err != nil {
 			_ = rows.Close()
 
-			return fmt.Errorf("error selecting U2F devices: %w", err)
+			return fmt.Errorf("error selecting Webauthn devices: %w", err)
 		}
 
 		row = 0
@@ -237,7 +237,7 @@ func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) 
 
 			if err = rows.StructScan(&device); err != nil {
 				_ = rows.Close()
-				return fmt.Errorf("error scanning U2F device to struct: %w", err)
+				return fmt.Errorf("error scanning Webauthn device to struct: %w", err)
 			}
 
 			if _, err = p.decrypt(device.PublicKey); err != nil {
@@ -253,7 +253,7 @@ func (p *SQLProvider) schemaEncryptionCheckU2F(ctx context.Context) (err error) 
 	}
 
 	if invalid != 0 {
-		return fmt.Errorf("%d of %d total U2F devices were invalid", invalid, total)
+		return fmt.Errorf("%d of %d total Webauthn devices were invalid", invalid, total)
 	}
 
 	return nil

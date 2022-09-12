@@ -36,7 +36,7 @@ func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, re
 
 	object := NewObject(targetURL, method)
 
-	level := s.GetRequiredLevel(subject, object)
+	_, level := s.GetRequiredLevel(subject, object)
 
 	assert.Equal(t, expectedLevel, level)
 }

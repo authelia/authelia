@@ -27,7 +27,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 		err     error
 	)
 
-	if issuer, err = url.Parse(rootURI); err != nil {
+	if issuer, err = url.ParseRequestURI(rootURI); err != nil {
 		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not safely determine the issuer."))
 
 		return nil, true
@@ -176,7 +176,7 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 	var location *url.URL
 
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		location, _ = url.Parse(issuer.String())
+		location, _ = url.ParseRequestURI(issuer.String())
 		location.Path = path.Join(location.Path, "/consent")
 
 		query := location.Query()
@@ -227,9 +227,9 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client *oi
 }
 
 func getOIDCAuthorizationRedirectURL(issuer *url.URL, requester fosite.AuthorizeRequester) (redirectURL *url.URL) {
-	redirectURL, _ = url.Parse(issuer.String())
+	redirectURL, _ = url.ParseRequestURI(issuer.String())
 
-	authorizationURL, _ := url.Parse(issuer.String())
+	authorizationURL, _ := url.ParseRequestURI(issuer.String())
 
 	authorizationURL.Path = path.Join(authorizationURL.Path, oidc.AuthorizationPath)
 	authorizationURL.RawQuery = requester.GetRequestForm().Encode()

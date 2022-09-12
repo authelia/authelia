@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -376,7 +377,7 @@ func handleVerifyGETAuthnCookieValidateUpdate(ctx *middlewares.AutheliaCtx, user
 
 	ctx.Logger.Debugf("Updated profile detected for user '%s'", userSession.Username)
 
-	if ctx.Configuration.Log.Level == "trace" {
+	if ctx.Logger.Level == logrus.TraceLevel {
 		generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 	}
 

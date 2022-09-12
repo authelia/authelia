@@ -142,7 +142,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		{"two_factor", authentication.OneFactor, AuthzResultUnauthorized},
 		{"two_factor", authentication.TwoFactor, AuthzResultAuthorized},
 
-		{"deny", authentication.NotAuthenticated, AuthzResultUnauthorized},
+		{"deny", authentication.NotAuthenticated, AuthzResultForbidden},
 		{"deny", authentication.OneFactor, AuthzResultForbidden},
 		{"deny", authentication.TwoFactor, AuthzResultForbidden},
 	}
@@ -520,7 +520,7 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 
 	authz.Handler(mock.Ctx)
 
-	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
@@ -545,7 +545,7 @@ func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 
 	authz.Handler(mock.Ctx)
 
-	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
@@ -574,7 +574,7 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 
 	authz.Handler(mock.Ctx)
 
-	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerWWWAuthenticate))
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
@@ -645,11 +645,11 @@ func TestShouldVerifyAuthorizationsUsingOnlyAuthorizationHeader(t *testing.T) {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		{"https://test.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
+		{"https://test.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusForbidden},
 		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusOK},
 		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
 		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
-		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusUnauthorized},
+		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, fasthttp.StatusForbidden},
 
 		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusForbidden},
 		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, fasthttp.StatusOK},

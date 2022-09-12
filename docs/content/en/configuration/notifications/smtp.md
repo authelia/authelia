@@ -56,9 +56,14 @@ host: "[fd00:1111:2222:3333::1]"
 
 {{< confkey type="integer" required="yes" >}}
 
-The port the SMTP service is listening on. Port 465 is treated as a special port where the entire connection is over
-TLS. This port was formerly known as the SMTPS port but is now known as the SUBMISSIONS port i.e. SUBMISSION Secure. All
-other ports expect to perform a STARTTLS negotiation.
+The port the SMTP service is listening on.
+
+A connection is securely established with TLS after a succesful STARTTLS negotiation.
+
+[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port. 
+STARTTLS negotiation is not required for this port, the connection is implicitly established with TLS.
+
+[docs-security-smtp-port]: ../../overview/security/measures.md#smtp-ports
 
 ### timeout
 

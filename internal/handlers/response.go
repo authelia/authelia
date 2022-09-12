@@ -87,7 +87,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
+	_, requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
 			Groups:   groups,
@@ -176,7 +176,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 
 	referer := ctx.Request.Header.Referer()
 	if referer != nil {
-		refererURL, err := url.Parse(string(referer))
+		refererURL, err := url.ParseRequestURI(string(referer))
 		if err == nil {
 			requestURI = refererURL.Query().Get(queryStrArgumentRedirect)
 			requestMethod = refererURL.Query().Get(queryStrArgumentRequestMethod)

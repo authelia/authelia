@@ -86,11 +86,11 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	}
 }
 
-func isAuthzResult(level authentication.Level, required authorization.Level) AuthzResult {
+func isAuthzResult(level authentication.Level, required authorization.Level, ruleHasSubject bool) AuthzResult {
 	switch {
 	case required == authorization.Bypass:
 		return AuthzResultAuthorized
-	case required == authorization.Denied && level != authentication.NotAuthenticated:
+	case required == authorization.Denied && (level != authentication.NotAuthenticated || !ruleHasSubject):
 		// If the user is not anonymous, it means that we went through all the rules related to that user identity and
 		// can safely conclude their access is actually forbidden. If a user is anonymous however this is not actually
 		// possible without some more advanced logic.

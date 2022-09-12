@@ -29,7 +29,7 @@ func TestURLPathFullClean(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			u, err := url.Parse(tc.have)
+			u, err := url.ParseRequestURI(tc.have)
 			require.NoError(t, err)
 
 			actual := URLPathFullClean(u)
