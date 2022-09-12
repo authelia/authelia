@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -27,6 +28,7 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		ReadTimeout:           config.Server.Timeouts.Read,
 		WriteTimeout:          config.Server.Timeouts.Write,
 		IdleTimeout:           config.Server.Timeouts.Idle,
+		Logger:                logging.LoggerPrintf(logrus.WarnLevel),
 	}
 
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
@@ -104,6 +106,7 @@ func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp
 		ReadTimeout:           config.Timeouts.Read,
 		WriteTimeout:          config.Timeouts.Write,
 		IdleTimeout:           config.Timeouts.Idle,
+		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
 	logging.Logger().Infof(fmtLogServerInit, "server (metrics)", connNonTLS, listener.Addr().String(), "/metrics")
