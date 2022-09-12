@@ -7,6 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewAccessControlQuery creates a new AccessControlQuery rule type.
 func NewAccessControlQuery(config [][]schema.ACLQueryRule) (rules []AccessControlQuery) {
 	if len(config) == 0 {
 		return nil
@@ -35,6 +36,7 @@ type AccessControlQuery struct {
 	Rules []ObjectMatcher
 }
 
+// IsMatch returns true if this rule matches the object.
 func (acq AccessControlQuery) IsMatch(object Object) (isMatch bool) {
 	for _, rule := range acq.Rules {
 		if !rule.IsMatch(object) {
@@ -45,6 +47,7 @@ func (acq AccessControlQuery) IsMatch(object Object) (isMatch bool) {
 	return true
 }
 
+// NewAccessControlQueryObjectMatcher creates a new ObjectMatcher rule type from a schema.ACLQueryRule.
 func NewAccessControlQueryObjectMatcher(rule schema.ACLQueryRule) (matcher ObjectMatcher, err error) {
 	switch rule.Operator {
 	case operatorPresent, operatorAbsent:
@@ -64,11 +67,13 @@ func NewAccessControlQueryObjectMatcher(rule schema.ACLQueryRule) (matcher Objec
 	}
 }
 
+// AccessControlQueryMatcherEqual is a rule type that checks the equality of a query parameter.
 type AccessControlQueryMatcherEqual struct {
 	key, value string
 	equal      bool
 }
 
+// IsMatch returns true if this rule matches the object.
 func (acl AccessControlQueryMatcherEqual) IsMatch(object Object) (isMatch bool) {
 	switch {
 	case acl.equal:
@@ -78,11 +83,13 @@ func (acl AccessControlQueryMatcherEqual) IsMatch(object Object) (isMatch bool) 
 	}
 }
 
+// AccessControlQueryMatcherPresent is a rule type that checks the presence of a query parameter.
 type AccessControlQueryMatcherPresent struct {
 	key     string
 	present bool
 }
 
+// IsMatch returns true if this rule matches the object.
 func (acl AccessControlQueryMatcherPresent) IsMatch(object Object) (isMatch bool) {
 	switch {
 	case acl.present:
@@ -92,12 +99,14 @@ func (acl AccessControlQueryMatcherPresent) IsMatch(object Object) (isMatch bool
 	}
 }
 
+// AccessControlQueryMatcherPattern is a rule type that checks a query parameter against regex.
 type AccessControlQueryMatcherPattern struct {
 	key     string
 	pattern *regexp.Regexp
 	match   bool
 }
 
+// IsMatch returns true if this rule matches the object.
 func (acl AccessControlQueryMatcherPattern) IsMatch(object Object) (isMatch bool) {
 	switch {
 	case acl.match:
