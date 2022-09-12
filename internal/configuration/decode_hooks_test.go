@@ -869,6 +869,7 @@ func TestStringToAddressHookFunc(t *testing.T) {
 
 func TestStringToRSAPrivateKeyHookFunc(t *testing.T) {
 	var nilkey *rsa.PrivateKey
+
 	testCases := []struct {
 		desc   string
 		have   interface{}

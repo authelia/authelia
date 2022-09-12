@@ -112,6 +112,7 @@ func (s *JWTStrategy) GetPublicKeyID(_ context.Context) (string, error) {
 	return s.id, nil
 }
 
+// NewJWK creates a new JWK.
 func NewJWK(chain schema.X509CertificateChain, key *rsa.PrivateKey) (j *JWK, err error) {
 	if key == nil {
 		return nil, fmt.Errorf("JWK is not properly initialized: missing key")
@@ -147,16 +148,19 @@ func NewJWK(chain schema.X509CertificateChain, key *rsa.PrivateKey) (j *JWK, err
 	return j, nil
 }
 
+// JWK is a utility wrapper for JSON Web Key's.
 type JWK struct {
 	id    string
 	key   *rsa.PrivateKey
 	chain schema.X509CertificateChain
 }
 
+// Strategy returns the relevant jwt.JWTStrategy for this JWT.
 func (j *JWK) Strategy() (strategy jwt.JWTStrategy) {
 	return &JWTStrategy{id: j.id, JWTStrategy: &jwt.RS256JWTStrategy{PrivateKey: j.key}}
 }
 
+// JSONWebKey returns the relevant *jose.JSONWebKey for this JWT.
 func (j *JWK) JSONWebKey() (jwk *jose.JSONWebKey) {
 	jwk = &jose.JSONWebKey{
 		Key:          &j.key.PublicKey,

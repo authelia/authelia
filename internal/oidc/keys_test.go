@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestKeyManager_AddActiveJWK(t *testing.T) {
