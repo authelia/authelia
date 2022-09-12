@@ -786,6 +786,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "polarathene",
+      "name": "Brennan Kinney",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5098581?v=4",
+      "profile": "https://github.com/polarathene",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

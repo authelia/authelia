@@ -188,7 +188,7 @@ func (s *OAuth2Session) SetSubject(subject string) {
 }
 
 // ToRequest converts an OAuth2Session into a fosite.Request given a fosite.Session and fosite.Storage.
-func (s OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
+func (s *OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
 	sessionData := s.Session
 
 	if session != nil {
