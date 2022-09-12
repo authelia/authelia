@@ -5,7 +5,7 @@ import { initReactI18next } from "react-i18next";
 
 import { getBasePath } from "@utils/BasePath";
 
-import LocalStorageCustomDetector from "./localStorageCustom";
+import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
 
 const basePath = getBasePath();
 
