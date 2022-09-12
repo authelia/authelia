@@ -32,18 +32,21 @@ bootstrapping *Authelia*.
 
 Depending on your Traefik version you may be required to configure the
 [allowCrossNamespace](https://doc.traefik.io/traefik/providers/kubernetes-crd/#allowcrossnamespace) to reuse a
-[Middleware] from a namespace different to the Ingress or IngressRoute. Alternatively you can create the [Middleware] in
-every namespace you need to use it.
+[Middleware] from a [Namespace] different to the [Ingress] / [IngressRoute]. Alternatively you can create the [Middleware]
+in every [Namespace] you need to use it.
 
 ## Middleware
 
 Regardless if you're using the [Traefik Kubernetes Ingress] or purely the [Traefik Kubernetes CRD], you must configure
 the [Traefik Kubernetes CRD] as far as we're aware at this time in order to configure a [ForwardAuth] [Middleware].
 
-This is an example [Middleware] manifest. This example assumes that you have deployed an Authelia pod and you have
-configured it to be served on the URL `https://auth.example.com` and there is a Kubernetes Service with the name
-`authelia` in the `default` namespace with TCP port `80` configured to route to the Authelia pod's HTTP port and that
-your cluster is configured with the default DNS domain name of `cluster.local`.
+This is an example [Middleware] manifest. This example assumes that you have deployed an Authelia [Pod] and you have
+configured it to be served on the URL `https://auth.example.com` and there is a Kubernetes [Service] with the name
+`authelia` in the `default` [Namespace] with TCP port `80` configured to route to the Authelia [Pod]'s HTTP port and
+that your cluster is configured with the default DNS domain name of `cluster.local`.
+
+*__Important Note:__ The [Middleware] should be applied to an [Ingress] / [IngressRoute] you wish to protect. It
+__SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.*
 
 {{< details "middleware.yml" >}}
 ```yaml
@@ -51,12 +54,11 @@ your cluster is configured with the default DNS domain name of `cluster.local`.
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
+  name: forwardauth-authelia
+  namespace: default
   labels:
     app.kubernetes.io/instance: authelia
     app.kubernetes.io/name: authelia
-    argocd.argoproj.io/instance: authelia
-  name: forwardauth-authelia
-  namespace: default
 spec:
   forwardAuth:
     address: http://authelia.default.svc.cluster.local/api/verify?rd=https%3A%2F%2Fauth.example.com%2F
@@ -71,9 +73,9 @@ spec:
 
 ## Ingress
 
-This is an example Ingress manifest which uses the above [Middleware](#middleware). This example assumes you have an
-application you wish to serve on `https://app.example.com` and there is a Kubernetes Service with the name `app` in the
-`default` namespace with TCP port `80` configured to route to the application pod's HTTP port.
+This is an example [Ingress] manifest which uses the above [Middleware](#middleware). This example assumes you have an
+application you wish to serve on `https://app.example.com` and there is a Kubernetes [Service] with the name `app` in
+the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
 {{< details "ingress.yml" >}}
 ```yaml
@@ -105,9 +107,9 @@ spec:
 
 ## IngressRoute
 
-This is an example IngressRoute manifest which uses the above [Middleware](#middleware). This example assumes you have an
-application you wish to serve on `https://app.example.com` and there is a Kubernetes Service with the name `app` in the
-`default` namespace with TCP port `80` configured to route to the application pod's HTTP port.
+This is an example [IngressRoute] manifest which uses the above [Middleware](#middleware). This example assumes you have
+an application you wish to serve on `https://app.example.com` and there is a Kubernetes [Service] with the name `app` in
+the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
 {{< details "ingressRoute.yml" >}}
 ```yaml
@@ -138,6 +140,11 @@ spec:
 ```
 {{< /details >}}
 
+[Namespace]: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+[Pod]: https://kubernetes.io/docs/concepts/workloads/pods/
+[Service]: https://kubernetes.io/docs/concepts/services-networking/service/
+[IngressRoute]: https://doc.traefik.io/traefik/providers/kubernetes-crd/
+[Ingress]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 [Traefik Kubernetes Ingress]: https://doc.traefik.io/traefik/providers/kubernetes-ingress/
 [Traefik Kubernetes CRD]: https://doc.traefik.io/traefik/providers/kubernetes-crd/
 [Middleware]: https://doc.traefik.io/traefik/middlewares/overview/

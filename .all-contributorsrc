@@ -759,6 +759,42 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "clem3109",
+      "name": "Clément Radenac",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47008408?v=4",
+      "profile": "http://radenac.me",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "boomam",
+      "name": "boomam",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37086258?v=4",
+      "profile": "https://github.com/boomam",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Northguy",
+      "name": "Northguy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1189058?v=4",
+      "profile": "https://github.com/Northguy",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "polarathene",
+      "name": "Brennan Kinney",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5098581?v=4",
+      "profile": "https://github.com/polarathene",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

@@ -346,11 +346,14 @@ func (s *FirstFactorRedirectionSuite) TearDownTest() {
 }
 
 // When:
-//   1/ the target url is unknown
-//   2/ two_factor is disabled (no policy is set to two_factor)
-//   3/ default_redirect_url is provided
+//
+//	1/ the target url is unknown
+//	2/ two_factor is disabled (no policy is set to two_factor)
+//	3/ default_redirect_url is provided
+//
 // Then:
-//   the user should be redirected to the default url.
+//
+//	the user should be redirected to the default url.
 func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTargetURLProvidedAndTwoFactorDisabled() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -365,11 +368,14 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 }
 
 // When:
-//   1/ the target url is unsafe
-//   2/ two_factor is disabled (no policy is set to two_factor)
-//   3/ default_redirect_url is provided
+//
+//	1/ the target url is unsafe
+//	2/ two_factor is disabled (no policy is set to two_factor)
+//	3/ default_redirect_url is provided
+//
 // Then:
-//   the user should be redirected to the default url.
+//
+//	the user should be redirected to the default url.
 func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUnsafeAndTwoFactorDisabled() {
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -386,9 +392,12 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 }
 
 // When:
-//   1/ two_factor is enabled (default policy)
+//
+//	1/ two_factor is enabled (default policy)
+//
 // Then:
-//   the user should receive 200 without redirection URL.
+//
+//	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControlConfiguration{
@@ -409,9 +418,12 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 }
 
 // When:
-//   1/ two_factor is enabled (some rule)
+//
+//	1/ two_factor is enabled (some rule)
+//
 // Then:
-//   the user should receive 200 without redirection URL.
+//
+//	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvidedAndTwoFactorEnabled() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControlConfiguration{

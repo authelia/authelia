@@ -31,13 +31,13 @@ regulation:
 
 ### max_retries
 
-{{< confkey type="integer " default="3" required="no" >}}
+{{< confkey type="integer" default="3" required="no" >}}
 
 The number of failed login attempts before a user may be banned. Setting this option to 0 disables regulation entirely.
 
 ### find_time
 
-{{< confkey type="duration " default="2m" required="no" >}}
+{{< confkey type="duration" default="2m" required="no" >}}
 
 *__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*

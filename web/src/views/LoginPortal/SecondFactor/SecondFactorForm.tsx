@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import { Grid, Button, Theme } from "@mui/material";
+import { Button, Grid, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
-    LogoutRoute as SignOutRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
+    LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";

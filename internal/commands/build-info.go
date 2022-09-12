@@ -17,6 +17,8 @@ func newBuildInfoCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaBuildInfoExample,
 		RunE:    cmdBuildInfoRunE,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

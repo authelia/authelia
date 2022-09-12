@@ -56,11 +56,6 @@ func validatePostgreSQLConfiguration(config *schema.PostgreSQLStorageConfigurati
 		config.Schema = schema.DefaultPostgreSQLStorageConfiguration.Schema
 	}
 
-	// Deprecated. TODO: Remove in v4.36.0.
-	if config.SSLMode != "" && config.SSL.Mode == "" {
-		config.SSL.Mode = config.SSLMode
-	}
-
 	if config.SSL.Mode == "" {
 		config.SSL.Mode = schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode
 	} else if !utils.IsStringInSlice(config.SSL.Mode, validStoragePostgreSQLSSLModes) {

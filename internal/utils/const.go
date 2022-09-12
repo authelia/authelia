@@ -31,6 +31,12 @@ const (
 	unknown = "unknown"
 )
 
+const (
+	period = "."
+	https  = "https"
+	wss    = "wss"
+)
+
 // X.509 consts.
 const (
 	BlockTypeRSAPrivateKey      = "RSA PRIVATE KEY"

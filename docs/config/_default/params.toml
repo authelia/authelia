@@ -102,7 +102,7 @@ lastMod = true
   fullWidth = false
   navbarSticky = true
   toTopButton = false
-  scrollSpy = false # experimental; needs Bootstrap >= 5.2.0-beta1
+  scrollSpy = true
 
 [menu]
   [menu.section]

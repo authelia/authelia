@@ -156,6 +156,7 @@ type ConsentPostResponseBody struct {
 /*
 CommonDiscoveryOptions represents the discovery options used in both OAuth 2.0 and OpenID Connect.
 See Also:
+
 	OpenID Connect Discovery: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
 	OAuth 2.0 Discovery: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-2
 */
@@ -514,7 +515,8 @@ type OpenIDConnectDiscoveryOptions struct {
 // OpenIDConnectFrontChannelLogoutDiscoveryOptions represents the discovery options specific to
 // OpenID Connect Front-Channel Logout functionality.
 // See Also:
-// 		OpenID Connect Front-Channel Logout: https://openid.net/specs/openid-connect-frontchannel-1_0.html#OPLogout
+//
+//	OpenID Connect Front-Channel Logout: https://openid.net/specs/openid-connect-frontchannel-1_0.html#OPLogout
 type OpenIDConnectFrontChannelLogoutDiscoveryOptions struct {
 	/*
 		OPTIONAL. Boolean value specifying whether the OP supports HTTP-based logout, with true indicating support. If
@@ -533,7 +535,8 @@ type OpenIDConnectFrontChannelLogoutDiscoveryOptions struct {
 // OpenIDConnectBackChannelLogoutDiscoveryOptions represents the discovery options specific to
 // OpenID Connect Back-Channel Logout functionality.
 // See Also:
-// 		OpenID Connect Back-Channel Logout: https://openid.net/specs/openid-connect-backchannel-1_0.html#BCSupport
+//
+//	OpenID Connect Back-Channel Logout: https://openid.net/specs/openid-connect-backchannel-1_0.html#BCSupport
 type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	/*
 		OPTIONAL. Boolean value specifying whether the OP supports back-channel logout, with true indicating support.

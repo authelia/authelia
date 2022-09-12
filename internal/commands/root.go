@@ -1,13 +1,18 @@
 package commands
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"os"
+	"os/signal"
 	"strings"
-	"sync"
+	"syscall"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/valyala/fasthttp"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -30,6 +35,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Args:    cobra.NoArgs,
 		PreRun:  newCmdWithConfigPreRun(true, true, true),
 		Run:     cmdRootRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{})
@@ -74,99 +81,139 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 		logger.Fatalf("Errors occurred provisioning providers.")
 	}
 
-	doStartupChecks(config, &providers)
+	doStartupChecks(config, &providers, logger)
 
 	runServers(config, providers, logger)
 }
 
-func runServers(config *schema.Configuration, providers middlewares.Providers, logger *logrus.Logger) {
-	wg := new(sync.WaitGroup)
+//nolint:gocyclo // Complexity is required in this function.
+func runServers(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
+	ctx := context.Background()
 
-	wg.Add(2)
+	ctx, cancel := context.WithCancel(ctx)
 
-	go func() {
-		err := startDefaultServer(config, providers)
-		if err != nil {
-			logger.Fatal(err)
+	defer cancel()
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	defer signal.Stop(quit)
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	var (
+		mainServer, metricsServer     *fasthttp.Server
+		mainListener, metricsListener net.Listener
+	)
+
+	g.Go(func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.WithError(recoverErr(r)).Errorf("Critical error in server caught (recovered)")
+			}
+		}()
+
+		if mainServer, mainListener, err = server.CreateDefaultServer(*config, providers); err != nil {
+			return err
 		}
 
-		wg.Done()
-	}()
+		if err = mainServer.Serve(mainListener); err != nil {
+			log.WithError(err).Error("Server (main) returned error")
 
-	go func() {
-		err := startMetricsServer(config, providers)
-		if err != nil {
-			logger.Fatal(err)
+			return err
 		}
-	}()
 
-	wg.Wait()
-}
-
-func startDefaultServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
-	svr, listener, err := server.CreateDefaultServer(*config, providers)
-
-	switch err {
-	case nil:
-		if err = svr.Serve(listener); err != nil {
-			return fmt.Errorf("error occurred during default server operation: %w", err)
-		}
-	default:
-		return fmt.Errorf("error occurred during default server startup: %w", err)
-	}
-
-	return nil
-}
-
-func startMetricsServer(config *schema.Configuration, providers middlewares.Providers) (err error) {
-	if providers.Metrics == nil {
 		return nil
-	}
+	})
 
-	svr, listener, err := server.CreateMetricsServer(config.Telemetry.Metrics)
-
-	switch err {
-	case nil:
-		if err = svr.Serve(listener); err != nil {
-			return fmt.Errorf("error occurred during metrics server operation: %w", err)
+	g.Go(func() (err error) {
+		if providers.Metrics == nil {
+			return nil
 		}
-	default:
-		return fmt.Errorf("error occurred during metrics server startup: %w", err)
+
+		defer func() {
+			if r := recover(); r != nil {
+				log.WithError(recoverErr(r)).Errorf("Critical error in metrics server caught (recovered)")
+			}
+		}()
+
+		if metricsServer, metricsListener, err = server.CreateMetricsServer(config.Telemetry.Metrics); err != nil {
+			return err
+		}
+
+		if err = metricsServer.Serve(metricsListener); err != nil {
+			log.WithError(err).Error("Server (metrics) returned error")
+
+			return err
+		}
+
+		return nil
+	})
+
+	select {
+	case s := <-quit:
+		switch s {
+		case syscall.SIGINT:
+			log.Debugf("Shutdown started due to SIGINT")
+		case syscall.SIGQUIT:
+			log.Debugf("Shutdown started due to SIGQUIT")
+		}
+	case <-ctx.Done():
+		log.Debugf("Shutdown started due to context completion")
 	}
 
-	return nil
+	cancel()
+
+	log.Infof("Shutting down")
+
+	var err error
+
+	if mainServer != nil {
+		if err = mainServer.Shutdown(); err != nil {
+			log.WithError(err).Errorf("Error occurred shutting down the server")
+		}
+	}
+
+	if metricsServer != nil {
+		if err = metricsServer.Shutdown(); err != nil {
+			log.WithError(err).Errorf("Error occurred shutting down the metrics server")
+		}
+	}
+
+	if err = g.Wait(); err != nil {
+		log.WithError(err).Errorf("Error occurred waiting for shutdown")
+	}
 }
 
-func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers) {
-	logger := logging.Logger()
-
+func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers, log *logrus.Logger) {
 	var (
 		failures []string
 		err      error
 	)
 
-	if err = doStartupCheck(logger, "storage", providers.StorageProvider, false); err != nil {
-		logger.Errorf("Failure running the storage provider startup check: %+v", err)
+	if err = doStartupCheck(log, "storage", providers.StorageProvider, false); err != nil {
+		log.Errorf("Failure running the storage provider startup check: %+v", err)
 
 		failures = append(failures, "storage")
 	}
 
-	if err = doStartupCheck(logger, "user", providers.UserProvider, false); err != nil {
-		logger.Errorf("Failure running the user provider startup check: %+v", err)
+	if err = doStartupCheck(log, "user", providers.UserProvider, false); err != nil {
+		log.Errorf("Failure running the user provider startup check: %+v", err)
 
 		failures = append(failures, "user")
 	}
 
-	if err = doStartupCheck(logger, "notification", providers.Notifier, config.Notifier.DisableStartupCheck); err != nil {
-		logger.Errorf("Failure running the notification provider startup check: %+v", err)
+	if err = doStartupCheck(log, "notification", providers.Notifier, config.Notifier.DisableStartupCheck); err != nil {
+		log.Errorf("Failure running the notification provider startup check: %+v", err)
 
 		failures = append(failures, "notification")
 	}
 
 	if !config.NTP.DisableStartupCheck && !providers.Authorizer.IsSecondFactorEnabled() {
-		logger.Debug("The NTP startup check was skipped due to there being no configured 2FA access control rules")
-	} else if err = doStartupCheck(logger, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
-		logger.Errorf("Failure running the ntp provider startup check: %+v", err)
+		log.Debug("The NTP startup check was skipped due to there being no configured 2FA access control rules")
+	} else if err = doStartupCheck(log, "ntp", providers.NTP, config.NTP.DisableStartupCheck); err != nil {
+		log.Errorf("Failure running the ntp provider startup check: %+v", err)
 
 		if !config.NTP.DisableFailure {
 			failures = append(failures, "ntp")
@@ -174,7 +221,7 @@ func doStartupChecks(config *schema.Configuration, providers *middlewares.Provid
 	}
 
 	if len(failures) != 0 {
-		logger.Fatalf("The following providers had fatal failures during startup: %s", strings.Join(failures, ", "))
+		log.Fatalf("The following providers had fatal failures during startup: %s", strings.Join(failures, ", "))
 	}
 }
 

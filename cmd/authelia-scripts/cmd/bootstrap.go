@@ -20,6 +20,8 @@ func newBootstrapCmd() (cmd *cobra.Command) {
 		Example: cmdBootstrapExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdBootstrapRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -52,6 +54,7 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 
 	createTemporaryDirectory()
 	createPNPMDirectory()
+	pnpmInstall()
 
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
@@ -152,6 +155,17 @@ func createPNPMDirectory() {
 			panic(err)
 		}
 	}
+}
+
+func pnpmInstall() {
+	bootstrapPrintln("Installing web dependences ")
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
 }
 
 func bootstrapPrintln(args ...interface{}) {

@@ -19,6 +19,8 @@ func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "authelia-gen",
 		Short: "Authelia's generator tooling",
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newAllCmd(), newCodeCmd(), newDocsCmd())

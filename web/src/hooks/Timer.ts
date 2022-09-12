@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useTimer(timeoutMs: number): [number, () => void, () => void] {
     const Interval = 100;

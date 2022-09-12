@@ -21,6 +21,13 @@ telemetry:
   metrics:
     enabled: false
     address: "tcp://0.0.0.0:9959"
+    buffers:
+      read: 4096
+      write: 4096
+    timeouts:
+      read: 2s
+      write: 2s
+      idle: 30s
 ```
 
 ## Options
@@ -37,6 +44,16 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 Configures the listener address for the [Prometheus] HTTP Metrics Exporter. This configuration key uses the
 [Address](../prologue/common.md#address) format. The scheme must be `tcp://` or empty.
+
+### buffers
+
+Configures the server buffers. See the [Server Buffers](../prologue/common.md#server-buffers) documentation for more
+information.
+
+### timeouts
+
+Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
+information.
 
 ## See More
 
