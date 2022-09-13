@@ -6,7 +6,6 @@ import { initReactI18next } from "react-i18next";
 import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
 import { getBasePath } from "@utils/BasePath";
 
-
 const basePath = getBasePath();
 
 const CustomLanguageDetector = new LanguageDetector().addDetector(LocalStorageCustomDetector);

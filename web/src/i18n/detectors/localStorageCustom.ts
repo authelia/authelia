@@ -1,4 +1,4 @@
-import {CustomDetector, DetectorOptions} from "i18next-browser-languagedetector";
+import { CustomDetector, DetectorOptions } from "i18next-browser-languagedetector";
 
 let hasLocalStorageSupport: null | boolean = null;
 const testKey = "authelia.test";
