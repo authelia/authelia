@@ -27,6 +27,7 @@ users:
   john:
     displayname: "John Doe"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    disabled: false
     email: john.doe@authelia.com
     groups:
       - admins
@@ -34,17 +35,20 @@ users:
   harry:
     displayname: "Harry Potter"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    disabled: false
     email: harry.potter@authelia.com
     groups: []
   bob:
     displayname: "Bob Dylan"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    disabled: false
     email: bob.dylan@authelia.com
     groups:
       - dev
   james:
     displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    disabled: false
     email: james.dean@authelia.com
 ```
 
@@ -141,7 +145,7 @@ The algorithm that a hash is utilizing is identifiable by its prefix:
 |   [PBKDF2]   |  `sha224`  | `$pbkdf2-sha224$` |
 |   [PBKDF2]   |  `sha256`  | `$pbkdf2-sha256$` |
 |   [PBKDF2]   |  `sha384`  | `$pbkdf2-sha384$` |
-|   [PBKDF2]   | `sha512$`  | `$pbkdf2-sha512$` |
+|   [PBKDF2]   |  `sha512`  | `$pbkdf2-sha512$` |
 | [SHA2 Crypt] |  `SHA256`  |       `$5$`       |
 | [SHA2 Crypt] |  `SHA512`  |       `$6$`       |
 |   [Bcrypt]   | `standard` |      `$2b$`       |

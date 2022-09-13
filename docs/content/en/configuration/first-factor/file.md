@@ -20,6 +20,7 @@ aliases:
 authentication_backend:
   file:
     path: /config/users.yml
+    allow_email_lookups: false
     password:
       algorithm: argon2
       argon2:

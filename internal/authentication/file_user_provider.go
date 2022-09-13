@@ -21,44 +21,78 @@ type FileUserProvider struct {
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *FileUserProvider) {
 	return &FileUserProvider{
-		config:   config,
-		database: NewFileUserDatabase(config.Path),
+		config: config,
 	}
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
-	if details, ok := p.database.Users[username]; ok {
-		return details.Digest.MatchAdvanced(password)
+	var details DatabaseUserDetails
+
+	switch {
+	case p.config.AllowEmailLookups:
+		if details, err = p.database.GetUserDetailsWithEmail(username); err != nil {
+			return false, err
+		}
+	default:
+		if details, err = p.database.GetUserDetails(username); err != nil {
+			return false, err
+		}
 	}
 
-	return false, ErrUserNotFound
+	if details.Disabled {
+		return false, ErrUserNotFound
+	}
+
+	return details.Digest.MatchAdvanced(password)
 }
 
 // GetDetails retrieve the groups a user belongs to.
 func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var d DatabaseUserDetails
 
-	if d, err = p.database.GetUserDetails(username); err != nil {
-		return nil, err
+	switch {
+	case p.config.AllowEmailLookups:
+		if d, err = p.database.GetUserDetailsWithEmail(username); err != nil {
+			return nil, err
+		}
+	default:
+		if d, err = p.database.GetUserDetails(username); err != nil {
+			return nil, err
+		}
 	}
 
-	return d.ToUserDetails(username), nil
+	if d.Disabled {
+		return nil, ErrUserNotFound
+	}
+
+	return d.ToUserDetails(), nil
 }
 
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var details DatabaseUserDetails
 
-	if details, err = p.database.GetUserDetails(username); err != nil {
-		return err
+	switch {
+	case p.config.AllowEmailLookups:
+		if details, err = p.database.GetUserDetailsWithEmail(username); err != nil {
+			return err
+		}
+	default:
+		if details, err = p.database.GetUserDetails(username); err != nil {
+			return err
+		}
 	}
 
+	if details.Disabled {
+		return ErrUserNotFound
+	}
+	
 	if details.Digest, err = p.hash.Hash(newPassword); err != nil {
 		return err
 	}
 
-	p.database.SetUserDetails(username, &details)
+	p.database.SetUserDetails(details.Username, &details)
 
 	if err = p.database.Save(); err != nil {
 		return err

@@ -23,8 +23,9 @@ type PasswordResetAuthenticationBackend struct {
 
 // FileAuthenticationBackend represents the configuration related to file-based backend.
 type FileAuthenticationBackend struct {
-	Path     string   `koanf:"path"`
-	Password Password `koanf:"password"`
+	Path              string   `koanf:"path"`
+	AllowEmailLookups bool     `koanf:"allow_email_lookups"`
+	Password          Password `koanf:"password"`
 }
 
 // Password represents the configuration related to password hashing.

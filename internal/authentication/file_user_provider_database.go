@@ -3,6 +3,7 @@ package authentication
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
@@ -33,13 +34,11 @@ type FileUserDatabase struct {
 func (m *FileUserDatabase) Save() (err error) {
 	m.RLock()
 
-	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
-		m.Unlock()
+	defer m.RUnlock()
 
+	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
 		return err
 	}
-
-	m.RUnlock()
 
 	return nil
 }
@@ -63,11 +62,34 @@ func (m *FileUserDatabase) Load() (err error) {
 	return nil
 }
 
-// GetUserDetails get a DatabaseUserDetails given a username as a value type.
+// GetUserDetails get a DatabaseUserDetails given a username as a value type where the username must be the users actual
+// username.
 func (m *FileUserDatabase) GetUserDetails(username string) (user DatabaseUserDetails, err error) {
 	m.RLock()
 
 	defer m.RUnlock()
+
+	if details, ok := m.Users[username]; ok {
+		return details, nil
+	}
+
+	return user, ErrUserNotFound
+}
+
+// GetUserDetailsWithEmail get a DatabaseUserDetails given a username as a value type which can either be the users
+// actual username or their email address.
+func (m *FileUserDatabase) GetUserDetailsWithEmail(username string) (user DatabaseUserDetails, err error) {
+	m.RLock()
+
+	defer m.RUnlock()
+
+	if strings.Contains(username, "@") {
+		if lookup, ok := m.Emails[username]; ok {
+			if details, ok := m.Users[lookup]; ok {
+				return details, nil
+			}
+		}
+	}
 
 	if details, ok := m.Users[username]; ok {
 		return details, nil
@@ -108,26 +130,29 @@ func (m *FileUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
 
 // DatabaseUserDetails is the model of user details in the file database.
 type DatabaseUserDetails struct {
+	Username    string
 	Digest      crypt.Digest
+	Disabled    bool
 	DisplayName string
 	Email       string
 	Groups      []string
 }
 
 // ToUserDetails converts DatabaseUserDetails into a *UserDetails given a username.
-func (m DatabaseUserDetails) ToUserDetails(username string) (details *UserDetails) {
+func (m DatabaseUserDetails) ToUserDetails() (details *UserDetails) {
 	return &UserDetails{
-		Username:    username,
+		Username:    m.Username,
 		DisplayName: m.DisplayName,
 		Emails:      []string{m.Email},
 		Groups:      m.Groups,
 	}
 }
 
-// ToUserDetailsModel convets DatabaseUserDetails into a UserDetailsModel.
+// ToUserDetailsModel converts DatabaseUserDetails into a UserDetailsModel.
 func (m DatabaseUserDetails) ToUserDetailsModel() (model UserDetailsModel) {
 	return UserDetailsModel{
 		HashedPassword: m.Digest.Encode(),
+		Disabled:       m.Disabled,
 		DisplayName:    m.DisplayName,
 		Email:          m.Email,
 		Groups:         m.Groups,
@@ -147,7 +172,7 @@ func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error)
 	var udm *DatabaseUserDetails
 
 	for user, details := range m.Users {
-		if udm, err = details.ToDatabaseUserDetailsModel(); err != nil {
+		if udm, err = details.ToDatabaseUserDetailsModel(user); err != nil {
 			return fmt.Errorf("failed to parse hash for user '%s': %w", user, err)
 		}
 
@@ -205,13 +230,14 @@ func (m *DatabaseModel) Write(fileName string) (err error) {
 // UserDetailsModel is the model of user details in the file database.
 type UserDetailsModel struct {
 	HashedPassword string   `yaml:"password" valid:"required"`
+	Disabled       bool     `yaml:"disabled"`
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
 }
 
 // ToDatabaseUserDetailsModel converts a UserDetailsModel into a *DatabaseUserDetails.
-func (m UserDetailsModel) ToDatabaseUserDetailsModel() (model *DatabaseUserDetails, err error) {
+func (m UserDetailsModel) ToDatabaseUserDetailsModel(username string) (model *DatabaseUserDetails, err error) {
 	var d crypt.Digest
 
 	if d, err = crypt.Decode(m.HashedPassword); err != nil {
@@ -219,7 +245,9 @@ func (m UserDetailsModel) ToDatabaseUserDetailsModel() (model *DatabaseUserDetai
 	}
 
 	return &DatabaseUserDetails{
+		Username:    username,
 		Digest:      d,
+		Disabled:    m.Disabled,
 		DisplayName: m.DisplayName,
 		Email:       m.Email,
 		Groups:      m.Groups,
