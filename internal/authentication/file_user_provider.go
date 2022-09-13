@@ -87,7 +87,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	if details.Disabled {
 		return ErrUserNotFound
 	}
-	
+
 	if details.Digest, err = p.hash.Hash(newPassword); err != nil {
 		return err
 	}
