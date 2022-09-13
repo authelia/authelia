@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
-func newCryptoHashPasswordCmd() (cmd *cobra.Command) {
+func newHashPasswordCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     cmdUseHashPassword,
 		Short:   cmdAutheliaHashPasswordShort,
