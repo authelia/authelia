@@ -3,18 +3,16 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
+import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
 import { getBasePath } from "@utils/BasePath";
 
-import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
 
 const basePath = getBasePath();
 
-const detector = new LanguageDetector();
-
-detector.addDetector(LocalStorageCustomDetector);
+const CustomLanguageDetector = new LanguageDetector().addDetector(LocalStorageCustomDetector);
 
 i18n.use(Backend)
-    .use(detector)
+    .use(CustomLanguageDetector)
     .use(initReactI18next)
     .init({
         detection: {
