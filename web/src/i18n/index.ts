@@ -8,7 +8,9 @@ import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
 
-const CustomLanguageDetector = new LanguageDetector().addDetector(LocalStorageCustomDetector);
+const CustomLanguageDetector = new LanguageDetector();
+
+CustomLanguageDetector.addDetector(LocalStorageCustomDetector);
 
 i18n.use(Backend)
     .use(CustomLanguageDetector)
