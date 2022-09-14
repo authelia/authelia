@@ -2,6 +2,7 @@ import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "r
 
 import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { BroadcastChannel } from "broadcast-channel";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
