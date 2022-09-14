@@ -68,19 +68,10 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	}
 }
 
-func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
+func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
 	var (
 		languages, dirs []string
 	)
-
-	etags := map[string][]byte{}
-
-	getEmbedETags(locales, "locales", etags)
-
-	aliases := map[string]string{
-		"sv": "sv-SE",
-		"zh": "zh-CN",
-	}
 
 	entries, err := locales.ReadDir("locales")
 	if err == nil {
@@ -110,21 +101,26 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		}
 	}
 
-	return func(ctx *fasthttp.RequestCtx) {
-		var (
-			language, variant, locale, namespace string
-		)
+	aliases := map[string]string{
+		"sv": "sv-SE",
+		"zh": "zh-CN",
+	}
 
-		language = ctx.UserValue("language").(string)
-		namespace = ctx.UserValue("namespace").(string)
-		locale = language
+	return func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
+		var language, namespace, variant, locale string
+
+		language, namespace = ctx.UserValue("language").(string), ctx.UserValue("namespace").(string)
+
+		if !utils.IsStringInSlice(language, languages) {
+			return false, ""
+		}
 
 		if v := ctx.UserValue("variant"); v != nil {
 			variant = v.(string)
 			locale = fmt.Sprintf("%s-%s", language, variant)
+		} else {
+			locale = language
 		}
-
-		var asset string
 
 		if alias, ok := aliases[locale]; ok {
 			asset = fmt.Sprintf("locales/%s/%s.json", alias, namespace)
@@ -135,10 +131,26 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 
 			if utils.IsStringInSlice(l, dirs) {
 				asset = fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace)
+			} else {
+				asset = fmt.Sprintf("locales/%s/%s.json", locale, namespace)
 			}
 		}
 
-		if asset == "" {
+		return true, asset
+	}
+}
+
+func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
+	etags := map[string][]byte{}
+
+	getEmbedETags(locales, "locales", etags)
+
+	getAssetName := newLocalesPathResolver()
+
+	return func(ctx *fasthttp.RequestCtx) {
+		supported, asset := getAssetName(ctx)
+
+		if !supported {
 			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 			return
@@ -155,16 +167,13 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 			}
 		}
 
-		var data []byte
+		var (
+			data []byte
+			err  error
+		)
 
 		if data, err = locales.ReadFile(asset); err != nil {
-			if utils.IsStringInSlice(language, languages) {
-				data = []byte("{}")
-			} else {
-				hfsHandleErr(ctx, err)
-
-				return
-			}
+			data = []byte("{}")
 		}
 
 		middlewares.SetContentTypeApplicationJSON(ctx)
