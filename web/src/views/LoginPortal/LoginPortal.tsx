@@ -166,6 +166,10 @@ const LoginPortal = function (props: Props) {
         redirector,
     ]);
 
+    const handleChannelStateChange = async () => {
+        fetchState();
+    };
+
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {
             // Do an external redirection pushed by the server.
@@ -195,6 +199,7 @@ const LoginPortal = function (props: Props) {
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}
+                            onChannelStateChange={handleChannelStateChange}
                         />
                     </ComponentOrLoading>
                 }

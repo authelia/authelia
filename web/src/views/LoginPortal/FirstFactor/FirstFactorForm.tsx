@@ -26,6 +26,7 @@ export interface Props {
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onChannelStateChange: () => void;
 }
 
 const FirstFactorForm = function (props: Props) {
@@ -55,11 +56,9 @@ const FirstFactorForm = function (props: Props) {
     useEffect(() => {
         loginChannel.addEventListener("message", (authenticated) => {
             if (authenticated) {
-                props.onAuthenticationSuccess(redirectionURL);
+                props.onChannelStateChange();
             }
         });
-
-
     }, [loginChannel, redirectionURL, props]);
 
     const disabled = props.disabled;
