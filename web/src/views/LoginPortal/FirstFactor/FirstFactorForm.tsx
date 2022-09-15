@@ -81,7 +81,7 @@ const FirstFactorForm = function (props: Props) {
         props.onAuthenticationStart();
         try {
             const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
-            loginChannel.postMessage(true);
+            await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
