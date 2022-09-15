@@ -113,7 +113,10 @@ const LoginPortal = function (props: Props) {
 
             if (
                 redirectionURL &&
-                ((broadcastRedirect && state.authentication_level >= AuthenticationLevel.OneFactor) ||
+                (broadcastRedirect ||
+                    (configuration &&
+                        configuration.available_methods.size === 0 &&
+                        state.authentication_level >= AuthenticationLevel.OneFactor) ||
                     state.authentication_level === AuthenticationLevel.TwoFactor)
             ) {
                 try {
