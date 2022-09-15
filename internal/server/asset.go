@@ -122,21 +122,19 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 			locale = language
 		}
 
-		if alias, ok := aliases[locale]; ok {
-			asset = fmt.Sprintf("locales/%s/%s.json", alias, namespace)
-		} else if utils.IsStringInSlice(locale, dirs) {
-			asset = fmt.Sprintf("locales/%s/%s.json", locale, namespace)
-		} else {
-			l := language + "-" + strings.ToUpper(language)
+		ll := language + "-" + strings.ToUpper(language)
+		alias, ok := aliases[locale]
 
-			if utils.IsStringInSlice(l, dirs) {
-				asset = fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace)
-			} else {
-				asset = fmt.Sprintf("locales/%s/%s.json", locale, namespace)
-			}
+		switch {
+		case ok:
+			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace)
+		case utils.IsStringInSlice(locale, dirs):
+			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)
+		case utils.IsStringInSlice(ll, dirs):
+			return true, fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace)
+		default:
+			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)
 		}
-
-		return true, asset
 	}
 }
 
