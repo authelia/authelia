@@ -35,7 +35,7 @@ const FirstFactorForm = function (props: Props) {
     const requestMethod = useRequestMethod();
     const workflow = useWorkflow();
 
-    const loginChannel = useMemo(() => new BroadcastChannel("login"), []);
+    const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -53,11 +53,13 @@ const FirstFactorForm = function (props: Props) {
     }, [usernameRef]);
 
     useEffect(() => {
-        loginChannel.addEventListener("message", (ev) => {
-            if (ev.data) {
+        loginChannel.addEventListener("message", (authenticated) => {
+            if (authenticated) {
                 props.onAuthenticationSuccess(redirectionURL);
             }
         });
+
+
     }, [loginChannel, redirectionURL, props]);
 
     const disabled = props.disabled;
