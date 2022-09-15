@@ -9,6 +9,7 @@ import (
 
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -93,7 +94,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 
 			providerName = "redis-sentinel"
 			redisSentinelConfig = &redis.FailoverConfig{
-				Logger:           &redisLogger{logger: logging.Logger()},
+				Logger:           logging.LoggerCtxPrintf(logrus.TraceLevel),
 				MasterName:       config.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
 				SentinelUsername: config.Redis.HighAvailability.SentinelUsername,
@@ -123,7 +124,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 			}
 
 			redisConfig = &redis.Config{
-				Logger:       newRedisLogger(),
+				Logger:       logging.LoggerCtxPrintf(logrus.TraceLevel),
 				Network:      network,
 				Addr:         addr,
 				Username:     config.Redis.Username,
