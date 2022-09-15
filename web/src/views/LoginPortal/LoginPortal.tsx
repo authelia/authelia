@@ -45,6 +45,7 @@ const LoginPortal = function (props: Props) {
     const workflow = useWorkflow();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
+    const [broadcastRedirect, setBroadcastRedirect] = useState(false);
     const redirector = useRedirector();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
@@ -112,9 +113,7 @@ const LoginPortal = function (props: Props) {
 
             if (
                 redirectionURL &&
-                ((configuration &&
-                    configuration.available_methods.size === 0 &&
-                    state.authentication_level >= AuthenticationLevel.OneFactor) ||
+                ((broadcastRedirect && state.authentication_level >= AuthenticationLevel.OneFactor) ||
                     state.authentication_level === AuthenticationLevel.TwoFactor)
             ) {
                 try {
@@ -164,9 +163,11 @@ const LoginPortal = function (props: Props) {
         configuration,
         createErrorNotification,
         redirector,
+        broadcastRedirect,
     ]);
 
     const handleChannelStateChange = async () => {
+        setBroadcastRedirect(true);
         fetchState();
     };
 
