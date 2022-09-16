@@ -9,20 +9,22 @@ import (
 
 // AssetOverride allows overriding and serving of specific embedded assets from disk.
 func AssetOverride(root string, strip int, next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	if root == "" {
+		return next
+	}
+
+	handler := fasthttp.FSHandler(root, strip)
+	stripper := fasthttp.NewPathSlashesStripper(strip)
+
 	return func(ctx *fasthttp.RequestCtx) {
-		if root == "" {
+		asset := filepath.Join(root, string(stripper(ctx)))
+
+		if _, err := os.Stat(asset); err != nil {
 			next(ctx)
 
 			return
 		}
 
-		_, err := os.Stat(filepath.Join(root, string(fasthttp.NewPathSlashesStripper(strip)(ctx))))
-		if err != nil {
-			next(ctx)
-
-			return
-		}
-
-		fasthttp.FSHandler(root, strip)(ctx)
+		handler(ctx)
 	}
 }
