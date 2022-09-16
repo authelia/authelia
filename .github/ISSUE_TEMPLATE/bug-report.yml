@@ -9,25 +9,23 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug we generally
-        recommend creating a [Question Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a)
-        first.
+        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
 
         Please review the following requirements before submitting this issue type:
 
-        1. Please ensure you do not report security vulnerabilities via this method. See our
-        [Security Policy](https://github.com/authelia/authelia/security/policy).
-        2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a
-        quick fix.
+        1. Please ensure you do not report security vulnerabilities via this method. See our [Security Policy](https://www.authelia.com/security-policy).
+        2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a quick fix.
         3. Please ensure an issue does not already exist for this potential bug.
         4. Please only provide specific versions. Latest is not a version.
+        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on removing or adjusting any values for the logs or configuration files
   - type: dropdown
     id: version
     attributes:
       label: Version
-      description: What version or versions of Authelia can you reproduce this bug on?
+      description: What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - v4.36.7
         - v4.36.6
         - v4.36.5
         - v4.36.4
@@ -107,6 +105,22 @@ body:
       description: Describe how we can reproduce this issue
     validations:
       required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Provide the logs (the template will automatically put this content in a code block)
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Provide the Authelia configuration file (the template will automatically put this content in a code block)
+      render: yaml
+    validations:
+      required: false
   - type: textarea
     id: expectations
     attributes:
