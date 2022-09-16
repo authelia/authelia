@@ -85,7 +85,7 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	for _, subCmd := range subCmds {
-		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringInSlice(subCmd.Use, exclude) {
+		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringSliceContainsAny([]string{resolveCmdName(subCmd), subCmd.Use}, exclude) {
 			continue
 		}
 
@@ -97,6 +97,16 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
+}
+
+func resolveCmdName(cmd *cobra.Command) string {
+	parent := cmd.Parent()
+
+	if parent != nil && parent.Use != cmd.Use && parent.Use != cmdUseRoot {
+		return resolveCmdName(parent) + "." + cmd.Use
+	}
+
+	return cmd.Use
 }
 
 func rootCmdGetArgs(cmd *cobra.Command, args []string) []string {
