@@ -28,11 +28,6 @@ func newLocalesCmd() *cobra.Command {
 	return cmd
 }
 
-var localeAliases = map[string]string{
-	"sv": "sv-SE",
-	"zh": "zh-CN",
-}
-
 func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		root, pathLocales                       string
