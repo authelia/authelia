@@ -50,3 +50,7 @@ Can be replaced by this environment variable configuration:
 AUTHELIA_LOG_LEVEL=info
 AUTHELIA_SERVER_BUFFERS_READ=4096
 ```
+
+## Environment Variables
+
+{{% table-config-keys secrets="false" %}}

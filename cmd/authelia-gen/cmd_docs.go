@@ -6,30 +6,14 @@ import (
 
 func newDocsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "docs",
+		Use:   cmdUseDocs,
 		Short: "Generate docs",
-		RunE:  docsRunE,
+		RunE:  rootSubCommandsRunE,
 
 		DisableAutoGenTag: true,
 	}
 
-	cmd.PersistentFlags().StringP("cwd", "C", "", "Sets the CWD for git commands")
-	cmd.AddCommand(newDocsCLICmd(), newDocsDateCmd())
+	cmd.AddCommand(newDocsCLICmd(), newDocsDateCmd(), newDocsKeysCmd())
 
 	return cmd
-}
-
-func docsRunE(cmd *cobra.Command, args []string) (err error) {
-	for _, subCmd := range cmd.Commands() {
-		switch {
-		case subCmd.RunE != nil:
-			if err = subCmd.RunE(subCmd, args); err != nil {
-				return err
-			}
-		case subCmd.Run != nil:
-			subCmd.Run(subCmd, args)
-		}
-	}
-
-	return nil
 }

@@ -93,6 +93,18 @@ Feature List:
 
 ### Beta 5
 
+{{< roadmap-status stage="in progress" version="v4.37.0" >}}
+
+Feature List:
+
+* [JWK's backed by X509 Certificate Chains](https://www.rfc-editor.org/rfc/rfc7517#section-4.7)
+* Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode
+  * Explicit
+  * Implicit
+  * Pre-Configured
+
+### Beta 6
+
 {{< roadmap-status >}}
 
 Feature List:
@@ -102,7 +114,7 @@ Feature List:
 
 See [OpenID Connect Core (Mandatory to Implement Features for All OpenID Providers)].
 
-### Beta 6
+### Beta 7
 
 {{< roadmap-status >}}
 
