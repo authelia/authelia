@@ -37,7 +37,7 @@ i18n.use(Backend)
         },
         supportedLngs: [
         	{{- range $i, $value := .Languages }}
-        	"{{ $value.Locale }}",
+            "{{ $value.Locale }}",
         	{{- end }}
         ],
         lowerCaseLng: false,
