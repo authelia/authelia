@@ -35,7 +35,11 @@ i18n.use(Backend)
             {{- end }}
             {{- end }}
         },
-        supportedLngs: [{{ range $i, $value := .Languages }}{{ if eq $i 0 }}"{{ $value.Locale }}"{{ else }}, "{{ $value.Locale }}"{{ end }}{{ end }}],
+        supportedLngs: [
+        	{{- range $i, $value := .Languages }}
+            "{{ $value.Locale }}",
+        	{{- end }}
+        ],
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
         interpolation: {
