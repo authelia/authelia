@@ -93,7 +93,7 @@ Feature List:
 
 ### Beta 5
 
-{{< roadmap-status stage="in progress" version="v4.37.0" >}}
+{{< roadmap-status stage="in-progress" version="v4.37.0" >}}
 
 Feature List:
 
