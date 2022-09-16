@@ -1,0 +1,14 @@
+{{ $secrets := .Get "secrets" }}
+| Configuration Key | Environment Variable |
+|:-----------------:|:--------------------:|
+{{- range $.Site.Data.configkeys }}
+{{- if eq "true" $secrets }}
+{{- if .secret }}
+|    [{{ .path }}]    |      {{ .env }}      |
+{{- end }}
+{{- else }}
+{{- if not .secret }}
+|    {{ .path }}    |      {{ .env }}      |
+{{- end }}
+{{- end }}
+{{- end }}

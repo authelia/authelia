@@ -29,6 +29,6 @@ __TLDR__: We do not use cookies and we do not collect any personal data.
 
 ## Contact us
 
-[Contact us](contact.md) if you have any questions.
+[Contact us](../information/contact.md) if you have any questions.
 
 __Effective Date:__ *16th May 2022*
