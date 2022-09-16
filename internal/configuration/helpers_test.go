@@ -7,12 +7,12 @@ import (
 )
 
 func TestIsSecretKey(t *testing.T) {
-	assert.True(t, isSecretKey("my_fake_token"))
-	assert.False(t, isSecretKey("my_fake_tokenz"))
-	assert.True(t, isSecretKey("my_.fake.secret"))
-	assert.True(t, isSecretKey("my.password"))
-	assert.False(t, isSecretKey("my.passwords"))
-	assert.False(t, isSecretKey("my.passwords"))
+	assert.True(t, IsSecretKey("my_fake_token"))
+	assert.False(t, IsSecretKey("my_fake_tokenz"))
+	assert.True(t, IsSecretKey("my_.fake.secret"))
+	assert.True(t, IsSecretKey("my.password"))
+	assert.False(t, IsSecretKey("my.passwords"))
+	assert.False(t, IsSecretKey("my.passwords"))
 }
 
 func TestGetEnvConfigMaps(t *testing.T) {

@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen code"
-description: "Reference for the authelia-gen code command."
+title: "authelia-gen code scripts"
+description: "Reference for the authelia-gen code scripts command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2022-08-01T10:11:13+10:00
 draft: false
 images: []
 menu:
@@ -12,18 +12,18 @@ weight: 330
 toc: true
 ---
 
-## authelia-gen code
+## authelia-gen code scripts
 
-Generate code
+Generate the generated portion of the authelia-scripts command
 
 ```
-authelia-gen code [flags]
+authelia-gen code scripts [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for code
+  -h, --help   help for scripts
 ```
 
 ### Options inherited from parent commands
@@ -51,7 +51,5 @@ authelia-gen code [flags]
 
 ### SEE ALSO
 
-* [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
-* [authelia-gen code keys](authelia-gen_code_keys.md)	 - Generate the list of valid configuration keys
-* [authelia-gen code scripts](authelia-gen_code_scripts.md)	 - Generate the generated portion of the authelia-scripts command
+* [authelia-gen code](authelia-gen_code.md)	 - Generate code
 

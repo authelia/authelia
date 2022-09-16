@@ -6,7 +6,8 @@ ignore: |
   internal/configuration/test_resources/config_bad_quoting.yml
   web/pnpm-lock.yaml
   web/node_modules/
-
+  .github/ISSUE_TEMPLATE/feature-request.yml
+  .github/ISSUE_TEMPLATE/bug-report.yml
 rules:
   document-end:
     level: warning
