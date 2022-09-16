@@ -80,7 +80,7 @@ var labelPriorityDescriptions = [...]string{
 }
 
 func (p labelPriority) String() string {
-	return fmt.Sprintf("%s/%d-%s", labelAreaPrefixPriority, p+1, strings.ToLower(labelPriorityDescriptions[p]))
+	return fmt.Sprintf("%s/%d/%s", labelAreaPrefixPriority, p+1, strings.ToLower(labelPriorityDescriptions[p]))
 }
 
 func (p labelPriority) Description() string {

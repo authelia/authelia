@@ -17,7 +17,7 @@ body:
         2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a quick fix.
         3. Please ensure an issue does not already exist for this potential bug.
         4. Please only provide specific versions. Latest is not a version.
-        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on removing or adjusting any values for the logs or configuration files
+        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on removing or adjusting any values for the logs or configuration files.
   - type: dropdown
     id: version
     attributes:
@@ -76,6 +76,13 @@ body:
     validations:
       required: true
   - type: textarea
+    id: expectations
+    attributes:
+      label: Expectations
+      description: Describe the desired or expected results
+    validations:
+      required: false
+  - type: textarea
     id: logs
     attributes:
       label: Logs
@@ -89,13 +96,6 @@ body:
       label: Configuration
       description: Provide the Authelia configuration file (the template will automatically put this content in a code block)
       render: yaml
-    validations:
-      required: false
-  - type: textarea
-    id: expectations
-    attributes:
-      label: Expectations
-      description: Describe the desired or expected results
     validations:
       required: false
   - type: textarea

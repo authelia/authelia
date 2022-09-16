@@ -4,7 +4,7 @@ description: Submit a Feature for Design which Has Been Submitted as an Idea and
 labels:
   - type/feature
   - status/needs-design
-  - priority/4-normal
+  - priority/4/normal
 body:
   - type: markdown
     attributes:
