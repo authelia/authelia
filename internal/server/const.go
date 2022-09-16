@@ -5,16 +5,17 @@ import (
 )
 
 const (
-	embeddedAssets = "public_html/"
-	swaggerAssets  = embeddedAssets + "api/"
-	apiFile        = "openapi.yml"
-	indexFile      = "index.html"
-	logoFile       = "logo.png"
+	assetsRoot    = "public_html"
+	assetsSwagger = assetsRoot + "/api"
+
+	fileOpenAPI   = "openapi.yml"
+	fileIndexHTML = "index.html"
+	fileLogo      = "logo.png"
 )
 
 var (
-	rootFiles    = []string{"manifest.json", "robots.txt"}
-	swaggerFiles = []string{
+	filesRoot    = []string{"manifest.json", "robots.txt"}
+	filesSwagger = []string{
 		"favicon-16x16.png",
 		"favicon-32x32.png",
 		"index.css",
@@ -35,7 +36,7 @@ var (
 	}
 
 	// Directories excluded from the not found handler proceeding to the next() handler.
-	httpServerDirs = []struct {
+	dirsHTTPServer = []struct {
 		name, prefix string
 	}{
 		{name: "/api", prefix: "/api/"},
