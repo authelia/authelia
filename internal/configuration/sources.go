@@ -64,7 +64,7 @@ func NewEnvironmentSource(prefix, delimiter string) (source *EnvironmentSource) 
 }
 
 // Name of the Source.
-func (s EnvironmentSource) Name() (name string) {
+func (s *EnvironmentSource) Name() (name string) {
 	return "environment"
 }
 
