@@ -47,11 +47,13 @@ for, and the structure it must have.
   │       │             │
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
-  │       └─⫸ Commit Scope: api|authentication|authorization|cmd|commands|configuration|duo|
-  │                          handlers|logging|middlewares|mocks|model|notification|ntp|oidc|
-  │                          regulation|server|session|storage|suites|templates|utils|web
+  │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|cmd|
+  │                          codecov|commands|configuration|deps|docker|duo|go|golangci-lint|
+  │                          handlers|logging|metrics|middlewares|mocks|model|notification|npm|ntp|
+  │                          oidc|regulation|renovate|reviewdog|server|session|storage|suites|
+  │                          templates|totp|utils|web
   │
-  └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|release|test
+  └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
 
 The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is optional.
@@ -65,6 +67,7 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 * __docs__ Documentation only changes
 * __feat__ A new feature
 * __fix__ A bug fix
+* __i18n__ Updating translations or internationalization settings
 * __perf__ A code change that improves performance
 * __refactor__ A code change that neither fixes a bug nor adds a feature
 * __release__ Releasing a new version of Authelia
@@ -101,7 +104,7 @@ commit messages).
 There are currently a few exceptions to the "use package name" rule:
 
 * `api`: used for changes that change the openapi specification
-* `cmd`: used for changes to the `authelia|authelia-scripts|authelia-suites` top level binaries
+* `cmd`: used for changes to the `authelia|authelia-gen|authelia-scripts|authelia-suites` top level binaries
 * `web`: used for changes to the React based frontend
 * none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages
   (e.g. `test: add missing unit tests`) and for docs changes that are not related to a specific package

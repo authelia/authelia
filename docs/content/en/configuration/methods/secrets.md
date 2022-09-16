@@ -52,24 +52,11 @@ Here is the list of the environment variables which are considered secrets and c
 secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any
 other configuration using the environment but instead of loading a file the value of the environment variable is used.
 
-|                  Configuration Key                  |                   Environment Variable                   |
-|:---------------------------------------------------:|:--------------------------------------------------------:|
-|                  [server.tls.key]                   |               AUTHELIA_SERVER_TLS_KEY_FILE               |
-|                    [jwt_secret]                     |                 AUTHELIA_JWT_SECRET_FILE                 |
-|                [duo_api.secret_key]                 |             AUTHELIA_DUO_API_SECRET_KEY_FILE             |
-|                  [session.secret]                   |               AUTHELIA_SESSION_SECRET_FILE               |
-|              [session.redis.password]               |           AUTHELIA_SESSION_REDIS_PASSWORD_FILE           |
-| [session.redis.high_availability.sentinel_password] | AUTHELIA_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE  |
-|              [storage.encryption_key]               |           AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE           |
-|              [storage.mysql.password]               |           AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE           |
-|             [storage.postgres.password]             |         AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE          |
-|              [notifier.smtp.password]               |           AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE           |
-|       [authentication_backend.ldap.password]        |    AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE    |
-|    [identity_providers.oidc.issuer_private_key]     | AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE |
-|        [identity_providers.oidc.hmac_secret]        |    AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE     |
+{{% table-config-keys secrets="true" %}}
 
 [server.tls.key]: ../miscellaneous/server.md#key
 [jwt_secret]: ../miscellaneous/introduction.md#jwt_secret
+[duo_api.integration_key]: ../second-factor/duo.md#integration_key
 [duo_api.secret_key]: ../second-factor/duo.md#secret_key
 [session.secret]: ../session/introduction.md#secret
 [session.redis.password]: ../session/redis.md#password
@@ -77,6 +64,7 @@ other configuration using the environment but instead of loading a file the valu
 [storage.encryption_key]: ../storage/introduction.md#encryption_key
 [storage.mysql.password]: ../storage/mysql.md#password
 [storage.postgres.password]: ../storage/postgres.md#password
+[storage.postgres.ssl.key]: ../storage/postgres.md#key
 [notifier.smtp.password]: ../notifications/smtp.md#password
 [authentication_backend.ldap.password]: ../first-factor/ldap.md#password
 [identity_providers.oidc.issuer_private_key]: ../identity-providers/open-id-connect.md#issuer_private_key
