@@ -36,6 +36,7 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().String(cmdFlagDocsCLIReference, dirDocsCLIReference, "The directory to store the markdown in")
 	cmd.PersistentFlags().String(cmdFlagDocsContent, dirDocsContent, "The directory with the docs content")
 	cmd.PersistentFlags().String(cmdFlagFileConfigKeys, fileCodeConfigKeys, "Sets the path of the keys file")
+	cmd.PersistentFlags().String(cmdFlagFileDocsKeys, fileDocsConfigKeys, "Sets the path of the docs keys file")
 	cmd.PersistentFlags().String(cmdFlagPackageConfigKeys, pkgConfigSchema, "Sets the package name of the keys file")
 	cmd.PersistentFlags().String(cmdFlagFileScriptsGen, fileScriptsGen, "Sets the path of the authelia-scripts gen file")
 	cmd.PersistentFlags().String(cmdFlagPackageScriptsGen, pkgScriptsGen, "Sets the package name of the authelia-scripts gen file")

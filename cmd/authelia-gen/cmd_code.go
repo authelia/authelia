@@ -47,7 +47,7 @@ func newCodeScriptsCmd() *cobra.Command {
 
 func newCodeKeysCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   cmdUseCodeKeys,
+		Use:   cmdUseKeys,
 		Short: "Generate the list of valid configuration keys",
 		RunE:  codeKeysRunE,
 

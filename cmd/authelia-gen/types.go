@@ -25,6 +25,13 @@ type tmplScriptsGEnData struct {
 	VersionSwaggerUI string
 }
 
+// ConfigurationKey is the docs json model for the Authelia configuration keys.
+type ConfigurationKey struct {
+	Path   string `json:"path"`
+	Secret bool   `json:"secret"`
+	Env    string `json:"env"`
+}
+
 // Languages is the docs json model for the Authelia languages configuration.
 type Languages struct {
 	Defaults   DefaultsLanguages `json:"defaults"`

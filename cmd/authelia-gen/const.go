@@ -12,6 +12,7 @@ const (
 
 	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/development/guidelines-commit-message.md"
 
+	fileDocsConfigKeys = "docs/data/configkeys.json"
 	fileCodeConfigKeys = "internal/configuration/schema/keys.go"
 	fileScriptsGen     = "cmd/authelia-scripts/cmd/gen.go"
 
@@ -55,7 +56,7 @@ const (
 	cmdUseCommitLint             = "commit-lint"
 	cmdUseCode                   = "code"
 	cmdUseCodeScripts            = "scripts"
-	cmdUseCodeKeys               = "keys"
+	cmdUseKeys                   = "keys"
 )
 
 const (
@@ -68,6 +69,7 @@ const (
 	cmdFlagDocsDataLanguages           = "file.docs.data.languages"
 	cmdFlagCwd                         = "cwd"
 	cmdFlagFileConfigKeys              = "file.configuration-keys"
+	cmdFlagFileDocsKeys                = "file.docs-keys"
 	cmdFlagFileScriptsGen              = "file.scripts.gen"
 	cmdFlagFileConfigCommitLint        = "file.commit-lint-config"
 	cmdFlagFileDocsCommitMsgGuidelines = "file.docs-commit-msg-guidelines"
