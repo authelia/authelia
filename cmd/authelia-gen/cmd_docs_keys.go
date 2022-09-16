@@ -17,7 +17,7 @@ import (
 func newDocsKeysCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   cmdUseKeys,
-		Short: "Generate the list of valid configuration keys",
+		Short: "Generate the docs data file for configuration keys",
 		RunE:  docsKeysRunE,
 
 		DisableAutoGenTag: true,
