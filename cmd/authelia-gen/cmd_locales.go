@@ -88,7 +88,9 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
+//nolint:gocyclo
 func getLanguages(dir string) (languages *Languages, err error) {
+	//nolint:prealloc
 	var locales []string
 
 	languages = &Languages{
@@ -100,7 +102,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 	var defaultTag language.Tag
 
 	if defaultTag, err = language.Parse(localeDefault); err != nil {
-		return nil, fmt.Errorf("failed to parse default langauge: %w", err)
+		return nil, fmt.Errorf("failed to parse default language: %w", err)
 	}
 
 	languages.Defaults.Language = Language{
@@ -156,7 +158,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		var tag language.Tag
 
 		if tag, err = language.Parse(localeReal); err != nil {
-			return fmt.Errorf("failed to parse langauge '%s': %w", localeReal, err)
+			return fmt.Errorf("failed to parse language '%s': %w", localeReal, err)
 		}
 
 		l := Language{
@@ -176,7 +178,7 @@ func getLanguages(dir string) (languages *Languages, err error) {
 		return nil, err
 	}
 
-	var langs []Language
+	var langs []Language //nolint:prealloc
 
 	for i, lang := range languages.Languages {
 		p := lang.Tag.Parent()

@@ -1,8 +1,8 @@
 ---
 name: Bug Report
-description: Report a potential bug
+description: Report a bug
 labels:
-  - type/potential-bug
+  - type/bug/unconfirmed
   - status/needs-triage
   - priority/4-normal
 body:

@@ -168,9 +168,11 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 		return fmt.Errorf("error extracting latest minor version from tag: %w", err)
 	}
 
+	//nolint:prealloc
 	var (
-		tagsRecent, parts []string
-		minor             int
+		tagsRecent []string
+		parts      []string
+		minor      int
 	)
 
 	for _, tag := range tags {
@@ -200,7 +202,7 @@ func cmdGitHubIssueTemplatesBugReportRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	data := &tmplIssueTemplateData{
-		Labels:   []string{labelTypePotentialBug.String(), labelStatusNeedsTriage.String(), labelPriorityNormal.String()},
+		Labels:   []string{labelTypeBugUnconfirmed.String(), labelStatusNeedsTriage.String(), labelPriorityNormal.String()},
 		Versions: tagsRecent,
 		Proxies:  []string{"Caddy", "Traefik", "Envoy", "NGINX", "SWAG", "NGINX Proxy Manager", "HAProxy"},
 	}

@@ -1,10 +1,10 @@
 ---
 name: Bug Report
-description: Report a potential bug
+description: Report a bug
 labels:
-  - type/potential-bug
-  - status/needs-triage
-  - priority/4-normal
+{{- range .Labels }}
+  - {{ . }}
+{{- end }}
 body:
   - type: markdown
     attributes:
