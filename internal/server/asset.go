@@ -20,19 +20,21 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-//go:embed locales
-var locales embed.FS
+var (
+	//go:embed public_html
+	assets embed.FS
 
-//go:embed public_html
-var assets embed.FS
+	//go:embed locales
+	locales embed.FS
+)
 
 func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	etags := map[string][]byte{}
 
-	getEmbedETags(assets, "public_html", etags)
+	getEmbedETags(assets, assetsRoot, etags)
 
 	return func(ctx *fasthttp.RequestCtx) {
-		p := path.Join("public_html", string(ctx.Path()))
+		p := path.Join(assetsRoot, string(ctx.Path()))
 
 		if etag, ok := etags[p]; ok {
 			ctx.Response.Header.SetBytesKV(headerETag, etag)
@@ -66,8 +68,10 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	}
 }
 
-func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
-	var languages []string
+func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
+	var (
+		languages, dirs []string
+	)
 
 	entries, err := locales.ReadDir("locales")
 	if err == nil {
@@ -84,6 +88,10 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 					lng = strings.SplitN(entry.Name(), "-", 2)[0]
 				}
 
+				if !utils.IsStringInSlice(entry.Name(), dirs) {
+					dirs = append(dirs, entry.Name())
+				}
+
 				if utils.IsStringInSlice(lng, languages) {
 					continue
 				}
@@ -93,32 +101,77 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		}
 	}
 
-	return func(ctx *fasthttp.RequestCtx) {
-		var (
-			language, variant, locale, namespace string
-		)
+	aliases := map[string]string{
+		"sv": "sv-SE",
+		"zh": "zh-CN",
+	}
 
-		language = ctx.UserValue("language").(string)
-		namespace = ctx.UserValue("namespace").(string)
-		locale = language
+	return func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
+		var language, namespace, variant, locale string
+
+		language, namespace = ctx.UserValue("language").(string), ctx.UserValue("namespace").(string)
+
+		if !utils.IsStringInSlice(language, languages) {
+			return false, ""
+		}
 
 		if v := ctx.UserValue("variant"); v != nil {
 			variant = v.(string)
 			locale = fmt.Sprintf("%s-%s", language, variant)
+		} else {
+			locale = language
 		}
 
-		var data []byte
+		ll := language + "-" + strings.ToUpper(language)
+		alias, ok := aliases[locale]
 
-		if data, err = locales.ReadFile(fmt.Sprintf("locales/%s/%s.json", locale, namespace)); err != nil {
-			if utils.IsStringInSliceFold(language, languages) {
-				data = []byte("{}")
-			}
+		switch {
+		case ok:
+			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace)
+		case utils.IsStringInSlice(locale, dirs):
+			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)
+		case utils.IsStringInSlice(ll, dirs):
+			return true, fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace)
+		default:
+			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)
+		}
+	}
+}
 
-			if len(data) == 0 {
-				hfsHandleErr(ctx, err)
+func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
+	etags := map[string][]byte{}
+
+	getEmbedETags(locales, "locales", etags)
+
+	getAssetName := newLocalesPathResolver()
+
+	return func(ctx *fasthttp.RequestCtx) {
+		supported, asset := getAssetName(ctx)
+
+		if !supported {
+			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+
+			return
+		}
+
+		if etag, ok := etags[asset]; ok {
+			ctx.Response.Header.SetBytesKV(headerETag, etag)
+			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+			if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+				ctx.SetStatusCode(fasthttp.StatusNotModified)
 
 				return
 			}
+		}
+
+		var (
+			data []byte
+			err  error
+		)
+
+		if data, err = locales.ReadFile(asset); err != nil {
+			data = []byte("{}")
 		}
 
 		middlewares.SetContentTypeApplicationJSON(ctx)
