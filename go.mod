@@ -7,8 +7,8 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20220902131320-61f4e624f85c
-	github.com/fasthttp/router v1.4.11
-	github.com/fasthttp/session/v2 v2.4.12
+	github.com/fasthttp/router v1.4.12
+	github.com/fasthttp/session/v2 v2.4.13
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.109.3
@@ -35,8 +35,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.39.0
-	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
+	github.com/valyala/fasthttp v1.40.0
+	golang.org/x/sync v0.0.0-20220907140024-f12130a52804
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
