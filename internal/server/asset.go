@@ -102,7 +102,13 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 	}
 
 	aliases := map[string]string{
+		"cs": "cs-CZ",
+		"da": "da-DK",
+		"el": "el-GR",
+		"ja": "ja-JP",
+		"nb": "nb-NO",
 		"sv": "sv-SE",
+		"uk": "uk-UA",
 		"zh": "zh-CN",
 	}
 

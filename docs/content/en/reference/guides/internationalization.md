@@ -2,7 +2,7 @@
 title: "Internationalization"
 description: "A collection of internationalization reference information"
 lead: "This section contains internationalization references for Authelia."
-date: 2022-08-01T10:44:40+10:00
+date: 2022-09-16T14:21:05+10:00
 draft: false
 images: []
 menu:

@@ -2,7 +2,7 @@
 title: "authelia-gen github"
 description: "Reference for the authelia-gen github command."
 lead: ""
-date: 2022-07-31T12:57:53+10:00
+date: 2022-09-16T14:21:05+10:00
 draft: false
 images: []
 menu:
