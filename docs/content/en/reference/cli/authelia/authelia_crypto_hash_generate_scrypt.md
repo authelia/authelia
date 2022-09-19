@@ -35,15 +35,17 @@ authelia crypto hash generate scrypt --help
 ### Options
 
 ```
-  -r, --block-size int    block size (default 8)
-  -c, --config strings    configuration files to load (default [configuration.yml])
-  -h, --help              help for scrypt
-  -i, --iterations int    number of iterations (default 16)
-  -k, --key-size int      key size in bytes (default 32)
-      --no-confirm        skip the password confirmation prompt
-  -p, --parallelism int   parallelism or threads (default 1)
-      --password string   manually supply the password rather than using the terminal prompt
-  -s, --salt-size int     salt size in bytes (default 16)
+  -r, --block-size int      block size (default 8)
+  -c, --config strings      configuration files to load (default [configuration.yml])
+  -h, --help                help for scrypt
+  -i, --iterations int      number of iterations (default 16)
+  -k, --key-size int        key size in bytes (default 32)
+      --no-confirm          skip the password confirmation prompt
+  -p, --parallelism int     parallelism or threads (default 1)
+      --password string     manually supply the password rather than using the terminal prompt
+      --random              uses a randomly generated password
+      --random.length int   when using a randomly generated password it configures the length (default 80)
+  -s, --salt-size int       salt size in bytes (default 16)
 ```
 
 ### SEE ALSO

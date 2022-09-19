@@ -35,17 +35,19 @@ authelia crypto hash generate argon2 --help
 ### Options
 
 ```
-  -c, --config strings    configuration files to load (default [configuration.yml])
-  -h, --help              help for argon2
-  -i, --iterations int    number of iterations (default 3)
-  -k, --key-size int      key size in bytes (default 32)
-  -m, --memory int        memory in kibibytes (default 65536)
-      --no-confirm        skip the password confirmation prompt
-  -p, --parallelism int   parallelism or threads (default 4)
-      --password string   manually supply the password rather than using the terminal prompt
-      --profile string    profile to use, options are low-memory and recommended
-  -s, --salt-size int     salt size in bytes (default 16)
-  -v, --variant string    variant, options are 'argon2id', 'argon2i', and 'argon2d' (default "argon2id")
+  -c, --config strings      configuration files to load (default [configuration.yml])
+  -h, --help                help for argon2
+  -i, --iterations int      number of iterations (default 3)
+  -k, --key-size int        key size in bytes (default 32)
+  -m, --memory int          memory in kibibytes (default 65536)
+      --no-confirm          skip the password confirmation prompt
+  -p, --parallelism int     parallelism or threads (default 4)
+      --password string     manually supply the password rather than using the terminal prompt
+      --profile string      profile to use, options are low-memory and recommended
+      --random              uses a randomly generated password
+      --random.length int   when using a randomly generated password it configures the length (default 80)
+  -s, --salt-size int       salt size in bytes (default 16)
+  -v, --variant string      variant, options are 'argon2id', 'argon2i', and 'argon2d' (default "argon2id")
 ```
 
 ### SEE ALSO

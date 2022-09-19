@@ -35,12 +35,14 @@ authelia crypto hash generate bcrypt --help
 ### Options
 
 ```
-  -c, --config strings    configuration files to load (default [configuration.yml])
-  -i, --cost int          hashing cost (default 12)
-  -h, --help              help for bcrypt
-      --no-confirm        skip the password confirmation prompt
-      --password string   manually supply the password rather than using the terminal prompt
-  -v, --variant string    variant, options are 'standard' and 'sha256' (default "standard")
+  -c, --config strings      configuration files to load (default [configuration.yml])
+  -i, --cost int            hashing cost (default 12)
+  -h, --help                help for bcrypt
+      --no-confirm          skip the password confirmation prompt
+      --password string     manually supply the password rather than using the terminal prompt
+      --random              uses a randomly generated password
+      --random.length int   when using a randomly generated password it configures the length (default 80)
+  -v, --variant string      variant, options are 'standard' and 'sha256' (default "standard")
 ```
 
 ### SEE ALSO
