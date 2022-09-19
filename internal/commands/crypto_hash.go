@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func newHashPasswordCmd() (cmd *cobra.Command) {
@@ -130,6 +131,7 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 
 	cmdFlagConfig(cmd)
 	cmdFlagPassword(cmd, true)
+	cmdFlagRandomPassword(cmd)
 
 	switch use {
 	case cmdUseHashArgon2:
@@ -244,7 +246,7 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 				valid    bool
 			)
 
-			if password, err = cmdCryptoHashGetPassword(cmd, args, false); err != nil {
+			if password, _, err = cmdCryptoHashGetPassword(cmd, args, false, false); err != nil {
 				return fmt.Errorf("error occurred trying to obtain the password: %w", err)
 			}
 
@@ -313,9 +315,10 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		hash     crypt.Hash
 		digest   crypt.Digest
 		password string
+		random   bool
 	)
 
-	if password, err = cmdCryptoHashGetPassword(cmd, args, legacy); err != nil {
+	if password, random, err = cmdCryptoHashGetPassword(cmd, args, legacy, true); err != nil {
 		return err
 	}
 
@@ -329,6 +332,10 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 
 	if digest, err = hash.Hash(password); err != nil {
 		return err
+	}
+
+	if random {
+		fmt.Printf("Random Password: %s\n", password)
 	}
 
 	fmt.Printf("Digest: %s\n", digest.Encode())
@@ -398,11 +405,32 @@ func cmdCryptoHashGetConfig(algorithm string, configs []string, flags *pflag.Fla
 	return c, nil
 }
 
-func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs bool) (password string, err error) {
-	if cmd.Flags().Changed(cmdFlagNamePassword) {
-		return cmd.Flags().GetString(cmdFlagNamePassword)
-	} else if useArgs && len(args) != 0 {
-		return strings.Join(args, " "), nil
+func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRandom bool) (password string, random bool, err error) {
+	if useRandom {
+		if random, err = cmd.Flags().GetBool(cmdFlagNameRandom); err != nil {
+			return
+		}
+	}
+
+	switch {
+	case random:
+		var length int
+
+		if length, err = cmd.Flags().GetInt(cmdFlagNameRandomLength); err != nil {
+			return
+		}
+
+		password = utils.RandomString(length, utils.CharSetAlphaNumeric, true)
+
+		return
+	case cmd.Flags().Changed(cmdFlagNamePassword):
+		password, err = cmd.Flags().GetString(cmdFlagNamePassword)
+
+		return
+	case useArgs && len(args) != 0:
+		password, err = strings.Join(args, " "), nil
+
+		return
 	}
 
 	var (
@@ -411,26 +439,31 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs bool) (
 	)
 
 	if data, err = hashReadPasswordWithPrompt("Enter Password: "); err != nil {
-		return "", fmt.Errorf("failed to read the password from the terminal: %w", err)
+		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+
+		return
 	}
 
 	password = string(data)
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
 		if data, err = hashReadPasswordWithPrompt("Confirm Password: "); err != nil {
-			return "", fmt.Errorf("failed to read the password from the terminal: %w", err)
+			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+			return
 		}
 
 		if password != string(data) {
 			fmt.Println("")
 
-			return "", fmt.Errorf("the password did not match the confirmation password")
+			err = fmt.Errorf("the password did not match the confirmation password")
+
+			return
 		}
 	}
 
 	fmt.Println("")
 
-	return password, nil
+	return
 }
 
 func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
@@ -460,6 +493,11 @@ func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {
 	if noConfirm {
 		cmd.Flags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
 	}
+}
+
+func cmdFlagRandomPassword(cmd *cobra.Command) {
+	cmd.Flags().Bool(cmdFlagNameRandom, false, "uses a randomly generated password")
+	cmd.Flags().Int(cmdFlagNameRandomLength, 80, "when using a randomly generated password it configures the length")
 }
 
 func cmdFlagIterations(cmd *cobra.Command, value int) {
