@@ -79,7 +79,7 @@ will operate with the above example:
 ```yaml
 - id: gitea
   description: Gitea
-  secret: gitea_client_secret
+  secret: '$plaintext$gitea_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

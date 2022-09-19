@@ -69,7 +69,7 @@ which will operate with the above example:
 ```yaml
 - id: synapse
   description: Synapse
-  secret: synapse_client_secret
+  secret: '$plaintext$synapse_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

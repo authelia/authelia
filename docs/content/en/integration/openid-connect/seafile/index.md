@@ -73,7 +73,7 @@ which will operate with the above example:
 ```yaml
 - id: seafile
   description: Seafile
-  secret: seafile_client_secret
+  secret: '$plaintext$seafile_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:
