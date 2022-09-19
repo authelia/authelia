@@ -23,10 +23,10 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, fosite.ResponseModeDefault, blankClient.ResponseModes[0])
 
 	exampleConfig := schema.OpenIDConnectClientConfiguration{
-		ID:            "myapp",
-		Description:   "My App",
-		Policy:        "two_factor",
-		Secret:        "abcdef",
+		ID:          "myapp",
+		Description: "My App",
+		Policy:      "two_factor",
+		//Secret:        "abcdef",
 		RedirectURIs:  []string{"https://google.com/callback"},
 		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
 		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
@@ -141,7 +141,7 @@ func TestInternalClient_GetHashedSecret(t *testing.T) {
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = []byte("a_bad_secret")
+	//c.Secret = []byte("a_bad_secret")
 
 	hashedSecret = c.GetHashedSecret()
 	assert.Equal(t, []byte("a_bad_secret"), hashedSecret)

@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"time"
 
+	"github.com/go-crypt/crypt"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
@@ -101,7 +102,7 @@ type OpenIDConnectStore struct {
 type Client struct {
 	ID               string
 	Description      string
-	Secret           []byte
+	Secret           crypt.Digest
 	SectorIdentifier string
 	Public           bool
 
@@ -128,8 +129,8 @@ type KeyManager struct {
 	strategy    *RS256JWTStrategy
 }
 
-// PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
-type PlainTextHasher struct{}
+// AdaptiveHasher implements the fosite.Hasher interface without an actual hashing algo.
+type AdaptiveHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {

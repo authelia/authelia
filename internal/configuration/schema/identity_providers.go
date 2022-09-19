@@ -41,11 +41,11 @@ type OpenIDConnectCORSConfiguration struct {
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
-	ID               string  `koanf:"id"`
-	Description      string  `koanf:"description"`
-	Secret           string  `koanf:"secret"`
-	SectorIdentifier url.URL `koanf:"sector_identifier"`
-	Public           bool    `koanf:"public"`
+	ID               string          `koanf:"id"`
+	Description      string          `koanf:"description"`
+	Secret           *PasswordDigest `koanf:"secret"`
+	SectorIdentifier url.URL         `koanf:"sector_identifier"`
+	Public           bool            `koanf:"public"`
 
 	RedirectURIs []string `koanf:"redirect_uris"`
 

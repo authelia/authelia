@@ -61,6 +61,7 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 				StringToURLHookFunc(),
 				StringToRegexpHookFunc(),
 				StringToAddressHookFunc(),
+				StringToPasswordDigestHookFunc(true),
 				ToTimeDurationHookFunc(),
 			),
 			Metadata:         nil,

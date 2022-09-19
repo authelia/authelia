@@ -44,7 +44,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "example",
-					Secret: "example",
+					Secret: MustParseSecret("$plaintext$example"),
 				},
 			},
 		},
@@ -67,7 +67,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "example",
-					Secret: "example",
+					Secret: MustParseSecret("$plaintext$example"),
 				},
 			},
 		},
@@ -112,7 +112,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "myclient",
-					Secret:       "jk12nb3klqwmnelqkwenm",
+					Secret:       MustParseSecret("$plaintext$jk12nb3klqwmnelqkwenm"),
 					Policy:       "two_factor",
 					RedirectURIs: []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
 				},
@@ -171,7 +171,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "",
-					Secret:       "",
+					Secret:       nil,
 					Policy:       "",
 					RedirectURIs: []string{},
 				},
@@ -186,7 +186,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-1",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: "a-policy",
 					RedirectURIs: []string{
 						"https://google.com",
@@ -200,13 +200,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "client-x",
-					Secret:       "a-secret",
+					Secret:       MustParseSecret("$plaintext$a-secret"),
 					Policy:       policyTwoFactor,
 					RedirectURIs: []string{},
 				},
 				{
 					ID:           "client-x",
-					Secret:       "a-secret",
+					Secret:       MustParseSecret("$plaintext$a-secret"),
 					Policy:       policyTwoFactor,
 					RedirectURIs: []string{},
 				},
@@ -218,7 +218,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-parse",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"http://abc@%two",
@@ -234,7 +234,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-abs",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"google.com",
@@ -250,7 +250,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-valid-sector",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -264,7 +264,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-valid-sector",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -278,7 +278,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-invalid-sector",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -300,7 +300,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-invalid-sector",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -348,7 +348,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: "good_secret",
+					Secret: MustParseSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					Scopes: []string{"openid", "bad_scope"},
 					RedirectURIs: []string{
@@ -374,7 +374,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
-					Secret:     "good_secret",
+					Secret:     MustParseSecret("$plaintext$good_secret"),
 					Policy:     "two_factor",
 					GrantTypes: []string{"bad_grant_type"},
 					RedirectURIs: []string{
@@ -400,7 +400,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:            "good_id",
-					Secret:        "good_secret",
+					Secret:        MustParseSecret("$plaintext$good_secret"),
 					Policy:        "two_factor",
 					ResponseModes: []string{"bad_responsemode"},
 					RedirectURIs: []string{
@@ -426,7 +426,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:                       "good_id",
-					Secret:                   "good_secret",
+					Secret:                   MustParseSecret("$plaintext$good_secret"),
 					Policy:                   "two_factor",
 					UserinfoSigningAlgorithm: "rs256",
 					RedirectURIs: []string{
@@ -453,7 +453,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: "good_secret",
+					Secret: MustParseSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -480,7 +480,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Public: true,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -489,7 +489,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 				},
 				{
 					ID:     "client-with-bad-redirect-uri",
-					Secret: "a-secret",
+					Secret: MustParseSecret("$plaintext$a-secret"),
 					Public: false,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -559,7 +559,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "a-client",
-					Secret: "a-client-secret",
+					Secret: MustParseSecret("$plaintext$a-client-secret"),
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -567,7 +567,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				{
 					ID:                       "b-client",
 					Description:              "Normal Description",
-					Secret:                   "b-client-secret",
+					Secret:                   MustParseSecret("$plaintext$b-client-secret"),
 					Policy:                   policyOneFactor,
 					UserinfoSigningAlgorithm: "RS256",
 					RedirectURIs: []string{
@@ -690,4 +690,12 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has an invalid value: redirect uri 'com.example.app:/oauth2redirect/example-provider' must have a scheme of 'http' or 'https' but 'com.example.app' is configured"),
 		})
 	})
+}
+
+func MustParseSecret(value string) *schema.PasswordDigest {
+	if secret, err := schema.NewPasswordDigest(value, true); err != nil {
+		panic(err)
+	} else {
+		return secret
+	}
 }

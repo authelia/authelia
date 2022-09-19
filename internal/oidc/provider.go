@@ -65,7 +65,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		composeConfiguration,
 		provider.Store,
 		strategy,
-		PlainTextHasher{},
+		AdaptiveHasher{},
 
 		/*
 			These are the OAuth2 and OpenIDConnect factories. Order is important (the OAuth2 factories at the top must

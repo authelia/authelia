@@ -137,11 +137,11 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 		}
 
 		if client.Public {
-			if client.Secret != "" {
+			if client.Secret != nil {
 				validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, client.ID))
 			}
 		} else {
-			if client.Secret == "" {
+			if client.Secret == nil {
 				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
 			}
 		}
