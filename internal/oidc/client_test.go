@@ -23,10 +23,10 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, fosite.ResponseModeDefault, blankClient.ResponseModes[0])
 
 	exampleConfig := schema.OpenIDConnectClientConfiguration{
-		ID:          "myapp",
-		Description: "My App",
-		Policy:      "two_factor",
-		//Secret:        "abcdef",
+		ID:            "myapp",
+		Description:   "My App",
+		Policy:        "two_factor",
+		Secret:        MustDecodeSecret("$plaintext$abcdef"),
 		RedirectURIs:  []string{"https://google.com/callback"},
 		Scopes:        schema.DefaultOpenIDConnectClientConfiguration.Scopes,
 		ResponseTypes: schema.DefaultOpenIDConnectClientConfiguration.ResponseTypes,
@@ -68,7 +68,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
 }
 
-func TestInternalClient_GetConsentResponseBody(t *testing.T) {
+func TestClient_GetConsentResponseBody(t *testing.T) {
 	c := Client{}
 
 	consentRequestBody := c.GetConsentResponseBody(nil)
@@ -95,7 +95,7 @@ func TestInternalClient_GetConsentResponseBody(t *testing.T) {
 	assert.Equal(t, expectedAudiences, consentRequestBody.Audience)
 }
 
-func TestInternalClient_GetAudience(t *testing.T) {
+func TestClient_GetAudience(t *testing.T) {
 	c := Client{}
 
 	audience := c.GetAudience()
@@ -108,7 +108,7 @@ func TestInternalClient_GetAudience(t *testing.T) {
 	assert.Equal(t, "https://example.com", audience[0])
 }
 
-func TestInternalClient_GetScopes(t *testing.T) {
+func TestClient_GetScopes(t *testing.T) {
 	c := Client{}
 
 	scopes := c.GetScopes()
@@ -121,7 +121,7 @@ func TestInternalClient_GetScopes(t *testing.T) {
 	assert.Equal(t, "openid", scopes[0])
 }
 
-func TestInternalClient_GetGrantTypes(t *testing.T) {
+func TestClient_GetGrantTypes(t *testing.T) {
 	c := Client{}
 
 	grantTypes := c.GetGrantTypes()
@@ -135,19 +135,30 @@ func TestInternalClient_GetGrantTypes(t *testing.T) {
 	assert.Equal(t, "device_code", grantTypes[0])
 }
 
-func TestInternalClient_GetHashedSecret(t *testing.T) {
+func TestClient_Hashing(t *testing.T) {
 	c := Client{}
 
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	//c.Secret = []byte("a_bad_secret")
+	c.Secret = MustDecodeSecret("$plaintext$a_bad_secret")
 
-	hashedSecret = c.GetHashedSecret()
-	assert.Equal(t, []byte("a_bad_secret"), hashedSecret)
+	assert.True(t, c.Secret.MatchBytes([]byte("a_bad_secret")))
 }
 
-func TestInternalClient_GetID(t *testing.T) {
+func TestClient_GetHashedSecret(t *testing.T) {
+	c := Client{}
+
+	hashedSecret := c.GetHashedSecret()
+	assert.Equal(t, []byte(nil), hashedSecret)
+
+	c.Secret = MustDecodeSecret("$plaintext$a_bad_secret")
+
+	hashedSecret = c.GetHashedSecret()
+	assert.Equal(t, []byte("$plaintext$a_bad_secret"), hashedSecret)
+}
+
+func TestClient_GetID(t *testing.T) {
 	c := Client{}
 
 	id := c.GetID()
@@ -159,7 +170,7 @@ func TestInternalClient_GetID(t *testing.T) {
 	assert.Equal(t, "myid", id)
 }
 
-func TestInternalClient_GetRedirectURIs(t *testing.T) {
+func TestClient_GetRedirectURIs(t *testing.T) {
 	c := Client{}
 
 	redirectURIs := c.GetRedirectURIs()
@@ -172,7 +183,7 @@ func TestInternalClient_GetRedirectURIs(t *testing.T) {
 	assert.Equal(t, "https://example.com/oauth2/callback", redirectURIs[0])
 }
 
-func TestInternalClient_GetResponseModes(t *testing.T) {
+func TestClient_GetResponseModes(t *testing.T) {
 	c := Client{}
 
 	responseModes := c.GetResponseModes()
@@ -191,7 +202,7 @@ func TestInternalClient_GetResponseModes(t *testing.T) {
 	assert.Equal(t, fosite.ResponseModeFragment, responseModes[3])
 }
 
-func TestInternalClient_GetResponseTypes(t *testing.T) {
+func TestClient_GetResponseTypes(t *testing.T) {
 	c := Client{}
 
 	responseTypes := c.GetResponseTypes()
@@ -206,11 +217,19 @@ func TestInternalClient_GetResponseTypes(t *testing.T) {
 	assert.Equal(t, "id_token", responseTypes[1])
 }
 
-func TestInternalClient_IsPublic(t *testing.T) {
+func TestClient_IsPublic(t *testing.T) {
 	c := Client{}
 
 	assert.False(t, c.IsPublic())
 
 	c.Public = true
 	assert.True(t, c.IsPublic())
+}
+
+func MustDecodeSecret(value string) *schema.PasswordDigest {
+	if secret, err := schema.NewPasswordDigest(value, true); err != nil {
+		panic(err)
+	} else {
+		return secret
+	}
 }

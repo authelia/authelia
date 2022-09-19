@@ -35,8 +35,8 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID: "a-client",
-				//Secret:           "a-client-secret",
+				ID:               "a-client",
+				Secret:           MustDecodeSecret("$plaintext$a-client-secret"),
 				SectorIdentifier: url.URL{Host: "google.com"},
 				Policy:           "one_factor",
 				RedirectURIs: []string{
@@ -67,8 +67,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID: "a-client",
-				//Secret: "a-client-secret",
+				ID:     "a-client",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -77,8 +77,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 			{
 				ID:          "b-client",
 				Description: "Normal Description",
-				//Secret:      "b-client-secret",
-				Policy: "two_factor",
+				Secret:      MustDecodeSecret("$plaintext$b-client-secret"),
+				Policy:      "two_factor",
 				RedirectURIs: []string{
 					"https://google.com",
 				},
@@ -106,8 +106,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID: "a-client",
-				//Secret: "a-client-secret",
+				ID:     "a-client",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -197,8 +197,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID: "a-client",
-				//Secret: "a-client-secret",
+				ID:     "a-client",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -275,8 +275,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
-				ID: "a-client",
-				//Secret: "a-client-secret",
+				ID:     "a-client",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
