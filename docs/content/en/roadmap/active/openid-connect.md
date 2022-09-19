@@ -93,7 +93,7 @@ Feature List:
 
 ### Beta 5
 
-{{< roadmap-status stage="in progress" version="v4.37.0" >}}
+{{< roadmap-status stage="in-progress" version="v4.37.0" >}}
 
 Feature List:
 
@@ -102,6 +102,7 @@ Feature List:
   * Explicit
   * Implicit
   * Pre-Configured
+* Hashed Client Secrets
 
 ### Beta 6
 
@@ -122,7 +123,6 @@ Feature List:
 
 * Revoke Tokens on User Logout or Expiration
 * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
-* Hashed Client Secrets
 
 ### General Availability
 

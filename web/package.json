@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.36.7",
+  "version": "4.36.8",
   "private": true,
   "pnpm": {
     "peerDependencyRules": {
@@ -29,8 +29,9 @@
     "@mui/material": "5.10.5",
     "@mui/styles": "5.10.3",
     "axios": "0.27.2",
+    "broadcast-channel": "4.17.0",
     "classnames": "2.3.2",
-    "i18next": "21.9.1",
+    "i18next": "21.9.2",
     "i18next-browser-languagedetector": "6.1.5",
     "i18next-http-backend": "1.4.1",
     "qrcode.react": "3.1.0",
@@ -155,7 +156,7 @@
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
     "@vitejs/plugin-react": "2.1.0",
-    "esbuild": "0.15.7",
+    "esbuild": "0.15.8",
     "esbuild-jest": "0.5.0",
     "eslint": "8.23.1",
     "eslint-config-prettier": "8.5.0",
@@ -175,7 +176,7 @@
     "prettier": "2.7.1",
     "react-test-renderer": "18.2.0",
     "typescript": "4.8.3",
-    "vite": "3.1.1",
+    "vite": "3.1.2",
     "vite-plugin-eslint": "1.8.1",
     "vite-plugin-istanbul": "3.0.1",
     "vite-plugin-svgr": "2.2.1",
