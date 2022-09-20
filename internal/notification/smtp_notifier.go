@@ -158,7 +158,7 @@ func (n *SMTPNotifier) dial() (err error) {
 func (n *SMTPNotifier) startTLS() error {
 	// Skips STARTTLS if is disabled in configuration.
 	if n.config.DisableStartTLS {
-		n.log.Warn("STARTTLS configuration is set to disable STARTTLS requirement (only useful for unauthenticated emails over plain text)")
+		n.log.Warn("Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS")
 		return nil
 	}
 
