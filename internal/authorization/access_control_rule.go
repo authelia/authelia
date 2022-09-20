@@ -20,19 +20,29 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 
 // NewAccessControlRule parses a schema ACL and generates an internal ACL.
 func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
-	return &AccessControlRule{
-		Position:  pos,
-		Domains:   schemaDomainsToACL(rule.Domains, rule.DomainsRegex),
-		Resources: schemaResourcesToACL(rule.Resources),
-		Methods:   schemaMethodsToACL(rule.Methods),
-		Networks:  schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
-		Subjects:  schemaSubjectsToACL(rule.Subjects),
-		Policy:    StringToLevel(rule.Policy),
+	r := &AccessControlRule{
+		Position: pos,
+		Domains:  schemaDomainsToACL(rule.Domains),
+		Methods:  schemaMethodsToACL(rule.Methods),
+		Networks: schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
+		Subjects: schemaSubjectsToACL(rule.Subjects),
+		Policy:   StringToLevel(rule.Policy),
 	}
+
+	if len(r.Subjects) != 0 {
+		r.HasSubjects = true
+	}
+
+	ruleAddDomainRegex(rule.DomainsRegex, r)
+	ruleAddResources(rule.Resources, r)
+
+	return r
 }
 
 // AccessControlRule controls and represents an ACL internally.
 type AccessControlRule struct {
+	HasSubjects bool
+
 	Position  int
 	Domains   []AccessControlDomain
 	Resources []AccessControlResource
