@@ -77,7 +77,7 @@ In your Authelia configuration you will need to enter and update the following v
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
 ```yaml
-    ldap:
+ ldap:
     implementation: custom
     url: ldaps://ldap.example.com
     timeout: 5s
@@ -100,7 +100,45 @@ In your Authelia configuration you will need to enter and update the following v
 ```
 Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
 
+### lldap
+#### Tested Version: [lldap - 0.4.0](https://github.com/nitnelave/lldap/releases/tag/v0.4.07)  
+Create within lldap, a basic user with a complex password, and add to the group "lldap_password_manager"
+You can also create a group to use within Authelia if you would like granular control of who can login, and reference it within the filters below.
+
+### Authelia
+
+In your Authelia configuration you will need to enter and update the following variables - 
+* url `ldap://OpenLDAP:1389` - servers dns name & port.  
+  *tip: if you have Authelia on a container network that is routable, you can just use the container name*
+* base_dn `dc=example,dc=com` - common name of domain root.
+* user `authelia` - username for Authelia service account.
+* password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account,
+
+```yaml
+ldap:
+    implementation: custom
+    url: ldap://lldap:3890
+    timeout: 5s
+    start_tls: false
+    base_dn: dc=example,dc=com
+    username_attribute: uid
+    additional_users_dn: ou=people
+    # To allow sign in both with username and email, one can use a filter like
+    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    users_filter: (&({username_attribute}={input})(objectClass=person))
+    additional_groups_dn: ou=groups
+    groups_filter: (member={dn})
+    group_name_attribute: cn
+    mail_attribute: mail
+    display_name_attribute: displayName
+    # The username and password of the admin or service user.
+    user: uid=authelia,ou=people,dc=example,dc=com
+    password: "SUPER_COMPLEX_PASSWORD"
+```
+Following this, restart Authelia, and you should be able to begin using lldap integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object. 
+
 ## See Also
 [Authelia]: https://www.authelia.com
-[Bitname OpenLDAP]: [https://www.bookstackapp.com/](https://hub.docker.com/r/bitnami/openldap/)
+[Bitname OpenLDAP]: https://www.bookstackapp.com/](https://hub.docker.com/r/bitnami/openldap/
 [FreeIPA]: https://www.freeipa.org/page/Main_Page
+[lldap]: https://github.com/nitnelave/lldap
