@@ -64,16 +64,15 @@ func (p Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubject
 
 	for _, rule := range p.rules {
 		if rule.IsMatch(subject, object) {
-			p.log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
+			p.log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject, object, object.Method)
 
 			return rule.HasSubjects, rule.Policy
 		}
 
-		p.log.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
+		p.log.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject, object, object.Method)
 	}
 
-	p.log.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
-		subject.String(), object.String())
+	p.log.Debugf("No matching rule for subject %s and url %s (method %s) applying default policy", subject, object, object.Method)
 
 	return false, p.defaultPolicy
 }
