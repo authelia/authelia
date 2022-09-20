@@ -13,7 +13,7 @@ type Authorizer struct {
 	rules         []*AccessControlRule
 	mfa           bool
 	config        *schema.Configuration
-	logger        *logrus.Logger
+	log           *logrus.Logger
 }
 
 // NewAuthorizer create an instance of authorizer with a given access control config.
@@ -22,7 +22,7 @@ func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 		defaultPolicy: StringToLevel(config.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(config.AccessControl),
 		config:        config,
-		logger:        logging.Logger(),
+		log:           logging.Logger(),
 	}
 
 	if authorizer.defaultPolicy == TwoFactor {
@@ -59,20 +59,20 @@ func (p Authorizer) IsSecondFactorEnabled() bool {
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
 func (p Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubjects bool, level Level) {
-	p.logger.Debugf("Check authorization of subject %s and object %s (method %s).",
+	p.log.Debugf("Check authorization of subject %s and object %s (method %s).",
 		subject.String(), object.String(), object.Method)
 
 	for _, rule := range p.rules {
 		if rule.IsMatch(subject, object) {
-			p.logger.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
+			p.log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
 
 			return rule.HasSubjects, rule.Policy
 		}
 
-		p.logger.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
+		p.log.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
 	}
 
-	p.logger.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
+	p.log.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
 		subject.String(), object.String())
 
 	return false, p.defaultPolicy
