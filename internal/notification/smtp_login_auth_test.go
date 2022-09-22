@@ -20,7 +20,7 @@ func TestFullLoginAuth(t *testing.T) {
 	auth := newLoginAuth(username, password, "mail.authelia.com")
 
 	proto, _, err := auth.Start(serverInfo)
-	assert.Equal(t, "LOGIN", proto)
+	assert.Equal(t, smtpAUTHMechanismLogin, proto)
 	require.NoError(t, err)
 
 	toServer, err := auth.Next([]byte("Username:"), true)

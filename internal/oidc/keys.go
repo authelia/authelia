@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/ory/fosite/token/jwt"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -38,17 +38,17 @@ func NewKeyManager() (manager *KeyManager) {
 }
 
 // Strategy returns the RS256JWTStrategy.
-func (m KeyManager) Strategy() (strategy *RS256JWTStrategy) {
+func (m *KeyManager) Strategy() (strategy *RS256JWTStrategy) {
 	return m.strategy
 }
 
 // GetKeySet returns the joseJSONWebKeySet containing the rsa.PublicKey types.
-func (m KeyManager) GetKeySet() (keySet *jose.JSONWebKeySet) {
+func (m *KeyManager) GetKeySet() (keySet *jose.JSONWebKeySet) {
 	return m.keySet
 }
 
 // GetActiveWebKey obtains the currently active jose.JSONWebKey.
-func (m KeyManager) GetActiveWebKey() (webKey *jose.JSONWebKey, err error) {
+func (m *KeyManager) GetActiveWebKey() (webKey *jose.JSONWebKey, err error) {
 	webKeys := m.keySet.Key(m.activeKeyID)
 	if len(webKeys) == 1 {
 		return &webKeys[0], nil
@@ -62,12 +62,12 @@ func (m KeyManager) GetActiveWebKey() (webKey *jose.JSONWebKey, err error) {
 }
 
 // GetActiveKeyID returns the key id of the currently active key.
-func (m KeyManager) GetActiveKeyID() (keyID string) {
+func (m *KeyManager) GetActiveKeyID() (keyID string) {
 	return m.activeKeyID
 }
 
 // GetActiveKey returns the rsa.PublicKey of the currently active key.
-func (m KeyManager) GetActiveKey() (key *rsa.PublicKey, err error) {
+func (m *KeyManager) GetActiveKey() (key *rsa.PublicKey, err error) {
 	if key, ok := m.keys[m.activeKeyID]; ok {
 		return &key.PublicKey, nil
 	}
@@ -76,7 +76,7 @@ func (m KeyManager) GetActiveKey() (key *rsa.PublicKey, err error) {
 }
 
 // GetActivePrivateKey returns the rsa.PrivateKey of the currently active key.
-func (m KeyManager) GetActivePrivateKey() (key *rsa.PrivateKey, err error) {
+func (m *KeyManager) GetActivePrivateKey() (key *rsa.PrivateKey, err error) {
 	if key, ok := m.keys[m.activeKeyID]; ok {
 		return key, nil
 	}

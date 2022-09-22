@@ -11,6 +11,7 @@ import (
 )
 
 // FirstFactorPOST is the handler performing the first factory.
+//
 //nolint:gocyclo // TODO: Consider refactoring time permitting.
 func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -73,7 +74,6 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		userSession := ctx.GetSession()
 		newSession := session.NewDefaultUserSession()
-		newSession.ConsentChallengeID = userSession.ConsentChallengeID
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
 		if err = ctx.SaveSession(newSession); err != nil {
@@ -135,8 +135,8 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		successful = true
 
-		if userSession.ConsentChallengeID != nil {
-			handleOIDCWorkflowResponse(ctx)
+		if bodyJSON.Workflow == workflowOpenIDConnect {
+			handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}

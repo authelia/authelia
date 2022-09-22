@@ -35,6 +35,13 @@ server:
   headers:
     allowed_hosts: []
     csp_template: ""
+  buffers:
+    read: 4096
+    write: 4096
+  timeouts:
+    read: 10s
+    write: 10s
+    idle: 10s
 ```
 
 ## Options
@@ -96,18 +103,6 @@ Modifying this setting will allow you to override and serve specific assets for 
 assets that can be overridden must be placed in the `asset_path`. The structure of this directory and the assets which
 can be overriden is documented in the
 [Sever Asset Overrides Reference Guide](../../reference/guides/server-asset-overrides.md).
-
-### read_buffer_size
-
-{{< confkey type="integer" default="4096" required="no" >}}
-
-Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
-
-### write_buffer_size
-
-{{< confkey type="integer" default="4096" required="no" >}}
-
-Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
 
 ### enable_pprof
 
@@ -241,7 +236,17 @@ This customizes the value of the Content-Security-Policy header. It will replace
 nonce value of the Authelia react bundle. This is an advanced option to customize and you should do sufficient research
 about how browsers utilize and understand this header before attempting to customize it.
 
-For example, the default CSP template is `default-src 'self'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'`.
+For example, the default CSP template is `default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'`.
+
+### buffers
+
+Configures the server buffers. See the [Server Buffers](../prologue/common.md#server-buffers) documentation for more
+information.
+
+### timeouts
+
+Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
+information.
 
 ## Additional Notes
 

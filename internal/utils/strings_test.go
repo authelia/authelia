@@ -254,13 +254,13 @@ func TestStringSliceURLConversionFuncs(t *testing.T) {
 func TestIsURLInSlice(t *testing.T) {
 	urls := URLsFromStringSlice([]string{"https://google.com", "https://example.com"})
 
-	google, err := url.Parse("https://google.com")
+	google, err := url.ParseRequestURI("https://google.com")
 	assert.NoError(t, err)
 
-	microsoft, err := url.Parse("https://microsoft.com")
+	microsoft, err := url.ParseRequestURI("https://microsoft.com")
 	assert.NoError(t, err)
 
-	example, err := url.Parse("https://example.com")
+	example, err := url.ParseRequestURI("https://example.com")
 	assert.NoError(t, err)
 
 	assert.True(t, IsURLInSlice(*google, urls))

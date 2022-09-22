@@ -40,12 +40,17 @@ For example this YAML configuration:
 log:
   level: info
 server:
-  read_buffer_size: 4096
+  buffers:
+    read: 4096
 ```
 
 Can be replaced by this environment variable configuration:
 
 ```bash
 AUTHELIA_LOG_LEVEL=info
-AUTHELIA_SERVER_READ_BUFFER_SIZE=4096
+AUTHELIA_SERVER_BUFFERS_READ=4096
 ```
+
+## Environment Variables
+
+{{% table-config-keys secrets="false" %}}

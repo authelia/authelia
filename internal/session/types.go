@@ -1,17 +1,13 @@
 package session
 
 import (
-	"context"
 	"time"
 
-	"github.com/fasthttp/session/v2"
+	session "github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -43,9 +39,6 @@ type UserSession struct {
 	// Webauthn holds the session registration data for this session.
 	Webauthn *webauthn.SessionData
 
-	// ConsentChallengeID is the OpenID Connect Consent Session challenge ID.
-	ConsentChallengeID *uuid.UUID
-
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
@@ -58,16 +51,4 @@ type Identity struct {
 	Username    string
 	Email       string
 	DisplayName string
-}
-
-func newRedisLogger() *redisLogger {
-	return &redisLogger{logger: logging.Logger()}
-}
-
-type redisLogger struct {
-	logger *logrus.Logger
-}
-
-func (l *redisLogger) Printf(_ context.Context, format string, v ...interface{}) {
-	l.logger.Tracef(format, v...)
 }

@@ -43,16 +43,21 @@ To configure [Synapse] to utilize Authelia as an [OpenID Connect] Provider:
 
 ```yaml
 oidc_providers:
-  - idp_id: synapse
+  - idp_id: authelia
     idp_name: "Authelia"
+    idp_icon: "mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI"
+    discover: true
     issuer: "https://auth.example.com"
     client_id: "synapse"
     client_secret: "synapse_client_secret"
+    scopes: ["openid", "profile", "email"]
     allow_existing_users: true
-    scopes: ["openid", "profile"]
     user_mapping_provider:
       config:
-        localpart_template: "{{ openid.preferred_username }}"
+        subject_claim: "sub"
+        localpart_template: "{{ user.preferred_username }}"
+        display_name_template: "{{ user.name }}"
+        email_template: "{{ user.email }}"
 ```
 
 ### Authelia
@@ -63,14 +68,16 @@ which will operate with the above example:
 
 ```yaml
 - id: synapse
+  description: Synapse
   secret: synapse_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://synapse.example.com/_synapse/client/oidc/callback
   scopes:
     - openid
     - profile
-  redirect_uris:
-    - https://synapse.example.com/_synapse/client/oidc/callback
+    - email
   userinfo_signing_algorithm: none
 ```
 

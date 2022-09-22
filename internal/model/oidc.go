@@ -17,10 +17,12 @@ import (
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
-func NewOAuth2ConsentSession(subject NullUUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+	valid := subject.ID() != 0
+
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
-		Subject:           subject,
+		Subject:           uuid.NullUUID{UUID: subject, Valid: valid},
 		Form:              r.GetRequestForm().Encode(),
 		RequestedAt:       r.GetRequestedAt(),
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
@@ -84,10 +86,10 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 
 // OAuth2ConsentSession stores information about an OAuth2.0 Consent.
 type OAuth2ConsentSession struct {
-	ID          int       `db:"id"`
-	ChallengeID uuid.UUID `db:"challenge_id"`
-	ClientID    string    `db:"client_id"`
-	Subject     NullUUID  `db:"subject"`
+	ID          int           `db:"id"`
+	ChallengeID uuid.UUID     `db:"challenge_id"`
+	ClientID    string        `db:"client_id"`
+	Subject     uuid.NullUUID `db:"subject"`
 
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`
@@ -186,7 +188,7 @@ func (s *OAuth2Session) SetSubject(subject string) {
 }
 
 // ToRequest converts an OAuth2Session into a fosite.Request given a fosite.Session and fosite.Storage.
-func (s OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
+func (s *OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
 	sessionData := s.Session
 
 	if session != nil {

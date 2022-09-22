@@ -140,7 +140,7 @@ func TestShouldCheckAuthorizationMatching(t *testing.T) {
 		{"two_factor", authentication.OneFactor, NotAuthorized},
 		{"two_factor", authentication.TwoFactor, Authorized},
 
-		{"deny", authentication.NotAuthenticated, NotAuthorized},
+		{"deny", authentication.NotAuthenticated, Forbidden},
 		{"deny", authentication.OneFactor, Forbidden},
 		{"deny", authentication.TwoFactor, Forbidden},
 	}
@@ -508,11 +508,12 @@ func (p Pair) String() string {
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
 	testCases := []Pair{
-		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 401},
+		// should apply default policy.
+		{"https://test.example.com", "", nil, authentication.NotAuthenticated, 403},
 		{"https://bypass.example.com", "", nil, authentication.NotAuthenticated, 200},
 		{"https://one-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
 		{"https://two-factor.example.com", "", nil, authentication.NotAuthenticated, 401},
-		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 401},
+		{"https://deny.example.com", "", nil, authentication.NotAuthenticated, 403},
 
 		{"https://test.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 403},
 		{"https://bypass.example.com", "john", []string{"john.doe@example.com"}, authentication.OneFactor, 200},

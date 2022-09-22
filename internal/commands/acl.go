@@ -21,6 +21,8 @@ func newAccessControlCommand() (cmd *cobra.Command) {
 		Short:   cmdAutheliaAccessControlShort,
 		Long:    cmdAutheliaAccessControlLong,
 		Example: cmdAutheliaAccessControlExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -37,6 +39,8 @@ func newAccessControlCheckCommand() (cmd *cobra.Command) {
 		Long:    cmdAutheliaAccessControlCheckPolicyLong,
 		Example: cmdAutheliaAccessControlCheckPolicyExample,
 		RunE:    accessControlCheckRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
@@ -74,11 +78,9 @@ func accessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	v := schema.NewStructValidator()
+	validator.ValidateAccessControl(accessControlConfig, val)
 
-	validator.ValidateAccessControl(accessControlConfig, v)
-
-	if v.HasErrors() || v.HasWarnings() {
+	if val.HasErrors() || val.HasWarnings() {
 		return errors.New("your configuration has errors")
 	}
 
@@ -169,11 +171,11 @@ func accessControlCheckWriteOutput(object authorization.Object, subject authoriz
 
 	switch {
 	case appliedPos != 0 && (potentialPos == 0 || (potentialPos > appliedPos)):
-		fmt.Printf("\nThe policy '%s' from rule #%d will be applied to this request.\n\n", authorization.LevelToPolicy(applied.Rule.Policy), appliedPos)
+		fmt.Printf("\nThe policy '%s' from rule #%d will be applied to this request.\n\n", authorization.LevelToString(applied.Rule.Policy), appliedPos)
 	case potentialPos != 0 && appliedPos != 0:
-		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. If not policy '%s' from rule #%d will be.\n\n", authorization.LevelToPolicy(potential.Rule.Policy), potentialPos, authorization.LevelToPolicy(applied.Rule.Policy), appliedPos)
+		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. If not policy '%s' from rule #%d will be.\n\n", authorization.LevelToString(potential.Rule.Policy), potentialPos, authorization.LevelToString(applied.Rule.Policy), appliedPos)
 	case potentialPos != 0:
-		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. Otherwise the policy '%s' from the default policy will be.\n\n", authorization.LevelToPolicy(potential.Rule.Policy), potentialPos, defaultPolicy)
+		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. Otherwise the policy '%s' from the default policy will be.\n\n", authorization.LevelToString(potential.Rule.Policy), potentialPos, defaultPolicy)
 	default:
 		fmt.Printf("\nThe policy '%s' from the default policy will be applied to this request as no rules matched the request.\n\n", defaultPolicy)
 	}
@@ -206,7 +208,7 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 		return subject, object, err
 	}
 
-	parsedURL, err := url.Parse(requestURL)
+	parsedURL, err := url.ParseRequestURI(requestURL)
 	if err != nil {
 		return subject, object, err
 	}

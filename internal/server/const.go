@@ -1,16 +1,21 @@
 package server
 
+import (
+	"github.com/valyala/fasthttp"
+)
+
 const (
-	embeddedAssets = "public_html/"
-	swaggerAssets  = embeddedAssets + "api/"
-	apiFile        = "openapi.yml"
-	indexFile      = "index.html"
-	logoFile       = "logo.png"
+	assetsRoot    = "public_html"
+	assetsSwagger = assetsRoot + "/api"
+
+	fileOpenAPI   = "openapi.yml"
+	fileIndexHTML = "index.html"
+	fileLogo      = "logo.png"
 )
 
 var (
-	rootFiles    = []string{"manifest.json", "robots.txt"}
-	swaggerFiles = []string{
+	filesRoot    = []string{"manifest.json", "robots.txt"}
+	filesSwagger = []string{
 		"favicon-16x16.png",
 		"favicon-32x32.png",
 		"index.css",
@@ -31,7 +36,7 @@ var (
 	}
 
 	// Directories excluded from the not found handler proceeding to the next() handler.
-	httpServerDirs = []struct {
+	dirsHTTPServer = []struct {
 		name, prefix string
 	}{
 		{name: "/api", prefix: "/api/"},
@@ -50,6 +55,14 @@ const (
 	schemeHTTPS = "https"
 )
 
+var (
+	headerETag         = []byte(fasthttp.HeaderETag)
+	headerIfNoneMatch  = []byte(fasthttp.HeaderIfNoneMatch)
+	headerCacheControl = []byte(fasthttp.HeaderCacheControl)
+
+	headerValueCacheControlETaggedAssets = []byte("public, max-age=0, must-revalidate")
+)
+
 const healthCheckEnv = `# Written by Authelia Process
 X_AUTHELIA_HEALTHCHECK=1
 X_AUTHELIA_HEALTHCHECK_SCHEME=%s
@@ -61,4 +74,13 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 const (
 	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
 	cspNoncePlaceholder = "${NONCE}"
+)
+
+const (
+	connNonTLS = "non-TLS"
+	connTLS    = "TLS"
+)
+
+const (
+	fmtLogServerInit = "Initializing %s for %s connections on '%s' path '%s'"
 )

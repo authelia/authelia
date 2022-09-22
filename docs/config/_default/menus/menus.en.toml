@@ -48,18 +48,18 @@
   weight = 10
 
 [[footer]]
-  name = "Privacy"
-  url = "/information/privacy-policy"
+  name = "Privacy Policy"
+  url = "/policies/privacy"
   weight = 10
 
 [[footer]]
-  name = "Code of Conduct"
-  url = "/information/code-of-conduct"
+  name = "Security Policy"
+  url = "/policies/security"
   weight = 20
 
 [[footer]]
-  name = "Security"
-  url = "/information/security"
+  name = "Code of Conduct"
+  url = "/code-of-conduct"
   weight = 30
 
 [[footer]]

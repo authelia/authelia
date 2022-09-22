@@ -12,6 +12,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Short:   cmdRootShort,
 		Long:    cmdRootLong,
 		Example: cmdRootExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.PersistentFlags().Bool("buildkite", false, "Set CI flag for Buildkite")

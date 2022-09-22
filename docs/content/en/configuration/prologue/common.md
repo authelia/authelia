@@ -35,7 +35,7 @@ The way this format works is you can either configure an integer or a string in 
 supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in blocks
 of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units of `h`.
 
-While you can use multiple of these blocks in combination, ee suggest keeping it simple and use a single value.
+While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value.
 
 ### Unit Legend
 
@@ -115,7 +115,7 @@ This section documents the usage.
 {{< confkey type="string" required="no" >}}
 
 The key `server_name` overrides the name checked against the certificate in the verification process. Useful if you
-require to use a direct IP address for the address of the backend service but want to verify a specific SNI.
+require an IP address for the host of the backend service but want to verify a specific certificate server name.
 
 ### skip_verify
 
@@ -133,3 +133,46 @@ The key `minimum_version` controls the minimum TLS version Authelia will use whe
 The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
 are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
 this value.
+
+## Server Buffers
+
+### read
+
+{{< confkey type="integer" default="4096" required="no" >}}
+
+Configures the maximum request size. The default of 4096 is generally sufficient for most use cases.
+
+### write
+
+{{< confkey type="integer" default="4096" required="no" >}}
+
+Configures the maximum response size. The default of 4096 is generally sufficient for most use cases.
+
+## Server Timeouts
+
+### read
+
+{{< confkey type="duration" default="2s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server read timeout.
+
+### write
+
+{{< confkey type="duration" default="2s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server write timeout.
+
+### idle
+
+{{< confkey type="duration" default="30s" required="no" >}}
+
+*__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
+[common options](#duration-notation-format) documentation for information on this format.*
+
+Configures the server write timeout.

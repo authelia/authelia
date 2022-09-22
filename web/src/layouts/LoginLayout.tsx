@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect } from "react";
 
-import { Grid, Container, Link, Theme } from "@mui/material";
+import { Container, Grid, Link, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";

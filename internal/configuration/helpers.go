@@ -12,15 +12,12 @@ func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string
 
 	for _, key := range keys {
 		if strings.Contains(key, delimiter) {
-			originalKey := prefix + strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter))
-			keyMap[originalKey] = key
+			keyMap[ToEnvironmentKey(key, prefix, delimiter)] = key
 		}
 
 		// Secret envs should be ignored by the env parser.
-		if isSecretKey(key) {
-			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
-
-			ignoredKeys = append(ignoredKeys, prefix+originalKey)
+		if IsSecretKey(key) {
+			ignoredKeys = append(ignoredKeys, ToEnvironmentSecretKey(key, prefix, delimiter))
 		}
 	}
 
@@ -31,7 +28,7 @@ func getSecretConfigMap(keys []string, prefix, delimiter string) (keyMap map[str
 	keyMap = make(map[string]string)
 
 	for _, key := range keys {
-		if isSecretKey(key) {
+		if IsSecretKey(key) {
 			originalKey := strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
 
 			keyMap[prefix+originalKey] = key
@@ -41,7 +38,22 @@ func getSecretConfigMap(keys []string, prefix, delimiter string) (keyMap map[str
 	return keyMap
 }
 
-func isSecretKey(key string) (isSecretKey bool) {
+// ToEnvironmentKey converts a key into the environment variable name.
+func ToEnvironmentKey(key, prefix, delimiter string) string {
+	return prefix + strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter))
+}
+
+// ToEnvironmentSecretKey converts a key into the environment variable name.
+func ToEnvironmentSecretKey(key, prefix, delimiter string) string {
+	return prefix + strings.ToUpper(strings.ReplaceAll(key, constDelimiter, delimiter)) + constSecretSuffix
+}
+
+// IsSecretKey returns true if the provided key is a secret enabled key.
+func IsSecretKey(key string) (isSecretKey bool) {
+	if strings.Contains(key, "[]") {
+		return false
+	}
+
 	return utils.IsStringInSliceSuffix(key, secretSuffixes)
 }
 

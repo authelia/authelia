@@ -17,6 +17,7 @@ import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
+import { useWorkflow } from "@hooks/Workflow";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -41,15 +42,26 @@ const LoginPortal = function (props: Props) {
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
+    const workflow = useWorkflow();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
+    const [broadcastRedirect, setBroadcastRedirect] = useState(false);
     const redirector = useRedirector();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
-    const redirect = useCallback((url: string) => navigate(url), [navigate]);
+    const redirect = useCallback(
+        (pathname: string, search?: string) => {
+            if (search) {
+                navigate({ pathname: pathname, search: search });
+            } else {
+                navigate({ pathname: pathname });
+            }
+        },
+        [navigate],
+    );
 
     // Fetch the state when portal is mounted.
     useEffect(() => {
@@ -104,7 +116,8 @@ const LoginPortal = function (props: Props) {
                 ((configuration &&
                     configuration.available_methods.size === 0 &&
                     state.authentication_level >= AuthenticationLevel.OneFactor) ||
-                    state.authentication_level === AuthenticationLevel.TwoFactor)
+                    state.authentication_level === AuthenticationLevel.TwoFactor ||
+                    broadcastRedirect)
             ) {
                 try {
                     const res = await checkSafeRedirection(redirectionURL);
@@ -119,23 +132,25 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
-            const redirectionSuffix = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`
-                : "";
+            const search = redirectionURL
+                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
+                      workflow ? `&workflow=${workflow}` : ""
+                  }`
+                : undefined;
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(`${IndexRoute}${redirectionSuffix}`);
+                redirect(IndexRoute, search);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute);
                 } else {
                     if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`, search);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`, search);
                     } else {
-                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}${redirectionSuffix}`);
+                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`, search);
                     }
                 }
             }
@@ -144,13 +159,20 @@ const LoginPortal = function (props: Props) {
         state,
         redirectionURL,
         requestMethod,
+        workflow,
         redirect,
         userInfo,
         setFirstFactorDisabled,
         configuration,
         createErrorNotification,
         redirector,
+        broadcastRedirect,
     ]);
+
+    const handleChannelStateChange = async () => {
+        setBroadcastRedirect(true);
+        fetchState();
+    };
 
     const handleAuthSuccess = async (redirectionURL: string | undefined) => {
         if (redirectionURL) {
@@ -181,6 +203,7 @@ const LoginPortal = function (props: Props) {
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationFailure={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}
+                            onChannelStateChange={handleChannelStateChange}
                         />
                     </ComponentOrLoading>
                 }

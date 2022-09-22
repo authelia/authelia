@@ -265,7 +265,7 @@ func (p CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	origin := ctx.Request.Header.PeekBytes(headerOrigin)
 
 	// Skip processing of any `https` scheme URL that has not expressly been configured.
-	if originURL, err = url.Parse(string(origin)); err != nil || (originURL.Scheme != "https" && p.origins == nil) {
+	if originURL, err = url.ParseRequestURI(string(origin)); err != nil || (originURL.Scheme != strProtoHTTPS && p.origins == nil) {
 		return
 	}
 

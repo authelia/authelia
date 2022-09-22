@@ -2,6 +2,7 @@ package notification
 
 import (
 	"fmt"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"time"
@@ -42,8 +43,8 @@ func (n *FileNotifier) StartupCheck() (err error) {
 }
 
 // Send send a identity verification link to a user.
-func (n *FileNotifier) Send(recipient, subject, body, _ string) error {
-	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, body)
+func (n *FileNotifier) Send(recipient mail.Address, subject string, bodyText, _ []byte) error {
+	content := fmt.Sprintf("Date: %s\nRecipient: %s\nSubject: %s\nBody: %s", time.Now(), recipient, subject, bodyText)
 
 	return os.WriteFile(n.path, []byte(content), fileNotifierMode)
 }
