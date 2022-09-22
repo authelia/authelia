@@ -41,7 +41,7 @@
     "react-i18next": "11.18.6",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.4.0",
+    "react-router-dom": "6.4.1",
     "zxcvbn": "4.4.2"
   },
   "scripts": {
