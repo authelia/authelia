@@ -54,7 +54,7 @@
 	"Select a Device": "选择一个设备",
 	"Sign in": "登录",
 	"Sign out": "登出",
-	"The above application is requesting the following permissions": "上述应用程序正在请求以下权限",
+	"The above application is requesting the following permissions": "此应用正在请求以下权限",
 	"The password does not meet the password policy": "密码不符合密码策略",
 	"The resource you're attempting to access requires two-factor authentication": "您要访问的资源需要双重身份验证。",
 	"There was a problem initiating the registration process": "启动注册过程时出现了问题",
@@ -66,7 +66,7 @@
 	"Time-based One-Time Password": "基于时间的一次性密码",
 	"Use OpenID to verify your identity": "使用 OpenID 验证您的身份",
 	"Username": "用户名",
-	"You must open the link from the same device and browser that initiated the registration process": "您必须从启动注册过程的同一设备和浏览器打开链接",
+	"You must open the link from the same device and browser that initiated the registration process": "您必须使用与注册时相同的设备和浏览器打开链接",
 	"You're being signed out and redirected": "您正在登出并重定向",
 	"Your supplied password does not meet the password policy requirements": "您提供的密码不符合密码政策要求。"
 }
