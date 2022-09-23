@@ -90,6 +90,7 @@ func validateFileAuthenticationBackendSHA512(config *schema.PasswordConfiguratio
 		config.Iterations = schema.DefaultPasswordSHA512Configuration.Iterations
 	}
 }
+
 func validateFileAuthenticationBackendArgon2id(config *schema.PasswordConfiguration, validator *schema.StructValidator) {
 	// Iterations (time).
 	if config.Iterations == 0 {
@@ -133,7 +134,17 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfi
 		config.LDAP.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
 	}
 
-	if _, err := utils.TLSStringToTLSConfigVersion(config.LDAP.TLS.MinimumVersion); err != nil {
+	var err error
+
+	if err = config.LDAP.TLS.CertificateChain.Validate(); err != nil {
+		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
+	}
+
+	if err = config.LDAP.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
+		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
+	}
+
+	if _, err = utils.TLSStringToTLSConfigVersion(config.LDAP.TLS.MinimumVersion); err != nil {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSMinVersion, config.LDAP.TLS.MinimumVersion, err))
 	}
 

@@ -86,6 +86,20 @@ func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *s
 		config.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
 	}
 
+	var err error
+
+	if err = config.TLS.CertificateChain.Validate(); err != nil {
+		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixNotifierSMTP, err))
+	}
+
+	if err = config.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
+		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixNotifierSMTP, err))
+	}
+
+	if err = config.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
+		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixNotifierSMTP, err))
+	}
+
 	if config.TLS.ServerName == "" {
 		config.TLS.ServerName = config.Host
 	}

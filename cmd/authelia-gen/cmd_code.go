@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -63,7 +64,7 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 		resp                 *http.Response
 	)
 
-	data := &tmplScriptsGEnData{}
+	data := &tmplScriptsGenData{}
 
 	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
 		return err
@@ -144,6 +145,10 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		Keys:      readTags("", reflect.TypeOf(schema.Configuration{})),
 	}
 
+	for _, key := range data.Keys {
+		fmt.Println(key)
+	}
+
 	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
 		return err
 	}
@@ -181,6 +186,7 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
 	reflect.TypeOf(schema.Address{}),
+	reflect.TypeOf(rsa.PrivateKey{}),
 }
 
 func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {
@@ -253,6 +259,10 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 }
 
 func getKeyNameFromTagAndPrefix(prefix, name string, slice bool) string {
+	if name == "issuer_private_key" {
+		fmt.Println(prefix, name)
+	}
+
 	nameParts := strings.SplitN(name, ",", 2)
 
 	if prefix == "" {

@@ -47,60 +47,74 @@ const (
 	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
+const (
+	errFmtTLSCertificateChainValidation = "%s: tls: option " +
+		"'certificate_chain' is invalid: the certificate chain could not be validated: %w"
+)
+
 // Notifier Error constants.
 const (
-	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
-	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
+	errPrefixNotifier           = "notifier: "
+	errPrefixNotifierFileSystem = errPrefixNotifier + "filesystem: "
+	errPrefixNotifierSMTP       = errPrefixNotifier + "smtp: "
+
+	errFmtNotifierMultipleConfigured = errPrefixNotifier + "please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
+	errFmtNotifierNotConfigured      = errPrefixNotifier + "you must ensure either the 'smtp' or 'filesystem' notifier " +
 		"is configured"
-	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
-	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
-	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
-	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
+	errFmtNotifierTemplatePathNotExist            = errPrefixNotifier + "option 'template_path' refers to location '%s' which does not exist"
+	errFmtNotifierTemplatePathUnknownError        = errPrefixNotifier + "option 'template_path' refers to location '%s' which couldn't be opened: %w"
+	errFmtNotifierFileSystemFileNameNotConfigured = errPrefixNotifierFileSystem + "option 'filename' is required"
+	errFmtNotifierSMTPNotConfigured               = errPrefixNotifierSMTP + "option '%s' is required"
 )
 
 // Authentication Backend Error constants.
 const (
-	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
+	errPrefixAuth              = "authentication_backend: "
+	errPrefixAuthPasswordReset = errPrefixAuth + "password_reset: "
+	errPrefixAuthFile          = errPrefixAuth + "file: "
+	errPrefixAuthLDAP          = errPrefixAuth + "ldap: "
+
+	errFmtAuthBackendNotConfigured = errPrefixAuth + "you must ensure either the 'file' or 'ldap' " +
 		"authentication backend is configured"
-	errFmtAuthBackendMultipleConfigured = "authentication_backend: please ensure only one of the 'file' or 'ldap' " +
+	errFmtAuthBackendMultipleConfigured = errPrefixAuth + "please ensure only one of the 'file' or 'ldap' " +
 		"backend is configured"
-	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
+	errFmtAuthBackendRefreshInterval = errPrefixAuth + "option 'refresh_interval' is configured to '%s' but " +
 		"it must be either a duration notation or one of 'disable', or 'always': %w"
-	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
+	errFmtAuthBackendPasswordResetCustomURLScheme = errPrefixAuthPasswordReset + "option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
-	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
-	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
+	errFmtFileAuthBackendPathNotConfigured  = errPrefixAuthFile + "option 'path' is required"
+	errFmtFileAuthBackendPasswordSaltLength = errPrefixAuthFile + "password: option 'salt_length' " +
 		"must be 2 or more but it is configured a '%d'"
-	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
+	errFmtFileAuthBackendPasswordUnknownAlg = errPrefixAuthFile + "password: option 'algorithm' " +
 		"must be either 'argon2id' or 'sha512' but it is configured as '%s'"
-	errFmtFileAuthBackendPasswordInvalidIterations = "authentication_backend: file: password: option " +
+	errFmtFileAuthBackendPasswordInvalidIterations = errPrefixAuthFile + "password: option " +
 		"'iterations' must be 1 or more but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = "authentication_backend: file: password: option " +
+	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = errPrefixAuthFile + "password: option " +
 		"'key_length' must be 16 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidParallelism = "authentication_backend: file: password: option " +
+	errFmtFileAuthBackendPasswordArgon2idInvalidParallelism = errPrefixAuthFile + "password: option " +
 		"'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = "authentication_backend: file: password: option 'memory' " +
+	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = errPrefixAuthFile + "password: option 'memory' " +
 		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
 		"with parallelism %d it should be at least %d but it is configured as '%d'"
 
-	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
-	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
+	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = errPrefixAuthLDAP + "option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
+	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = errPrefixAuthLDAP + "option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
+	errFmtLDAPAuthBackendMissingOption = errPrefixAuthLDAP + "option '%s' is required"
+	errFmtLDAPAuthBackendTLSMinVersion = errPrefixAuthLDAP + "tls: option " +
 		"'minimum_tls_version' is invalid: %s: %w"
-	errFmtLDAPAuthBackendImplementation = "authentication_backend: ldap: option 'implementation' " +
+	errFmtLDAPAuthBackendImplementation = errPrefixAuthLDAP + "option 'implementation' " +
 		"is configured as '%s' but must be one of the following values: '%s'"
-	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
+	errFmtLDAPAuthBackendFilterReplacedPlaceholders = errPrefixAuthLDAP + "option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
-	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
+	errFmtLDAPAuthBackendURLNotParsable = errPrefixAuthLDAP + "option " +
 		"'url' could not be parsed: %w"
-	errFmtLDAPAuthBackendURLInvalidScheme = "authentication_backend: ldap: option " +
+	errFmtLDAPAuthBackendURLInvalidScheme = errPrefixAuthLDAP + "option " +
 		"'url' must have either the 'ldap' or 'ldaps' scheme but it is configured as '%s'"
-	errFmtLDAPAuthBackendFilterEnclosingParenthesis = "authentication_backend: ldap: option " +
+	errFmtLDAPAuthBackendFilterEnclosingParenthesis = errPrefixAuthLDAP + "option " +
 		"'%s' must contain enclosing parenthesis: '%s' should probably be '(%s)'"
-	errFmtLDAPAuthBackendFilterMissingPlaceholder = "authentication_backend: ldap: option " +
+	errFmtLDAPAuthBackendFilterMissingPlaceholder = errPrefixAuthLDAP + "option " +
 		"'%s' must contain the placeholder '{%s}' but it is required"
 )
 
@@ -221,16 +235,20 @@ const (
 
 // Session error constants.
 const (
-	errFmtSessionOptionRequired           = "session: option '%s' is required"
-	errFmtSessionDomainMustBeRoot         = "session: option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
-	errFmtSessionSameSite                 = "session: option 'same_site' must be one of '%s' but is configured as '%s'"
-	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
-	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
-	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
-	errFmtSessionRedisHostOrNodesRequired = "session: redis: option 'host' or the 'high_availability' option 'nodes' is required"
+	errPrefixSession        = "session: "
+	errPrefixSessionRedis   = errPrefixSession + "redis: "
+	errPrefixSessionRedisHA = errPrefixSessionRedis + "high_availability: "
 
-	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
-	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+	errFmtSessionOptionRequired           = errPrefixSession + "option '%s' is required"
+	errFmtSessionDomainMustBeRoot         = errPrefixSession + "option 'domain' must be the domain you wish to protect not a wildcard domain but it is configured as '%s'"
+	errFmtSessionSameSite                 = errPrefixSession + "option 'same_site' must be one of '%s' but is configured as '%s'"
+	errFmtSessionSecretRequired           = errPrefixSession + "option 'secret' is required when using the '%s' provider"
+	errFmtSessionRedisPortRange           = errPrefixSessionRedis + "option 'port' must be between 1 and 65535 but is configured as '%d'"
+	errFmtSessionRedisHostRequired        = errPrefixSessionRedis + "option 'host' is required"
+	errFmtSessionRedisHostOrNodesRequired = errPrefixSessionRedis + "option 'host' or the 'high_availability' option 'nodes' is required"
+
+	errFmtSessionRedisSentinelMissingName     = errPrefixSessionRedisHA + "option 'sentinel_name' is required"
+	errFmtSessionRedisSentinelNodeHostMissing = errPrefixSessionRedisHA + "option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
 )
 
 // Regulation Error Consts.

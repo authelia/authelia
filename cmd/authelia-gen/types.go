@@ -20,7 +20,7 @@ type tmplConfigurationKeysData struct {
 	Package   string
 }
 
-type tmplScriptsGEnData struct {
+type tmplScriptsGenData struct {
 	Package          string
 	VersionSwaggerUI string
 }

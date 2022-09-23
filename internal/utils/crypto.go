@@ -246,6 +246,7 @@ func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *
 		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
 		MinVersion:         minVersion,
 		RootCAs:            certPool,
+		Certificates:       config.CertificateChain.CertificatesTLS(),
 	}
 }
 

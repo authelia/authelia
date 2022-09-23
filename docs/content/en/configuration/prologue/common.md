@@ -134,6 +134,96 @@ The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other t
 are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
 this value.
 
+### certificate_chain
+
+{{< confkey type="string" required="no" >}}
+
+The certificate chain / bundle to be used for mutual TLS with the server.
+
+#### Standard Certificate Chain Rules
+
+X.509 Certificate Chains used with Authelia must conform to the following rules:
+
+1. The certificates must be encoded in DER base64 PEM format ([RFC5280] as per [RFC7468] in [section 5]).
+2. If more than one certificate is specified, the nth certificate must be signed by the nth+1 certificate where the
+   order of certificates is top down.
+3. Each certificate must have a valid date i.e. the current date must be after the not before property and before the
+   not after property.
+4. If the chain is intended to be used for mutual TLS the first certificate must have the extended key usage `clientAuth`.
+
+[RFC5280]: https://www.rfc-editor.org/rfc/rfc5280
+[RFC7468]: https://www.rfc-editor.org/rfc/rfc7468
+[section 5]: https://www.rfc-editor.org/rfc/rfc7468#section-5
+
+#### Example Certificate Chains
+
+##### Single
+
+```yaml
+tls:
+  certificate_chain: |
+    -----BEGIN CERTIFICATE-----
+    MIIC5jCCAc6gAwIBAgIRANQn+N/s2XpbyLjHhrhbLMYwDQYJKoZIhvcNAQELBQAw
+    EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTIzMDA1NTM5WhcNMjMwOTIzMDA1
+    NTM5WjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+    ADCCAQoCggEBAJrdtDhT0LXvenka1pxPKN3ay82gGMuUHQPEwer+vhOjQmTuiNzz
+    lYOQ5HRKkRippfCNwxf1QKpvllLwWxWh55MeFwgoIdy1ro2Q/sCIHsRdfIIgFxXu
+    CBcyAPnfxUrujCIKhbvE72GC1MJWGCwtCJjPWSlqGUZPMFEy8n4WTtzgBDzx7tPU
+    roH6tMyERO+LzLex6udNaY3L43TwIIdXfiK7X6tFtIcgySGNMoEoA3TzXvpr8N+5
+    oPtFMx7nf8sBjV85AZ134ZAzsSVv/pPF1JyAasBT9n/b4zhr8t/km8BKxrwU4OZ6
+    rx7ftZGtqx1k7czy3u0gCtFUcShItfL/vSECAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+    AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+    AQELBQADggEBAFZ5MPqio6v/4YysGXD+ljgXYTRdqb11FA1iMbEYTT80RGdD5Q/D
+    f3MKgYfcq7tQTTYD05u4DEvxIv0VtFK9uyG3W13n/Bt+2Wv4bKuTIJEwpdnbFq8G
+    nq2dmRtZL4K+oesdWOUXWcXouCN/M+b12Ik+9NlBbXkIBbz9/ni3i2FgaeN+cfGE
+    ik4MjWBclSTMWQCB4jPhkunybzgdpTW+zhFBoZFHdbM3LlMTXJ5LXvWPGCcHy3c+
+    XXgc6RG3GfuKWBOUfKJ/ejt6lKSI3vGkKgHjCAoHVsgHFz5CuGK3YISeX54sXA2D
+    WXAcqD7v1ddNQKmE2eWZU4+2boBdXKMPtUQ=
+    -----END CERTIFICATE-----
+```
+##### Multiple
+
+```yaml
+tls:
+  certificate_chain: |
+    -----BEGIN CERTIFICATE-----
+    MIIC5jCCAc6gAwIBAgIRANQn+N/s2XpbyLjHhrhbLMYwDQYJKoZIhvcNAQELBQAw
+    EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTIzMDA1NTM5WhcNMjMwOTIzMDA1
+    NTM5WjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+    ADCCAQoCggEBAJrdtDhT0LXvenka1pxPKN3ay82gGMuUHQPEwer+vhOjQmTuiNzz
+    lYOQ5HRKkRippfCNwxf1QKpvllLwWxWh55MeFwgoIdy1ro2Q/sCIHsRdfIIgFxXu
+    CBcyAPnfxUrujCIKhbvE72GC1MJWGCwtCJjPWSlqGUZPMFEy8n4WTtzgBDzx7tPU
+    roH6tMyERO+LzLex6udNaY3L43TwIIdXfiK7X6tFtIcgySGNMoEoA3TzXvpr8N+5
+    oPtFMx7nf8sBjV85AZ134ZAzsSVv/pPF1JyAasBT9n/b4zhr8t/km8BKxrwU4OZ6
+    rx7ftZGtqx1k7czy3u0gCtFUcShItfL/vSECAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+    AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+    AQELBQADggEBAFZ5MPqio6v/4YysGXD+ljgXYTRdqb11FA1iMbEYTT80RGdD5Q/D
+    f3MKgYfcq7tQTTYD05u4DEvxIv0VtFK9uyG3W13n/Bt+2Wv4bKuTIJEwpdnbFq8G
+    nq2dmRtZL4K+oesdWOUXWcXouCN/M+b12Ik+9NlBbXkIBbz9/ni3i2FgaeN+cfGE
+    ik4MjWBclSTMWQCB4jPhkunybzgdpTW+zhFBoZFHdbM3LlMTXJ5LXvWPGCcHy3c+
+    XXgc6RG3GfuKWBOUfKJ/ejt6lKSI3vGkKgHjCAoHVsgHFz5CuGK3YISeX54sXA2D
+    WXAcqD7v1ddNQKmE2eWZU4+2boBdXKMPtUQ=
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    MIIC5jCCAc6gAwIBAgIRANQn+N/s2XpbyLjHhrhbLMYwDQYJKoZIhvcNAQELBQAw
+    EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTIzMDA1NTM5WhcNMjMwOTIzMDA1
+    NTM5WjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+    ADCCAQoCggEBAJrdtDhT0LXvenka1pxPKN3ay82gGMuUHQPEwer+vhOjQmTuiNzz
+    lYOQ5HRKkRippfCNwxf1QKpvllLwWxWh55MeFwgoIdy1ro2Q/sCIHsRdfIIgFxXu
+    CBcyAPnfxUrujCIKhbvE72GC1MJWGCwtCJjPWSlqGUZPMFEy8n4WTtzgBDzx7tPU
+    roH6tMyERO+LzLex6udNaY3L43TwIIdXfiK7X6tFtIcgySGNMoEoA3TzXvpr8N+5
+    oPtFMx7nf8sBjV85AZ134ZAzsSVv/pPF1JyAasBT9n/b4zhr8t/km8BKxrwU4OZ6
+    rx7ftZGtqx1k7czy3u0gCtFUcShItfL/vSECAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+    AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+    AQELBQADggEBAFZ5MPqio6v/4YysGXD+ljgXYTRdqb11FA1iMbEYTT80RGdD5Q/D
+    f3MKgYfcq7tQTTYD05u4DEvxIv0VtFK9uyG3W13n/Bt+2Wv4bKuTIJEwpdnbFq8G
+    nq2dmRtZL4K+oesdWOUXWcXouCN/M+b12Ik+9NlBbXkIBbz9/ni3i2FgaeN+cfGE
+    ik4MjWBclSTMWQCB4jPhkunybzgdpTW+zhFBoZFHdbM3LlMTXJ5LXvWPGCcHy3c+
+    XXgc6RG3GfuKWBOUfKJ/ejt6lKSI3vGkKgHjCAoHVsgHFz5CuGK3YISeX54sXA2D
+    WXAcqD7v1ddNQKmE2eWZU4+2boBdXKMPtUQ=
+    -----END CERTIFICATE-----
+```
+
 ## Server Buffers
 
 ### read

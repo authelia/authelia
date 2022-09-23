@@ -73,6 +73,12 @@ func validateRedis(config *schema.SessionConfiguration, validator *schema.Struct
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 
+	if config.Redis.TLS != nil {
+		if err := config.Redis.TLS.CertificateChain.Validate(); err != nil {
+			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixSessionRedis, err))
+		}
+	}
+
 	if config.Redis.MaximumActiveConnections <= 0 {
 		config.Redis.MaximumActiveConnections = 8
 	}

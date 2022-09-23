@@ -36,4 +36,4 @@ const (
 	errFmtDecodeHookCouldNotParseEmptyValue = "could not decode an empty value to a %s%s: %w"
 )
 
-var secretSuffixes = []string{"key", "secret", "password", "token"}
+var secretSuffixes = []string{"certificate_chain", "key", "secret", "password", "token"}
