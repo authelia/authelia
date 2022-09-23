@@ -11,7 +11,7 @@ require (
 	github.com/fasthttp/session/v2 v2.4.13
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.109.3
+	github.com/go-rod/rod v0.110.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.4.0
 	github.com/golang-jwt/jwt/v4 v4.4.2
