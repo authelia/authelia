@@ -82,25 +82,26 @@ func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *s
 		config.Identifier = schema.DefaultSMTPNotifierConfiguration.Identifier
 	}
 
-	if config.TLS == nil {
-		config.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
-	}
-
 	var err error
 
-	if err = config.TLS.CertificateChain.Validate(); err != nil {
-		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixNotifierSMTP, err))
-	}
-
-	if err = config.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
-		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixNotifierSMTP, err))
-	}
-
-	if err = config.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
-		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixNotifierSMTP, err))
-	}
-
-	if config.TLS.ServerName == "" {
+	if config.TLS == nil {
+		config.TLS = schema.DefaultSMTPNotifierConfiguration.TLS
 		config.TLS.ServerName = config.Host
+	} else {
+		if config.TLS.MinimumVersion.Version() == 0 {
+			config.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+		}
+
+		if err = config.TLS.CertificateChain.Validate(); err != nil {
+			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
+		}
+
+		if err = config.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
+			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
+		}
+
+		if config.TLS.ServerName == "" {
+			config.TLS.ServerName = config.Host
+		}
 	}
 }

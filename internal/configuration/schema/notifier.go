@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/tls"
 	"net/mail"
 	"time"
 )
@@ -41,6 +42,6 @@ var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
 	Identifier:          "localhost",
 	StartupCheckAddress: mail.Address{Name: "Authelia Test", Address: "test@authelia.com"},
 	TLS: &TLSConfig{
-		MinimumVersion: "TLS1.2",
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }

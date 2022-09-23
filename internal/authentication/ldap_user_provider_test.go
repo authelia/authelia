@@ -3765,7 +3765,7 @@ func TestShouldCallStartTLSWhenEnabled(t *testing.T) {
 		Return(nil)
 
 	connStartTLS := mockClient.EXPECT().
-		StartTLS(ldapClient.tlsConfig)
+		StartTLS(ldapClient.configTLS)
 
 	connClose := mockClient.EXPECT().Close()
 
@@ -3885,7 +3885,7 @@ func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T
 		Return(nil)
 
 	connStartTLS := mockClient.EXPECT().
-		StartTLS(ldapClient.tlsConfig)
+		StartTLS(ldapClient.configTLS)
 
 	connClose := mockClient.EXPECT().Close()
 
@@ -3960,7 +3960,7 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 		Return(mockClient, nil)
 
 	connStartTLS := mockClient.EXPECT().
-		StartTLS(ldapClient.tlsConfig).
+		StartTLS(ldapClient.configTLS).
 		Return(errors.New("LDAP Result Code 200 \"Network Error\": ldap: already encrypted"))
 
 	gomock.InOrder(dialURL, connStartTLS, mockClient.EXPECT().Close())

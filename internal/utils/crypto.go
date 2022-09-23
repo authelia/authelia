@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
@@ -231,22 +230,6 @@ func IsX509PrivateKey(i interface{}) bool {
 		return true
 	default:
 		return false
-	}
-}
-
-// NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *x509.CertPool) (tlsConfig *tls.Config) {
-	minVersion, err := TLSStringToTLSConfigVersion(config.MinimumVersion)
-	if err != nil {
-		minVersion = defaultMinVersion
-	}
-
-	return &tls.Config{
-		ServerName:         config.ServerName,
-		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
-		MinVersion:         minVersion,
-		RootCAs:            certPool,
-		Certificates:       config.CertificateChain.CertificatesTLS(),
 	}
 }
 

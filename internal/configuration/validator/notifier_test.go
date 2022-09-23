@@ -78,7 +78,7 @@ func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("example.com", suite.config.SMTP.TLS.ServerName)
-	suite.Assert().Equal("TLS1.2", suite.config.SMTP.TLS.MinimumVersion)
+	suite.Assert().Equal(MustParseTLSVersion("TLS1.2"), suite.config.SMTP.TLS.MinimumVersion)
 	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
 
@@ -96,7 +96,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultStartupCheckAddress() {
 func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 	suite.config.SMTP.Host = "google.com"
 	suite.config.SMTP.TLS = &schema.TLSConfig{
-		MinimumVersion: "TLS1.1",
+		MinimumVersion: MustParseTLSVersion("TLS1.1"),
 	}
 
 	ValidateNotifier(&suite.config, suite.validator)
@@ -105,7 +105,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("google.com", suite.config.SMTP.TLS.ServerName)
-	suite.Assert().Equal("TLS1.1", suite.config.SMTP.TLS.MinimumVersion)
+	suite.Assert().Equal(MustParseTLSVersion("TLS1.1"), suite.config.SMTP.TLS.MinimumVersion)
 	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
 
@@ -172,4 +172,13 @@ func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 
 func TestNotifierSuite(t *testing.T) {
 	suite.Run(t, new(NotifierSuite))
+}
+
+func MustParseTLSVersion(value string) schema.TLSVersion {
+	v, err := schema.NewTLSVersion(value)
+	if err != nil {
+		panic(err)
+	}
+
+	return *v
 }

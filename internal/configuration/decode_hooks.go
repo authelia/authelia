@@ -382,3 +382,51 @@ func StringToRSAPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 		}
 	}
 }
+
+// StringToTLSVersionHookFunc decodes strings to schema.TLSVersion's.
+func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.TLSVersion{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.TLSVersion
+
+		if dataStr == "" && ptr {
+			return result, nil
+		}
+
+		if result, err = schema.NewTLSVersion(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, prefixType, expectedType, err)
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		if result == nil {
+			return schema.TLSVersion{}, nil
+		}
+
+		return *result, nil
+	}
+}

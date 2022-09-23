@@ -1,16 +1,34 @@
 package schema
 
 import (
+	"crypto/tls"
 	"time"
 )
 
 // TLSConfig is a representation of the TLS configuration.
 type TLSConfig struct {
-	MinimumVersion string `koanf:"minimum_version"`
-	SkipVerify     bool   `koanf:"skip_verify"`
-	ServerName     string `koanf:"server_name"`
+	ServerName string `koanf:"server_name"`
+
+	SkipVerify bool `koanf:"skip_verify"`
+
+	MinimumVersion TLSVersion `koanf:"minimum_version"`
+	MaximumVersion TLSVersion `koanf:"maximum_version"`
 
 	CertificateChain X509CertificateChain `koanf:"certificate_chain"`
+}
+
+// Config returns the schema.TLSConfig as a *tls.Config.
+func (c *TLSConfig) Config() *tls.Config {
+	return &tls.Config{
+		ServerName: c.ServerName,
+
+		InsecureSkipVerify: c.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
+
+		MinVersion: c.MinimumVersion.Version(),
+		MaxVersion: c.MaximumVersion.Version(),
+
+		Certificates: c.CertificateChain.CertificatesTLS(),
+	}
 }
 
 // ServerTimeouts represents server timeout configurations.

@@ -145,10 +145,6 @@ func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		Keys:      readTags("", reflect.TypeOf(schema.Configuration{})),
 	}
 
-	for _, key := range data.Keys {
-		fmt.Println(key)
-	}
-
 	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
 		return err
 	}
@@ -185,8 +181,10 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(regexp.Regexp{}),
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
-	reflect.TypeOf(schema.Address{}),
 	reflect.TypeOf(rsa.PrivateKey{}),
+	reflect.TypeOf(schema.Address{}),
+	reflect.TypeOf(schema.TLSVersion{}),
+	reflect.TypeOf(schema.X509CertificateChain{}),
 }
 
 func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {
@@ -259,10 +257,6 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 }
 
 func getKeyNameFromTagAndPrefix(prefix, name string, slice bool) string {
-	if name == "issuer_private_key" {
-		fmt.Println(prefix, name)
-	}
-
 	nameParts := strings.SplitN(name, ",", 2)
 
 	if prefix == "" {

@@ -18,19 +18,19 @@ func TestShouldConfigureSMTPNotifierWithTLS11(t *testing.T) {
 			Port: 25,
 			TLS: &schema.TLSConfig{
 				ServerName:     "smtp.example.com",
-				MinimumVersion: "TLS1.1",
+				MinimumVersion: MustParseTLSVersion("TLS1.1"),
 			},
 		},
 	}
 
 	notifier := NewSMTPNotifier(config.SMTP, nil, &templates.Provider{})
 
-	assert.Equal(t, "smtp.example.com", notifier.tlsConfig.ServerName)
-	assert.Equal(t, uint16(tls.VersionTLS11), notifier.tlsConfig.MinVersion)
-	assert.False(t, notifier.tlsConfig.InsecureSkipVerify)
+	assert.Equal(t, "smtp.example.com", notifier.configTLS.ServerName)
+	assert.Equal(t, uint16(tls.VersionTLS11), notifier.configTLS.MinVersion)
+	assert.False(t, notifier.configTLS.InsecureSkipVerify)
 }
 
-func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *testing.T) {
+func TestShouldConfigureSMTPNotifierWithServerNameOverride(t *testing.T) {
 	config := &schema.NotifierConfiguration{
 		DisableStartupCheck: true,
 		SMTP: &schema.SMTPNotifierConfiguration{
@@ -44,7 +44,15 @@ func TestShouldConfigureSMTPNotifierWithServerNameOverrideAndDefaultTLS12(t *tes
 
 	notifier := NewSMTPNotifier(config.SMTP, nil, &templates.Provider{})
 
-	assert.Equal(t, "smtp.golang.org", notifier.tlsConfig.ServerName)
-	assert.Equal(t, uint16(tls.VersionTLS12), notifier.tlsConfig.MinVersion)
-	assert.False(t, notifier.tlsConfig.InsecureSkipVerify)
+	assert.Equal(t, "smtp.golang.org", notifier.configTLS.ServerName)
+	assert.False(t, notifier.configTLS.InsecureSkipVerify)
+}
+
+func MustParseTLSVersion(value string) schema.TLSVersion {
+	v, err := schema.NewTLSVersion(value)
+	if err != nil {
+		panic(err)
+	}
+
+	return *v
 }

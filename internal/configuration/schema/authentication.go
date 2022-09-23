@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/tls"
 	"net/url"
 	"time"
 )
@@ -101,7 +102,7 @@ var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendCon
 	GroupNameAttribute:   "cn",
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
-		MinimumVersion: "TLS1.2",
+		MinimumVersion: TLSVersion{value: tls.VersionTLS12},
 	},
 }
 

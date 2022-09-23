@@ -27,9 +27,12 @@ import (
 func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
 	notifier := &SMTPNotifier{
 		config:    config,
-		tlsConfig: utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool),
 		log:       logging.Logger(),
 		templates: templateProvider,
+	}
+
+	if config.TLS != nil {
+		notifier.configTLS = config.TLS.Config()
 	}
 
 	at := strings.LastIndex(config.Sender.Address, "@")
@@ -45,7 +48,7 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 type SMTPNotifier struct {
 	config    *schema.SMTPNotifierConfiguration
 	domain    string
-	tlsConfig *tls.Config
+	configTLS *tls.Config
 	log       *logrus.Logger
 	templates *templates.Provider
 
@@ -129,7 +132,7 @@ func (n *SMTPNotifier) dial() (err error) {
 	if n.config.Port == smtpPortSUBMISSIONS {
 		n.log.Debugf("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
 
-		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port), n.tlsConfig)
+		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port), n.configTLS)
 	} else {
 		conn, err = dialer.Dial("tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port))
 	}
@@ -164,9 +167,9 @@ func (n *SMTPNotifier) startTLS() error {
 
 	switch ok, _ := n.client.Extension(smtpExtSTARTTLS); ok {
 	case true:
-		n.log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
+		n.log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.configTLS.InsecureSkipVerify, n.configTLS.ServerName)
 
-		if err := n.client.StartTLS(n.tlsConfig); err != nil {
+		if err := n.client.StartTLS(n.configTLS); err != nil {
 			return err
 		}
 

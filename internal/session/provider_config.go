@@ -72,10 +72,10 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 	case config.Redis != nil:
 		serializer := NewEncryptingSerializer(config.Secret)
 
-		var tlsConfig *tls.Config
+		var configTLS *tls.Config
 
 		if config.Redis.TLS != nil {
-			tlsConfig = utils.NewTLSConfig(config.Redis.TLS, tls.VersionTLS12, certPool)
+			configTLS = config.Redis.TLS.Config()
 		}
 
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
@@ -107,7 +107,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				PoolSize:         config.Redis.MaximumActiveConnections,
 				MinIdleConns:     config.Redis.MinimumIdleConnections,
 				IdleTimeout:      300,
-				TLSConfig:        tlsConfig,
+				TLSConfig:        configTLS,
 				KeyPrefix:        "authelia-session",
 			}
 		} else {
@@ -133,7 +133,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 				PoolSize:     config.Redis.MaximumActiveConnections,
 				MinIdleConns: config.Redis.MinimumIdleConnections,
 				IdleTimeout:  300,
-				TLSConfig:    tlsConfig,
+				TLSConfig:    configTLS,
 				KeyPrefix:    "authelia-session",
 			}
 		}

@@ -128,24 +128,22 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfi
 		config.LDAP.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	if config.LDAP.TLS == nil {
-		config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
-	} else if config.LDAP.TLS.MinimumVersion == "" {
-		config.LDAP.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
-	}
-
 	var err error
 
-	if err = config.LDAP.TLS.CertificateChain.Validate(); err != nil {
-		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
-	}
+	if config.LDAP.TLS == nil {
+		config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+	} else {
+		if config.LDAP.TLS.MinimumVersion.Version() == 0 {
+			config.LDAP.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
+		}
 
-	if err = config.LDAP.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
-		validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
-	}
+		if err = config.LDAP.TLS.CertificateChain.Validate(); err != nil {
+			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
+		}
 
-	if _, err = utils.TLSStringToTLSConfigVersion(config.LDAP.TLS.MinimumVersion); err != nil {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSMinVersion, config.LDAP.TLS.MinimumVersion, err))
+		if err = config.LDAP.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
+			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
+		}
 	}
 
 	switch config.LDAP.Implementation {

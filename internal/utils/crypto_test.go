@@ -14,23 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
-
-func TestShouldSetupDefaultTLSMinVersionOnErr(t *testing.T) {
-	schemaTLSConfig := &schema.TLSConfig{
-		MinimumVersion: "NotAVersion",
-		ServerName:     "golang.org",
-		SkipVerify:     true,
-	}
-
-	tlsConfig := NewTLSConfig(schemaTLSConfig, tls.VersionTLS12, nil)
-
-	assert.Equal(t, uint16(tls.VersionTLS12), tlsConfig.MinVersion)
-	assert.Equal(t, "golang.org", tlsConfig.ServerName)
-	assert.True(t, tlsConfig.InsecureSkipVerify)
-}
 
 func TestShouldReturnCorrectTLSVersions(t *testing.T) {
 	tls13 := uint16(tls.VersionTLS13)

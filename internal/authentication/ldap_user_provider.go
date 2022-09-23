@@ -12,13 +12,12 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
 	config    schema.LDAPAuthenticationBackendConfiguration
-	tlsConfig *tls.Config
+	configTLS *tls.Config
 	dialOpts  []ldap.DialOpt
 	log       *logrus.Logger
 	factory   LDAPClientFactory
@@ -53,14 +52,16 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, d
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
 
-	tlsConfig := utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool)
-
 	var dialOpts = []ldap.DialOpt{
 		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
 	}
 
-	if tlsConfig != nil {
-		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(tlsConfig))
+	var tc *tls.Config
+
+	if config.TLS != nil {
+		tc = config.TLS.Config()
+
+		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(tc))
 	}
 
 	if factory == nil {
@@ -69,7 +70,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, d
 
 	provider = &LDAPUserProvider{
 		config:               config,
-		tlsConfig:            tlsConfig,
+		configTLS:            tc,
 		dialOpts:             dialOpts,
 		log:                  logging.Logger(),
 		factory:              factory,
@@ -232,7 +233,7 @@ func (p *LDAPUserProvider) connectCustom(url, username, password string, startTL
 	}
 
 	if startTLS {
-		if err = client.StartTLS(p.tlsConfig); err != nil {
+		if err = client.StartTLS(p.configTLS); err != nil {
 			client.Close()
 
 			return nil, fmt.Errorf("starttls failed with error: %w", err)

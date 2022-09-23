@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fasthttp/session/v2"
+	session "github.com/fasthttp/session/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -42,7 +42,7 @@ func TestShouldCreateRedisSessionProviderTLS(t *testing.T) {
 		Password: "pass",
 		TLS: &schema.TLSConfig{
 			ServerName:     "redis.fqdn.example.com",
-			MinimumVersion: "TLS1.3",
+			MinimumVersion: MustParseTLSVersion("TLS1.3"),
 		},
 	}
 	providerConfig := NewProviderConfig(configuration, nil)
@@ -285,4 +285,13 @@ func TestShouldUseEncryptingSerializerWithRedis(t *testing.T) {
 	decoded := session.Dict{}
 	_, _ = decoded.UnmarshalMsg(decrypted)
 	assert.Equal(t, "value", decoded.Get("key"))
+}
+
+func MustParseTLSVersion(value string) schema.TLSVersion {
+	v, err := schema.NewTLSVersion(value)
+	if err != nil {
+		panic(err)
+	}
+
+	return *v
 }

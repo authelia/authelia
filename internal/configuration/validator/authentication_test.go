@@ -56,6 +56,7 @@ func (suite *FileBasedAuthenticationBackend) SetupTest() {
 	}}
 	suite.config.File.Password.Algorithm = schema.DefaultPasswordConfiguration.Algorithm
 }
+
 func (suite *FileBasedAuthenticationBackend) TestShouldValidateCompleteConfiguration() {
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -126,6 +127,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 	suite.Assert().Equal(schema.DefaultPasswordSHA512Configuration.Memory, suite.config.File.Password.Memory)
 	suite.Assert().Equal(schema.DefaultPasswordSHA512Configuration.Parallelism, suite.config.File.Password.Parallelism)
 }
+
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenKeyLengthTooLow() {
 	suite.config.File.Password.KeyLength = 1
 
@@ -483,7 +485,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersion() {
-	suite.config.LDAP.TLS = &schema.TLSConfig{MinimumVersion: ""}
+	suite.config.LDAP.TLS = &schema.TLSConfig{MinimumVersion: schema.TLSVersion{}}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -491,19 +493,6 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersi
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion, suite.config.LDAP.TLS.MinimumVersion)
-}
-
-func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
-	suite.config.LDAP.TLS = &schema.TLSConfig{
-		MinimumVersion: "SSL2.0",
-	}
-
-	ValidateAuthenticationBackend(&suite.config, suite.validator)
-
-	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option 'minimum_tls_version' is invalid: SSL2.0: supplied tls version isn't supported")
 }
 
 func TestLdapAuthenticationBackend(t *testing.T) {

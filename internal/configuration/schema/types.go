@@ -329,3 +329,29 @@ func (c *X509CertificateChain) HasKeyUsageExt(keyUsageExt x509.ExtKeyUsage) (has
 
 	return false
 }
+
+// NewTLSVersion parses TLS versions to the unit16 representation of the version and stores it as a *schema.TLSVersion.
+func NewTLSVersion(input string) (version *TLSVersion, err error) {
+	switch strings.ToUpper(input) {
+	case "1.3", prefixTLS + vOneThree, prefixTLS + " " + vOneThree:
+		return &TLSVersion{tls.VersionTLS13}, nil
+	case "1.2", prefixTLS + vOneTwo, prefixTLS + " " + vOneTwo:
+		return &TLSVersion{tls.VersionTLS12}, nil
+	case "1.1", prefixTLS + vOneOne, prefixTLS + " " + vOneOne:
+		return &TLSVersion{tls.VersionTLS11}, nil
+	case "1.0", prefixTLS + vOneZero, prefixTLS + " " + vOneZero:
+		return &TLSVersion{tls.VersionTLS10}, nil
+	default:
+		return nil, fmt.Errorf("tls version '%s' is unknown or unsupported", input)
+	}
+}
+
+// TLSVersion represents a TLS version like tls.VersionTLS13.
+type TLSVersion struct {
+	value uint16
+}
+
+// Version returns the actual version.
+func (v *TLSVersion) Version() uint16 {
+	return v.value
+}
