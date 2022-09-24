@@ -22,7 +22,7 @@ obviously choose a different path if you are so inclined.
 Forwarded Authentication is a simple per-request authorization flow that checks the metadata of a request and a session
 cookie to determine if a user must be forwarded to the authentication portal.
 
-Due to the fact a cookie is use, it's an intentional design decision that *__ALL__* applications/domains protected via
+Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected via
 this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
 
 ### OpenID Connect
