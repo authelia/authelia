@@ -19,7 +19,7 @@ func (acs *AccessControlSubjects) AddSubject(subjectRule string) {
 }
 
 // IsMatch returns true if the ACL subjects match the subject properties.
-func (acs AccessControlSubjects) IsMatch(subject Subject) (match bool) {
+func (acs *AccessControlSubjects) IsMatch(subject Subject) (match bool) {
 	for _, rule := range acs.Subjects {
 		if !rule.IsMatch(subject) {
 			return false

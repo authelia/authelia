@@ -1,0 +1,140 @@
+---
+name: Bug Report
+description: Report a bug
+labels:
+  - type/bug/unconfirmed
+  - status/needs-triage
+  - priority/4/normal
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
+
+        Please review the following requirements before submitting this issue type:
+
+        1. Please ensure you do not report security vulnerabilities via this method. See our [Security Policy](https://www.authelia.com/security-policy).
+        2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a quick fix.
+        3. Please ensure an issue does not already exist for this potential bug.
+        4. Please only provide specific versions. Latest is not a version.
+        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on removing or adjusting any values for the logs or configuration files.
+        6. Please consider including a [HTTP Archive File](https://www.authelia.com/r/har) if you're having redirection issues.
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version(s) of Authelia can you reproduce this bug on?
+      multiple: true
+      options:
+        - v4.36.8
+        - v4.36.7
+        - v4.36.6
+        - v4.36.5
+        - v4.36.4
+        - v4.36.3
+        - v4.36.2
+        - v4.36.1
+        - v4.36.0
+        - v4.35.6
+        - v4.35.5
+        - v4.35.4
+        - v4.35.3
+        - v4.35.2
+        - v4.35.1
+        - v4.35.0
+        - v4.34.6
+        - v4.34.5
+        - v4.34.4
+        - v4.34.3
+        - v4.34.2
+        - v4.34.1
+        - v4.34.0
+        - v4.33.2
+        - v4.33.1
+        - v4.33.0
+        - v4.32.2
+        - v4.32.1
+        - v4.32.0
+        - v4.31.0
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment Method
+      description: How are you deploying Authelia?
+      options:
+        - Docker
+        - Kubernetes
+        - Bare-metal
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: proxy
+    attributes:
+      label: Reverse Proxy
+      description: What reverse proxy are you using?
+      options:
+        - Caddy
+        - Traefik
+        - Envoy
+        - NGINX
+        - SWAG
+        - NGINX Proxy Manager
+        - HAProxy
+    validations:
+      required: true
+  - type: input
+    id: proxy-version
+    attributes:
+      label: Reverse Proxy Version
+      description: What is the version of your reverse proxy?
+      placeholder: x.x.x
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the bug
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Describe how we can reproduce this issue
+    validations:
+      required: true
+  - type: textarea
+    id: expectations
+    attributes:
+      label: Expectations
+      description: Describe the desired or expected results
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Provide the logs (the template will automatically put this content in a code block)
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Provide the Authelia configuration file (the template will automatically put this content in a code block)
+      render: yaml
+    validations:
+      required: false
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation
+      description: Provide any relevant specification or other documentation if applicable
+    validations:
+      required: false
+...

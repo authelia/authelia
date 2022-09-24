@@ -54,12 +54,11 @@ __SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.*
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
+  name: forwardauth-authelia
+  namespace: default
   labels:
     app.kubernetes.io/instance: authelia
     app.kubernetes.io/name: authelia
-    argocd.argoproj.io/instance: authelia
-  name: forwardauth-authelia
-  namespace: default
 spec:
   forwardAuth:
     address: http://authelia.default.svc.cluster.local/api/verify?rd=https%3A%2F%2Fauth.example.com%2F

@@ -25,7 +25,7 @@ func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	safe, err := utils.IsRedirectionURISafe(reqBody.URI, ctx.Configuration.Session.Domain)
+	safe, err := utils.IsURIStringSafeRedirection(reqBody.URI, ctx.Configuration.Session.Domain)
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to determine if uri %s is safe to redirect to: %w", reqBody.URI, err), messageOperationFailed)
 		return

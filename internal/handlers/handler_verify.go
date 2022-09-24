@@ -56,7 +56,7 @@ func parseBasicAuth(header []byte, auth string) (username, password string, err 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
 func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
 	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) authorizationMatching {
-	level := authorizer.GetRequiredLevel(
+	hasSubject, level := authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
 			Groups:   userGroups,
@@ -67,13 +67,12 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 	switch {
 	case level == authorization.Bypass:
 		return Authorized
-	case level == authorization.Denied && username != "":
+	case level == authorization.Denied && (username != "" || !hasSubject):
 		// If the user is not anonymous, it means that we went through
 		// all the rules related to that user and knowing who he is we can
 		// deduce the access is forbidden
-		// For anonymous users though, we cannot be sure that she
-		// could not be granted the rights to access the resource. Consequently
-		// for anonymous users we send Unauthorized instead of Forbidden.
+		// For anonymous users though, we check that the matched rule has no subject
+		// if matched rule has not subject then this rule applies to all users including anonymous.
 		return Forbidden
 	case level == authorization.OneFactor && authLevel >= authentication.OneFactor,
 		level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
