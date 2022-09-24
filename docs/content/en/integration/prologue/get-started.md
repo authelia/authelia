@@ -27,7 +27,7 @@ this method *__MUST__* use secure schemes (`https` and `wss`) for all of their c
 
 ### OpenID Connect
 
-Only requires Authelia to be use a secure scheme (`https`).
+Only requires Authelia to use a secure scheme (`https`).
 
 ## Configuration
 
