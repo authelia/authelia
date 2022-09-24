@@ -139,6 +139,6 @@ Following this, restart Authelia, and you should be able to begin using lldap in
 
 ## See Also
 [Authelia]: https://www.authelia.com
-[Bitname OpenLDAP]: https://www.bookstackapp.com/](https://hub.docker.com/r/bitnami/openldap/
+[Bitnami OpenLDAP]: https://hub.docker.com/r/bitnami/openldap/
 [FreeIPA]: https://www.freeipa.org/page/Main_Page
 [lldap]: https://github.com/nitnelave/lldap
