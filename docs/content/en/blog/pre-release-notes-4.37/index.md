@@ -1,6 +1,6 @@
 ---
 title: "4.37: Pre-Release Notes"
-description: "Pre-Release Notes for Authelia 4.37"
+description: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
 lead: "Pre-Release Notes for 4.37"
 excerpt: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
 date: 2022-09-26T05:48:22+10:00
@@ -64,9 +64,9 @@ implementing it.
 In this release we're going to start adding the [OCI Image Format Specification]'s set of [Annotations] to all of our
 images.
 
-These for the time being will also be added as container labels as [Annotations] are a relatively unsupported
-specification at this stage. However a majority of use cases for the [Annotations] either actually use labels or fallback
-to labels.
+For the time being we will also add the [Annotations] as container labels. This is because [Annotations] are a
+relatively unsupported specification at this stage. A majority of use cases for the [Annotations] either actually use
+labels or fallback to labels.
 
 [OCI Image Format Specification]: https://github.com/opencontainers/image-spec
 [Annotations]: https://github.com/opencontainers/image-spec/blob/main/annotations.md
@@ -130,4 +130,3 @@ We'll be adding the following compatibility features in this release:
 
 * LDAP Servers which do not support querying the RootDSE for supported controls or extensions.
 * SMTP Servers which advertise support for STARTTLS but do not actually support it.
-
