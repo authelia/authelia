@@ -12,23 +12,29 @@ weight: 710
 toc: true
 ---
 
-## Tested Versions
+## UNDER CONSTRUCTION
 
-* [Authelia]
-  * [v4.36.5](https://github.com/authelia/authelia/releases/tag/v4.36.5)
+This section is still a work in progress.
 
 ## Configuration
 
 ### OpenLDAP
-#### Tested Version: [Bitnami OpenLDAP - 2.5.13](https://github.com/bitnami/bitnami-docker-openldap/releases/tag/2.5.13-debian-11-r7)  
-Create within OpenLDAP, either via CLI or with a GUI management application like [phpLDAPadmin](http://phpldapadmin.sourceforge.net/wiki/index.php/Main_Page) or [LDAP Admin](http://www.ldapadmin.org/) a basic user with a complex password.
-*Make note of its CN.*
-You can also create a group to use within Authelia if you would like granular control of who can login, and reference it within the filters below.
+
+**Tested:**
+* Version: [v2.5.13](https://www.openldap.org/software/release/announce_lts.html)
+* Container `bitnami/openldap:2.5.13-debian-11-r7`
+
+Create within OpenLDAP, either via CLI or with a GUI management application like
+[phpLDAPadmin](http://phpldapadmin.sourceforge.net/wiki/index.php/Main_Page) or [LDAP Admin](http://www.ldapadmin.org/)
+a basic user with a complex password.
+
+*Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
+login, and reference it within the filters below.
 
 ### Authelia
 
-In your Authelia configuration you will need to enter and update the following variables - 
-* url `ldap://OpenLDAP:1389` - servers dns name & port.  
+In your Authelia configuration you will need to enter and update the following variables -
+* url `ldap://OpenLDAP:1389` - servers dns name & port.
   *tip: if you have Authelia on a container network that is routable, you can just use the container name*
 * server_name `ldap01.example.com` - servers name
 * base_dn `dc=example,dc=com` - common name of domain root.
@@ -58,18 +64,25 @@ In your Authelia configuration you will need to enter and update the following v
     user: uid=authelia,ou=service accounts,dc=example,dc=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
-Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
+Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
+Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
 
 ### FreeIPA
-#### Tested Version: [FreeIPA - 4.9.9/CentOS]([https://github.com/bitnami/bitnami-docker-openldap/releases/tag/2.5.13-debian-11-r7](https://www.freeipa.org/page/Releases/4.9.9))  
-Create within FreeIPA, either via CLI or within its GUI management application `https://server_ip` a basic user with a complex password.
-*Make note of its CN.*
-You can also create a group to use within Authelia if you would like granular control of who can login, and reference it within the filters below.
+
+**Tested:**
+* Version: [v4.9.9](https://www.freeipa.org/page/Releases/4.9.9)
+* Container: `freeipa/freeipa-server:fedora-36-4.9.9`
+
+Create within FreeIPA, either via CLI or within its GUI management application `https://server_ip` a basic user with a
+complex password.
+
+*Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
+login, and reference it within the filters below.
 
 ### Authelia
 
-In your Authelia configuration you will need to enter and update the following variables - 
-* url `ldap://ldap` - servers dns name. Port will assume 389 as standard. Specify custom port with `:port` if needed.  
+In your Authelia configuration you will need to enter and update the following variables -
+* url `ldap://ldap` - servers dns name. Port will assume 389 as standard. Specify custom port with `:port` if needed.
 * server_name `ldap01.example.com` - servers name
 * base_dn `dc=example,dc=com` - common name of domain root.
 * groups_filter `dc=example,dc=com` - replace relevant section with your own domain in common name format, same as base_dn.
@@ -98,17 +111,22 @@ In your Authelia configuration you will need to enter and update the following v
     user: uid=authelia,cn=users,cn=accounts,dc=example,dc=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
-Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.  
+Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
+Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
 
 ### lldap
-#### Tested Version: [lldap - 0.4.0](https://github.com/nitnelave/lldap/releases/tag/v0.4.07)  
+
+**Tested:**
+* Version: [v0.4.0](https://github.com/nitnelave/lldap/releases/tag/v0.4.07)
+
 Create within lldap, a basic user with a complex password, and add to the group "lldap_password_manager"
-You can also create a group to use within Authelia if you would like granular control of who can login, and reference it within the filters below.
+You can also create a group to use within Authelia if you would like granular control of who can login, and reference it
+within the filters below.
 
 ### Authelia
 
-In your Authelia configuration you will need to enter and update the following variables - 
-* url `ldap://OpenLDAP:1389` - servers dns name & port.  
+In your Authelia configuration you will need to enter and update the following variables -
+* url `ldap://OpenLDAP:1389` - servers dns name & port.
   *tip: if you have Authelia on a container network that is routable, you can just use the container name*
 * base_dn `dc=example,dc=com` - common name of domain root.
 * user `authelia` - username for Authelia service account.
@@ -135,9 +153,11 @@ ldap:
     user: uid=authelia,ou=people,dc=example,dc=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
-Following this, restart Authelia, and you should be able to begin using lldap integration for your user logins, with Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object. 
+Following this, restart Authelia, and you should be able to begin using lldap integration for your user logins, with
+Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
 
 ## See Also
+
 [Authelia]: https://www.authelia.com
 [Bitnami OpenLDAP]: https://hub.docker.com/r/bitnami/openldap/
 [FreeIPA]: https://www.freeipa.org/page/Main_Page
