@@ -1,7 +1,8 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 
-import { Grid, Button, FormControlLabel, Checkbox, Link, Theme } from "@mui/material";
+import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { BroadcastChannel } from "broadcast-channel";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -9,14 +10,11 @@ import { useNavigate } from "react-router-dom";
 import FixedTextField from "@components/FixedTextField";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { usePageVisibility } from "@hooks/PageVisibility";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRequestMethod } from "@hooks/RequestMethod";
-import { useAutheliaState } from "@hooks/State";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { postFirstFactor } from "@services/FirstFactor";
-import { AuthenticationLevel } from "@services/State";
 
 export interface Props {
     disabled: boolean;
@@ -28,6 +26,7 @@ export interface Props {
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onChannelStateChange: () => void;
 }
 
 const FirstFactorForm = function (props: Props) {
@@ -37,7 +36,7 @@ const FirstFactorForm = function (props: Props) {
     const requestMethod = useRequestMethod();
     const workflow = useWorkflow();
 
-    const [state, fetchState, ,] = useAutheliaState();
+    const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -47,7 +46,6 @@ const FirstFactorForm = function (props: Props) {
     // TODO (PR: #806, Issue: #511) potentially refactor
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const visible = usePageVisibility();
     const { t: translate } = useTranslation();
 
     useEffect(() => {
@@ -56,18 +54,12 @@ const FirstFactorForm = function (props: Props) {
     }, [usernameRef]);
 
     useEffect(() => {
-        if (visible) {
-            fetchState();
-        }
-        const timer = setInterval(() => fetchState(), 1000);
-        return () => clearInterval(timer);
-    }, [visible, fetchState]);
-
-    useEffect(() => {
-        if (state && state.authentication_level >= AuthenticationLevel.OneFactor) {
-            props.onAuthenticationSuccess(redirectionURL);
-        }
-    }, [state, redirectionURL, props]);
+        loginChannel.addEventListener("message", (authenticated) => {
+            if (authenticated) {
+                props.onChannelStateChange();
+            }
+        });
+    }, [loginChannel, redirectionURL, props]);
 
     const disabled = props.disabled;
 
@@ -90,6 +82,7 @@ const FirstFactorForm = function (props: Props) {
         props.onAuthenticationStart();
         try {
             const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
+            await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);

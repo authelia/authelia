@@ -72,15 +72,16 @@ which will operate with the above example:
 
 ```yaml
 - id: seafile
+  description: Seafile
   secret: seafile_client_secret
   public: false
   authorization_policy: two_factor
+  redirect_uris:
+    - https://seafile.example.com/oauth/callback/
   scopes:
     - openid
     - profile
     - email
-  redirect_uris:
-    - https://seafile.example.com/oauth/callback/
   userinfo_signing_algorithm: none
 ```
 

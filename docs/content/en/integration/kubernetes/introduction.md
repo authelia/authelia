@@ -21,7 +21,7 @@ aliases:
 The following areas are actively being worked on for Kubernetes:
 
 1. Detailed Documentation
-2. [Helm Chart](../chart.md) for Helm v3
+2. [Helm Chart](chart.md) for Helm v3
 3. Kustomize Deployment
 4. Manifest Examples
 

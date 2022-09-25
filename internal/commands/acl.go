@@ -21,6 +21,8 @@ func newAccessControlCommand() (cmd *cobra.Command) {
 		Short:   cmdAutheliaAccessControlShort,
 		Long:    cmdAutheliaAccessControlLong,
 		Example: cmdAutheliaAccessControlExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -37,6 +39,8 @@ func newAccessControlCheckCommand() (cmd *cobra.Command) {
 		Long:    cmdAutheliaAccessControlCheckPolicyLong,
 		Example: cmdAutheliaAccessControlCheckPolicyExample,
 		RunE:    accessControlCheckRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
@@ -204,7 +208,7 @@ func getSubjectAndObjectFromFlags(cmd *cobra.Command) (subject authorization.Sub
 		return subject, object, err
 	}
 
-	parsedURL, err := url.Parse(requestURL)
+	parsedURL, err := url.ParseRequestURI(requestURL)
 	if err != nil {
 		return subject, object, err
 	}

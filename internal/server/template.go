@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -19,7 +22,7 @@ import (
 func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, session, theme string, https bool) middlewares.RequestHandler {
 	logger := logging.Logger()
 
-	a, err := assets.Open(publicDir + file)
+	a, err := assets.Open(path.Join(publicDir, file))
 	if err != nil {
 		logger.Fatalf("Unable to open %s: %s", file, err)
 	}
@@ -43,7 +46,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		logoOverride := f
 
 		if assetPath != "" {
-			if _, err := os.Stat(filepath.Join(assetPath, logoFile)); err == nil {
+			if _, err := os.Stat(filepath.Join(assetPath, fileLogo)); err == nil {
 				logoOverride = t
 			}
 		}
@@ -71,14 +74,14 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		}
 
 		switch {
-		case publicDir == swaggerAssets:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf("base-uri 'self'; default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'", nonce, nonce))
+		case publicDir == assetsSwagger:
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf("base-uri 'self'; default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'", nonce, nonce))
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
-			ctx.Response.Header.Add("Content-Security-Policy", strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, cspNoncePlaceholder, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, cspNoncePlaceholder, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, " 'unsafe-eval'", nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(cspDefaultTemplate, " 'unsafe-eval'", nonce))
 		default:
-			ctx.Response.Header.Add("Content-Security-Policy", fmt.Sprintf(cspDefaultTemplate, "", nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(cspDefaultTemplate, "", nonce))
 		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, ResetPasswordCustomURL, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, ResetPasswordCustomURL: resetPasswordCustomURL, Session: session, Theme: theme})

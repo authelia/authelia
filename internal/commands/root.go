@@ -35,6 +35,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Args:    cobra.NoArgs,
 		PreRun:  newCmdWithConfigPreRun(true, true, true),
 		Run:     cmdRootRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, false, []string{})
@@ -84,6 +86,7 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 	runServers(config, providers, logger)
 }
 
+//nolint:gocyclo // Complexity is required in this function.
 func runServers(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
 	ctx := context.Background()
 
@@ -106,8 +109,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 
 	g.Go(func() (err error) {
 		defer func() {
-			if rec := recover(); rec != nil {
-				log.WithError(recoverErr(rec)).Errorf("Critical error in server caught (recovered)")
+			if r := recover(); r != nil {
+				log.WithError(recoverErr(r)).Errorf("Critical error in server caught (recovered)")
 			}
 		}()
 
@@ -116,6 +119,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 
 		if err = mainServer.Serve(mainListener); err != nil {
+			log.WithError(err).Error("Server (main) returned error")
+
 			return err
 		}
 
@@ -128,8 +133,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 
 		defer func() {
-			if rec := recover(); rec != nil {
-				log.WithError(recoverErr(rec)).Errorf("Critical error in metrics server caught (recovered)")
+			if r := recover(); r != nil {
+				log.WithError(recoverErr(r)).Errorf("Critical error in metrics server caught (recovered)")
 			}
 		}()
 
@@ -138,6 +143,8 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 
 		if err = metricsServer.Serve(metricsListener); err != nil {
+			log.WithError(err).Error("Server (metrics) returned error")
+
 			return err
 		}
 
@@ -145,10 +152,15 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 	})
 
 	select {
-	case <-quit:
-		break
+	case s := <-quit:
+		switch s {
+		case syscall.SIGINT:
+			log.Debugf("Shutdown started due to SIGINT")
+		case syscall.SIGQUIT:
+			log.Debugf("Shutdown started due to SIGQUIT")
+		}
 	case <-ctx.Done():
-		break
+		log.Debugf("Shutdown started due to context completion")
 	}
 
 	cancel()
@@ -157,8 +169,10 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 
 	var err error
 
-	if err = mainServer.Shutdown(); err != nil {
-		log.WithError(err).Errorf("Error occurred shutting down the server")
+	if mainServer != nil {
+		if err = mainServer.Shutdown(); err != nil {
+			log.WithError(err).Errorf("Error occurred shutting down the server")
+		}
 	}
 
 	if metricsServer != nil {

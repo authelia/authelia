@@ -121,14 +121,14 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 	},
 	"server.read_buffer_size": {
-		Version: model.SemanticVersion{Major: 4, Minor: 37},
+		Version: model.SemanticVersion{Major: 4, Minor: 36},
 		Key:     "server.read_buffer_size",
 		NewKey:  "server.buffers.read",
 		AutoMap: true,
 		MapFunc: nil,
 	},
 	"server.write_buffer_size": {
-		Version: model.SemanticVersion{Major: 4, Minor: 37},
+		Version: model.SemanticVersion{Major: 4, Minor: 36},
 		Key:     "server.write_buffer_size",
 		NewKey:  "server.buffers.write",
 		AutoMap: true,

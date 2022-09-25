@@ -87,7 +87,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
+	_, requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
 			Groups:   groups,
@@ -104,7 +104,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod st
 		return
 	}
 
-	if !utils.URLDomainHasSuffix(*targetURL, ctx.Configuration.Session.Domain) {
+	if !utils.IsURISafeRedirection(targetURL, ctx.Configuration.Session.Domain) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && ctx.Configuration.DefaultRedirectionURL != "" {
@@ -147,7 +147,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 
 	var safe bool
 
-	if safe, err = utils.IsRedirectionURISafe(targetURI, ctx.Configuration.Session.Domain); err != nil {
+	if safe, err = utils.IsURIStringSafeRedirection(targetURI, ctx.Configuration.Session.Domain); err != nil {
 		ctx.Error(fmt.Errorf("unable to check target URL: %s", err), messageMFAValidationFailed)
 
 		return
@@ -176,7 +176,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 
 	referer := ctx.Request.Header.Referer()
 	if referer != nil {
-		refererURL, err := url.Parse(string(referer))
+		refererURL, err := url.ParseRequestURI(string(referer))
 		if err == nil {
 			requestURI = refererURL.Query().Get("rd")
 			requestMethod = refererURL.Query().Get("rm")
