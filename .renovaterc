@@ -24,6 +24,13 @@
     "dependencies"
   ],
   "packageRules": [
+	{
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
     {
       "datasources": [
         "docker"
