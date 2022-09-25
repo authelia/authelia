@@ -78,7 +78,7 @@ which will operate with the above example:
     - https://komga.example.com/login/oauth2/code/authelia
   scopes:
     - openid
-    - preferred_username
+    - profile
     - email
   grant_types:
     - authorization_code
