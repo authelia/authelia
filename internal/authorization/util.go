@@ -75,11 +75,6 @@ func schemaDomainsToACL(domainRules []string) (domains []AccessControlDomain) {
 		domains = append(domains, NewAccessControlDomain(domainRule))
 	}
 
-	/*
-		for _, domainRegexRule := range domainRegexRules {
-			domains = append(domains, NewAccessControlDomainRegex(domainRegexRule))
-		}
-	*/
 
 	return domains
 }
