@@ -64,8 +64,9 @@ implementing it.
 In this release we're going to start adding the [OCI Image Format Specification]'s set of [Annotations] to all of our
 images.
 
-These for the time being will be added as container labels as [Annotations] are a relatively unsupported specification
-at this stage. However a majority of use cases for the [Annotations] either actually use labels or fallback to labels.
+These for the time being will also be added as container labels as [Annotations] are a relatively unsupported
+specification at this stage. However a majority of use cases for the [Annotations] either actually use labels or fallback
+to labels.
 
 [OCI Image Format Specification]: https://github.com/opencontainers/image-spec
 [Annotations]: https://github.com/opencontainers/image-spec/blob/main/annotations.md
