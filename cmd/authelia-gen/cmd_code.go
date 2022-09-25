@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -182,8 +183,10 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
 	reflect.TypeOf(rsa.PrivateKey{}),
+	reflect.TypeOf(x509.Certificate{}),
 	reflect.TypeOf(schema.Address{}),
 	reflect.TypeOf(schema.TLSVersion{}),
+	reflect.TypeOf(schema.X509KeyPair{}),
 	reflect.TypeOf(schema.X509CertificateChain{}),
 }
 

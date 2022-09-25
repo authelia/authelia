@@ -73,19 +73,9 @@ func validateRedis(config *schema.SessionConfiguration, validator *schema.Struct
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 
-	var err error
-
 	if config.Redis.TLS != nil {
 		if config.Redis.TLS.MinimumVersion.Version() == 0 {
 			config.Redis.TLS.MinimumVersion = schema.DefaultRedisConfiguration.TLS.MinimumVersion
-		}
-
-		if err = config.Redis.TLS.CertificateChain.Validate(); err != nil {
-			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixSessionRedis, err))
-		}
-
-		if err = config.Redis.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
-			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
 		}
 
 		if config.Redis.TLS.ServerName == "" {

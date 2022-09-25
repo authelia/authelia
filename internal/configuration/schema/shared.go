@@ -14,21 +14,25 @@ type TLSConfig struct {
 	MinimumVersion TLSVersion `koanf:"minimum_version"`
 	MaximumVersion TLSVersion `koanf:"maximum_version"`
 
-	CertificateChain X509CertificateChain `koanf:"certificate_chain"`
+	ClientAuthKeyPair *X509KeyPair `koanf:"client_auth_keypair"`
 }
 
 // Config returns the schema.TLSConfig as a *tls.Config.
 func (c *TLSConfig) Config() *tls.Config {
-	return &tls.Config{
+	config := &tls.Config{
 		ServerName: c.ServerName,
 
 		InsecureSkipVerify: c.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
 
 		MinVersion: c.MinimumVersion.Version(),
 		MaxVersion: c.MaximumVersion.Version(),
-
-		Certificates: c.CertificateChain.CertificatesTLS(),
 	}
+
+	if c.ClientAuthKeyPair != nil {
+		config.Certificates = []tls.Certificate{c.ClientAuthKeyPair.Certificate()}
+	}
+
+	return config
 }
 
 // ServerTimeouts represents server timeout configurations.

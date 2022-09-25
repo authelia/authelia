@@ -34,7 +34,8 @@ session:
       server_name: myredis.example.com
       skip_verify: false
       minimum_version: TLS1.2
-      certificate_chain: |
+      maximum_version: TLS1.3
+      client_auth_keypair: |
         -----BEGIN CERTIFICATE-----
         MIIC5jCCAc6gAwIBAgIRANQn+N/s2XpbyLjHhrhbLMYwDQYJKoZIhvcNAQELBQAw
         EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTIzMDA1NTM5WhcNMjMwOTIzMDA1
@@ -53,6 +54,33 @@ session:
         XXgc6RG3GfuKWBOUfKJ/ejt6lKSI3vGkKgHjCAoHVsgHFz5CuGK3YISeX54sXA2D
         WXAcqD7v1ddNQKmE2eWZU4+2boBdXKMPtUQ=
         -----END CERTIFICATE-----
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAmt20OFPQte96eRrWnE8o3drLzaAYy5QdA8TB6v6+E6NCZO6I
+        3POVg5DkdEqRGKml8I3DF/VAqm+WUvBbFaHnkx4XCCgh3LWujZD+wIgexF18giAX
+        Fe4IFzIA+d/FSu6MIgqFu8TvYYLUwlYYLC0ImM9ZKWoZRk8wUTLyfhZO3OAEPPHu
+        09Sugfq0zIRE74vMt7Hq501pjcvjdPAgh1d+Irtfq0W0hyDJIY0ygSgDdPNe+mvw
+        37mg+0UzHud/ywGNXzkBnXfhkDOxJW/+k8XUnIBqwFP2f9vjOGvy3+SbwErGvBTg
+        5nqvHt+1ka2rHWTtzPLe7SAK0VRxKEi18v+9IQIDAQABAoIBAHS8dBIVk/jgmOhb
+        A7T1sq9xMzk/2hDzB+AEW8yA09THts+QQxiSgHyZJqxGXRNDJjOrGImhtGoFDUJd
+        rbsjvQTXpLLgVY4iYX6S8oU81jxc3/LSr7Q3JmAdsECqnfR61qT+W4qLy4osbaZD
+        8ZqzI4zUl7gxIvYt0RUUG1hSBoZVJo4RjY2JG+YQbD1XYA7RYV9E/OKCH7yX/7T4
+        iaIC0vN79yVHGPW6mvYE2INmCOCwabvSRKKqngVS/usm3cgo7LqL4OSqFVpHqf9F
+        b+iP5fmzhexwQ/iZeXrv0Y9mGBjX0XpCNZRxiyDLuCXWvZeX/13Ae4/xEOipDw28
+        mWBzyvUCgYEAx4PW0gEpVDMX2u3GmlK4WhCV3ArRDnYL0mU6xobQP6MuNYoyHh4L
+        9yAt4YCmkTXx2Mc6kN6BJDG+6d0PwKnaMXqQGXjCo5+kdqzIYLCmHgG2Xv6SSqAU
+        0KfaOZPgMaOmghGw2QqrBwWo+LEc92Fj4bmpNCjl1rZ+ZdpdGI7FoVsCgYEAxrXc
+        goQAffsPIrNFOPKk5sOpN5cBHpaX62SZmTCEZjzvquBzE5b4jb5mbbw/5uFyeH39
+        s74LRS24UrVjhJ5VaFKUNmUrAoUihb8eUl5lb3eUYIaKNz81YhDq369G0Ku4KRtc
+        mwlnCFqY0G0ijK400lExlZR4ogIA9V1QHZHtSDMCgYEAjQ+p0tD/Z4i4VRHIWVQj
+        A4q2ad078f2EXj00USkAE/5LrY8H4ENeMluOFOHg4spBNAOoZMTsiaqiULb7bDyr
+        CFCfkWLQOt+kaEPBaJt817peNsvGovyLuvryT8M9v9r03wGjB9GDGnPmA+81i7JP
+        7EhYWYiQ+D4PH/RD3hkTogECgYBPAwMyVmCHt2tWRegxc7IEHCrN8to8Gm8/5xl4
+        IyWSLYqy7Fp1oKMmYV4DJkZWfLByns5hSSDcGgjfwkZW9kpJmARc+K84ak3G1q6s
+        2+IDh43VL8oHm7eTTdzGosBKuu0YU0voTb3NQZDf13VUcPSJ6EUKECZDbP6KkdcI
+        Wvz5pwKBgCffF+1xaMPOY8cVomvbnPfEAGes3EZGDq9TE36jDbQkOomBYZJ7+kPp
+        mzhg2cUnDBiZ3eRGlfmBmgxIHdSweZQ5yxAyDBLfWxw9yqIX8bLyP7rBzxSy4efu
+        6C3Nu7c0HX6rhcgrDFzZKc2TMuV8ihsMPfp5WSOqOIHXhUTfxPdh
+        -----END RSA PRIVATE KEY-----
     high_availability:
       sentinel_name: mysentinel
       # If `sentinel_username` is supplied, Authelia will connect using ACL-based

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -150,6 +151,86 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 	return chain, nil
 }
 
+// NewX509KeyPair is a wrapper around the tls.X509KeyPair function which splits the certificates from the private key.
+func NewX509KeyPair(data string) (pair *X509KeyPair, err error) {
+	var (
+		certs []*pem.Block
+		key   *pem.Block
+	)
+
+	bytesPEM := []byte(data)
+
+	var block *pem.Block
+
+	for {
+		block, bytesPEM = pem.Decode(bytesPEM)
+
+		switch {
+		case block == nil:
+			switch len(bytesPEM) {
+			case 0:
+				break
+			default:
+				return nil, fmt.Errorf("x509 key pair was provided invalid data: isn't an encoded PEM block")
+			}
+		case block.Type == "CERTIFICATE":
+			certs = append(certs, block)
+		case block.Type == "PRIVATE KEY", strings.HasSuffix(block.Type, " PRIVATE KEY"):
+			if key != nil {
+				return nil, fmt.Errorf("x509 key pair was provided more than one private key")
+			}
+
+			key = block
+		default:
+			return nil, fmt.Errorf("x509 key pair must only contain certificates and private keys")
+		}
+
+		if len(bytesPEM) == 0 {
+			break
+		}
+	}
+
+	if len(certs) == 0 {
+		return nil, fmt.Errorf("x509 key pair failed to decode: no certificate PEM block provided")
+	}
+
+	if key == nil {
+		return nil, fmt.Errorf("x509 key pair failed to decode: no private key PEM block provided")
+	}
+
+	buf := &bytes.Buffer{}
+
+	for _, cert := range certs {
+		if err = pem.Encode(buf, cert); err != nil {
+			return nil, fmt.Errorf("x509 key pair failed to encode certificate: %w", err)
+		}
+	}
+
+	bufk := &bytes.Buffer{}
+
+	if err = pem.Encode(bufk, key); err != nil {
+		return nil, fmt.Errorf("x509 key pair failed to encode private key: %w", err)
+	}
+
+	var tpair tls.Certificate
+
+	if tpair, err = tls.X509KeyPair(buf.Bytes(), bufk.Bytes()); err != nil {
+		return nil, fmt.Errorf("x509 key pair failed to derive tls.Certificate: %w", err)
+	}
+
+	return &X509KeyPair{pair: tpair}, nil
+}
+
+// X509KeyPair is a tls.Certificate that is ensured to have a private key and certificate.
+type X509KeyPair struct {
+	pair tls.Certificate
+}
+
+// Certificate returns the certificate.
+func (x *X509KeyPair) Certificate() tls.Certificate {
+	return x.pair
+}
+
 // X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
 type X509CertificateChain struct {
 	certs []*x509.Certificate
@@ -185,7 +266,7 @@ func (c *X509CertificateChain) Equal(other *x509.Certificate) (equal bool) {
 // EqualKey checks if the provided key (public or private) has a public key equal to the first public key in this chain.
 //
 //nolint:gocyclo // This is an adequately clear function even with the complexity.
-func (c *X509CertificateChain) EqualKey(other interface{}) (equal bool) {
+func (c *X509CertificateChain) EqualKey(other any) (equal bool) {
 	if !c.HasCertificates() {
 		return false
 	}
@@ -239,28 +320,6 @@ func (c *X509CertificateChain) Certificates() []*x509.Certificate {
 	return c.certs
 }
 
-// CertificateTLS returns this chain as a tls.Certificate.
-func (c *X509CertificateChain) CertificateTLS() tls.Certificate {
-	cert := tls.Certificate{}
-
-	cert.Certificate = make([][]byte, len(c.certs))
-
-	for i, cer := range c.certs {
-		cert.Certificate[i] = cer.Raw
-	}
-
-	return cert
-}
-
-// CertificatesTLS returns this chain as a []tls.Certificate.
-func (c *X509CertificateChain) CertificatesTLS() []tls.Certificate {
-	if !c.HasCertificates() {
-		return nil
-	}
-
-	return []tls.Certificate{c.CertificateTLS()}
-}
-
 // Validate the X509CertificateChain ensuring the certificates were provided in the correct order
 // (with nth being signed by the nth+1), and that all of the certificates are valid based on the current time.
 func (c *X509CertificateChain) Validate() (err error) {
@@ -290,44 +349,6 @@ func (c *X509CertificateChain) Validate() (err error) {
 	}
 
 	return nil
-}
-
-// ValidateMutualTLS performs validation operations for a X509CertificateChain ensuring the first certificate can be
-// used for mutual TLS.
-func (c *X509CertificateChain) ValidateMutualTLS() (err error) {
-	if !c.HasCertificates() {
-		return nil
-	}
-
-	if c.HasKeyUsageExt(x509.ExtKeyUsageClientAuth) {
-		return fmt.Errorf("certificate #1 can't be used for client auth as it's missing the relevant extended key usage")
-	}
-
-	return nil
-}
-
-// HasKeyUsage returns true if the first *x509.Certificate has the provided x509.KeyUsage.
-func (c *X509CertificateChain) HasKeyUsage(keyUsage x509.KeyUsage) (has bool) {
-	if !c.HasCertificates() {
-		return false
-	}
-
-	return c.certs[0].KeyUsage&keyUsage != 0
-}
-
-// HasKeyUsageExt returns true if the first *x509.Certificate has the provided x509.ExtKeyUsage.
-func (c *X509CertificateChain) HasKeyUsageExt(keyUsageExt x509.ExtKeyUsage) (has bool) {
-	if !c.HasCertificates() {
-		return false
-	}
-
-	for _, x := range c.certs[0].ExtKeyUsage {
-		if x == keyUsageExt {
-			return true
-		}
-	}
-
-	return false
 }
 
 // NewTLSVersion parses TLS versions to the unit16 representation of the version and stores it as a *schema.TLSVersion.

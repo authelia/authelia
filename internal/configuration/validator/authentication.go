@@ -128,21 +128,11 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackendConfi
 		config.LDAP.Implementation = schema.DefaultLDAPAuthenticationBackendConfiguration.Implementation
 	}
 
-	var err error
-
 	if config.LDAP.TLS == nil {
 		config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	} else {
 		if config.LDAP.TLS.MinimumVersion.Version() == 0 {
 			config.LDAP.TLS.MinimumVersion = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS.MinimumVersion
-		}
-
-		if err = config.LDAP.TLS.CertificateChain.Validate(); err != nil {
-			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
-		}
-
-		if err = config.LDAP.TLS.CertificateChain.ValidateMutualTLS(); err != nil {
-			validator.Push(fmt.Errorf(errFmtTLSCertificateChainValidation, errPrefixAuthLDAP, err))
 		}
 	}
 

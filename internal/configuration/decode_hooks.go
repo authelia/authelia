@@ -255,6 +255,55 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+// StringToX509KeyPairHookFunc decodes strings to schema.X509KeyPair's which is a wrapper for a tls.Certificate which
+// is ensured to have both certificates and private keys.
+func StringToX509KeyPairHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.X509KeyPair{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.X509KeyPair
+
+		if dataStr == "" && ptr {
+			return result, nil
+		}
+
+		if result, err = schema.NewX509KeyPair(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, prefixType, expectedType, err)
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		if result == nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType, errDecodeNonPtrMustHaveValue)
+		}
+
+		return *result, nil
+	}
+}
+
 // StringToX509CertificateHookFunc decodes strings to x509.Certificate's.
 func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
