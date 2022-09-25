@@ -64,9 +64,6 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 		},
 		authorization.NewObjectRaw(&targetURL, method))
 
-	fmt.Println("subject", hasSubject)
-	fmt.Println("level", level)
-
 	switch {
 	case level == authorization.Bypass:
 		return Authorized
