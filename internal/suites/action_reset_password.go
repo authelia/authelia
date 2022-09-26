@@ -9,13 +9,13 @@ import (
 )
 
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
-	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left")
+	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left", 1)
 	require.NoError(t, err)
 	// Fill in username.
 	err = rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
 	// And click on the reset button.
-	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left")
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
 	require.NoError(t, err)
 }
 
@@ -33,7 +33,7 @@ func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newP
 	err = rs.WaitElementLocatedByID(t, page, "password2-textfield").Input(newPassword2)
 	require.NoError(t, err)
 
-	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left")
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
 	require.NoError(t, err)
 }
 
