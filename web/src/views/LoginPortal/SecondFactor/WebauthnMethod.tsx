@@ -50,6 +50,10 @@ const WebauthnMethod = function (props: Props) {
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
+    const doGetResponse = async (credential: PublicKeyCredential, targetURL?: string) => {
+        return postAssertionPublicKeyCredentialResult(credential, targetURL, workflow);
+    };
+
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -115,7 +119,7 @@ const WebauthnMethod = function (props: Props) {
 
             setState(State.InProgress);
 
-            const response = await postAssertionPublicKeyCredentialResult(result.credential, redirectionURL, workflow);
+            const response = await doGetResponse(result.credential, redirectionURL);
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -135,6 +139,7 @@ const WebauthnMethod = function (props: Props) {
             setState(State.Failure);
         }
     }, [
+        doGetResponse,
         onSignInErrorCallback,
         onSignInSuccessCallback,
         redirectionURL,
@@ -142,7 +147,6 @@ const WebauthnMethod = function (props: Props) {
         triggerTimer,
         props.authenticationLevel,
         props.registered,
-        workflow,
     ]);
 
     useEffect(() => {
