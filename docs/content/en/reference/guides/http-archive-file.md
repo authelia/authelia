@@ -29,9 +29,7 @@ present in an environment.
 
 The following section outlines some helpful information if you wish to sanitize your HAR file to share it with others.
 
-### Domain
-
-See the dedicated [Domain Sanitization](domain-sanitizaiton.md) reference guide.
+For generic sanitization information see the [Troubleshooting Sanitization guide](troubleshooting-sanitizaiton.md).
 
 ### Security Sensitive Information
 
