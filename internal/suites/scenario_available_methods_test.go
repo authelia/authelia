@@ -67,7 +67,7 @@ func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	s.Assert().NoError(err)
 	s.Assert().Len(options, len(s.methods))
 
-	var optionsList []string
+	optionsList := make([]string, len(options))
 
 	for _, o := range options {
 		txt, err := o.Text()
