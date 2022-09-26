@@ -303,7 +303,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "selection-link").Click("left")
+	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "selection-link").Click("left", 1)
 	require.NoError(s.T(), err)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was denied by Duo policy")
 }
