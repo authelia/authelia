@@ -14,9 +14,7 @@ import (
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
 func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storageProvider storage.Provider) (provider OpenIDConnectProvider, err error) {
-	provider = OpenIDConnectProvider{
-		Fosite: nil,
-	}
+	provider = OpenIDConnectProvider{}
 
 	if config == nil {
 		return provider, nil
@@ -61,7 +59,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		JWTStrategy: provider.KeyManager.Strategy(),
 	}
 
-	provider.Fosite = compose.Compose(
+	provider.OAuth2Provider = compose.Compose(
 		composeConfiguration,
 		provider.Store,
 		strategy,

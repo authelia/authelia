@@ -1,3 +1,4 @@
+import {Workflow} from "@hooks/Workflow";
 import axios, { AxiosResponse } from "axios";
 
 import {
@@ -131,6 +132,7 @@ function encodeAttestationPublicKeyCredential(
 function encodeAssertionPublicKeyCredential(
     credential: PublicKeyCredential,
     targetURL: string | undefined,
+    workflow?: Workflow,
 ): PublicKeyCredentialJSON {
     const response = credential.response as AuthenticatorAssertionResponse;
 
@@ -319,6 +321,7 @@ async function postAttestationPublicKeyCredentialResult(
 export async function postAssertionPublicKeyCredentialResult(
     credential: PublicKeyCredential,
     targetURL: string | undefined,
+    workflow?: Workflow,
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
     const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL);
 

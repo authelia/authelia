@@ -29,6 +29,16 @@ var (
 )
 
 const (
+	queryArgStrConsentID  = "consent_id"
+	queryArgStrWorkflow   = "workflow"
+	queryArgStrWorkflowID = "workflow_id"
+)
+
+var (
+	queryArgConsentID = []byte(queryArgStrConsentID)
+)
+
+const (
 	// Forbidden means the user is forbidden the access to a resource.
 	Forbidden authorizationMatching = iota
 	// NotAuthorized means the user can access the resource with more permissions.

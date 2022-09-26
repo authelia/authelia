@@ -25,12 +25,12 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 		err       error
 	)
 
-	if requester, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeRequest(ctx, r); err != nil {
+	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Authorization Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, err)
 
 		return
 	}
@@ -46,7 +46,7 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %+v", requester.GetID(), clientID, err)
 		}
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, err)
 
 		return
 	}
@@ -54,7 +54,7 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	if issuer, err = ctx.ExternalRootURL(); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred determining issuer: %+v", requester.GetID(), clientID, err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not determine issuer."))
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrIssuerCouldNotDerive)
 
 		return
 	}
@@ -75,7 +75,7 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	if authTime, err = userSession.AuthenticatedTime(client.Policy); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not obtain the authentication time."))
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not obtain the authentication time."))
 
 		return
 	}
@@ -88,12 +88,12 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
 		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Claims)
 
-	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewAuthorizeResponse(ctx, requester, oidcSession); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewAuthorizeResponse(ctx, requester, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, err)
 
 		return
 	}
@@ -101,10 +101,10 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionGranted(ctx, consent.ID); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session: %+v", requester.GetID(), client.GetID(), err)
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not save the session."))
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return
 	}
 
-	ctx.Providers.OpenIDConnect.Fosite.WriteAuthorizeResponse(rw, requester, responder)
+	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(rw, requester, responder)
 }

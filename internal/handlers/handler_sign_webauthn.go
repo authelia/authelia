@@ -84,7 +84,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		err error
 		w   *webauthn.WebAuthn
 
-		bodyJSON signWebauthnRequestBody
+		bodyJSON bodySignWebauthnRequest
 	)
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
@@ -198,7 +198,7 @@ func WebauthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL)
+		handleOIDCWorkflowResponse(ctx, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

@@ -234,7 +234,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
-	if providers.OpenIDConnect.Fosite != nil {
+	if providers.OpenIDConnect.OAuth2Provider != nil {
 		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,
 		).Build()

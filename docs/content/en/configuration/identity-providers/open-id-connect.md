@@ -82,8 +82,10 @@ identity_providers:
         secret: this_is_a_secret
         sector_identifier: ''
         public: false
+        consent:
+          mode: explicit
+          pre_configured_duration: 1w
         authorization_policy: two_factor
-        pre_configured_consent_duration: ''
         audience: []
         scopes:
           - openid
@@ -345,18 +347,41 @@ URI.
 
 The authorization policy for this client: either `one_factor` or `two_factor`.
 
-#### pre_configured_consent_duration
+#### consent
 
-{{< confkey type="duration" required="no" >}}
+Configures this clients consent policy.
+
+##### mode
+
+{{< confkey type="string" default="auto" required="no" >}}
+
+Configures the consent mode. The following table describes the different modes:
+
+|     Value      |                                                                                   Description                                                                                    |
+|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|      auto      |                      Automatically determined (default). Uses `explicit` unless [pre_configured_duration] is specified in which case uses `pre-configured`.                      |
+|    explicit    |                                                    Requires the user provide unique explicit consent for every authorization.                                                    |
+|    implicit    | Automatically assumes consent for every authorization, never asking the user if they wish to give consent. *__Note:__* this option is not technically part of the specification. |
+| pre-configured |                                                 Allows the end-user to remember their consent for the [pre_configured_duration].                                                 |
+
+[pre_configured_duration]: #pre_configured_duration
+
+##### pre_configured_duration
+
+{{< confkey type="duration" default="1w" required="no" >}}
 
 *__Note:__ This setting uses the [duration notation format](../prologue/common.md#duration-notation-format). Please see
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
 
-Configuring this enables users of this client to remember their consent as a pre-configured consent. The period of time
-dictates how long a users choice to remember the pre-configured consent lasts.
+Specifying this in the configuration without a consent [mode] enables the `pre-configured` mode. If this is
+specified as well as the [mode] then it only has an effect if the [mode] is `pre-configured` or `auto`.
+
+The period of time dictates how long a users choice to remember the pre-configured consent lasts.
 
 Pre-configured consents are only valid if the subject, client id are exactly the same and the requested scopes/audience
 match exactly with the granted scopes/audience.
+
+[mode]: #mode
 
 #### audience
 

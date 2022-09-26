@@ -29,7 +29,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		Policy: authorization.StringToLevel(config.Policy),
 
-		PreConfiguredConsentDuration: config.PreConfiguredConsentDuration,
+		Consent: NewClientConsent(config.Consent),
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -41,6 +41,10 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
 func (c Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
 	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
@@ -59,7 +63,7 @@ func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Cons
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.PreConfiguredConsentDuration != nil,
+		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
 	}
 
 	if consent != nil {

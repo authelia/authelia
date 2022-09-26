@@ -28,6 +28,7 @@ func oidcGrantRequests(ar fosite.AuthorizeRequester, consent *model.OAuth2Consen
 				if len(userSession.Emails) > 1 {
 					extraClaims[oidc.ClaimEmailAlts] = userSession.Emails[1:]
 				}
+
 				// TODO (james-d-elliott): actually verify emails and record that information.
 				extraClaims[oidc.ClaimEmailVerified] = true
 			}

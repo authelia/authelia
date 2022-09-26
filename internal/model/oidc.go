@@ -106,30 +106,50 @@ type OAuth2ConsentSession struct {
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
 }
 
+// Grant grants the requested scopes and audience.
+func (s *OAuth2ConsentSession) Grant() {
+	s.GrantedScopes = s.RequestedScopes
+	s.GrantedAudience = s.RequestedAudience
+
+	if !utils.IsStringInSlice(s.ClientID, s.GrantedAudience) {
+		s.GrantedAudience = append(s.GrantedAudience, s.ClientID)
+	}
+}
+
 // HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
 // audience and set of scopes.
-func (s OAuth2ConsentSession) HasExactGrants(scopes, audience []string) (has bool) {
+func (s *OAuth2ConsentSession) HasExactGrants(scopes, audience []string) (has bool) {
 	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
 }
 
 // HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
-func (s OAuth2ConsentSession) HasExactGrantedAudience(audience []string) (has bool) {
+func (s *OAuth2ConsentSession) HasExactGrantedAudience(audience []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.GrantedAudience, audience)
 }
 
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
-func (s OAuth2ConsentSession) HasExactGrantedScopes(scopes []string) (has bool) {
+func (s *OAuth2ConsentSession) HasExactGrantedScopes(scopes []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.GrantedScopes, scopes)
 }
 
+// Responded returns true if the user has responded to the consent session.
+func (s *OAuth2ConsentSession) Responded() bool {
+	return s.RespondedAt != nil
+}
+
 // IsAuthorized returns true if the user has responded to the consent session and it was authorized.
-func (s OAuth2ConsentSession) IsAuthorized() bool {
+func (s *OAuth2ConsentSession) IsAuthorized() bool {
 	return s.Responded() && s.Authorized
 }
 
-// CanGrant returns true if the user has responded to the consent session, it was authorized, and it either hast not
+// IsDenied returns true if the user has responded to the consent session and it was not authorized.
+func (s *OAuth2ConsentSession) IsDenied() bool {
+	return s.Responded() && !s.Authorized
+}
+
+// CanGrantZ returns true if the user has responded to the consent session, it was authorized, and it either hast not
 // previously been granted or the ability to grant has not expired.
-func (s OAuth2ConsentSession) CanGrant() bool {
+func (s *OAuth2ConsentSession) CanGrantZ() bool {
 	if !s.Responded() {
 		return false
 	}
@@ -141,18 +161,33 @@ func (s OAuth2ConsentSession) CanGrant() bool {
 	return true
 }
 
-// IsDenied returns true if the user has responded to the consent session and it was not authorized.
-func (s OAuth2ConsentSession) IsDenied() bool {
-	return s.Responded() && !s.Authorized
+// CanGrant returns true if the session can still grant a token. This is NOT indicative of if there is a user response
+// to this consent request or if the user rejected the consent request.
+func (s *OAuth2ConsentSession) CanGrant() bool {
+	if !s.Subject.Valid || s.Granted || s.ExpiresAt != nil {
+		return false
+	}
+
+	return true
 }
 
-// Responded returns true if the user has responded to the consent session.
-func (s OAuth2ConsentSession) Responded() bool {
-	return s.RespondedAt != nil
+// CanGrantConsentModePreConfigured returns true if the session can still grant a token for the pre-configured client
+// consent mode. This is NOT indicative of if there is a user response to this consent request or if the user rejected
+// the consent request.
+func (s *OAuth2ConsentSession) CanGrantConsentModePreConfigured() bool {
+	if !s.Subject.Valid {
+		return false
+	}
+
+	if s.Granted && (s.ExpiresAt == nil || s.ExpiresAt.Before(time.Now())) {
+		return false
+	}
+
+	return true
 }
 
 // GetForm returns the form.
-func (s OAuth2ConsentSession) GetForm() (form url.Values, err error) {
+func (s *OAuth2ConsentSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
 }
 

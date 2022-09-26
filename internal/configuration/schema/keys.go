@@ -45,6 +45,8 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].userinfo_signing_algorithm",
 	"identity_providers.oidc.clients[].authorization_policy",
 	"identity_providers.oidc.clients[].pre_configured_consent_duration",
+	"identity_providers.oidc.clients[].consent.mode",
+	"identity_providers.oidc.clients[].consent.pre_configured_duration",
 	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
 	"authentication_backend.ldap.timeout",

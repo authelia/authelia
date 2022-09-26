@@ -59,7 +59,13 @@ type OpenIDConnectClientConfiguration struct {
 
 	Policy string `koanf:"authorization_policy"`
 
-	PreConfiguredConsentDuration *time.Duration `koanf:"pre_configured_consent_duration"`
+	Consent OpenIDConnectClientConsentConfig `koanf:"consent"`
+}
+
+type OpenIDConnectClientConsentConfig struct {
+	Mode string `koanf:"mode"`
+
+	PreConfiguredDuration *time.Duration `koanf:"pre_configured_duration"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
@@ -71,6 +77,8 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 	EnforcePKCE:           "public_clients_only",
 }
 
+var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
+
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	Policy:        "two_factor",
@@ -80,4 +88,9 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	ResponseModes: []string{"form_post", "query", "fragment"},
 
 	UserinfoSigningAlgorithm: "none",
+
+	Consent: OpenIDConnectClientConsentConfig{
+		Mode:                  "auto",
+		PreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
+	},
 }

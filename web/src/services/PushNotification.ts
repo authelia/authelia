@@ -1,3 +1,4 @@
+import { Workflow } from "@hooks/Workflow";
 import {
     CompleteDuoDeviceSelectionPath,
     CompletePushNotificationSignInPath,
@@ -11,14 +12,10 @@ interface CompletePushSigninBody {
 }
 
 export function completePushNotificationSignIn(targetURL?: string, workflow?: string) {
-    const body: CompletePushSigninBody = {};
-    if (targetURL) {
-        body.targetURL = targetURL;
-    }
-
-    if (workflow) {
-        body.workflow = workflow;
-    }
+    const body: CompletePushSigninBody = {
+        targetURL: targetURL,
+        workflow: workflow,
+    };
 
     return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
 }

@@ -28,7 +28,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	oidcSession := oidc.NewSession()
 
-	if tokenType, requester, err = ctx.Providers.OpenIDConnect.Fosite.IntrospectToken(
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(
 		req.Context(), fosite.AccessTokenFromRequest(req), fosite.AccessToken, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 

@@ -13,56 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
-func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
-	if len(targetURI) == 0 {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: empty value", targetURI), messageAuthenticationFailed)
-
-		return
-	}
-
-	var (
-		targetURL *url.URL
-		err       error
-	)
-
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	var (
-		id     string
-		client *oidc.Client
-	)
-
-	if id = targetURL.Query().Get("client_id"); len(id) == 0 {
-		ctx.Error(fmt.Errorf("unable to get client id from from URL '%s'", targetURL), messageAuthenticationFailed)
-
-		return
-	}
-
-	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(id); err != nil {
-		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from URL '%s': %w", id, targetURL, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	userSession := ctx.GetSession()
-
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
-		ctx.ReplyOK()
-
-		return
-	}
-
-	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-	}
-}
-
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
 	var err error
@@ -164,6 +114,63 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	}
 
 	ctx.ReplyOK()
+}
+
+// handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
+func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI, workflowID string) {
+	switch {
+	case len(workflowID) != 0:
+		handleOIDCWorkflowResponseWithID(ctx, workflowID)
+	case len(targetURI) != 0:
+		handleOIDCWorkflowResponseWithTargetURL(ctx, targetURI)
+	}
+}
+
+func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targetURI string) {
+	var (
+		targetURL *url.URL
+		err       error
+	)
+
+	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
+		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	var (
+		id     string
+		client *oidc.Client
+	)
+
+	if id = targetURL.Query().Get("client_id"); len(id) == 0 {
+		ctx.Error(fmt.Errorf("unable to get client id from from URL '%s'", targetURL), messageAuthenticationFailed)
+
+		return
+	}
+
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(id); err != nil {
+		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from URL '%s': %w", id, targetURL, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	userSession := ctx.GetSession()
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+	}
+}
+
+func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, workflowID string) {
+	ctx.Error(fmt.Errorf("not implemented"), "not implemented")
 }
 
 func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {

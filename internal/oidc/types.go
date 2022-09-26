@@ -11,6 +11,7 @@ import (
 	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -78,7 +79,8 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	Fosite     fosite.OAuth2Provider
+	fosite.OAuth2Provider
+
 	Store      *OpenIDConnectStore
 	KeyManager *KeyManager
 
@@ -116,8 +118,45 @@ type Client struct {
 
 	Policy authorization.Level
 
-	PreConfiguredConsentDuration *time.Duration
+	Consent ClientConsent
 }
+
+// NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
+func NewClientConsent(config schema.OpenIDConnectClientConsentConfig) ClientConsent {
+	switch config.Mode {
+	case "implicit":
+		return ClientConsent{Mode: ClientConsentModeImplicit}
+	case "pre-configured":
+		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *config.PreConfiguredDuration}
+	case "explicit":
+		return ClientConsent{Mode: ClientConsentModeExplicit}
+	default:
+		return ClientConsent{Mode: ClientConsentModeExplicit}
+	}
+}
+
+// ClientConsent is the consent configuration for a client.
+type ClientConsent struct {
+	Mode     ClientConsentMode
+	Duration time.Duration
+}
+
+// ClientConsentMode represents the consent mode for a client.
+type ClientConsentMode int
+
+const (
+	// ClientConsentModeExplicit means the client does not implicitly assume consent, and does not allow pre-configured
+	// consent sessions.
+	ClientConsentModeExplicit ClientConsentMode = iota
+
+	// ClientConsentModePreConfigured means the client does not implicitly assume consent, but does allow pre-configured
+	// consent sessions.
+	ClientConsentModePreConfigured
+
+	// ClientConsentModeImplicit means the client does implicitly assume consent, and does not allow pre-configured
+	// consent sessions.
+	ClientConsentModeImplicit
+)
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
 // It additionally allows us to add keys for the purpose of key rotation in the future.

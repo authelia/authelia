@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // OpenIDConnectConsentGET handles requests to provide consent for OpenID Connect.
@@ -24,22 +23,20 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		err       error
 	)
 
-	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().Peek("consent_id"))); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().Peek("consent_id"), err)
+	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().PeekBytes(queryArgConsentID))); err != nil {
+		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(queryArgConsentID), err)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	userSession, consent, client, handled := oidcConsentGetSessionsAndClient(ctx, consentID)
-	if handled {
-		return
-	}
+	var (
+		consent *model.OAuth2ConsentSession
+		client  *oidc.Client
+		handled bool
+	)
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Errorf("Unable to perform consent without sufficient authentication for user '%s' and client id '%s'", userSession.Username, consent.ClientID)
-		ctx.ReplyForbidden()
-
+	if _, consent, client, handled = oidcConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
@@ -49,8 +46,6 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 }
 
 // OpenIDConnectConsentPOST handles consent responses for OpenID Connect.
-//
-//nolint:gocyclo // TODO: Consider refactoring time permitting.
 func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		consentID uuid.UUID
@@ -66,21 +61,20 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if consentID, err = uuid.Parse(bodyJSON.ConsentID); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().Peek("consent_id"), err)
+		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(queryArgConsentID), err)
 		ctx.ReplyForbidden()
 
 		return
 	}
 
-	userSession, consent, client, handled := oidcConsentGetSessionsAndClient(ctx, consentID)
-	if handled {
-		return
-	}
+	var (
+		userSession session.UserSession
+		consent     *model.OAuth2ConsentSession
+		client      *oidc.Client
+		handled     bool
+	)
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Debugf("Insufficient permissions to give consent during POST current level: %d, require 2FA: %d", userSession.AuthenticationLevel, client.Policy)
-		ctx.ReplyForbidden()
-
+	if userSession, consent, client, handled = oidcConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
@@ -94,22 +88,17 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 
 	if bodyJSON.Consent {
 		if bodyJSON.PreConfigure {
-			if client.PreConfiguredConsentDuration == nil {
+			if client.Consent.Mode == oidc.ClientConsentModePreConfigured {
 				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
 			} else {
-				expiresAt := time.Now().Add(*client.PreConfiguredConsentDuration)
+				expiresAt := time.Now().Add(client.Consent.Duration)
 				consent.ExpiresAt = &expiresAt
 
 				ctx.Logger.Debugf("Consent session with id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID, userSession.Username, consent.ExpiresAt)
 			}
 		}
 
-		consent.GrantedScopes = consent.RequestedScopes
-		consent.GrantedAudience = consent.RequestedAudience
-
-		if !utils.IsStringInSlice(consent.ClientID, consent.GrantedAudience) {
-			consent.GrantedAudience = append(consent.GrantedAudience, consent.ClientID)
-		}
+		consent.Grant()
 	}
 
 	var externalRootURL string
@@ -151,7 +140,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	query.Set("consent_id", consent.ChallengeID.String())
+	query.Set(queryArgStrConsentID, consent.ChallengeID.String())
 
 	redirectURI.Path = path.Join(redirectURI.Path, oidc.AuthorizationPath)
 	redirectURI.RawQuery = query.Encode()
@@ -187,6 +176,34 @@ func oidcConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uui
 	if err = verifyOIDCUserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
 		ctx.Logger.Errorf("Could not authorize the user user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
 
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	switch client.Consent.Mode {
+	case oidc.ClientConsentModeImplicit:
+		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the client is using the implicit consent mode", userSession.Username, consent.ClientID)
+		ctx.ReplyForbidden()
+
+		return
+	default:
+		switch {
+		case consent.Responded():
+			ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the client is using the explicit consent mode and this consent session has already been responded to", userSession.Username, consent.ClientID)
+			ctx.ReplyForbidden()
+
+			return userSession, nil, nil, true
+		case !consent.CanGrant():
+			ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the specified consent session cannot be granted", userSession.Username, consent.ClientID)
+			ctx.ReplyForbidden()
+
+			return userSession, nil, nil, true
+		}
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
 
 		return userSession, nil, nil, true

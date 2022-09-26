@@ -152,6 +152,23 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
 		}
 
+		switch client.Consent.Mode {
+		case "implicit", "explicit", "pre-configured":
+			break
+		case "", "auto":
+			if client.Consent.PreConfiguredDuration != nil {
+				config.Clients[c].Consent.Mode = "pre-configured"
+			} else {
+				config.Clients[c].Consent.Mode = "explicit"
+			}
+		default:
+
+		}
+
+		if client.Consent.PreConfiguredDuration == nil {
+			config.Clients[c].Consent.PreConfiguredDuration = schema.DefaultOpenIDConnectClientConfiguration.Consent.PreConfiguredDuration
+		}
+
 		validateOIDCClientSectorIdentifier(client, validator)
 		validateOIDCClientScopes(c, config, validator)
 		validateOIDCClientGrantTypes(c, config, validator)

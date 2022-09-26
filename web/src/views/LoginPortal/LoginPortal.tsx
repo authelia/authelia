@@ -17,7 +17,7 @@ import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
-import { useWorkflow } from "@hooks/Workflow";
+import { Workflow, useWorkflow } from "@hooks/Workflow";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -130,11 +130,7 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
-            const search = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
-                      workflow ? `&workflow=${workflow}` : ""
-                  }`
-                : undefined;
+            const search = Search(redirectionURL, requestMethod, workflow);
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
@@ -228,6 +224,24 @@ interface ComponentOrLoadingProps {
     ready: boolean;
 
     children: ReactNode;
+}
+
+function Search(redirectionURL: string | undefined, requestMethod: string | undefined, workflow: Workflow | undefined) {
+    if (redirectionURL && workflow) {
+        return `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}&workflow=${
+            workflow.name
+        }${workflow.id ? `&workflow_id=${workflow.id}` : ""}`;
+    }
+
+    if (redirectionURL) {
+        return `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`;
+    }
+
+    if (workflow) {
+        return `?workflow=${workflow.name}${workflow.id ? `&workflow_id=${workflow.id}` : ""}`;
+    }
+
+    return undefined;
 }
 
 function ComponentOrLoading(props: ComponentOrLoadingProps) {
