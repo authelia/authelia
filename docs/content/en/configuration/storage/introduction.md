@@ -47,7 +47,7 @@ It's __strongly recommended__ this is a
 [Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
-See [securty measures](../../overview/security/measures.md#storage-security-measures) for more information.
+See [security measures](../../overview/security/measures.md#storage-security-measures) for more information.
 
 ### postgres
 
