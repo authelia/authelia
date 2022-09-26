@@ -136,3 +136,9 @@ const (
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRShortMessageService = "sms"
 )
+
+const (
+	implicit      = "implicit"
+	explicit      = "explicit"
+	preconfigured = "pre-configured"
+)

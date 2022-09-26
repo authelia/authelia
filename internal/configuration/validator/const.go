@@ -159,6 +159,8 @@ const (
 		"invalid value: redirect uri '%s' must have the scheme 'http' or 'https' but it has no scheme"
 	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
 		"or 'two_factor' but it is configured as '%s'"
+	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
+		"'%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
@@ -294,9 +296,11 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+
 var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
 var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+
 var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 
 var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
@@ -305,11 +309,14 @@ var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFact
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
-var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
-var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
-var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
-var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
+var (
+	validOIDCScopes             = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+	validOIDCGrantTypes         = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+	validOIDCResponseModes      = []string{"form_post", "query", "fragment"}
+	validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+	validOIDCCORSEndpoints      = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
+	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+)
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 

@@ -9,13 +9,18 @@ import { Get, PostWithOptionalResponse } from "@services/Client";
 interface CompletePushSigninBody {
     targetURL?: string;
     workflow?: string;
+    workflowID?: string;
 }
 
-export function completePushNotificationSignIn(targetURL?: string, workflow?: string) {
+export function completePushNotificationSignIn(targetURL?: string, workflow?: Workflow) {
     const body: CompletePushSigninBody = {
         targetURL: targetURL,
-        workflow: workflow,
     };
+
+    if (workflow) {
+        body.workflow = workflow.name;
+        body.workflowID = workflow.id;
+    }
 
     return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
 }

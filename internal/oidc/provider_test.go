@@ -16,7 +16,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing
 	provider, err := NewOpenIDConnectProvider(nil, nil)
 
 	assert.NoError(t, err)
-	assert.Nil(t, provider.Fosite)
+	assert.Nil(t, provider.OAuth2Provider)
 	assert.Nil(t, provider.Store)
 }
 

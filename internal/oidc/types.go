@@ -124,11 +124,11 @@ type Client struct {
 // NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
 func NewClientConsent(config schema.OpenIDConnectClientConsentConfig) ClientConsent {
 	switch config.Mode {
-	case "implicit":
+	case ClientConsentModeImplicit.String():
 		return ClientConsent{Mode: ClientConsentModeImplicit}
-	case "pre-configured":
+	case ClientConsentModePreConfigured.String():
 		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *config.PreConfiguredDuration}
-	case "explicit":
+	case ClientConsentModeExplicit.String():
 		return ClientConsent{Mode: ClientConsentModeExplicit}
 	default:
 		return ClientConsent{Mode: ClientConsentModeExplicit}
@@ -157,6 +157,20 @@ const (
 	// consent sessions.
 	ClientConsentModeImplicit
 )
+
+// String returns the string representation of the ClientConsentMode.
+func (c ClientConsentMode) String() string {
+	switch c {
+	case ClientConsentModeExplicit:
+		return explicit
+	case ClientConsentModeImplicit:
+		return implicit
+	case ClientConsentModePreConfigured:
+		return preconfigured
+	default:
+		return ""
+	}
+}
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
 // It additionally allows us to add keys for the purpose of key rotation in the future.

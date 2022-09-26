@@ -142,6 +142,7 @@ const WebauthnMethod = function (props: Props) {
         triggerTimer,
         props.authenticationLevel,
         props.registered,
+        workflow,
     ]);
 
     useEffect(() => {

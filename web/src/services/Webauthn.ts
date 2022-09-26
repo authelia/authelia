@@ -1,6 +1,6 @@
-import {Workflow} from "@hooks/Workflow";
 import axios, { AxiosResponse } from "axios";
 
+import { Workflow } from "@hooks/Workflow";
 import {
     AssertionPublicKeyCredentialResult,
     AssertionResult,

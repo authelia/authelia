@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -152,17 +153,17 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
 		}
 
-		switch client.Consent.Mode {
-		case "implicit", "explicit", "pre-configured":
-			break
-		case "", "auto":
+		switch {
+		case utils.IsStringInSlice(client.Consent.Mode, []string{"", "auto"}):
 			if client.Consent.PreConfiguredDuration != nil {
-				config.Clients[c].Consent.Mode = "pre-configured"
+				config.Clients[c].Consent.Mode = oidc.ClientConsentModePreConfigured.String()
 			} else {
-				config.Clients[c].Consent.Mode = "explicit"
+				config.Clients[c].Consent.Mode = oidc.ClientConsentModeExplicit.String()
 			}
+		case utils.IsStringInSlice(client.Consent.Mode, validOIDCClientConsentModes):
+			break
 		default:
-
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, client.ID, strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), client.Consent.Mode))
 		}
 
 		if client.Consent.PreConfiguredDuration == nil {
