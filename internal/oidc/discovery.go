@@ -5,7 +5,7 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 	config = OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions: CommonDiscoveryOptions{
 			SubjectTypesSupported: []string{
-				"public",
+				SubjectTypePublic,
 			},
 			ResponseTypesSupported: []string{
 				"code",
@@ -18,9 +18,9 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 				"none",
 			},
 			ResponseModesSupported: []string{
-				"form_post",
-				"query",
-				"fragment",
+				ResponseModeFormPost,
+				ResponseModeQuery,
+				ResponseModeFragment,
 			},
 			ScopesSupported: []string{
 				ScopeOfflineAccess,
@@ -32,8 +32,8 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 			ClaimsSupported: []string{
 				"amr",
 				"aud",
-				"azp",
-				"client_id",
+				ClaimAuthorizedParty,
+				ClaimClientID,
 				"exp",
 				"iat",
 				"iss",
@@ -52,30 +52,30 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 		},
 		OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
 			CodeChallengeMethodsSupported: []string{
-				"S256",
+				PKCEChallengeMethodSHA256,
 			},
 		},
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
-				"RS256",
+				SigningAlgorithmRSAWithSHA256,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
-				"none",
-				"RS256",
+				SigningAlgorithmNone,
+				SigningAlgorithmRSAWithSHA256,
 			},
 			RequestObjectSigningAlgValuesSupported: []string{
-				"none",
-				"RS256",
+				SigningAlgorithmNone,
+				SigningAlgorithmRSAWithSHA256,
 			},
 		},
 	}
 
 	if pairwise {
-		config.SubjectTypesSupported = append(config.SubjectTypesSupported, "pairwise")
+		config.SubjectTypesSupported = append(config.SubjectTypesSupported, SubjectTypePairwise)
 	}
 
 	if enablePKCEPlainChallenge {
-		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, "plain")
+		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)
 	}
 
 	return config

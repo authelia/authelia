@@ -311,9 +311,9 @@ var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var (
 	validOIDCScopes             = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-	validOIDCGrantTypes         = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
-	validOIDCResponseModes      = []string{"form_post", "query", "fragment"}
-	validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+	validOIDCGrantTypes         = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
+	validOIDCResponseModes      = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCUserinfoAlgorithms = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
 	validOIDCCORSEndpoints      = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
 	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 )

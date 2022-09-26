@@ -8,7 +8,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -70,8 +70,8 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
 	}
 
-	session.Claims.Add("azp", session.ClientID)
-	session.Claims.Add("client_id", session.ClientID)
+	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
+	session.Claims.Add(ClaimClientID, session.ClientID)
 
 	return session
 }

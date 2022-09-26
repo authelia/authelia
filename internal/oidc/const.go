@@ -17,6 +17,42 @@ const (
 	ClaimEmail             = "email"
 	ClaimEmailVerified     = "email_verified"
 	ClaimEmailAlts         = "alt_emails"
+	ClaimAuthorizedParty   = "azp"
+	ClaimClientID          = "client_id"
+)
+
+// Response Mode strings.
+const (
+	ResponseModeQuery    = "query"
+	ResponseModeFormPost = "form_post"
+	ResponseModeFragment = "fragment"
+)
+
+// Grant Type strings.
+const (
+	GrantTypeImplicit          = implicit
+	GrantTypeRefreshToken      = "refresh_token"
+	GrantTypeAuthorizationCode = "authorization_code"
+	GrantTypePassword          = "password"
+	GrantTypeClientCredentials = "client_credentials"
+)
+
+// Signing Algorithm strings.
+const (
+	SigningAlgorithmNone          = "none"
+	SigningAlgorithmRSAWithSHA256 = "RS256"
+)
+
+// Subject Type strings.
+const (
+	SubjectTypePublic   = "public"
+	SubjectTypePairwise = "pairwise"
+)
+
+// Proof Key Code Exchange Challenge Method strings.
+const (
+	PKCEChallengeMethodPlain  = "plain"
+	PKCEChallengeMethodSHA256 = "S256"
 )
 
 // Endpoints.

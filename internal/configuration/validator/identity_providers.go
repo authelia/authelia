@@ -230,8 +230,8 @@ func validateOIDCClientScopes(c int, configuration *schema.OpenIDConnectConfigur
 		return
 	}
 
-	if !utils.IsStringInSlice("openid", configuration.Clients[c].Scopes) {
-		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, "openid")
+	if !utils.IsStringInSlice(oidc.ScopeOpenID, configuration.Clients[c].Scopes) {
+		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, oidc.ScopeOpenID)
 	}
 
 	for _, scope := range configuration.Clients[c].Scopes {
