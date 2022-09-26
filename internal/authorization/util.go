@@ -75,7 +75,6 @@ func schemaDomainsToACL(domainRules []string) (domains []AccessControlDomain) {
 		domains = append(domains, NewAccessControlDomain(domainRule))
 	}
 
-
 	return domains
 }
 
