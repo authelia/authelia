@@ -41,7 +41,7 @@ Implement [WebAuthn] as a replacement for [FIDO U2F] with backwards compatibilit
 
 ### Multi Device Registration
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
 
 Implement multi device registration as part of the user interface. This is technically implemented for the most part in
 the backend, it's just the public facing interface elements remaining.
