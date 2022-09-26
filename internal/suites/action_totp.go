@@ -12,7 +12,7 @@ import (
 )
 
 func (rs *RodSession) doRegisterTOTP(t *testing.T, page *rod.Page) string {
-	err := rs.WaitElementLocatedByID(t, page, "register-link").Click("left")
+	err := rs.WaitElementLocatedByID(t, page, "register-link").Click("left", 1)
 	require.NoError(t, err)
 	rs.verifyMailNotificationDisplayed(t, page)
 	link := doGetLinkFromLastMail(t)
