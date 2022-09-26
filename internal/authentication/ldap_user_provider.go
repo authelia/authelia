@@ -145,7 +145,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
 	}
 
-	groups := make([]string, 0)
+	var groups []string
 
 	for _, res := range searchResult.Entries {
 		if len(res.Attributes) == 0 {

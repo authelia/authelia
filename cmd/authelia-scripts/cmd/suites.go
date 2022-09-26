@@ -180,7 +180,8 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 }
 
 func listSuites() []string {
-	suiteNames := make([]string, 0)
+	var suiteNames []string
+
 	suiteNames = append(suiteNames, suites.GlobalRegistry.Suites()...)
 	sort.Strings(suiteNames)
 

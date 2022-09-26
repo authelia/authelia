@@ -41,7 +41,7 @@ func cmdHashPasswordRunE(cmd *cobra.Command, args []string) (err error) {
 	sha512, _ := cmd.Flags().GetBool("sha512")
 	configs, _ := cmd.Flags().GetStringSlice("config")
 
-	mapDefaults := map[string]interface{}{
+	mapDefaults := map[string]any{
 		"authentication_backend.file.password.algorithm":   schema.DefaultPasswordConfiguration.Algorithm,
 		"authentication_backend.file.password.iterations":  schema.DefaultPasswordConfiguration.Iterations,
 		"authentication_backend.file.password.key_length":  schema.DefaultPasswordConfiguration.KeyLength,

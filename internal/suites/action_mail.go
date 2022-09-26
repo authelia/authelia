@@ -15,7 +15,9 @@ type message struct {
 
 func doGetLinkFromLastMail(t *testing.T) string {
 	res := doHTTPGetQuery(t, fmt.Sprintf("%s/messages", MailBaseURL))
-	messages := make([]message, 0)
+
+	var messages []message
+
 	err := json.Unmarshal(res, &messages)
 	assert.NoError(t, err)
 	assert.Greater(t, len(messages), 0)

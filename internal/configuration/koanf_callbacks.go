@@ -11,8 +11,8 @@ import (
 )
 
 // koanfEnvironmentCallback returns a koanf callback to map the environment vars to Configuration keys.
-func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string, prefix, delimiter string) func(key, value string) (finalKey string, finalValue interface{}) {
-	return func(key, value string) (finalKey string, finalValue interface{}) {
+func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string, prefix, delimiter string) func(key, value string) (finalKey string, finalValue any) {
+	return func(key, value string) (finalKey string, finalValue any) {
 		if k, ok := keyMap[key]; ok {
 			return k, value
 		}
@@ -33,8 +33,8 @@ func koanfEnvironmentCallback(keyMap map[string]string, ignoredKeys []string, pr
 }
 
 // koanfEnvironmentSecretsCallback returns a koanf callback to map the environment vars to Configuration keys.
-func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema.StructValidator) func(key, value string) (finalKey string, finalValue interface{}) {
-	return func(key, value string) (finalKey string, finalValue interface{}) {
+func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema.StructValidator) func(key, value string) (finalKey string, finalValue any) {
+	return func(key, value string) (finalKey string, finalValue any) {
 		k, ok := keyMap[key]
 		if !ok {
 			return "", nil
@@ -50,8 +50,8 @@ func koanfEnvironmentSecretsCallback(keyMap map[string]string, validator *schema
 	}
 }
 
-func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) func(flag *pflag.Flag) (string, interface{}) {
-	return func(flag *pflag.Flag) (string, interface{}) {
+func koanfCommandLineWithMappingCallback(mapping map[string]string, includeValidKeys, includeUnchangedKeys bool) func(flag *pflag.Flag) (string, any) {
+	return func(flag *pflag.Flag) (string, any) {
 		if !includeUnchangedKeys && !flag.Changed {
 			return "", nil
 		}

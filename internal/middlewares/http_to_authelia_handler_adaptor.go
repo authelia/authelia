@@ -51,7 +51,7 @@ func (w *netHTTPResponseWriter) StatusCode() int {
 // Header returns the http.Header.
 func (w *netHTTPResponseWriter) Header() http.Header {
 	if w.h == nil {
-		w.h = make(http.Header)
+		w.h = http.Header{}
 	}
 
 	return w.h
@@ -83,7 +83,7 @@ func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
 		r.Host = string(ctx.Host())
 		r.RemoteAddr = ctx.RemoteAddr().String()
 
-		hdr := make(http.Header)
+		hdr := http.Header{}
 		ctx.Request.Header.VisitAll(func(k, v []byte) {
 			sk := string(k)
 			sv := string(v)

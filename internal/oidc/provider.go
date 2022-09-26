@@ -109,7 +109,7 @@ func (p OpenIDConnectProvider) Pairwise() bool {
 }
 
 // Write writes data with herodot.JSONWriter.
-func (p OpenIDConnectProvider) Write(w http.ResponseWriter, r *http.Request, e interface{}, opts ...herodot.EncoderOptions) {
+func (p OpenIDConnectProvider) Write(w http.ResponseWriter, r *http.Request, e any, opts ...herodot.EncoderOptions) {
 	p.herodot.Write(w, r, e, opts...)
 }
 

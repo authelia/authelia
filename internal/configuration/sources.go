@@ -145,8 +145,8 @@ func (s *CommandLineSource) Load(_ *schema.StructValidator) (err error) {
 	return s.koanf.Load(posflag.Provider(s.flags, ".", s.koanf), nil)
 }
 
-// NewMapSource returns a new map[string]interface{} source.
-func NewMapSource(m map[string]interface{}) (source *MapSource) {
+// NewMapSource returns a new map[string]any source.
+func NewMapSource(m map[string]any) (source *MapSource) {
 	return &MapSource{
 		m:     m,
 		koanf: koanf.New(constDelimiter),

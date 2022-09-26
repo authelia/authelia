@@ -116,7 +116,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		}
 
 		headers := &jwt.Headers{
-			Extra: map[string]interface{}{"kid": keyID},
+			Extra: map[string]any{"kid": keyID},
 		}
 
 		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {

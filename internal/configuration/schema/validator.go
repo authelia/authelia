@@ -19,8 +19,8 @@ type StructValidator struct {
 // NewStructValidator is a constructor of struct validator.
 func NewStructValidator() *StructValidator {
 	val := new(StructValidator)
-	val.errors = make([]error, 0)
-	val.warnings = make([]error, 0)
+	val.errors = []error{}
+	val.warnings = []error{}
 
 	return val
 }

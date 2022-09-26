@@ -168,8 +168,9 @@ func pnpmInstall() {
 	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
 }
 
-func bootstrapPrintln(args ...interface{}) {
-	a := make([]interface{}, 0)
+func bootstrapPrintln(args ...any) {
+	var a []any
+
 	a = append(a, "[BOOTSTRAP]")
 	a = append(a, args...)
 	fmt.Println(a...)
@@ -187,8 +188,9 @@ func prepareHostsFile() {
 	}
 
 	lines := strings.Split(string(contentBytes), "\n")
-	toBeAddedLine := make([]string, 0)
 	modified := false
+
+	var toBeAddedLine []string
 
 	for _, entry := range hostEntries {
 		domainInHostFile := false

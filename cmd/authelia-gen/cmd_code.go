@@ -198,8 +198,6 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 }
 
 func readTags(prefix string, t reflect.Type) (tags []string) {
-	tags = make([]string, 0)
-
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 

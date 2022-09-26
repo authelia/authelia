@@ -41,7 +41,9 @@ func init() {
 
 // NewSuitesRegistry create a suites registry.
 func NewSuitesRegistry() *Registry {
-	return &Registry{make(map[string]Suite)}
+	return &Registry{
+		registry: map[string]Suite{},
+	}
 }
 
 // Register register a suite by name.
@@ -64,8 +66,7 @@ func (sr *Registry) Get(name string) Suite {
 }
 
 // Suites list available suites.
-func (sr *Registry) Suites() []string {
-	suites := make([]string, 0)
+func (sr *Registry) Suites() (suites []string) {
 	for k := range sr.registry {
 		suites = append(suites, k)
 	}

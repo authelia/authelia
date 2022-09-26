@@ -40,7 +40,7 @@ type IP struct {
 }
 
 // Value is the IP implementation of the databases/sql driver.Valuer.
-func (ip IP) Value() (value driver.Value, err error) {
+func (ip *IP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
 		return nil, fmt.Errorf(errFmtValueNil, ip)
 	}
@@ -49,7 +49,7 @@ func (ip IP) Value() (value driver.Value, err error) {
 }
 
 // Scan is the IP implementation of the sql.Scanner.
-func (ip *IP) Scan(src interface{}) (err error) {
+func (ip *IP) Scan(src any) (err error) {
 	if src == nil {
 		return fmt.Errorf(errFmtScanNil, ip)
 	}
@@ -76,7 +76,7 @@ type NullIP struct {
 }
 
 // Value is the NullIP implementation of the databases/sql driver.Valuer.
-func (ip NullIP) Value() (value driver.Value, err error) {
+func (ip *NullIP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
 		return nil, nil
 	}
@@ -85,7 +85,7 @@ func (ip NullIP) Value() (value driver.Value, err error) {
 }
 
 // Scan is the NullIP implementation of the sql.Scanner.
-func (ip *NullIP) Scan(src interface{}) (err error) {
+func (ip *NullIP) Scan(src any) (err error) {
 	if src == nil {
 		ip.IP = nil
 		return nil
@@ -113,22 +113,22 @@ type Base64 struct {
 }
 
 // String returns the Base64 string encoded as base64.
-func (b Base64) String() string {
+func (b *Base64) String() string {
 	return base64.StdEncoding.EncodeToString(b.data)
 }
 
 // Bytes returns the Base64 string encoded as bytes.
-func (b Base64) Bytes() []byte {
+func (b *Base64) Bytes() []byte {
 	return b.data
 }
 
 // Value is the Base64 implementation of the databases/sql driver.Valuer.
-func (b Base64) Value() (value driver.Value, err error) {
+func (b *Base64) Value() (value driver.Value, err error) {
 	return b.String(), nil
 }
 
 // Scan is the Base64 implementation of the sql.Scanner.
-func (b *Base64) Scan(src interface{}) (err error) {
+func (b *Base64) Scan(src any) (err error) {
 	if src == nil {
 		return fmt.Errorf(errFmtScanNil, b)
 	}
@@ -158,7 +158,7 @@ type StartupCheck interface {
 type StringSlicePipeDelimited []string
 
 // Scan is the StringSlicePipeDelimited implementation of the sql.Scanner.
-func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
+func (s *StringSlicePipeDelimited) Scan(value any) (err error) {
 	var nullStr sql.NullString
 
 	if err = nullStr.Scan(value); err != nil {
@@ -173,6 +173,6 @@ func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
 }
 
 // Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
-func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
-	return utils.StringJoinDelimitedEscaped(s, '|'), nil
+func (s *StringSlicePipeDelimited) Value() (driver.Value, error) {
+	return utils.StringJoinDelimitedEscaped(*s, '|'), nil
 }

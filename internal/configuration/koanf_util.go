@@ -15,13 +15,13 @@ func koanfGetKeys(ko *koanf.Koanf) (keys []string) {
 	keys = ko.Keys()
 
 	for key, value := range ko.All() {
-		slc, ok := value.([]interface{})
+		slc, ok := value.([]any)
 		if !ok {
 			continue
 		}
 
 		for _, item := range slc {
-			m, mok := item.(map[string]interface{})
+			m, mok := item.(map[string]any)
 			if !mok {
 				continue
 			}
@@ -53,15 +53,15 @@ func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]
 	return final, nil
 }
 
-func koanfRemapKeysStandard(keys map[string]interface{}, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
+func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]any) {
 	var (
 		ok    bool
 		d     Deprecation
 		key   string
-		value interface{}
+		value any
 	)
 
-	keysFinal = make(map[string]interface{})
+	keysFinal = map[string]any{}
 
 	for key, value = range keys {
 		if d, ok = ds[key]; ok {
@@ -93,35 +93,35 @@ func koanfRemapKeysStandard(keys map[string]interface{}, val *schema.StructValid
 	return keysFinal
 }
 
-func koanfRemapKeysMapped(keys map[string]interface{}, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
+func koanfRemapKeysMapped(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]any) {
 	var (
 		key           string
-		value         interface{}
-		slc, slcFinal []interface{}
+		value         any
+		slc, slcFinal []any
 		ok            bool
-		m             map[string]interface{}
+		m             map[string]any
 		d             Deprecation
 	)
 
-	keysFinal = make(map[string]interface{})
+	keysFinal = map[string]any{}
 
 	for key, value = range keys {
-		if slc, ok = value.([]interface{}); !ok {
+		if slc, ok = value.([]any); !ok {
 			keysFinal[key] = value
 
 			continue
 		}
 
-		slcFinal = make([]interface{}, len(slc))
+		slcFinal = make([]any, len(slc))
 
 		for i, item := range slc {
-			if m, ok = item.(map[string]interface{}); !ok {
+			if m, ok = item.(map[string]any); !ok {
 				slcFinal[i] = item
 
 				continue
 			}
 
-			itemFinal := make(map[string]interface{})
+			itemFinal := map[string]any{}
 
 			for subkey, element := range m {
 				prefix := fmt.Sprintf("%s[].", key)

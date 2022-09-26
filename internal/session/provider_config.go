@@ -79,7 +79,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 		}
 
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
-			addrs := make([]string, 0)
+			var addrs []string
 
 			if config.Redis.Host != "" {
 				addrs = append(addrs, fmt.Sprintf("%s:%d", strings.ToLower(config.Redis.Host), config.Redis.Port))

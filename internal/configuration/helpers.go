@@ -8,7 +8,7 @@ import (
 )
 
 func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string]string, ignoredKeys []string) {
-	keyMap = make(map[string]string)
+	keyMap = map[string]string{}
 
 	for _, key := range keys {
 		if strings.Contains(key, delimiter) {
@@ -25,7 +25,7 @@ func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string
 }
 
 func getSecretConfigMap(keys []string, prefix, delimiter string) (keyMap map[string]string) {
-	keyMap = make(map[string]string)
+	keyMap = map[string]string{}
 
 	for _, key := range keys {
 		if IsSecretKey(key) {

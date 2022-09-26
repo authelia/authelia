@@ -18,8 +18,8 @@ import (
 func TestStringToMailAddressHookFunc(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -73,8 +73,8 @@ func TestStringToMailAddressHookFunc(t *testing.T) {
 func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -134,8 +134,8 @@ func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 func TestStringToURLHookFunc(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -207,8 +207,8 @@ func TestStringToURLHookFunc(t *testing.T) {
 func TestStringToURLHookFuncPointer(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -280,8 +280,8 @@ func TestStringToURLHookFuncPointer(t *testing.T) {
 func TestToTimeDurationHookFunc(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -400,8 +400,8 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 func TestToTimeDurationHookFuncPointer(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -521,8 +521,8 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 func TestStringToRegexpFunc(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		have     interface{}
-		want     interface{}
+		have     any
+		want     any
 		err      string
 		decode   bool
 		wantGrps []string
@@ -635,8 +635,8 @@ func TestStringToRegexpFunc(t *testing.T) {
 func TestStringToRegexpFuncPointers(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		have     interface{}
-		want     interface{}
+		have     any
+		want     any
 		err      string
 		decode   bool
 		wantGrps []string

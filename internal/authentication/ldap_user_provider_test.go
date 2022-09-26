@@ -140,7 +140,7 @@ func NewExtendedSearchRequestMatcher(filter, base string, scope, derefAliases in
 	return &ExtendedSearchRequestMatcher{filter, base, scope, derefAliases, typesOnly, attributes}
 }
 
-func (e *ExtendedSearchRequestMatcher) Matches(x interface{}) bool {
+func (e *ExtendedSearchRequestMatcher) Matches(x any) bool {
 	sr := x.(*ldap.SearchRequest)
 
 	if e.filter != sr.Filter || e.baseDN != sr.BaseDN || e.scope != sr.Scope || e.derefAliases != sr.DerefAliases ||
@@ -502,7 +502,7 @@ func NewSearchRequestMatcher(expected string) *SearchRequestMatcher {
 	return &SearchRequestMatcher{expected}
 }
 
-func (srm *SearchRequestMatcher) Matches(x interface{}) bool {
+func (srm *SearchRequestMatcher) Matches(x any) bool {
 	sr := x.(*ldap.SearchRequest)
 	return sr.Filter == srm.expected
 }
