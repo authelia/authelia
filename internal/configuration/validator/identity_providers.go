@@ -154,20 +154,20 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 		}
 
 		switch {
-		case utils.IsStringInSlice(client.Consent.Mode, []string{"", "auto"}):
-			if client.Consent.PreConfiguredDuration != nil {
-				config.Clients[c].Consent.Mode = oidc.ClientConsentModePreConfigured.String()
+		case utils.IsStringInSlice(client.ConsentMode, []string{"", "auto"}):
+			if client.ConsentPreConfiguredDuration != nil {
+				config.Clients[c].ConsentMode = oidc.ClientConsentModePreConfigured.String()
 			} else {
-				config.Clients[c].Consent.Mode = oidc.ClientConsentModeExplicit.String()
+				config.Clients[c].ConsentMode = oidc.ClientConsentModeExplicit.String()
 			}
-		case utils.IsStringInSlice(client.Consent.Mode, validOIDCClientConsentModes):
+		case utils.IsStringInSlice(client.ConsentMode, validOIDCClientConsentModes):
 			break
 		default:
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, client.ID, strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), client.Consent.Mode))
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, client.ID, strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), client.ConsentMode))
 		}
 
-		if client.Consent.PreConfiguredDuration == nil {
-			config.Clients[c].Consent.PreConfiguredDuration = schema.DefaultOpenIDConnectClientConfiguration.Consent.PreConfiguredDuration
+		if client.ConsentPreConfiguredDuration == nil {
+			config.Clients[c].ConsentPreConfiguredDuration = schema.DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration
 		}
 
 		validateOIDCClientSectorIdentifier(client, validator)

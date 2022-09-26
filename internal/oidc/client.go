@@ -29,7 +29,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		Policy: authorization.StringToLevel(config.Policy),
 
-		Consent: NewClientConsent(config.Consent),
+		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}
 
 	for _, mode := range config.ResponseModes {

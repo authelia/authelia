@@ -8,10 +8,9 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -122,12 +121,12 @@ type Client struct {
 }
 
 // NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
-func NewClientConsent(config schema.OpenIDConnectClientConsentConfig) ClientConsent {
-	switch config.Mode {
+func NewClientConsent(mode string, duration *time.Duration) ClientConsent {
+	switch mode {
 	case ClientConsentModeImplicit.String():
 		return ClientConsent{Mode: ClientConsentModeImplicit}
 	case ClientConsentModePreConfigured.String():
-		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *config.PreConfiguredDuration}
+		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *duration}
 	case ClientConsentModeExplicit.String():
 		return ClientConsent{Mode: ClientConsentModeExplicit}
 	default:

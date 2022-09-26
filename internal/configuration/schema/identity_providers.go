@@ -59,13 +59,8 @@ type OpenIDConnectClientConfiguration struct {
 
 	Policy string `koanf:"authorization_policy"`
 
-	Consent OpenIDConnectClientConsentConfig `koanf:"consent"`
-}
-
-type OpenIDConnectClientConsentConfig struct {
-	Mode string `koanf:"mode"`
-
-	PreConfiguredDuration *time.Duration `koanf:"pre_configured_duration"`
+	ConsentMode                  string         `koanf:"consent_mode"`
+	ConsentPreConfiguredDuration *time.Duration `koanf:"consent_pre_configured_duration"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
@@ -87,10 +82,7 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	ResponseTypes: []string{"code"},
 	ResponseModes: []string{"form_post", "query", "fragment"},
 
-	UserinfoSigningAlgorithm: "none",
-
-	Consent: OpenIDConnectClientConsentConfig{
-		Mode:                  "auto",
-		PreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
-	},
+	UserinfoSigningAlgorithm:     "none",
+	ConsentMode:                  "auto",
+	ConsentPreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
 }
