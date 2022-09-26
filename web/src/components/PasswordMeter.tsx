@@ -77,7 +77,7 @@ const PasswordMeter = function (props: Props) {
 
             if (props.policy.require_special) {
                 required++;
-                const hasSpecial = /[^0-9\w]/i.test(password);
+                const hasSpecial = /[^a-z0-9]/i.test(password);
                 if (hasSpecial) {
                     hits++;
                 } else {
