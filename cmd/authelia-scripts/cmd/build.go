@@ -40,7 +40,7 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 
 	cmdCleanRun(cobraCmd, args)
 
-	xflags, err := getXFlags(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	buildMetaData, err := getBuild(branch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,11 +62,11 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	if buildkite {
 		log.Info("Building Authelia Go binaries with gox...")
 
-		buildAutheliaBinaryGOX(xflags)
+		buildAutheliaBinaryGOX(buildMetaData.XFlags())
 	} else {
 		log.Info("Building Authelia Go binary...")
 
-		buildAutheliaBinaryGO(xflags)
+		buildAutheliaBinaryGO(buildMetaData.XFlags())
 	}
 
 	cleanAssets()
