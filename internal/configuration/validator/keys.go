@@ -13,10 +13,6 @@ import (
 func ValidateKeys(keys []string, prefix string, validator *schema.StructValidator) {
 	var errStrings []string
 
-	for _, key := range schema.Keys {
-		fmt.Println(key)
-	}
-
 	for _, key := range keys {
 		expectedKey := reKeyReplacer.ReplaceAllString(key, "[]")
 
@@ -38,7 +34,6 @@ func ValidateKeys(keys []string, prefix string, validator *schema.StructValidato
 				validator.PushWarning(fmt.Errorf("configuration environment variable not expected: %s", key))
 			} else {
 				validator.Push(fmt.Errorf("configuration key not expected: %s", key))
-				fmt.Println("not expected", key, expectedKey)
 			}
 		}
 	}
