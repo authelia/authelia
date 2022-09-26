@@ -65,3 +65,7 @@ const (
 	vOneOne   = "1.1"
 	vOneZero  = "1.0"
 )
+
+const (
+	pemBlockTypeCertificate = "CERTIFICATE"
+)

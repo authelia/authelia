@@ -133,7 +133,7 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 			return nil, fmt.Errorf("invalid PEM block")
 		}
 
-		if block.Type != "CERTIFICATE" {
+		if block.Type != pemBlockTypeCertificate {
 			return nil, fmt.Errorf("the PEM data chain contains a %s but only certificates are expected", block.Type)
 		}
 
@@ -173,7 +173,7 @@ func NewX509KeyPair(data string) (pair *X509KeyPair, err error) {
 			default:
 				return nil, fmt.Errorf("x509 key pair was provided invalid data: isn't an encoded PEM block")
 			}
-		case block.Type == "CERTIFICATE":
+		case block.Type == pemBlockTypeCertificate:
 			certs = append(certs, block)
 		case block.Type == "PRIVATE KEY", strings.HasSuffix(block.Type, " PRIVATE KEY"):
 			if key != nil {

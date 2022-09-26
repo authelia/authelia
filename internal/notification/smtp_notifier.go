@@ -24,7 +24,7 @@ import (
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
-func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
+func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, rootCAs *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
 	notifier := &SMTPNotifier{
 		config:    config,
 		log:       logging.Logger(),
@@ -32,7 +32,7 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 	}
 
 	if config.TLS != nil {
-		notifier.configTLS = config.TLS.Config()
+		notifier.configTLS = config.TLS.Config(rootCAs)
 	}
 
 	at := strings.LastIndex(config.Sender.Address, "@")

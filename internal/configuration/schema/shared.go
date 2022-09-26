@@ -2,6 +2,7 @@ package schema
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"time"
 )
 
@@ -18,10 +19,11 @@ type TLSConfig struct {
 }
 
 // Config returns the schema.TLSConfig as a *tls.Config.
-func (c *TLSConfig) Config() *tls.Config {
+func (c *TLSConfig) Config(rootCAs *x509.CertPool) *tls.Config {
 	config := &tls.Config{
 		ServerName: c.ServerName,
 
+		RootCAs:            rootCAs,
 		InsecureSkipVerify: c.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
 
 		MinVersion: c.MinimumVersion.Version(),

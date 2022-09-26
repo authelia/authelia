@@ -47,7 +47,7 @@ func NewLDAPUserProvider(config schema.AuthenticationBackendConfiguration, certP
 	return provider
 }
 
-func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, rootCAs *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
 	}
@@ -59,7 +59,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, d
 	var tc *tls.Config
 
 	if config.TLS != nil {
-		tc = config.TLS.Config()
+		tc = config.TLS.Config(rootCAs)
 
 		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(tc))
 	}

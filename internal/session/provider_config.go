@@ -18,7 +18,7 @@ import (
 )
 
 // NewProviderConfig creates a configuration for creating the session provider.
-func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPool) ProviderConfig {
+func NewProviderConfig(config schema.SessionConfiguration, rootCAs *x509.CertPool) ProviderConfig {
 	c := session.NewDefaultConfig()
 
 	c.SessionIDGeneratorFunc = func() []byte {
@@ -75,7 +75,7 @@ func NewProviderConfig(config schema.SessionConfiguration, certPool *x509.CertPo
 		var configTLS *tls.Config
 
 		if config.Redis.TLS != nil {
-			configTLS = config.Redis.TLS.Config()
+			configTLS = config.Redis.TLS.Config(rootCAs)
 		}
 
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
