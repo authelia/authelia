@@ -1,4 +1,3 @@
-import { Workflow } from "@hooks/Workflow";
 import { FirstFactorPath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
@@ -10,7 +9,6 @@ interface PostFirstFactorBody {
     targetURL?: string;
     requestMethod?: string;
     workflow?: string;
-    workflowID?: string;
 }
 
 export async function postFirstFactor(
@@ -19,27 +17,26 @@ export async function postFirstFactor(
     rememberMe: boolean,
     targetURL?: string,
     requestMethod?: string,
-    workflow?: Workflow,
+    workflow?: string,
 ) {
-    const body: PostFirstFactorBody = {
+    const data: PostFirstFactorBody = {
         username,
         password,
         keepMeLoggedIn: rememberMe,
     };
 
     if (targetURL) {
-        body.targetURL = targetURL;
+        data.targetURL = targetURL;
     }
 
     if (requestMethod) {
-        body.requestMethod = requestMethod;
+        data.requestMethod = requestMethod;
     }
 
     if (workflow) {
-        body.workflow = workflow.name;
-        body.workflowID = workflow.id;
+        data.workflow = workflow;
     }
 
-    const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, body);
+    const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
     return res ? res : ({} as SignInResponse);
 }

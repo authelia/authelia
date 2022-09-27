@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
@@ -17,7 +17,7 @@ import { useRedirector } from "@hooks/Redirector";
 import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
-import { Workflow, useWorkflow } from "@hooks/Workflow";
+import { useWorkflow } from "@hooks/Workflow";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -104,11 +104,6 @@ const LoginPortal = function (props: Props) {
         }
     }, [fetchUserInfoError, createErrorNotification]);
 
-    const search = useMemo(
-        () => calcSearch(redirectionURL, requestMethod, workflow),
-        [redirectionURL, requestMethod, workflow],
-    );
-
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
         (async function () {
@@ -137,6 +132,12 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
+            const search = redirectionURL
+                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
+                      workflow ? `&workflow=${workflow}` : ""
+                  }`
+                : undefined;
+
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
                 redirect(IndexRoute, search);
@@ -155,7 +156,6 @@ const LoginPortal = function (props: Props) {
             }
         })();
     }, [
-        search,
         state,
         redirectionURL,
         requestMethod,
@@ -237,28 +237,6 @@ interface ComponentOrLoadingProps {
     ready: boolean;
 
     children: ReactNode;
-}
-
-function calcSearch(
-    redirectionURL: string | undefined,
-    requestMethod: string | undefined,
-    workflow: Workflow | undefined,
-) {
-    if (redirectionURL && workflow) {
-        return `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}&workflow=${
-            workflow.name
-        }${workflow.id ? `&workflow_id=${workflow.id}` : ""}`;
-    }
-
-    if (redirectionURL) {
-        return `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}`;
-    }
-
-    if (workflow) {
-        return `?workflow=${workflow.name}${workflow.id ? `&workflow_id=${workflow.id}` : ""}`;
-    }
-
-    return undefined;
 }
 
 function ComponentOrLoading(props: ComponentOrLoadingProps) {

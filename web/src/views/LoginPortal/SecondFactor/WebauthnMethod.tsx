@@ -9,7 +9,6 @@ import LinearProgressBar from "@components/LinearProgressBar";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useTimer } from "@hooks/Timer";
-import { useWorkflow } from "@hooks/Workflow";
 import { AssertionResult } from "@models/Webauthn";
 import { AuthenticationLevel } from "@services/State";
 import {
@@ -41,8 +40,6 @@ const WebauthnMethod = function (props: Props) {
     const [state, setState] = useState(State.WaitTouch);
     const styles = useStyles();
     const redirectionURL = useRedirectionURL();
-    const workflow = useWorkflow();
-
     const mounted = useIsMountedRef();
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 
@@ -115,7 +112,7 @@ const WebauthnMethod = function (props: Props) {
 
             setState(State.InProgress);
 
-            const response = await postAssertionPublicKeyCredentialResult(result.credential, redirectionURL, workflow);
+            const response = await postAssertionPublicKeyCredentialResult(result.credential, redirectionURL);
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -142,7 +139,6 @@ const WebauthnMethod = function (props: Props) {
         triggerTimer,
         props.authenticationLevel,
         props.registered,
-        workflow,
     ]);
 
     useEffect(() => {

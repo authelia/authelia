@@ -1,4 +1,3 @@
-import { Workflow } from "@hooks/Workflow";
 import {
     CompleteDuoDeviceSelectionPath,
     CompletePushNotificationSignInPath,
@@ -9,17 +8,16 @@ import { Get, PostWithOptionalResponse } from "@services/Client";
 interface CompletePushSigninBody {
     targetURL?: string;
     workflow?: string;
-    workflowID?: string;
 }
 
-export function completePushNotificationSignIn(targetURL?: string, workflow?: Workflow) {
-    const body: CompletePushSigninBody = {
-        targetURL: targetURL,
-    };
+export function completePushNotificationSignIn(targetURL?: string, workflow?: string) {
+    const body: CompletePushSigninBody = {};
+    if (targetURL) {
+        body.targetURL = targetURL;
+    }
 
     if (workflow) {
-        body.workflow = workflow.name;
-        body.workflowID = workflow.id;
+        body.workflow = workflow;
     }
 
     return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
