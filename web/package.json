@@ -148,7 +148,7 @@
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@types/jest": "29.0.3",
-    "@types/node": "16.11.60",
+    "@types/node": "16.11.62",
     "@types/qrcode.react": "1.0.2",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
