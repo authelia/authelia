@@ -74,7 +74,7 @@ func createMIMEBytes(include8bit, crlf bool, lines, length int) []byte {
 			switch {
 			case include8bit:
 				buf.Write(utils.RandomBytes(50, utils.AlphaNumericCharacters, false))
-				buf.Write([]byte{163})
+				buf.Write([]byte("£"))
 				buf.Write(utils.RandomBytes(49, utils.AlphaNumericCharacters, false))
 			default:
 				buf.Write(utils.RandomBytes(100, utils.AlphaNumericCharacters, false))
@@ -87,9 +87,9 @@ func createMIMEBytes(include8bit, crlf bool, lines, length int) []byte {
 
 		switch {
 		case crlf:
-			buf.Write([]byte{13, 10})
+			buf.Write([]byte(rfc2822NewLine))
 		default:
-			buf.Write([]byte{10})
+			buf.Write([]byte("\n"))
 		}
 	}
 
