@@ -66,17 +66,18 @@ const (
 
 // Paths.
 const (
-	WellKnownOpenIDConfigurationPath      = "/.well-known/openid-configuration"
-	WellKnownOAuthAuthorizationServerPath = "/.well-known/oauth-authorization-server"
-	JWKsPath                              = "/jwks.json"
+	EndpointConsent                           = "/consent"
+	EndpointWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
+	EndpointWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
+	EndpointJWKs                              = "/jwks.json"
 
-	RootPath = "/api/oidc"
+	EndpointAPIRoot = "/api/oidc"
 
-	AuthorizationPath = RootPath + "/" + AuthorizationEndpoint
-	TokenPath         = RootPath + "/" + TokenEndpoint
-	UserinfoPath      = RootPath + "/" + UserinfoEndpoint
-	IntrospectionPath = RootPath + "/" + IntrospectionEndpoint
-	RevocationPath    = RootPath + "/" + RevocationEndpoint
+	EndpointAuthorization = EndpointAPIRoot + "/" + AuthorizationEndpoint
+	EndpointToken         = EndpointAPIRoot + "/" + TokenEndpoint
+	EndpointUserinfo      = EndpointAPIRoot + "/" + UserinfoEndpoint
+	EndpointIntrospection = EndpointAPIRoot + "/" + IntrospectionEndpoint
+	EndpointRevocation    = EndpointAPIRoot + "/" + RevocationEndpoint
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

@@ -29,6 +29,7 @@ var (
 )
 
 const (
+	queryArgStrID         = "id"
 	queryArgStrConsentID  = "consent_id"
 	queryArgStrWorkflow   = "workflow"
 	queryArgStrWorkflowID = "workflow_id"

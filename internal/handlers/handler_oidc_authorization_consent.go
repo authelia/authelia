@@ -127,10 +127,10 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		location, _ = url.ParseRequestURI(issuer.String())
-		location.Path = path.Join(location.Path, "/consent")
+		location.Path = path.Join(location.Path, oidc.EndpointConsent)
 
 		query := location.Query()
-		query.Set(queryArgStrConsentID, consent.ChallengeID.String())
+		query.Set(queryArgStrID, consent.ChallengeID.String())
 
 		location.RawQuery = query.Encode()
 
@@ -157,7 +157,7 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(issuer *url.URL, consent *m
 		query.Set(queryArgStrWorkflowID, consent.ChallengeID.String())
 	case requester != nil:
 		rd, _ := url.ParseRequestURI(issuer.String())
-		rd.Path = path.Join(rd.Path, oidc.AuthorizationPath)
+		rd.Path = path.Join(rd.Path, oidc.EndpointAuthorization)
 		rd.RawQuery = requester.GetRequestForm().Encode()
 
 		query.Set("rd", rd.String())

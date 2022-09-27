@@ -129,13 +129,13 @@ func (p OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) OA
 	}
 
 	options.Issuer = issuer
-	options.JWKSURI = fmt.Sprintf("%s%s", issuer, JWKsPath)
+	options.JWKSURI = fmt.Sprintf("%s%s", issuer, EndpointJWKs)
 
-	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, IntrospectionPath)
-	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, TokenPath)
+	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, EndpointIntrospection)
+	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, EndpointToken)
 
-	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, AuthorizationPath)
-	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, RevocationPath)
+	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointAuthorization)
+	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointRevocation)
 
 	return options
 }
@@ -151,14 +151,14 @@ func (p OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer str
 	}
 
 	options.Issuer = issuer
-	options.JWKSURI = fmt.Sprintf("%s%s", issuer, JWKsPath)
+	options.JWKSURI = fmt.Sprintf("%s%s", issuer, EndpointJWKs)
 
-	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, IntrospectionPath)
-	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, TokenPath)
+	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, EndpointIntrospection)
+	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, EndpointToken)
 
-	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, AuthorizationPath)
-	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, RevocationPath)
-	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, UserinfoPath)
+	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointAuthorization)
+	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointRevocation)
+	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, EndpointUserinfo)
 
 	return options
 }
