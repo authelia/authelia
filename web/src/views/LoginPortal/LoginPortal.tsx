@@ -50,10 +50,20 @@ const LoginPortal = function (props: Props) {
     const [searchParams] = useSearchParams();
 
     const redirect = useCallback(
-        (pathname: string, params?: URLSearchParams) => {
-            navigate({ pathname: pathname, search: URLSearchParamsToSearch(params) });
+        (
+            pathname: string,
+            preserveSearchParams: boolean = true,
+            searchParamsOverride: URLSearchParams | undefined = undefined,
+        ) => {
+            if (searchParamsOverride && URLSearchParamsHasValues(searchParamsOverride)) {
+                navigate({ pathname: pathname, search: `?${searchParamsOverride.toString()}` });
+            } else if (preserveSearchParams && URLSearchParamsHasValues(searchParams)) {
+                navigate({ pathname: pathname, search: `?${searchParams.toString()}` });
+            } else {
+                navigate({ pathname: pathname });
+            }
         },
-        [navigate],
+        [navigate, searchParams],
     );
 
     // Fetch the state when portal is mounted.
@@ -127,23 +137,22 @@ const LoginPortal = function (props: Props) {
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(IndexRoute, searchParams);
+                redirect(IndexRoute);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
-                    redirect(AuthenticatedRoute);
+                    redirect(AuthenticatedRoute, false);
                 } else {
                     if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`, searchParams);
+                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`, searchParams);
+                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
                     } else {
-                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`, searchParams);
+                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
                     }
                 }
             }
         })();
     }, [
-        searchParams,
         state,
         redirectionURL,
         redirect,
@@ -236,10 +245,6 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
     );
 }
 
-function URLSearchParamsHasValues(params: URLSearchParams) {
+function URLSearchParamsHasValues(params?: URLSearchParams) {
     return params ? !params.entries().next().done : false;
-}
-
-function URLSearchParamsToSearch(params?: URLSearchParams) {
-    return params ? (URLSearchParamsHasValues(params) ? `?${params.toString()}` : "") : "";
 }
