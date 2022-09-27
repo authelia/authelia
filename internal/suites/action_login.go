@@ -19,12 +19,12 @@ func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, user
 
 	if keepMeLoggedIn {
 		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		err = keepMeLoggedInElement.Click("left")
+		err = keepMeLoggedInElement.Click("left", 1)
 		require.NoError(t, err)
 	}
 
 	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
-	err = buttonElement.Click("left")
+	err = buttonElement.Click("left", 1)
 	require.NoError(t, err)
 }
 

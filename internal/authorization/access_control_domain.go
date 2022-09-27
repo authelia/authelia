@@ -32,7 +32,7 @@ func NewAccessControlDomain(domain string) AccessControlDomain {
 
 // NewAccessControlDomainRegex creates a new SubjectObjectMatcher that matches the domain either in a basic way or
 // dynamic User/Group subexpression group way.
-func NewAccessControlDomainRegex(pattern regexp.Regexp) AccessControlDomain {
+func NewAccessControlDomainRegex(pattern regexp.Regexp) (subjects bool, rule AccessControlDomain) {
 	var iuser, igroup = -1, -1
 
 	for i, group := range pattern.SubexpNames() {
@@ -45,10 +45,10 @@ func NewAccessControlDomainRegex(pattern regexp.Regexp) AccessControlDomain {
 	}
 
 	if iuser != -1 || igroup != -1 {
-		return AccessControlDomain{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
+		return true, AccessControlDomain{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
 	}
 
-	return AccessControlDomain{RegexpStringSubjectMatcher{pattern}}
+	return false, AccessControlDomain{RegexpStringSubjectMatcher{pattern}}
 }
 
 // AccessControlDomainMatcher is the basic domain matcher.
