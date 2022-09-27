@@ -56,10 +56,6 @@ const LoginPortal = function (props: Props) {
         [navigate],
     );
 
-    useEffect(() => {
-        console.log(`searchParams: ${searchParams.toString()}`);
-    }, [searchParams]);
-
     // Fetch the state when portal is mounted.
     useEffect(() => {
         fetchState();
