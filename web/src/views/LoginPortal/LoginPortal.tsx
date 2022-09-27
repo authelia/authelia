@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
@@ -104,6 +104,11 @@ const LoginPortal = function (props: Props) {
         }
     }, [fetchUserInfoError, createErrorNotification]);
 
+    const search = useMemo(
+        () => calcSearch(redirectionURL, requestMethod, workflow),
+        [redirectionURL, requestMethod, workflow],
+    );
+
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
         (async function () {
@@ -132,8 +137,6 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
-            const search = Search(redirectionURL, requestMethod, workflow);
-
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
                 redirect(IndexRoute, search);
@@ -152,6 +155,7 @@ const LoginPortal = function (props: Props) {
             }
         })();
     }, [
+        search,
         state,
         redirectionURL,
         requestMethod,
@@ -235,7 +239,11 @@ interface ComponentOrLoadingProps {
     children: ReactNode;
 }
 
-function Search(redirectionURL: string | undefined, requestMethod: string | undefined, workflow: Workflow | undefined) {
+function calcSearch(
+    redirectionURL: string | undefined,
+    requestMethod: string | undefined,
+    workflow: Workflow | undefined,
+) {
     if (redirectionURL && workflow) {
         return `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}&workflow=${
             workflow.name
