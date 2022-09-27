@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/asaskevich/govalidator/v11 v11.0.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20220927171823-f4576e85b96c
 	github.com/fasthttp/router v1.4.12
