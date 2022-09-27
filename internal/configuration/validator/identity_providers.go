@@ -118,6 +118,7 @@ func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration,
 	}
 }
 
+//nolint:gocyclo // TODO: Refactor.
 func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, duplicateIDs := false, false
 
