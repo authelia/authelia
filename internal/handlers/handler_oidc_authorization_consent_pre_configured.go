@@ -85,7 +85,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 		if consent.Responded() {
 			ctx.Logger.Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotPerform)
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, fosite.ErrAccessDenied)
 
 			return nil, true
 		}
