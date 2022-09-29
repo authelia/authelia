@@ -183,6 +183,10 @@ func (s *OAuth2ConsentSession) CanGrantConsentModePreConfigured() bool {
 		return false
 	}
 
+	if s.ExpiresAt != nil && s.ExpiresAt.Before(time.Now()) {
+		return false
+	}
+
 	return true
 }
 
