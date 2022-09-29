@@ -140,6 +140,11 @@ type ClientConsent struct {
 	Duration time.Duration
 }
 
+// String returns the string representation of the ClientConsentMode.
+func (c ClientConsent) String() string {
+	return c.Mode.String()
+}
+
 // ClientConsentMode represents the consent mode for a client.
 type ClientConsentMode int
 

@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
@@ -29,7 +31,7 @@ func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCt
 		return handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx, issuer, client, userSession, subject, rw, r, requester)
 	default:
 		if consentID, err = uuid.Parse(string(bytesConsentID)); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred parsing the challenge id: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.Consent, bytesConsentID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentMalformedChallengeID)
 
@@ -47,8 +49,8 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 		err error
 	)
 
-	if consent, err = handleOIDCAuthorizationConsentModePreConfiguredGetConsent(ctx, client.GetID(), subject, requester); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' had error looking up pre-configured consent sessions: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+	if consent, err = handleOIDCAuthorizationConsentModePreConfiguredGetConsent(ctx, client, subject, requester); err != nil {
+		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.Consent, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -60,7 +62,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	}
 
 	if !consent.CanGrantConsentModePreConfigured() {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred performing consent for consent session with id '%s': the session does not appear to be valid for pre-configured consent", requester.GetID(), requester.GetClient().GetID(), consent.ChallengeID)
+		ctx.Logger.Errorf(logFmtErrConsentNotValidForPreConf, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotPerform)
 
@@ -68,34 +70,32 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	}
 
 	if !consent.IsAuthorized() {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred performing consent for consent session with id '%s': the user did not provide their explicit consent", requester.GetID(), requester.GetClient().GetID(), consent.ChallengeID)
+		ctx.Logger.Errorf(logFmtErrConsentNotProvided, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotPerform)
 
 		return nil, true
 	}
 
-	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' successfully looked up pre-configured consent with challenge id '%s'", requester.GetID(), client.GetID(), consent.ChallengeID)
+	ctx.Logger.Debugf(logFmtDbgConsentPreConfSuccessfulAndValid, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
 
 	return consent, false
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredGetConsent(ctx *middlewares.AutheliaCtx, clientID string, subject uuid.UUID, requester fosite.Requester) (consent *model.OAuth2ConsentSession, err error) {
+func handleOIDCAuthorizationConsentModePreConfiguredGetConsent(ctx *middlewares.AutheliaCtx, client *oidc.Client, subject uuid.UUID, requester fosite.Requester) (consent *model.OAuth2ConsentSession, err error) {
 	var (
 		rows *storage.ConsentSessionRows
 	)
 
-	ctx.Logger.Debugf("Consent Session is being checked for pre-configuration with signature of client id '%s' and subject '%s'", clientID, subject)
+	ctx.Logger.Debugf(logFmtDbgConsentPreConfTryingLookup, requester.GetID(), client.GetID(), client.Consent, client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
 
-	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionsPreConfigured(ctx, clientID, subject); err != nil {
-		ctx.Logger.Debugf("Consent Session checked for pre-configuration with signature of client id '%s' and subject '%s' failed with error during load: %+v", clientID, subject, err)
-
-		return nil, err
+	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionsPreConfigured(ctx, client.GetID(), subject); err != nil {
+		return nil, fmt.Errorf("error loading rows: %w", err)
 	}
 
 	defer func() {
 		if err := rows.Close(); err != nil {
-			ctx.Logger.Errorf("Consent Session checked for pre-configuration with signature of client id '%s' and subject '%s' failed to close rows with error: %+v", clientID, subject, err)
+			ctx.Logger.Errorf(logFmtErrConsentPreConfRowsClose, requester.GetID(), client.GetID(), client.Consent, err)
 		}
 	}()
 
@@ -103,9 +103,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredGetConsent(ctx *middlewares.
 
 	for rows.Next() {
 		if consent, err = rows.Get(); err != nil {
-			ctx.Logger.Debugf("Consent Session checked for pre-configuration with signature of client id '%s' and subject '%s' failed with error during iteration: %+v", clientID, subject, err)
-
-			return nil, err
+			return nil, fmt.Errorf("error iterating rows: %w", err)
 		}
 
 		if consent.HasExactGrants(scopes, audience) && consent.CanGrantZ() {
@@ -114,12 +112,12 @@ func handleOIDCAuthorizationConsentModePreConfiguredGetConsent(ctx *middlewares.
 	}
 
 	if consent != nil && consent.HasExactGrants(scopes, audience) && consent.CanGrantZ() {
-		ctx.Logger.Debugf("Consent Session checked for pre-configuration with signature of client id '%s' and subject '%s' found a result with challenge id '%s'", clientID, subject, consent.ChallengeID)
+		ctx.Logger.Debugf(logFmtDbgConsentPreConfSuccessfulLookup, requester.GetID(), client.GetID(), client.Consent, client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "), consent.ChallengeID)
 
 		return consent, nil
 	}
 
-	ctx.Logger.Debugf("Consent Session checked for pre-configuration with signature of client id '%s' and subject '%s' did not find any results", clientID, subject)
+	ctx.Logger.Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.Consent, client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
 
 	return nil, nil
 }

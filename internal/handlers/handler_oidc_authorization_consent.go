@@ -215,3 +215,30 @@ func getOIDCExpectedScopesAndAudience(clientID string, scopes, audience []string
 
 	return scopes, audience
 }
+
+const (
+	logFmtAuthorizationPrefix = "Authorization Request with id '%s' on client with id '%s' "
+	logFmtConsentPrefix       = logFmtAuthorizationPrefix + "using consent mode '%s' "
+
+	logFmtErrConsentParseChallengeID = logFmtConsentPrefix + "could not be processed: error occurred parsing the consent id (challenge) '%s': %+v"
+	logFmtErrConsentPreConfLookup    = logFmtConsentPrefix + "had error looking up pre-configured consent sessions: %+v"
+	logFmtErrConsentPreConfRowsClose = logFmtConsentPrefix + "had error closing rows while looking up pre-configured consent sessions: %+v"
+
+	logFmtErrConsentWithIDCouldNotBeProcessed   = logFmtConsentPrefix + "could not be processed: error occurred performing consent for consent session with id '%s': "
+	logFmtErrConsentNotValidForPreConf          = logFmtErrConsentWithIDCouldNotBeProcessed + "the session does not appear to be valid for pre-configured consent"
+	logFmtErrConsentNotProvided                 = logFmtErrConsentWithIDCouldNotBeProcessed + "the user did not provide their consent"
+	logFmtErrConsentZeroID                      = logFmtConsentPrefix + "could not be processed: the consent id had a zero value"
+	logFmtErrConsentLookupLoadingSession        = logFmtErrConsentWithIDCouldNotBeProcessed + "error occurred while loading session: %+v"
+	logFmtErrConsentSessionSubjectNotAuthorized = logFmtErrConsentWithIDCouldNotBeProcessed + "user '%s' with subject '%s' is not authorized to consent for subject '%s'"
+	logFmtErrConsentCantGrant                   = logFmtErrConsentWithIDCouldNotBeProcessed + "the session does not appear to be valid for %s consent: either it has already been granted, the subject is null, or the consent session is a pre-configured session"
+	logFmtErrConsentCantGrantNotResponded       = logFmtErrConsentWithIDCouldNotBeProcessed + "the user did not provide their explicit consent"
+	logFmtErrConsentCantGrantRejected           = logFmtErrConsentWithIDCouldNotBeProcessed + "the user explicitly rejected this consent session"
+	logFmtErrConsentSaveSessionResponse         = logFmtErrConsentWithIDCouldNotBeProcessed + "error occurred saving consent session response: %+v"
+	logFmtErrConsentSaveSession                 = logFmtErrConsentWithIDCouldNotBeProcessed + "error occurred saving consent session: %+v"
+	logFmtErrConsentGenerate                    = logFmtConsentPrefix + "could not be processed: error occurred generating consent: %+v"
+
+	logFmtDbgConsentPreConfSuccessfulLookup   = logFmtConsentPrefix + "successfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' with challenge id '%s'"
+	logFmtDbgConsentPreConfSuccessfulAndValid = logFmtConsentPrefix + "successfully looked up and validated pre-configured consent with challenge id '%s'"
+	logFmtDbgConsentPreConfUnsuccessfulLookup = logFmtConsentPrefix + "unsuccessfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s'"
+	logFmtDbgConsentPreConfTryingLookup       = logFmtConsentPrefix + "attempting to discover pre-configurations with signature of client id '%s' and subject '%s' and scopes '%s'"
+)

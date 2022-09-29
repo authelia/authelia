@@ -28,7 +28,7 @@ func handleOIDCAuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, is
 		return handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx, issuer, client, userSession, subject, rw, r, requester)
 	default:
 		if consentID, err = uuid.Parse(string(bytesConsentID)); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred parsing the challenge id: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.Consent, bytesConsentID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentMalformedChallengeID)
 
@@ -47,7 +47,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	)
 
 	if consentID.ID() == 0 {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: the consent id had a zero value", requester.GetID(), requester.GetClient().GetID())
+		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.Consent)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -55,7 +55,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+		ctx.Logger.Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.Consent, consentID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -63,7 +63,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	}
 
 	if subject.ID() != consent.Subject.UUID.ID() {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred during consent session lookup: user '%s' with subject '%s' is not authorized to consent for subject '%s'", requester.GetID(), requester.GetClient().GetID(), userSession.Username, subject, consent.Subject.UUID)
+		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -71,7 +71,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	}
 
 	if !consent.CanGrant() {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred performing consent for consent session with id '%s': the session does not appear to be valid for implicit/explicit consent", requester.GetID(), requester.GetClient().GetID(), consent.ChallengeID)
+		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, "implicit")
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotPerform)
 
@@ -81,7 +81,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	consent.Grant()
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session response: %+v", requester.GetID(), client.GetID(), err)
+		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -99,7 +99,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Authel
 	)
 
 	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred generating consent: %+v", requester.GetID(), requester.GetClient().GetID(), err)
+		ctx.Logger.Errorf(logFmtErrConsentGenerate, requester.GetID(), client.GetID(), client.Consent, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotGenerate)
 
@@ -107,7 +107,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Authel
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session: %+v", requester.GetID(), client.GetID(), err)
+		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotSave)
 
@@ -117,7 +117,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Authel
 	consent.Grant()
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session response: %+v", requester.GetID(), client.GetID(), err)
+		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotSave)
 
