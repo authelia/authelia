@@ -89,12 +89,12 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	if bodyJSON.Consent {
 		if bodyJSON.PreConfigure {
 			if client.Consent.Mode == oidc.ClientConsentModePreConfigured {
-				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
-			} else {
 				expiresAt := time.Now().Add(client.Consent.Duration)
 				consent.ExpiresAt = &expiresAt
 
 				ctx.Logger.Debugf("Consent session with id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID, userSession.Username, consent.ExpiresAt)
+			} else {
+				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
 			}
 		}
 
