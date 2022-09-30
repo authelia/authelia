@@ -39,7 +39,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: "key-material",
 			CORS: schema.OpenIDConnectCORSConfiguration{
-				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint},
+				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
@@ -62,7 +62,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: "key-material",
 			CORS: schema.OpenIDConnectCORSConfiguration{
-				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint, "invalid_endpoint"},
+				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{

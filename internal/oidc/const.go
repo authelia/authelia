@@ -57,27 +57,27 @@ const (
 
 // Endpoints.
 const (
-	AuthorizationEndpoint = "authorization"
-	TokenEndpoint         = "token"
-	UserinfoEndpoint      = "userinfo"
-	IntrospectionEndpoint = "introspection"
-	RevocationEndpoint    = "revocation"
+	EndpointAuthorization = "authorization"
+	EndpointToken         = "token"
+	EndpointUserinfo      = "userinfo"
+	EndpointIntrospection = "introspection"
+	EndpointRevocation    = "revocation"
 )
 
 // Paths.
 const (
-	EndpointConsent                           = "/consent"
-	EndpointWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
-	EndpointWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
-	EndpointJWKs                              = "/jwks.json"
+	EndpointPathConsent                           = "/consent"
+	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
+	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
+	EndpointPathJWKs                              = "/jwks.json"
 
-	EndpointAPIRoot = "/api/oidc"
+	EndpointPathRoot = "/api/oidc"
 
-	EndpointAuthorization = EndpointAPIRoot + "/" + AuthorizationEndpoint
-	EndpointToken         = EndpointAPIRoot + "/" + TokenEndpoint
-	EndpointUserinfo      = EndpointAPIRoot + "/" + UserinfoEndpoint
-	EndpointIntrospection = EndpointAPIRoot + "/" + IntrospectionEndpoint
-	EndpointRevocation    = EndpointAPIRoot + "/" + RevocationEndpoint
+	EndpointPathAuthorization = EndpointPathRoot + "/" + EndpointAuthorization
+	EndpointPathToken         = EndpointPathRoot + "/" + EndpointToken
+	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
+	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
+	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

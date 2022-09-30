@@ -142,7 +142,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 
 	query.Set(queryArgStrConsentID, consent.ChallengeID.String())
 
-	redirectURI.Path = path.Join(redirectURI.Path, oidc.EndpointAuthorization)
+	redirectURI.Path = path.Join(redirectURI.Path, oidc.EndpointPathAuthorization)
 	redirectURI.RawQuery = query.Encode()
 
 	response := oidc.ConsentPostResponseBody{RedirectURI: redirectURI.String()}

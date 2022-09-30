@@ -3,12 +3,15 @@ package handlers
 import (
 	"fmt"
 	"net/url"
+	"path"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -123,6 +126,8 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI, workflo
 		handleOIDCWorkflowResponseWithID(ctx, workflowID)
 	case len(targetURI) != 0:
 		handleOIDCWorkflowResponseWithTargetURL(ctx, targetURI)
+	default:
+		ctx.Error(fmt.Errorf("invalid post data: must contain either a target url or a workflow id"), messageAuthenticationFailed)
 	}
 }
 
@@ -133,7 +138,7 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 	)
 
 	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("unable to parse target URL '%s': %w", targetURI, err), messageAuthenticationFailed)
 
 		return
 	}
@@ -169,8 +174,72 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 	}
 }
 
-func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, workflowID string) {
-	ctx.Error(fmt.Errorf("not implemented"), "not implemented")
+func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
+	var (
+		workflowID uuid.UUID
+		client     *oidc.Client
+		consent    *model.OAuth2ConsentSession
+		err        error
+	)
+
+	if workflowID, err = uuid.Parse(id); err != nil {
+		ctx.Error(fmt.Errorf("unable to parse consent session challenge id '%s': %w", id, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, workflowID); err != nil {
+		ctx.Error(fmt.Errorf("unable to load consent session by challenge id '%s': %w", id, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID); err != nil {
+		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	userSession := ctx.GetSession()
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
+		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
+		ctx.ReplyOK()
+
+		return
+	}
+
+	var (
+		issuer    string
+		targetURL *url.URL
+	)
+
+	if issuer, err = ctx.ExternalRootURL(); err != nil {
+		ctx.Error(fmt.Errorf("unable to get issuer for redirection: %w", err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if targetURL, err = url.Parse(issuer); err != nil {
+		ctx.Error(fmt.Errorf("unable to get parse issuer URL '%s' for redirection: %w", issuer, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	var form url.Values
+
+	if form, err = consent.GetForm(); err != nil {
+		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
+	targetURL.RawQuery = form.Encode()
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+	}
 }
 
 func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {
