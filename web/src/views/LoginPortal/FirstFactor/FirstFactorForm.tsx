@@ -34,7 +34,7 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
-    const workflow = useWorkflow();
+    const [workflow] = useWorkflow();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
     const [rememberMe, setRememberMe] = useState(false);

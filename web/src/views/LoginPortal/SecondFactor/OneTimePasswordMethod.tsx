@@ -34,7 +34,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
     const redirectionURL = useRedirectionURL();
-    const workflow = useWorkflow();
+    const [workflow, workflowID] = useWorkflow();
     const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;
@@ -69,7 +69,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
         try {
             setState(State.InProgress);
-            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, workflow);
+            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, workflow, workflowID);
             setState(State.Success);
             onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
@@ -84,6 +84,7 @@ const OneTimePasswordMethod = function (props: Props) {
         passcode,
         redirectionURL,
         workflow,
+        workflowID,
         resp,
         props.authenticationLevel,
         props.registered,
