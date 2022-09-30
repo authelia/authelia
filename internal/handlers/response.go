@@ -133,6 +133,8 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI, workflo
 
 func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targetURI string) {
 	var (
+		issuer    string
+		issuerURL *url.URL
 		targetURL *url.URL
 		err       error
 	)
@@ -143,28 +145,28 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 		return
 	}
 
-	var (
-		id     string
-		client *oidc.Client
-	)
-
-	if id = targetURL.Query().Get("client_id"); len(id) == 0 {
-		ctx.Error(fmt.Errorf("unable to get client id from from URL '%s'", targetURL), messageAuthenticationFailed)
+	if issuer, err = ctx.ExternalRootURL(); err != nil {
+		ctx.Error(fmt.Errorf("unable to get issuer for redirection: %w", err), messageAuthenticationFailed)
 
 		return
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(id); err != nil {
-		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from URL '%s': %w", id, targetURL, err), messageAuthenticationFailed)
+	if issuerURL, err = url.ParseRequestURI(issuer); err != nil {
+		ctx.Error(fmt.Errorf("unable to parse issuer '%s': %w", issuer, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if targetURL.Host != issuerURL.Host {
+		ctx.Error(fmt.Errorf("unable to redirect to '%s': target host '%s' does not match expected issuer host '%s'", targetURL, targetURL.Host, issuerURL.Host), messageAuthenticationFailed)
 
 		return
 	}
 
 	userSession := ctx.GetSession()
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
-		ctx.ReplyOK()
+	if userSession.IsAnonymous() {
+		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
 
 		return
 	}
@@ -236,6 +238,12 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 
 	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
 	targetURL.RawQuery = form.Encode()
+
+	if userSession.IsAnonymous() {
+		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
+
+		return
+	}
 
 	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
 		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
