@@ -44,8 +44,8 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		},
 	}
 
-	extra := map[string]interface{}{
-		"preferred_username": "john",
+	extra := map[string]any{
+		ClaimPreferredUsername: "john",
 	}
 
 	requested := time.Unix(1647332518, 0)
@@ -80,14 +80,10 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, authAt, session.Claims.AuthTime)
 	assert.Equal(t, requested, session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
-	assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
+	assert.Equal(t, "john", session.Claims.Extra[ClaimPreferredUsername])
 
-	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
+	// assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier)).
 	assert.Equal(t, "https://example.com/jwks.json", session.Headers.Get(JWTHeaderJWKSetURL))
-
-	assert.Equal(t, "primary", session.Headers.Get("kid"))
-
-	require.Contains(t, session.Claims.Extra, "preferred_username")
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
