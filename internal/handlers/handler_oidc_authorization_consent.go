@@ -42,7 +42,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 	var handler handlerAuthorizationConsent
 
 	switch {
-	case userSession.AuthenticationLevel == authentication.NotAuthenticated || userSession.Username == "":
+	case userSession.IsAnonymous():
 		handler = handleOIDCAuthorizationConsentNotAuthenticated
 	case client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel):
 		if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
@@ -74,8 +74,8 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string
 	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
-func handleOIDCAuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+func handleOIDCAuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, _ *oidc.Client,
+	_ session.UserSession, _ uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	redirectionURL := handleOIDCAuthorizationConsentGetRedirectionURL(issuer, nil, requester)
 
