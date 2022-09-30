@@ -64,6 +64,12 @@ const (
 	EndpointRevocation    = "revocation"
 )
 
+// JWT Headers.
+const (
+	JWTHeaderKeyIdentifier = "kid"
+	JWTHeaderJWKSetURL     = "jku"
+)
+
 // Paths.
 const (
 	EndpointPathConsent                           = "/consent"

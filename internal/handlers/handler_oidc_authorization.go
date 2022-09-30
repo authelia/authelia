@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/ory/fosite"
@@ -21,7 +22,8 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 		responder fosite.AuthorizeResponder
 		client    *oidc.Client
 		authTime  time.Time
-		issuer    string
+		issuerURL string
+		issuer    *url.URL
 		err       error
 	)
 
@@ -51,7 +53,15 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 		return
 	}
 
-	if issuer, err = ctx.ExternalRootURL(); err != nil {
+	if issuerURL, err = ctx.ExternalRootURL(); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred determining issuer: %+v", requester.GetID(), clientID, err)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrIssuerCouldNotDerive)
+
+		return
+	}
+
+	if issuer, err = url.ParseRequestURI(issuerURL); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred determining issuer: %+v", requester.GetID(), clientID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrIssuerCouldNotDerive)

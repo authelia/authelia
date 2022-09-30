@@ -20,20 +20,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, rootURI string, client *oidc.Client,
+func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
 	userSession session.UserSession,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
-		issuer  *url.URL
 		subject uuid.UUID
 		err     error
 	)
-
-	if issuer, err = url.ParseRequestURI(rootURI); err != nil {
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrIssuerCouldNotDerive)
-
-		return nil, true
-	}
 
 	if !strings.HasSuffix(issuer.Path, "/") {
 		issuer.Path += "/"

@@ -2,6 +2,8 @@ package oidc
 
 import (
 	"crypto/rsa"
+	"net/url"
+	"path"
 	"time"
 
 	"github.com/ory/fosite"
@@ -32,17 +34,21 @@ func NewSession() (session *model.OpenIDSession) {
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]interface{},
+func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
-		extra = make(map[string]interface{})
+		extra = map[string]any{}
 	}
+
+	jwks, _ := url.ParseRequestURI(issuer.String())
+
+	jwks.Path = path.Join(jwks.Path, EndpointPathJWKs)
 
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Subject:     consent.Subject.UUID.String(),
-				Issuer:      issuer,
+				Issuer:      issuer.String(),
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
 				IssuedAt:    time.Now(),
@@ -53,8 +59,9 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 				AuthenticationMethodsReferences: amr,
 			},
 			Headers: &jwt.Headers{
-				Extra: map[string]interface{}{
-					"kid": kid,
+				Extra: map[string]any{
+					JWTHeaderKeyIdentifier: kid,
+					JWTHeaderJWKSetURL:     jwks.String(),
 				},
 			},
 			Subject:  consent.Subject.UUID.String(),

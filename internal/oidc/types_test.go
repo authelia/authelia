@@ -59,7 +59,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Subject:     uuid.NullUUID{UUID: subject, Valid: true},
 	}
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", "john", amr, extra, authAt, consent, request)
+	session := NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -82,6 +82,9 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
 
+	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
+	assert.Equal(t, "https://example.com/jwks.json", session.Headers.Get(JWTHeaderJWKSetURL))
+
 	assert.Equal(t, "primary", session.Headers.Get("kid"))
 
 	require.Contains(t, session.Claims.Extra, "preferred_username")
@@ -91,10 +94,18 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		RequestedAt: requested,
 	}
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", "john", nil, nil, authAt, consent, request)
+	session = NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
+}
+
+func MustParseRequestURI(input string) *url.URL {
+	if requestURI, err := url.ParseRequestURI(input); err != nil {
+		panic(err)
+	} else {
+		return requestURI
+	}
 }

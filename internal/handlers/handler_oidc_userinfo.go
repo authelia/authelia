@@ -3,10 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -90,8 +93,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	claims["aud"] = audience
 
 	var (
-		// keyID string
-		token string
+		keyID, token string
 	)
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
@@ -109,24 +111,45 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		claims["jti"] = jti.String()
 		claims["iat"] = time.Now().Unix()
 
-		/*
-			if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
-				ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not find the active JWK."))
+		if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not find the active JWK."))
+
+			return
+		}
+
+		var (
+			iss  string
+			jwks *url.URL
+		)
+
+		if iss, ok = claims["iss"].(string); !ok || iss == "" {
+			if iss, err = ctx.ExternalRootURL(); err != nil {
+				ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not determine issuer."))
 
 				return
 			}
+		}
 
-			headers := &jwt.Headers{
-				Extra: map[string]interface{}{"kid": keyID},
-			}
+		if jwks, err = url.ParseRequestURI(iss); err != nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not determine issuer."))
 
-			if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
-				ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+			return
+		}
 
-				return
-			}
+		jwks.Path = path.Join(jwks.Path, oidc.EndpointPathJWKs)
 
-		*/
+		headers := &jwt.Headers{
+			Extra: map[string]any{
+				oidc.JWTHeaderKeyIdentifier: keyID,
+				oidc.JWTHeaderJWKSetURL:     jwks.String(),
+			},
+		}
+
+		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+
+			return
+		}
 
 		rw.Header().Set("Content-Type", "application/jwt")
 		_, _ = rw.Write([]byte(token))
