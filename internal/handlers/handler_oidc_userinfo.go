@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -91,7 +90,8 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	claims["aud"] = audience
 
 	var (
-		keyID, token string
+		// keyID string
+		token string
 	)
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
@@ -109,21 +109,24 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		claims["jti"] = jti.String()
 		claims["iat"] = time.Now().Unix()
 
-		if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not find the active JWK."))
+		/*
+			if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
+				ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not find the active JWK."))
 
-			return
-		}
+				return
+			}
 
-		headers := &jwt.Headers{
-			Extra: map[string]interface{}{"kid": keyID},
-		}
+			headers := &jwt.Headers{
+				Extra: map[string]interface{}{"kid": keyID},
+			}
 
-		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+			if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
+				ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
 
-			return
-		}
+				return
+			}
+
+		*/
 
 		rw.Header().Set("Content-Type", "application/jwt")
 		_, _ = rw.Write([]byte(token))
