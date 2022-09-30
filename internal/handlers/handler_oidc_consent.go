@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -87,18 +88,35 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Consent {
+		consent.Grant()
+
 		if bodyJSON.PreConfigure {
 			if client.Consent.Mode == oidc.ClientConsentModePreConfigured {
-				expiresAt := time.Now().Add(client.Consent.Duration)
-				consent.ExpiresAt = &expiresAt
+				config := model.OAuth2ConsentPreConfig{
+					ClientID:  consent.ClientID,
+					Subject:   consent.Subject.UUID,
+					CreatedAt: time.Now(),
+					ExpiresAt: sql.NullTime{Time: time.Now().Add(client.Consent.Duration), Valid: true},
+					Scopes:    consent.GrantedScopes,
+					Audience:  consent.GrantedAudience,
+				}
 
-				ctx.Logger.Debugf("Consent session with id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID, userSession.Username, consent.ExpiresAt)
+				var id int64
+
+				if id, err = ctx.Providers.StorageProvider.SaveOAuth2ConsentPreConfiguration(ctx, config); err != nil {
+					ctx.Logger.Errorf("Failed to save the consent pre-configuration to the database: %+v", err)
+					ctx.SetJSONError(messageOperationFailed)
+
+					return
+				}
+
+				consent.PreConfiguration = sql.NullInt64{Int64: id, Valid: true}
+
+				ctx.Logger.Debugf("Consent session with id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID, userSession.Username, config.ExpiresAt.Time)
 			} else {
 				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
 			}
 		}
-
-		consent.Grant()
 	}
 
 	var externalRootURL string

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -84,6 +85,42 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 	}
 }
 
+// OAuth2ConsentPreConfig stores information about an OAuth2.0 Pre-Configured Consent.
+type OAuth2ConsentPreConfig struct {
+	ID       int64     `db:"id"`
+	ClientID string    `db:"client_id"`
+	Subject  uuid.UUID `db:"subject"`
+
+	CreatedAt time.Time    `db:"created_at"`
+	ExpiresAt sql.NullTime `db:"expires_at"`
+
+	Revoked bool `db:"revoked"`
+
+	Scopes   StringSlicePipeDelimited `db:"scopes"`
+	Audience StringSlicePipeDelimited `db:"audience"`
+}
+
+// HasExactGrants returns true if the granted audience and scopes of this consent pre-configuration matches exactly with
+// another audience and set of scopes.
+func (s *OAuth2ConsentPreConfig) HasExactGrants(scopes, audience []string) (has bool) {
+	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
+}
+
+// HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
+func (s *OAuth2ConsentPreConfig) HasExactGrantedAudience(audience []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.Audience, audience)
+}
+
+// HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
+func (s *OAuth2ConsentPreConfig) HasExactGrantedScopes(scopes []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.Scopes, scopes)
+}
+
+// CanConsent returns true if this pre-configuration can still provide consent.
+func (s *OAuth2ConsentPreConfig) CanConsent() bool {
+	return !s.Revoked && (!s.ExpiresAt.Valid || s.ExpiresAt.Time.After(time.Now()))
+}
+
 // OAuth2ConsentSession stores information about an OAuth2.0 Consent.
 type OAuth2ConsentSession struct {
 	ID          int           `db:"id"`
@@ -94,9 +131,8 @@ type OAuth2ConsentSession struct {
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`
 
-	RequestedAt time.Time  `db:"requested_at"`
-	RespondedAt *time.Time `db:"responded_at"`
-	ExpiresAt   *time.Time `db:"expires_at"`
+	RequestedAt time.Time    `db:"requested_at"`
+	RespondedAt sql.NullTime `db:"responded_at"`
 
 	Form string `db:"form_data"`
 
@@ -104,6 +140,8 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+
+	PreConfiguration sql.NullInt64
 }
 
 // Grant grants the requested scopes and audience.
@@ -134,7 +172,7 @@ func (s *OAuth2ConsentSession) HasExactGrantedScopes(scopes []string) (has bool)
 
 // Responded returns true if the user has responded to the consent session.
 func (s *OAuth2ConsentSession) Responded() bool {
-	return s.RespondedAt != nil
+	return s.RespondedAt.Valid
 }
 
 // IsAuthorized returns true if the user has responded to the consent session and it was authorized.
@@ -147,43 +185,10 @@ func (s *OAuth2ConsentSession) IsDenied() bool {
 	return s.Responded() && !s.Authorized
 }
 
-// CanGrantZ returns true if the user has responded to the consent session, it was authorized, and it either hast not
-// previously been granted or the ability to grant has not expired.
-func (s *OAuth2ConsentSession) CanGrantZ() bool {
-	if !s.Responded() {
-		return false
-	}
-
-	if s.Granted && (s.ExpiresAt == nil || s.ExpiresAt.Before(time.Now())) {
-		return false
-	}
-
-	return true
-}
-
 // CanGrant returns true if the session can still grant a token. This is NOT indicative of if there is a user response
 // to this consent request or if the user rejected the consent request.
 func (s *OAuth2ConsentSession) CanGrant() bool {
-	if !s.Subject.Valid || s.Granted || s.ExpiresAt != nil {
-		return false
-	}
-
-	return true
-}
-
-// CanGrantConsentModePreConfigured returns true if the session can still grant a token for the pre-configured client
-// consent mode. This is NOT indicative of if there is a user response to this consent request or if the user rejected
-// the consent request.
-func (s *OAuth2ConsentSession) CanGrantConsentModePreConfigured() bool {
-	if !s.Subject.Valid {
-		return false
-	}
-
-	if s.Granted && (s.ExpiresAt == nil || s.ExpiresAt.Before(time.Now())) {
-		return false
-	}
-
-	if s.ExpiresAt != nil && s.ExpiresAt.Before(time.Now()) {
+	if !s.Subject.Valid || s.Granted {
 		return false
 	}
 

@@ -3,14 +3,13 @@ package oidc
 import (
 	"crypto/rsa"
 	"net/url"
-	"path"
 	"time"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -40,10 +39,6 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 		extra = map[string]any{}
 	}
 
-	jwks, _ := url.ParseRequestURI(issuer.String())
-
-	jwks.Path = path.Join(jwks.Path, EndpointPathJWKs)
-
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
@@ -52,7 +47,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
 				IssuedAt:    time.Now(),
-				Nonce:       requester.GetRequestForm().Get("nonce"),
+				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
 				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
 
@@ -61,7 +56,6 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 			Headers: &jwt.Headers{
 				Extra: map[string]any{
 					JWTHeaderKeyIdentifier: kid,
-					JWTHeaderJWKSetURL:     jwks.String(),
 				},
 			},
 			Subject:  consent.Subject.UUID.String(),
@@ -78,7 +72,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 	}
 
 	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
-	session.Claims.Add(ClaimClientID, session.ClientID)
+	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
 }

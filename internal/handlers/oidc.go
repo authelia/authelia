@@ -21,10 +21,10 @@ func oidcGrantRequests(ar fosite.AuthorizeRequester, consent *model.OAuth2Consen
 			extraClaims[oidc.ClaimGroups] = userSession.Groups
 		case oidc.ScopeProfile:
 			extraClaims[oidc.ClaimPreferredUsername] = userSession.Username
-			extraClaims[oidc.ClaimDisplayName] = userSession.DisplayName
+			extraClaims[oidc.ClaimFullName] = userSession.DisplayName
 		case oidc.ScopeEmail:
 			if len(userSession.Emails) != 0 {
-				extraClaims[oidc.ClaimEmail] = userSession.Emails[0]
+				extraClaims[oidc.ClaimPreferredEmail] = userSession.Emails[0]
 				if len(userSession.Emails) > 1 {
 					extraClaims[oidc.ClaimEmailAlts] = userSession.Emails[1:]
 				}

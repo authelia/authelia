@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
@@ -27,10 +26,6 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 		subject uuid.UUID
 		err     error
 	)
-
-	if !strings.HasSuffix(issuer.Path, "/") {
-		issuer.Path += "/"
-	}
 
 	var handler handlerAuthorizationConsent
 
@@ -227,7 +222,7 @@ const (
 	logFmtDbgConsentGenerate                  = logFmtConsentPrefix + "proceeding to generate a new consent session"
 	logFmtDbgConsentAuthenticationSufficiency = logFmtConsentPrefix + "authentication level '%s' is %s for client level '%s'"
 	logFmtDbgConsentRedirect                  = logFmtConsentPrefix + "is being redirected to '%s'"
-	logFmtDbgConsentPreConfSuccessfulLookup   = logFmtConsentPrefix + "successfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' with challenge id '%s'"
+	logFmtDbgConsentPreConfSuccessfulLookup   = logFmtConsentPrefix + "successfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s' with id '%d'"
 	logFmtDbgConsentPreConfSuccessfulAndValid = logFmtConsentPrefix + "successfully looked up and validated pre-configured consent with challenge id '%s'"
 	logFmtDbgConsentPreConfUnsuccessfulLookup = logFmtConsentPrefix + "unsuccessfully looked up pre-configured consent with signature of client id '%s' and subject '%s' and scopes '%s'"
 	logFmtDbgConsentPreConfTryingLookup       = logFmtConsentPrefix + "attempting to discover pre-configurations with signature of client id '%s' and subject '%s' and scopes '%s'"

@@ -9,16 +9,31 @@ const (
 	ScopeGroups        = "groups"
 )
 
-// Claim strings.
+// Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
 const (
-	ClaimGroups            = "groups"
-	ClaimDisplayName       = "name"
-	ClaimPreferredUsername = "preferred_username"
-	ClaimEmail             = "email"
-	ClaimEmailVerified     = "email_verified"
-	ClaimEmailAlts         = "alt_emails"
-	ClaimAuthorizedParty   = "azp"
-	ClaimClientID          = "client_id"
+	ClaimJWTID                          = "jti"
+	ClaimIssuedAt                       = "iat"
+	ClaimRequestedAt                    = "rat"
+	ClaimExpirationTime                 = "exp"
+	ClaimAuthenticationTime             = "auth_time"
+	ClaimIssuer                         = "iss"
+	ClaimSubject                        = "sub"
+	ClaimNonce                          = "nonce"
+	ClaimAudience                       = "aud"
+	ClaimGroups                         = "groups"
+	ClaimFullName                       = "name"
+	ClaimPreferredUsername              = "preferred_username"
+	ClaimPreferredEmail                 = "email"
+	ClaimEmailVerified                  = "email_verified"
+	ClaimAuthorizedParty                = "azp"
+	ClaimAuthenticationMethodsReference = "amr"
+	ClaimClientIdentifier               = "client_id"
+)
+
+const (
+	// ClaimEmailAlts is an unregistered/custom claim.
+	// It represents the emails which are not considered primary.
+	ClaimEmailAlts = "alt_emails"
 )
 
 // Response Mode strings.
@@ -66,8 +81,8 @@ const (
 
 // JWT Headers.
 const (
+	// JWTHeaderKeyIdentifier is the JWT Header referencing the JWS Key Identifier used to sign a token.
 	JWTHeaderKeyIdentifier = "kid"
-	JWTHeaderJWKSetURL     = "jku"
 )
 
 // Paths.

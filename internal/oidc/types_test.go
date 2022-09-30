@@ -34,7 +34,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	formValues := url.Values{}
 
-	formValues.Set("nonce", "abc123xyzauthelia")
+	formValues.Set(ClaimNonce, "abc123xyzauthelia")
 
 	request := &fosite.AuthorizeRequest{
 		Request: fosite.Request{
@@ -83,7 +83,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, "john", session.Claims.Extra[ClaimPreferredUsername])
 
 	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
-	assert.Equal(t, "https://example.com/jwks.json", session.Headers.Get(JWTHeaderJWKSetURL))
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),

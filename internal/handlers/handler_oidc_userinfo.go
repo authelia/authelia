@@ -3,8 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
 	"time"
 
 	"github.com/google/uuid"
@@ -117,31 +115,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 			return
 		}
 
-		var (
-			iss  string
-			jwks *url.URL
-		)
-
-		if iss, ok = claims["iss"].(string); !ok || iss == "" {
-			if iss, err = ctx.ExternalRootURL(); err != nil {
-				ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not determine issuer."))
-
-				return
-			}
-		}
-
-		if jwks, err = url.ParseRequestURI(iss); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not determine issuer."))
-
-			return
-		}
-
-		jwks.Path = path.Join(jwks.Path, oidc.EndpointPathJWKs)
-
 		headers := &jwt.Headers{
 			Extra: map[string]any{
 				oidc.JWTHeaderKeyIdentifier: keyID,
-				oidc.JWTHeaderJWKSetURL:     jwks.String(),
 			},
 		}
 

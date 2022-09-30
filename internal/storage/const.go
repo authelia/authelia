@@ -13,13 +13,14 @@ const (
 	tableUserPreferences      = "user_preferences"
 	tableWebauthnDevices      = "webauthn_devices"
 
-	tableOAuth2ConsentSession       = "oauth2_consent_session"
-	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
-	tableOAuth2AccessTokenSession   = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
-	tableOAuth2OpenIDConnectSession = "oauth2_openid_connect_session"
-	tableOAuth2BlacklistedJTI       = "oauth2_blacklisted_jti"
+	tableOAuth2ConsentSession          = "oauth2_consent_session"
+	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
+	tableOAuth2AuthorizeCodeSession    = "oauth2_authorization_code_session"
+	tableOAuth2AccessTokenSession      = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2RefreshTokenSession     = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2PKCERequestSession      = "oauth2_pkce_request_session"
+	tableOAuth2OpenIDConnectSession    = "oauth2_openid_connect_session"
+	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
@@ -74,11 +75,6 @@ const (
 	providerMySQL    = "mysql"
 	providerPostgres = "postgres"
 	providerSQLite   = "sqlite"
-)
-
-const (
-	// This is the latest schema version for the purpose of tests.
-	testLatestVersion = 5
 )
 
 const (
