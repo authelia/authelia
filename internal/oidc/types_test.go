@@ -82,7 +82,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra[ClaimPreferredUsername])
 
-	// assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier)).
+	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
 	assert.Equal(t, "https://example.com/jwks.json", session.Headers.Get(JWTHeaderJWKSetURL))
 
 	consent = &model.OAuth2ConsentSession{
