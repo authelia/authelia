@@ -2,7 +2,7 @@
 version: '3'
 services:
   envoy:
-    image: envoyproxy/envoy:v1.23.0
+    image: envoyproxy/envoy:v1.23.1
     volumes:
       - ./example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml
       - ./example/compose/nginx/portal/ssl:/etc/ssl
