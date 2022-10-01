@@ -453,7 +453,7 @@ func TestShouldRedirectWithGroups(t *testing.T) {
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "app.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Uri", "/code-test/login")
 
-	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+	mock.Ctx.Request.SetRequestURI("/api/verify/?rd=https://auth.example.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
@@ -535,6 +535,110 @@ type Pair struct {
 func (p Pair) String() string {
 	return fmt.Sprintf("url=%s, username=%s, auth_lvl=%d, exp_status=%d",
 		p.URL, p.Username, p.AuthenticationLevel, p.ExpectedStatusCode)
+}
+
+//nolint:gocyclo // This is a test.
+func TestShouldRedirectAuthorizations(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		method, originalURL, autheliaURL string
+
+		expected int
+	}{
+		{"ShouldReturnFoundMethodNone", "", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
+		{"ShouldReturnFoundMethodGET", "GET", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
+		{"ShouldReturnFoundMethodOPTIONS", "OPTIONS", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusFound},
+		{"ShouldReturnSeeOtherMethodPOST", "POST", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnSeeOtherMethodPATCH", "PATCH", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnSeeOtherMethodPUT", "PUT", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnSeeOtherMethodDELETE", "DELETE", "https://one-factor.example.com/", "https://auth.example.com/", fasthttp.StatusSeeOther},
+		{"ShouldReturnUnauthorizedBadDomain", "GET", "https://one-factor.example.com/", "https://auth.notexample.com/", fasthttp.StatusUnauthorized},
+	}
+
+	handler := VerifyGET(verifyGetCfg)
+
+	for _, tc := range testCases {
+		var (
+			suffix string
+			xhr    bool
+		)
+
+		for i := 0; i < 2; i++ {
+			switch i {
+			case 0:
+				suffix += "QueryParameter"
+			default:
+				suffix += "RequestHeader"
+			}
+
+			for j := 0; j < 2; j++ {
+				switch j {
+				case 0:
+					xhr = false
+				case 1:
+					xhr = true
+					suffix += "XHR"
+				}
+
+				t.Run(tc.name+suffix, func(t *testing.T) {
+					mock := mocks.NewMockAutheliaCtx(t)
+					defer mock.Close()
+
+					mock.Clock.Set(time.Now())
+
+					autheliaURL, err := url.ParseRequestURI(tc.autheliaURL)
+
+					require.NoError(t, err)
+
+					originalURL, err := url.ParseRequestURI(tc.originalURL)
+
+					require.NoError(t, err)
+
+					if xhr {
+						mock.Ctx.Request.Header.Set(fasthttp.HeaderXRequestedWith, "XMLHttpRequest")
+					}
+
+					var rm string
+
+					if tc.method != "" {
+						rm = fmt.Sprintf("&rm=%s", tc.method)
+						mock.Ctx.Request.Header.Set("X-Forwarded-Method", tc.method)
+					}
+
+					mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
+					mock.Ctx.Request.Header.Set("X-Original-URL", originalURL.String())
+
+					if i == 0 {
+						mock.Ctx.Request.SetRequestURI(fmt.Sprintf("/?rd=%s", url.QueryEscape(autheliaURL.String())))
+					} else {
+						mock.Ctx.Request.Header.Set("X-Authelia-URL", autheliaURL.String())
+					}
+
+					handler(mock.Ctx)
+
+					if xhr && tc.expected != fasthttp.StatusUnauthorized {
+						assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+					} else {
+						assert.Equal(t, tc.expected, mock.Ctx.Response.StatusCode())
+					}
+
+					switch {
+					case xhr && tc.expected != fasthttp.StatusUnauthorized:
+						href := utils.StringHTMLEscape(fmt.Sprintf("%s?rd=%s%s", autheliaURL.String(), url.QueryEscape(originalURL.String()), rm))
+						assert.Equal(t, fmt.Sprintf("<a href=\"%s\">%d %s</a>", href, fasthttp.StatusUnauthorized, fasthttp.StatusMessage(fasthttp.StatusUnauthorized)), string(mock.Ctx.Response.Body()))
+					case tc.expected >= fasthttp.StatusMultipleChoices && tc.expected < fasthttp.StatusBadRequest:
+						href := utils.StringHTMLEscape(fmt.Sprintf("%s?rd=%s%s", autheliaURL.String(), url.QueryEscape(originalURL.String()), rm))
+						assert.Equal(t, fmt.Sprintf("<a href=\"%s\">%d %s</a>", href, tc.expected, fasthttp.StatusMessage(tc.expected)), string(mock.Ctx.Response.Body()))
+					case tc.expected < fasthttp.StatusMultipleChoices:
+						assert.Equal(t, utils.StringHTMLEscape(fmt.Sprintf("%d %s", tc.expected, fasthttp.StatusMessage(tc.expected))), string(mock.Ctx.Response.Body()))
+					default:
+						assert.Equal(t, utils.StringHTMLEscape(fmt.Sprintf("%d %s", tc.expected, fasthttp.StatusMessage(tc.expected))), string(mock.Ctx.Response.Body()))
+					}
+				})
+			}
+		}
+	}
 }
 
 func TestShouldVerifyAuthorizationsUsingSessionCookie(t *testing.T) {
@@ -837,11 +941,36 @@ func TestShouldURLEncodeRedirectionURLParameter(t *testing.T) {
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	mock.Ctx.Request.SetHost("mydomain.com")
-	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.example.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 
-	assert.Equal(t, "<a href=\"https://auth.mydomain.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
+	assert.Equal(t, "<a href=\"https://auth.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
+		string(mock.Ctx.Response.Body()))
+}
+
+func TestShouldURLEncodeRedirectionHeader(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Clock.Set(time.Now())
+
+	userSession := mock.Ctx.GetSession()
+	userSession.Username = testUsername
+	userSession.AuthenticationLevel = authentication.NotAuthenticated
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	err := mock.Ctx.SaveSession(userSession)
+	require.NoError(t, err)
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
+	mock.Ctx.Request.Header.Set("X-Authelia-URL", "https://auth.example.com")
+	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
+	mock.Ctx.Request.SetHost("mydomain.com")
+
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, "<a href=\"https://auth.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com\">302 Found</a>",
 		string(mock.Ctx.Response.Body()))
 }
 

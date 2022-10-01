@@ -1,0 +1,236 @@
+---
+static_resources:
+  listeners:
+    - name: listener_0
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8080
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager  # yamllint disable-line rule:line-length
+                stat_prefix: ingress_http
+                use_remote_address: true
+                skip_xff_append: false
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: login_service
+                      domains: ["login.example.com:8080"]
+                      typed_per_filter_config:
+                        envoy.filters.http.ext_authz:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                          disabled: true
+                      routes:
+                        - match:
+                            prefix: "/.well-known/"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            prefix: "/api/"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            prefix: "/locales/"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            path: "/jwks.json"
+                          route:
+                            cluster: authelia-backend
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: authelia-frontend
+                    - name: mail_service
+                      domains: ["mail.example.com:8080"]
+                      typed_per_filter_config:
+                        envoy.filters.http.ext_authz:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                          disabled: true
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: smtp
+                    - name: http_service
+                      domains: ["*.example.com:8080"]
+                      routes:
+                        - match:
+                            prefix: "/headers"
+                          route:
+                            cluster: httpbin
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: nginx-backend
+                http_filters:
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: /api/verify/
+                        server_uri:
+                          uri: authelia-backend:9091
+                          cluster: authelia-backend
+                          timeout: 0.25s
+                        authorization_request:
+                          allowed_headers:
+                            patterns:
+                              - exact: accept
+                              - exact: cookie
+                              - exact: proxy-authorization
+                          headers_to_add:
+                            - key: X-Authelia-URL
+                              value: 'https://login.example.com:8080/'
+                            - key: X-Forwarded-Method
+                              value: '%REQ(:METHOD)%'
+                            - key: X-Forwarded-Proto
+                              value: '%REQ(:SCHEME)%'
+                            - key: X-Forwarded-Host
+                              value: '%REQ(:AUTHORITY)%'
+                            - key: X-Forwarded-URI
+                              value: '%REQ(:PATH)%'
+                            - key: X-Forwarded-For
+                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - prefix: remote-
+                          allowed_client_headers:
+                            patterns:
+                              - exact: set-cookie
+                          allowed_client_headers_on_success:
+                            patterns:
+                              - exact: set-cookie
+                      failure_mode_allow: false
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  - certificate_chain:
+                      filename: /etc/ssl/server.cert
+                    private_key:
+                      filename: /etc/ssl/server.key
+  clusters:
+    - name: authelia-frontend
+      transport_socket_matches:
+        - name: "enableTLS"
+          match:
+            enableTLS: true
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              common_tls_context: {}
+        - name: "defaultTLSDisabled"
+          match: {}
+          transport_socket:
+            name: envoy.transport_sockets.raw_buffer
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer
+      connect_timeout: 0.25s
+      type: STRICT_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: authelia-frontend
+        endpoints:
+          - locality:
+              region: dev
+            priority: 0
+            lb_endpoints:
+              - endpoint:
+                  health_check_config:
+                    hostname: authelia-frontend
+                    port_value: 3000
+                  address:
+                    socket_address:
+                      address: authelia-frontend
+                      port_value: 3000
+          - locality:
+              region: ci
+            priority: 1
+            lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia-backend
+                      port_value: 9091
+                metadata:
+                  filter_metadata:
+                    envoy.transport_socket_match:
+                      enableTLS: true
+    - name: authelia-backend
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: authelia-backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia-backend
+                      port_value: 9091
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context: {}
+    - name: smtp
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: smtp
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: smtp
+                      port_value: 1080
+    - name: httpbin
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: httpbin
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: httpbin
+                      port_value: 8000
+    - name: nginx-backend
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: nginx-backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: nginx-backend
+                      port_value: 80
+...
