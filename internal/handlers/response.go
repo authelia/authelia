@@ -133,7 +133,6 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, targetURI, workflo
 
 func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targetURI string) {
 	var (
-		issuer    string
 		issuerURL *url.URL
 		targetURL *url.URL
 		err       error
@@ -145,14 +144,8 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 		return
 	}
 
-	if issuer, err = ctx.ExternalRootURL(); err != nil {
+	if issuerURL, err = ctx.IssuerURL(); err != nil {
 		ctx.Error(fmt.Errorf("unable to get issuer for redirection: %w", err), messageAuthenticationFailed)
-
-		return
-	}
-
-	if issuerURL, err = url.ParseRequestURI(issuer); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse issuer '%s': %w", issuer, err), messageAuthenticationFailed)
 
 		return
 	}
@@ -212,23 +205,15 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 	}
 
 	var (
-		issuer    string
 		targetURL *url.URL
+		form      url.Values
 	)
 
-	if issuer, err = ctx.ExternalRootURL(); err != nil {
+	if targetURL, err = ctx.IssuerURL(); err != nil {
 		ctx.Error(fmt.Errorf("unable to get issuer for redirection: %w", err), messageAuthenticationFailed)
 
 		return
 	}
-
-	if targetURL, err = url.Parse(issuer); err != nil {
-		ctx.Error(fmt.Errorf("unable to get parse issuer URL '%s' for redirection: %w", issuer, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	var form url.Values
 
 	if form, err = consent.GetForm(); err != nil {
 		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)

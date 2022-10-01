@@ -119,15 +119,6 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
-	var externalRootURL string
-
-	if externalRootURL, err = ctx.ExternalRootURL(); err != nil {
-		ctx.Logger.Errorf("Could not determine the external URL during consent session processing with id '%s' for user '%s': %v", consent.ChallengeID, userSession.Username, err)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)
@@ -140,7 +131,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		query       url.Values
 	)
 
-	if redirectURI, err = url.ParseRequestURI(externalRootURL); err != nil {
+	if redirectURI, err = ctx.IssuerURL(); err != nil {
 		ctx.Logger.Errorf("Failed to parse the consent redirect URL: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)
 
