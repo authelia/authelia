@@ -17,7 +17,7 @@
 
 **Authelia** is an open-source authentication and authorization server providing two-factor authentication and single
 sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx],
-[Traefik], [caddy] or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's
+[Traefik], [Caddy] or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's
 portal for authentication.
 
 Documentation is available at [https://www.authelia.com/](https://www.authelia.com/).
@@ -70,7 +70,7 @@ This is a list of the key features of Authelia:
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their
   [Swag](https://docs.linuxserver.io/general/swag) container as well as a
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
-* Compatible with [caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
+* Compatible with [Caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
   directive.
 * Kubernetes Support:
   * Compatible with the [ingress-nginx](https://github.com/kubernetes/ingress-nginx), the
@@ -86,7 +86,7 @@ If you want to know more about the roadmap, follow [Roadmap](https://www.autheli
 
 ## Proxy support
 
-Authelia works in combination with [nginx], [Traefik], [caddy] or [HAProxy]. It can be deployed on bare metal with
+Authelia works in combination with [nginx], [Traefik], [Caddy] or [HAProxy]. It can be deployed on bare metal with
 Docker or on top of [Kubernetes].
 
 <p align="center">
@@ -391,7 +391,7 @@ Companies contributing to Authelia via Open Collective will have a special menti
 [config.template.yml]: ./config.template.yml
 [nginx]: https://www.nginx.com/
 [Traefik]: https://traefik.io/
-[caddy]: https://caddyserver.com/
+[Caddy]: https://caddyserver.com/
 [HAProxy]: https://www.haproxy.org/
 [Docker]: https://docker.com/
 [Kubernetes]: https://kubernetes.io/
