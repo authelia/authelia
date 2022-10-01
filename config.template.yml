@@ -835,7 +835,7 @@ notifier:
     #   lyblmMUNYFMCFVAMU0eIxXAFq2qcwv8UMcQFT0Z/35s6PVOakYnAGGQjTfp5Ljuq
     #   wsdc/xWmM0cHWube6sdRRUD7SY20KU/kWzl8iFO0VbSSrDf1AlEhnLEkp1SPaxXg
     #   OdBnl98MeoramNiJ7NT6Jnyb3zZ578fjaWfThiBpagItI8GZmG4s4Ovh2JbheN8i
-    #   ZsjNr9jqHTjhyLVbDRlmJzcqoj4JhbKs6/I^invalid=
+    #   ZsjNr9jqHTjhyLVbDRlmJzcqoj4JhbKs6/I^invalid DO NOT USE=
     #   -----END CERTIFICATE-----
     #   -----BEGIN CERTIFICATE-----
     #   MIIDBDCCAeygAwIBAgIRALJsPg21kA0zY4F1wUCIuoMwDQYJKoZIhvcNAQELBQAw
@@ -854,7 +854,7 @@ notifier:
     #   HkOSfJZ7B5hFgUDkMtVM6bardXAhoqcMk4YCU96e9d4PB4eI+xGc+mNuYvov3RbB
     #   D0s8ICyojeyPVLerz4wHjZu68Z5frAzhZ68YbzNs8j2fIBKKHkHyLG1iQyF+LJVj
     #   2PjCP+auJsj6fQQpMGoyGtpLcSDh+ptcTngUD8JsWipzTCjmaNqdPHAOYmcgtf4b
-    #   qocikt3WAdU^invalid=
+    #   qocikt3WAdU^invalid DO NOT USE=
     #   -----END CERTIFICATE-----
 
     ## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
@@ -885,7 +885,8 @@ notifier:
     #  rBoTcCI1GqZNlqWOVQ65ZIEiaI7o1vPBZo2GMQEZuq8mDKFsOMThvvTrM5cAep84
     #  n6HJR4ECgYABWcbsSnr0MKvVth/inxjbKapbZnp2HUCuw87Ie5zK2Of/tbC20wwk
     #  yKw3vrGoE3O1t1g2m2tn8UGGASeZ842jZWjIODdSi5+icysQGuULKt86h/woz2SQ
-    #  27GoE2i5mh6Yez6VAYbUuns3FcwIsMyWLq043Tu2DNkx9ijOOAuQzw^invalid==
+    #  27GoE2i5mh6Yez6VAYbUuns3FcwIsMyWLq043Tu2DNkx9ijOOAuQzw^invalid..
+    #  DO NOT USE==
     #  -----END RSA PRIVATE KEY-----
 
     ## The lifespans configure the expiration for these token types.
