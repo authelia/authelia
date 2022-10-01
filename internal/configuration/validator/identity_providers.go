@@ -32,21 +32,7 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 		}
 	}
 
-	if config.AccessTokenLifespan == time.Duration(0) {
-		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
-	}
-
-	if config.AuthorizeCodeLifespan == time.Duration(0) {
-		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
-	}
-
-	if config.IDTokenLifespan == time.Duration(0) {
-		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
-	}
-
-	if config.RefreshTokenLifespan == time.Duration(0) {
-		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
-	}
+	validateOIDCLifespans(config, validator)
 
 	if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
 		validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
@@ -61,10 +47,29 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 	}
 
 	validateOIDCOptionsCORS(config, validator)
-	validateOIDCClients(config, validator)
 
 	if len(config.Clients) == 0 {
 		validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
+	} else {
+		validateOIDCClients(config, validator)
+	}
+}
+
+func validateOIDCLifespans(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+	if config.AccessTokenLifespan == time.Duration(0) {
+		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+	}
+
+	if config.AuthorizeCodeLifespan == time.Duration(0) {
+		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
+	}
+
+	if config.IDTokenLifespan == time.Duration(0) {
+		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
+	}
+
+	if config.RefreshTokenLifespan == time.Duration(0) {
+		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
 	}
 }
 
