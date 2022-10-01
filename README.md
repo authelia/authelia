@@ -31,7 +31,7 @@ The following is a simple diagram of the architecture:
 **Authelia** can be installed as a standalone service from the [AUR](https://aur.archlinux.org/packages/authelia/),
 [APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a
-[Static binary](https://github.com/authelia/authelia/releases/latest),
+[static binary](https://github.com/authelia/authelia/releases/latest),
 [.deb package]((https://github.com/authelia/authelia/releases/latest)), [Docker] or [Kubernetes] either manually or via
 the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers and ingress configurations.
 
