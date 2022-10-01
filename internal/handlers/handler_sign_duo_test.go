@@ -619,14 +619,14 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
-		TargetURL: "https://example.com",
+		TargetURL: "https://mydomain.example.com",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "https://example.com",
+		Redirect: "https://mydomain.example.com",
 	})
 }
 
@@ -668,7 +668,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
-		TargetURL: "http://example.com",
+		TargetURL: "http://mydomain.example.com",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
@@ -715,7 +715,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
 	bodyBytes, err := json.Marshal(signDuoRequestBody{
-		TargetURL: "http://example.com",
+		TargetURL: "http://mydomain.example.com",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)

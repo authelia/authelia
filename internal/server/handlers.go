@@ -79,8 +79,8 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		path := strings.ToLower(string(ctx.Path()))
 
-		for i := 0; i < len(httpServerDirs); i++ {
-			if path == httpServerDirs[i].name || strings.HasPrefix(path, httpServerDirs[i].prefix) {
+		for i := 0; i < len(dirsHTTPServer); i++ {
+			if path == dirsHTTPServer[i].name || strings.HasPrefix(path, dirsHTTPServer[i].prefix) {
 				handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 				return
@@ -104,9 +104,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	https := config.Server.TLS.Key != "" && config.Server.TLS.Certificate != ""
 
-	serveIndexHandler := ServeTemplatedFile(embeddedAssets, indexFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(swaggerAssets, indexFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(swaggerAssets, apiFile, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(assetsRoot, fileIndexHTML, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
+	serveSwaggerHandler := ServeTemplatedFile(assetsSwagger, fileIndexHTML, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
+	serveSwaggerAPIHandler := ServeTemplatedFile(assetsSwagger, fileOpenAPI, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
@@ -124,7 +124,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	// Static Assets.
 	r.GET("/", middleware(serveIndexHandler))
 
-	for _, f := range rootFiles {
+	for _, f := range filesRoot {
 		r.GET("/"+f, handlerPublicHTML)
 	}
 
@@ -139,10 +139,10 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	// Swagger.
 	r.GET("/api/", middleware(serveSwaggerHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/"+apiFile, policyCORSPublicGET.Middleware(middleware(serveSwaggerAPIHandler)))
-	r.OPTIONS("/api/"+apiFile, policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/"+fileOpenAPI, policyCORSPublicGET.Middleware(middleware(serveSwaggerAPIHandler)))
+	r.OPTIONS("/api/"+fileOpenAPI, policyCORSPublicGET.HandleOPTIONS)
 
-	for _, file := range swaggerFiles {
+	for _, file := range filesSwagger {
 		r.GET("/api/"+file, handlerPublicHTML)
 	}
 
@@ -166,6 +166,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+
+	r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 

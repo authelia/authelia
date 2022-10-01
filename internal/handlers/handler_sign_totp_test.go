@@ -172,7 +172,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
-		TargetURL: "https://example.com",
+		TargetURL: "https://mydomain.example.com",
 	})
 
 	s.Require().NoError(err)
@@ -180,7 +180,7 @@ func (s *HandlerSignTOTPSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "https://example.com",
+		Redirect: "https://mydomain.example.com",
 	})
 }
 
@@ -210,7 +210,7 @@ func (s *HandlerSignTOTPSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	bodyBytes, err := json.Marshal(signTOTPRequestBody{
 		Token:     "abc",
-		TargetURL: "http://example.com",
+		TargetURL: "http://mydomain.example.com",
 	})
 
 	s.Require().NoError(err)

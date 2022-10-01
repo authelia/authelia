@@ -2,16 +2,16 @@
   "extends": [
     "config:base",
     ":semanticCommitTypeAll(build)",
-    ":separatePatchReleases"
+    ":separatePatchReleases",
+    "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
   "ignorePaths": [
   	"docs/**"
   ],
   "ignorePresets": [
-    ":combinePatchMinorReleases",
-    "helpers:disableTypesNodeMajor",
     ":prHourlyLimit2",
-    ":semanticPrefixFixDepsChoreOthers"
+    ":semanticPrefixFixDepsChoreOthers",
+    "workarounds:all"
   ],
   "enabledManagers": [
     "bundler",
@@ -24,6 +24,13 @@
     "dependencies"
   ],
   "packageRules": [
+    {
+      "matchUpdateTypes": ["digest", "minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
     {
       "datasources": [
         "docker"
@@ -46,14 +53,6 @@
       ],
       "addLabels": [
         "javascript"
-      ]
-    },
-    {
-      "datasources": [
-        "rubygems"
-      ],
-      "addLabels": [
-        "ruby"
       ]
     }
   ],
