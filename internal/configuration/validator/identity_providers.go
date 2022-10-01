@@ -20,6 +20,8 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 		return
 	}
 
+	setOIDCDefaults(config)
+
 	if config.IssuerPrivateKey == nil {
 		validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
 	} else if config.IssuerCertificateChain.HasCertificates() {
@@ -32,14 +34,8 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 		}
 	}
 
-	validateOIDCLifespans(config, validator)
-
 	if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
 		validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
-	}
-
-	if config.EnforcePKCE == "" {
-		config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
 	}
 
 	if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
@@ -55,7 +51,7 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 	}
 }
 
-func validateOIDCLifespans(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
+func setOIDCDefaults(config *schema.OpenIDConnectConfiguration) {
 	if config.AccessTokenLifespan == time.Duration(0) {
 		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
 	}
@@ -70,6 +66,10 @@ func validateOIDCLifespans(config *schema.OpenIDConnectConfiguration, validator 
 
 	if config.RefreshTokenLifespan == time.Duration(0) {
 		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
+	}
+
+	if config.EnforcePKCE == "" {
+		config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
 	}
 }
 
