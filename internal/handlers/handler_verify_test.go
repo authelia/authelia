@@ -453,7 +453,7 @@ func TestShouldRedirectWithGroups(t *testing.T) {
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "app.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Uri", "/code-test/login")
 
-	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+	mock.Ctx.Request.SetRequestURI("/api/verify/?rd=https://auth.example.com")
 
 	VerifyGET(verifyGetCfg)(mock.Ctx)
 

@@ -443,7 +443,7 @@ password_policy:
 ## to anyone. Otherwise restrictions follow the rules defined.
 ##
 ## Note: One can use the wildcard * to match any subdomain.
-## It must stand at the beginning of the pattern. (example: *.mydomain.com)
+## It must stand at the beginning of the pattern. (example: *.example.com)
 ##
 ## Note: You must put patterns containing wildcards between simple quotes for the YAML to be syntactically correct.
 ##
