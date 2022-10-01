@@ -167,6 +167,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
+	r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
 	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
