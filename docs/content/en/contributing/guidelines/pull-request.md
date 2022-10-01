@@ -7,7 +7,7 @@ draft: false
 images: []
 menu:
   contributing:
-    parent: "development"
+    parent: "guidelines"
 weight: 320
 toc: true
 aliases:
