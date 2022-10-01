@@ -63,6 +63,7 @@ var Keys = []string{
 	"authentication_backend.ldap.display_name_attribute",
 	"authentication_backend.ldap.permit_referrals",
 	"authentication_backend.ldap.permit_unauthenticated_bind",
+	"authentication_backend.ldap.permit_feature_detection_failure",
 	"authentication_backend.ldap.user",
 	"authentication_backend.ldap.password",
 	"authentication_backend.file.path",

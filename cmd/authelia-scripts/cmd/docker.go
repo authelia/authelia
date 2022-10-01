@@ -13,15 +13,17 @@ import (
 
 var container string
 
-var containers = []string{"dev", "coverage"}
-var defaultContainer = "dev"
-var ciBranch = os.Getenv("BUILDKITE_BRANCH")
-var ciPullRequest = os.Getenv("BUILDKITE_PULL_REQUEST")
-var ciTag = os.Getenv("BUILDKITE_TAG")
-var dockerTags = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
-var ignoredSuffixes = regexp.MustCompile("alpha|beta")
-var publicRepo = regexp.MustCompile(`.*:.*`)
-var tags = dockerTags.FindStringSubmatch(ciTag)
+var (
+	containers       = []string{"dev", "coverage"}
+	defaultContainer = "dev"
+	ciBranch         = os.Getenv("BUILDKITE_BRANCH")
+	ciPullRequest    = os.Getenv("BUILDKITE_PULL_REQUEST")
+	ciTag            = os.Getenv("BUILDKITE_TAG")
+	dockerTags       = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
+	ignoredSuffixes  = regexp.MustCompile("alpha|beta")
+	publicRepo       = regexp.MustCompile(`.*:.*`)
+	tags             = dockerTags.FindStringSubmatch(ciTag)
+)
 
 func newDockerCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
@@ -143,13 +145,12 @@ func dockerBuildOfficialImage(arch string) error {
 	filename := "Dockerfile"
 	dockerfile := fmt.Sprintf("%s.%s", filename, arch)
 
-	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
-		strings.Join(flags, " "))
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".", buildMetaData)
 }
 
 func login(docker *Docker, registry string) {

@@ -5,7 +5,7 @@ import (
 )
 
 // NewAccessControlResource creates a AccessControlResource or AccessControlResourceGroup.
-func NewAccessControlResource(pattern regexp.Regexp) AccessControlResource {
+func NewAccessControlResource(pattern regexp.Regexp) (subjects bool, rule AccessControlResource) {
 	var iuser, igroup = -1, -1
 
 	for i, group := range pattern.SubexpNames() {
@@ -18,10 +18,10 @@ func NewAccessControlResource(pattern regexp.Regexp) AccessControlResource {
 	}
 
 	if iuser != -1 || igroup != -1 {
-		return AccessControlResource{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
+		return true, AccessControlResource{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
 	}
 
-	return AccessControlResource{RegexpStringSubjectMatcher{pattern}}
+	return false, AccessControlResource{RegexpStringSubjectMatcher{pattern}}
 }
 
 // AccessControlResource represents an ACL resource that matches without named groups.

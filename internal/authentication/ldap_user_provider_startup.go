@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -54,7 +55,13 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 		1, 0, false, "(objectClass=*)", []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
 
 	if searchResult, err = client.Search(searchRequest); err != nil {
-		return features, err
+		if p.config.PermitFeatureDetectionFailure {
+			p.log.WithError(err).Warnf("Error occurred during RootDSE search. This may result in reduced functionality.")
+
+			return features, nil
+		}
+
+		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
 	}
 
 	if len(searchResult.Entries) != 1 {

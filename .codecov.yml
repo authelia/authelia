@@ -16,10 +16,12 @@ coverage:
       default: false
       backend:
         base: auto
+        threshold: 0.15%
         flags:
           - backend
       frontend:
         base: auto
+        threshold: 0.15%
         flags:
           - frontend
 

@@ -15,27 +15,27 @@ func TestVersionDefault(t *testing.T) {
 func TestVersion(t *testing.T) {
 	var v string
 
-	v = version("v4.90.0", "tagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
+	v = VersionAdv("v4.90.0", "tagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
 	assert.Equal(t, "v4.90.0", v)
 
-	v = version("v4.90.0", "tagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "freshports")
+	v = VersionAdv("v4.90.0", "tagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "freshports")
 	assert.Equal(t, "v4.90.0-freshports", v)
 
-	v = version("v4.90.0", "tagged dirty", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
+	v = VersionAdv("v4.90.0", "tagged dirty", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
 	assert.Equal(t, "v4.90.0-dirty", v)
 
-	v = version("v4.90.0", "untagged dirty", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
+	v = VersionAdv("v4.90.0", "untagged dirty", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
 	assert.Equal(t, "untagged-v4.90.0-dirty (master, 50d8b4a)", v)
 
-	v = version("v4.90.0", "untagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
+	v = VersionAdv("v4.90.0", "untagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
 	assert.Equal(t, "untagged-v4.90.0 (master, 50d8b4a)", v)
 
-	v = version("v4.90.0", "untagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "freshports")
+	v = VersionAdv("v4.90.0", "untagged clean", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "freshports")
 	assert.Equal(t, "untagged-v4.90.0-freshports (master, 50d8b4a)", v)
 
-	v = version("v4.90.0", "untagged clean", "", "master", "")
+	v = VersionAdv("v4.90.0", "untagged clean", "", "master", "")
 	assert.Equal(t, "untagged-v4.90.0 (master, unknown)", v)
 
-	v = version("v4.90.0", "", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
+	v = VersionAdv("v4.90.0", "", "50d8b4a941c26b89482c94ab324b5a274f9ced66", "master", "")
 	assert.Equal(t, "untagged-v4.90.0-dirty (master, 50d8b4a)", v)
 }
