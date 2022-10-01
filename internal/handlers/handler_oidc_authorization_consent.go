@@ -56,13 +56,21 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 			return nil, true
 		}
 	default:
+		if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.Consent, userSession.Username, client.GetSectorIdentifier(), err)
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrSubjectCouldNotLookup)
+
+			return nil, true
+		}
+
 		handler = handleOIDCAuthorizationConsentGenerate
 	}
 
 	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
-func handleOIDCAuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, _ *oidc.Client,
+func handleOIDCAuthorizationConsentNotAuthenticated(_ *middlewares.AutheliaCtx, issuer *url.URL, _ *oidc.Client,
 	_ session.UserSession, _ uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	redirectionURL := handleOIDCAuthorizationConsentGetRedirectionURL(issuer, nil, requester)
