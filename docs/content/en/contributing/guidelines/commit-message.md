@@ -8,7 +8,7 @@ images: []
 menu:
   contributing:
     parent: "development"
-weight: 231
+weight: 320
 toc: true
 aliases:
   - /docs/contributing/commitmsg-guidelines.html

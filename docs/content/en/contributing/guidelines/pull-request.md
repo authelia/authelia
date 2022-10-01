@@ -8,8 +8,10 @@ images: []
 menu:
   contributing:
     parent: "development"
-weight: 232
+weight: 320
 toc: true
+aliases:
+  - /contributing/development/pull-request/
 ---
 
 [Pull Request] guidelines are in place in order to maintain consistency and clearly communicate our process for
