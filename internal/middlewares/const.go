@@ -7,6 +7,8 @@ import (
 )
 
 var (
+	headerXAutheliaURL = []byte("X-Authelia-URL")
+
 	headerAccept        = []byte(fasthttp.HeaderAccept)
 	headerContentLength = []byte(fasthttp.HeaderContentLength)
 	headerLocation      = []byte(fasthttp.HeaderLocation)
@@ -70,6 +72,8 @@ const (
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
+
+	queryArgRedirect = []byte("rd")
 
 	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
 	UserValueKeyBaseURL = []byte("base_url")

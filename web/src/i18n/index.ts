@@ -9,17 +9,23 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
+import LocalStorageCustomDetector from "@i18n/detectors/localStorageCustom";
 import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
 
+const CustomLanguageDetector = new LanguageDetector();
+
+CustomLanguageDetector.addDetector(LocalStorageCustomDetector);
+
 i18n.use(Backend)
-    .use(LanguageDetector)
+    .use(CustomLanguageDetector)
     .use(initReactI18next)
     .init({
         detection: {
-            order: ["querystring", "navigator"],
+            order: ["querystring", "localStorageCustom", "navigator"],
             lookupQuerystring: "lng",
+            lookupLocalStorage: "lng",
         },
         backend: {
             loadPath: basePath + "/locales/{{lng}}/{{ns}}.json",
