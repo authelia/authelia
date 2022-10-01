@@ -429,6 +429,37 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 		"https://test.example.com", actualStatus, expStatus)
 }
 
+func TestShouldRedirectWithGroups(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
+		AccessControl: schema.AccessControlConfiguration{
+			DefaultPolicy: "deny",
+			Rules: []schema.ACLRule{
+				{
+					Domains: []string{"app.example.com"},
+					Policy:  "one_factor",
+					Resources: []regexp.Regexp{
+						*regexp.MustCompile(`^/code-(?P<User>\w+)([/?].*)?$`),
+					},
+				},
+			},
+		},
+	})
+
+	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "app.example.com")
+	mock.Ctx.Request.Header.Set("X-Forwarded-Uri", "/code-test/login")
+
+	mock.Ctx.Request.SetRequestURI("/?rd=https://auth.mydomain.com")
+
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+}
+
 func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
