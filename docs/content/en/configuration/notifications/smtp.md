@@ -31,6 +31,7 @@ notifier:
     subject: "[Authelia] {title}"
     startup_check_address: test@authelia.com
     disable_require_tls: false
+    disable_starttls: false
     disable_html_emails: false
     tls:
       server_name: smtp.example.com
@@ -60,7 +61,7 @@ The port the SMTP service is listening on.
 
 A connection is securely established with TLS after a succesful STARTTLS negotiation.
 
-[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port. 
+[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port.
 STARTTLS negotiation is not required for this port, the connection is implicitly established with TLS.
 
 [docs-security-smtp-port]: ../../overview/security/measures.md#smtp-ports
@@ -130,6 +131,13 @@ to leave this as is, but you can customize it if you have issues or you desire t
 {{< confkey type="boolean" default="false" required="no" >}}
 
 For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security]
+for more information. This option disables this measure (not recommended).
+
+### disable_starttls
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+For security reasons the default settings for Authelia require the SMTP connection do use STARTTLS when is available. See [security]
 for more information. This option disables this measure (not recommended).
 
 ### disable_html_emails
