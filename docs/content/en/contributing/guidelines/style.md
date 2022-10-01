@@ -1,5 +1,5 @@
 ---
-title: "Style Guidelines"
+title: "Style"
 description: "Authelia Development Style Guidelines"
 lead: "This section covers the style guidelines we use for development."
 date: 2021-04-11T21:25:03+10:00

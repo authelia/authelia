@@ -1,5 +1,5 @@
 ---
-title: "Documentation Guidelines"
+title: "Documentation"
 description: "Authelia Development Documentation Guidelines"
 lead: "This section covers the guidelines we use when writing documentation."
 date: 2021-01-30T19:29:07+11:00

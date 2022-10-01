@@ -1,5 +1,5 @@
 ---
-title: "Commit Message Guidelines"
+title: "Commit Message"
 description: "Authelia Development Commit Message Guidelines"
 lead: "This section covers the git commit message guidelines we use for development."
 date: 2021-01-30T19:29:07+11:00
