@@ -2,8 +2,8 @@ import { ConsentPath } from "@services/Api";
 import { Get, Post } from "@services/Client";
 
 interface ConsentPostRequestBody {
+    id?: string;
     client_id: string;
-    consent_id?: string;
     consent: boolean;
     pre_configure: boolean;
 }
@@ -21,23 +21,23 @@ export interface ConsentGetResponseBody {
 }
 
 export function getConsentResponse(consentID: string) {
-    return Get<ConsentGetResponseBody>(ConsentPath + "?consent_id=" + consentID);
+    return Get<ConsentGetResponseBody>(ConsentPath + "?id=" + consentID);
 }
 
-export function acceptConsent(preConfigure: boolean, clientID: string, consentID?: string) {
+export function acceptConsent(preConfigure: boolean, clientID: string, consentID: string | null) {
     const body: ConsentPostRequestBody = {
+        id: consentID === null ? undefined : consentID,
         client_id: clientID,
-        consent_id: consentID,
         consent: true,
         pre_configure: preConfigure,
     };
     return Post<ConsentPostResponseBody>(ConsentPath, body);
 }
 
-export function rejectConsent(clientID: string, consentID?: string) {
+export function rejectConsent(clientID: string, consentID: string | null) {
     const body: ConsentPostRequestBody = {
+        id: consentID === null ? undefined : consentID,
         client_id: clientID,
-        consent_id: consentID,
         consent: false,
         pre_configure: false,
     };

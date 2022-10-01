@@ -9,7 +9,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -200,8 +200,8 @@ type ConsentGetResponseBody struct {
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
+	ConsentID    string `json:"id"`
 	ClientID     string `json:"client_id"`
-	ConsentID    string `json:"consent_id"`
 	Consent      bool   `json:"consent"`
 	PreConfigure bool   `json:"pre_configure"`
 }
