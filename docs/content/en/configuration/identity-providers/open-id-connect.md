@@ -33,33 +33,71 @@ The following snippet provides a sample-configuration for the OIDC identity prov
 identity_providers:
   oidc:
     hmac_secret: this_is_a_secret_abc123abc123abc
+    issuer_certificate_chain: |
+      -----BEGIN CERTIFICATE-----
+      MIIC5jCCAc6gAwIBAgIRAK4Sj7FiN6PXo/urPfO4E7owDQYJKoZIhvcNAQELBQAw
+      EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNNzAwMTAxMDAwMDAwWhcNNzEwMTAxMDAw
+      MDAwWjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+      ADCCAQoCggEBAPKv3pSyP4ozGEiVLJ14dIWFCEGEgq7WUMI0SZZqQA2ID0L59U/Q
+      /Usyy7uC9gfMUzODTpANtkOjFQcQAsxlR1FOjVBrX5QgjSvXwbQn3DtwMA7XWSl6
+      LuYx2rBYSlMSN5UZQm/RxMtXfLK2b51WgEEYDFi+nECSqKzR4R54eOPkBEWRfvuY
+      91AMjlhpivg8e4JWkq4LVQUKbmiFYwIdK8XQiN4blY9WwXwJFYs5sQ/UYMwBFi0H
+      kWOh7GEjfxgoUOPauIueZSMSlQp7zqAH39N0ZSYb6cS0Npj57QoWZSY3ak87ebcR
+      Nf4rCvZLby7LoN7qYCKxmCaDD3x2+NYpWH8CAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+      AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+      AQELBQADggEBAHSITqIQSNzonFl3DzxHPEzr2hp6peo45buAAtu8FZHoA+U7Icfh
+      /ZXjPg7Xz+hgFwM/DTNGXkMWacQA/PaNWvZspgRJf2AXvNbMSs2UQODr7Tbv+Fb4
+      lyblmMUNYFMCFVAMU0eIxXAFq2qcwv8UMcQFT0Z/35s6PVOakYnAGGQjTfp5Ljuq
+      wsdc/xWmM0cHWube6sdRRUD7SY20KU/kWzl8iFO0VbSSrDf1AlEhnLEkp1SPaxXg
+      OdBnl98MeoramNiJ7NT6Jnyb3zZ578fjaWfThiBpagItI8GZmG4s4Ovh2JbheN8i
+      ZsjNr9jqHTjhyLVbDRlmJzcqoj4JhbKs6/I^invalid=
+      -----END CERTIFICATE-----
+      -----BEGIN CERTIFICATE-----
+      MIIDBDCCAeygAwIBAgIRALJsPg21kA0zY4F1wUCIuoMwDQYJKoZIhvcNAQELBQAw
+      EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNNzAwMTAxMDAwMDAwWhcNNzEwMTAxMDAw
+      MDAwWjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+      ADCCAQoCggEBAMXHBvVxUzYk0u34/DINMSF+uiOekKOAjOrC6Mi9Ww8ytPVO7t2S
+      zfTvM+XnEJqkFQFgimERfG/eGhjF9XIEY6LtnXe8ATvOK4nTwdufzBaoeQu3Gd50
+      5VXr6OHRo//ErrGvFXwP3g8xLePABsi/fkH3oDN+ztewOBMDzpd+KgTrk8ysv2ou
+      kNRMKFZZqASvCgv0LD5KWvUCnL6wgf1oTXG7aztduA4oSkUP321GpOmBC5+5ElU7
+      ysoRzvD12o9QJ/IfEaulIX06w9yVMo60C/h6A3U6GdkT1SiyTIqR7v7KU/IWd/Qi
+      Lfftcj91VhCmJ73Meff2e2S2PrpjdXbG5FMCAwEAAaNTMFEwDgYDVR0PAQH/BAQD
+      AgKkMA8GA1UdJQQIMAYGBFUdJQAwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU
+      Z7AtA3mzFc0InSBA5fiMfeLXA3owDQYJKoZIhvcNAQELBQADggEBAEE5hm1mtlk/
+      kviCoHH4evbpw7rxPxDftIQlqYTtvMM4eWY/6icFoSZ4fUHEWYyps8SsPu/8f2tf
+      71LGgZn0FdHi1QU2H8m0HHK7TFw+5Q6RLrLdSyk0PItJ71s9en7r8pX820nAFEHZ
+      HkOSfJZ7B5hFgUDkMtVM6bardXAhoqcMk4YCU96e9d4PB4eI+xGc+mNuYvov3RbB
+      D0s8ICyojeyPVLerz4wHjZu68Z5frAzhZ68YbzNs8j2fIBKKHkHyLG1iQyF+LJVj
+      2PjCP+auJsj6fQQpMGoyGtpLcSDh+ptcTngUD8JsWipzTCjmaNqdPHAOYmcgtf4b
+      qocikt3WAdU^invalid=
+      -----END CERTIFICATE-----
     issuer_private_key: |
       -----BEGIN RSA PRIVATE KEY-----
-      MXIEogIB$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
+      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^invalid==
       -----END RSA PRIVATE KEY-----
     access_token_lifespan: 1h
     authorize_code_lifespan: 1m

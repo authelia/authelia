@@ -132,7 +132,7 @@ const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
 	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
-	errFmtOIDCCertificateMismatch     = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key for the option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateMismatch     = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
 	errFmtOIDCCertificateChain        = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
