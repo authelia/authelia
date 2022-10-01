@@ -36,6 +36,7 @@ const (
 )
 
 var (
+	queryArgID        = []byte(queryArgStrID)
 	queryArgConsentID = []byte(queryArgStrConsentID)
 )
 

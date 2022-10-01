@@ -24,8 +24,8 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		err       error
 	)
 
-	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().PeekBytes(queryArgConsentID))); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(queryArgConsentID), err)
+	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().PeekBytes(queryArgID))); err != nil {
+		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(queryArgID), err)
 		ctx.ReplyForbidden()
 
 		return
@@ -62,7 +62,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if consentID, err = uuid.Parse(bodyJSON.ConsentID); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(queryArgConsentID), err)
+		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", bodyJSON.ConsentID, err)
 		ctx.ReplyForbidden()
 
 		return
