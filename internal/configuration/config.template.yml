@@ -948,9 +948,11 @@ notifier:
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
 
-        ## By default users cannot remember pre-configured consents. Setting this value to a period of time using a
-        ## duration notation will enable users to remember consent for this client. The time configured is the amount
-        ## of time the pre-configured consent is valid for granting new authorizations to the user.
+        ## The consent mode controls how consent is obtained.
+        # consent_mode: auto
+
+        ## This value controls the duration a consent on this client remains remembered when the consent mode is
+        ## configured as 'auto' or 'pre-configured'.
         # pre_configured_consent_duration:
 
         ## Audience this client is allowed to request.

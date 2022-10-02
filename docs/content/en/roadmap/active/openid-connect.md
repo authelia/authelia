@@ -98,7 +98,6 @@ Feature List:
 Feature List:
 
 * [JWK's backed by X509 Certificate Chains](https://www.rfc-editor.org/rfc/rfc7517#section-4.7)
-* JWK
 * Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode
   * Explicit
   * Implicit

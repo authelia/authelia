@@ -134,11 +134,4 @@ var deprecations = map[string]Deprecation{
 		AutoMap: true,
 		MapFunc: nil,
 	},
-	"identity_providers.oidc.clients[].pre_configured_consent_duration": {
-		Version: model.SemanticVersion{Major: 4, Minor: 37},
-		Key:     "identity_providers.oidc.clients[].pre_configured_consent_duration",
-		NewKey:  "identity_providers.oidc.clients[].consent.pre_configured_duration",
-		AutoMap: true,
-		MapFunc: nil,
-	},
 }

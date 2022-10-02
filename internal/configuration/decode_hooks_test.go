@@ -23,8 +23,8 @@ import (
 func TestStringToMailAddressHookFunc(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -78,8 +78,8 @@ func TestStringToMailAddressHookFunc(t *testing.T) {
 func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -139,8 +139,8 @@ func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 func TestStringToURLHookFunc(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -212,8 +212,8 @@ func TestStringToURLHookFunc(t *testing.T) {
 func TestStringToURLHookFuncPointer(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -285,8 +285,8 @@ func TestStringToURLHookFuncPointer(t *testing.T) {
 func TestToTimeDurationHookFunc(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -405,8 +405,8 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 func TestToTimeDurationHookFuncPointer(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -526,8 +526,8 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 func TestStringToRegexpFunc(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		have     interface{}
-		want     interface{}
+		have     any
+		want     any
 		err      string
 		decode   bool
 		wantGrps []string
@@ -640,8 +640,8 @@ func TestStringToRegexpFunc(t *testing.T) {
 func TestStringToRegexpFuncPointers(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		have     interface{}
-		want     interface{}
+		have     any
+		want     any
 		err      string
 		decode   bool
 		wantGrps []string
@@ -775,8 +775,8 @@ func TestStringToAddressHookFunc(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		have     interface{}
-		expected interface{}
+		have     any
+		expected any
 		err      string
 		decode   bool
 	}{
@@ -867,51 +867,108 @@ func TestStringToAddressHookFunc(t *testing.T) {
 	}
 }
 
-func TestStringToRSAPrivateKeyHookFunc(t *testing.T) {
-	var nilkey *rsa.PrivateKey
+func TestStringToPrivateKeyHookFunc(t *testing.T) {
+	var (
+		nilRSA   *rsa.PrivateKey
+		nilECDSA *ecdsa.PrivateKey
+		nilCert  *x509.Certificate
+	)
 
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
 		{
 			desc:   "ShouldDecodeRSAPrivateKey",
 			have:   x509PrivateKeyRSA1,
-			want:   mustParseRSAPrivateKey(x509PrivateKeyRSA1),
+			want:   MustParseRSAPrivateKey(x509PrivateKeyRSA1),
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeECDSAPrivateKey",
+			have:   x509PrivateKeyEC1,
+			want:   MustParseECDSAPrivateKey(x509PrivateKeyEC1),
 			decode: true,
 		},
 		{
 			desc:   "ShouldNotDecodeToECDSAPrivateKey",
 			have:   x509PrivateKeyRSA1,
 			want:   &ecdsa.PrivateKey{},
-			decode: false,
+			decode: true,
+			err:    "could not decode to a *ecdsa.PrivateKey: the data is for a *rsa.PrivateKey not a *ecdsa.PrivateKey",
 		},
 		{
-			desc:   "ShouldNotDecodeEmptyKey",
+			desc:   "ShouldNotDecodeEmptyRSAKey",
 			have:   "",
-			want:   nilkey,
+			want:   nilRSA,
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeEmptyECDSAKey",
+			have:   "",
+			want:   nilECDSA,
 			decode: true,
 		},
 		{
 			desc:   "ShouldNotDecodeECDSAKeyToRSAKey",
 			have:   x509PrivateKeyEC1,
-			want:   nilkey,
+			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: the data is for a *ecdsa.PrivateKey not a *rsa.PrivateKey",
 		},
 		{
+			desc:   "ShouldNotDecodeRSAKeyToECDSAKey",
+			have:   x509PrivateKeyRSA1,
+			want:   nilECDSA,
+			decode: true,
+			err:    "could not decode to a *ecdsa.PrivateKey: the data is for a *rsa.PrivateKey not a *ecdsa.PrivateKey",
+		},
+		{
 			desc:   "ShouldNotDecodeBadRSAPrivateKey",
 			have:   x509PrivateKeyRSA2,
-			want:   nilkey,
+			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: failed to parse PEM block containing the key",
 		},
+		{
+			desc:   "ShouldNotDecodeBadECDSAPrivateKey",
+			have:   x509PrivateKeyEC2,
+			want:   nilECDSA,
+			decode: true,
+			err:    "could not decode to a *ecdsa.PrivateKey: failed to parse PEM block containing the key",
+		},
+		{
+			desc:   "ShouldNotDecodeCertificateToRSAPrivateKey",
+			have:   x509CertificateRSA1,
+			want:   nilRSA,
+			decode: true,
+			err:    "could not decode to a *rsa.PrivateKey: the data is for a *x509.Certificate not a *rsa.PrivateKey",
+		},
+		{
+			desc:   "ShouldNotDecodeCertificateToECDSAPrivateKey",
+			have:   x509CertificateRSA1,
+			want:   nilECDSA,
+			decode: true,
+			err:    "could not decode to a *ecdsa.PrivateKey: the data is for a *x509.Certificate not a *ecdsa.PrivateKey",
+		},
+		{
+			desc:   "ShouldNotDecodeRSAKeyToCertificate",
+			have:   x509PrivateKeyRSA1,
+			want:   nilCert,
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeECDSAKeyToCertificate",
+			have:   x509PrivateKeyEC1,
+			want:   nilCert,
+			decode: false,
+		},
 	}
 
-	hook := configuration.StringToRSAPrivateKeyHookFunc()
+	hook := configuration.StringToPrivateKeyHookFunc()
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -944,25 +1001,25 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 		{
 			desc:   "ShouldDecodeRSACertificate",
 			have:   x509CertificateRSA1,
-			want:   mustParseX509Certificate(x509CertificateRSA1),
+			want:   MustParseX509Certificate(x509CertificateRSA1),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeECDSACertificate",
 			have:   x509CACertificateECDSA,
-			want:   mustParseX509Certificate(x509CACertificateECDSA),
+			want:   MustParseX509Certificate(x509CACertificateECDSA),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeRSACACertificate",
 			have:   x509CACertificateRSA,
-			want:   mustParseX509Certificate(x509CACertificateRSA),
+			want:   MustParseX509Certificate(x509CACertificateRSA),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeECDSACACertificate",
 			have:   x509CACertificateECDSA,
-			want:   mustParseX509Certificate(x509CACertificateECDSA),
+			want:   MustParseX509Certificate(x509CACertificateECDSA),
 			decode: true,
 		},
 		{
@@ -1177,6 +1234,11 @@ AwEHoUQDQgAEMD69n22nd78GmaRDzy/s7muqhbc/OEnFS2mNtiRAA5FaX+kbkCB5
 8pu/k2jkaSVNZtBYKPVAibHkhvakjVb66A==
 -----END EC PRIVATE KEY-----`
 
+	x509PrivateKeyEC2 = `
+-----BEGIN EC PRIVATE KEY-----
+bad key
+-----END EC PRIVATE KEY-----`
+
 	x509CertificateRSA1 = `
 -----BEGIN CERTIFICATE-----
 MIIC5TCCAc2gAwIBAgIQfBUmKLmEvMqS6S9auKCY2DANBgkqhkiG9w0BAQsFADAT
@@ -1232,14 +1294,14 @@ uDv6M2spMi0CIQC8uOSMcv11vp1ylsGg38N6XYA+GQa1BHRd79+91hC+7w==
 -----END CERTIFICATE-----`
 )
 
-func mustParseRSAPrivateKey(data string) *rsa.PrivateKey {
+func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
 	block, _ := pem.Decode([]byte(data))
 	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
 		panic("not pem encoded")
 	}
 
 	if block.Type != "RSA PRIVATE KEY" {
-		panic("not private key")
+		panic("not rsa private key")
 	}
 
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -1250,7 +1312,25 @@ func mustParseRSAPrivateKey(data string) *rsa.PrivateKey {
 	return key
 }
 
-func mustParseX509Certificate(data string) *x509.Certificate {
+func MustParseECDSAPrivateKey(data string) *ecdsa.PrivateKey {
+	block, _ := pem.Decode([]byte(data))
+	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
+	}
+
+	if block.Type != "EC PRIVATE KEY" {
+		panic("not ecdsa private key")
+	}
+
+	key, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return key
+}
+
+func MustParseX509Certificate(data string) *x509.Certificate {
 	block, _ := pem.Decode([]byte(data))
 	if block == nil || len(block.Bytes) == 0 {
 		panic("not a PEM")

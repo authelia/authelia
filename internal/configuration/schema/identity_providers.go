@@ -62,7 +62,7 @@ type OpenIDConnectClientConfiguration struct {
 	Policy string `koanf:"authorization_policy"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
-	ConsentPreConfiguredDuration *time.Duration `koanf:"consent_pre_configured_duration"`
+	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.

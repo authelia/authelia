@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -181,6 +183,8 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
 	reflect.TypeOf(schema.Address{}),
+	reflect.TypeOf(rsa.PrivateKey{}),
+	reflect.TypeOf(ecdsa.PrivateKey{}),
 }
 
 func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {
