@@ -14,15 +14,15 @@ import (
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
 func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storageProvider storage.Provider) (provider OpenIDConnectProvider, err error) {
-	provider = OpenIDConnectProvider{}
-
 	if config == nil {
 		return provider, nil
 	}
 
-	provider.Store = NewOpenIDConnectStore(config, storageProvider)
+	provider = OpenIDConnectProvider{
+		Store: NewOpenIDConnectStore(config, storageProvider),
+	}
 
-	composeConfiguration := &compose.Config{
+	cconfig := &compose.Config{
 		AccessTokenLifespan:            config.AccessTokenLifespan,
 		AuthorizeCodeLifespan:          config.AuthorizeCodeLifespan,
 		IDTokenLifespan:                config.IDTokenLifespan,
@@ -48,19 +48,19 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 
 	strategy := &compose.CommonStrategy{
 		CoreStrategy: compose.NewOAuth2HMACStrategy(
-			composeConfiguration,
+			cconfig,
 			[]byte(utils.HashSHA256FromString(config.HMACSecret)),
 			nil,
 		),
 		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(
-			composeConfiguration,
+			cconfig,
 			key,
 		),
 		JWTStrategy: provider.KeyManager.Strategy(),
 	}
 
 	provider.OAuth2Provider = compose.Compose(
-		composeConfiguration,
+		cconfig,
 		provider.Store,
 		strategy,
 		PlainTextHasher{},
@@ -107,7 +107,7 @@ func (p OpenIDConnectProvider) Pairwise() bool {
 }
 
 // Write writes data with herodot.JSONWriter.
-func (p OpenIDConnectProvider) Write(w http.ResponseWriter, r *http.Request, e interface{}, opts ...herodot.EncoderOptions) {
+func (p OpenIDConnectProvider) Write(w http.ResponseWriter, r *http.Request, e any, opts ...herodot.EncoderOptions) {
 	p.herodot.Write(w, r, e, opts...)
 }
 

@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"crypto/rsa"
 	"net/url"
 	"time"
 
@@ -22,13 +21,13 @@ func NewSession() (session *model.OpenIDSession) {
 	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Extra: map[string]interface{}{},
+				Extra: map[string]any{},
 			},
 			Headers: &jwt.Headers{
-				Extra: map[string]interface{}{},
+				Extra: map[string]any{},
 			},
 		},
-		Extra: map[string]interface{}{},
+		Extra: map[string]any{},
 	}
 }
 
@@ -61,7 +60,7 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
-		Extra:       map[string]interface{}{},
+		Extra:       map[string]any{},
 		ClientID:    requester.GetClient().GetID(),
 		ChallengeID: consent.ChallengeID,
 	}
@@ -180,10 +179,8 @@ func (c ClientConsentMode) String() string {
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
 // It additionally allows us to add keys for the purpose of key rotation in the future.
 type KeyManager struct {
-	activeKeyID string
-	keys        map[string]*rsa.PrivateKey
-	keySet      *jose.JSONWebKeySet
-	strategy    *RS256JWTStrategy
+	jwk  *JWK
+	jwks *jose.JSONWebKeySet
 }
 
 // PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.

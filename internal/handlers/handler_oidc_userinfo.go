@@ -9,6 +9,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -35,7 +36,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		ctx.Logger.Errorf("UserInfo Request failed with error: %+v", rfc)
 
 		if rfc.StatusCode() == http.StatusUnauthorized {
-			rw.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
+			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
 		}
 
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
@@ -90,9 +91,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	claims["aud"] = audience
 
-	var (
-		keyID, token string
-	)
+	var token string
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
 
@@ -109,15 +108,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		claims["jti"] = jti.String()
 		claims["iat"] = time.Now().Unix()
 
-		if keyID, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().GetPublicKeyID(req.Context()); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not find the active JWK."))
-
-			return
-		}
-
 		headers := &jwt.Headers{
 			Extra: map[string]any{
-				oidc.JWTHeaderKeyIdentifier: keyID,
+				oidc.JWTHeaderKeyIdentifier: ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
 			},
 		}
 
