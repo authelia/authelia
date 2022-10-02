@@ -10,7 +10,7 @@ const (
 	fileCICommitLintConfig = "web/.commitlintrc.js"
 	fileWebI18NIndex       = "web/src/i18n/index.ts"
 
-	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/development/guidelines-commit-message.md"
+	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/guidelines/commit-message.md"
 
 	fileDocsConfigKeys = "docs/data/configkeys.json"
 	fileCodeConfigKeys = "internal/configuration/schema/keys.go"
