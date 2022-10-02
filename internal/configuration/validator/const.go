@@ -56,6 +56,7 @@ const (
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
+	errFmtNotifierStartTlsDisabled                = "Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS"
 )
 
 // Authentication Backend Error constants.
