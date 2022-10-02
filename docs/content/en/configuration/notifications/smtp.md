@@ -137,8 +137,13 @@ for more information. This option disables this measure (not recommended).
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-For security reasons the default settings for Authelia require the SMTP connection do use STARTTLS when is available. See [security]
-for more information. This option disables this measure (not recommended).
+Some SMTP servers ignore SMTP specifications and claim to support STARTTLS when they in fact do not.
+For security reasons Authelia refuses to send messages to these servers.
+This option disables this measure and is enabled  *__AT YOUR OWN RISK__*. It's *__strongly recommended__* 
+that instead of enabling this option you either fix the issue with the SMTP server's configuration or 
+have the administrators of the server fix it. If the issue can't be fixed by configuration we recommend 
+lodging an issue with the authors of the SMTP server.
+See [security] for more information.
 
 ### disable_html_emails
 
