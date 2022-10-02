@@ -107,15 +107,15 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 		expected        any
 	}{
 		{"welcome", "welcome", "Logged in as john!"},
-		{"at_hash", "", rBase64},
+		{oidc.ClaimAccessTokenHash, "", rBase64},
 		{oidc.ClaimJWTID, "", rUUID},
 		{oidc.ClaimIssuedAt, "", rInteger},
 		{oidc.ClaimSubject, "", rUUID},
-		{"nbf", "", rInteger},
+		{oidc.ClaimNotBefore, "", rInteger},
 		{oidc.ClaimRequestedAt, "", rInteger},
 		{oidc.ClaimExpirationTime, "", rInteger},
 		{oidc.ClaimAuthenticationMethodsReference, "", "pwd, otp, mfa"},
-		{"acr", "", ""},
+		{oidc.ClaimAuthenticationContextClassReference, "", ""},
 		{oidc.ClaimIssuer, "", "https://login.example.com:8080"},
 		{oidc.ClaimFullName, "", "John Doe"},
 		{oidc.ClaimPreferredUsername, "", "john"},

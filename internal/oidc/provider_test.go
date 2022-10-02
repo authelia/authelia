@@ -19,8 +19,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing
 	provider, err := NewOpenIDConnectProvider(nil, nil)
 
 	assert.NoError(t, err)
-	assert.Nil(t, provider.OAuth2Provider)
-	assert.Nil(t, provider.Store)
+	assert.Nil(t, provider)
 }
 
 func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
@@ -49,12 +48,12 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
 
 	assert.Len(t, disco.SubjectTypesSupported, 2)
-	assert.Contains(t, disco.SubjectTypesSupported, "public")
-	assert.Contains(t, disco.SubjectTypesSupported, "pairwise")
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePairwise)
 
 	assert.Len(t, disco.CodeChallengeMethodsSupported, 2)
-	assert.Contains(t, disco.CodeChallengeMethodsSupported, "S256")
-	assert.Contains(t, disco.CodeChallengeMethodsSupported, "S256")
+	assert.Contains(t, disco.CodeChallengeMethodsSupported, PKCEChallengeMethodSHA256)
+	assert.Contains(t, disco.CodeChallengeMethodsSupported, PKCEChallengeMethodSHA256)
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
@@ -80,10 +79,10 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 					"https://google.com",
 				},
 				Scopes: []string{
-					"groups",
+					ScopeGroups,
 				},
 				GrantTypes: []string{
-					"refresh_token",
+					GrantTypeRefreshToken,
 				},
 				ResponseTypes: []string{
 					"token",
@@ -130,7 +129,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Equal(t, "", disco.RegistrationEndpoint)
 
 	assert.Len(t, disco.CodeChallengeMethodsSupported, 1)
-	assert.Contains(t, disco.CodeChallengeMethodsSupported, "S256")
+	assert.Contains(t, disco.CodeChallengeMethodsSupported, PKCEChallengeMethodSHA256)
 
 	assert.Len(t, disco.ScopesSupported, 5)
 	assert.Contains(t, disco.ScopesSupported, ScopeOpenID)
@@ -140,12 +139,12 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ScopesSupported, ScopeEmail)
 
 	assert.Len(t, disco.ResponseModesSupported, 3)
-	assert.Contains(t, disco.ResponseModesSupported, "form_post")
-	assert.Contains(t, disco.ResponseModesSupported, "query")
-	assert.Contains(t, disco.ResponseModesSupported, "fragment")
+	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFormPost)
+	assert.Contains(t, disco.ResponseModesSupported, ResponseModeQuery)
+	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFragment)
 
 	assert.Len(t, disco.SubjectTypesSupported, 1)
-	assert.Contains(t, disco.SubjectTypesSupported, "public")
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
 
 	assert.Len(t, disco.ResponseTypesSupported, 8)
 	assert.Contains(t, disco.ResponseTypesSupported, "code")
@@ -158,15 +157,15 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	assert.Contains(t, disco.ResponseTypesSupported, "none")
 
 	assert.Len(t, disco.IDTokenSigningAlgValuesSupported, 1)
-	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, "RS256")
+	assert.Contains(t, disco.IDTokenSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
 
 	assert.Len(t, disco.UserinfoSigningAlgValuesSupported, 2)
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, "RS256")
-	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, "none")
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
+	assert.Contains(t, disco.UserinfoSigningAlgValuesSupported, SigningAlgorithmNone)
 
 	assert.Len(t, disco.RequestObjectSigningAlgValuesSupported, 2)
-	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, "RS256")
-	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, "none")
+	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, SigningAlgorithmRSAWithSHA256)
+	assert.Contains(t, disco.RequestObjectSigningAlgValuesSupported, SigningAlgorithmNone)
 
 	assert.Len(t, disco.ClaimsSupported, 18)
 	assert.Contains(t, disco.ClaimsSupported, ClaimAuthenticationMethodsReference)
@@ -229,12 +228,12 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ScopesSupported, ScopeEmail)
 
 	assert.Len(t, disco.ResponseModesSupported, 3)
-	assert.Contains(t, disco.ResponseModesSupported, "form_post")
-	assert.Contains(t, disco.ResponseModesSupported, "query")
-	assert.Contains(t, disco.ResponseModesSupported, "fragment")
+	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFormPost)
+	assert.Contains(t, disco.ResponseModesSupported, ResponseModeQuery)
+	assert.Contains(t, disco.ResponseModesSupported, ResponseModeFragment)
 
 	assert.Len(t, disco.SubjectTypesSupported, 1)
-	assert.Contains(t, disco.SubjectTypesSupported, "public")
+	assert.Contains(t, disco.SubjectTypesSupported, SubjectTypePublic)
 
 	assert.Len(t, disco.ResponseTypesSupported, 8)
 	assert.Contains(t, disco.ResponseTypesSupported, "code")
@@ -247,17 +246,17 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 	assert.Contains(t, disco.ResponseTypesSupported, "none")
 
 	assert.Len(t, disco.ClaimsSupported, 18)
-	assert.Contains(t, disco.ClaimsSupported, "amr")
-	assert.Contains(t, disco.ClaimsSupported, "aud")
+	assert.Contains(t, disco.ClaimsSupported, ClaimAuthenticationMethodsReference)
+	assert.Contains(t, disco.ClaimsSupported, ClaimAudience)
 	assert.Contains(t, disco.ClaimsSupported, ClaimAuthorizedParty)
 	assert.Contains(t, disco.ClaimsSupported, ClaimClientIdentifier)
-	assert.Contains(t, disco.ClaimsSupported, "exp")
-	assert.Contains(t, disco.ClaimsSupported, "iat")
-	assert.Contains(t, disco.ClaimsSupported, "iss")
-	assert.Contains(t, disco.ClaimsSupported, "jti")
-	assert.Contains(t, disco.ClaimsSupported, "rat")
-	assert.Contains(t, disco.ClaimsSupported, "sub")
-	assert.Contains(t, disco.ClaimsSupported, "auth_time")
+	assert.Contains(t, disco.ClaimsSupported, ClaimExpirationTime)
+	assert.Contains(t, disco.ClaimsSupported, ClaimIssuedAt)
+	assert.Contains(t, disco.ClaimsSupported, ClaimIssuer)
+	assert.Contains(t, disco.ClaimsSupported, ClaimJWTID)
+	assert.Contains(t, disco.ClaimsSupported, ClaimRequestedAt)
+	assert.Contains(t, disco.ClaimsSupported, ClaimSubject)
+	assert.Contains(t, disco.ClaimsSupported, ClaimAuthenticationTime)
 	assert.Contains(t, disco.ClaimsSupported, ClaimNonce)
 	assert.Contains(t, disco.ClaimsSupported, ClaimPreferredEmail)
 	assert.Contains(t, disco.ClaimsSupported, ClaimEmailVerified)
@@ -290,8 +289,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
 
 	require.Len(t, disco.CodeChallengeMethodsSupported, 2)
-	assert.Equal(t, "S256", disco.CodeChallengeMethodsSupported[0])
-	assert.Equal(t, "plain", disco.CodeChallengeMethodsSupported[1])
+	assert.Equal(t, PKCEChallengeMethodSHA256, disco.CodeChallengeMethodsSupported[0])
+	assert.Equal(t, PKCEChallengeMethodPlain, disco.CodeChallengeMethodsSupported[1])
 }
 
 func mustParseRSAPrivateKey(data string) *rsa.PrivateKey {

@@ -1,10 +1,13 @@
 package oidc
 
 import (
+	"crypto/sha512"
 	"fmt"
-	"net/http"
 
 	"github.com/ory/fosite/compose"
+	"github.com/ory/fosite/handler/oauth2"
+	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -13,13 +16,14 @@ import (
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storageProvider storage.Provider) (provider OpenIDConnectProvider, err error) {
+func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store storage.Provider) (provider *OpenIDConnectProvider, err error) {
 	if config == nil {
-		return provider, nil
+		return nil, nil
 	}
 
-	provider = OpenIDConnectProvider{
-		Store: NewOpenIDConnectStore(config, storageProvider),
+	provider = &OpenIDConnectProvider{
+		JSONWriter: herodot.NewJSONWriter(nil),
+		Store:      NewOpenIDConnectStore(config, store),
 	}
 
 	cconfig := &compose.Config{
@@ -34,29 +38,31 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 		EnablePKCEPlainChallengeMethod: config.EnablePKCEPlainChallenge,
 	}
 
-	keyManager, err := NewKeyManagerWithConfiguration(config)
-	if err != nil {
-		return provider, err
+	if provider.KeyManager, err = NewKeyManagerWithConfiguration(config); err != nil {
+		return nil, err
 	}
 
-	provider.KeyManager = keyManager
-
-	key, err := provider.KeyManager.GetActivePrivateKey()
-	if err != nil {
-		return provider, err
-	}
+	jwtStrategy := provider.KeyManager.Strategy()
 
 	strategy := &compose.CommonStrategy{
-		CoreStrategy: compose.NewOAuth2HMACStrategy(
-			cconfig,
-			[]byte(utils.HashSHA256FromString(config.HMACSecret)),
-			nil,
-		),
-		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(
-			cconfig,
-			key,
-		),
-		JWTStrategy: provider.KeyManager.Strategy(),
+		CoreStrategy: &oauth2.HMACSHAStrategy{
+			Enigma: &hmac.HMACStrategy{
+				GlobalSecret:         []byte(utils.HashSHA256FromString(config.HMACSecret)),
+				RotatedGlobalSecrets: nil,
+				TokenEntropy:         cconfig.GetTokenEntropy(),
+				Hash:                 sha512.New512_256,
+			},
+			AccessTokenLifespan:   cconfig.GetAccessTokenLifespan(),
+			AuthorizeCodeLifespan: cconfig.GetAuthorizeCodeLifespan(),
+			RefreshTokenLifespan:  cconfig.GetRefreshTokenLifespan(),
+		},
+		OpenIDConnectTokenStrategy: &openid.DefaultStrategy{
+			JWTStrategy:         jwtStrategy,
+			Expiry:              cconfig.GetIDTokenLifespan(),
+			Issuer:              cconfig.IDTokenIssuer,
+			MinParameterEntropy: cconfig.GetMinParameterEntropy(),
+		},
+		JWTStrategy: jwtStrategy,
 	}
 
 	provider.OAuth2Provider = compose.Compose(
@@ -90,13 +96,11 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, storage
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Pairwise())
 
-	provider.herodot = herodot.NewJSONWriter(nil)
-
 	return provider, nil
 }
 
 // Pairwise returns true if this provider is configured with clients that require pairwise.
-func (p OpenIDConnectProvider) Pairwise() bool {
+func (p *OpenIDConnectProvider) Pairwise() bool {
 	for _, c := range p.Store.clients {
 		if c.SectorIdentifier != "" {
 			return true
@@ -106,23 +110,8 @@ func (p OpenIDConnectProvider) Pairwise() bool {
 	return false
 }
 
-// Write writes data with herodot.JSONWriter.
-func (p OpenIDConnectProvider) Write(w http.ResponseWriter, r *http.Request, e any, opts ...herodot.EncoderOptions) {
-	p.herodot.Write(w, r, e, opts...)
-}
-
-// WriteError writes an error with herodot.JSONWriter.
-func (p OpenIDConnectProvider) WriteError(w http.ResponseWriter, r *http.Request, err error, opts ...herodot.Option) {
-	p.herodot.WriteError(w, r, err, opts...)
-}
-
-// WriteErrorCode writes an error with an error code with herodot.JSONWriter.
-func (p OpenIDConnectProvider) WriteErrorCode(w http.ResponseWriter, r *http.Request, code int, err error, opts ...herodot.Option) {
-	p.herodot.WriteErrorCode(w, r, code, err, opts...)
-}
-
 // GetOAuth2WellKnownConfiguration returns the discovery document for the OAuth Configuration.
-func (p OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) OAuth2WellKnownConfiguration {
+func (p *OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) OAuth2WellKnownConfiguration {
 	options := OAuth2WellKnownConfiguration{
 		CommonDiscoveryOptions: p.discovery.CommonDiscoveryOptions,
 		OAuth2DiscoveryOptions: p.discovery.OAuth2DiscoveryOptions,
@@ -141,7 +130,7 @@ func (p OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) OA
 }
 
 // GetOpenIDConnectWellKnownConfiguration returns the discovery document for the OpenID Configuration.
-func (p OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer string) OpenIDConnectWellKnownConfiguration {
+func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer string) OpenIDConnectWellKnownConfiguration {
 	options := OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions:                          p.discovery.CommonDiscoveryOptions,
 		OAuth2DiscoveryOptions:                          p.discovery.OAuth2DiscoveryOptions,

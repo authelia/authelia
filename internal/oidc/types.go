@@ -79,11 +79,10 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
 	fosite.OAuth2Provider
+	*herodot.JSONWriter
 
 	Store      *OpenIDConnectStore
 	KeyManager *KeyManager
-
-	herodot *herodot.JSONWriter
 
 	discovery OpenIDConnectWellKnownConfiguration
 }
