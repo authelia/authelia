@@ -107,6 +107,8 @@ func (a Address) Listener() (net.Listener, error) {
 	return net.Listen(a.Scheme, a.HostPort())
 }
 
+const certificate = "CERTIFICATE"
+
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.
 func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error) {
 	if in == "" {
@@ -131,7 +133,7 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 			return nil, fmt.Errorf("invalid PEM block")
 		}
 
-		if block.Type != "CERTIFICATE" {
+		if block.Type != certificate {
 			return nil, fmt.Errorf("the PEM data chain contains a %s but only certificates are expected", block.Type)
 		}
 
@@ -184,8 +186,8 @@ func (c *X509CertificateChain) Equal(other *x509.Certificate) (equal bool) {
 // EqualKey checks if the provided key (public or private) has a public key equal to the first public key in this chain.
 //
 //nolint:gocyclo // This is an adequately clear function even with the complexity.
-func (c *X509CertificateChain) EqualKey(other interface{}) (equal bool) {
-	if len(c.certs) == 0 {
+func (c *X509CertificateChain) EqualKey(other any) (equal bool) {
+	if len(c.certs) == 0 || other == nil {
 		return false
 	}
 

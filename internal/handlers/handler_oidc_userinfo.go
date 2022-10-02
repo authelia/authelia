@@ -9,6 +9,7 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -35,7 +36,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		ctx.Logger.Errorf("UserInfo Request failed with error: %+v", rfc)
 
 		if rfc.StatusCode() == http.StatusUnauthorized {
-			rw.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
+			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="%s",error_description="%s"`, rfc.ErrorField, rfc.GetDescription()))
 		}
 
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
@@ -108,7 +109,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		claims["iat"] = time.Now().Unix()
 
 		headers := &jwt.Headers{
-			Extra: map[string]interface{}{"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID()},
+			Extra: map[string]any{"kid": ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID()},
 		}
 
 		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
