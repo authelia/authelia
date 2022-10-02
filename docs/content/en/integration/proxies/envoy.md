@@ -14,19 +14,12 @@ aliases:
   - /i/envoy
 ---
 
-[Envoy] is probably supported by __Authelia__.
+[Envoy] is supported by __Authelia__.
 
 *__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
 configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
-
-## UNDER CONSTRUCTION
-
-It's currently not certain, but fairly likely that [Envoy] is supported by __Authelia__. We wish to add documentation
-and thus if anyone has this working please let us know.
-
-We will aim to perform documentation for this on our own but there is no current timeframe.
 
 ## Get Started
 
@@ -44,10 +37,209 @@ how you can configure multiple IP ranges. You should customize this example to f
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
 trust entire subnets unless that subnet only has trusted proxies and no other services.*
 
-## Potential
+## Configuration
+
+Below you will find commented examples of the following configuration:
+
+* Authelia Portal
+* Protected Endpoint (Nextcloud)
+
+### Theoretical Example
 
 Support for [Envoy] should be possible via [Envoy]'s
 [external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
+
+{{< details "docker-compose.yaml" >}}
+```yaml
+---
+version: "3.8"
+networks:
+  net:
+    driver: bridge
+services:
+  envoy:
+    container_name: envoy
+    image: envoyproxy/envoy:v1.23.0
+    restart: unless-stopped
+    networks:
+      net: {}
+    ports:
+      - '80:8080'
+      - '443:8443'
+    volumes:
+      - ${PWD}/data/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ${PWD}/data/certificates:/certificates:ro
+  authelia:
+    container_name: authelia
+    image: authelia/authelia
+    restart: unless-stopped
+    networks:
+      net: {}
+    expose:
+      - 9091
+    volumes:
+      - ${PWD}/data/authelia/config:/config
+    environment:
+      TZ: "Australia/Melbourne"
+  nextcloud:
+    container_name: nextcloud
+    image: linuxserver/nextcloud
+    restart: unless-stopped
+    networks:
+      net: {}
+    expose:
+      - 443
+    volumes:
+      - ${PWD}/data/nextcloud/config:/config
+      - ${PWD}/data/nextcloud/data:/data
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "Australia/Melbourne"
+```
+{{< /details >}}
+
+{{< details "envoy.yaml" >}}
+```yaml
+static_resources:
+  listeners:
+    - name: listener_http
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8080
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                codec_type: auto
+                stat_prefix: ingress_http
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: backend
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          redirect:
+                            https_redirect: true
+                  http_filters:
+                    - name: envoy.filters.http.router
+                      typed_config:
+                        "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - name: listener_https
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8443
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                use_remote_address: true
+                skip_xff_append: false
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: whoami_service
+                      domains: ["nextcloud.example.com"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: nextcloud
+                    - name: authelia_service
+                      domains: ["auth.example.com"]
+                      typed_per_filter_config:
+                        envoy.filters.http.ext_authz:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                          disabled: true
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: authelia
+                http_filters:
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      http_service:
+                        path_prefix: '/api/verify/'
+                        server_uri:
+                          uri: authelia:9091
+                          cluster: authelia
+                          timeout: 0.25s
+                        authorization_request:
+                          allowed_headers:
+                            patterns:
+                              - exact: accept
+                              - exact: cookie
+                              - exact: proxy-authorization
+                          headers_to_add:
+                            - key: X-Authelia-URL
+                              value: 'https://auth.example.com/'
+                            - key: X-Forwarded-Method
+                              value: '%REQ(:METHOD)%'
+                            - key: X-Forwarded-Proto
+                              value: '%REQ(:SCHEME)%'
+                            - key: X-Forwarded-Host
+                              value: '%REQ(:AUTHORITY)%'
+                            - key: X-Forwarded-Uri
+                              value: '%REQ(:PATH)%'
+                            - key: X-Forwarded-For
+                              value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
+                        authorization_response:
+                          allowed_upstream_headers:
+                            patterns:
+                              - exact: authorization
+                              - exact: proxy-authorization
+                              - prefix: remote-
+                              - prefix: authelia-
+                          allowed_client_headers:
+                            patterns:
+                              - exact: set-cookie
+                          allowed_client_headers_on_success:
+                            patterns:
+                              - exact: set-cookie
+                      failure_mode_allow: false
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+    - name: nextcloud
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: nextcloud
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: nextcloud
+                      port_value: 80
+    - name: authelia
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: authelia
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: authelia
+                      port_value: 9091
+```
+{{< /details >}}
 
 ## See Also
 

@@ -182,7 +182,7 @@ func (ekb ECDSAKeyBuilder) Build() (interface{}, error) {
 }
 
 // ParseX509FromPEM parses PEM bytes and returns a PKCS key.
-func ParseX509FromPEM(data []byte) (key interface{}, err error) {
+func ParseX509FromPEM(data []byte) (key any, err error) {
 	block, _ := pem.Decode(data)
 	if block == nil {
 		return nil, errors.New("failed to parse PEM block containing the key")

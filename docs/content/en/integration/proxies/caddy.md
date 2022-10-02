@@ -151,6 +151,7 @@ example.com {
 }
 ```
 {{< /details >}}
+
 ### Advanced example
 
 The advanced example allows for more flexible customization, however the [basic example](#basic-examples) should be
