@@ -12,7 +12,7 @@ import {
 } from "@constants/Routes";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRDRM } from "@hooks/RedirectionURL";
 import { useRedirector } from "@hooks/Redirector";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
@@ -38,7 +38,7 @@ const RedirectionErrorMessage =
 const LoginPortal = function (props: Props) {
     const navigate = useNavigate();
     const location = useLocation();
-    const redirectionURL = useRedirectionURL();
+    const [redirectionURL] = useRDRM();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);

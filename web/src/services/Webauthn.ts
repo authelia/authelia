@@ -130,7 +130,7 @@ function encodeAttestationPublicKeyCredential(
 
 function encodeAssertionPublicKeyCredential(
     credential: PublicKeyCredential,
-    targetURL: string | undefined,
+    targetURL: string | null,
 ): PublicKeyCredentialJSON {
     const response = credential.response as AuthenticatorAssertionResponse;
 
@@ -153,7 +153,7 @@ function encodeAssertionPublicKeyCredential(
             signature: arrayBufferEncode(response.signature),
             userHandle: userHandle,
         },
-        targetURL: targetURL,
+        targetURL: targetURL === null ? undefined : targetURL,
     };
 }
 
@@ -318,7 +318,7 @@ async function postAttestationPublicKeyCredentialResult(
 
 export async function postAssertionPublicKeyCredentialResult(
     credential: PublicKeyCredential,
-    targetURL: string | undefined,
+    targetURL: string | null,
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
     const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL);
 
@@ -353,7 +353,7 @@ export async function performAttestationCeremony(token: string): Promise<Attesta
     return AttestationResult.Failure;
 }
 
-export async function performAssertionCeremony(targetURL: string | undefined): Promise<AssertionResult> {
+export async function performAssertionCeremony(targetURL: string | null): Promise<AssertionResult> {
     const assertionRequestOpts = await getAssertionRequestOptions();
 
     if (assertionRequestOpts.status !== 200 || assertionRequestOpts.options == null) {

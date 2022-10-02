@@ -8,15 +8,12 @@ interface CompleteTOTPSigninBody {
     workflow?: string;
 }
 
-export function completeTOTPSignIn(passcode: string, targetURL?: string, workflow?: string) {
-    const body: CompleteTOTPSigninBody = { token: `${passcode}` };
-    if (targetURL) {
-        body.targetURL = targetURL;
-    }
-
-    if (workflow) {
-        body.workflow = workflow;
-    }
+export function completeTOTPSignIn(passcode: string, targetURL: string | null, workflow: string | null) {
+    const body: CompleteTOTPSigninBody = {
+        token: `${passcode}`,
+        targetURL: targetURL === null ? undefined : targetURL,
+        workflow: workflow === null ? undefined : workflow,
+    };
 
     return PostWithOptionalResponse<SignInResponse>(CompleteTOTPSignInPath, body);
 }

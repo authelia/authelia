@@ -10,7 +10,7 @@ interface CompletePushSigninBody {
     workflow?: string;
 }
 
-export function completePushNotificationSignIn(targetURL?: string, workflow?: string) {
+export function completePushNotificationSignIn(targetURL: string | null, workflow: string | null) {
     const body: CompletePushSigninBody = {};
     if (targetURL) {
         body.targetURL = targetURL;

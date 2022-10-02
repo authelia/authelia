@@ -15,27 +15,18 @@ export async function postFirstFactor(
     username: string,
     password: string,
     rememberMe: boolean,
-    targetURL?: string,
-    requestMethod?: string,
-    workflow?: string,
+    targetURL: string | null,
+    requestMethod: string | null,
+    workflow: string | null,
 ) {
     const data: PostFirstFactorBody = {
-        username,
-        password,
+        username: username,
+        password: password,
         keepMeLoggedIn: rememberMe,
+        targetURL: targetURL === null ? undefined : targetURL,
+        requestMethod: requestMethod === null ? undefined : requestMethod,
+        workflow: workflow == null ? undefined : workflow,
     };
-
-    if (targetURL) {
-        data.targetURL = targetURL;
-    }
-
-    if (requestMethod) {
-        data.requestMethod = requestMethod;
-    }
-
-    if (workflow) {
-        data.workflow = workflow;
-    }
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
     return res ? res : ({} as SignInResponse);

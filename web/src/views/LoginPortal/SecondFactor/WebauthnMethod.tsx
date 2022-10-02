@@ -7,7 +7,7 @@ import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import LinearProgressBar from "@components/LinearProgressBar";
 import { useIsMountedRef } from "@hooks/Mounted";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRDRM } from "@hooks/RedirectionURL";
 import { useTimer } from "@hooks/Timer";
 import { AssertionResult } from "@models/Webauthn";
 import { AuthenticationLevel } from "@services/State";
@@ -39,7 +39,7 @@ const WebauthnMethod = function (props: Props) {
     const signInTimeout = 30;
     const [state, setState] = useState(State.WaitTouch);
     const styles = useStyles();
-    const redirectionURL = useRedirectionURL();
+    const [redirectionURL] = useRDRM();
     const mounted = useIsMountedRef();
     const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 

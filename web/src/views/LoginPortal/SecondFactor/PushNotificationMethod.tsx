@@ -7,7 +7,7 @@ import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRDRM } from "@hooks/RedirectionURL";
 import { useWorkflow } from "@hooks/Workflow";
 import {
     DuoDevicePostRequest,
@@ -44,8 +44,8 @@ export interface Props {
 const PushNotificationMethod = function (props: Props) {
     const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
-    const redirectionURL = useRedirectionURL();
-    const workflow = useWorkflow();
+    const [redirectionURL] = useRDRM();
+    const [workflow] = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);

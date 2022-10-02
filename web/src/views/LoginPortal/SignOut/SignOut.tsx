@@ -8,7 +8,7 @@ import { Navigate } from "react-router-dom";
 import { IndexRoute } from "@constants/Routes";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useRedirectionURL } from "@hooks/RedirectionURL";
+import { useRDRM } from "@hooks/RedirectionURL";
 import { useRedirector } from "@hooks/Redirector";
 import LoginLayout from "@layouts/LoginLayout";
 import { signOut } from "@services/SignOut";
@@ -19,7 +19,7 @@ const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
     const styles = useStyles();
     const { createErrorNotification } = useNotifications();
-    const redirectionURL = useRedirectionURL();
+    const [redirectionURL] = useRDRM();
     const redirector = useRedirector();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);

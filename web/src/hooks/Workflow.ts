@@ -1,8 +1,9 @@
-import queryString from "query-string";
-import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
-export function useWorkflow() {
-    const location = useLocation();
-    const queryParams = queryString.parse(location.search);
-    return queryParams && "workflow" in queryParams ? (queryParams["workflow"] as string) : undefined;
+import { Workflow, WorkflowIdentifier } from "@constants/SearchParams";
+
+export function useWorkflow(): [workflow: string | null, workflowID: string | null] {
+    const [searchParams] = useSearchParams();
+
+    return [searchParams.get(Workflow), searchParams.get(WorkflowIdentifier)];
 }
