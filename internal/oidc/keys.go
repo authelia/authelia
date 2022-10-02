@@ -86,6 +86,7 @@ func (m *KeyManager) GetActivePrivateKey() (key *rsa.PrivateKey, err error) {
 
 // AddActiveJWK is used to add a cert and key pair.
 func (m *KeyManager) AddActiveJWK(chain schema.X509CertificateChain, key *rsa.PrivateKey) (jwk *JWK, err error) {
+	// TODO: Add a mutex when implementing key rotation to be utilized here and in methods which retrieve the JWK or JWKS.
 	if m.jwk, err = NewJWK(chain, key); err != nil {
 		return nil, err
 	}

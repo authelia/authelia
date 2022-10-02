@@ -107,8 +107,6 @@ func (a Address) Listener() (net.Listener, error) {
 	return net.Listen(a.Scheme, a.HostPort())
 }
 
-const certificate = "CERTIFICATE"
-
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.
 func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error) {
 	if in == "" {
@@ -133,7 +131,7 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 			return nil, fmt.Errorf("invalid PEM block")
 		}
 
-		if block.Type != certificate {
+		if block.Type != blockCERTIFICATE {
 			return nil, fmt.Errorf("the PEM data chain contains a %s but only certificates are expected", block.Type)
 		}
 

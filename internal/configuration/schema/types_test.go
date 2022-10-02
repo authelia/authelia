@@ -168,7 +168,7 @@ func MustParseCertificate(data string) *x509.Certificate {
 		panic("extra data")
 	}
 
-	if block.Type != "CERTIFICATE" {
+	if block.Type != blockCERTIFICATE {
 		panic(fmt.Sprintf("not certifiate block: %s", block.Type))
 	}
 
@@ -190,7 +190,7 @@ func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
 		panic("extra data")
 	}
 
-	if block.Type != "RSA PRIVATE KEY" {
+	if block.Type != blockRSAPRIVATEKEY {
 		panic(fmt.Sprintf("not rsa private key block: %s", block.Type))
 	}
 
