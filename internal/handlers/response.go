@@ -189,13 +189,25 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
+	if consent.Responded() {
+		ctx.Error(fmt.Errorf("consent has already been responded to '%s': %w", id, err), messageAuthenticationFailed)
+
+		return
+	}
+
 	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID); err != nil {
-		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' from challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' with consent challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
 
 		return
 	}
 
 	userSession := ctx.GetSession()
+
+	if userSession.IsAnonymous() {
+		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': user is anonymous", client.ID, consent.ChallengeID), messageAuthenticationFailed)
+
+		return
+	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel) {
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.ID)
@@ -225,12 +237,6 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 
 	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
 	targetURL.RawQuery = form.Encode()
-
-	if userSession.IsAnonymous() {
-		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
-
-		return
-	}
 
 	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
 		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)

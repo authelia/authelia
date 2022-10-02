@@ -39,9 +39,9 @@ func handleOIDCAuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, is
 	}
 }
 
-func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaCtx, _ *url.URL, client *oidc.Client,
+func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
 	userSession session.UserSession, subject uuid.UUID, consentID uuid.UUID,
-	rw http.ResponseWriter, _ *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	rw http.ResponseWriter, r *http.Request, requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
@@ -87,9 +87,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 			return nil, true
 		}
 
-		ctx.Logger.Errorf(logFmtErrConsentCantGrantNotResponded, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotPerform)
+		handleOIDCAuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
 
 		return nil, true
 	}
