@@ -95,8 +95,6 @@ notifier:
     port: 1025
     sender: admin@example.com
     disable_require_tls: true
-    # disables STARTTLS (not recommended)
-    disable_starttls: false
 ntp:
   ## NTP server address
   address: "time.cloudflare.com:123"
