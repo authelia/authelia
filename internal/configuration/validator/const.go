@@ -70,6 +70,7 @@ const (
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
+	errFmtNotifierStartTlsDisabled                = "Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS"
 )
 
 const (
@@ -141,6 +142,8 @@ const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
 	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
+	errFmtOIDCCertificateMismatch     = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateChain        = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
 

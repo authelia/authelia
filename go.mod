@@ -6,13 +6,13 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20220902131320-61f4e624f85c
+	github.com/duosecurity/duo_api_golang v0.0.0-20220927171823-f4576e85b96c
 	github.com/fasthttp/router v1.4.12
 	github.com/fasthttp/session/v2 v2.4.13
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.1.9
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.110.1
+	github.com/go-rod/rod v0.111.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.4.0
 	github.com/golang-jwt/jwt/v4 v4.4.2
@@ -36,7 +36,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.40.0
-	golang.org/x/sync v0.0.0-20220923202941-7f9b1623fab7
+	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 	golang.org/x/text v0.3.7
 	gopkg.in/square/go-jose.v2 v2.6.0

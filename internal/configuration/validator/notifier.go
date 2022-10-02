@@ -89,4 +89,8 @@ func validateSMTPNotifier(config *schema.SMTPNotifierConfiguration, validator *s
 	if config.TLS.ServerName == "" {
 		config.TLS.ServerName = config.Host
 	}
+
+	if config.DisableStartTLS {
+		validator.PushWarning(fmt.Errorf(errFmtNotifierStartTlsDisabled))
+	}
 }

@@ -489,7 +489,7 @@ func TestShouldReturnCheckServerSearchError(t *testing.T) {
 	gomock.InOrder(dialURL, connBind, searchOIDs, connClose)
 
 	err := ldapClient.StartupCheck()
-	assert.EqualError(t, err, "could not perform the search")
+	assert.EqualError(t, err, "error occurred during RootDSE search: could not perform the search")
 
 	assert.False(t, ldapClient.features.Extensions.PwdModifyExOp)
 }

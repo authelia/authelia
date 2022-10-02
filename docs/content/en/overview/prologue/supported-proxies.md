@@ -14,28 +14,28 @@ toc: false
 
 The following table is a support matrix for Authelia features and specific reverse proxies.
 
-|         Proxy         |                                       Standard                                        |                                      Kubernetes                                      |             XHR Redirect             |            Request Method            |
-|:---------------------:|:-------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:------------------------------------:|:------------------------------------:|
-|       [Traefik]       |       [<i class="icon-support-full"></i>](../../integration/proxies/traefik.md)       | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [NGINX]        |        [<i class="icon-support-full"></i>](../../integration/proxies/nginx.md)        |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-| [NGINX Proxy Manager] | [<i class="icon-support-full"></i>](../../integration/proxies/nginx-proxy-manager.md) |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|        [SWAG]         |        [<i class="icon-support-full"></i>](../../integration/proxies/swag.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|       [HAProxy]       |       [<i class="icon-support-full"></i>](../../integration/proxies/haproxy.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
-|        [Caddy]        |        [<i class="icon-support-full"></i>](../../integration/proxies/caddy.md)        |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|     [Traefik] 1.x     |      [<i class="icon-support-full"></i>](../../integration/proxies/traefikv1.md)      |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [Envoy]        |      [<i class="icon-support-unknown"></i>](../../integration/proxies/envoy.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Skipper]       |       [<i class="icon-support-full"></i>](../../integration/proxies/skipper.md)       |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Apache]        |                 <i class="icon-support-none" alt="Not Supported"></i>                 |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
-|         [IIS]         |                           <i class="icon-support-none"></i>                           |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
+|         Proxy         |                                 [Standard](#standard)                                 |                              [Kubernetes](#kubernetes)                               |             [XHR Redirect](#xhr-redirect)             |           [Request Method](#request-method)           |
+|:---------------------:|:-------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:-----------------------------------------------------:|:-----------------------------------------------------:|
+|       [Traefik]       |       [<i class="icon-support-full"></i>](../../integration/proxies/traefik.md)       | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |           <i class="icon-support-full"></i>           |           <i class="icon-support-full"></i>           |
+|        [NGINX]        |        [<i class="icon-support-full"></i>](../../integration/proxies/nginx.md)        |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  | <i class="icon-support-none" alt="Not Supported"></i> |           <i class="icon-support-full"></i>           |
+| [NGINX Proxy Manager] | [<i class="icon-support-full"></i>](../../integration/proxies/nginx-proxy-manager.md) |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-none" alt="Not Supported"></i> |           <i class="icon-support-full"></i>           |
+|        [SWAG]         |        [<i class="icon-support-full"></i>](../../integration/proxies/swag.md)         |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-none" alt="Not Supported"></i> |           <i class="icon-support-full"></i>           |
+|       [HAProxy]       |       [<i class="icon-support-full"></i>](../../integration/proxies/haproxy.md)       |                         <i class="icon-support-unknown"></i>                         |         <i class="icon-support-unknown"></i>          |           <i class="icon-support-full"></i>           |
+|        [Caddy]        |        [<i class="icon-support-full"></i>](../../integration/proxies/caddy.md)        |                         <i class="icon-support-unknown"></i>                         |           <i class="icon-support-full"></i>           |           <i class="icon-support-full"></i>           |
+|     [Traefik] 1.x     |      [<i class="icon-support-full"></i>](../../integration/proxies/traefikv1.md)      |                         <i class="icon-support-unknown"></i>                         |           <i class="icon-support-full"></i>           |           <i class="icon-support-full"></i>           |
+|        [Envoy]        |        [<i class="icon-support-full"></i>](../../integration/proxies/envoy.md)        |      [<i class="icon-support-full"></i>](../../integration/kubernetes/istio.md)      |         <i class="icon-support-unknown"></i>          |           <i class="icon-support-full"></i>           |
+|       [Skipper]       |       [<i class="icon-support-full"></i>](../../integration/proxies/skipper.md)       |                         <i class="icon-support-unknown"></i>                         |         <i class="icon-support-unknown"></i>          |         <i class="icon-support-unknown"></i>          |
+|       [Apache]        |                 <i class="icon-support-none" alt="Not Supported"></i>                 |                <i class="icon-support-none" alt="Not Supported"></i>                 | <i class="icon-support-none" alt="Not Supported"></i> | <i class="icon-support-none" alt="Not Supported"></i> |
+|         [IIS]         |                 <i class="icon-support-none" alt="Not Supported"></i>                 |                <i class="icon-support-none" alt="Not Supported"></i>                 | <i class="icon-support-none" alt="Not Supported"></i> | <i class="icon-support-none" alt="Not Supported"></i> |
 
 Legend:
 
-|                 Icon                 |       Meaning       |
-|:------------------------------------:|:-------------------:|
-|  <i class="icon-support-full"></i>   |      Supported      |
+|                                 Icon |       Meaning       |
+|-------------------------------------:|:-------------------:|
+|    <i class="icon-support-full"></i> |      Supported      |
 | <i class="icon-support-unknown"></i> |       Unknown       |
 | <i class="icon-support-partial"></i> | Partially Supported |
-|  <i class="icon-support-none"></i>   |    Not Supported    |
+|    <i class="icon-support-none"></i> |    Not Supported    |
 
 ## More Information
 
