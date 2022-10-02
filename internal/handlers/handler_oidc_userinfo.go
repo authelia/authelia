@@ -56,7 +56,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(clientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(clientID); err != nil {
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(fosite.ErrServerError.WithHint("Unable to assert type of client")))
 
 		return

@@ -80,19 +80,19 @@ func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr [
 type OpenIDConnectProvider struct {
 	fosite.OAuth2Provider
 	*herodot.JSONWriter
+	*Store
 
-	Store      *OpenIDConnectStore
 	KeyManager *KeyManager
 
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// Store is Authelia's internal representation of the fosite.Storage interface. It maps the following
 // interfaces to the storage.Provider interface:
 // fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
-type OpenIDConnectStore struct {
+type Store struct {
 	provider storage.Provider
 	clients  map[string]*Client
 }

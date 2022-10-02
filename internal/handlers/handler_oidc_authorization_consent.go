@@ -33,7 +33,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 	case userSession.IsAnonymous():
 		handler = handleOIDCAuthorizationConsentNotAuthenticated
 	case client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel):
-		if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.Consent, userSession.Username, client.GetSectorIdentifier(), err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrSubjectCouldNotLookup)
@@ -56,7 +56,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 			return nil, true
 		}
 	default:
-		if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.Consent, userSession.Username, client.GetSectorIdentifier(), err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrSubjectCouldNotLookup)
@@ -169,13 +169,13 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client *oi
 	var sid uint32
 
 	if client == nil {
-		if client, err = ctx.Providers.OpenIDConnect.Store.GetFullClient(consent.ClientID); err != nil {
+		if client, err = ctx.Providers.OpenIDConnect.GetFullClient(consent.ClientID); err != nil {
 			return fmt.Errorf("failed to retrieve client: %w", err)
 		}
 	}
 
 	if sid = subject.ID(); sid == 0 {
-		if subject, err = ctx.Providers.OpenIDConnect.Store.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			return fmt.Errorf("failed to lookup subject: %w", err)
 		}
 
