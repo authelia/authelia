@@ -2,7 +2,7 @@
 version: '3'
 services:
   oidc-client:
-    image: ghcr.io/authelia/oidc-tester-app:master-014ea04
+    image: ghcr.io/authelia/oidc-tester-app:master-3f01b6d
     command: /entrypoint.sh
     depends_on:
       - authelia-backend
