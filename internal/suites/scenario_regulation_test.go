@@ -62,14 +62,14 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	for i := 0; i < 3; i++ {
 		err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("bad-password")
 		require.NoError(s.T(), err)
-		err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left")
+		err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
 		require.NoError(s.T(), err)
 	}
 
 	// Enter the correct password and test the regulation lock out.
 	err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
 	require.NoError(s.T(), err)
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
 
@@ -79,7 +79,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	// Enter the correct password and test a successful login.
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("password")
 	require.NoError(s.T(), err)
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
 	require.NoError(s.T(), err)
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }

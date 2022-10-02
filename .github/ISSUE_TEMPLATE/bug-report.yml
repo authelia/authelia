@@ -26,6 +26,8 @@ body:
       description: What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - v4.36.9
+        - v4.36.8
         - v4.36.7
         - v4.36.6
         - v4.36.5
@@ -78,6 +80,7 @@ body:
         - Caddy
         - Traefik
         - Envoy
+        - Istio
         - NGINX
         - SWAG
         - NGINX Proxy Manager

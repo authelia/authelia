@@ -38,7 +38,7 @@ authelia-gen locales [flags]
       --file.bug-report string                   Sets the path of the bug report issue template file (default ".github/ISSUE_TEMPLATE/bug-report.yml")
       --file.commit-lint-config string           The commit lint javascript configuration file in relation to the root (default "web/.commitlintrc.js")
       --file.configuration-keys string           Sets the path of the keys file (default "internal/configuration/schema/keys.go")
-      --file.docs-commit-msg-guidelines string   The commit message guidelines documentation file in relation to the root (default "docs/content/en/contributing/development/guidelines-commit-message.md")
+      --file.docs-commit-msg-guidelines string   The commit message guidelines documentation file in relation to the root (default "docs/content/en/contributing/guidelines/commit-message.md")
       --file.docs-keys string                    Sets the path of the docs keys file (default "docs/data/configkeys.json")
       --file.docs.data.languages string          The languages docs data file in relation to the docs data folder (default "docs/data/languages.json")
       --file.feature-request string              Sets the path of the feature request issue template file (default ".github/ISSUE_TEMPLATE/feature-request.yml")

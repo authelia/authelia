@@ -13,7 +13,8 @@ import (
 
 func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          "myclient",
@@ -44,7 +45,8 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          "myclient",
@@ -76,8 +78,9 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	}
 
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
 	client, err := s.GetFullClient(c1.ID)
@@ -103,8 +106,9 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 	}
 
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
 	client, err := s.GetFullClient("another-client")
@@ -114,7 +118,8 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          "myclient",

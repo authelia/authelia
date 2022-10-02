@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/rsa"
 	"net/url"
 	"time"
 )
@@ -12,8 +13,9 @@ type IdentityProvidersConfiguration struct {
 
 // OpenIDConnectConfiguration configuration for OpenID Connect.
 type OpenIDConnectConfiguration struct {
-	HMACSecret       string `koanf:"hmac_secret"`
-	IssuerPrivateKey string `koanf:"issuer_private_key"`
+	HMACSecret             string               `koanf:"hmac_secret"`
+	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain"`
+	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key"`
 
 	AccessTokenLifespan   time.Duration `koanf:"access_token_lifespan"`
 	AuthorizeCodeLifespan time.Duration `koanf:"authorize_code_lifespan"`

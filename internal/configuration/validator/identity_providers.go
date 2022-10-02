@@ -16,45 +16,60 @@ func ValidateIdentityProviders(config *schema.IdentityProvidersConfiguration, va
 }
 
 func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
-	if config != nil {
-		if config.IssuerPrivateKey == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
+	if config == nil {
+		return
+	}
+
+	setOIDCDefaults(config)
+
+	if config.IssuerPrivateKey == nil {
+		validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
+	} else if config.IssuerCertificateChain.HasCertificates() {
+		if !config.IssuerCertificateChain.EqualKey(config.IssuerPrivateKey) {
+			validator.Push(fmt.Errorf(errFmtOIDCCertificateMismatch))
 		}
 
-		if config.AccessTokenLifespan == time.Duration(0) {
-			config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+		if err := config.IssuerCertificateChain.Validate(); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCCertificateChain, err))
 		}
+	}
 
-		if config.AuthorizeCodeLifespan == time.Duration(0) {
-			config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
-		}
+	if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
+	}
 
-		if config.IDTokenLifespan == time.Duration(0) {
-			config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
-		}
+	if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
+		validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
+	}
 
-		if config.RefreshTokenLifespan == time.Duration(0) {
-			config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
-		}
+	validateOIDCOptionsCORS(config, validator)
 
-		if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
-			validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
-		}
-
-		if config.EnforcePKCE == "" {
-			config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
-		}
-
-		if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
-			validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
-		}
-
-		validateOIDCOptionsCORS(config, validator)
+	if len(config.Clients) == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
+	} else {
 		validateOIDCClients(config, validator)
+	}
+}
 
-		if len(config.Clients) == 0 {
-			validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
-		}
+func setOIDCDefaults(config *schema.OpenIDConnectConfiguration) {
+	if config.AccessTokenLifespan == time.Duration(0) {
+		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+	}
+
+	if config.AuthorizeCodeLifespan == time.Duration(0) {
+		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
+	}
+
+	if config.IDTokenLifespan == time.Duration(0) {
+		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
+	}
+
+	if config.RefreshTokenLifespan == time.Duration(0) {
+		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
+	}
+
+	if config.EnforcePKCE == "" {
+		config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
 	}
 }
 

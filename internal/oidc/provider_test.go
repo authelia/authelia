@@ -1,6 +1,9 @@
 package oidc
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"net/url"
 	"testing"
 
@@ -20,17 +23,10 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing
 	assert.Nil(t, provider.Store)
 }
 
-func TestOpenIDConnectProvider_NewOpenIDConnectProvider_BadIssuerKey(t *testing.T) {
-	_, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: "BAD KEY",
-	}, nil)
-
-	assert.Error(t, err, "abc")
-}
-
 func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing.T) {
 	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey:         exampleIssuerPrivateKey,
+		IssuerCertificateChain:   schema.X509CertificateChain{},
+		IssuerPrivateKey:         mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		EnablePKCEPlainChallenge: true,
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
@@ -63,8 +59,9 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
 	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
@@ -102,8 +99,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
@@ -193,8 +191,9 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
 	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		HMACSecret:       "asbdhaaskmdlkamdklasmdlkams",
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
@@ -270,7 +269,8 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
 	provider, err := NewOpenIDConnectProvider(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey:         exampleIssuerPrivateKey,
+		IssuerCertificateChain:   schema.X509CertificateChain{},
+		IssuerPrivateKey:         mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
 		EnablePKCEPlainChallenge: true,
 		Clients: []schema.OpenIDConnectClientConfiguration{
@@ -292,4 +292,22 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	require.Len(t, disco.CodeChallengeMethodsSupported, 2)
 	assert.Equal(t, "S256", disco.CodeChallengeMethodsSupported[0])
 	assert.Equal(t, "plain", disco.CodeChallengeMethodsSupported[1])
+}
+
+func mustParseRSAPrivateKey(data string) *rsa.PrivateKey {
+	block, _ := pem.Decode([]byte(data))
+	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
+	}
+
+	if block.Type != "RSA PRIVATE KEY" {
+		panic("not private key")
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return key
 }

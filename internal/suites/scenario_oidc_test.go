@@ -86,11 +86,11 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
 	// Search for the 'login' link.
-	err := s.Page.MustSearch("Log in").Click("left")
+	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
 	s.verifyIsConsentPage(s.T(), s.Context(ctx))
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "accept-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "accept-button").Click("left", 1)
 	assert.NoError(s.T(), err)
 
 	// Verify that the app is showing the info related to the user stored in the JWT token.
@@ -152,12 +152,12 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
 	// Search for the 'login' link.
-	err := s.Page.MustSearch("Log in").Click("left")
+	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
 	s.verifyIsConsentPage(s.T(), s.Context(ctx))
 
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "deny-button").Click("left")
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "deny-button").Click("left", 1)
 	assert.NoError(s.T(), err)
 
 	s.verifyIsOIDC(s.T(), s.Context(ctx), "access_denied", "https://oidc.example.com:8080/error?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.+Make+sure+that+the+request+you+are+making+is+valid.+Maybe+the+credential+or+request+parameters+you+are+using+are+limited+in+scope+or+otherwise+restricted.&state=random-string-here")
