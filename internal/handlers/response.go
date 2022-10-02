@@ -221,6 +221,8 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
+	form.Set(queryArgStrConsentID, workflowID.String())
+
 	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
 	targetURL.RawQuery = form.Encode()
 
