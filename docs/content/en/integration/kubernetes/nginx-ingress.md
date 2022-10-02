@@ -8,7 +8,7 @@ images: []
 menu:
   integration:
     parent: "kubernetes"
-weight: 551
+weight: 552
 toc: true
 ---
 
