@@ -93,15 +93,9 @@ Docker or on top of [Kubernetes].
   <img src="./docs/static/images/logos/nginx.png" height="50"/>
   <img src="./docs/static/images/logos/traefik.png" height="50"/>
   <img src="./docs/static/images/logos/caddy.png" height="50"/>
+  <img src="./docs/static/images/logos/envoy.png" height="50"/>
   <img src="./docs/static/images/logos/haproxy.png" height="50"/>
   <img src="./docs/static/images/logos/kubernetes.png" height="50"/>
-</p>
-
-***Help Wanted:*** Assistance would be appreciated in getting Authelia working with
-[Envoy](https://www.envoyproxy.io/).
-
-<p align="center">
-  <img src="./docs/static/images/logos/envoy.png" height="50"/>
 </p>
 
 ## Getting Started
