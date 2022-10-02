@@ -18,6 +18,7 @@ var Keys = []string{
 	"log.file_path",
 	"log.keep_stdout",
 	"identity_providers.oidc.hmac_secret",
+	"identity_providers.oidc.issuer_certificate_chain",
 	"identity_providers.oidc.issuer_private_key",
 	"identity_providers.oidc.access_token_lifespan",
 	"identity_providers.oidc.authorize_code_lifespan",

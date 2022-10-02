@@ -132,6 +132,8 @@ const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
 	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
+	errFmtOIDCCertificateMismatch     = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateChain        = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
 
@@ -294,9 +296,11 @@ var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
 
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+
 var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 
 var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+
 var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 
 var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
@@ -306,9 +310,13 @@ var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFact
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+
 var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+
 var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
+
 var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
+
 var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)

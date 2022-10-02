@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"crypto/rsa"
 	"time"
 
 	"github.com/ory/fosite"
@@ -21,21 +20,21 @@ func NewSession() (session *model.OpenIDSession) {
 	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Extra: map[string]interface{}{},
+				Extra: map[string]any{},
 			},
 			Headers: &jwt.Headers{
-				Extra: map[string]interface{}{},
+				Extra: map[string]any{},
 			},
 		},
-		Extra: map[string]interface{}{},
+		Extra: map[string]any{},
 	}
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]interface{},
+func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
-		extra = make(map[string]interface{})
+		extra = map[string]any{}
 	}
 
 	session = &model.OpenIDSession{
@@ -53,14 +52,14 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 				AuthenticationMethodsReferences: amr,
 			},
 			Headers: &jwt.Headers{
-				Extra: map[string]interface{}{
+				Extra: map[string]any{
 					"kid": kid,
 				},
 			},
 			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
-		Extra:       map[string]interface{}{},
+		Extra:       map[string]any{},
 		ClientID:    requester.GetClient().GetID(),
 		ChallengeID: consent.ChallengeID,
 	}
@@ -122,10 +121,8 @@ type Client struct {
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
 // It additionally allows us to add keys for the purpose of key rotation in the future.
 type KeyManager struct {
-	activeKeyID string
-	keys        map[string]*rsa.PrivateKey
-	keySet      *jose.JSONWebKeySet
-	strategy    *RS256JWTStrategy
+	jwk  *JWK
+	jwks *jose.JSONWebKeySet
 }
 
 // PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
