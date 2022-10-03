@@ -248,6 +248,33 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
 }
 
+func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomainWithoutAuthHeader() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+	assert.Empty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
+}
+
+func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomainWithInvalidCredentials() {
+	mock := mocks.NewMockAutheliaCtx(s.T())
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpaaaaaaaaaaaaaaaa")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	VerifyGET(verifyGetCfg)(mock.Ctx)
+
+	assert.Equal(s.T(), 200, mock.Ctx.Response.StatusCode())
+	assert.Empty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
+}
+
 func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()

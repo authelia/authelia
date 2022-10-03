@@ -82,6 +82,20 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 	return NotAuthorized
 }
 
+// isTargetURLUnderBypassRule check whether the given url has a bypass rule.
+func isTargetURLUnderBypassRule(authorizer *authorization.Authorizer, targetURL url.URL,
+	username string, userGroups []string, clientIP net.IP, method []byte) bool {
+	_, level := authorizer.GetRequiredLevel(
+		authorization.Subject{
+			Username: username,
+			Groups:   userGroups,
+			IP:       clientIP,
+		},
+		authorization.NewObjectRaw(&targetURL, method))
+
+	return level == authorization.Bypass
+}
+
 // verifyBasicAuth verify that the provided username and password are correct and
 // that the user is authorized to target the resource.
 func verifyBasicAuth(ctx *middlewares.AutheliaCtx, header, auth []byte) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
@@ -467,16 +481,22 @@ func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.Reques
 		isBasicAuth, username, name, groups, emails, authLevel, err := verifyAuth(ctx, targetURL, refreshProfile, refreshProfileInterval)
 
 		if err != nil {
-			ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
+			// check if the target url is under bypass rule.
+			bypass := isTargetURLUnderBypassRule(ctx.Providers.Authorizer, *targetURL, username,
+				groups, ctx.RemoteIP(), method)
 
-			if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {
-				ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
+			if !bypass {
+				ctx.Logger.Errorf("Error caught when verifying user authorization: %s", err)
+
+				if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {
+					ctx.Error(fmt.Errorf("unable to update last activity: %s", err), messageOperationFailed)
+					return
+				}
+
+				handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
+
 				return
 			}
-
-			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
-
-			return
 		}
 
 		authorized := isTargetURLAuthorized(ctx.Providers.Authorizer, *targetURL, username,
