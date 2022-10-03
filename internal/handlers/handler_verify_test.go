@@ -196,7 +196,7 @@ func (s *BasicAuthorizationSuite) TestShouldNotBeAbleToParseBasicAuth() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpaaaaaaaaaaaaaaaa")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpaaaaaaaaaaaaaaaa")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
 	authz := NewAuthzBuilder().WithImplementationLegacy().Build()
@@ -212,7 +212,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyDefaultPolicy() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -244,7 +244,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfBypassDomain() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -276,7 +276,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -308,7 +308,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -340,7 +340,7 @@ func (s *BasicAuthorizationSuite) TestShouldApplyPolicyOfDenyDomain() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 	defer mock.Close()
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://deny.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -373,7 +373,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgOk() {
 	defer mock.Close()
 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
-	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -419,8 +419,8 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingNoHeader() 
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
-	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
-	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader() {
@@ -428,7 +428,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader
 	defer mock.Close()
 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
-	mock.Ctx.Request.Header.Set("Authorization", "")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	config := ConfigAuthz
@@ -442,8 +442,8 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingEmptyHeader
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
-	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
-	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPassword() {
@@ -451,7 +451,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPasswo
 	defer mock.Close()
 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
-	mock.Ctx.Request.Header.Set("Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	mock.UserProviderMock.EXPECT().
@@ -469,8 +469,8 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongPasswo
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
-	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
-	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
 }
 
 func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader() {
@@ -478,7 +478,7 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader
 	defer mock.Close()
 
 	mock.Ctx.QueryArgs().Add("auth", "basic")
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
 	config := ConfigAuthz
@@ -492,8 +492,8 @@ func (s *BasicAuthorizationSuite) TestShouldVerifyAuthBasicArgFailingWrongHeader
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), "401 Unauthorized", string(mock.Ctx.Response.Body()))
-	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek("WWW-Authenticate"))
-	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek("WWW-Authenticate")))
+	assert.NotEmpty(s.T(), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	assert.Regexp(s.T(), regexp.MustCompile("^Basic realm="), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
 }
 
 func TestShouldVerifyAuthorizationsUsingBasicAuth(t *testing.T) {
@@ -508,7 +508,7 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("wrongpass")).
 		Return(false, nil)
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
 	config := ConfigAuthz
@@ -525,6 +525,59 @@ func TestShouldVerifyWrongCredentialsInBasicAuth(t *testing.T) {
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.PeekBytes(headerProxyAuthenticate))
 }
 
+func TestShouldBypassAuthBasicIssue3716(t *testing.T) {
+	// See #3716.
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "200 OK", string(mock.Ctx.Response.Body()))
+	assert.Empty(t, mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+}
+
+func TestShouldBypassAuthBasicWithValuesIssue3716(t *testing.T) {
+	// See #3716.
+
+	// TODO: Decide if we want to support this functionality.
+	// This effectively confirms that any site that is set to bypass if provided with header credentials will pass
+	// the authentication check.
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.QueryArgs().Add("auth", "basic")
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objp3cm9uZ3Bhc3M=")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("wrongpass")).
+		Return(false, nil)
+
+	config := ConfigAuthz
+
+	authz := NewAuthzBuilder().
+		WithImplementationLegacy().
+		WithConfig(&config).
+		Build()
+
+	authz.Handler(mock.Ctx)
+
+	assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, "200 OK", string(mock.Ctx.Response.Body()))
+	assert.Empty(t, mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+}
+
 func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -533,7 +586,7 @@ func TestShouldVerifyFailingPasswordCheckingInBasicAuth(t *testing.T) {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("wrongpass")).
 		Return(false, fmt.Errorf("Failed"))
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objp3cm9uZ3Bhc3M=")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objp3cm9uZ3Bhc3M=")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
 	config := ConfigAuthz
@@ -562,7 +615,7 @@ func TestShouldVerifyFailingDetailsFetchingInBasicAuth(t *testing.T) {
 		GetDetails(gomock.Eq("john")).
 		Return(nil, fmt.Errorf("Failed"))
 
-	mock.Ctx.Request.Header.Set("Proxy-Authorization", "Basic am9objpwYXNzd29yZA==")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://test.example.com")
 
 	config := ConfigAuthz
