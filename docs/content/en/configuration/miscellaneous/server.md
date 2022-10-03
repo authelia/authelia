@@ -23,8 +23,6 @@ server:
   port: 9091
   path: ""
   asset_path: ""
-  read_buffer_size: 4096
-  write_buffer_size: 4096
   enable_pprof: false
   enable_expvars: false
   disable_healthcheck: false
