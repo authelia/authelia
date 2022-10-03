@@ -1077,50 +1077,50 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 		{
 			desc:     "ShouldDecodeRSACertificate",
 			have:     x509CertificateRSA1,
-			expected: mustParseX509CertificateChain(x509CertificateRSA1),
+			expected: MustParseX509CertificateChain(x509CertificateRSA1),
 			decode:   true,
 		},
 		{
 			desc:     "ShouldDecodeRSACertificateNoPtr",
 			have:     x509CertificateRSA1,
-			expected: *mustParseX509CertificateChain(x509CertificateRSA1),
+			expected: *MustParseX509CertificateChain(x509CertificateRSA1),
 			decode:   true,
 		},
 		{
 			desc:     "ShouldDecodeRSACertificateChain",
-			have:     buildChain(x509CertificateRSA1, x509CACertificateRSA),
-			expected: mustParseX509CertificateChain(x509CertificateRSA1, x509CACertificateRSA),
+			have:     BuildChain(x509CertificateRSA1, x509CACertificateRSA),
+			expected: MustParseX509CertificateChain(x509CertificateRSA1, x509CACertificateRSA),
 			decode:   true,
 		},
 		{
 			desc:     "ShouldDecodeRSACertificateChainNoPtr",
-			have:     buildChain(x509CertificateRSA1, x509CACertificateRSA),
-			expected: *mustParseX509CertificateChain(x509CertificateRSA1, x509CACertificateRSA),
+			have:     BuildChain(x509CertificateRSA1, x509CACertificateRSA),
+			expected: *MustParseX509CertificateChain(x509CertificateRSA1, x509CACertificateRSA),
 			decode:   true,
 		},
 		{
 			desc:     "ShouldNotDecodeBadRSACertificateChain",
-			have:     buildChain(x509CertificateRSA1, x509CACertificateECDSA),
-			expected: mustParseX509CertificateChain(x509CertificateRSA1, x509CACertificateECDSA),
+			have:     BuildChain(x509CertificateRSA1, x509CACertificateECDSA),
+			expected: MustParseX509CertificateChain(x509CertificateRSA1, x509CACertificateECDSA),
 			verr:     "certificate #1 in chain is not signed properly by certificate #2 in chain: x509: signature algorithm specifies an RSA public key, but have public key of type *ecdsa.PublicKey",
 			decode:   true,
 		},
 		{
 			desc:     "ShouldDecodeECDSACertificate",
 			have:     x509CACertificateECDSA,
-			expected: mustParseX509CertificateChain(x509CACertificateECDSA),
+			expected: MustParseX509CertificateChain(x509CACertificateECDSA),
 			decode:   true,
 		},
 		{
 			desc:     "ShouldDecodeRSACACertificate",
 			have:     x509CACertificateRSA,
-			expected: mustParseX509CertificateChain(x509CACertificateRSA),
+			expected: MustParseX509CertificateChain(x509CACertificateRSA),
 			decode:   true,
 		},
 		{
 			desc:     "ShouldDecodeECDSACACertificate",
 			have:     x509CACertificateECDSA,
-			expected: mustParseX509CertificateChain(x509CACertificateECDSA),
+			expected: MustParseX509CertificateChain(x509CACertificateECDSA),
 			decode:   true,
 		},
 		{
@@ -1344,7 +1344,7 @@ func MustParseX509Certificate(data string) *x509.Certificate {
 	return cert
 }
 
-func buildChain(pems ...string) string {
+func BuildChain(pems ...string) string {
 	buf := bytes.Buffer{}
 
 	for i, data := range pems {
@@ -1358,8 +1358,8 @@ func buildChain(pems ...string) string {
 	return buf.String()
 }
 
-func mustParseX509CertificateChain(datas ...string) *schema.X509CertificateChain {
-	chain, err := schema.NewX509CertificateChain(buildChain(datas...))
+func MustParseX509CertificateChain(datas ...string) *schema.X509CertificateChain {
+	chain, err := schema.NewX509CertificateChain(BuildChain(datas...))
 	if err != nil {
 		panic(err)
 	}
