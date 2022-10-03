@@ -1,7 +1,11 @@
 package oidc
 
+import (
+	"github.com/authelia/authelia/v4/internal/utils"
+)
+
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise bool) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions: CommonDiscoveryOptions{
 			SubjectTypesSupported: []string{
@@ -68,6 +72,26 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 				SigningAlgorithmRSAWithSHA256,
 			},
 		},
+	}
+
+	var pairwise, public bool
+
+	for _, client := range clients {
+		if pairwise && public {
+			break
+		}
+
+		if client.SectorIdentifier != "" {
+			pairwise = true
+		}
+
+		if !utils.IsStringInSlice(client.TokenEndpointAuthMethod, config.TokenEndpointAuthMethodsSupported) {
+			config.TokenEndpointAuthMethodsSupported = append(config.TokenEndpointAuthMethodsSupported, client.TokenEndpointAuthMethod)
+		}
+	}
+
+	if public {
+		config.TokenEndpointAuthMethodsSupported = append(config.TokenEndpointAuthMethodsSupported, TokenEndpointAuthMethodNone)
 	}
 
 	if pairwise {

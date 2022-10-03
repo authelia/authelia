@@ -94,20 +94,9 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 		compose.OAuth2PKCEFactory,
 	)
 
-	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Pairwise())
+	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Store.clients)
 
 	return provider, nil
-}
-
-// Pairwise returns true if this provider is configured with clients that require pairwise.
-func (p *OpenIDConnectProvider) Pairwise() bool {
-	for _, c := range p.Store.clients {
-		if c.SectorIdentifier != "" {
-			return true
-		}
-	}
-
-	return false
 }
 
 // GetOAuth2WellKnownConfiguration returns the discovery document for the OAuth Configuration.

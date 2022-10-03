@@ -103,7 +103,6 @@ type Client struct {
 	Description      string
 	Secret           []byte
 	SectorIdentifier string
-	Public           bool
 
 	Audience      []string
 	Scopes        []string
@@ -112,6 +111,7 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
+	TokenEndpointAuthMethod  string
 	UserinfoSigningAlgorithm string
 
 	Policy authorization.Level
