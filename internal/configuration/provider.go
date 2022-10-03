@@ -63,7 +63,7 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o inte
 				StringToAddressHookFunc(),
 				StringToX509CertificateHookFunc(),
 				StringToX509CertificateChainHookFunc(),
-				StringToRSAPrivateKeyHookFunc(),
+				StringToPrivateKeyHookFunc(),
 				ToTimeDurationHookFunc(),
 			),
 			Metadata:         nil,
