@@ -43,8 +43,6 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 
 	assert.NoError(t, err)
 
-	assert.True(t, provider.Pairwise())
-
 	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
 
 	assert.Len(t, disco.SubjectTypesSupported, 2)
@@ -114,8 +112,6 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 	}, nil)
 
 	assert.NoError(t, err)
-
-	assert.False(t, provider.Pairwise())
 
 	disco := provider.GetOpenIDConnectWellKnownConfiguration("https://example.com")
 

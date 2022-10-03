@@ -59,7 +59,7 @@ const (
 
 // Signing Algorithm strings.
 const (
-	SigningAlgorithmNone          = "none"
+	SigningAlgorithmNone          = none
 	SigningAlgorithmRSAWithSHA256 = "RS256"
 )
 
@@ -73,6 +73,11 @@ const (
 const (
 	PKCEChallengeMethodPlain  = "plain"
 	PKCEChallengeMethodSHA256 = "S256"
+)
+
+const (
+	TokenEndpointAuthMethodNone              = none
+	TokenEndpointAuthMethodClientSecretBasic = "client_secret_basic"
 )
 
 // Endpoints.
@@ -204,4 +209,5 @@ const (
 	implicit      = "implicit"
 	explicit      = "explicit"
 	preconfigured = "pre-configured"
+	none          = "none"
 )

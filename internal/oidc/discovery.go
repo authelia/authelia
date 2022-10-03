@@ -1,7 +1,7 @@
 package oidc
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise bool) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions: CommonDiscoveryOptions{
 			SubjectTypesSupported: []string{
@@ -49,6 +49,9 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 				ClaimPreferredUsername,
 				ClaimFullName,
 			},
+			TokenEndpointAuthMethodsSupported: []string{
+				TokenEndpointAuthMethodClientSecretBasic,
+			},
 		},
 		OAuth2DiscoveryOptions: OAuth2DiscoveryOptions{
 			CodeChallengeMethodsSupported: []string{
@@ -68,6 +71,26 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge, pairwise b
 				SigningAlgorithmRSAWithSHA256,
 			},
 		},
+	}
+
+	var pairwise, public bool
+
+	for _, client := range clients {
+		if pairwise && public {
+			break
+		}
+
+		if client.SectorIdentifier != "" {
+			pairwise = true
+		}
+
+		if client.Public {
+			public = true
+		}
+	}
+
+	if public {
+		config.TokenEndpointAuthMethodsSupported = append(config.TokenEndpointAuthMethodsSupported, TokenEndpointAuthMethodNone)
 	}
 
 	if pairwise {
