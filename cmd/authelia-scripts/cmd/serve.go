@@ -15,6 +15,8 @@ func newServeCmd() (cmd *cobra.Command) {
 		Example: cmdServeExample,
 		Args:    cobra.MinimumNArgs(1),
 		Run:     cmdServeRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

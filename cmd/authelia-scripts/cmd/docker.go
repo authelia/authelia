@@ -33,6 +33,8 @@ func newDockerCmd() (cmd *cobra.Command) {
 		Example: cmdDockerExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd())
@@ -48,6 +50,8 @@ func newDockerBuildCmd() (cmd *cobra.Command) {
 		Example: cmdDockerBuildExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerBuildRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.PersistentFlags().StringVar(&container, "container", defaultContainer, "target container among: "+strings.Join(containers, ", "))
@@ -63,6 +67,8 @@ func newDockerPushManifestCmd() (cmd *cobra.Command) {
 		Example: cmdDockerPushManifestExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdDockerPushManifestRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -139,13 +145,12 @@ func dockerBuildOfficialImage(arch string) error {
 	filename := "Dockerfile"
 	dockerfile := fmt.Sprintf("%s.%s", filename, arch)
 
-	flags, err := getXFlags(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
+	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return docker.Build(IntermediateDockerImageName, dockerfile, ".",
-		strings.Join(flags, " "))
+	return docker.Build(IntermediateDockerImageName, dockerfile, ".", buildMetaData)
 }
 
 func login(docker *Docker, registry string) {

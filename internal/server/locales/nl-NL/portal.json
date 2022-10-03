@@ -5,6 +5,7 @@
 	"Access your profile information": "Toegang tot je profielgegevens",
 	"An email has been sent to your address to complete the process": "Er is een e-mail verzonden naar uw adres om het proces te voltooien.",
 	"Authenticated": "Geverifieerd",
+	"Automatically refresh these permissions without user interaction": "Vernieuw deze machtigingen automatisch zonder gebruikersinteractie",
 	"Cancel": "annuleren",
 	"Client ID": "Client-ID: {{client_id}}",
 	"Consent Request": "Toestemming Verzoek",

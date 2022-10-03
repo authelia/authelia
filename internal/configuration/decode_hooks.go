@@ -1,6 +1,8 @@
 package configuration
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"fmt"
 	"net/mail"
 	"net/url"
@@ -23,11 +25,11 @@ func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		kindStr := "mail.Address (RFC5322)"
+		prefixType := ""
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
-			kindStr = "*" + kindStr
+			prefixType = "*"
 		}
 
 		expectedType := reflect.TypeOf(mail.Address{})
@@ -44,7 +46,7 @@ func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 		if dataStr != "" {
 			if result, err = mail.ParseAddress(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, kindStr, err)
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String()+" (RFC5322)", err)
 			}
 		}
 
@@ -69,11 +71,11 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		kindStr := "url.URL"
+		prefixType := ""
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
-			kindStr = "*" + kindStr
+			prefixType = "*"
 		}
 
 		expectedType := reflect.TypeOf(url.URL{})
@@ -90,7 +92,7 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 
 		if dataStr != "" {
 			if result, err = url.Parse(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, kindStr, err)
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 			}
 		}
 
@@ -119,11 +121,11 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		kindStr := "time.Duration"
+		prefixType := ""
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
-			kindStr = "*" + kindStr
+			prefixType = "*"
 		}
 
 		expectedType := reflect.TypeOf(time.Duration(0))
@@ -141,7 +143,7 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 			dataStr := data.(string)
 
 			if result, err = utils.ParseDurationString(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, kindStr, err)
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 			}
 		case f.Kind() == reflect.Int:
 			seconds := data.(int)
@@ -176,11 +178,11 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		kindStr := "regexp.Regexp"
+		prefixType := ""
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
-			kindStr = "*" + kindStr
+			prefixType = "*"
 		}
 
 		expectedType := reflect.TypeOf(regexp.Regexp{})
@@ -197,7 +199,7 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 
 		if dataStr != "" {
 			if result, err = regexp.Compile(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, kindStr, err)
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 			}
 		}
 
@@ -206,7 +208,7 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		if result == nil {
-			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, kindStr, errDecodeNonPtrMustHaveValue)
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType, errDecodeNonPtrMustHaveValue)
 		}
 
 		return *result, nil
@@ -222,11 +224,11 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		kindStr := "Address"
+		prefixType := ""
 
 		if t.Kind() == reflect.Ptr {
 			ptr = true
-			kindStr = "*" + kindStr
+			prefixType = "*"
 		}
 
 		expectedType := reflect.TypeOf(schema.Address{})
@@ -242,7 +244,7 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 		var result *schema.Address
 
 		if result, err = schema.NewAddressFromString(dataStr); err != nil {
-			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, kindStr, err)
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 		}
 
 		if ptr {
@@ -250,5 +252,133 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		return *result, nil
+	}
+}
+
+// StringToX509CertificateHookFunc decodes strings to x509.Certificate's.
+func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.Ptr {
+			return data, nil
+		}
+
+		expectedType := reflect.TypeOf(x509.Certificate{})
+
+		if t.Elem() != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *x509.Certificate
+
+		if dataStr == "" {
+			return result, nil
+		}
+
+		var i interface{}
+
+		if i, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, err)
+		}
+
+		switch r := i.(type) {
+		case *x509.Certificate:
+			return r, nil
+		default:
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
+		}
+	}
+}
+
+// StringToX509CertificateChainHookFunc decodes strings to schema.X509CertificateChain's.
+func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.X509CertificateChain{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.X509CertificateChain
+
+		if dataStr == "" && ptr {
+			return result, nil
+		}
+
+		if result, err = schema.NewX509CertificateChain(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, prefixType, expectedType, err)
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		if result == nil {
+			return schema.X509CertificateChain{}, nil
+		}
+
+		return *result, nil
+	}
+}
+
+// StringToRSAPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
+func StringToRSAPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.Ptr {
+			return data, nil
+		}
+
+		expectedType := reflect.TypeOf(rsa.PrivateKey{})
+
+		if t.Elem() != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *rsa.PrivateKey
+
+		if dataStr == "" {
+			return result, nil
+		}
+
+		var i interface{}
+
+		if i, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, err)
+		}
+
+		switch r := i.(type) {
+		case *rsa.PrivateKey:
+			return r, nil
+		default:
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
+		}
 	}
 }

@@ -31,6 +31,7 @@ notifier:
     subject: "[Authelia] {title}"
     startup_check_address: test@authelia.com
     disable_require_tls: false
+    disable_starttls: false
     disable_html_emails: false
     tls:
       server_name: smtp.example.com
@@ -56,9 +57,14 @@ host: "[fd00:1111:2222:3333::1]"
 
 {{< confkey type="integer" required="yes" >}}
 
-The port the SMTP service is listening on. Port 465 is treated as a special port where the entire connection is over
-TLS. This port was formerly known as the SMTPS port but is now known as the SUBMISSIONS port i.e. SUBMISSION Secure. All
-other ports expect to perform a STARTTLS negotiation.
+The port the SMTP service is listening on.
+
+A connection is securely established with TLS after a succesful STARTTLS negotiation.
+
+[Port 465 is an exception][docs-security-smtp-port] when supported by the mail server as a `submissions` service port.
+STARTTLS negotiation is not required for this port, the connection is implicitly established with TLS.
+
+[docs-security-smtp-port]: ../../overview/security/measures.md#smtp-ports
 
 ### timeout
 
@@ -126,6 +132,18 @@ to leave this as is, but you can customize it if you have issues or you desire t
 
 For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security]
 for more information. This option disables this measure (not recommended).
+
+### disable_starttls
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Some SMTP servers ignore SMTP specifications and claim to support STARTTLS when they in fact do not.
+For security reasons Authelia refuses to send messages to these servers.
+This option disables this measure and is enabled  *__AT YOUR OWN RISK__*. It's *__strongly recommended__* 
+that instead of enabling this option you either fix the issue with the SMTP server's configuration or 
+have the administrators of the server fix it. If the issue can't be fixed by configuration we recommend 
+lodging an issue with the authors of the SMTP server.
+See [security] for more information.
 
 ### disable_html_emails
 

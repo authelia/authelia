@@ -16,6 +16,8 @@ func newXFlagsCmd() (cmd *cobra.Command) {
 		Example: cmdXFlagsExample,
 		Args:    cobra.NoArgs,
 		Run:     cmdXFlagsRun,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP("build", "b", "0", "Sets the BuildNumber flag value")
@@ -35,10 +37,10 @@ func cmdXFlagsRun(cobraCmd *cobra.Command, _ []string) {
 		log.Fatal(err)
 	}
 
-	flags, err := getXFlags("", build, extra)
+	buildMetaData, err := getBuild("", build, extra)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(strings.Join(flags, " "))
+	fmt.Println(strings.Join(buildMetaData.XFlags(), " "))
 }

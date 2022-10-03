@@ -1,6 +1,8 @@
 package authorization
 
 import (
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 )
@@ -10,15 +12,17 @@ type Authorizer struct {
 	defaultPolicy Level
 	rules         []*AccessControlRule
 	mfa           bool
-	configuration *schema.Configuration
+	config        *schema.Configuration
+	log           *logrus.Logger
 }
 
-// NewAuthorizer create an instance of authorizer with a given access control configuration.
-func NewAuthorizer(configuration *schema.Configuration) (authorizer *Authorizer) {
+// NewAuthorizer create an instance of authorizer with a given access control config.
+func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 	authorizer = &Authorizer{
-		defaultPolicy: StringToLevel(configuration.AccessControl.DefaultPolicy),
-		rules:         NewAccessControlRules(configuration.AccessControl),
-		configuration: configuration,
+		defaultPolicy: StringToLevel(config.AccessControl.DefaultPolicy),
+		rules:         NewAccessControlRules(config.AccessControl),
+		config:        config,
+		log:           logging.Logger(),
 	}
 
 	if authorizer.defaultPolicy == TwoFactor {
@@ -35,8 +39,8 @@ func NewAuthorizer(configuration *schema.Configuration) (authorizer *Authorizer)
 		}
 	}
 
-	if authorizer.configuration.IdentityProviders.OIDC != nil {
-		for _, client := range authorizer.configuration.IdentityProviders.OIDC.Clients {
+	if authorizer.config.IdentityProviders.OIDC != nil {
+		for _, client := range authorizer.config.IdentityProviders.OIDC.Clients {
 			if client.Policy == twoFactor {
 				authorizer.mfa = true
 
@@ -54,26 +58,23 @@ func (p Authorizer) IsSecondFactorEnabled() bool {
 }
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
-func (p Authorizer) GetRequiredLevel(subject Subject, object Object) Level {
-	logger := logging.Logger()
-
-	logger.Debugf("Check authorization of subject %s and object %s (method %s).",
+func (p Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubjects bool, level Level) {
+	p.log.Debugf("Check authorization of subject %s and object %s (method %s).",
 		subject.String(), object.String(), object.Method)
 
 	for _, rule := range p.rules {
 		if rule.IsMatch(subject, object) {
-			logger.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject.String(), object.String(), object.Method)
+			p.log.Tracef(traceFmtACLHitMiss, "HIT", rule.Position, subject, object, object.Method)
 
-			return rule.Policy
+			return rule.HasSubjects, rule.Policy
 		}
 
-		logger.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject.String(), object.String(), object.Method)
+		p.log.Tracef(traceFmtACLHitMiss, "MISS", rule.Position, subject, object, object.Method)
 	}
 
-	logger.Debugf("No matching rule for subject %s and url %s... Applying default policy.",
-		subject.String(), object.String())
+	p.log.Debugf("No matching rule for subject %s and url %s (method %s) applying default policy", subject, object, object.Method)
 
-	return p.defaultPolicy
+	return false, p.defaultPolicy
 }
 
 // GetRuleMatchResults iterates through the rules and produces a list of RuleMatchResult provided a subject and object.

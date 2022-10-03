@@ -17,6 +17,8 @@ func newStorageCmd() (cmd *cobra.Command) {
 		Example:           cmdAutheliaStorageExample,
 		Args:              cobra.NoArgs,
 		PersistentPreRunE: storagePersistentPreRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmdWithConfigFlags(cmd, true, []string{"configuration.yml"})
@@ -58,6 +60,8 @@ func newStorageEncryptionCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageEncryptionShort,
 		Long:    cmdAutheliaStorageEncryptionLong,
 		Example: cmdAutheliaStorageEncryptionExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -75,6 +79,8 @@ func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageEncryptionCheckLong,
 		Example: cmdAutheliaStorageEncryptionCheckExample,
 		RunE:    storageSchemaEncryptionCheckRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().Bool("verbose", false, "enables verbose checking of every row of encrypted data")
@@ -89,6 +95,8 @@ func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageEncryptionChangeKeyLong,
 		Example: cmdAutheliaStorageEncryptionChangeKeyExample,
 		RunE:    storageSchemaEncryptionChangeKeyRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().String("new-encryption-key", "", "the new key to encrypt the data with")
@@ -102,6 +110,8 @@ func newStorageUserCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserShort,
 		Long:    cmdAutheliaStorageUserLong,
 		Example: cmdAutheliaStorageUserExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -119,6 +129,8 @@ func newStorageUserIdentifiersCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserIdentifiersShort,
 		Long:    cmdAutheliaStorageUserIdentifiersLong,
 		Example: cmdAutheliaStorageUserIdentifiersExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -138,6 +150,8 @@ func newStorageUserIdentifiersExportCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageUserIdentifiersExportLong,
 		Example: cmdAutheliaStorageUserIdentifiersExportExample,
 		RunE:    storageUserIdentifiersExport,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML export")
@@ -152,6 +166,8 @@ func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageUserIdentifiersImportLong,
 		Example: cmdAutheliaStorageUserIdentifiersImportExample,
 		RunE:    storageUserIdentifiersImport,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML import")
@@ -166,6 +182,8 @@ func newStorageUserIdentifiersGenerateCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageUserIdentifiersGenerateLong,
 		Example: cmdAutheliaStorageUserIdentifiersGenerateExample,
 		RunE:    storageUserIdentifiersGenerate,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().StringSlice("users", nil, "The list of users to generate the opaque identifiers for")
@@ -183,6 +201,8 @@ func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserIdentifiersAddExample,
 		Args:    cobra.ExactArgs(1),
 		RunE:    storageUserIdentifiersAdd,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().String("identifier", "", "The optional version 4 UUID to use, if not set a random one will be used")
@@ -250,6 +270,8 @@ func newStorageUserTOTPCmd() (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPShort,
 		Long:    cmdAutheliaStorageUserTOTPLong,
 		Example: cmdAutheliaStorageUserTOTPExample,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -269,6 +291,8 @@ func newStorageUserTOTPGenerateCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserTOTPGenerateExample,
 		RunE:    storageTOTPGenerateRunE,
 		Args:    cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().String("secret", "", "Optionally set the TOTP shared secret as base32 encoded bytes (no padding), it's recommended to not set this option unless you're restoring an TOTP config")
@@ -291,6 +315,8 @@ func newStorageUserTOTPDeleteCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserTOTPDeleteExample,
 		RunE:    storageTOTPDeleteRunE,
 		Args:    cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -303,6 +329,8 @@ func newStorageUserTOTPExportCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageUserTOTPExportLong,
 		Example: cmdAutheliaStorageUserTOTPExportExample,
 		RunE:    storageTOTPExportRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().String("format", storageTOTPExportFormatURI, fmt.Sprintf("sets the output format, valid values are: %s", strings.Join(validStorageTOTPExportFormats, ", ")))
@@ -318,6 +346,8 @@ func newStorageSchemaInfoCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageSchemaInfoLong,
 		Example: cmdAutheliaStorageSchemaInfoExample,
 		RunE:    storageSchemaInfoRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -331,6 +361,8 @@ func newStorageMigrateCmd() (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageMigrateLong,
 		Example: cmdAutheliaStorageMigrateExample,
 		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.AddCommand(
@@ -350,6 +382,8 @@ func newStorageMigrateHistoryCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageMigrateHistoryExample,
 		Args:    cobra.NoArgs,
 		RunE:    storageMigrateHistoryRunE,
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -363,6 +397,8 @@ func newStorageMigrateListUpCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageMigrateListUpExample,
 		Args:    cobra.NoArgs,
 		RunE:    newStorageMigrateListRunE(true),
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -376,6 +412,8 @@ func newStorageMigrateListDownCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageMigrateListDownExample,
 		Args:    cobra.NoArgs,
 		RunE:    newStorageMigrateListRunE(false),
+
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -389,6 +427,8 @@ func newStorageMigrateUpCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageMigrateUpExample,
 		Args:    cobra.NoArgs,
 		RunE:    newStorageMigrationRunE(true),
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
@@ -404,6 +444,8 @@ func newStorageMigrateDownCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageMigrateDownExample,
 		Args:    cobra.NoArgs,
 		RunE:    newStorageMigrationRunE(false),
+
+		DisableAutoGenTag: true,
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")
