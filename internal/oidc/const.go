@@ -57,10 +57,20 @@ const (
 	GrantTypeClientCredentials = "client_credentials"
 )
 
+const (
+	JSONWebKeyUseSignature = "sig"
+)
+
 // Signing Algorithm strings.
 const (
-	SigningAlgorithmNone          = none
-	SigningAlgorithmRSAWithSHA256 = "RS256"
+	SigningAlgorithmNone                = none
+	SigningAlgorithmRSAWithSHA256       = "RS256"
+	SigningAlgorithmRSAWithSHA384       = "RS384"
+	SigningAlgorithmRSAWithSHA512       = "RS512"
+	SigningAlgorithmRSAASAPSSWithSHA256 = "PS256"
+	SigningAlgorithmRSAASAPSSWithSHA384 = "PS384"
+	SigningAlgorithmRSAASAPSSWithSHA512 = "PS512"
+	SigningAlgorithmECDSAWithSHA256     = "ES256"
 )
 
 // Subject Type strings.

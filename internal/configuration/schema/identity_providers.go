@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"net/url"
 	"time"
@@ -11,11 +12,18 @@ type IdentityProvidersConfiguration struct {
 	OIDC *OpenIDConnectConfiguration `koanf:"oidc"`
 }
 
+type ECPair struct {
+	CertificateChain X509CertificateChain `koanf:"certificate_chain"`
+	PrivateKey       *ecdsa.PrivateKey    `koanf:"private_key"`
+}
+
 // OpenIDConnectConfiguration configuration for OpenID Connect.
 type OpenIDConnectConfiguration struct {
 	HMACSecret             string               `koanf:"hmac_secret"`
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain"`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key"`
+
+	IssuerECDSA []ECPair `koanf:"issuer_ec"`
 
 	AccessTokenLifespan   time.Duration `koanf:"access_token_lifespan"`
 	AuthorizeCodeLifespan time.Duration `koanf:"authorize_code_lifespan"`
@@ -58,6 +66,8 @@ type OpenIDConnectClientConfiguration struct {
 	ResponseModes []string `koanf:"response_modes"`
 
 	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
+	IDTokenSigningAlgorithm  string `koanf:"idtoken_signing_algorithm"`
+	TokenEndpointAuthMethod  string `koanf:"token_endpoint_auth_method"`
 
 	Policy string `koanf:"authorization_policy"`
 

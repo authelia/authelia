@@ -39,7 +39,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 			},
@@ -62,7 +62,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
 			},
@@ -87,7 +87,7 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			EnforcePKCE:      "invalid",
 		},
 	}
@@ -106,7 +106,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
@@ -142,7 +142,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 		},
 	}
 
@@ -322,7 +322,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			config := &schema.IdentityProvidersConfiguration{
 				OIDC: &schema.OpenIDConnectConfiguration{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: &rsa.PrivateKey{},
+					IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 					Clients:          tc.Clients,
 				},
 			}
@@ -346,7 +346,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
@@ -372,7 +372,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
@@ -452,7 +452,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:            "good_id",
@@ -478,7 +478,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:                       "good_id",
@@ -504,7 +504,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:              "abc",
-			IssuerPrivateKey:        &rsa.PrivateKey{},
+			IssuerPrivateKey:        mustParseRSAPrivateKey(testKey1),
 			MinimumParameterEntropy: 1,
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
@@ -532,7 +532,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret",
@@ -570,7 +570,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "installed-app-client",
@@ -611,7 +611,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: mustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "a-client",

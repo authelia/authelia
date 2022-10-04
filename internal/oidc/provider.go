@@ -22,8 +22,9 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 	}
 
 	provider = &OpenIDConnectProvider{
-		JSONWriter: herodot.NewJSONWriter(nil),
-		Store:      NewOpenIDConnectStore(config, store),
+		JSONWriter:  herodot.NewJSONWriter(nil),
+		Store:       NewOpenIDConnectStore(config, store),
+		KeyStrategy: NewKeyStrategy(config),
 	}
 
 	cconfig := &compose.Config{
@@ -38,12 +39,6 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 		EnablePKCEPlainChallengeMethod: config.EnablePKCEPlainChallenge,
 	}
 
-	if provider.KeyManager, err = NewKeyManagerWithConfiguration(config); err != nil {
-		return nil, err
-	}
-
-	jwtStrategy := provider.KeyManager.Strategy()
-
 	strategy := &compose.CommonStrategy{
 		CoreStrategy: &oauth2.HMACSHAStrategy{
 			Enigma: &hmac.HMACStrategy{
@@ -57,12 +52,12 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 			RefreshTokenLifespan:  cconfig.GetRefreshTokenLifespan(),
 		},
 		OpenIDConnectTokenStrategy: &openid.DefaultStrategy{
-			JWTStrategy:         jwtStrategy,
+			JWTStrategy:         provider.KeyStrategy,
 			Expiry:              cconfig.GetIDTokenLifespan(),
 			Issuer:              cconfig.IDTokenIssuer,
 			MinParameterEntropy: cconfig.GetMinParameterEntropy(),
 		},
-		JWTStrategy: jwtStrategy,
+		JWTStrategy: provider.KeyStrategy,
 	}
 
 	provider.OAuth2Provider = compose.Compose(
@@ -94,7 +89,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 		compose.OAuth2PKCEFactory,
 	)
 
-	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Store.clients)
+	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Store.clients, provider.KeyStrategy.SigningAlgValues())
 
 	return provider, nil
 }

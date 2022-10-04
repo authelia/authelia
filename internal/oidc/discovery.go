@@ -5,7 +5,7 @@ import (
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
-func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
+func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clients map[string]*Client, algs []string) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
 		CommonDiscoveryOptions: CommonDiscoveryOptions{
 			SubjectTypesSupported: []string{
@@ -60,13 +60,8 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clien
 			},
 		},
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
-			IDTokenSigningAlgValuesSupported: []string{
-				SigningAlgorithmRSAWithSHA256,
-			},
-			UserinfoSigningAlgValuesSupported: []string{
-				SigningAlgorithmNone,
-				SigningAlgorithmRSAWithSHA256,
-			},
+			IDTokenSigningAlgValuesSupported:  algs,
+			UserinfoSigningAlgValuesSupported: append(algs, SigningAlgorithmNone),
 			RequestObjectSigningAlgValuesSupported: []string{
 				SigningAlgorithmNone,
 				SigningAlgorithmRSAWithSHA256,

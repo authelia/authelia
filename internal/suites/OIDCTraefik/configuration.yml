@@ -132,6 +132,7 @@ identity_providers:
       - id: oidc-tester-app
         secret: foobar
         authorization_policy: two_factor
+        token_endpoint_auth_method: client_secret_post
         redirect_uris:
           - https://oidc.example.com:8080/oauth2/callback
       # This client is used for testing purpose. As of now, the app must be protected by ACLs

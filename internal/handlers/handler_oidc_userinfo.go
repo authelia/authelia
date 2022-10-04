@@ -96,7 +96,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requester.GetID(), clientID, claims)
 
 	switch client.UserinfoSigningAlgorithm {
-	case oidc.SigningAlgorithmRSAWithSHA256:
+	case oidc.SigningAlgorithmRSAWithSHA256, oidc.SigningAlgorithmRSAASAPSSWithSHA256, oidc.SigningAlgorithmECDSAWithSHA256:
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
@@ -108,13 +108,21 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		claims[oidc.ClaimJWTID] = jti.String()
 		claims[oidc.ClaimIssuedAt] = time.Now().Unix()
 
+		var kid string
+
+		if kid, err = ctx.Providers.OpenIDConnect.KeyStrategy.GetKIDFromJWA(client.UserinfoSigningAlgorithm); err != nil {
+			ctx.Providers.OpenIDConnect.WriteError(rw, req, fosite.ErrServerError.WithHintf("Could not determine JWK ID."))
+
+			return
+		}
+
 		headers := &jwt.Headers{
 			Extra: map[string]any{
-				oidc.JWTHeaderKeyIdentifier: ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+				oidc.JWTHeaderKeyIdentifier: kid,
 			},
 		}
 
-		if token, _, err = ctx.Providers.OpenIDConnect.KeyManager.Strategy().Generate(req.Context(), claims, headers); err != nil {
+		if token, _, err = ctx.Providers.OpenIDConnect.KeyStrategy.Generate(req.Context(), claims, headers); err != nil {
 			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
 
 			return

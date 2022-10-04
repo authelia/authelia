@@ -70,7 +70,7 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			actual := NewOpenIDConnectWellKnownConfiguration(tc.pkcePlainChallenge, tc.clients)
+			actual := NewOpenIDConnectWellKnownConfiguration(tc.pkcePlainChallenge, tc.clients, []string{SigningAlgorithmRSAWithSHA256})
 			for _, codeChallengeMethod := range tc.expectCodeChallengeMethodsSupported {
 				assert.Contains(t, actual.CodeChallengeMethodsSupported, codeChallengeMethod)
 			}

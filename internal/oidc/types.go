@@ -8,7 +8,6 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -82,7 +81,7 @@ type OpenIDConnectProvider struct {
 	*herodot.JSONWriter
 	*Store
 
-	KeyManager *KeyManager
+	KeyStrategy *KeyStrategy
 
 	discovery OpenIDConnectWellKnownConfiguration
 }
@@ -111,7 +110,9 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	TokenEndpointAuthMethod  string
+	TokenEndpointAuthMethod string
+
+	IDTokenSigningAlgorithm  string
 	UserinfoSigningAlgorithm string
 
 	Policy authorization.Level
@@ -173,13 +174,6 @@ func (c ClientConsentMode) String() string {
 	default:
 		return ""
 	}
-}
-
-// KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
-// It additionally allows us to add keys for the purpose of key rotation in the future.
-type KeyManager struct {
-	jwk  *JWK
-	jwks *jose.JSONWebKeySet
 }
 
 // PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.

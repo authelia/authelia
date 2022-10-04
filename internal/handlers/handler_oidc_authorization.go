@@ -83,7 +83,18 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 
-	oidcSession := oidc.NewSessionWithAuthorizeRequest(issuer, ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+	var kid string
+
+	kid, err = ctx.Providers.OpenIDConnect.KeyStrategy.GetKIDFromJWA(client.GetIDTokenSigningAlgorithm())
+	if err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error determining JWK ID: %+v", requester.GetID(), client.GetID(), err)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not obtain the JWK ID."))
+
+		return
+	}
+
+	oidcSession := oidc.NewSessionWithAuthorizeRequest(issuer, kid,
 		userSession.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extraClaims, authTime, consent, requester)
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
