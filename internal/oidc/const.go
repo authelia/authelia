@@ -75,12 +75,6 @@ const (
 	PKCEChallengeMethodSHA256 = "S256"
 )
 
-// Token Endpoint Auth Method strings.
-const (
-	TokenEndpointAuthMethodNone              = none
-	TokenEndpointAuthMethodClientSecretBasic = "client_secret_basic"
-)
-
 // Endpoints.
 const (
 	EndpointAuthorization = "authorization"

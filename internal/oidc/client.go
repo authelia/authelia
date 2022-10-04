@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"github.com/ory/fosite"
-	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -17,6 +16,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		Description:      config.Description,
 		Secret:           []byte(config.Secret),
 		SectorIdentifier: config.SectorIdentifier.String(),
+		Public:           config.Public,
 
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
@@ -30,13 +30,6 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		Policy: authorization.StringToLevel(config.Policy),
 
 		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
-	}
-
-	switch {
-	case config.Public:
-		client.TokenEndpointAuthMethod = TokenEndpointAuthMethodNone
-	default:
-		client.TokenEndpointAuthMethod = TokenEndpointAuthMethodClientSecretBasic
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -116,7 +109,7 @@ func (c *Client) GetScopes() fosite.Arguments {
 
 // IsPublic returns the value of the Public property.
 func (c *Client) IsPublic() bool {
-	return c.TokenEndpointAuthMethod == TokenEndpointAuthMethodNone
+	return c.Public
 }
 
 // GetAudience returns the Audience.
@@ -129,54 +122,4 @@ func (c *Client) GetAudience() fosite.Arguments {
 // Implements the fosite.ResponseModeClient.
 func (c *Client) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
-}
-
-// GetRequestURIs is an array of request_uri values that are pre-registered by the RP for use at the OP. Servers MAY
-// cache the contents of the files referenced by these URIs and not retrieve them at the time they are used in a request.
-// OPs can require that request_uri values used be pre-registered with the require_request_uri_registration
-// discovery parameter.
-//
-// Implements fosite.OpenIDConnectClient.
-func (c *Client) GetRequestURIs() (requestURIs []string) {
-	return requestURIs
-}
-
-// GetJSONWebKeys returns the JSON Web Key Set containing the public key used by the client to authenticate.
-//
-// Implements fosite.OpenIDConnectClient.
-func (c *Client) GetJSONWebKeys() (jwks *jose.JSONWebKeySet) {
-	return nil
-}
-
-// GetJSONWebKeysURI returns the URL for lookup of JSON Web Key Set containing the public key used by the client to
-// authenticate.
-//
-// Implements fosite.OpenIDConnectClient.
-func (c *Client) GetJSONWebKeysURI() (uri string) {
-	return uri
-}
-
-// GetRequestObjectSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request
-// Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
-//
-// Implements fosite.OpenIDConnectClient.
-func (c *Client) GetRequestObjectSigningAlgorithm() (jwa string) {
-	return SigningAlgorithmRSAWithSHA256
-}
-
-// GetTokenEndpointAuthSigningAlgorithm returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
-// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
-// authentication methods.
-//
-// Implements fosite.OpenIDConnectClient.
-func (c *Client) GetTokenEndpointAuthSigningAlgorithm() (jwa string) {
-	return SigningAlgorithmRSAWithSHA256
-}
-
-// GetTokenEndpointAuthMethod returns the requested Client Authentication method for the Token Endpoint. The options are
-// client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
-//
-// Implements fosite.OpenIDConnectClient.
-func (c *Client) GetTokenEndpointAuthMethod() (method string) {
-	return c.TokenEndpointAuthMethod
 }

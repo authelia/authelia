@@ -209,10 +209,8 @@ func TestInternalClient_GetResponseTypes(t *testing.T) {
 func TestInternalClient_IsPublic(t *testing.T) {
 	c := Client{}
 
-	c.TokenEndpointAuthMethod = TokenEndpointAuthMethodClientSecretBasic
-
 	assert.False(t, c.IsPublic())
 
-	c.TokenEndpointAuthMethod = TokenEndpointAuthMethodNone
+	c.Public = true
 	assert.True(t, c.IsPublic())
 }

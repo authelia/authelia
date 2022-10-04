@@ -8,7 +8,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -103,6 +103,7 @@ type Client struct {
 	Description      string
 	Secret           []byte
 	SectorIdentifier string
+	Public           bool
 
 	Audience      []string
 	Scopes        []string
@@ -111,7 +112,6 @@ type Client struct {
 	ResponseTypes []string
 	ResponseModes []fosite.ResponseModeType
 
-	TokenEndpointAuthMethod  string
 	UserinfoSigningAlgorithm string
 
 	Policy authorization.Level

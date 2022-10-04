@@ -13,58 +13,51 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 		clients            map[string]*Client
 
 		expectCodeChallengeMethodsSupported, expectSubjectTypesSupported []string
-		expectedTokenAuthMethods                                         []string
 	}{
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublic",
 			pkcePlainChallenge:                  false,
-			clients:                             map[string]*Client{"a": {TokenEndpointAuthMethod: TokenEndpointAuthMethodClientSecretBasic}},
+			clients:                             map[string]*Client{"a": {}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic},
-			expectedTokenAuthMethods:            []string{TokenEndpointAuthMethodClientSecretBasic},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublic",
 			pkcePlainChallenge:                  true,
-			clients:                             map[string]*Client{"a": {TokenEndpointAuthMethod: TokenEndpointAuthMethodClientSecretBasic}},
+			clients:                             map[string]*Client{"a": {}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic},
-			expectedTokenAuthMethods:            []string{TokenEndpointAuthMethodClientSecretBasic},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublicPairwise",
 			pkcePlainChallenge:                  false,
-			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes", TokenEndpointAuthMethod: TokenEndpointAuthMethodClientSecretBasic}},
+			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes"}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
-			expectedTokenAuthMethods:            []string{TokenEndpointAuthMethodClientSecretBasic},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublicPairwise",
 			pkcePlainChallenge:                  true,
-			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes", TokenEndpointAuthMethod: TokenEndpointAuthMethodClientSecretBasic}},
+			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes"}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
-			expectedTokenAuthMethods:            []string{TokenEndpointAuthMethodClientSecretBasic},
 		},
 		{
 			desc:                                "ShouldHaveTokenAuthMethodsNone",
 			pkcePlainChallenge:                  true,
-			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes", TokenEndpointAuthMethod: TokenEndpointAuthMethodNone}},
+			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes"}},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
-			expectedTokenAuthMethods:            []string{TokenEndpointAuthMethodClientSecretBasic, TokenEndpointAuthMethodNone},
 		},
 		{
 			desc:               "ShouldHaveTokenAuthMethodsNone",
 			pkcePlainChallenge: true,
 			clients: map[string]*Client{
-				"a": {SectorIdentifier: "yes", TokenEndpointAuthMethod: TokenEndpointAuthMethodNone},
-				"b": {SectorIdentifier: "yes", TokenEndpointAuthMethod: TokenEndpointAuthMethodNone},
+				"a": {SectorIdentifier: "yes"},
+				"b": {SectorIdentifier: "yes"},
 			},
 			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
 			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
-			expectedTokenAuthMethods:            []string{TokenEndpointAuthMethodClientSecretBasic, TokenEndpointAuthMethodNone},
 		},
 	}
 

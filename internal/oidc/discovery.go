@@ -1,9 +1,5 @@
 package oidc
 
-import (
-	"github.com/authelia/authelia/v4/internal/utils"
-)
-
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
 func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clients map[string]*Client) (config OpenIDConnectWellKnownConfiguration) {
 	config = OpenIDConnectWellKnownConfiguration{
@@ -84,14 +80,6 @@ func NewOpenIDConnectWellKnownConfiguration(enablePKCEPlainChallenge bool, clien
 		if client.SectorIdentifier != "" {
 			pairwise = true
 		}
-
-		if !utils.IsStringInSlice(client.TokenEndpointAuthMethod, config.TokenEndpointAuthMethodsSupported) {
-			config.TokenEndpointAuthMethodsSupported = append(config.TokenEndpointAuthMethodsSupported, client.TokenEndpointAuthMethod)
-		}
-	}
-
-	if public {
-		config.TokenEndpointAuthMethodsSupported = append(config.TokenEndpointAuthMethodsSupported, TokenEndpointAuthMethodNone)
 	}
 
 	if pairwise {
