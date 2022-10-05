@@ -19,7 +19,7 @@ import (
 
 // StringToMailAddressHookFunc decodes a string into a mail.Address or *mail.Address.
 func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -65,7 +65,7 @@ func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToURLHookFunc converts string types into a url.URL or *url.URL.
 func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -111,7 +111,7 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 
 // ToTimeDurationHookFunc converts string and integer types to a time.Duration.
 func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		switch f.Kind() {
@@ -172,7 +172,7 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToRegexpHookFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
 func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -218,7 +218,7 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToAddressHookFunc decodes a string into an Address or *Address.
 func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		var ptr bool
 
 		if f.Kind() != reflect.String {
@@ -258,7 +258,7 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToX509CertificateHookFunc decodes strings to x509.Certificate's.
 func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+	return func(f reflect.Type, t reflect.Type, data any) (value interface{}, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}

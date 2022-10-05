@@ -130,7 +130,7 @@ func cryptoGetWritePathsFromCmd(cmd *cobra.Command) (privateKey, publicKey strin
 	return filepath.Join(dir, private), filepath.Join(dir, public), nil
 }
 
-func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err error) {
+func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey any, err error) {
 	switch cmd.Parent().Use {
 	case cmdUseRSA:
 		var (
@@ -170,7 +170,7 @@ func cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey interface{}, err
 	return privateKey, nil
 }
 
-func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, cert *x509.Certificate, err error) {
+func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey any, cert *x509.Certificate, err error) {
 	if !cmd.Flags().Changed(cmdFlagNamePathCA) {
 		return nil, nil, nil
 	}
@@ -180,7 +180,7 @@ func cryptoGetCAFromCmd(cmd *cobra.Command) (privateKey interface{}, cert *x509.
 
 		ok bool
 
-		certificate interface{}
+		certificate any
 	)
 
 	if dir, err = cmd.Flags().GetString(cmdFlagNamePathCA); err != nil {
