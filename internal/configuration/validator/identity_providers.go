@@ -23,15 +23,22 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 
 	setOIDCDefaults(config)
 
-	if config.IssuerPrivateKey == nil {
+	switch {
+	case config.IssuerPrivateKey == nil:
 		validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
-	} else if config.IssuerCertificateChain.HasCertificates() {
-		if !config.IssuerCertificateChain.EqualKey(config.IssuerPrivateKey) {
-			validator.Push(fmt.Errorf(errFmtOIDCCertificateMismatch))
+	default:
+		if config.IssuerCertificateChain.HasCertificates() {
+			if !config.IssuerCertificateChain.EqualKey(config.IssuerPrivateKey) {
+				validator.Push(fmt.Errorf(errFmtOIDCCertificateMismatch))
+			}
+
+			if err := config.IssuerCertificateChain.Validate(); err != nil {
+				validator.Push(fmt.Errorf(errFmtOIDCCertificateChain, err))
+			}
 		}
 
-		if err := config.IssuerCertificateChain.Validate(); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCCertificateChain, err))
+		if config.IssuerPrivateKey.Size()*8 < 2048 {
+			validator.Push(fmt.Errorf(errFmtOIDCInvalidPrivateKeyBitSize, 2048, config.IssuerPrivateKey.Size()*8))
 		}
 	}
 

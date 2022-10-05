@@ -396,6 +396,10 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 			}
 
+			if err = r.Validate(); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, err)
+			}
+
 			return r, nil
 		case *ecdsa.PrivateKey:
 			if expectedType != expectedTypeECDSA {
