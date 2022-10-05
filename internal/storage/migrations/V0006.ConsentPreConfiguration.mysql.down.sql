@@ -6,7 +6,7 @@ DROP TABLE oauth2_openid_connect_session;
 DROP TABLE oauth2_consent_session;
 DROP TABLE oauth2_consent_preconfiguration;
 
-CREATE TABLE IF NOT EXISTS oauth2_consent_session (
+CREATE TABLE oauth2_consent_session (
     id INTEGER AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
 
 CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
 
-CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
+CREATE TABLE oauth2_authorization_code_session (
     id INTEGER AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -116,7 +116,7 @@ CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token
 CREATE INDEX oauth2_refresh_token_session_client_id_idx ON oauth2_refresh_token_session (client_id);
 CREATE INDEX oauth2_refresh_token_session_client_id_subject_idx ON oauth2_refresh_token_session (client_id, subject);
 
-CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
+CREATE TABLE oauth2_pkce_request_session (
     id INTEGER AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -145,7 +145,7 @@ CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_s
 CREATE INDEX oauth2_pkce_request_session_client_id_idx ON oauth2_pkce_request_session (client_id);
 CREATE INDEX oauth2_pkce_request_session_client_id_subject_idx ON oauth2_pkce_request_session (client_id, subject);
 
-CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
+CREATE TABLE oauth2_openid_connect_session (
     id INTEGER AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
