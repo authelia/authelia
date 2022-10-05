@@ -215,14 +215,16 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 					return nil
 				}
 				switch {
+				case event.Op&fsnotify.Write == fsnotify.Write && event.Op&fsnotify.Chmod != fsnotify.Chmod:
+					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File written (no chmod)")
 				case event.Op&fsnotify.Write == fsnotify.Write:
-					log.WithField("file", event.Name).Debugf("File written")
+					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File written")
 				case event.Op&fsnotify.Chmod == fsnotify.Chmod:
-					log.WithField("file", event.Name).Debugf("File chmod")
+					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File chmod")
 				case event.Op&fsnotify.Create == fsnotify.Create:
-					log.WithField("file", event.Name).Debugf("File create")
+					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File create")
 				case event.Op&fsnotify.Remove == fsnotify.Remove:
-					log.WithField("file", event.Name).Debugf("File remove")
+					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File remove")
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
