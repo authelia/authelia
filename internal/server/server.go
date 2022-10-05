@@ -106,7 +106,7 @@ func CreateMetricsServer(config schema.TelemetryMetricsConfig) (server *fasthttp
 		ReadTimeout:           config.Timeouts.Read,
 		WriteTimeout:          config.Timeouts.Write,
 		IdleTimeout:           config.Timeouts.Idle,
-		Logger:                logging.LoggerPrintf(logrus.TraceLevel),
+		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
 	logging.Logger().Infof(fmtLogServerInit, "server (metrics)", connNonTLS, listener.Addr().String(), "/metrics")
