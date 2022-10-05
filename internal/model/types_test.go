@@ -21,7 +21,7 @@ func TestDatabaseModelTypeIP(t *testing.T) {
 
 	value, err := ip.Value()
 	assert.Nil(t, value)
-	assert.EqualError(t, err, "cannot value model type 'model.IP' with value nil to driver.Value")
+	assert.EqualError(t, err, "cannot value model type '*model.IP' with value nil to driver.Value")
 
 	err = ip.Scan("192.168.2.0")
 	assert.NoError(t, err)

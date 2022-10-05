@@ -235,7 +235,7 @@ func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 
 func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		privateKey interface{}
+		privateKey any
 	)
 
 	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
@@ -251,7 +251,7 @@ func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 
 func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		privateKey interface{}
+		privateKey any
 	)
 
 	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
@@ -320,10 +320,10 @@ func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		template, caCertificate, parent       *x509.Certificate
-		publicKey, caPrivateKey, signatureKey interface{}
+		publicKey, caPrivateKey, signatureKey any
 	)
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
@@ -412,7 +412,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 	return nil
 }
 
-func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		privateKeyPath, publicKeyPath string
 		pkcs8                         bool
@@ -451,7 +451,7 @@ func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface
 		return err
 	}
 
-	var publicKey interface{}
+	var publicKey any
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
 		return fmt.Errorf("failed to obtain public key from private key")

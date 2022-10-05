@@ -38,11 +38,11 @@ type SecretsSource struct {
 type CommandLineSource struct {
 	koanf    *koanf.Koanf
 	flags    *pflag.FlagSet
-	callback func(flag *pflag.Flag) (string, interface{})
+	callback func(flag *pflag.Flag) (string, any)
 }
 
 // MapSource loads configuration from the command line flags.
 type MapSource struct {
-	m     map[string]interface{}
+	m     map[string]any
 	koanf *koanf.Koanf
 }
