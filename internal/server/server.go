@@ -28,7 +28,7 @@ func CreateDefaultServer(config schema.Configuration, providers middlewares.Prov
 		ReadTimeout:           config.Server.Timeouts.Read,
 		WriteTimeout:          config.Server.Timeouts.Write,
 		IdleTimeout:           config.Server.Timeouts.Idle,
-		Logger:                logging.LoggerPrintf(logrus.TraceLevel),
+		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
 	address := net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port))
