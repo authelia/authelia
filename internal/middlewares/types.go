@@ -108,8 +108,8 @@ type IdentityVerificationFinishBody struct {
 
 // OKResponse model of a status OK response.
 type OKResponse struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
+	Status string `json:"status"`
+	Data   any    `json:"data,omitempty"`
 }
 
 // ErrorResponse model of an error response.

@@ -8,8 +8,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func oidcGrantRequests(ar fosite.AuthorizeRequester, consent *model.OAuth2ConsentSession, userSession *session.UserSession) (extraClaims map[string]interface{}) {
-	extraClaims = map[string]interface{}{}
+func oidcGrantRequests(ar fosite.AuthorizeRequester, consent *model.OAuth2ConsentSession, userSession *session.UserSession) (extraClaims map[string]any) {
+	extraClaims = map[string]any{}
 
 	for _, scope := range consent.GrantedScopes {
 		if ar != nil {
