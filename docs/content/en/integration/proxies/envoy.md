@@ -44,10 +44,11 @@ Below you will find commented examples of the following configuration:
 * Authelia Portal
 * Protected Endpoint (Nextcloud)
 
-### Theoretical Example
+### Example
 
-Support for [Envoy] should be possible via [Envoy]'s
-[external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
+Support for [Envoy] is possible with Authelia v4.37.0 and higher via [Envoy]'s [external authorization] filter.
+
+[external authorization]: (https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz)
 
 {{< details "docker-compose.yaml" >}}
 ```yaml

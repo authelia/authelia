@@ -2,7 +2,7 @@
 title: "Guidelines"
 description: "An introduction into guidelines for contributing to the Authelia project."
 lead: "An introduction into guidelines for contributing to the Authelia project."
-date: 2022-06-15T17:51:47+10:00
+date: 2022-10-02T14:32:16+11:00
 draft: false
 images: []
 menu:
