@@ -7,7 +7,9 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
@@ -203,6 +205,9 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 		return nil, err
 	}
 
+	timer := time.Now()
+	mu := &sync.Mutex{}
+
 	failed := make(chan struct{})
 
 	g.Go(func() error {
@@ -214,6 +219,19 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 				if !ok {
 					return nil
 				}
+
+				mu.Lock()
+				now := time.Now()
+
+				if timer.After(now) {
+					mu.Unlock()
+					break
+				}
+
+				timer = time.Now().Add(time.Second / 2)
+
+				mu.Unlock()
+
 				switch {
 				case event.Op&fsnotify.Write == fsnotify.Write && event.Op&fsnotify.Chmod != fsnotify.Chmod:
 					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File written (no chmod)")
