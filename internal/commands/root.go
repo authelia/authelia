@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
@@ -83,11 +84,11 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers, logger)
 
-	runServers(config, providers, logger)
+	runServices(config, providers, logger)
 }
 
 //nolint:gocyclo // Complexity is required in this function.
-func runServers(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
+func runServices(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
 	ctx := context.Background()
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -151,6 +152,14 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		return nil
 	})
 
+	if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
+		if watcher, err := runServiceFileWatcher(g, log, config.AuthenticationBackend.File.Path); err != nil {
+			log.WithError(err).Errorf("Error opening file watcher")
+		} else {
+			defer watcher.Close()
+		}
+	}
+
 	select {
 	case s := <-quit:
 		switch s {
@@ -184,6 +193,53 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 	if err = g.Wait(); err != nil {
 		log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
+}
+
+type CreateServer func(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener)
+
+func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (*fsnotify.Watcher, error) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+
+	failed := make(chan struct{})
+
+	g.Go(func() error {
+		for {
+			select {
+			case <-failed:
+				return nil
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return nil
+				}
+				switch {
+				case event.Op&fsnotify.Write == fsnotify.Write:
+					log.WithField("file", event.Name).Debugf("File written")
+				case event.Op&fsnotify.Chmod == fsnotify.Chmod:
+					log.WithField("file", event.Name).Debugf("File chmod")
+				case event.Op&fsnotify.Create == fsnotify.Create:
+					log.WithField("file", event.Name).Debugf("File create")
+				case event.Op&fsnotify.Remove == fsnotify.Remove:
+					log.WithField("file", event.Name).Debugf("File remove")
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return nil
+				}
+				log.WithError(err).Errorf("Error while watching files")
+			}
+		}
+	})
+
+	if err := watcher.Add(path); err != nil {
+		failed <- struct{}{}
+
+		return nil, err
+	}
+
+	return watcher, nil
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers, log *logrus.Logger) {
