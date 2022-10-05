@@ -148,10 +148,10 @@ telemetry:
     # timeouts:
 
       ## Read timeout.
-      # read: 2s
+      # read: 6s
 
       ## Write timeout.
-      # write: 2s
+      # write: 6s
 
       ## Idle timeout.
       # idle: 30s
