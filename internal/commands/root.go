@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -155,7 +156,9 @@ func runServices(config *schema.Configuration, providers middlewares.Providers, 
 	})
 
 	if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
-		if watcher, err := runServiceFileWatcher(g, log, config.AuthenticationBackend.File.Path); err != nil {
+		reloaderAuthBackend := providers.UserProvider.(Reloader)
+
+		if watcher, err := runServiceFileWatcher(g, log, config.AuthenticationBackend.File.Path, reloaderAuthBackend); err != nil {
 			log.WithError(err).Errorf("Error opening file watcher")
 		} else {
 			defer watcher.Close()
@@ -197,9 +200,11 @@ func runServices(config *schema.Configuration, providers middlewares.Providers, 
 	}
 }
 
-type CreateServer func(config schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener)
+type Reloader interface {
+	Reload() (err error)
+}
 
-func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (*fsnotify.Watcher, error) {
+func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, reloader Reloader) (*fsnotify.Watcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
@@ -210,6 +215,9 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 
 	failed := make(chan struct{})
 
+	directory := filepath.Dir(path)
+	filename := filepath.Base(path)
+
 	g.Go(func() error {
 		for {
 			select {
@@ -218,6 +226,11 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 			case event, ok := <-watcher.Events:
 				if !ok {
 					return nil
+				}
+
+				if filename != filepath.Base(event.Name) {
+					log.WithField("file", event.Name).WithField("op", event.Op).Tracef("file modification detected to file not releveant to this watcher")
+					break
 				}
 
 				mu.Lock()
@@ -233,16 +246,17 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 				mu.Unlock()
 
 				switch {
-				case event.Op&fsnotify.Write == fsnotify.Write && event.Op&fsnotify.Chmod != fsnotify.Chmod:
-					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File written (no chmod)")
-				case event.Op&fsnotify.Write == fsnotify.Write:
-					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File written")
-				case event.Op&fsnotify.Chmod == fsnotify.Chmod:
-					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File chmod")
-				case event.Op&fsnotify.Create == fsnotify.Create:
-					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File create")
+				case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
+					log.WithField("file", event.Name).WithField("op", event.Op).Debugf("file modification detected to file relevant to this watcher")
+
+					if err := reloader.Reload(); err != nil {
+						log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("file reload resulted in an error")
+					} else {
+						log.WithField("file", event.Name).WithField("op", event.Op).Debug("file reloaded successfully")
+
+					}
 				case event.Op&fsnotify.Remove == fsnotify.Remove:
-					log.WithField("op", event.Op).WithField("ops", event.Op.String()).WithField("file", event.Name).Debugf("File remove")
+					log.WithField("file", event.Name).WithField("op", event.Op).Debugf("file remove detected to file relevant to this watcher")
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -253,7 +267,7 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string) (
 		}
 	})
 
-	if err := watcher.Add(path); err != nil {
+	if err := watcher.Add(directory); err != nil {
 		failed <- struct{}{}
 
 		return nil, err

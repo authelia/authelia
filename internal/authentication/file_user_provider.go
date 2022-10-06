@@ -25,6 +25,15 @@ func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *Fi
 	}
 }
 
+// Reload the database.
+func (p *FileUserProvider) Reload() (err error) {
+	if err = p.database.Load(); err != nil {
+		return fmt.Errorf("failed to reload: %w", err)
+	}
+
+	return nil
+}
+
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
 	var details DatabaseUserDetails
