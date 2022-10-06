@@ -20,6 +20,7 @@ aliases:
 authentication_backend:
   file:
     path: /config/users.yml
+    watch: false
     password:
       algorithm: argon2
       argon2:
@@ -57,6 +58,12 @@ authentication_backend:
 The path to the file with the user details list. Supported file types are:
 
 * [YAML File](../../reference/guides/passwords.md#yaml-format)
+
+### watch
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables reloading the database by watching it for changes.
 
 ## Password Options
 

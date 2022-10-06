@@ -229,7 +229,7 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, r
 				}
 
 				if filename != filepath.Base(event.Name) {
-					log.WithField("file", event.Name).WithField("op", event.Op).Tracef("file modification detected to file not releveant to this watcher")
+					log.WithField("file", event.Name).WithField("op", event.Op).Tracef("File modification detected to irrelevant file")
 					break
 				}
 
@@ -247,13 +247,12 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, r
 
 				switch {
 				case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
-					log.WithField("file", event.Name).WithField("op", event.Op).Debugf("file modification detected to file relevant to this watcher")
+					log.WithField("file", event.Name).WithField("op", event.Op).Debug("File modification detected")
 
 					if err := reloader.Reload(); err != nil {
-						log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("file reload resulted in an error")
+						log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("Error occurred reloading user database")
 					} else {
-						log.WithField("file", event.Name).WithField("op", event.Op).Debug("file reloaded successfully")
-
+						log.WithField("file", event.Name).Info("Reloaded user database successfully")
 					}
 				case event.Op&fsnotify.Remove == fsnotify.Remove:
 					log.WithField("file", event.Name).WithField("op", event.Op).Debugf("file remove detected to file relevant to this watcher")
