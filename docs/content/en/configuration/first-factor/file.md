@@ -59,6 +59,12 @@ The path to the file with the user details list. Supported file types are:
 
 * [YAML File](../../reference/guides/passwords.md#yaml-format)
 
+### allow_email_lookups
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Allows users to login using their email address or username.
+
 ## Password Options
 
 A [reference guide](../../reference/guides/passwords.md) exists specifically for choosing password hashing values. This
