@@ -34,6 +34,7 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `proxmox`
 * __Client Secret:__ `proxmox_client_secret`
+* __Realm__ `example.com`
 
 ## Configuration
 
@@ -47,14 +48,14 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect] Provider:
 4. Add an OpenID Connect Server
 5. Set the following values:
    1. Issuer URL: `https://auth.example.com`
-   2. Realm: anything you wish
+   2. Realm: `example.com`
    3. Client ID: `proxmox`
    4. Client Key: `proxmox_client_secret`
    5. Username Claim `preferred_username`
    6. Scopes: `openid profile email`
    7. Enable *Autocreate Users* if you want users to automatically be created in [Proxmox].
 
-{{< figure src="proxmox.gif" alt="Proxmox" width="736" style="padding-right: 10px" >}}
+{{< figure src="proxmox.png" alt="Proxmox" width="736" style="padding-right: 10px" >}}
 
 ### Authelia
 
