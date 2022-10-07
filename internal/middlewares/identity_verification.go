@@ -132,7 +132,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		}
 
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
-			func(token *jwt.Token) (interface{}, error) {
+			func(token *jwt.Token) (any, error) {
 				return []byte(ctx.Configuration.JWTSecret), nil
 			})
 

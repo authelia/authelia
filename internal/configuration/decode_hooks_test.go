@@ -993,8 +993,8 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 
 	testCases := []struct {
 		desc   string
-		have   interface{}
-		want   interface{}
+		have   any
+		want   any
 		err    string
 		decode bool
 	}{
@@ -1069,8 +1069,8 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 
 	testCases := []struct {
 		desc      string
-		have      interface{}
-		expected  interface{}
+		have      any
+		expected  any
 		err, verr string
 		decode    bool
 	}{

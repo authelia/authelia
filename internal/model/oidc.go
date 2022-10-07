@@ -271,7 +271,7 @@ type OpenIDSession struct {
 	ChallengeID uuid.UUID `db:"challenge_id"`
 	ClientID    string
 
-	Extra map[string]interface{} `json:"extra"`
+	Extra map[string]any `json:"extra"`
 }
 
 // Clone copies the OpenIDSession to a new fosite.Session.

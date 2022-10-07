@@ -41,7 +41,7 @@ func WebauthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
 	}
 
-	extensions := make(map[string]interface{})
+	extensions := map[string]any{}
 
 	if user.HasFIDOU2F() {
 		extensions["appid"] = w.Config.RPOrigin
