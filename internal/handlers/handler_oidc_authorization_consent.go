@@ -89,7 +89,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 
 	ctx.Logger.Debugf(logFmtDbgConsentGenerate, requester.GetID(), client.GetID(), client.Consent)
 
-	if len(ctx.QueryArgs().PeekBytes(queryArgConsentID)) != 0 {
+	if len(ctx.QueryArgs().PeekBytes(qryArgConsentID)) != 0 {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.Consent, "generating", errors.New("consent id value was present when it should be absent"))
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -127,7 +127,7 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 		location.Path = path.Join(location.Path, oidc.EndpointPathConsent)
 
 		query := location.Query()
-		query.Set(queryArgStrID, consent.ChallengeID.String())
+		query.Set(queryArgID, consent.ChallengeID.String())
 
 		location.RawQuery = query.Encode()
 
@@ -147,17 +147,17 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(issuer *url.URL, consent *m
 	redirectURL, _ = url.ParseRequestURI(issuer.String())
 
 	query := redirectURL.Query()
-	query.Set(queryArgStrWorkflow, workflowOpenIDConnect)
+	query.Set(queryArgWorkflow, workflowOpenIDConnect)
 
 	switch {
 	case consent != nil:
-		query.Set(queryArgStrWorkflowID, consent.ChallengeID.String())
+		query.Set(queryArgWorkflowID, consent.ChallengeID.String())
 	case requester != nil:
 		rd, _ := url.ParseRequestURI(issuer.String())
 		rd.Path = path.Join(rd.Path, oidc.EndpointPathAuthorization)
 		rd.RawQuery = requester.GetRequestForm().Encode()
 
-		query.Set("rd", rd.String())
+		query.Set(queryArgRD, rd.String())
 	}
 
 	redirectURL.RawQuery = query.Encode()

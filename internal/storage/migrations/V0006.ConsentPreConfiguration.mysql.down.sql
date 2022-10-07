@@ -58,7 +58,7 @@ CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authoriz
 CREATE INDEX oauth2_authorization_code_session_client_id_idx ON oauth2_authorization_code_session (client_id);
 CREATE INDEX oauth2_authorization_code_session_client_id_subject_idx ON oauth2_authorization_code_session (client_id, subject);
 
-CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
+CREATE TABLE oauth2_access_token_session (
     id INTEGER AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -87,7 +87,7 @@ CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_s
 CREATE INDEX oauth2_access_token_session_client_id_idx ON oauth2_access_token_session (client_id);
 CREATE INDEX oauth2_access_token_session_client_id_subject_idx ON oauth2_access_token_session (client_id, subject);
 
-CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
+CREATE TABLE oauth2_refresh_token_session (
     id INTEGER AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,

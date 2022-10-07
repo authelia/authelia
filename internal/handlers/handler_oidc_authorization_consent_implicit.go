@@ -21,7 +21,7 @@ func handleOIDCAuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, is
 		err       error
 	)
 
-	bytesConsentID := ctx.QueryArgs().PeekBytes(queryArgConsentID)
+	bytesConsentID := ctx.QueryArgs().PeekBytes(qryArgConsentID)
 
 	switch len(bytesConsentID) {
 	case 0:

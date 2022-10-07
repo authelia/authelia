@@ -23,8 +23,8 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		err       error
 	)
 
-	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().PeekBytes(queryArgID))); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(queryArgID), err)
+	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgID))); err != nil {
+		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(qryArgID), err)
 		ctx.ReplyForbidden()
 
 		return
@@ -144,7 +144,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	query.Set(queryArgStrConsentID, consent.ChallengeID.String())
+	query.Set(queryArgConsentID, consent.ChallengeID.String())
 
 	redirectURI.Path = path.Join(redirectURI.Path, oidc.EndpointPathAuthorization)
 	redirectURI.RawQuery = query.Encode()

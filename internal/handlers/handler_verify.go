@@ -221,7 +221,7 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 
 		qry := redirectionURL.Query()
 
-		qry.Set("rd", targetURL.String())
+		qry.Set(queryArgRD, targetURL.String())
 
 		if rm != "" {
 			qry.Set("rm", rm)

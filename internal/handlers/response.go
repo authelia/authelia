@@ -233,7 +233,7 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		return
 	}
 
-	form.Set(queryArgStrConsentID, workflowID.String())
+	form.Set(queryArgConsentID, workflowID.String())
 
 	targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
 	targetURL.RawQuery = form.Encode()
@@ -255,7 +255,7 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 	if referer != nil {
 		refererURL, err := url.ParseRequestURI(string(referer))
 		if err == nil {
-			requestURI = refererURL.Query().Get("rd")
+			requestURI = refererURL.Query().Get(queryArgRD)
 			requestMethod = refererURL.Query().Get("rm")
 		}
 	}

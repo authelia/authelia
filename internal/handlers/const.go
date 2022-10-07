@@ -29,15 +29,16 @@ var (
 )
 
 const (
-	queryArgStrID         = "id"
-	queryArgStrConsentID  = "consent_id"
-	queryArgStrWorkflow   = "workflow"
-	queryArgStrWorkflowID = "workflow_id"
+	queryArgRD         = "rd"
+	queryArgID         = "id"
+	queryArgConsentID  = "consent_id"
+	queryArgWorkflow   = "workflow"
+	queryArgWorkflowID = "workflow_id"
 )
 
 var (
-	queryArgID        = []byte(queryArgStrID)
-	queryArgConsentID = []byte(queryArgStrConsentID)
+	qryArgID        = []byte(queryArgID)
+	qryArgConsentID = []byte(queryArgConsentID)
 )
 
 const (
