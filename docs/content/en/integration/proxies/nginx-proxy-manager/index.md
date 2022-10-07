@@ -166,11 +166,11 @@ location / {
 
 Authelia Portal `Details` tab example:
 
-{{< figure src="authelia.details.png" alt="Step 2" width="350" style="padding-right: 10px" >}}
+{{< figure src="authelia.details.png" alt="Step 2" width="450" >}}
 
 Authelia Portal `Advanced` tab example:
 
-{{< figure src="authelia.advanced.png" alt="Step 4" width="350" style="padding-right: 10px" >}}
+{{< figure src="authelia.advanced.png" alt="Step 4" width="450" >}}
 
 ### Protected Application
 
@@ -200,17 +200,17 @@ location / {
 
 Protected Application (Nextcloud) `Details` tab example:
 
-{{< figure src="nextcloud.details.png" alt="Step 2" width="350" style="padding-right: 10px" >}}
+{{< figure src="nextcloud.details.png" alt="Step 2" width="450" >}}
 
 Protected Application (Nextcloud) `Advanced` tab example:
 
-{{< figure src="protectedapp.advanced.png" alt="Step 4" width="350" style="padding-right: 10px" >}}
+{{< figure src="protectedapp.advanced.png" alt="Step 4" width="450" >}}
 
 #### Proxy Hosts Screenshot
 
 The following screenshot shows an example of following the directions for the Authelia Portal and two applications:
 
-{{< figure src="proxyhosts.png" alt="Step 4" width="350" style="padding-right: 10px" >}}
+{{< figure src="proxyhosts.png" alt="Step 4" width="450" >}}
 
 ## See Also
 
