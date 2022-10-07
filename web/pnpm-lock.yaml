@@ -25,7 +25,7 @@ specifiers:
   '@typescript-eslint/parser': 5.39.0
   '@vitejs/plugin-react': 2.1.0
   axios: 0.27.2
-  broadcast-channel: 4.17.0
+  broadcast-channel: 4.18.0
   classnames: 2.3.2
   esbuild: 0.15.10
   esbuild-jest: 0.5.0
@@ -40,8 +40,8 @@ specifiers:
   eslint-plugin-react: 7.31.8
   eslint-plugin-react-hooks: 4.6.0
   husky: 8.0.1
-  i18next: 21.9.2
-  i18next-browser-languagedetector: 6.1.5
+  i18next: 21.10.0
+  i18next-browser-languagedetector: 6.1.6
   i18next-http-backend: 1.4.4
   jest: 29.1.2
   jest-environment-jsdom: 29.1.2
@@ -55,7 +55,7 @@ specifiers:
   react-i18next: 11.18.6
   react-loading: 2.0.3
   react-otp-input: 2.4.0
-  react-router-dom: 6.4.1
+  react-router-dom: 6.4.2
   react-test-renderer: 18.2.0
   typescript: 4.8.4
   vite: 3.1.4
@@ -77,19 +77,19 @@ dependencies:
   '@mui/material': 5.10.8_ikcgkdnp4bn3rgptamntbhbo7e
   '@mui/styles': 5.10.8_iapumuv4e6jcjznwuxpf4tt22e
   axios: 0.27.2
-  broadcast-channel: 4.17.0
+  broadcast-channel: 4.18.0
   classnames: 2.3.2
-  i18next: 21.9.2
-  i18next-browser-languagedetector: 6.1.5
+  i18next: 21.10.0
+  i18next-browser-languagedetector: 6.1.6
   i18next-http-backend: 1.4.4
   qrcode.react: 3.1.0_react@18.2.0
   query-string: 7.1.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 11.18.6_ulhmqqxshznzmtuvahdi5nasbq
+  react-i18next: 11.18.6_vfm63zmruocgezzfl2v26zlzpy
   react-loading: 2.0.3_react@18.2.0
   react-otp-input: 2.4.0_biqbaboplfbrettd7655fr4n2y
-  react-router-dom: 6.4.1_biqbaboplfbrettd7655fr4n2y
+  react-router-dom: 6.4.2_biqbaboplfbrettd7655fr4n2y
   zxcvbn: 4.4.2
 
 devDependencies:
@@ -3045,8 +3045,8 @@ packages:
     resolution: {integrity: sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==}
     dev: false
 
-  /@remix-run/router/1.0.1:
-    resolution: {integrity: sha512-eBV5rvW4dRFOU1eajN7FmYxjAIVz/mRHgUE9En9mBn6m3mulK3WTR5C3iQhL9MZ14rWAq+xOlEaCkDiW0/heOg==}
+  /@remix-run/router/1.0.2:
+    resolution: {integrity: sha512-GRSOFhJzjGN+d4sKHTMSvNeUPoZiDHWmRnXfzaxrqe7dE/Nzlc8BiMSJdLDESZlndM7jIUrZ/F4yWqVYlI0rwQ==}
     engines: {node: '>=14'}
     dev: false
 
@@ -4239,10 +4239,10 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel/4.17.0:
-    resolution: {integrity: sha512-r2GSQMNgZv7eAsbdsu9xofSjc3J2diCQTPkSuyVhLBfx8fylLCVhi5KheuhuAQBJNd4pxqUyz9U6rvdnt7GZng==}
+  /broadcast-channel/4.18.0:
+    resolution: {integrity: sha512-jxCERZ/fV8LJUVWSGC8U687cYTB67XWn/DVcsYQ9MNpL3Lo2/x0pq8QcfSNTDKBQjAxgp7JQO5pOR8Gcw73Ajw==}
     dependencies:
-      '@babel/runtime': 7.18.9
+      '@babel/runtime': 7.19.0
       oblivious-set: 1.1.1
       p-queue: 6.6.2
       rimraf: 3.0.2
@@ -6101,10 +6101,10 @@ packages:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
     dev: false
 
-  /i18next-browser-languagedetector/6.1.5:
-    resolution: {integrity: sha512-11t7b39oKeZe4uyMxLSPnfw28BCPNLZgUk7zyufex0zKXZ+Bv+JnmJgoB+IfQLZwDt1d71PM8vwBX1NCgliY3g==}
+  /i18next-browser-languagedetector/6.1.6:
+    resolution: {integrity: sha512-5ZErazMh/8ZF5bNmJ9OCvSTzMXzefK9vJMtXekXUkwZ6ZX3XUSagWseQgtbWjo8iiZyCP2lxveKwIBikfVRGDg==}
     dependencies:
-      '@babel/runtime': 7.18.9
+      '@babel/runtime': 7.19.0
     dev: false
 
   /i18next-http-backend/1.4.4:
@@ -6115,10 +6115,10 @@ packages:
       - encoding
     dev: false
 
-  /i18next/21.9.2:
-    resolution: {integrity: sha512-00fVrLQOwy45nm3OtC9l1WiLK3nJlIYSljgCt0qzTaAy65aciMdRy9GsuW+a2AtKtdg9/njUGfRH30LRupV7ZQ==}
+  /i18next/21.10.0:
+    resolution: {integrity: sha512-YeuIBmFsGjUfO3qBmMOc0rQaun4mIpGKET5WDwvu8lU7gvwpcariZLNtL0Fzj+zazcHUrlXHiptcFhBMFaxzfg==}
     dependencies:
-      '@babel/runtime': 7.18.9
+      '@babel/runtime': 7.19.0
     dev: false
 
   /iconv-lite/0.6.3:
@@ -8030,7 +8030,7 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/11.18.6_ulhmqqxshznzmtuvahdi5nasbq:
+  /react-i18next/11.18.6_vfm63zmruocgezzfl2v26zlzpy:
     resolution: {integrity: sha512-yHb2F9BiT0lqoQDt8loZ5gWP331GwctHz9tYQ8A2EIEUu+CcEdjBLQWli1USG3RdWQt3W+jqQLg/d4rrQR96LA==}
     peerDependencies:
       i18next: '>= 19.0.0'
@@ -8045,7 +8045,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.18.9
       html-parse-stringify: 3.0.1
-      i18next: 21.9.2
+      i18next: 21.10.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: false
@@ -8087,26 +8087,26 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router-dom/6.4.1_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-MY7NJCrGNVJtGp8ODMOBHu20UaIkmwD2V3YsAOUQoCXFk7Ppdwf55RdcGyrSj+ycSL9Uiwrb3gTLYSnzcRoXww==}
+  /react-router-dom/6.4.2_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-yM1kjoTkpfjgczPrcyWrp+OuQMyB1WleICiiGfstnQYo/S8hPEEnVjr/RdmlH6yKK4Tnj1UGXFSa7uwAtmDoLQ==}
     engines: {node: '>=14'}
     peerDependencies:
       react: '>=16.8 || 18'
       react-dom: '>=16.8 || 18'
     dependencies:
-      '@remix-run/router': 1.0.1
+      '@remix-run/router': 1.0.2
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
-      react-router: 6.4.1_react@18.2.0
+      react-router: 6.4.2_react@18.2.0
     dev: false
 
-  /react-router/6.4.1_react@18.2.0:
-    resolution: {integrity: sha512-OJASKp5AykDWFewgWUim1vlLr7yfD4vO/h+bSgcP/ix8Md+LMHuAjovA74MQfsfhQJGGN1nHRhwS5qQQbbBt3A==}
+  /react-router/6.4.2_react@18.2.0:
+    resolution: {integrity: sha512-Rb0BAX9KHhVzT1OKhMvCDMw776aTYM0DtkxqUBP8dNBom3mPXlfNs76JNGK8wKJ1IZEY1+WGj+cvZxHVk/GiKw==}
     engines: {node: '>=14'}
     peerDependencies:
       react: '>=16.8 || 18'
     dependencies:
-      '@remix-run/router': 1.0.1
+      '@remix-run/router': 1.0.2
       react: 18.2.0
     dev: false
 
@@ -9099,7 +9099,7 @@ packages:
   /unload/2.3.1:
     resolution: {integrity: sha512-MUZEiDqvAN9AIDRbbBnVYVvfcR6DrjCqeU2YQMmliFZl9uaBUjTkhuDQkBiyAy8ad5bx1TXVbqZ3gg7namsWjA==}
     dependencies:
-      '@babel/runtime': 7.18.9
+      '@babel/runtime': 7.19.0
       detect-node: 2.1.0
     dev: false
 
