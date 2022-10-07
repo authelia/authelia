@@ -40,19 +40,9 @@ To configure trusted proxies for [NGINX Proxy Manager] see the [NGINX] section o
 [Trusted Proxies](nginx.md#trusted-proxies). Adapting this to [NGINX Proxy Manager] is beyond the scope of
 this documentation.
 
-
 ## Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
-
-It uses the [nginx image](https://github.com/linuxserver/docker-nginx) from [linuxserver.io] which includes all of the
-required modules including the `http_set_misc` module.
-
-It also includes the [nginx-proxy-confs](https://github.com/linuxserver/docker-mods/tree/nginx-proxy-confs) mod where
-they have several configuration examples in the `/config/nginx/proxy-confs` directory. This can be omitted if desired.
-
-If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](./swag.md)
-which includes ACME and various other useful utilities.
 
 {{< details "docker-compose.yaml" >}}
 ```yaml
@@ -129,8 +119,8 @@ services:
 
 ### Assumptions
 
-*__Important:__ Our examples make assumptions about your configuration. These assumptions represent sections you are
-either most likely requiring a change, or may require a change if you're not configuring it in the same way.*
+*__Important:__ Our examples make assumptions about your configuration. These assumptions represent sections that
+either most likely require an adjustment, or may require an adjustment if you're not configuring it in the same way.*
 
 * The domain for Authelia is `auth.example.com` which shoud be adjusted in all examples and snippets to your actual
   domain.
@@ -230,4 +220,4 @@ The following screenshot shows an example of following the directions for the Au
 
 [NGINX Proxy Manager]: https://nginxproxymanager.com/
 [NGINX]: https://www.nginx.com/
-[Forwarded Headers]: fowarded-headers
+[Forwarded Headers]: ../fowarded-headers
