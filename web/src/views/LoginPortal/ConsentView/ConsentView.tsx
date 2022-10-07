@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
+import { Identifier } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import { useUserInfoGET } from "@hooks/UserInfo";
@@ -51,7 +52,7 @@ const ConsentView = function (props: Props) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const redirect = useRedirector();
-    const consentID = searchParams.get("id");
+    const consentID = searchParams.get(Identifier);
     const { createErrorNotification, resetNotification } = useNotifications();
     const [response, setResponse] = useState<ConsentGetResponseBody | undefined>(undefined);
     const [error, setError] = useState<any>(undefined);
