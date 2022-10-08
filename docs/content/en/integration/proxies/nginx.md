@@ -87,7 +87,6 @@ services:
       - '443:443'
     volumes:
       - ${PWD}/data/nginx/snippets:/config/nginx/snippets:ro
-      - ${PWD}/data/certificates:/config/nginx/certificates:ro
       - ${PWD}/data/nginx/site-confs:/config/nginx/site-confs:ro
     environment:
       TZ: 'Australia/Melbourne'
@@ -304,10 +303,15 @@ The following is an example `proxy.conf`. The important directives include the `
 [Trusted Proxies](#trusted-proxies) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
 `X-Forwarded-Uri`, and `X-Forwarded-For` headers.
 
+##### Standard Variant
+
+Generally this variant is the suggested variant.
+
 {{< details "/config/nginx/snippets/proxy.conf" >}}
 ```nginx
 ## Headers
 proxy_set_header Host $host;
+proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Host $http_host;
 proxy_set_header X-Forwarded-Uri $request_uri;
@@ -340,6 +344,24 @@ send_timeout 5m;
 proxy_read_timeout 360;
 proxy_send_timeout 360;
 proxy_connect_timeout 360;
+```
+{{< /details >}}
+
+##### Headers Only Variant
+
+Generally the [standard variant](#standard-variant) is the suggested variant. This variant only contains the required
+headers for Authelia to operate.
+
+{{< details "/config/nginx/snippets/proxy.conf" >}}
+```nginx
+## Headers
+proxy_set_header Host $host;
+proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $http_host;
+proxy_set_header X-Forwarded-Uri $request_uri;
+proxy_set_header X-Forwarded-Ssl on;
+proxy_set_header X-Forwarded-For $remote_addr;
 ```
 {{< /details >}}
 
