@@ -70,8 +70,8 @@ Steps:
 10. Set the `Then` section `Header name` to `X-Forwarded-For`.
 11. Click `Save`.
 
-{{< figure src="cloudflare_1.png" alt="Steps 1 to 4" width="736" style="padding-right: 10px" >}}
-{{< figure src="cloudflare_2.png" alt="Steps 5 to 11" width="736" style="padding-right: 10px" >}}
+{{< figure src="cloudflare_1.png" alt="Steps 1 to 4" width="736" >}}
+{{< figure src="cloudflare_2.png" alt="Steps 5 to 11" width="736" >}}
 
 Criteria:
 
