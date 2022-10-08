@@ -151,6 +151,15 @@ Below you will find commented examples of the following configuration:
     [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) which is standard
   * [NGINX] shares a network with the `authelia` and `nextcloud` containers
 
+### Assumptions
+
+* Authelia is accessible to [NGINX] process with the hostname `authelia` on port `9091` making the URL
+  `http://authelia:9091`. If this is not the case adjust all instances of this as appropriate.
+* The [NGINX] configuration is in the folder `/config/nginx`. If this is not the case adjust all instances of this as
+  appropriate.
+* The URL you wish Authelia to be accessible on is `https://auth.example.com`. If this is not the case adjust all
+  instances of this as appropriate.
+
 ### Standard Example
 
 This example is for using the __Authelia__ portal redirection flow on a specific endpoint. It requires you to have the
@@ -174,11 +183,15 @@ server {
 
     include /config/nginx/snippets/ssl.conf;
 
+    set $upstream http://authelia:9091;
+
     location / {
         include /config/nginx/snippets/proxy.conf;
+        proxy_pass $upstream;
+    }
 
-        set $upstream_authelia http://authelia:9091;
-        proxy_pass $upstream_authelia;
+    location /api/verify {
+        proxy_pass $upstream;
     }
 }
 ```
@@ -205,7 +218,6 @@ server {
     location / {
         include /config/nginx/snippets/proxy.conf;
         include /config/nginx/snippets/authelia-authrequest.conf;
-
         proxy_pass $upstream;
     }
 }
@@ -233,7 +245,6 @@ server {
     location / {
         include /config/nginx/snippets/proxy.conf;
         include /config/nginx/snippets/authelia-authrequest.conf;
-
         proxy_pass $upstream;
     }
 }
@@ -267,12 +278,12 @@ server {
     include /config/nginx/snippets/ssl.conf;
     include /config/nginx/snippets/authelia-location-basic.conf; # Use the "basic" endpoint
 
+    set $upstream https://nextcloud;
+
     location / {
         include /config/nginx/snippets/proxy.conf;
         include /config/nginx/snippets/authelia-authrequest-basic.conf;
-
-        set $upstream_nextcloud https://nextcloud;
-        proxy_pass $upstream_nextcloud;
+        proxy_pass $upstream;
     }
 }
 ```
