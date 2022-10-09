@@ -51,11 +51,11 @@ access_control:
 {{< confkey type="string" default="deny" required="no" >}}
 
 The default [policy](#policies) defines the policy applied if no [rules](#rules) section apply to the information known
-about the request. It is recommended that this is configured to [deny](#deny) for security reasons. Sites which you do
+about the request. It is recommended that this is configured to [deny] for security reasons. Sites which you do
 not wish to secure at all with Authelia should not be configured in your reverse proxy to perform authentication with
 Authelia at all for performance reasons.
 
-See [Policies](#policies) for more information.
+See the [policies] section for more information.
 
 ### networks (global)
 
@@ -66,8 +66,8 @@ The main/global networks section contains a list of networks with a name label t
 complicated network related configuration a lot cleaner and easier to read.
 
 This section has two options, `name` and `networks`. Where the `networks` section is a list of IP addresses in CIDR
-notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks](#networks)
-section of the [rules](#rules) section below.
+notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks] section of
+the [rules] section below.
 
 This configuration option *does nothing* by itself, it's only useful if you use these aliases in the [rules](#networks)
 section below.
@@ -77,7 +77,7 @@ section below.
 {{< confkey type="list" required="no" >}}
 
 The rules have many configuration options. A rule matches when all criteria of the rule match the request excluding the
-`policy` which is the [policy](#policies) applied to the request.
+[policy] which is the [policy](#policies) applied to the request.
 
 A rule defines two primary things:
 
@@ -86,29 +86,29 @@ A rule defines two primary things:
 
 The criteria is broken into several parts:
 
-* [domain](#domain): domain or list of domains targeted by the request.
-* [domain_regex](#domain_regex): regex form of [domain](#domain).
-* [resources](#resources): pattern or list of patterns that the path should match.
-* [subject](#subject): the user or group of users to define the policy for.
-* [networks](#networks): the network addresses, ranges (CIDR notation) or groups from where the request originates.
-* [methods](#methods): the http methods used in the request.
+* [domain]: domain or list of domains targeted by the request.
+* [domain_regex]: regex form of [domain].
+* [resources]: pattern or list of patterns that the path should match.
+* [subject]: the user or group of users to define the policy for.
+* [networks]: the network addresses, ranges (CIDR notation) or groups from where the request originates.
+* [methods]: the http methods used in the request.
 
-A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order, and the first rule that
-is a match for a given request is the rule applied; subsequent rules have *no effect*. This is particularly
-__important__ for bypass rules. Bypass rules should generally appear near the top of the rules list. However you need to
-carefully evaluate your rule list __in order__ to see which rule matches a particular scenario. A comprehensive
-understanding of how rules apply is also recommended.
+A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order as per
+[Rule Matching Concept 1]. It's *__strongly recommended__* that individuals read the [Rule Matching](#rule-matching)
+section.
+
+[rules]: #rules
 
 #### domain
 
 {{< confkey type="list(string)" required="yes" >}}
 
-*__Required:__ This criteria and/or the [domain_regex](#domain_regex) criteria are required.*
+*__Required:__ This criteria and/or the [domain_regex] criteria are required.*
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
 strings. When it's a list of strings the rule matches when __any__ of the domains in the list match the request domain.
-When used in conjunction with [domain_regex](#domain_regex) the rule will match when either the [domain](#domain) or the
-[domain_regex](#domain_regex) criteria matches.
+When used in conjunction with [domain_regex] the rule will match when either the [domain] or the [domain_regex] criteria
+matches.
 
 Rules may start with a few different wildcards:
 
@@ -117,9 +117,8 @@ Rules may start with a few different wildcards:
   string __must__ be quoted like `"*.example.com"`.
 * The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
   example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. *__Warning:__ this is
-  officially deprecated as the [domain_regex](#domain_regex) criteria completely replaces the functionality in a much
-  more useful way. It is strongly recommended you do not use this as it will be removed in a future version, most likely
-  v5.0.0.*
+  officially deprecated as the [domain_regex] criteria completely replaces the functionality in a much   more useful
+  way. It is strongly recommended you do not use this as it will be removed in a future version, most likely v5.0.0.*
 * The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
   group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
   in the following groups `admins,users,people` because `admins` is in the list.
@@ -128,6 +127,8 @@ Domains in this section must be the domain configured in the [session](../sessio
 or subdomains of that domain. This is because a website can only write cookies for a domain it is part of. It is
 theoretically possible for us to do this with multiple domains however we would have to be security conscious in our
 implementation, and it is not currently a priority.
+
+[domain]: #domain
 
 ##### Examples
 
@@ -158,7 +159,7 @@ access_control:
     policy: bypass
 ```
 
-*Multiple domains matched either via a static domain or via a [domain_regex](#domain_regex). This rule will match
+*Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
 either `apple.example.com`, `pub-data.example.com`, or `img-data.example.com`.*
 
 ```yaml
@@ -173,20 +174,20 @@ access_control:
 
 {{< confkey type="list(string)" required="yes" >}}
 
-*__Required:__ This criteria and/or the [domain](#domain) criteria are required.*
+*__Required:__ This criteria and/or the [domain] criteria are required.*
 
-*__Important Note:__ If you intend to use this criteria with a bypass rule please read
-[bypass and subjects](#bypass-and-user-identity) before doing so.*
+*__Important Note:__ If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2].*
 
 *__Important Note:__ to utilize regex you must escape it properly. See
 [regular expressions](../prologue/common.md#regular-expressions) for more information.*
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
 strings. When it's a list of strings the rule matches when __any__ of the domains in the list match the request domain.
-When used in conjunction with [domain](#domain) the rule will match when either the [domain](#domain) or the
-[domain_regex](#domain_regex) criteria matches.
+When used in conjunction with [domain] the rule will match when either the [domain] or the [domain_regex] criteria matches.
 
-In addition to standard regex patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
+In addition to standard regex patterns this criteria can match some [Named Regex Groups].
+
+[domain_regex]: #domain_regex
 
 ##### Examples
 
@@ -222,15 +223,14 @@ access_control:
 The specific [policy](#policies) to apply to the selected rule. This is not criteria for a match, this is the action to
 take when a match is made.
 
+[policy]: #policy
+
 #### subject
 
 {{< confkey type="list(list(string))" required="no" >}}
 
-*__Note:__ this rule criteria __may not__ be used for the `bypass` policy the minimum required authentication level to
-identify the subject is `one_factor`. We have taken an opinionated stance on preventing this configuration as it could
-result in problematic security scenarios with badly thought out configurations and cannot see a likely configuration
-scenario that would require users to do this. If you have a scenario in mind please open an
-[issue](https://github.com/authelia/authelia/issues/new) on GitHub.*
+*__Note:__ this rule criteria __may not__ be used for the [bypass] policy the minimum required authentication level to
+identify the subject is [one_factor]. See [Rule Matching Concept 2] for more information.*
 
 This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user
 belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically
@@ -240,6 +240,8 @@ which part of the identity to check.
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
 Additionally each level of these lists does not have to be explicitly defined.
+
+[subject]: #subject
 
 ##### Examples
 
@@ -306,6 +308,8 @@ relevant methods are listed in this table:
 | [RFC5789] |                         PATCH                         | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
 | [RFC4918] | PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK  |                                                                  |
 
+[methods]: #methods
+
 ##### Examples
 
 *Bypass `OPTIONS` requests to the `example.com` domain.*
@@ -340,6 +344,8 @@ privileges when a user is on the local networks.
 
 There are a large number of scenarios regarding networks and the order of the rules. This provides a lot of flexibility
 for administrators to tune the security to their specific needs if desired.
+
+[networks]: #networks
 
 ##### Examples
 
@@ -394,6 +400,8 @@ It's important when configuring resource rules that you enclose them in quotes o
 with escaping the expressions. Failure to do so may prevent Authelia from starting. It's technically optional but will
 likely save you a lot of time if you do it for all resource rules.
 
+[resources]: #resources
+
 ##### Examples
 
 *Applies the [bypass](#bypass) policy when the domain is `app.example.com` and the url is `/api`, or starts with either
@@ -413,39 +421,89 @@ access_control:
 The policy of the first matching rule in the configured list decides the policy applied to the request, if no rule
 matches the request the [default_policy](#default_policy) is applied.
 
+[policies]: #policies
+
 ### deny
 
 This is the policy applied by default, and is what we recommend as the default policy for all installs. Its effect
 is literally to deny the user access to the resource. Additionally you can use this policy to conditionally deny
 access in desired situations. Examples include denying access to an API that has no authentication mechanism built in.
 
+[deny]: #deny
+
 ### bypass
 
 This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
-that includes a [subject](#subject) restriction because the minimum authentication level required to obtain information
-about the subject is [one_factor](#one_factor).
+that includes a [subject] restriction because the minimum authentication level required to obtain information
+about the subject is [one_factor]. See [Rul]
 
-#### bypass and user identity
-
-The [bypass](#bypass) policy cannot be used when the rule uses a criteria that requires we know the users identity. This
-means:
-
-* If the rule defines [subjects](#subject) criteria
-* If the rule defines [domain regex](#domain_regex) criteria which contains either the user or group named match groups
-
-This is because these criteria types require knowing who the user is in order to determine if their identity matches the
-request. This information can only be known after 1FA, which means the minimum policy that can be used logically is
-[one_factor](#one_factor).
+[bypass]: #bypass
 
 ### one_factor
 
 This policy requires the user at minimum complete 1FA successfully (username and password). This means if they have
 performed 2FA then they will be allowed to access the resource.
 
+[one_factor]: #one_factor
+
 ### two_factor
 
 This policy requires the user to complete 2FA successfully. This is currently the highest level of authentication
 policy available.
+
+[two_factor]: #two_factor
+
+## Rule Matching
+
+There are two important concepts to understand when it comes to rule matching. This section covers these concepts.
+
+You can easily evaluate if your access control rules section matches a given request, and why it doesn't match using the
+[authelia access-control check-policy](../../reference/cli/authelia/authelia_access-control_check-policy.md) command.
+
+### Rule Matching Concept 1: Sequential Order
+
+Rules are matched in sequential order. The first entry in the list where all criteria match is the rule which is applied.
+Some rule criteria additionally allow for a list of criteria, when one of these criteria in the list match a request that
+criteria is considered a match for that specific rule.
+
+This is particularly __important__ for bypass rules. Bypass rules should generally appear near the top of the rules
+list. However you need to carefully evaluate your rule list __in order__ to see which rule matches a particular
+scenario. A comprehensive understanding of how rules apply is also recommended.
+
+For example the following rule will consider requests for either `example.com` or any subdomain of `example.com` a match
+if they have a path of exactly `/api` or if they start with `/api/`. This means that the second rule for
+`app.example.com` will not be considered if the request is to `https://app.example.com/api` because the first rule is
+a match for that request.
+
+```yaml
+- domains:
+    - 'example.com'
+    - '*.example.com'
+  policy: bypass
+  resources:
+    - '^/api$'
+    - '^/api/'
+- domains:
+    - 'app.example.com'
+  policy: two_factor
+```
+
+[Rule Matching Concept 1]: #rule-matching-concept-1-sequential-order
+
+### Rule Matching Concept 2: Subject Criteria Requires Authentication
+
+Rules that have subject reliant elements require authentication to determine if they match. Due to this these rules
+must not be used with the [bypass] policy. The criteria which have subject reliant elements are:
+
+* The [subject] criteria itself
+* The [domain_regex] criteria when it contains the [Named Regex Groups].
+
+In addition if the rule has a subject criteria but all other criteria match then the user will be immediately forwarded
+for authentication if no prior rules match the request per [Rule Matching Concept 1]. This means if you have two
+identical rules, and one of them has a subject based reliant criteria, and the other one is a [bypass] rule then the
+[bypass] rule should generally come first.
+
+[Rule Matching Concept 2]: #rule-matching-concept-2-subject-criteria-requires-authentication
 
 ## Named Regex Groups
 
@@ -460,6 +518,8 @@ For the group name `Group` the regex pattern matches if the user has the specifi
 regex groups are case-insensitive due to the fact that the regex groups are used in domain criteria and domain names
 should not be compared in a case-sensitive way as per the [RFC4343](https://www.rfc-editor.org/rfc/rfc4343.html)
 abstract and [RFC3986 Section 3.2.2](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2).
+
+[Named Regex Groups]: #named-regex-groups
 
 ## Detailed example
 
