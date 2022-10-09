@@ -515,7 +515,7 @@ Some criteria allow matching named regex groups. These are the groups we accept:
 |   Group    |   groups    | Has (Equal) |
 
 Named regex groups are represented with the syntax `(?P<User>\w+)` where `User` is the group name from the table above,
-and `\w+` is the pattern for the area of the pattern that should be considered as the value to check against.
+and `\w+` is the pattern for the area of the pattern that should be compared to the match value.
 
 The match type `Equals` matches if the value extracted from the pattern is equal to the match value. The match type
 `Has (Equal)` matches if the value extracted from the pattern is equal to one of the values in the match value (the
