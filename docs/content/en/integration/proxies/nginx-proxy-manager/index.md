@@ -208,7 +208,7 @@ Protected Application (Nextcloud) `Advanced` tab example:
 
 {{< figure src="protectedapp.advanced.png" alt="Step 4" width="450" >}}
 
-### Protected Application Custom Locations
+#### Protected Application Custom Locations
 
 It's important to note if you define locations in the `Custom Locations` tab of a proxy host that they will not be
 checked with Authelia for authorization effectively bypassing the authorization policies you implement. If you want a

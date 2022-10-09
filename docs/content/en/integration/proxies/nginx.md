@@ -139,10 +139,10 @@ services:
 
 Below you will find commented examples of the following configuration:
 
-* [Authelia Portal](#authelia-portal)
+* [Authelia Portal](#standard-example)
   * Running in Docker
   * Has the container name `authelia`
-* [Protected Endpoint (Nextcloud)](#protected-endpoint)
+* [Protected Endpoint (Nextcloud)](#standard-example)
   * Running in Docker
   * Has the container name `nextcloud`
 * [Supporting Configuration Snippets](#supporting-configuration-snippets)
@@ -167,6 +167,10 @@ This example is for using the __Authelia__ portal redirection flow on a specific
 [authelia-authrequest.conf](#authelia-authrequestconf), and [proxy.conf](#proxyconf) snippets. In the example these
 files exist in the `/config/nginx/snippets/` directory. The `/config/nginx/snippets/ssl.conf` snippet is expected to have
 the configuration for TLS or SSL but is not included as part of the examples.
+
+The directive `include /config/nginx/snippets/authelia-authrequest.conf;` within the `location` block is what directs
+[NGINX] to perform authorization with Authelia. Every `location` block you wish for Authelia to perform authorization for
+should include this directive.
 
 {{< details "/config/nginx/site-confs/auth.conf (Authelia Portal)" >}}
 ```nginx
