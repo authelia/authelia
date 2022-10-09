@@ -33,18 +33,14 @@ This example makes the following assumptions:
 * __Client ID:__ `seafile`
 * __Client Secret:__ `seafile_client_secret`
 
-*__Important Note:__ [Seafile] only uses email to identify unique user accounts[^1]. When using the
-[File First Factor](../../../configuration/first-factor/file.md) there may be multiple Authelia users with the same
-email, resulting in them being assigned the same [Seafile] account. This issue could be mitigated by tuning
-the `OAUTH_ATTRIBUTE_MAP` or modifying `seahub/seahub/oauth/views.py` in your [Seafile] installation[^2].*
-
 ## Configuration
 
 ### Application
 
 To configure [Seafile] to utilize Authelia as an [OpenID Connect] Provider:
 
-1. Install the `requests_oauthlib` pip package which is required but not installed with [Seafile] by default[^3].
+1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed. 
+   See the [Seafile] documentation in the [see also](#see-also) section for more information.
 
 2. Edit your [Seafile] `seahub_settings.py` configuration file and add configure the following:
 
@@ -70,8 +66,6 @@ OAUTH_ATTRIBUTE_MAP = {
 }
 ```
 
-Remember to restart [Seafile] so your configuration changes take effect.
-
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
@@ -96,10 +90,6 @@ which will operate with the above example:
 ## See Also
 
 * [Seafile OAuth Authentication Documentation](https://manual.seafile.com/deploy/oauth/)
-
-[^1]:https://forum.seafile.com/t/oauth-question-error-with-sso/5481/2
-[^2]:https://forum.seafile.com/t/oauth-question-error-with-sso/5481/3
-[^3]:https://manual.seafile.com/deploy/oauth/#oauth
 
 [Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/
