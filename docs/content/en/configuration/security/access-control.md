@@ -435,7 +435,7 @@ access in desired situations. Examples include denying access to an API that has
 
 This policy skips all authentication and allows anyone to use the resource. This policy is not available with a rule
 that includes a [subject] restriction because the minimum authentication level required to obtain information
-about the subject is [one_factor]. See [Rul]
+about the subject is [one_factor]. See [Rule Matching Concept 2] for more information.
 
 [bypass]: #bypass
 
