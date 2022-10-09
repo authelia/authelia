@@ -201,7 +201,7 @@ const (
 		"https://www.authelia.com/c/acl#bypass"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
-		"https://www.authelia.com/c/acl#bypass-and-user-identity"
+		"https://www.authelia.com/c/acl-match-concept-2"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
