@@ -509,16 +509,19 @@ identical rules, and one of them has a subject based reliant criteria, and the o
 
 Some criteria allow matching named regex groups. These are the groups we accept:
 
-| Group Name |    Match Value    |
-|:----------:|:-----------------:|
-|    User    |     username      |
-|   Group    | groups (contains) |
+| Group Name | Match Value | Match Type  |
+|:----------:|:-----------:|:-----------:|
+|    User    |  username   |   Equals    |
+|   Group    |   groups    | Has (Equal) |
 
 Named regex groups are represented with the syntax `(?P<User>\w+)` where `User` is the group name from the table above,
 and `\w+` is the pattern for the area of the pattern that should be considered as the value to check against.
 
-For the group name `Group` the regex pattern matches if the user has the specific group name matching the pattern. The
-regex groups are case-insensitive due to the fact that the regex groups are used in domain criteria and domain names
+The match type `Equals` matches if the value extracted from the pattern is equal to the match value. The match type
+`Has (Equal)` matches if the value extracted from the pattern is equal to one of the values in the match value (the
+match value is a list/slice).
+
+The regex groups are case-insensitive due to the fact that the regex groups are used in domain criteria and domain names
 should not be compared in a case-sensitive way as per the [RFC4343](https://www.rfc-editor.org/rfc/rfc4343.html)
 abstract and [RFC3986 Section 3.2.2](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2).
 
