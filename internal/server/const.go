@@ -72,8 +72,7 @@ X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
 const (
-	cspDefaultTemplate  = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
-	cspNoncePlaceholder = "${NONCE}"
+	tmplCSPSwagger = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'; base-uri 'self'"
 )
 
 const (

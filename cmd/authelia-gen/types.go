@@ -25,6 +25,23 @@ type tmplScriptsGEnData struct {
 	VersionSwaggerUI string
 }
 
+// GitHubTagsJSON represents the JSON struct for the GitHub Tags API.
+type GitHubTagsJSON struct {
+	Name string `json:"name"`
+}
+
+// DocsDataMisc represents the docs misc data schema.
+type DocsDataMisc struct {
+	CSP TemplateCSP `json:"csp"`
+}
+
+// TemplateCSP represents the CSP template vars.
+type TemplateCSP struct {
+	TemplateDefault     string `json:"default"`
+	TemplateDevelopment string `json:"development"`
+	PlaceholderNONCE    string `json:"nonce"`
+}
+
 // ConfigurationKey is the docs json model for the Authelia configuration keys.
 type ConfigurationKey struct {
 	Path   string `json:"path"`

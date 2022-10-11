@@ -161,11 +161,11 @@ or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 {{< confkey type="string" required="no" >}}
 
-This customizes the value of the Content-Security-Policy header. It will replace all instances of `${NONCE}` with the
-nonce value of the Authelia react bundle. This is an advanced option to customize and you should do sufficient research
-about how browsers utilize and understand this header before attempting to customize it.
+This customizes the value of the Content-Security-Policy header. It will replace all instances of the below placeholder
+with the nonce value of the Authelia react bundle. This is an advanced option to customize and you should do sufficient
+research about how browsers utilize and understand this header before attempting to customize it.
 
-For example, the default CSP template is `default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'`.
+{{< csp >}}
 
 ### buffers
 

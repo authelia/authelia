@@ -24,6 +24,7 @@ var (
 	tmplDotCommitLintRC             = template.Must(newTMPL("dot_commitlintrc.js"))
 	tmplDocsCommitMessageGuidelines = template.Must(newTMPL("docs-contributing-development-commitmsg.md"))
 	tmplScriptsGen                  = template.Must(newTMPL("cmd-authelia-scripts-gen.go"))
+	tmplServer                      = template.Must(newTMPL("server_generated.go"))
 )
 
 func fmJoinX(elems []string, sep string, n int, p string) string {

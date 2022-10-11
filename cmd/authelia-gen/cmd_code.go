@@ -30,7 +30,19 @@ func newCodeCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newCodeKeysCmd(), newCodeScriptsCmd())
+	cmd.AddCommand(newCodeKeysCmd(), newCodeServerCmd(), newCodeScriptsCmd())
+
+	return cmd
+}
+
+func newCodeServerCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   cmdUseServer,
+		Short: "Generate the Authelia server files",
+		RunE:  codeServerRunE,
+
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }
@@ -57,6 +69,38 @@ func newCodeKeysCmd() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func codeServerRunE(cmd *cobra.Command, args []string) (err error) {
+	data := TemplateCSP{
+		PlaceholderNONCE:    codeCSPNonce,
+		TemplateDefault:     fmt.Sprintf(codeTmplCSPDefault, "", "%s"),
+		TemplateDevelopment: fmt.Sprintf(codeTmplCSPDefault, " 'unsafe-eval'", "%s"),
+	}
+
+	var outputPath string
+
+	if outputPath, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagFileServerGenerated); err != nil {
+		return err
+	}
+
+	var f *os.File
+
+	if f, err = os.Create(outputPath); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", outputPath, err)
+	}
+
+	if err = tmplServer.Execute(f, data); err != nil {
+		_ = f.Close()
+
+		return fmt.Errorf("failed to write output file '%s': %w", outputPath, err)
+	}
+
+	if err = f.Close(); err != nil {
+		return fmt.Errorf("failed to close output file '%s': %w", outputPath, err)
+	}
+
+	return nil
 }
 
 func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
@@ -127,11 +171,6 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
-}
-
-// GitHubTagsJSON represents the JSON struct for the GitHub Tags API.
-type GitHubTagsJSON struct {
-	Name string `json:"name"`
 }
 
 func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
