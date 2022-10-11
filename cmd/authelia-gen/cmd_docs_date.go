@@ -55,7 +55,7 @@ func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 		commitFilter = fmt.Sprintf("%s...%s", commitUtil, commitSince)
 	}
 
-	return filepath.Walk(filepath.Join(pathDocsContent), func(path string, info fs.FileInfo, err error) error {
+	return filepath.Walk(pathDocsContent, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
