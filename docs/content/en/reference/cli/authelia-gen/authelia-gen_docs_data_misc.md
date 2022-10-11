@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen commit-lint"
-description: "Reference for the authelia-gen commit-lint command."
+title: "authelia-gen docs data misc"
+description: "Reference for the authelia-gen docs data misc command."
 lead: ""
-date: 2022-09-16T14:21:05+10:00
+date: 2022-10-11T22:34:28+11:00
 draft: false
 images: []
 menu:
@@ -12,18 +12,18 @@ weight: 330
 toc: true
 ---
 
-## authelia-gen commit-lint
+## authelia-gen docs data misc
 
-Generate commit lint files
+Generate docs data file misc.json
 
 ```
-authelia-gen commit-lint [flags]
+authelia-gen docs data misc [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for commit-lint
+  -h, --help   help for misc
 ```
 
 ### Options inherited from parent commands
@@ -55,5 +55,5 @@ authelia-gen commit-lint [flags]
 
 ### SEE ALSO
 
-* [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
+* [authelia-gen docs data](authelia-gen_docs_data.md)	 - Generate docs data files
 

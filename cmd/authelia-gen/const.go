@@ -19,7 +19,7 @@ const (
 	dirDocs             = "docs"
 	dirDocsContent      = "content"
 	dirDocsData         = "data"
-	dirDocsCLIReference = dirDocsContent + "/en/reference/cli"
+	dirDocsCLIReference = "en/reference/cli"
 
 	fileDocsDataLanguages  = "languages.json"
 	fileDocsDataMisc       = "misc.json"
