@@ -424,7 +424,7 @@ Configures the consent mode. The following table describes the different modes:
 
 [pre_configured_consent_duration]: #pre_configured_consent_duration
 
-##### pre_configured_consent_duration
+#### pre_configured_consent_duration
 
 {{< confkey type="duration" default="1w" required="no" >}}
 
