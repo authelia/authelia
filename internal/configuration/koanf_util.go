@@ -15,13 +15,13 @@ func koanfGetKeys(ko *koanf.Koanf) (keys []string) {
 	keys = ko.Keys()
 
 	for key, value := range ko.All() {
-		slc, ok := value.([]interface{})
+		slc, ok := value.([]any)
 		if !ok {
 			continue
 		}
 
 		for _, item := range slc {
-			m, mok := item.(map[string]interface{})
+			m, mok := item.(map[string]any)
 			if !mok {
 				continue
 			}
@@ -53,7 +53,7 @@ func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]
 	return final, nil
 }
 
-func koanfRemapKeysStandard(keys map[string]interface{}, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
+func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]interface{}) {
 	var (
 		ok    bool
 		d     Deprecation

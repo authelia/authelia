@@ -13,6 +13,9 @@ toc: true
 ---
 
 Istio uses [Envoy](../proxies/envoy.md) as an Ingress. This means it has a relatively comprehensive integration option.
+Istio is supported with Authelia v4.37.0 and higher via [Envoy]'s [external authorization] filter.
+
+[external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
 ## Example
 

@@ -152,7 +152,7 @@ Configures the maximum response size. The default of 4096 is generally sufficien
 
 ### read
 
-{{< confkey type="duration" default="2s" required="no" >}}
+{{< confkey type="duration" default="6s" required="no" >}}
 
 *__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
 [common options](#duration-notation-format) documentation for information on this format.*
@@ -161,7 +161,7 @@ Configures the server read timeout.
 
 ### write
 
-{{< confkey type="duration" default="2s" required="no" >}}
+{{< confkey type="duration" default="6s" required="no" >}}
 
 *__Note:__ This setting uses the [duration notation format](#duration-notation-format). Please see the
 [common options](#duration-notation-format) documentation for information on this format.*

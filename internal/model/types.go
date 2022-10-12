@@ -49,7 +49,7 @@ func (ip IP) Value() (value driver.Value, err error) {
 }
 
 // Scan is the IP implementation of the sql.Scanner.
-func (ip *IP) Scan(src interface{}) (err error) {
+func (ip *IP) Scan(src any) (err error) {
 	if src == nil {
 		return fmt.Errorf(errFmtScanNil, ip)
 	}
@@ -85,7 +85,7 @@ func (ip NullIP) Value() (value driver.Value, err error) {
 }
 
 // Scan is the NullIP implementation of the sql.Scanner.
-func (ip *NullIP) Scan(src interface{}) (err error) {
+func (ip *NullIP) Scan(src any) (err error) {
 	if src == nil {
 		ip.IP = nil
 		return nil
@@ -128,7 +128,7 @@ func (b Base64) Value() (value driver.Value, err error) {
 }
 
 // Scan is the Base64 implementation of the sql.Scanner.
-func (b *Base64) Scan(src interface{}) (err error) {
+func (b *Base64) Scan(src any) (err error) {
 	if src == nil {
 		return fmt.Errorf(errFmtScanNil, b)
 	}
@@ -158,7 +158,7 @@ type StartupCheck interface {
 type StringSlicePipeDelimited []string
 
 // Scan is the StringSlicePipeDelimited implementation of the sql.Scanner.
-func (s *StringSlicePipeDelimited) Scan(value interface{}) (err error) {
+func (s *StringSlicePipeDelimited) Scan(value any) (err error) {
 	var nullStr sql.NullString
 
 	if err = nullStr.Scan(value); err != nil {

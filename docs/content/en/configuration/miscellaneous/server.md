@@ -35,8 +35,8 @@ server:
     read: 4096
     write: 4096
   timeouts:
-    read: 10s
-    write: 10s
+    read: 6s
+    write: 6s
     idle: 10s
 ```
 

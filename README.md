@@ -16,9 +16,8 @@
   [![Matrix](https://img.shields.io/matrix/authelia-support:matrix.org?label=matrix&logo=matrix&style=flat-square&color=blue)](https://matrix.to/#/#support:authelia.com)
 
 **Authelia** is an open-source authentication and authorization server providing two-factor authentication and single
-sign-on (SSO) for your applications via a web portal. It acts as a companion for reverse proxies like [nginx],
-[Traefik], [Caddy] or [HAProxy] to let them know whether requests should either be allowed or redirected to Authelia's
-portal for authentication.
+sign-on (SSO) for your applications via a web portal. It acts as a companion for [reverse proxies](#proxy-support) by
+allowing, denying, or redirecting requests.
 
 Documentation is available at [https://www.authelia.com/](https://www.authelia.com/).
 
@@ -32,8 +31,11 @@ The following is a simple diagram of the architecture:
 [APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a
 [static binary](https://github.com/authelia/authelia/releases/latest),
-[.deb package]((https://github.com/authelia/authelia/releases/latest)), [Docker] or [Kubernetes] either manually or via
-the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers and ingress configurations.
+[.deb package]((https://github.com/authelia/authelia/releases/latest)), as a container on [Docker] or [Kubernetes].
+
+
+Deployment can be orchestrated via the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers
+and ingress configurations.
 
 <p align="center">
   <img src="./docs/static/images/logos/kubernetes.png" height="100"/>
@@ -73,10 +75,11 @@ This is a list of the key features of Authelia:
 * Compatible with [Caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
   directive.
 * Kubernetes Support:
-  * Compatible with the [ingress-nginx](https://github.com/kubernetes/ingress-nginx), the
-    [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/), and the
-    [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-crd/) Kubernetes ingress
-    controllers out of the box.
+  * Compatible with several Kubernetes ingress controllers:
+    * [ingress-nginx](https://www.authelia.com/integration/kubernetes/nginx-ingress/)
+    * [Traefik Kubernetes CRD](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingressroute)
+    * [Traefik Kubernetes Ingress](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingress)
+    * [Istio](https://www.authelia.com/integration/kubernetes/istio/)
   * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
 * Beta support for [OpenID Connect](https://www.authelia.com/roadmap/active/openid-connect/).
 
@@ -86,8 +89,7 @@ If you want to know more about the roadmap, follow [Roadmap](https://www.autheli
 
 ## Proxy support
 
-Authelia works in combination with [nginx], [Traefik], [Caddy] or [HAProxy]. It can be deployed on bare metal with
-Docker or on top of [Kubernetes].
+Authelia works in combination with [nginx], [Traefik], [Caddy], [Skipper], [Envoy], or [HAProxy].
 
 <p align="center">
   <img src="./docs/static/images/logos/nginx.png" height="50"/>
@@ -95,7 +97,6 @@ Docker or on top of [Kubernetes].
   <img src="./docs/static/images/logos/caddy.png" height="50"/>
   <img src="./docs/static/images/logos/envoy.png" height="50"/>
   <img src="./docs/static/images/logos/haproxy.png" height="50"/>
-  <img src="./docs/static/images/logos/kubernetes.png" height="50"/>
 </p>
 
 ## Getting Started
@@ -383,10 +384,12 @@ Companies contributing to Authelia via Open Collective will have a special menti
 [Webauthn]: https://www.yubico.com/authentication-standards/webauthn/
 [auth_request]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [config.template.yml]: ./config.template.yml
-[nginx]: https://www.nginx.com/
-[Traefik]: https://traefik.io/
-[Caddy]: https://caddyserver.com/
-[HAProxy]: https://www.haproxy.org/
+[nginx]: https://www.authelia.com/integration/proxies/nginx/
+[Traefik]: https://www.authelia.com/integration/proxies/traefik/
+[Caddy]: https://www.authelia.com/integration/proxies/caddy/
+[Skipper]: https://www.authelia.com/integration/proxies/skipper/
+[Envoy]: https://www.authelia.com/integration/proxies/envoy/
+[HAProxy]: https://www.authelia.com/integration/proxies/haproxy/
 [Docker]: https://docker.com/
 [Kubernetes]: https://kubernetes.io/
 [security]: https://github.com/authelia/authelia/security/policy
