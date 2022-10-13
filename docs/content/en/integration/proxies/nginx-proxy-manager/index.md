@@ -131,6 +131,8 @@ either most likely require an adjustment, or may require an adjustment if you're
 * You are running Authelia on the default port.
 * You are running Authelia with the `container_name` of `authelia` or the Authelia process is otherwise resolvable by
   [NGINX Proxy Manager] as `authelia`.
+* If you want to use a [Custom Location](#protected-application-custom-locations) and wish for it to be protected you
+  follow the [Protected Application Custom Location](#protected-application-custom-locations) guide.
 
 ### Snippets
 
@@ -205,6 +207,25 @@ Protected Application (Nextcloud) `Details` tab example:
 Protected Application (Nextcloud) `Advanced` tab example:
 
 {{< figure src="protectedapp.advanced.png" alt="Step 4" width="450" >}}
+
+#### Protected Application Custom Locations
+
+It's important to note if you define locations in the `Custom Locations` tab of a proxy host that they will not be
+checked with Authelia for authorization effectively bypassing the authorization policies you implement. If you want a
+custom location then you can also define this in the advanced tab.
+
+To replicate the `Custom Location` tab below a location block can be *__ADDED__* to the
+[Protected Application](#protected-application) `Advanced` tab:
+
+```nginx
+location /custom {
+    include /snippets/proxy.conf;
+    include /snippets/authelia-authrequest.conf;
+    proxy_pass http://192.168.1.20:8080;
+}
+```
+
+{{< figure src="protectedapp.customlocation.png" alt="Custom Location" width="450" >}}
 
 #### Proxy Hosts Screenshot
 
