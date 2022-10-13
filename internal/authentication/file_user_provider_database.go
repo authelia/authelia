@@ -168,6 +168,10 @@ func (m *DatabaseModel) Read(filePath string) (err error) {
 		return fmt.Errorf("failed to read the '%s' file: %w", filePath, err)
 	}
 
+	if len(content) == 0 {
+		return ErrNoContent
+	}
+
 	if err = yaml.Unmarshal(content, m); err != nil {
 		return fmt.Errorf("could not parse the YAML database: %w", err)
 	}

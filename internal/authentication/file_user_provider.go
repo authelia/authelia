@@ -2,6 +2,7 @@ package authentication
 
 import (
 	_ "embed" // Embed users_database.template.yml.
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -31,10 +32,6 @@ func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *Fi
 	}
 }
 
-func (p *FileUserProvider) setTimeoutReload(now time.Time) {
-	p.timeoutReload = now.Add(time.Second)
-}
-
 // Reload the database.
 func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	now := time.Now()
@@ -47,11 +44,16 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 		return false, nil
 	}
 
-	p.setTimeoutReload(now)
-
-	if err = p.database.Load(); err != nil {
+	switch err = p.database.Load(); {
+	case err == nil:
+		p.setTimeoutReload(now)
+	case errors.Is(err, ErrNoContent):
+		return false, nil
+	default:
 		return false, fmt.Errorf("failed to reload: %w", err)
 	}
+
+	p.setTimeoutReload(now)
 
 	return true, nil
 }
@@ -136,6 +138,10 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	}
 
 	return nil
+}
+
+func (p *FileUserProvider) setTimeoutReload(now time.Time) {
+	p.timeoutReload = now.Add(time.Second / 2)
 }
 
 // NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
