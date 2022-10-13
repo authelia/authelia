@@ -66,6 +66,10 @@ const (
 )
 
 const (
+	ldapBaseObjectFilter = "(objectClass=*)"
+)
+
+const (
 	ldapPlaceholderInput             = "{input}"
 	ldapPlaceholderDistinguishedName = "{dn}"
 	ldapPlaceholderUsername          = "{username}"
