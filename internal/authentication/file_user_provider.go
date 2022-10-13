@@ -4,6 +4,8 @@ import (
 	_ "embed" // Embed users_database.template.yml.
 	"fmt"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/go-crypt/crypt"
 
@@ -13,25 +15,45 @@ import (
 
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
-	config   *schema.FileAuthenticationBackend
-	hash     crypt.Hash
-	database *FileUserDatabase
+	config        *schema.FileAuthenticationBackend
+	hash          crypt.Hash
+	database      *FileUserDatabase
+	mutex         *sync.Mutex
+	timeoutReload time.Time
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *FileUserProvider) {
 	return &FileUserProvider{
-		config: config,
+		config:        config,
+		mutex:         &sync.Mutex{},
+		timeoutReload: time.Now().Add(-1 * time.Second),
 	}
 }
 
+func (p *FileUserProvider) setTimeoutReload(now time.Time) {
+	p.timeoutReload = now.Add(time.Second)
+}
+
 // Reload the database.
-func (p *FileUserProvider) Reload() (err error) {
-	if err = p.database.Load(); err != nil {
-		return fmt.Errorf("failed to reload: %w", err)
+func (p *FileUserProvider) Reload() (reloaded bool, err error) {
+	now := time.Now()
+
+	p.mutex.Lock()
+
+	defer p.mutex.Unlock()
+
+	if now.Before(p.timeoutReload) {
+		return false, nil
 	}
 
-	return nil
+	p.setTimeoutReload(now)
+
+	if err = p.database.Load(); err != nil {
+		return false, fmt.Errorf("failed to reload: %w", err)
+	}
+
+	return true, nil
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
@@ -81,6 +103,12 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	}
 
 	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
 		return err

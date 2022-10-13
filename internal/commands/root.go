@@ -8,9 +8,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
-	"sync"
 	"syscall"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
@@ -18,6 +16,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -155,10 +154,8 @@ func runServices(config *schema.Configuration, providers middlewares.Providers, 
 		return nil
 	})
 
-	if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
-		reloaderAuthBackend := providers.UserProvider.(Reloader)
-
-		if watcher, err := runServiceFileWatcher(g, log, config.AuthenticationBackend.File.Path, reloaderAuthBackend); err != nil {
+	if provider, ok := providers.UserProvider.(*authentication.FileUserProvider); ok {
+		if watcher, err := runServiceFileWatcher(g, log, config.AuthenticationBackend.File.Path, provider); err != nil {
 			log.WithError(err).Errorf("Error opening file watcher")
 		} else {
 			defer watcher.Close()
@@ -200,23 +197,24 @@ func runServices(config *schema.Configuration, providers middlewares.Providers, 
 	}
 }
 
-type Reloader interface {
-	Reload() (err error)
+type ReloadFilter func(path string) (skipped bool)
+
+type ProviderReload interface {
+	Reload() (reloaded bool, err error)
 }
 
-func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, reloader Reloader) (*fsnotify.Watcher, error) {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
+func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, reload ProviderReload) (watcher *fsnotify.Watcher, err error) {
+	if watcher, err = fsnotify.NewWatcher(); err != nil {
 		return nil, err
 	}
 
-	timer := time.Now()
-	mu := &sync.Mutex{}
-
 	failed := make(chan struct{})
 
-	directory := filepath.Dir(path)
-	filename := filepath.Base(path)
+	var directory, filename string
+
+	if path != "" {
+		directory, filename = filepath.Dir(path), filepath.Base(path)
+	}
 
 	g.Go(func() error {
 		for {
@@ -233,29 +231,20 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, r
 					break
 				}
 
-				mu.Lock()
-				now := time.Now()
-
-				if timer.After(now) {
-					mu.Unlock()
-					break
-				}
-
-				timer = time.Now().Add(time.Second / 2)
-
-				mu.Unlock()
-
 				switch {
 				case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
 					log.WithField("file", event.Name).WithField("op", event.Op).Debug("File modification detected")
 
-					if err := reloader.Reload(); err != nil {
-						log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("Error occurred reloading user database")
-					} else {
-						log.WithField("file", event.Name).Info("Reloaded user database successfully")
+					switch reloaded, err := reload.Reload(); {
+					case err != nil:
+						log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("Error occurred reloading file")
+					case reloaded:
+						log.WithField("file", event.Name).Info("Reloaded file successfully")
+					default:
+						log.WithField("file", event.Name).Debug("Reload of file was triggered but it was skipped")
 					}
 				case event.Op&fsnotify.Remove == fsnotify.Remove:
-					log.WithField("file", event.Name).WithField("op", event.Op).Debugf("file remove detected to file relevant to this watcher")
+					log.WithField("file", event.Name).WithField("op", event.Op).Debug("Remove of file was detected")
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -271,6 +260,8 @@ func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, r
 
 		return nil, err
 	}
+
+	log.WithField("directory", directory).WithField("file", filename).Debug("Directory is being watched for changes to the file")
 
 	return watcher, nil
 }
