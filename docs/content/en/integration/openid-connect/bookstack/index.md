@@ -33,8 +33,8 @@ This example makes the following assumptions:
 * __Client ID:__ `bookstack`
 * __Client Secret:__ `bookstack_client_secret`
 
-*__Important Note:__ Bookstack does not properly URL encode the secret per [RFC6749 Appendix B] at the time this
-article was last updated (noted at the bottom). This means you'll either have to use only alphanumeric characters for
+*__Important Note:__ [BookStack] does not properly URL encode the secret per [RFC6749 Appendix B] at the time this
+article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric characters for
 the secret or URL encode the secret yourself.*
 
 [RFC6749 Appendix B]: https://www.rfc-editor.org/rfc/rfc6749#appendix-B
