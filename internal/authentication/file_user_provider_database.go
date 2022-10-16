@@ -3,7 +3,6 @@ package authentication
 import (
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
@@ -17,7 +16,6 @@ func NewFileUserDatabase(filePath string) (database *FileUserDatabase) {
 		RWMutex: &sync.RWMutex{},
 		Path:    filePath,
 		Users:   map[string]DatabaseUserDetails{},
-		Emails:  map[string]string{},
 	}
 }
 
@@ -25,9 +23,8 @@ func NewFileUserDatabase(filePath string) (database *FileUserDatabase) {
 type FileUserDatabase struct {
 	*sync.RWMutex
 
-	Path   string
-	Users  map[string]DatabaseUserDetails
-	Emails map[string]string
+	Path  string
+	Users map[string]DatabaseUserDetails
 }
 
 // Save the database to disk.
@@ -68,28 +65,6 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user DatabaseUserDet
 	m.RLock()
 
 	defer m.RUnlock()
-
-	if details, ok := m.Users[username]; ok {
-		return details, nil
-	}
-
-	return user, ErrUserNotFound
-}
-
-// GetUserDetailsWithEmail get a DatabaseUserDetails given a username as a value type which can either be the users
-// actual username or their email address.
-func (m *FileUserDatabase) GetUserDetailsWithEmail(username string) (user DatabaseUserDetails, err error) {
-	m.RLock()
-
-	defer m.RUnlock()
-
-	if strings.Contains(username, "@") {
-		if lookup, ok := m.Emails[username]; ok {
-			if details, ok := m.Users[lookup]; ok {
-				return details, nil
-			}
-		}
-	}
 
 	if details, ok := m.Users[username]; ok {
 		return details, nil
@@ -167,7 +142,6 @@ type DatabaseModel struct {
 // ReadToFileUserDatabase reads the DatabaseModel into a FileUserDatabase.
 func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error) {
 	users := map[string]DatabaseUserDetails{}
-	emails := map[string]string{}
 
 	var udm *DatabaseUserDetails
 
@@ -177,13 +151,9 @@ func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error)
 		}
 
 		users[user] = *udm
-
-		if udm.Email != "" {
-			emails[udm.Email] = user
-		}
 	}
 
-	db.Users, db.Emails = users, emails
+	db.Users = users
 
 	return nil
 }

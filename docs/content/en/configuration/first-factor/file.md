@@ -20,7 +20,6 @@ aliases:
 authentication_backend:
   file:
     path: /config/users.yml
-    allow_email_lookups: false
     password:
       algorithm: argon2
       argon2:
@@ -58,12 +57,6 @@ authentication_backend:
 The path to the file with the user details list. Supported file types are:
 
 * [YAML File](../../reference/guides/passwords.md#yaml-format)
-
-### allow_email_lookups
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Allows users to login using their email address or username.
 
 ## Password Options
 

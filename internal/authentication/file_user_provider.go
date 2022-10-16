@@ -29,15 +29,8 @@ func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *Fi
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
 	var details DatabaseUserDetails
 
-	switch {
-	case p.config.AllowEmailLookups:
-		if details, err = p.database.GetUserDetailsWithEmail(username); err != nil {
-			return false, err
-		}
-	default:
-		if details, err = p.database.GetUserDetails(username); err != nil {
-			return false, err
-		}
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return false, err
 	}
 
 	if details.Disabled {
@@ -51,15 +44,8 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var d DatabaseUserDetails
 
-	switch {
-	case p.config.AllowEmailLookups:
-		if d, err = p.database.GetUserDetailsWithEmail(username); err != nil {
-			return nil, err
-		}
-	default:
-		if d, err = p.database.GetUserDetails(username); err != nil {
-			return nil, err
-		}
+	if d, err = p.database.GetUserDetails(username); err != nil {
+		return nil, err
 	}
 
 	if d.Disabled {
@@ -73,15 +59,8 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var details DatabaseUserDetails
 
-	switch {
-	case p.config.AllowEmailLookups:
-		if details, err = p.database.GetUserDetailsWithEmail(username); err != nil {
-			return err
-		}
-	default:
-		if details, err = p.database.GetUserDetails(username); err != nil {
-			return err
-		}
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return err
 	}
 
 	if details.Disabled {
