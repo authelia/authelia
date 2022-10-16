@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
@@ -144,7 +145,13 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 }
 
 func handleOIDCAuthorizationConsentGetRedirectionURL(issuer *url.URL, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (redirectURL *url.URL) {
-	redirectURL, _ = url.ParseRequestURI(issuer.String())
+	iss := issuer.String()
+
+	if !strings.HasSuffix(iss, "/") {
+		iss += "/"
+	}
+
+	redirectURL, _ = url.ParseRequestURI(iss)
 
 	query := redirectURL.Query()
 	query.Set(queryArgWorkflow, workflowOpenIDConnect)
@@ -153,7 +160,7 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(issuer *url.URL, consent *m
 	case consent != nil:
 		query.Set(queryArgWorkflowID, consent.ChallengeID.String())
 	case requester != nil:
-		rd, _ := url.ParseRequestURI(issuer.String())
+		rd, _ := url.ParseRequestURI(iss)
 		rd.Path = path.Join(rd.Path, oidc.EndpointPathAuthorization)
 		rd.RawQuery = requester.GetRequestForm().Encode()
 
