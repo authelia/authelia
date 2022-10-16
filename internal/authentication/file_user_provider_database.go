@@ -127,7 +127,6 @@ func (m DatabaseUserDetails) ToUserDetails() (details *UserDetails) {
 func (m DatabaseUserDetails) ToUserDetailsModel() (model UserDetailsModel) {
 	return UserDetailsModel{
 		HashedPassword: m.Digest.Encode(),
-		Disabled:       m.Disabled,
 		DisplayName:    m.DisplayName,
 		Email:          m.Email,
 		Groups:         m.Groups,
@@ -200,7 +199,6 @@ func (m *DatabaseModel) Write(fileName string) (err error) {
 // UserDetailsModel is the model of user details in the file database.
 type UserDetailsModel struct {
 	HashedPassword string   `yaml:"password" valid:"required"`
-	Disabled       bool     `yaml:"disabled"`
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
@@ -217,7 +215,6 @@ func (m UserDetailsModel) ToDatabaseUserDetailsModel(username string) (model *Da
 	return &DatabaseUserDetails{
 		Username:    username,
 		Digest:      d,
-		Disabled:    m.Disabled,
 		DisplayName: m.DisplayName,
 		Email:       m.Email,
 		Groups:      m.Groups,
