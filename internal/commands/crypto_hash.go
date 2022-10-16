@@ -469,7 +469,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Print(prompt)
 
-	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil {
+	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil { //nolint:unconvert // Conversion is required.
 		if err.Error() == "inappropriate ioctl for device" {
 			return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use the '--password' flag or use an interactive terminal: %w", err)
 		}
