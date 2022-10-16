@@ -93,6 +93,8 @@ const (
 		errSuffixMustBeOneOf
 	errFmtFileAuthBackendPasswordInvalidVariant = "authentication_backend: file: password: %s: " +
 		"option 'variant' " + errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordInvalidSaltLengthTooLong = "authentication_backend: file: password: %s: " +
+		"option 'salt_length' is configured as '%d' must be less than '%d'"
 
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
@@ -296,6 +298,8 @@ const (
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
+
+var validArgon2Variants = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
 
 var validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
 

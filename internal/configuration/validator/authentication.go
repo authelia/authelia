@@ -15,16 +15,6 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
 	}
 
-	if config.LDAP != nil && config.File != nil {
-		validator.Push(fmt.Errorf(errFmtAuthBackendMultipleConfigured))
-	}
-
-	if config.File != nil {
-		validateFileAuthenticationBackend(config.File, validator)
-	} else if config.LDAP != nil {
-		validateLDAPAuthenticationBackend(config, validator)
-	}
-
 	if config.RefreshInterval == "" {
 		config.RefreshInterval = schema.RefreshIntervalDefault
 	} else {
@@ -41,6 +31,18 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		default:
 			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.PasswordReset.CustomURL.String(), config.PasswordReset.CustomURL.Scheme))
 		}
+	}
+
+	if config.LDAP != nil && config.File != nil {
+		validator.Push(fmt.Errorf(errFmtAuthBackendMultipleConfigured))
+	}
+
+	if config.File != nil {
+		validateFileAuthenticationBackend(config.File, validator)
+	}
+
+	if config.LDAP != nil {
+		validateLDAPAuthenticationBackend(config, validator)
 	}
 }
 
@@ -74,17 +76,13 @@ func ValidatePasswordConfiguration(config *schema.Password, validator *schema.St
 }
 
 func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Password, validator *schema.StructValidator) {
-	switch config.Argon2.Variant {
-	case "":
+	switch {
+	case config.Argon2.Variant == "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
-	case "argon2id", "id", "argon2i", "i", "argon2d", "d":
+	case utils.IsStringInSlice(config.Argon2.Variant, validArgon2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, config.Argon2.Variant, strings.Join([]string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}, "', '")))
-	}
-
-	if config.Argon2.Iterations == 0 {
-		config.Argon2.Iterations = schema.DefaultPasswordConfig.Argon2.Iterations
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, config.Argon2.Variant, strings.Join(validArgon2Variants, "', '")))
 	}
 
 	if config.Argon2.Iterations == 0 {
@@ -122,8 +120,11 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 		config.SHA2Crypt.Iterations = schema.DefaultPasswordConfig.SHA2Crypt.Iterations
 	}
 
-	if config.SHA2Crypt.SaltLength == 0 {
+	switch {
+	case config.SHA2Crypt.SaltLength == 0:
 		config.SHA2Crypt.SaltLength = schema.DefaultPasswordConfig.SHA2Crypt.SaltLength
+	case config.SHA2Crypt.SaltLength > 16:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidSaltLengthTooLong, hashSHA2Crypt, config.SHA2Crypt.SaltLength, 16))
 	}
 }
 
@@ -187,36 +188,46 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Passwo
 	switch config.Algorithm {
 	case hashLegacySHA512:
 		config.Algorithm = hashSHA2Crypt
-		config.SHA2Crypt.Variant = digestSHA512
 
-		if config.Iterations > 0 {
+		if config.SHA2Crypt.Variant == "" {
+			config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
+		}
+
+		if config.Iterations > 0 && config.SHA2Crypt.Iterations == 0 {
 			config.SHA2Crypt.Iterations = config.Iterations
 		}
 
-		if config.SaltLength > 0 {
-			config.SHA2Crypt.SaltLength = config.SaltLength
+		if config.SaltLength > 0 && config.SHA2Crypt.SaltLength == 0 {
+			if config.SaltLength > 16 {
+				config.SHA2Crypt.SaltLength = 16
+			} else {
+				config.SHA2Crypt.SaltLength = config.SaltLength
+			}
 		}
 	case hashLegacyArgon2id:
 		config.Algorithm = hashArgon2
-		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
 
-		if config.Iterations > 0 {
+		if config.Argon2.Variant == "" {
+			config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
+		}
+
+		if config.Iterations > 0 && config.Argon2.Memory == 0 {
 			config.Argon2.Iterations = config.Iterations
 		}
 
-		if config.Memory > 0 {
+		if config.Memory > 0 && config.Argon2.Memory == 0 {
 			config.Argon2.Memory = config.Memory * 1024
 		}
 
-		if config.Parallelism > 0 {
+		if config.Parallelism > 0 && config.Argon2.Parallelism == 0 {
 			config.Argon2.Parallelism = config.Parallelism
 		}
 
-		if config.KeyLength > 0 {
+		if config.KeyLength > 0 && config.Argon2.KeyLength == 0 {
 			config.Argon2.KeyLength = config.KeyLength
 		}
 
-		if config.SaltLength > 0 {
+		if config.SaltLength > 0 && config.Argon2.SaltLength == 0 {
 			config.Argon2.SaltLength = config.SaltLength
 		}
 	}
