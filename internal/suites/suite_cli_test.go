@@ -144,6 +144,24 @@ func (s *CLISuite) TestShouldHashPasswordPBKDF2SHA512() {
 	s.Assert().Contains(output, "Digest: $pbkdf2-sha512$310000$")
 }
 
+func (s *CLISuite) TestShouldHashPasswordBCrypt() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "bcrypt", "--password=apple123"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $2b$12$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordBCryptSHA256() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "bcrypt", "--password=apple123", "-v=sha256"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $bcrypt-sha256$v=2,t=2b,r=12$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordSCrypt() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "--password=apple123"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $scrypt$ln=16,r=8,p=1$")
+}
+
 func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "certificate", "rsa", "request", "--common-name=example.com", "--sans='*.example.com'", "--directory=/tmp/"})
 	s.Assert().NoError(err)
