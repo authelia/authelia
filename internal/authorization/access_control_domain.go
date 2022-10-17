@@ -9,7 +9,7 @@ import (
 )
 
 // NewAccessControlDomain creates a new SubjectObjectMatcher that matches the domain as a basic string.
-func NewAccessControlDomain(domain string) AccessControlDomain {
+func NewAccessControlDomain(domain string) (subjcets bool, rule AccessControlDomain) {
 	m := &AccessControlDomainMatcher{}
 	domain = strings.ToLower(domain)
 
@@ -27,7 +27,7 @@ func NewAccessControlDomain(domain string) AccessControlDomain {
 		m.Name = domain
 	}
 
-	return AccessControlDomain{m}
+	return m.UserWildcard || m.GroupWildcard, AccessControlDomain{m}
 }
 
 // NewAccessControlDomainRegex creates a new SubjectObjectMatcher that matches the domain either in a basic way or
