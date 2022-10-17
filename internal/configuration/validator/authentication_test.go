@@ -103,7 +103,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 
 	suite.config.File.Password = schema.Password{
-		Algorithm:  "sha512",
+		Algorithm:  digestSHA512,
 		Iterations: 1000000,
 		SaltLength: 8,
 	}
@@ -113,8 +113,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("sha2crypt", suite.config.File.Password.Algorithm)
-	suite.Assert().Equal("sha512", suite.config.File.Password.SHA2Crypt.Variant)
+	suite.Assert().Equal(hashSHA2Crypt, suite.config.File.Password.Algorithm)
+	suite.Assert().Equal(digestSHA512, suite.config.File.Password.SHA2Crypt.Variant)
 	suite.Assert().Equal(1000000, suite.config.File.Password.SHA2Crypt.Iterations)
 	suite.Assert().Equal(8, suite.config.File.Password.SHA2Crypt.SaltLength)
 }
@@ -124,11 +124,11 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 
 	suite.config.File.Password = schema.Password{
-		Algorithm:  "sha512",
+		Algorithm:  digestSHA512,
 		Iterations: 1000000,
 		SaltLength: 8,
 		SHA2Crypt: schema.SHA2CryptPassword{
-			Variant:    "sha256",
+			Variant:    digestSHA256,
 			Iterations: 50000,
 			SaltLength: 12,
 		},
@@ -139,8 +139,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("sha2crypt", suite.config.File.Password.Algorithm)
-	suite.Assert().Equal("sha256", suite.config.File.Password.SHA2Crypt.Variant)
+	suite.Assert().Equal(hashSHA2Crypt, suite.config.File.Password.Algorithm)
+	suite.Assert().Equal(digestSHA256, suite.config.File.Password.SHA2Crypt.Variant)
 	suite.Assert().Equal(50000, suite.config.File.Password.SHA2Crypt.Iterations)
 	suite.Assert().Equal(12, suite.config.File.Password.SHA2Crypt.SaltLength)
 }
@@ -150,7 +150,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 
 	suite.config.File.Password = schema.Password{
-		Algorithm:  "sha512",
+		Algorithm:  digestSHA512,
 		Iterations: 1000000,
 		SaltLength: 64,
 	}
@@ -160,8 +160,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("sha2crypt", suite.config.File.Password.Algorithm)
-	suite.Assert().Equal("sha512", suite.config.File.Password.SHA2Crypt.Variant)
+	suite.Assert().Equal(hashSHA2Crypt, suite.config.File.Password.Algorithm)
+	suite.Assert().Equal(digestSHA512, suite.config.File.Password.SHA2Crypt.Variant)
 	suite.Assert().Equal(1000000, suite.config.File.Password.SHA2Crypt.Iterations)
 	suite.Assert().Equal(16, suite.config.File.Password.SHA2Crypt.SaltLength)
 }
@@ -231,15 +231,15 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationWhenOnlySHA512Set() {
 	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
-	suite.config.File.Password.Algorithm = "sha512"
+	suite.config.File.Password.Algorithm = digestSHA512
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("sha2crypt", suite.config.File.Password.Algorithm)
-	suite.Assert().Equal("sha512", suite.config.File.Password.SHA2Crypt.Variant)
+	suite.Assert().Equal(hashSHA2Crypt, suite.config.File.Password.Algorithm)
+	suite.Assert().Equal(digestSHA512, suite.config.File.Password.SHA2Crypt.Variant)
 	suite.Assert().Equal(schema.DefaultPasswordConfig.SHA2Crypt.Iterations, suite.config.File.Password.SHA2Crypt.Iterations)
 	suite.Assert().Equal(schema.DefaultPasswordConfig.SHA2Crypt.SaltLength, suite.config.File.Password.SHA2Crypt.SaltLength)
 }
@@ -248,7 +248,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidArgon2
 	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "argon2"
-	suite.config.File.Password.Argon2.Variant = "invalid"
+	suite.config.File.Password.Argon2.Variant = testInvalid
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -261,8 +261,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidArgon2
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2CryptVariant() {
 	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
-	suite.config.File.Password.Algorithm = "sha2crypt"
-	suite.config.File.Password.SHA2Crypt.Variant = "invalid"
+	suite.config.File.Password.Algorithm = hashSHA2Crypt
+	suite.config.File.Password.SHA2Crypt.Variant = testInvalid
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -275,7 +275,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2Cr
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2CryptSaltLength() {
 	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
-	suite.config.File.Password.Algorithm = "sha2crypt"
+	suite.config.File.Password.Algorithm = hashSHA2Crypt
 	suite.config.File.Password.SHA2Crypt.SaltLength = 40
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -290,7 +290,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidPBKDF2
 	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "pbkdf2"
-	suite.config.File.Password.PBKDF2.Variant = "invalid"
+	suite.config.File.Password.PBKDF2.Variant = testInvalid
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
@@ -304,7 +304,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidBCrypt
 	suite.config.File.Password = schema.Password{}
 	suite.Assert().Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "bcrypt"
-	suite.config.File.Password.BCrypt.Variant = "invalid"
+	suite.config.File.Password.BCrypt.Variant = testInvalid
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 

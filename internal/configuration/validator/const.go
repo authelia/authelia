@@ -49,18 +49,6 @@ const (
 	schemeHTTPS = "https"
 )
 
-// Test constants.
-const (
-	testInvalidPolicy = "invalid"
-	testJWTSecret     = "a_secret"
-	testLDAPBaseDN    = "base_dn"
-	testLDAPPassword  = "password"
-	testLDAPURL       = "ldap://ldap"
-	testLDAPUser      = "user"
-	testModeDisabled  = "disable"
-	testEncryptionKey = "a_not_so_secure_encryption_key"
-)
-
 // Notifier Error constants.
 const (
 	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
@@ -313,7 +301,7 @@ var validBCryptVariants = []string{"standard", digestSHA256}
 
 var validHashAlgorithms = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
 
-var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
+var validStoragePostgreSQLSSLModes = []string{"disable", "require", "verify-ca", "verify-full"}
 
 var validThemeNames = []string{"light", "dark", "grey", "auto"}
 

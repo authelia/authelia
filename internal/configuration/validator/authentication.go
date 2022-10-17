@@ -253,6 +253,7 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 	}
 }
 
+//nolint:gocyclo // Function is clear enough.
 func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Password) {
 	switch config.Algorithm {
 	case hashLegacySHA512:
