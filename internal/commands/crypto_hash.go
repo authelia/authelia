@@ -311,8 +311,6 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		return err
 	}
 
-	fmt.Printf("%+v\n", c)
-
 	var (
 		hash     crypt.Hash
 		digest   crypt.Digest
