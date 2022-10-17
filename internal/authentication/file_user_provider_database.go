@@ -7,7 +7,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-crypt/crypt"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // NewFileUserDatabase creates a new FileUserDatabase.
@@ -148,7 +148,7 @@ func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error)
 		if details.Disabled {
 			continue
 		}
-		
+
 		if udm, err = details.ToDatabaseUserDetailsModel(user); err != nil {
 			return fmt.Errorf("failed to parse hash for user '%s': %w", user, err)
 		}
