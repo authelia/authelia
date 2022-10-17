@@ -5,9 +5,10 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/go-crypt/crypt"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"github.com/go-crypt/crypt"
 )
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
@@ -76,6 +77,7 @@ func ValidatePasswordConfiguration(config *schema.Password, validator *schema.St
 	validateFileAuthenticationBackendPasswordConfigSCrypt(config, validator)
 }
 
+//nolint:gocyclo // Function is well formed.
 func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Password, validator *schema.StructValidator) {
 	switch {
 	case config.Argon2.Variant == "":
