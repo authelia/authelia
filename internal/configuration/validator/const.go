@@ -93,8 +93,12 @@ const (
 		errSuffixMustBeOneOf
 	errFmtFileAuthBackendPasswordInvalidVariant = "authentication_backend: file: password: %s: " +
 		"option 'variant' " + errSuffixMustBeOneOf
-	errFmtFileAuthBackendPasswordInvalidSaltLengthTooLong = "authentication_backend: file: password: %s: " +
-		"option 'salt_length' is configured as '%d' must be less than '%d'"
+	errFmtFileAuthBackendPasswordOptionTooLarge = "authentication_backend: file: password: %s: " +
+		"option '%s' is configured as '%d' but must be less than or equal to '%d'"
+	errFmtFileAuthBackendPasswordOptionTooSmall = "authentication_backend: file: password: %s: " +
+		"option '%s' is configured as '%d' but must be greater than or equal to '%d'"
+	errFmtFileAuthBackendPasswordArgon2MemoryTooLow = "authentication_backend: file: password: argon2: " +
+		"option 'memory' is configured as '%d' but must be greater than or equal to '%d' or '%d' (the value of 'parallelism) multiplied by '%d'"
 
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
