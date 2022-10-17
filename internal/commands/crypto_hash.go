@@ -501,7 +501,7 @@ func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {
 
 func cmdFlagRandomPassword(cmd *cobra.Command) {
 	cmd.Flags().Bool(cmdFlagNameRandom, false, "uses a randomly generated password")
-	cmd.Flags().Int(cmdFlagNameRandomLength, 80, "when using a randomly generated password it configures the length")
+	cmd.Flags().Int(cmdFlagNameRandomLength, 72, "when using a randomly generated password it configures the length")
 }
 
 func cmdFlagIterations(cmd *cobra.Command, value int) {
