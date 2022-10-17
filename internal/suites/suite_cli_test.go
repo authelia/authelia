@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -257,7 +257,7 @@ func (s *CLISuite) TestShouldHashPasswordSCrypt() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "--password=apple123", "-i=1", "-r=2"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Digest: $scrypt$ln=1,r=1,p=1$")
+	s.Assert().Contains(output, "Digest: $scrypt$ln=1,r=2,p=1$")
 }
 
 func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
