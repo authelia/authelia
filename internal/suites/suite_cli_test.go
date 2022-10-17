@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -87,7 +87,7 @@ func (s *CLISuite) TestShouldFailValidateConfig() {
 func (s *CLISuite) TestShouldHashPasswordArgon2idLegacy() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "hash-password", "test", "-m", "32"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Digest: $argon2id$v=19$m=32,t=3,p=4$")
+	s.Assert().Contains(output, "Digest: $argon2id$v=19$m=32768,t=3,p=4$")
 }
 
 func (s *CLISuite) TestShouldHashPasswordSHA512Legacy() {
@@ -141,7 +141,7 @@ func (s *CLISuite) TestShouldHashPasswordPBKDF2SHA256() {
 func (s *CLISuite) TestShouldHashPasswordPBKDF2SHA512() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "pbkdf2", "--password=apple123", "-v=sha512"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Digest: $pbkdf2-sha256$310000$")
+	s.Assert().Contains(output, "Digest: $pbkdf2-sha512$310000$")
 }
 
 func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {

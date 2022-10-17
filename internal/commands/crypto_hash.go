@@ -280,7 +280,8 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 	var (
 		algorithm string
 		configs   []string
-		c         schema.Password
+
+		c schema.Password
 	)
 
 	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
@@ -309,6 +310,10 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 
 	if c, err = cmdCryptoHashGetConfig(algorithm, configs, cmd.Flags(), flagsMap); err != nil {
 		return err
+	}
+
+	if legacy && algorithm == cmdUseHashArgon2 && cmd.Flags().Changed(cmdFlagNameMemory) {
+		c.Argon2.Memory *= 1024
 	}
 
 	var (
@@ -469,7 +474,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Print(prompt)
 
-	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil { //nolint:unconvert // Conversion is required.
+	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil {
 		if err.Error() == "inappropriate ioctl for device" {
 			return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use the '--password' flag or use an interactive terminal: %w", err)
 		}
