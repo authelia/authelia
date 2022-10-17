@@ -19,10 +19,10 @@ func NewAccessControlDomain(domain string) (subjcets bool, rule AccessControlDom
 		m.Name = domain[1:]
 	case strings.HasPrefix(domain, "{user}"):
 		m.UserWildcard = true
-		m.Name = domain[7:]
+		m.Name = domain[6:]
 	case strings.HasPrefix(domain, "{group}"):
 		m.GroupWildcard = true
-		m.Name = domain[8:]
+		m.Name = domain[7:]
 	default:
 		m.Name = domain
 	}
@@ -69,15 +69,15 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 			return true
 		}
 
-		return domain == fmt.Sprintf("%s.%s", subject.Username, m.Name)
+		return domain == fmt.Sprintf("%s%s", subject.Username, m.Name)
 	case m.GroupWildcard:
 		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
 			return true
 		}
 
-		prefix, suffix := domainToPrefixSuffix(domain)
+		i := strings.Index(domain, ".")
 
-		return suffix == m.Name && utils.IsStringInSliceFold(prefix, subject.Groups)
+		return domain[i:] == m.Name && utils.IsStringInSliceFold(domain[:i], subject.Groups)
 	default:
 		return strings.EqualFold(domain, m.Name)
 	}
