@@ -41,7 +41,7 @@ authelia crypto hash generate bcrypt --help
       --no-confirm          skip the password confirmation prompt
       --password string     manually supply the password rather than using the terminal prompt
       --random              uses a randomly generated password
-      --random.length int   when using a randomly generated password it configures the length (default 80)
+      --random.length int   when using a randomly generated password it configures the length (default 72)
   -v, --variant string      variant, options are 'standard' and 'sha256' (default "standard")
 ```
 

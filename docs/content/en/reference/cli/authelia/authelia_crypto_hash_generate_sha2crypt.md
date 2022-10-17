@@ -41,7 +41,7 @@ authelia crypto hash generate sha2crypt --help
       --no-confirm          skip the password confirmation prompt
       --password string     manually supply the password rather than using the terminal prompt
       --random              uses a randomly generated password
-      --random.length int   when using a randomly generated password it configures the length (default 80)
+      --random.length int   when using a randomly generated password it configures the length (default 72)
   -s, --salt-size int       salt size in bytes (default 16)
   -v, --variant string      variant, options are sha256 and sha512 (default "sha512")
 ```

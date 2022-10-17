@@ -44,7 +44,7 @@ authelia crypto hash generate scrypt --help
   -p, --parallelism int     parallelism or threads (default 1)
       --password string     manually supply the password rather than using the terminal prompt
       --random              uses a randomly generated password
-      --random.length int   when using a randomly generated password it configures the length (default 80)
+      --random.length int   when using a randomly generated password it configures the length (default 72)
   -s, --salt-size int       salt size in bytes (default 16)
 ```
 
