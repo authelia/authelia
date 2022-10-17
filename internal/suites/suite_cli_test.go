@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -82,6 +82,66 @@ func (s *CLISuite) TestShouldFailValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config=/config/invalid.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "failed to load configuration from yaml file(/config/invalid.yml) source: open /config/invalid.yml: no such file or directory")
+}
+
+func (s *CLISuite) TestShouldHashPasswordArgon2idLegacy() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "hash-password", "test", "-m", "32"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $argon2id$v=19$m=32768,t=3,p=4$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordSHA512Legacy() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "hash-password", "test", "-z"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $6$rounds=50000")
+}
+
+func (s *CLISuite) TestShouldHashPasswordArgon2id() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "argon2", "--password=apple123", "-m=32768"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $argon2id$v=19$m=32768,t=3,p=4$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordArgon2i() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "argon2", "--password=apple123", "-m", "32768", "-v=argon2i"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $argon2i$v=19$m=32768,t=3,p=4$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordArgon2d() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "argon2", "--password=apple123", "-m=32768", "-v=argon2d"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $argon2d$v=19$m=32768,t=3,p=4$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordSHA2CryptSHA256() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "sha2crypt", "--password=apple123", "-v=sha256"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $5$rounds=50000")
+}
+
+func (s *CLISuite) TestShouldHashPasswordSHA2CryptSHA512() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "sha2crypt", "--password=apple123", "-v=sha512"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $6$rounds=50000$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordPBKDF2SHA1() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "pbkdf2", "--password=apple123", "-v=sha1"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $pbkdf2$310000$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordPBKDF2SHA256() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "pbkdf2", "--password=apple123", "-v=sha256"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $pbkdf2-sha256$310000$")
+}
+
+func (s *CLISuite) TestShouldHashPasswordPBKDF2SHA512() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "pbkdf2", "--password=apple123", "-v=sha512"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Digest: $pbkdf2-sha256$310000$")
 }
 
 func (s *CLISuite) TestShouldGenerateRSACertificateRequest() {
