@@ -7,7 +7,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-crypt/crypt"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // NewFileUserDatabase creates a new FileUserDatabase.
@@ -166,6 +166,10 @@ func (m *DatabaseModel) Read(filePath string) (err error) {
 
 	if content, err = os.ReadFile(filePath); err != nil {
 		return fmt.Errorf("failed to read the '%s' file: %w", filePath, err)
+	}
+
+	if len(content) == 0 {
+		return ErrNoContent
 	}
 
 	if err = yaml.Unmarshal(content, m); err != nil {

@@ -87,8 +87,13 @@ const (
 	hashBCrypt    = "bcrypt"
 )
 
-// ErrUserNotFound indicates the user wasn't found in the authentication backend.
-var ErrUserNotFound = errors.New("user not found")
+var (
+	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
+	ErrUserNotFound = errors.New("user not found")
+
+	// ErrNoContent is returned when the file is empty.
+	ErrNoContent = errors.New("no file content")
+)
 
 const fileAuthenticationMode = 0600
 
