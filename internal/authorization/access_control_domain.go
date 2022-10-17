@@ -65,8 +65,16 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 	case m.Wildcard:
 		return strings.HasSuffix(domain, m.Name)
 	case m.UserWildcard:
+		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
+			return true
+		}
+
 		return domain == fmt.Sprintf("%s.%s", subject.Username, m.Name)
 	case m.GroupWildcard:
+		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
+			return true
+		}
+
 		prefix, suffix := domainToPrefixSuffix(domain)
 
 		return suffix == m.Name && utils.IsStringInSliceFold(prefix, subject.Groups)
