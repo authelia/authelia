@@ -50,6 +50,7 @@ var Keys = []string{
 	"authentication_backend.password_reset.custom_url",
 	"authentication_backend.refresh_interval",
 	"authentication_backend.file.path",
+	"authentication_backend.file.watch",
 	"authentication_backend.file.password.algorithm",
 	"authentication_backend.file.password.argon2.variant",
 	"authentication_backend.file.password.argon2.iterations",
