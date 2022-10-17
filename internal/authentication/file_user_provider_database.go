@@ -145,6 +145,10 @@ func (m *DatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase) (err error)
 	var udm *DatabaseUserDetails
 
 	for user, details := range m.Users {
+		if details.Disabled {
+			continue
+		}
+
 		if udm, err = details.ToDatabaseUserDetailsModel(user); err != nil {
 			return fmt.Errorf("failed to parse hash for user '%s': %w", user, err)
 		}
@@ -206,6 +210,7 @@ type UserDetailsModel struct {
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
+	Disabled       bool     `yaml:"disabled"`
 }
 
 // ToDatabaseUserDetailsModel converts a UserDetailsModel into a *DatabaseUserDetails.

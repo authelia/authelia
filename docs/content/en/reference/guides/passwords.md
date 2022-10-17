@@ -31,21 +31,25 @@ users:
     groups:
       - admins
       - dev
+    disabled: false
   harry:
     displayname: "Harry Potter"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: harry.potter@authelia.com
     groups: []
+    disabled: false
   bob:
     displayname: "Bob Dylan"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: bob.dylan@authelia.com
     groups:
       - dev
+    disabled: false
   james:
     displayname: "James Dean"
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     email: james.dean@authelia.com
+    disabled: false
 ```
 
 ## Passwords
