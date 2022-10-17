@@ -204,7 +204,7 @@ func (s *CLISuite) TestShouldHashPasswordPBKDF2() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "pbkdf2", "--password=apple123", "-s=32", "-i=100000"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Digest: $pbkdf2-sha384$100000$")
+	s.Assert().Contains(output, "Digest: $pbkdf2-sha512$100000$")
 }
 
 func (s *CLISuite) TestShouldHashPasswordBCrypt() {
