@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -247,15 +247,15 @@ func (s *CLISuite) TestShouldHashPasswordSCrypt() {
 	s.Assert().Contains(output, "Random Password: ")
 	s.Assert().Contains(output, "Digest: $scrypt$ln=16,r=8,p=1$")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "-i=1"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "--password=apple123", "-i=1"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Digest: $scrypt$ln=1,r=8,p=1$")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "-i=1", "-p=2"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "--password=apple123", "-i=1", "-p=2"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Digest: $scrypt$ln=1,r=8,p=2$")
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "-i=1", "-r=2"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "crypto", "hash", "generate", "scrypt", "--password=apple123", "-i=1", "-r=2"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Digest: $scrypt$ln=1,r=1,p=1$")
 }

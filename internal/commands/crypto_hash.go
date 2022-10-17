@@ -235,7 +235,7 @@ func cryptoHashGenerateSCryptRunE(cmd *cobra.Command, args []string) (err error)
 
 func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     fmt.Sprintf("%s [flags] -- <digest>", cmdUseValidate),
+		Use:     fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate),
 		Short:   cmdAutheliaCryptoHashValidateShort,
 		Long:    cmdAutheliaCryptoHashValidateLong,
 		Example: cmdAutheliaCryptoHashValidateExample,
@@ -450,6 +450,12 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	password = string(data)
+
+	if cmd.Use == fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate) {
+		fmt.Println("")
+
+		return
+	}
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
 		if data, err = hashReadPasswordWithPrompt("Confirm Password: "); err != nil {

@@ -527,6 +527,7 @@ const (
 	cmdUseCertificate = "certificate"
 	cmdUseGenerate    = "generate"
 	cmdUseValidate    = "validate"
+	cmdUseFmtValidate = "%s [flags] -- <digest>"
 	cmdUseRequest     = "request"
 	cmdUsePair        = "pair"
 	cmdUseRSA         = "rsa"
