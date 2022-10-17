@@ -20,13 +20,33 @@ aliases:
 authentication_backend:
   file:
     path: /config/users.yml
+    watch: false
     password:
-      algorithm: argon2id
-      iterations: 3
-      key_length: 32
-      salt_length: 16
-      parallelism: 4
-      memory: 64
+      algorithm: argon2
+      argon2:
+        variant: argon2id
+        iterations: 3
+        memory: 65536
+        parallelism: 4
+        key_length: 32
+        salt_length: 16
+      scrypt:
+        iterations: 16
+        block_size: 8
+        parallelism: 1
+        key_length: 32
+        salt_length: 16
+      pbkdf2:
+        variant: sha512
+        iterations: 310000
+        salt_length: 16
+      sha2crypt:
+        variant: sha512
+        iterations: 50000
+        salt_length: 16
+      bcrypt:
+        variant: standard
+        cost: 12
 ```
 
 ## Options
@@ -39,70 +59,13 @@ The path to the file with the user details list. Supported file types are:
 
 * [YAML File](../../reference/guides/passwords.md#yaml-format)
 
-### password
+### watch
 
-#### algorithm
+{{< confkey type="boolean" default="false" required="no" >}}
 
-{{< confkey type="string" default="argon2id" required="no" >}}
+Enables reloading the database by watching it for changes.
 
-Controls the hashing algorithm used for hashing new passwords. Value must be one of:
-
-* `argon2id` for the [Argon2] `id` variant
-* `sha512` for the [SHA Crypt] `SHA512` variant
-
-#### iterations
-
-{{< confkey type="integer" required="no" >}}
-
-Controls the number of hashing iterations done by the other hashing settings ([Argon2] parameter `t`, [SHA Crypt]
-parameter `rounds`). This affects the effective cost of hashing.
-
-| Algorithm | Minimum | Default |                                        Recommended                                         |
-|:---------:|:-------:|:-------:|:------------------------------------------------------------------------------------------:|
-| argon2id  |    1    |    3    | [See Recommendations](../../reference/guides/passwords.md#recommended-parameters-argon2id) |
-|  sha512   |  1000   |  50000  |  [See Recommendations](../../reference/guides/passwords.md#recommended-parameters-sha512)  |
-
-#### key_length
-
-{{< confkey type="integer" default="32" required="no" >}}
-
-*__Important:__ This setting is specific to the `argon2id` algorithm and unused with the `sha512` algorithm.*
-
-Sets the key length of the [Argon2] hash output. The minimum value is `16` with the recommended value of `32` being set
-as the default.
-
-#### salt_length
-
-{{< confkey type="integer" default="16" required="no" >}}
-
-Controls the length of the random salt added to each password before hashing. There is not a compelling reason to have
-this set to anything other than `16`, however the minimum is `8` with the recommended value of `16` being set as the
-default.
-
-#### parallelism
-
-{{< confkey type="integer" default="4" required="no" >}}
-
-*__Important:__ This setting is specific to the `argon2id` algorithm and unused with the `sha512` algorithm.*
-
-Sets the number of threads used by [Argon2] when hashing passwords ([Argon2] parameter `p`). The minimum value is `1`
-with the recommended value of `4` being set as the default. This affects the effective cost of hashing.
-
-#### memory
-
-{{< confkey type="integer" default="64" required="no" >}}
-
-*__Important:__ This setting is specific to the `argon2id` algorithm and unused with the `sha512` algorithm.*
-
-Sets the amount of memory in megabytes allocated to a single password hashing calculation ([Argon2] parameter `m`). This
-affects the effective cost of hashing.
-
-This memory is released by go after the hashing process completes, however the operating system may not reclaim the
-memory until a later time such as when the system is experiencing memory pressure which may cause the appearance of more
-memory being in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be
-reclaimed as long as another hashing calculation is not still utilizing it.
-
-## Reference
+## Password Options
 
 A [reference guide](../../reference/guides/passwords.md) exists specifically for choosing password hashing values. This
 section contains far more information than is practical to include in this configuration document. See the
@@ -110,5 +73,164 @@ section contains far more information than is practical to include in this confi
 
 This guide contains examples such as the [User / Password File](../../reference/guides/passwords.md#user--password-file).
 
+### algorithm
+
+{{< confkey type="string" default="argon2" required="no" >}}
+
+Controls the hashing algorithm used for hashing new passwords. Value must be one of:
+
+* `argon2` for the [Argon2](#argon2) algorithm
+* `scrypt` for the [Scrypt](#scrypt) algorithm
+* `pbkdf2` for the [PBKDF2](#pbkdf2) algorithm
+* `sha2crypt` for the [SHA2Crypt](#sha2crypt) algorithm
+* `bcrypt` for the [Bcrypt](#bcrypt) algorithm
+
+### argon2
+
+The [Argon2] algorithm implementation. This is one of the only algorithms that was designed purely with password hashing
+in mind and is subsequently one of the best algorithms to date for security.
+
+#### variant
+
+{{< confkey type="string" default="argon2id" required="no" >}}
+
+Controls the variant when hashing passwords using [Argon2]. Recommended `argon2id`.
+Permitted values `argon2id`, `argon2i`, `argon2d`.
+
+#### iterations
+
+{{< confkey type="integer" default="3" required="no" >}}
+
+Controls the number of iterations when hashing passwords using [Argon2].
+
+#### memory
+
+{{< confkey type="integer" default="65536" required="no" >}}
+
+Controls the amount of memory in kibibytes when hashing passwords using [Argon2].
+
+#### parallelism
+
+{{< confkey type="integer" default="4" required="no" >}}
+
+Controls the parallelism factor when hashing passwords using [Argon2].
+
+#### key_length
+
+{{< confkey type="integer" default="32" required="no" >}}
+
+Controls the output key length when hashing passwords using [Argon2].
+
+#### salt_length
+
+{{< confkey type="integer" default="16" required="no" >}}
+
+Controls the output salt length when hashing passwords using [Argon2].
+
+### scrypt
+
+The [Scrypt] algorithm implementation.
+
+#### iterations
+
+{{< confkey type="integer" default="16" required="no" >}}
+
+Controls the number of iterations when hashing passwords using [Scrypt].
+
+#### block_size
+
+{{< confkey type="integer" default="8" required="no" >}}
+
+Controls the block size when hashing passwords using [Scrypt].
+
+#### parallelism
+
+{{< confkey type="integer" default="1" required="no" >}}
+
+Controls the parallelism factor when hashing passwords using [Scrypt].
+
+#### key_length
+
+{{< confkey type="integer" default="32" required="no" >}}
+
+Controls the output key length when hashing passwords using [Scrypt].
+
+#### salt_length
+
+{{< confkey type="integer" default="16" required="no" >}}
+
+Controls the output salt length when hashing passwords using [Scrypt].
+
+### pbkdf2
+
+The [PBKDF2] algorithm implementation.
+
+#### variant
+
+{{< confkey type="string" default="sha512" required="no" >}}
+
+Controls the variant when hashing passwords using [PBKDF2]. Recommended `sha512`.
+Permitted values `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
+
+#### iterations
+
+{{< confkey type="integer" default="310000" required="no" >}}
+
+Controls the number of iterations when hashing passwords using [PBKDF2].
+
+#### salt_length
+
+{{< confkey type="integer" default="16" required="no" >}}
+
+Controls the output salt length when hashing passwords using [PBKDF2].
+
+### sha2crypt
+
+The [SHA2 Crypt] algorithm implementation.
+
+#### variant
+
+{{< confkey type="string" default="sha512" required="no" >}}
+
+Controls the variant when hashing passwords using [SHA2 Crypt]. Recommended `sha512`.
+Permitted values `sha256`, `sha512`.
+
+#### iterations
+
+{{< confkey type="integer" default="50000" required="no" >}}
+
+Controls the number of iterations when hashing passwords using [SHA2 Crypt].
+
+#### salt_length
+
+{{< confkey type="integer" default="16" required="no" >}}
+
+Controls the output salt length when hashing passwords using [SHA2 Crypt].
+
+### bcrypt
+
+The [Bcrypt] algorithm implementation.
+
+#### variant
+
+{{< confkey type="string" default="standard" required="no" >}}
+
+Controls the variant when hashing passwords using [Bcrypt]. Recommended `standard`.
+Permitted values `standard`, `sha256`.
+
+*__Important Note:__ The `sha256` variant is a special variant designed by
+[Passlib](https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt_sha256.html). This variant passes the
+password through a SHA256 HMAC before passing it to the [Bcrypt] algorithm, effectively bypassing the 72 byte password
+truncation that [Bcrypt] does. It is not supported by many other systems.*
+
+#### cost
+
+{{< confkey type="integer" default="12" required="no" >}}
+
+Controls the hashing cost when hashing passwords using [Bcrypt].
+
 [Argon2]: https://www.rfc-editor.org/rfc/rfc9106.html
-[SHA Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
+[Scrypt]: https://en.wikipedia.org/wiki/Scrypt
+[PBKDF2]: https://www.ietf.org/rfc/rfc2898.html
+[SHA2 Crypt]: https://www.akkadia.org/drepper/SHA-crypt.txt
+[Bcrypt]: https://en.wikipedia.org/wiki/Bcrypt

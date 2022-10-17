@@ -2,13 +2,13 @@ package authentication
 
 import (
 	_ "embed" // Embed users_database.template.yml.
+	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"sync"
+	"time"
 
-	"github.com/asaskevich/govalidator"
-	"gopkg.in/yaml.v3"
+	"github.com/go-crypt/crypt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -16,196 +16,188 @@ import (
 
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
-	configuration *schema.FileAuthenticationBackendConfiguration
-	database      *DatabaseModel
-	lock          *sync.Mutex
-}
-
-// UserDetailsModel is the model of user details in the file database.
-type UserDetailsModel struct {
-	HashedPassword string   `yaml:"password" valid:"required"`
-	DisplayName    string   `yaml:"displayname" valid:"required"`
-	Email          string   `yaml:"email"`
-	Groups         []string `yaml:"groups"`
-}
-
-// DatabaseModel is the model of users file database.
-type DatabaseModel struct {
-	Users map[string]UserDetailsModel `yaml:"users" valid:"required"`
+	config        *schema.FileAuthenticationBackend
+	hash          crypt.Hash
+	database      *FileUserDatabase
+	mutex         *sync.Mutex
+	timeoutReload time.Time
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
-func NewFileUserProvider(configuration *schema.FileAuthenticationBackendConfiguration) *FileUserProvider {
-	logger := logging.Logger()
-
-	errs := checkDatabase(configuration.Path)
-	if errs != nil {
-		for _, err := range errs {
-			logger.Error(err)
-		}
-
-		os.Exit(1)
-	}
-
-	database, err := readDatabase(configuration.Path)
-	if err != nil {
-		// Panic since the file does not exist when Authelia is starting.
-		panic(err)
-	}
-
-	// Early check whether hashed passwords are correct for all users.
-	err = checkPasswordHashes(database)
-	if err != nil {
-		panic(err)
-	}
-
+func NewFileUserProvider(config *schema.FileAuthenticationBackend) (provider *FileUserProvider) {
 	return &FileUserProvider{
-		configuration: configuration,
-		database:      database,
-		lock:          &sync.Mutex{},
+		config:        config,
+		mutex:         &sync.Mutex{},
+		timeoutReload: time.Now().Add(-1 * time.Second),
 	}
 }
 
-func checkPasswordHashes(database *DatabaseModel) error {
-	for u, v := range database.Users {
-		v.HashedPassword = strings.ReplaceAll(v.HashedPassword, "{CRYPT}", "")
-		_, err := ParseHash(v.HashedPassword)
+// Reload the database.
+func (p *FileUserProvider) Reload() (reloaded bool, err error) {
+	now := time.Now()
 
-		if err != nil {
-			return fmt.Errorf("Unable to parse hash of user %s: %s", u, err)
-		}
+	p.mutex.Lock()
 
-		database.Users[u] = v
+	defer p.mutex.Unlock()
+
+	if now.Before(p.timeoutReload) {
+		return false, nil
+	}
+
+	switch err = p.database.Load(); {
+	case err == nil:
+		p.setTimeoutReload(now)
+	case errors.Is(err, ErrNoContent):
+		return false, nil
+	default:
+		return false, fmt.Errorf("failed to reload: %w", err)
+	}
+
+	p.setTimeoutReload(now)
+
+	return true, nil
+}
+
+// CheckUserPassword checks if provided password matches for the given user.
+func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
+	var details DatabaseUserDetails
+
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return false, err
+	}
+
+	if details.Disabled {
+		return false, ErrUserNotFound
+	}
+
+	return details.Digest.MatchAdvanced(password)
+}
+
+// GetDetails retrieve the groups a user belongs to.
+func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
+	var d DatabaseUserDetails
+
+	if d, err = p.database.GetUserDetails(username); err != nil {
+		return nil, err
+	}
+
+	if d.Disabled {
+		return nil, ErrUserNotFound
+	}
+
+	return d.ToUserDetails(), nil
+}
+
+// UpdatePassword update the password of the given user.
+func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
+	var details DatabaseUserDetails
+
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return err
+	}
+
+	if details.Disabled {
+		return ErrUserNotFound
+	}
+
+	if details.Digest, err = p.hash.Hash(newPassword); err != nil {
+		return err
+	}
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func checkDatabase(path string) []error {
-	_, err := os.Stat(path)
-	if err != nil {
-		errs := []error{
-			fmt.Errorf("Unable to find database file: %v", path),
-			fmt.Errorf("Generating database file: %v", path),
+// StartupCheck implements the startup check provider interface.
+func (p *FileUserProvider) StartupCheck() (err error) {
+	if err = checkDatabase(p.config.Path); err != nil {
+		logging.Logger().WithError(err).Errorf("Error checking user authentication YAML database")
+
+		return fmt.Errorf("one or more errors occurred checking the authentication database")
+	}
+
+	if p.hash, err = NewFileCryptoHashFromConfig(p.config.Password); err != nil {
+		return err
+	}
+
+	p.database = NewFileUserDatabase(p.config.Path)
+
+	if err = p.database.Load(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *FileUserProvider) setTimeoutReload(now time.Time) {
+	p.timeoutReload = now.Add(time.Second / 2)
+}
+
+// NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
+func NewFileCryptoHashFromConfig(config schema.Password) (hash crypt.Hash, err error) {
+	switch config.Algorithm {
+	case hashArgon2, "":
+		hash = crypt.NewArgon2Hash().
+			WithVariant(crypt.NewArgon2Variant(config.Argon2.Variant)).
+			WithT(config.Argon2.Iterations).
+			WithM(config.Argon2.Memory).
+			WithP(config.Argon2.Parallelism).
+			WithK(config.Argon2.KeyLength).
+			WithS(config.Argon2.SaltLength)
+	case hashSHA2Crypt:
+		hash = crypt.NewSHA2CryptHash().
+			WithVariant(crypt.NewSHA2CryptVariant(config.SHA2Crypt.Variant)).
+			WithRounds(config.SHA2Crypt.Iterations).
+			WithSaltLength(config.SHA2Crypt.SaltLength)
+	case hashPBKDF2:
+		hash = crypt.NewPBKDF2Hash().
+			WithVariant(crypt.NewPBKDF2Variant(config.PBKDF2.Variant)).
+			WithIterations(config.PBKDF2.Iterations).
+			WithSaltLength(config.PBKDF2.SaltLength)
+	case hashSCrypt:
+		hash = crypt.NewScryptHash().
+			WithLN(config.SCrypt.Iterations).
+			WithP(config.SCrypt.Parallelism).
+			WithR(config.SCrypt.BlockSize)
+	case hashBCrypt:
+		hash = crypt.NewBcryptHash().
+			WithVariant(crypt.NewBcryptVariant(config.BCrypt.Variant)).
+			WithCost(config.BCrypt.Cost)
+	default:
+		return nil, fmt.Errorf("algorithm '%s' is unknown", config.Algorithm)
+	}
+
+	if err = hash.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate hash settings: %w", err)
+	}
+
+	return hash, nil
+}
+
+func checkDatabase(path string) (err error) {
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		if err = os.WriteFile(path, userYAMLTemplate, 0600); err != nil {
+			return fmt.Errorf("user authentication database file doesn't exist at path '%s' and could not be generated: %w", path, err)
 		}
 
-		err := generateDatabaseFromTemplate(path)
-		if err != nil {
-			errs = append(errs, err)
-		} else {
-			errs = append(errs, fmt.Errorf("Generated database at: %v", path))
-		}
-
-		return errs
+		return fmt.Errorf("user authentication database file doesn't exist at path '%s' and has been generated", path)
+	} else if err != nil {
+		return fmt.Errorf("error checking user authentication database file: %w", err)
 	}
 
 	return nil
 }
 
 //go:embed users_database.template.yml
-var cfg []byte
-
-func generateDatabaseFromTemplate(path string) error {
-	err := os.WriteFile(path, cfg, 0600)
-	if err != nil {
-		return fmt.Errorf("Unable to generate %v: %v", path, err)
-	}
-
-	return nil
-}
-
-func readDatabase(path string) (*DatabaseModel, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to read database from file %s: %s", path, err)
-	}
-
-	db := DatabaseModel{}
-
-	err = yaml.Unmarshal(content, &db)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse database: %s", err)
-	}
-
-	ok, err := govalidator.ValidateStruct(db)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid schema of database: %s", err)
-	}
-
-	if !ok {
-		return nil, fmt.Errorf("The database format is invalid: %s", err)
-	}
-
-	return &db, nil
-}
-
-// CheckUserPassword checks if provided password matches for the given user.
-func (p *FileUserProvider) CheckUserPassword(username string, password string) (bool, error) {
-	if details, ok := p.database.Users[username]; ok {
-		ok, err := CheckPassword(password, details.HashedPassword)
-		if err != nil {
-			return false, err
-		}
-
-		return ok, nil
-	}
-
-	return false, ErrUserNotFound
-}
-
-// GetDetails retrieve the groups a user belongs to.
-func (p *FileUserProvider) GetDetails(username string) (*UserDetails, error) {
-	if details, ok := p.database.Users[username]; ok {
-		return &UserDetails{
-			Username:    username,
-			DisplayName: details.DisplayName,
-			Groups:      details.Groups,
-			Emails:      []string{details.Email},
-		}, nil
-	}
-
-	return nil, fmt.Errorf("User '%s' does not exist in database", username)
-}
-
-// UpdatePassword update the password of the given user.
-func (p *FileUserProvider) UpdatePassword(username string, newPassword string) error {
-	details, ok := p.database.Users[username]
-	if !ok {
-		return ErrUserNotFound
-	}
-
-	algorithm, err := ConfigAlgoToCryptoAlgo(p.configuration.Password.Algorithm)
-	if err != nil {
-		return err
-	}
-
-	hash, err := HashPassword(
-		newPassword, "", algorithm, p.configuration.Password.Iterations,
-		p.configuration.Password.Memory*1024, p.configuration.Password.Parallelism,
-		p.configuration.Password.KeyLength, p.configuration.Password.SaltLength)
-
-	if err != nil {
-		return err
-	}
-
-	details.HashedPassword = hash
-
-	p.lock.Lock()
-	p.database.Users[username] = details
-
-	b, err := yaml.Marshal(p.database)
-	if err != nil {
-		p.lock.Unlock()
-		return err
-	}
-
-	err = os.WriteFile(p.configuration.Path, b, fileAuthenticationMode)
-	p.lock.Unlock()
-
-	return err
-}
-
-// StartupCheck implements the startup check provider interface.
-func (p *FileUserProvider) StartupCheck() (err error) {
-	return nil
-}
+var userYAMLTemplate []byte
