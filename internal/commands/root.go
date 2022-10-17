@@ -42,12 +42,12 @@ func NewRootCmd() (cmd *cobra.Command) {
 	cmdWithConfigFlags(cmd, false, []string{})
 
 	cmd.AddCommand(
+		newAccessControlCommand(),
 		newBuildInfoCmd(),
 		newCryptoCmd(),
 		newHashPasswordCmd(),
 		newStorageCmd(),
 		newValidateConfigCmd(),
-		newAccessControlCommand(),
 	)
 
 	return cmd

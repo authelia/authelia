@@ -29,7 +29,7 @@ func (suite *Theme) TestShouldValidateCompleteConfiguration() {
 }
 
 func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
-	suite.config.Theme = "invalid"
+	suite.config.Theme = testInvalid
 
 	ValidateTheme(suite.config, suite.validator)
 
