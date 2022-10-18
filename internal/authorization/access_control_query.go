@@ -53,15 +53,17 @@ func NewAccessControlQueryObjectMatcher(rule schema.ACLQueryRule) (matcher Objec
 	case operatorPresent, operatorAbsent:
 		return &AccessControlQueryMatcherPresent{key: rule.Key, present: rule.Operator == operatorPresent}, nil
 	case operatorEqual, operatorNotEqual:
-		return &AccessControlQueryMatcherEqual{key: rule.Key, value: rule.Value, equal: rule.Operator == operatorEqual}, nil
-	case operatorPattern, operatorNotPattern:
-		var pattern *regexp.Regexp
-
-		if pattern, err = regexp.Compile(rule.Value); err != nil {
-			return nil, fmt.Errorf("could not parse rule regex: %w", err)
+		if value, ok := rule.Value.(string); ok {
+			return &AccessControlQueryMatcherEqual{key: rule.Key, value: value, equal: rule.Operator == operatorEqual}, nil
+		} else {
+			return nil, fmt.Errorf("rule value is not a string and is instead %T", rule.Value)
 		}
-
-		return &AccessControlQueryMatcherPattern{key: rule.Key, pattern: pattern, match: rule.Operator == operatorPattern}, nil
+	case operatorPattern, operatorNotPattern:
+		if pattern, ok := rule.Value.(*regexp.Regexp); ok {
+			return &AccessControlQueryMatcherPattern{key: rule.Key, pattern: pattern, match: rule.Operator == operatorPattern}, nil
+		} else {
+			return nil, fmt.Errorf("rule value is not a *regexp.Regexp and is instead %T", rule.Value)
+		}
 	default:
 		return nil, fmt.Errorf("invalid operator: %s", rule.Operator)
 	}

@@ -215,6 +215,14 @@ const (
 		"invalid: must be one of '%s'"
 	errFmtAccessControlRuleQueryInvalidNoValue = "access control: rule %s: 'query' option '%s' is " +
 		"invalid: must have a value"
+	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must not have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValueParse = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: %w"
+	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: 'query' option 'value' is " +
+		"invalid: expected type was string but got %T"
 )
 
 // Theme Error constants.

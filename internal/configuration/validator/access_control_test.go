@@ -216,6 +216,15 @@ func (suite *AccessControl) TestShouldSetQueryDefaults() {
 				},
 			},
 		},
+		{
+			Domains: domains,
+			Policy:  "bypass",
+			Query: [][]schema.ACLQueryRule{
+				{
+					{Operator: "pattern", Key: "a", Value: "^(x|y|z)$"},
+				},
+			},
+		},
 	}
 
 	ValidateRules(suite.config, suite.validator)
@@ -225,6 +234,14 @@ func (suite *AccessControl) TestShouldSetQueryDefaults() {
 
 	suite.Assert().Equal("present", suite.config.AccessControl.Rules[0].Query[0][0].Operator)
 	suite.Assert().Equal("equal", suite.config.AccessControl.Rules[0].Query[1][0].Operator)
+
+	suite.Require().Len(suite.config.AccessControl.Rules, 2)
+	suite.Require().Len(suite.config.AccessControl.Rules[1].Query, 1)
+	suite.Require().Len(suite.config.AccessControl.Rules[1].Query[0], 1)
+
+	t := &regexp.Regexp{}
+
+	suite.Assert().IsType(t, suite.config.AccessControl.Rules[1].Query[0][0].Value)
 }
 
 func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
@@ -284,18 +301,47 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 				},
 			},
 		},
+		{
+			Domains: domains,
+			Policy:  "bypass",
+			Query: [][]schema.ACLQueryRule{
+				{
+					{Operator: "pattern", Key: "a", Value: "(bad pattern"},
+				},
+			},
+		},
+		{
+			Domains: domains,
+			Policy:  "bypass",
+			Query: [][]schema.ACLQueryRule{
+				{
+					{Operator: "present", Key: "a", Value: "not good"},
+				},
+			},
+		},
+		{
+			Domains: domains,
+			Policy:  "bypass",
+			Query: [][]schema.ACLQueryRule{
+				{
+					{Operator: "present", Key: "a", Value: 5},
+				},
+			},
+		},
 	}
 
 	ValidateRules(suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 5)
+	suite.Require().Len(suite.validator.Errors(), 7)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'query' option 'value' is invalid: must have a value")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1 (domain 'public.example.com'): 'query' option 'value' is invalid: must have a value when the operator is 'equal'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "access control: rule #2 (domain 'public.example.com'): 'query' option 'key' is invalid: must have a value")
 	suite.Assert().EqualError(suite.validator.Errors()[2], "access control: rule #5 (domain 'public.example.com'): 'query' option 'key' is invalid: must have a value")
-	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #5 (domain 'public.example.com'): 'query' option 'value' is invalid: must have a value")
-	suite.Assert().EqualError(suite.validator.Errors()[4], "access control: rule #6 (domain 'public.example.com'): 'query' option 'operator' with value 'not' is invalid: must be one of 'present', 'absent', 'equal', 'not equal', 'pattern', 'not pattern'")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "access control: rule #6 (domain 'public.example.com'): 'query' option 'operator' with value 'not' is invalid: must be one of 'present', 'absent', 'equal', 'not equal', 'pattern', 'not pattern'")
+	suite.Assert().EqualError(suite.validator.Errors()[4], "access control: rule #7 (domain 'public.example.com'): 'query' option 'value' is invalid: error parsing regexp: missing closing ): `(bad pattern`")
+	suite.Assert().EqualError(suite.validator.Errors()[5], "access control: rule #8 (domain 'public.example.com'): 'query' option 'value' is invalid: must not have a value when the operator is 'present'")
+	suite.Assert().EqualError(suite.validator.Errors()[6], "access control: rule #9 (domain 'public.example.com'): 'query' option 'value' is invalid: expected type was string but got int")
 }
 
 func TestAccessControl(t *testing.T) {

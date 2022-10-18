@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -152,13 +153,14 @@ func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.St
 	}
 }
 
+//nolint:gocyclo
 func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, validator *schema.StructValidator) {
 	for j := 0; j < len(config.AccessControl.Rules[i].Query); j++ {
 		for k := 0; k < len(config.AccessControl.Rules[i].Query[j]); k++ {
 			if config.AccessControl.Rules[i].Query[j][k].Operator == "" {
 				if config.AccessControl.Rules[i].Query[j][k].Key != "" {
 					switch config.AccessControl.Rules[i].Query[j][k].Value {
-					case "":
+					case "", nil:
 						config.AccessControl.Rules[i].Query[j][k].Operator = operatorPresent
 					default:
 						config.AccessControl.Rules[i].Query[j][k].Operator = operatorEqual
@@ -172,10 +174,37 @@ func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, val
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "key"))
 			}
 
-			if config.AccessControl.Rules[i].Query[j][k].Operator != operatorPresent &&
-				config.AccessControl.Rules[i].Query[j][k].Operator != operatorAbsent &&
-				config.AccessControl.Rules[i].Query[j][k].Value == "" {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "value"))
+			op := config.AccessControl.Rules[i].Query[j][k].Operator
+
+			if op == "" {
+				continue
+			}
+
+			switch v := config.AccessControl.Rules[i].Query[j][k].Value.(type) {
+			case nil:
+				if op != operatorAbsent && op != operatorPresent {
+					validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValueOperator, ruleDescriptor(i+1, rule), "value", op))
+				}
+			case string:
+				switch op {
+				case operatorPresent, operatorAbsent:
+					if v != "" {
+						validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidValue, ruleDescriptor(i+1, rule), "value", op))
+					}
+				case operatorPattern, operatorNotPattern:
+					var (
+						pattern *regexp.Regexp
+						err     error
+					)
+
+					if pattern, err = regexp.Compile(v); err != nil {
+						validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidValueParse, ruleDescriptor(i+1, rule), "value", err))
+					} else {
+						config.AccessControl.Rules[i].Query[j][k].Value = pattern
+					}
+				}
+			default:
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidValueType, ruleDescriptor(i+1, rule), v))
 			}
 		}
 	}

@@ -279,7 +279,7 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 					{
 						Operator: operatorPattern,
 						Key:      "test",
-						Value:    "^(one|two|three)$",
+						Value:    regexp.MustCompile(`^(one|two|three)$`),
 					},
 				},
 			},
@@ -292,7 +292,7 @@ func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
 					{
 						Operator: operatorNotPattern,
 						Key:      "test",
-						Value:    "^(one|two|three)$",
+						Value:    regexp.MustCompile(`^(one|two|three)$`),
 					},
 				},
 			},

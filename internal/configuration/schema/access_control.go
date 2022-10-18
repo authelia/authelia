@@ -33,7 +33,7 @@ type ACLRule struct {
 type ACLQueryRule struct {
 	Operator string `koanf:"operator"`
 	Key      string `koanf:"key"`
-	Value    string `koanf:"value"`
+	Value    any    `koanf:"value"`
 }
 
 // DefaultACLNetwork represents the default configuration related to access control network group configuration.
