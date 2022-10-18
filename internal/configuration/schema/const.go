@@ -5,7 +5,12 @@ import (
 	"time"
 )
 
-const argon2id = "argon2id"
+const (
+	argon2   = "argon2"
+	argon2id = "argon2id"
+	sha512   = "sha512"
+	sha256   = "sha256"
+)
 
 // ProfileRefreshDisabled represents a value for refresh_interval that disables the check entirely.
 const ProfileRefreshDisabled = "disable"
@@ -57,3 +62,8 @@ const (
 // regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
 // period, and plus characters.
 var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]+://`)
+
+const (
+	blockCERTIFICATE   = "CERTIFICATE"
+	blockRSAPRIVATEKEY = "RSA PRIVATE KEY"
+)

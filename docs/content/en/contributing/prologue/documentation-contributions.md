@@ -1,5 +1,5 @@
 ---
-title: "Documentation"
+title: "Documentation Contributions"
 description: "Information on contributing documentation to the Authelia project."
 lead: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
 date: 2022-06-15T17:51:47+10:00
@@ -10,6 +10,8 @@ menu:
     parent: "prologue"
 weight: 130
 toc: true
+alias:
+  - /contributing/prologue/documentation
 ---
 
 ## Introduction
@@ -38,14 +40,12 @@ It's relatively easy to run the __Authelia__ website locally to test out the cha
 The following steps will allow you to run the website on the localhost and view it live in your browser:
 
 1. Run the following commands:
-
-  ```bash
-  git clone https://github.com/authelia/authelia.git
-  cd authelia/docs
-  npm run install
-  npm run start
-  ```
-
+    ```bash
+    git clone https://github.com/authelia/authelia.git
+    cd authelia/docs
+    npm run install
+    npm run start
+    ```
 2. Visit [http://localhost:1313/](http://localhost:1313/) in your browser.
 3. Modify pages to see the effects live in your browser.
 

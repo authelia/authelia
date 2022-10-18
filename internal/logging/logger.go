@@ -37,8 +37,10 @@ func LoggerCtxPrintf(level logrus.Level) (logger *CtxPrintfLogger) {
 func InitializeLogger(config schema.LogConfiguration, log bool) error {
 	setLevelStr(config.Level, log)
 
-	callerLevels := []logrus.Level{}
+	var callerLevels []logrus.Level
+
 	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+
 	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 
 	if config.Format == logFormatJSON {

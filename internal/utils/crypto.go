@@ -122,7 +122,7 @@ func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func publicKey(privateKey interface{}) interface{} {
+func publicKey(privateKey any) any {
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
 		return &k.PublicKey
@@ -137,7 +137,7 @@ func publicKey(privateKey interface{}) interface{} {
 
 // PrivateKeyBuilder interface for a private key builder.
 type PrivateKeyBuilder interface {
-	Build() (interface{}, error)
+	Build() (any, error)
 }
 
 // RSAKeyBuilder builder of RSA private key.
@@ -152,7 +152,7 @@ func (rkb RSAKeyBuilder) WithKeySize(bits int) RSAKeyBuilder {
 }
 
 // Build a RSA private key.
-func (rkb RSAKeyBuilder) Build() (interface{}, error) {
+func (rkb RSAKeyBuilder) Build() (any, error) {
 	return rsa.GenerateKey(rand.Reader, rkb.keySizeInBits)
 }
 
@@ -160,7 +160,7 @@ func (rkb RSAKeyBuilder) Build() (interface{}, error) {
 type Ed25519KeyBuilder struct{}
 
 // Build an Ed25519 private key.
-func (ekb Ed25519KeyBuilder) Build() (interface{}, error) {
+func (ekb Ed25519KeyBuilder) Build() (any, error) {
 	_, priv, err := ed25519.GenerateKey(rand.Reader)
 	return priv, err
 }
@@ -177,12 +177,12 @@ func (ekb ECDSAKeyBuilder) WithCurve(curve elliptic.Curve) ECDSAKeyBuilder {
 }
 
 // Build an ECDSA private key.
-func (ekb ECDSAKeyBuilder) Build() (interface{}, error) {
+func (ekb ECDSAKeyBuilder) Build() (any, error) {
 	return ecdsa.GenerateKey(ekb.curve, rand.Reader)
 }
 
 // ParseX509FromPEM parses PEM bytes and returns a PKCS key.
-func ParseX509FromPEM(data []byte) (key interface{}, err error) {
+func ParseX509FromPEM(data []byte) (key any, err error) {
 	block, _ := pem.Decode(data)
 	if block == nil {
 		return nil, errors.New("failed to parse PEM block containing the key")
@@ -213,7 +213,7 @@ func ParseX509FromPEM(data []byte) (key interface{}, err error) {
 }
 
 // CastX509AsCertificate converts an interface to an *x509.Certificate.
-func CastX509AsCertificate(c interface{}) (certificate *x509.Certificate, ok bool) {
+func CastX509AsCertificate(c any) (certificate *x509.Certificate, ok bool) {
 	switch t := c.(type) {
 	case x509.Certificate:
 		return &t, true
@@ -225,7 +225,7 @@ func CastX509AsCertificate(c interface{}) (certificate *x509.Certificate, ok boo
 }
 
 // IsX509PrivateKey returns true if the provided interface is an rsa.PrivateKey, ecdsa.PrivateKey, or ed25519.PrivateKey.
-func IsX509PrivateKey(i interface{}) bool {
+func IsX509PrivateKey(i any) bool {
 	switch i.(type) {
 	case rsa.PrivateKey, *rsa.PrivateKey, ecdsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ed25519.PrivateKey:
 		return true
@@ -328,7 +328,7 @@ func WriteCertificateBytesToPEM(cert []byte, path string, csr bool) (err error) 
 }
 
 // WriteKeyToPEM writes a key that can be encoded as a PEM to a file in the PEM format.
-func WriteKeyToPEM(key interface{}, path string, pkcs8 bool) (err error) {
+func WriteKeyToPEM(key any, path string, pkcs8 bool) (err error) {
 	pemBlock, err := PEMBlockFromX509Key(key, pkcs8)
 	if err != nil {
 		return err
@@ -349,7 +349,7 @@ func WriteKeyToPEM(key interface{}, path string, pkcs8 bool) (err error) {
 }
 
 // PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
-func PEMBlockFromX509Key(key interface{}, pkcs8 bool) (pemBlock *pem.Block, err error) {
+func PEMBlockFromX509Key(key any, pkcs8 bool) (pemBlock *pem.Block, err error) {
 	var (
 		data      []byte
 		blockType string
@@ -491,7 +491,7 @@ func EllipticCurveFromString(curveString string) (curve elliptic.Curve) {
 }
 
 // PublicKeyFromPrivateKey returns a PublicKey when provided with a PrivateKey.
-func PublicKeyFromPrivateKey(privateKey interface{}) (publicKey interface{}) {
+func PublicKeyFromPrivateKey(privateKey any) (publicKey any) {
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
 		return &k.PublicKey

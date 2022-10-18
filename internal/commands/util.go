@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"os"
 )
 
-func recoverErr(i interface{}) error {
+func recoverErr(i any) error {
 	switch v := i.(type) {
 	case nil:
 		return nil
@@ -15,4 +16,16 @@ func recoverErr(i interface{}) error {
 	default:
 		return fmt.Errorf("recovered panic with unknown type: %v", v)
 	}
+}
+
+func configFilterExisting(configs []string) (finalConfigs []string) {
+	var err error
+
+	for _, c := range configs {
+		if _, err = os.Stat(c); err == nil || !os.IsNotExist(err) {
+			finalConfigs = append(finalConfigs, c)
+		}
+	}
+
+	return finalConfigs
 }

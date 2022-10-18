@@ -44,7 +44,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		},
 	}
 
-	extra := map[string]interface{}{
+	extra := map[string]any{
 		"preferred_username": "john",
 	}
 

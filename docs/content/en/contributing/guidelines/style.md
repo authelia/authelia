@@ -1,5 +1,5 @@
 ---
-title: "Style Guidelines"
+title: "Style"
 description: "Authelia Development Style Guidelines"
 lead: "This section covers the style guidelines we use for development."
 date: 2021-04-11T21:25:03+10:00
@@ -7,17 +7,18 @@ draft: false
 images: []
 menu:
   contributing:
-    parent: "development"
-weight: 230
+    parent: "guidelines"
+weight: 320
 toc: true
 aliases:
   - /docs/contributing/style-guide.html
+  - /contributing/development/guidelines-style/
 ---
 
 This is a general guide to the code style we aim to abide by. This is by no means an exhaustive list and we're
 constantly changing and improving it. This is also a work in progress document.
 
-For our commit messages please see our [Commit Message Guidelines](guidelines-commit-message.md).
+For our commit messages please see our [Commit Message Guidelines](../guidelines/commit-message.md).
 
 ## Tools
 

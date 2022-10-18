@@ -1,6 +1,9 @@
 package validator
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/url"
@@ -19,8 +22,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
-			HMACSecret:       "abc",
-			IssuerPrivateKey: "",
+			HMACSecret: "abc",
 		},
 	}
 
@@ -37,7 +39,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint},
 			},
@@ -60,7 +62,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint, "invalid_endpoint"},
 			},
@@ -85,8 +87,8 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
-			EnforcePKCE:      "invalid",
+			IssuerPrivateKey: &rsa.PrivateKey{},
+			EnforcePKCE:      testInvalid,
 		},
 	}
 
@@ -104,7 +106,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
@@ -140,7 +142,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 		},
 	}
 
@@ -320,7 +322,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			config := &schema.IdentityProvidersConfiguration{
 				OIDC: &schema.OpenIDConnectConfiguration{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: "key-material",
+					IssuerPrivateKey: &rsa.PrivateKey{},
 					Clients:          tc.Clients,
 				},
 			}
@@ -344,7 +346,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
@@ -370,7 +372,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
@@ -391,12 +393,66 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: client 'good_id': option 'grant_types' must only have the values 'implicit', 'refresh_token', 'authorization_code', 'password', 'client_credentials' but one option is configured as 'bad_grant_type'")
 }
 
+func TestShouldNotErrorOnCertificateValid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerCertificateChain: mustParseX509CertificateChain(testCert1),
+			IssuerPrivateKey:       mustParseRSAPrivateKey(testKey1),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: "good_secret",
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+}
+
+func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerCertificateChain: mustParseX509CertificateChain(testCert1),
+			IssuerPrivateKey:       mustParseRSAPrivateKey(testKey2),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: "good_secret",
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'")
+}
+
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:            "good_id",
@@ -422,7 +478,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "key-material",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:                       "good_id",
@@ -448,7 +504,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:              "abc",
-			IssuerPrivateKey:        "abc",
+			IssuerPrivateKey:        &rsa.PrivateKey{},
 			MinimumParameterEntropy: 1,
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
@@ -476,7 +532,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: "key2",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret",
@@ -514,7 +570,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: "key2",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "installed-app-client",
@@ -555,7 +611,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: "../../../README.md",
+			IssuerPrivateKey: &rsa.PrivateKey{},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "a-client",
@@ -690,4 +746,112 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has an invalid value: redirect uri 'com.example.app:/oauth2redirect/example-provider' must have a scheme of 'http' or 'https' but 'com.example.app' is configured"),
 		})
 	})
+}
+
+var (
+	testCert1 = `
+-----BEGIN CERTIFICATE-----
+MIIC5jCCAc6gAwIBAgIRAJZ+6KrHw95zIDgm2arCTCgwDQYJKoZIhvcNAQELBQAw
+EzERMA8GA1UEChMIQXV0aGVsaWEwHhcNMjIwOTA4MDIyNDQyWhcNMjMwOTA4MDIy
+NDQyWjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAMAE7muDAJtLsV3WgOpjrZ1JD1RlhuSOa3V+4zo2NYFQSdZW18SZ
+fYYgUwLOleEy3VQ3N9MEFh/rWNHYHdsBjDvz/Q1EzAlXqthGd0Sic/UDYtrahrko
+jCSkZCQ5YVO9ivMRth6XdUlu7RHVYY3aSOWPx2wiw9cdN+e4p73W6KwyzT7ezbUD
+0Nng0Z7CNQTLHv3LBsLUODc4aVOvp2B4aAaw6cn990buKMvUuo2ge9gh0c5gIOM5
+dU7xOGAt7RzwCIHnG4CGAWPFuuS215ZeelgQr/9/fhtzDqSuBZw5f10vXnAyBwei
+vN6Kffj2RXB+koFwBguT84A6cfmxWllGNF0CAwEAAaM1MDMwDgYDVR0PAQH/BAQD
+AgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcN
+AQELBQADggEBAFvORjj7RGoIc3q0fv6QjuncZ0Mu1/24O0smCr6tq5d6RQBRpb1M
+jEsbTMLZErrHbyw/DWC75eJhW6T+6HiVTo6brBXkmDL+QGkLgRNOkZla6cnmIpmL
+bf9iPmmcThscQERgYZzNg19zqK8JAQU/6PgU/N6OXTL/mQQoB972ET9dUl7lGx1Q
+2l8XBe8t4QTp4t1xd3c4azxWvFNpzWBjC5eBWiVHLJmFXr4xpcnPFYFETOkvEqwt
+pMQ2x895BoLrep6b+g0xeF4pmmIQwA9KrUVr++gpYaRzytaOIYwcIPMzt9iLWKQe
+6ZSOrTVi8pPugYXp+LhVk/WI7r8EWtyADu0=
+-----END CERTIFICATE-----`
+
+	testKey1 = `
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAwATua4MAm0uxXdaA6mOtnUkPVGWG5I5rdX7jOjY1gVBJ1lbX
+xJl9hiBTAs6V4TLdVDc30wQWH+tY0dgd2wGMO/P9DUTMCVeq2EZ3RKJz9QNi2tqG
+uSiMJKRkJDlhU72K8xG2Hpd1SW7tEdVhjdpI5Y/HbCLD1x0357invdborDLNPt7N
+tQPQ2eDRnsI1BMse/csGwtQ4NzhpU6+nYHhoBrDpyf33Ru4oy9S6jaB72CHRzmAg
+4zl1TvE4YC3tHPAIgecbgIYBY8W65LbXll56WBCv/39+G3MOpK4FnDl/XS9ecDIH
+B6K83op9+PZFcH6SgXAGC5PzgDpx+bFaWUY0XQIDAQABAoIBAQClcdpHcglMxOwe
+kRpkWdwWAAQgUJXoSbnW86wu1NRHBfmInyyrrSBVN3aunXbQITZIQIdt3kB94haW
+P6KBt5Svd2saSqOOjSWb0SMkVOCaQ/+h19VqpcASNj4+Y94y+8ZD5ofHVfJtghDr
+Y7H5OhHDEZ3e0xlwODGaCyUkUY4KBv/oIlILoh4phbDYHkZH8AzDnEiyVE1JAWlN
+voAQysgSU7eEnNCi1S07jl5bY+MD3XpJkAfQsJYhqYT/qetStZ12PuXjpbIr3y53
+qjCrKeWTyDN+gOznyIGuiR6nvXeQAw/o9hZiah4RuHXTPs/3GAcRXcuMR0pbgJ+B
+yfX6eLK1AoGBAPKkJKPYJD2NHukAelNbT2OgeDIgJmfOIvLa73/x2hXvWwa4VwIC
+POuKXtT/a02J4pYMGlaKXfHgLmaW2HPObOIjpxqgRIswsiKS1AbaDtkWnhaS1/SJ
+oZ7Fk8DdX+1QT4J/fj/2uxRT0GhXdMxDpK7ekpmRE+APPCGhmOMgmWszAoGBAMqX
+Ts1RdGWgDxLi15rDqdqRBARJG7Om/xC2voXVmbAb4Q+QoNrNeiIAM2usuhrVuj5V
+c16m9fxswRNYqQBYyShDi5wp5a8UjfqDpzJdku2bmrBaL+XVq8PY+oTK6KS3ss8U
+CGQ8P6Phz5JGavn/nDMRZ4EwEWqbEMUqJAJlpmIvAoGAQ9Wj8LJyn0qew6FAkaFL
+dpzcPZdDZW35009l+a0RvWQnXJ+Yo5UglvEeRgoKY6kS0cQccOlKDl8QWdn+NZIW
+WrqA8y6vOwKoKoZGBIxd7k8mb0UqXtFDf/HYtuis8tmrAN7H2vYNo0czUphwrNKU
+bdcHwSsQFWns87IL3iO1AIUCgYBzmBX8jOePPN6c9hXzVoVKEshp8ZT+0uBilwLq
+tk/07lNiYDGH5woy8E5mt62QtjaIbpVfgoCEwUEBWutDKWXNtYypVDabyWyhbhEu
+abn2HX0L9smxqFNTcjCvKF/J7I74HQQUvVPKnIOlgMx1TOXBNcMLMXQekc/lz/+v
+5nQjPQKBgQDjdJABeiy9tU0tzLWUVc5QoQKnlfSJoFLis46REb1yHwU9OjTc05Wx
+5lAXdTjDmnelDdGWNWHjWOiKSkTxhvQD3jXriI5y8Sdxe3zS3ikYvbMbi97GJz0O
+5oyNJo6/froW1dLkJJWR8hg2PQbtoOo6l9HHSd91BnJJ4qFbq9ZrXQ==
+-----END RSA PRIVATE KEY-----`
+
+	testKey2 = `
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA6z1LOg1ZCqb0lytXWZ+MRBpMHEXOoTOLYgfZXt1IYyE3Z758
+cyalk0NYQhY5cZDsXPYWPvAHiPMUxutWkoxFwby56S+AbIMa3/Is+ILrHRJs8Exn
+ZkpyrYFxPX12app2kErdmAkHSx0Z5/kuXiz96PHs8S8/ZbyZolLHzdfLtSzjvRm5
+Zue5iFzsf19NJz5CIBfv8g5lRwtE8wNJoRSpn1xq7fqfuA0weDNFPzjlNWRLy6aa
+rK7qJexRkmkCs4sLgyl+9NODYJpvmN8E1yhyC27E0joI6rBFVW7Ihv+cSPCdDzGp
+EWe81x3AeqAa3mjVqkiq4u4Z2i8JDgBaPboqJwIDAQABAoIBAAFdLZ58jVOefDSU
+L8F5R1rtvBs93GDa56f926jNJ6pLewLC+/2+757W+SAI+PRLntM7Kg3bXm/Q2QH+
+Q1Y+MflZmspbWCdI61L5GIGoYKyeers59i+FpvySj5GHtLQRiTZ0+Kv1AXHSDWBm
+9XneUOqU3IbZe0ifu1RRno72/VtjkGXbW8Mkkw+ohyGbIeTx/0/JQ6sSNZTT3Vk7
+8i4IXptq3HSF0/vqZuah8rShoeNq72pD1YLM9YPdL5by1QkDLnqATDiCpLBTCaNV
+I8sqYEun+HYbQzBj8ZACG2JVZpEEidONWQHw5BPWO95DSZYrVnEkuCqeH+u5vYt7
+CHuJ3AECgYEA+W3v5z+j91w1VPHS0VB3SCDMouycAMIUnJPAbt+0LPP0scUFsBGE
+hPAKddC54pmMZRQ2KIwBKiyWfCrJ8Xz8Yogn7fJgmwTHidJBr2WQpIEkNGlK3Dzi
+jXL2sh0yC7sHvn0DqiQ79l/e7yRbSnv2wrTJEczOOH2haD7/tBRyCYECgYEA8W+q
+E9YyGvEltnPFaOxofNZ8LHVcZSsQI5b6fc0iE7fjxFqeXPXEwGSOTwqQLQRiHn9b
+CfPmIG4Vhyq0otVmlPvUnfBZ2OK+tl5X2/mQFO3ROMdvpi0KYa994uqfJdSTaqLn
+jjoKFB906UFHnDQDLZUNiV1WwnkTglgLc+xrd6cCgYEAqqthyv6NyBTM3Tm2gcio
+Ra9Dtntl51LlXZnvwy3IkDXBCd6BHM9vuLKyxZiziGx+Vy90O1xI872cnot8sINQ
+Am+dur/tAEVN72zxyv0Y8qb2yfH96iKy9gxi5s75TnOEQgAygLnYWaWR2lorKRUX
+bHTdXBOiS58S0UzCFEslGIECgYBqkO4SKWYeTDhoKvuEj2yjRYyzlu28XeCWxOo1
+otiauX0YSyNBRt2cSgYiTzhKFng0m+QUJYp63/wymB/5C5Zmxi0XtWIDADpLhqLj
+HmmBQ2Mo26alQ5YkffBju0mZyhVzaQop1eZi8WuKFV1FThPlB7hc3E0SM5zv2Grd
+tQnOWwKBgQC40yZY0PcjuILhy+sIc0Wvh7LUA7taSdTye149kRvbvsCDN7Jh75lM
+USjhLXY0Nld2zBm9r8wMb81mXH29uvD+tDqqsICvyuKlA/tyzXR+QTr7dCVKVwu0
+1YjCJ36UpTsLre2f8nOSLtNmRfDPtbOE2mkOoO9dD9UU0XZwnvn9xw==
+-----END RSA PRIVATE KEY-----`
+)
+
+func mustParseRSAPrivateKey(data string) *rsa.PrivateKey {
+	block, _ := pem.Decode([]byte(data))
+	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
+	}
+
+	if block.Type != "RSA PRIVATE KEY" {
+		panic("not private key")
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return key
+}
+
+func mustParseX509CertificateChain(data string) schema.X509CertificateChain {
+	chain, err := schema.NewX509CertificateChain(data)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return *chain
 }

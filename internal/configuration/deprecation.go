@@ -10,7 +10,7 @@ type Deprecation struct {
 	Key     string
 	NewKey  string
 	AutoMap bool
-	MapFunc func(value interface{}) interface{}
+	MapFunc func(value any) any
 	ErrText string
 }
 
