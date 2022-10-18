@@ -62,7 +62,7 @@ func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
-	suite.config.AccessControl.DefaultPolicy = testInvalidPolicy
+	suite.config.AccessControl.DefaultPolicy = testInvalid
 
 	ValidateAccessControl(suite.config, suite.validator)
 
@@ -135,7 +135,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains: []string{"public.example.com"},
-			Policy:  testInvalidPolicy,
+			Policy:  testInvalid,
 		},
 	}
 
@@ -183,7 +183,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 
 func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	domains := []string{"public.example.com"}
-	subjects := [][]string{{"invalid"}}
+	subjects := [][]string{{testInvalid}}
 	suite.config.AccessControl.Rules = []schema.ACLRule{
 		{
 			Domains:  domains,
