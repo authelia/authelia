@@ -40,6 +40,19 @@ bootstrapping *Authelia*.
 
 [SWAG] supports the required [NGINX](nginx.md#requirements) requirements for __Authelia__ out-of-the-box.
 
+### SWAG Caveat
+
+One current caveat of the [SWAG] implementation is that it serves Authelia as a subpath for each domain. We
+*__strongly recommend__* instead of using the out of the box method and guide for [SWAG] that you follow the
+[NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as it's own subdomain.
+
+This is partly because Webauthn requires that the domain is an exact match when registering and authenticating and it is
+possible that due to web standards this will never change.
+
+In addition this represents a bad user experience in some instances as users sometimes visit the
+`https://app.example.com/auth` URL which doesn't automatically redirect the user to `https://app.example.com` (if they
+visit `https://app.example.com` then they'll be redirected to authenticate then redirected back to their original URL).
+
 ## Trusted Proxies
 
 *__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
