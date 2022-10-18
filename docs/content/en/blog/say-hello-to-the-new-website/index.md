@@ -47,4 +47,4 @@ future.
 
 [Hugo]: https://gohugo.io/
 [Doks]: https://getdoks.org/
-[Documentation Contributing]: ../../contributing/prologue/documentation.md
+[Documentation Contributing]: ../../contributing/prologue/documentation-contributions.md

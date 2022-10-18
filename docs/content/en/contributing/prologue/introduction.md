@@ -18,7 +18,7 @@ Contributions to __Authelia__ have four main forms:
 
 * Utilizing GitHub [Issues] or [Discussions] to make commentary about bugs, ideas, etc.
 * [Development](../development/introduction.md)
-* [Documentation](../documentation/#introduction)
+* [Documentation](documentation-contributions.md)
 * [Financial](financial.md)
 
 We encourage our community to be part of __Authelia__ by contributing in these ways. We encourage anyone who wishes to
