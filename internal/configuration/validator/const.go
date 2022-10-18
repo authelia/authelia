@@ -321,11 +321,20 @@ var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH"
 
 var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 
-var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+const (
+	operatorPresent    = "present"
+	operatorAbsent     = "absent"
+	operatorEqual      = "equal"
+	operatorNotEqual   = "not equal"
+	operatorPattern    = "pattern"
+	operatorNotPattern = "not pattern"
+)
 
-var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
-
-var validACLRuleOperators = []string{"present", "absent", "equal", "not equal", "pattern", "not pattern"}
+var (
+	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
+)
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 

@@ -153,15 +153,15 @@ func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.St
 }
 
 func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, validator *schema.StructValidator) {
-	for j, _ := range config.AccessControl.Rules[i].Query {
-		for k, _ := range config.AccessControl.Rules[i].Query[j] {
+	for j := 0; j < len(config.AccessControl.Rules[i].Query); j++ {
+		for k := 0; k < len(config.AccessControl.Rules[i].Query[j]); k++ {
 			if config.AccessControl.Rules[i].Query[j][k].Operator == "" {
 				if config.AccessControl.Rules[i].Query[j][k].Key != "" {
 					switch config.AccessControl.Rules[i].Query[j][k].Value {
 					case "":
-						config.AccessControl.Rules[i].Query[j][k].Operator = "present"
+						config.AccessControl.Rules[i].Query[j][k].Operator = operatorPresent
 					default:
-						config.AccessControl.Rules[i].Query[j][k].Operator = "equal"
+						config.AccessControl.Rules[i].Query[j][k].Operator = operatorEqual
 					}
 				}
 			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
@@ -172,8 +172,8 @@ func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, val
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "key"))
 			}
 
-			if config.AccessControl.Rules[i].Query[j][k].Operator != "present" &&
-				config.AccessControl.Rules[i].Query[j][k].Operator != "absent" &&
+			if config.AccessControl.Rules[i].Query[j][k].Operator != operatorPresent &&
+				config.AccessControl.Rules[i].Query[j][k].Operator != operatorAbsent &&
 				config.AccessControl.Rules[i].Query[j][k].Value == "" {
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "value"))
 			}
