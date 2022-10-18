@@ -432,7 +432,7 @@ access_control:
 {{< confkey type="list(list(object))" required="no" >}}
 
 The query criteria is an advanced criteria which can allow configuration of rules that match specific query argument
-keys against various rules.
+keys against various rules. It's recommended to use [resources](#resources) rules instead for basic needs.
 
 The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
@@ -441,6 +441,8 @@ Additionally each level of these lists does not have to be explicitly defined.
 ##### key
 
 {{< confkey type="string" required="yes" >}}
+
+The query argument key to check.
 
 ##### value
 
