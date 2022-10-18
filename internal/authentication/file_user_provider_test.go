@@ -305,6 +305,22 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 	})
 }
 
+func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ok, err := provider.CheckUserPassword("dis", "password")
+
+		assert.False(t, ok)
+		assert.EqualError(t, err, "user not found")
+	})
+}
+
 func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
 	WithDatabase(UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
@@ -460,6 +476,13 @@ users:
     displayname: "Enumeration"
     password: "$argon2id$v=19$m=131072,p=8$BpLnfgDsc2WD8F2q$O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg"
     email: enumeration@authelia.com
+
+
+  dis:
+    displayname: "Enumeration"
+    password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    disabled: true
+    email: disabled@authelia.com
 `)
 
 var UserDatabaseContentInvalidSearchCaseInsenstive = []byte(`
