@@ -88,7 +88,7 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 			IssuerPrivateKey: &rsa.PrivateKey{},
-			EnforcePKCE:      "invalid",
+			EnforcePKCE:      testInvalid,
 		},
 	}
 

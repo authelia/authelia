@@ -30,7 +30,7 @@ func TestValidateTOTP(t *testing.T) {
 		{
 			desc: "ShouldNormalizeTOTPAlgorithm",
 			have: schema.TOTPConfiguration{
-				Algorithm:  "sha1",
+				Algorithm:  digestSHA1,
 				Digits:     6,
 				Period:     30,
 				SecretSize: 32,

@@ -17,7 +17,7 @@ import (
 
 func newCryptoCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "crypto",
+		Use:     cmdUseCrypto,
 		Short:   cmdAutheliaCryptoShort,
 		Long:    cmdAutheliaCryptoLong,
 		Example: cmdAutheliaCryptoExample,
@@ -27,9 +27,80 @@ func newCryptoCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.AddCommand(
+		newCryptoRandCmd(),
 		newCryptoCertificateCmd(),
+		newCryptoHashCmd(),
 		newCryptoPairCmd(),
 	)
+
+	return cmd
+}
+
+func newCryptoRandCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseRand,
+		Short:   cmdAutheliaCryptoRandShort,
+		Long:    cmdAutheliaCryptoRandLong,
+		Example: cmdAutheliaCryptoRandExample,
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			useCharSet, useCharacters := cmd.Flags().Changed(cmdFlagNameCharSet), cmd.Flags().Changed(cmdFlagNameCharacters)
+			if useCharSet && useCharacters {
+				return fmt.Errorf("flags '--%s' and '--%s' are mutually exclusive, only one may be specified", cmdFlagNameCharSet, cmdFlagNameCharacters)
+			}
+
+			var (
+				charset string
+				n       int
+			)
+
+			if n, err = cmd.Flags().GetInt(cmdFlagNameLength); err != nil {
+				return err
+			}
+
+			if n < 1 {
+				return fmt.Errorf("length must be at least 1")
+			}
+
+			switch {
+			case useCharSet, !useCharSet && !useCharacters:
+				var c string
+
+				if c, err = cmd.Flags().GetString(cmdFlagNameCharSet); err != nil {
+					return err
+				}
+
+				switch c {
+				case "ascii":
+					charset = utils.CharSetASCII
+				case "alphanumeric":
+					charset = utils.CharSetAlphaNumeric
+				case "alphabetic":
+					charset = utils.CharSetAlphabetic
+				case "numeric-hex":
+					charset = utils.CharSetNumericHex
+				case "numeric":
+					charset = utils.CharSetNumeric
+				default:
+					return fmt.Errorf("invalid charset '%s', must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', or 'numeric-hex'", c)
+				}
+			case useCharacters:
+				if charset, err = cmd.Flags().GetString(cmdFlagNameCharacters); err != nil {
+					return err
+				}
+			}
+
+			fmt.Printf("Random Value: %s\n", utils.RandomString(n, charset, true))
+
+			return nil
+		},
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().StringP(cmdFlagNameCharSet, "c", "alphanumeric", "Sets the charset for the output, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
+	cmd.Flags().String(cmdFlagNameCharacters, "", "Sets the explicit characters for the random output")
+	cmd.Flags().IntP(cmdFlagNameLength, "n", 80, "Sets the length of the random output")
 
 	return cmd
 }
@@ -55,26 +126,13 @@ func newCryptoCertificateCmd() (cmd *cobra.Command) {
 }
 
 func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
-	var (
-		example, useFmt string
-	)
-
-	useFmt = fmtCryptoUse(use)
-
-	switch use {
-	case cmdUseRSA:
-		example = cmdAutheliaCryptoCertificateRSAExample
-	case cmdUseECDSA:
-		example = cmdAutheliaCryptoCertificateECDSAExample
-	case cmdUseEd25519:
-		example = cmdAutheliaCryptoCertificateEd25519Example
-	}
+	useFmt := fmtCryptoCertificateUse(use)
 
 	cmd = &cobra.Command{
 		Use:     use,
 		Short:   fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubShort, useFmt),
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubLong, useFmt, useFmt),
-		Example: example,
+		Example: fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubExample, use),
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -98,7 +156,7 @@ func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
 	cmdFlagsCryptoCertificateCommon(cmd)
 	cmdFlagsCryptoCertificateRequest(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	cmd.Short = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestShort, algorithmFmt, cryptoCertCSROut)
 	cmd.Long = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestLong, algorithmFmt, cryptoCertCSROut, algorithmFmt, cryptoCertCSROut)
@@ -146,7 +204,7 @@ func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
 		example, useFmt string
 	)
 
-	useFmt = fmtCryptoUse(use)
+	useFmt = fmtCryptoCertificateUse(use)
 
 	switch use {
 	case cmdUseRSA:
@@ -184,7 +242,7 @@ func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 
 	cmdFlagsCryptoPrivateKey(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	switch category {
 	case cmdUseCertificate:
