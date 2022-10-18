@@ -26,6 +26,14 @@ type FileAuthenticationBackend struct {
 	Path     string   `koanf:"path"`
 	Watch    bool     `koanf:"watch"`
 	Password Password `koanf:"password"`
+
+	Search FileSearchAuthenticationBackend `koanf:"search"`
+}
+
+// FileSearchAuthenticationBackend represents the configuration related to file-based backend searching.
+type FileSearchAuthenticationBackend struct {
+	Email           bool `koanf:"email"`
+	CaseInsensitive bool `koanf:"case_insensitive"`
 }
 
 // Password represents the configuration related to password hashing.
