@@ -56,7 +56,7 @@ func newAccessControlCheckCommand() (cmd *cobra.Command) {
 }
 
 func accessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
-	configs, err := cmd.Flags().GetStringSlice("config")
+	configs, err := cmd.Flags().GetStringSlice(cmdFlagNameConfig)
 	if err != nil {
 		return err
 	}

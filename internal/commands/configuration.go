@@ -15,9 +15,9 @@ import (
 // cmdWithConfigFlags is used for commands which require access to the configuration to add the flag to the command.
 func cmdWithConfigFlags(cmd *cobra.Command, persistent bool, configs []string) {
 	if persistent {
-		cmd.PersistentFlags().StringSliceP("config", "c", configs, "configuration files to load")
+		cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", configs, "configuration files to load")
 	} else {
-		cmd.Flags().StringSliceP("config", "c", configs, "configuration files to load")
+		cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", configs, "configuration files to load")
 	}
 }
 
@@ -33,7 +33,7 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 
 		logger = logging.Logger()
 
-		if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
+		if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
 			logger.Fatalf("Error reading flags: %v", err)
 		}
 
