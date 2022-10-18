@@ -77,6 +77,8 @@ var Keys = []string{
 	"authentication_backend.file.password.parallelism",
 	"authentication_backend.file.password.key_length",
 	"authentication_backend.file.password.salt_length",
+	"authentication_backend.file.search.email",
+	"authentication_backend.file.search.case_insensitive",
 	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.url",
 	"authentication_backend.ldap.timeout",

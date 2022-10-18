@@ -3,19 +3,24 @@ package authentication
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-crypt/crypt"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 // NewFileUserDatabase creates a new FileUserDatabase.
-func NewFileUserDatabase(filePath string) (database *FileUserDatabase) {
+func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database *FileUserDatabase) {
 	return &FileUserDatabase{
-		RWMutex: &sync.RWMutex{},
-		Path:    filePath,
-		Users:   map[string]DatabaseUserDetails{},
+		RWMutex:     &sync.RWMutex{},
+		Path:        filePath,
+		Users:       map[string]DatabaseUserDetails{},
+		Emails:      map[string]string{},
+		Aliases:     map[string]string{},
+		SearchEmail: searchEmail,
+		SearchCI:    searchCI,
 	}
 }
 
@@ -23,8 +28,13 @@ func NewFileUserDatabase(filePath string) (database *FileUserDatabase) {
 type FileUserDatabase struct {
 	*sync.RWMutex
 
-	Path  string
-	Users map[string]DatabaseUserDetails
+	Path    string
+	Users   map[string]DatabaseUserDetails
+	Emails  map[string]string
+	Aliases map[string]string
+
+	SearchEmail bool
+	SearchCI    bool
 }
 
 // Save the database to disk.
@@ -56,6 +66,79 @@ func (m *FileUserDatabase) Load() (err error) {
 		return fmt.Errorf("error decoding the authentication database: %w", err)
 	}
 
+	return m.LoadAliases()
+}
+
+// LoadAliases performs the loading of alias information from the database.
+func (m *FileUserDatabase) LoadAliases() (err error) {
+	if m.SearchEmail || m.SearchCI {
+		for k, user := range m.Users {
+			if m.SearchEmail && user.Email != "" {
+				if err = m.loadAliasEmail(k, user); err != nil {
+					return err
+				}
+			}
+
+			if m.SearchCI {
+				if err = m.loadAlias(k); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *FileUserDatabase) loadAlias(k string) (err error) {
+	u := strings.ToLower(k)
+
+	if u != k {
+		return fmt.Errorf("error loading authentication database: username '%s' is not lowercase but this is required when case-insensitive search is enabled", k)
+	}
+
+	for username, details := range m.Users {
+		if k == username {
+			continue
+		}
+
+		if strings.EqualFold(u, details.Email) {
+			return fmt.Errorf("error loading authentication database: username '%s' is configured as an email for user with username '%s' which isn't allowed when case-insensitive search is enabled", u, username)
+		}
+	}
+
+	m.Aliases[u] = k
+
+	return nil
+}
+
+func (m *FileUserDatabase) loadAliasEmail(k string, user DatabaseUserDetails) (err error) {
+	e := strings.ToLower(user.Email)
+
+	var duplicates []string
+
+	for username, details := range m.Users {
+		if k == username {
+			continue
+		}
+
+		if strings.EqualFold(e, details.Email) {
+			duplicates = append(duplicates, username)
+		}
+	}
+
+	if len(duplicates) != 0 {
+		duplicates = append(duplicates, k)
+
+		return fmt.Errorf("error loading authentication database: email '%s' is configured for for more than one user (users are '%s') which isn't allowed when email search is enabled", e, strings.Join(duplicates, "', '"))
+	}
+
+	if _, ok := m.Users[e]; ok && k != e {
+		return fmt.Errorf("error loading authentication database: email '%s' is also a username which isn't allowed when email search is enabled", e)
+	}
+
+	m.Emails[e] = k
+
 	return nil
 }
 
@@ -65,6 +148,20 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user DatabaseUserDet
 	m.RLock()
 
 	defer m.RUnlock()
+
+	u := strings.ToLower(username)
+
+	if m.SearchEmail {
+		if key, ok := m.Emails[u]; ok {
+			return m.Users[key], nil
+		}
+	}
+
+	if m.SearchCI {
+		if key, ok := m.Aliases[u]; ok {
+			return m.Users[key], nil
+		}
+	}
 
 	if details, ok := m.Users[username]; ok {
 		return details, nil
@@ -206,6 +303,7 @@ type UserDetailsModel struct {
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
+	Disabled       bool     `yaml:"disabled"`
 }
 
 // ToDatabaseUserDetailsModel converts a UserDetailsModel into a *DatabaseUserDetails.
@@ -219,6 +317,7 @@ func (m UserDetailsModel) ToDatabaseUserDetailsModel(username string) (model *Da
 	return &DatabaseUserDetails{
 		Username:    username,
 		Digest:      d,
+		Disabled:    m.Disabled,
 		DisplayName: m.DisplayName,
 		Email:       m.Email,
 		Groups:      m.Groups,
