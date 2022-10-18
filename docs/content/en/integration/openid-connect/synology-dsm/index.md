@@ -26,11 +26,14 @@ You are required to utilize a unique client id and a unique and random client se
 parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
 choose to utilize a different client id, it's completely up to you.
 
+*__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect]. It is therefore
+recommended that you ensure Authelia and [Synology DSM] share a LDAP server.*
+
 This example makes the following assumptions:
 
 * __Application Root URL:__ `https://dsm.example.com/`
 * __Authelia Root URL:__ `https://auth.example.com`
-* __Client ID:__ `synolgoy-dsm`
+* __Client ID:__ `synology-dsm`
 * __Client Secret:__ `synology-dsm_client_secret`
 
 ## Configuration
@@ -48,12 +51,14 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect] Provider:
     * Profile: `OIDC`
     * Name: `Authelia`
     * Well Known URL: `https://auth.example.com/.well-known/openid-configuration`
-    * Application ID: `synolgoy-dsm`
+    * Application ID: `synology-dsm`
     * Application Key: `synology-dsm_client_secret`
     * Redirect URL: `https://dsm.example.com`
     * Authorisation Scope: `openid profile groups email`
     * Username Claim: `preferred_username`
 7. Save the settings.
+
+{{< figure src="client.png" alt="Synology" width="736" >}}
 
 ### Authelia
 
@@ -62,9 +67,9 @@ The following YAML configuration is an example __Authelia__
 which will operate with the above example:
 
 ```yaml
-- id: synolgoy-dsm
+- id: synology-dsm
   description: Synology DSM
-  secret: synolgoy-dsm_client_secret
+  secret: synology-dsm_client_secret
   public: false
   authorization_policy: two_factor
   redirect_uris:
