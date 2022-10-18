@@ -392,6 +392,10 @@ authentication_backend:
   ##
   # file:
   #   path: /config/users_database.yml
+  #   watch: false
+  #   search:
+  #     email: false
+  #     case_insensitive: false
   #   password:
   #     algorithm: argon2
   #     argon2:

@@ -3,6 +3,7 @@ package authentication
 import (
 	"log"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -304,6 +305,121 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 	})
 }
 
+func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
+	WithDatabase(UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.Email = false
+		config.Search.CaseInsensitive = true
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), "error loading authentication database: username 'JOHN' is not lowercase but this is required when case-insensitive search is enabled")
+	})
+}
+
+func TestShouldErrorOnDuplicateEmail(t *testing.T) {
+	WithDatabase(UserDatabaseContentInvalidSearchEmail, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.Email = true
+		config.Search.CaseInsensitive = false
+
+		provider := NewFileUserProvider(&config)
+
+		err := provider.StartupCheck()
+		assert.Regexp(t, regexp.MustCompile(`^error loading authentication database: email 'john.doe@authelia.com' is configured for for more than one user \(users are '(harry|john)', '(harry|john)'\) which isn't allowed when email search is enabled$`), err.Error())
+	})
+}
+
+func TestShouldNotErrorOnEmailAsUsername(t *testing.T) {
+	WithDatabase(UserDatabaseContentSearchEmailAsUsername, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.Email = true
+		config.Search.CaseInsensitive = false
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+	})
+}
+
+func TestShouldErrorOnEmailAsUsernameWithDuplicateEmail(t *testing.T) {
+	WithDatabase(UserDatabaseContentInvalidSearchEmailAsUsername, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.Email = true
+		config.Search.CaseInsensitive = false
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), "error loading authentication database: email 'john.doe@authelia.com' is also a username which isn't allowed when email search is enabled")
+	})
+}
+
+func TestShouldErrorOnEmailAsUsernameWithDuplicateEmailCase(t *testing.T) {
+	WithDatabase(UserDatabaseContentInvalidSearchEmailAsUsernameCase, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.Email = false
+		config.Search.CaseInsensitive = true
+
+		provider := NewFileUserProvider(&config)
+
+		assert.EqualError(t, provider.StartupCheck(), "error loading authentication database: username 'john.doe@authelia.com' is configured as an email for user with username 'john' which isn't allowed when case-insensitive search is enabled")
+	})
+}
+
+func TestShouldAllowLookupByEmail(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.Email = true
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ok, err := provider.CheckUserPassword("john", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = provider.CheckUserPassword("john.doe@authelia.com", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = provider.CheckUserPassword("JOHN.doe@authelia.com", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+}
+
+func TestShouldAllowLookupCI(t *testing.T) {
+	WithDatabase(UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.Search.CaseInsensitive = true
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ok, err := provider.CheckUserPassword("john", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = provider.CheckUserPassword("John", "password")
+
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+}
+
 var (
 	DefaultFileAuthenticationBackendConfiguration = schema.FileAuthenticationBackend{
 		Path:     "",
@@ -343,7 +459,92 @@ users:
   enumeration:
     displayname: "Enumeration"
     password: "$argon2id$v=19$m=131072,p=8$BpLnfgDsc2WD8F2q$O126GHPeZ5fwj7OLSs7PndXsTbje76R+QW9/EGfhkJg"
-    email: james.dean@authelia.com
+    email: enumeration@authelia.com
+`)
+
+var UserDatabaseContentInvalidSearchCaseInsenstive = []byte(`
+users:
+  john:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+
+  JOHN:
+    displayname: "Harry Potter"
+    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: harry.potter@authelia.com
+    groups: []
+`)
+
+var UserDatabaseContentInvalidSearchEmail = []byte(`
+users:
+  john:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+
+  harry:
+    displayname: "Harry Potter"
+    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups: []
+`)
+
+var UserDatabaseContentSearchEmailAsUsername = []byte(`
+users:
+  john.doe@authelia.com:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+
+  harry:
+    displayname: "Harry Potter"
+    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: harry.potter@authelia.com
+    groups: []
+`)
+
+var UserDatabaseContentInvalidSearchEmailAsUsername = []byte(`
+users:
+  john.doe@authelia.com:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john@authelia.com
+    groups:
+      - admins
+      - dev
+
+  harry:
+    displayname: "Harry Potter"
+    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups: []
+`)
+
+var UserDatabaseContentInvalidSearchEmailAsUsernameCase = []byte(`
+users:
+  john.doe@authelia.com:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: JOHN@authelia.com
+    groups:
+      - admins
+      - dev
+
+  john:
+    displayname: "John Potter"
+    password: "{CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"
+    email: john.doe@authelia.com
+    groups: []
 `)
 
 var MalformedUserDatabaseContent = []byte(`

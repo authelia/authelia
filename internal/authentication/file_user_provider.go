@@ -131,7 +131,7 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	p.database = NewFileUserDatabase(p.config.Path)
+	p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
 
 	if err = p.database.Load(); err != nil {
 		return err

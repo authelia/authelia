@@ -21,6 +21,9 @@ authentication_backend:
   file:
     path: /config/users.yml
     watch: false
+    search:
+      email: false
+      case_insensitive: false
     password:
       algorithm: argon2
       argon2:
@@ -64,6 +67,30 @@ The path to the file with the user details list. Supported file types are:
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Enables reloading the database by watching it for changes.
+
+### search
+
+Username searching functionality options.
+
+*__Important Note:__ This functionality is experimental.*
+
+#### email
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Allows users to login using their email address. If enabled two users must not have the same emails and their usernames
+must not be an email.
+
+*__Note:__ Emails are always checked using case-insensitive lookup.*
+
+#### case_insensitive
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enabling this search option allows users to login with their username regardless of case. If enabled users must only
+have lowercase usernames.
+
+*__Note:__ Emails are always checked using case-insensitive lookup.*
 
 ## Password Options
 
