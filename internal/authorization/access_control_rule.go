@@ -22,7 +22,6 @@ func NewAccessControlRules(config schema.AccessControlConfiguration) (rules []*A
 func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
 	r := &AccessControlRule{
 		Position: pos,
-		Domains:  schemaDomainsToACL(rule.Domains),
 		Query:    NewAccessControlQuery(rule.Query),
 		Methods:  schemaMethodsToACL(rule.Methods),
 		Networks: schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
@@ -34,6 +33,7 @@ func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][
 		r.HasSubjects = true
 	}
 
+	ruleAddDomain(rule.Domains, r)
 	ruleAddDomainRegex(rule.DomainsRegex, r)
 	ruleAddResources(rule.Resources, r)
 

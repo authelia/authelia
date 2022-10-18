@@ -151,17 +151,17 @@ func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 		WithDefaultPolicy(deny).
 		WithRule(schema.ACLRule{
 			Domains: []string{"{user}.example.com"},
-			Policy:  bypass,
+			Policy:  oneFactor,
 		}).
 		WithRule(schema.ACLRule{
 			Domains: []string{"{group}.example.com"},
-			Policy:  bypass,
+			Policy:  oneFactor,
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.example.com/", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://othergroup.example.com/", "GET", Denied)
 }
 
