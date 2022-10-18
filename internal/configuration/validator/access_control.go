@@ -103,6 +103,8 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 
 		validateMethods(rulePosition, rule, validator)
 
+		validateQuery(i, rule, config, validator)
+
 		if rule.Policy == policyBypass {
 			validateBypass(rulePosition, rule, validator)
 		}
@@ -146,6 +148,35 @@ func validateMethods(rulePosition int, rule schema.ACLRule, validator *schema.St
 	for _, method := range rule.Methods {
 		if !utils.IsStringInSliceFold(method, validACLHTTPMethodVerbs) {
 			validator.Push(fmt.Errorf(errFmtAccessControlRuleMethodInvalid, ruleDescriptor(rulePosition, rule), method, strings.Join(validACLHTTPMethodVerbs, "', '")))
+		}
+	}
+}
+
+func validateQuery(i int, rule schema.ACLRule, config *schema.Configuration, validator *schema.StructValidator) {
+	for j, _ := range config.AccessControl.Rules[i].Query {
+		for k, _ := range config.AccessControl.Rules[i].Query[j] {
+			if config.AccessControl.Rules[i].Query[j][k].Operator == "" {
+				if config.AccessControl.Rules[i].Query[j][k].Key != "" {
+					switch config.AccessControl.Rules[i].Query[j][k].Value {
+					case "":
+						config.AccessControl.Rules[i].Query[j][k].Operator = "present"
+					default:
+						config.AccessControl.Rules[i].Query[j][k].Operator = "equal"
+					}
+				}
+			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), config.AccessControl.Rules[i].Query[j][k].Operator, strings.Join(validACLRuleOperators, "', '")))
+			}
+
+			if config.AccessControl.Rules[i].Query[j][k].Key == "" {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "key"))
+			}
+
+			if config.AccessControl.Rules[i].Query[j][k].Operator != "present" &&
+				config.AccessControl.Rules[i].Query[j][k].Operator != "absent" &&
+				config.AccessControl.Rules[i].Query[j][k].Value == "" {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidNoValue, ruleDescriptor(i+1, rule), "value"))
+			}
 		}
 	}
 }

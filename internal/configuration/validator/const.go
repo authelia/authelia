@@ -211,6 +211,10 @@ const (
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
 		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalid = "access control: rule %s: 'query' option 'operator' with value '%s' is " +
+		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalidNoValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value"
 )
 
 // Theme Error constants.
@@ -320,6 +324,8 @@ var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PRO
 var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
 
 var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+
+var validACLRuleOperators = []string{"present", "absent", "equal", "not equal", "pattern", "not pattern"}
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 

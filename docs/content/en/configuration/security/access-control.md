@@ -21,40 +21,38 @@ aliases:
 access_control:
   default_policy: deny
   networks:
-    - name: internal
-      networks:
-        - '10.0.0.0/8'
-        - '172.16.0.0/12'
-        - '192.168.0.0/18'
+  - name: internal
+    networks:
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/18'
   rules:
-    - domain: 'private.example.com'
-      domain_regex: '^(\d+\-)?priv-img.example.com$'
-      policy: one_factor
-      networks:
-        - 'internal'
-        - '1.1.1.1'
-      subject:
-        - ['user:adam']
-        - ['user:fred']
-        - ['group:admins']
-      methods:
-        - GET
-        - HEAD
-      resources:
-        - '^/api.*'
-      query:
-        - [ { operator: 'equal', key: 'admin', value: 'true' }, { operator: 'not equal', key: 'public', value: 'true'} ]
-
-        - - operator: 'present'
-            key: 'secure'
-          - operator: 'absent'
-            key: 'insecure'
-        - - operator: 'pattern'
-            key: 'token'
-            value: '^(abc123|zyx789)$'
-          - operator: 'not pattern'
-            key: 'random'
-            value: '^(1|2)$'
+  - domain: 'private.example.com'
+    domain_regex: '^(\d+\-)?priv-img.example.com$'
+    policy: one_factor
+    networks:
+    - 'internal'
+    - '1.1.1.1'
+    subject:
+    - ['user:adam']
+    - ['user:fred']
+    - ['group:admins']
+    methods:
+    - GET
+    - HEAD
+    resources:
+    - '^/api.*'
+    query:
+    - - operator: 'present'
+        key: 'secure'
+      - operator: 'absent'
+        key: 'insecure'
+    - - operator: 'pattern'
+        key: 'token'
+        value: '^(abc123|zyx789)$'
+      - operator: 'not pattern'
+        key: 'random'
+        value: '^(1|2)$'
 ```
 
 ## Options
@@ -440,7 +438,25 @@ The format of this rule is unique in as much as it is a list of lists. The logic
 `OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
 Additionally each level of these lists does not have to be explicitly defined.
 
+##### key
 
+{{< confkey type="string" required="yes" >}}
+
+##### value
+
+{{< confkey type="string" required="situational" >}}
+
+The value to match against. This is required unless the operator is `absent` or `present`.
+
+##### operator
+
+{{< confkey type="string" required="situational" >}}
+
+The rule operator for this rule. Valid operators can be found in the
+[Rule Operators](../../reference/guides/rule-operators.md#operators) reference guide.
+
+If [key](#key) and [value](#value) are specified this defaults to `equal`, otherwise if [key](#key) is specified it
+defaults to `present`.
 
 ## Policies
 
