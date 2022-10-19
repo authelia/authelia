@@ -205,6 +205,14 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 func readTags(prefix string, t reflect.Type) (tags []string) {
 	tags = make([]string, 0)
 
+	if t.Kind() != reflect.Struct {
+		if t.Kind() == reflect.Slice {
+			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true), t.Elem())...)
+		}
+
+		return
+	}
+
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
@@ -233,9 +241,7 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 					continue
 				}
 			case reflect.Slice:
-				if field.Type.Elem().Elem().Kind() == reflect.Struct {
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag+"[]", true), field.Type.Elem().Elem())...)
-				}
+				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
 			}
 		case reflect.Ptr:
 			switch field.Type.Elem().Kind() {
@@ -274,6 +280,10 @@ func getKeyNameFromTagAndPrefix(prefix, name string, slice bool) string {
 	}
 
 	if slice {
+		if name == "" {
+			return fmt.Sprintf("%s[]", prefix)
+		}
+
 		return fmt.Sprintf("%s.%s[]", prefix, nameParts[0])
 	}
 
