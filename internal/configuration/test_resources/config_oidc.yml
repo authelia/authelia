@@ -130,4 +130,8 @@ identity_providers:
       allowed_origins:
         - https://google.com
         - https://example.com
+    clients:
+      - id: abc
+        secret: '123'
+        consent_mode: explicit
 ...

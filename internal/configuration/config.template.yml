@@ -96,10 +96,10 @@ server:
   # timeouts:
 
     ## Read timeout.
-    # read: 2s
+    # read: 6s
 
     ## Write timeout.
-    # write: 2s
+    # write: 6s
 
     ## Idle timeout.
     # idle: 30s
@@ -148,10 +148,10 @@ telemetry:
     # timeouts:
 
       ## Read timeout.
-      # read: 2s
+      # read: 6s
 
       ## Write timeout.
-      # write: 2s
+      # write: 6s
 
       ## Idle timeout.
       # idle: 30s
@@ -392,13 +392,37 @@ authentication_backend:
   ##
   # file:
   #   path: /config/users_database.yml
+  #   watch: false
+  #   search:
+  #     email: false
+  #     case_insensitive: false
   #   password:
-  #     algorithm: argon2id
-  #     iterations: 1
-  #     key_length: 32
-  #     salt_length: 16
-  #     memory: 1024
-  #     parallelism: 8
+  #     algorithm: argon2
+  #     argon2:
+  #       variant: argon2id
+  #       iterations: 3
+  #       memory: 65536
+  #       parallelism: 4
+  #       key_length: 32
+  #       salt_length: 16
+  #     scrypt:
+  #       iterations: 16
+  #       block_size: 8
+  #       parallelism: 1
+  #       key_length: 32
+  #       salt_length: 16
+  #     pbkdf2:
+  #       variant: sha512
+  #       iterations: 310000
+  #       salt_length: 16
+  #     sha2crypt:
+  #       variant: sha512
+  #       iterations: 50000
+  #       salt_length: 16
+  #     bcrypt:
+  #       variant: standard
+  #       cost: 12
+
 
 ##
 ## Password Policy Configuration.
@@ -948,9 +972,11 @@ notifier:
         ## The policy to require for this client; one_factor or two_factor.
         # authorization_policy: two_factor
 
-        ## By default users cannot remember pre-configured consents. Setting this value to a period of time using a
-        ## duration notation will enable users to remember consent for this client. The time configured is the amount
-        ## of time the pre-configured consent is valid for granting new authorizations to the user.
+        ## The consent mode controls how consent is obtained.
+        # consent_mode: auto
+
+        ## This value controls the duration a consent on this client remains remembered when the consent mode is
+        ## configured as 'auto' or 'pre-configured'.
         # pre_configured_consent_duration:
 
         ## Audience this client is allowed to request.

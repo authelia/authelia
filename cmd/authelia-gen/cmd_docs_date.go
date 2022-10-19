@@ -79,7 +79,7 @@ func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 			return nil
 		}
 
-		frontmatter := map[string]interface{}{}
+		frontmatter := map[string]any{}
 
 		if err = yaml.Unmarshal(frontmatterBytes, frontmatter); err != nil {
 			return err

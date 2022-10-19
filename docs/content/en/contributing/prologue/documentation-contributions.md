@@ -1,5 +1,5 @@
 ---
-title: "Documentation"
+title: "Documentation Contributions"
 description: "Information on contributing documentation to the Authelia project."
 lead: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
 date: 2022-06-15T17:51:47+10:00
@@ -10,6 +10,8 @@ menu:
     parent: "prologue"
 weight: 130
 toc: true
+alias:
+  - /contributing/prologue/documentation
 ---
 
 ## Introduction

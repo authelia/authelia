@@ -27,6 +27,15 @@ const (
 )
 
 const (
+	operatorPresent    = "present"
+	operatorAbsent     = "absent"
+	operatorEqual      = "equal"
+	operatorNotEqual   = "not equal"
+	operatorPattern    = "pattern"
+	operatorNotPattern = "not pattern"
+)
+
+const (
 	subexpNameUser  = "User"
 	subexpNameGroup = "Group"
 )

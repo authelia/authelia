@@ -48,7 +48,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 	c := Client{}
 
 	c.Policy = authorization.Bypass
-	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
+	assert.False(t, c.IsAuthenticationLevelSufficient(authentication.NotAuthenticated))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.OneFactor))
 	assert.True(t, c.IsAuthenticationLevelSufficient(authentication.TwoFactor))
 

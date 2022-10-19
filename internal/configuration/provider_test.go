@@ -219,6 +219,23 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
+func TestShouldConfigureConsent(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
+	assert.Equal(t, config.IdentityProviders.OIDC.Clients[0].ConsentMode, "explicit")
+}
+
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testReset()
 

@@ -16,10 +16,10 @@ import {
 } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
-import { useConsentID } from "@hooks/ConsentID";
+import { Identifier } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import { useUserInfoGET } from "@hooks/UserInfo";
@@ -50,8 +50,9 @@ const ConsentView = function (props: Props) {
     const styles = useStyles();
     const { t: translate } = useTranslation();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const redirect = useRedirector();
-    const consentID = useConsentID();
+    const consentID = searchParams.get(Identifier);
     const { createErrorNotification, resetNotification } = useNotifications();
     const [response, setResponse] = useState<ConsentGetResponseBody | undefined>(undefined);
     const [error, setError] = useState<any>(undefined);
@@ -68,7 +69,7 @@ const ConsentView = function (props: Props) {
     }, [fetchUserInfo]);
 
     useEffect(() => {
-        if (consentID) {
+        if (consentID !== null) {
             getConsentResponse(consentID)
                 .then((r) => {
                     setResponse(r);

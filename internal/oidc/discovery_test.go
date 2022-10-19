@@ -8,43 +8,62 @@ import (
 
 func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	testCases := []struct {
-		desc                                                             string
-		pkcePlainChallenge, pairwise                                     bool
+		desc               string
+		pkcePlainChallenge bool
+		clients            map[string]*Client
+
 		expectCodeChallengeMethodsSupported, expectSubjectTypesSupported []string
 	}{
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublic",
 			pkcePlainChallenge:                  false,
-			pairwise:                            false,
-			expectCodeChallengeMethodsSupported: []string{"S256"},
-			expectSubjectTypesSupported:         []string{"public"},
+			clients:                             map[string]*Client{"a": {}},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublic",
 			pkcePlainChallenge:                  true,
-			pairwise:                            false,
-			expectCodeChallengeMethodsSupported: []string{"S256", "plain"},
-			expectSubjectTypesSupported:         []string{"public"},
+			clients:                             map[string]*Client{"a": {}},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256ANDSubjectTypesSupportedPublicPairwise",
 			pkcePlainChallenge:                  false,
-			pairwise:                            true,
-			expectCodeChallengeMethodsSupported: []string{"S256"},
-			expectSubjectTypesSupported:         []string{"public", "pairwise"},
+			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes"}},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
 		},
 		{
 			desc:                                "ShouldHaveChallengeMethodsS256PlainANDSubjectTypesSupportedPublicPairwise",
 			pkcePlainChallenge:                  true,
-			pairwise:                            true,
-			expectCodeChallengeMethodsSupported: []string{"S256", "plain"},
-			expectSubjectTypesSupported:         []string{"public", "pairwise"},
+			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes"}},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+		},
+		{
+			desc:                                "ShouldHaveTokenAuthMethodsNone",
+			pkcePlainChallenge:                  true,
+			clients:                             map[string]*Client{"a": {SectorIdentifier: "yes"}},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
+		},
+		{
+			desc:               "ShouldHaveTokenAuthMethodsNone",
+			pkcePlainChallenge: true,
+			clients: map[string]*Client{
+				"a": {SectorIdentifier: "yes"},
+				"b": {SectorIdentifier: "yes"},
+			},
+			expectCodeChallengeMethodsSupported: []string{PKCEChallengeMethodSHA256, PKCEChallengeMethodPlain},
+			expectSubjectTypesSupported:         []string{SubjectTypePublic, SubjectTypePairwise},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			actual := NewOpenIDConnectWellKnownConfiguration(tc.pkcePlainChallenge, tc.pairwise)
+			actual := NewOpenIDConnectWellKnownConfiguration(tc.pkcePlainChallenge, tc.clients)
 			for _, codeChallengeMethod := range tc.expectCodeChallengeMethodsSupported {
 				assert.Contains(t, actual.CodeChallengeMethodsSupported, codeChallengeMethod)
 			}

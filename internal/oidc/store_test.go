@@ -20,14 +20,14 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 				ID:          "myclient",
 				Description: "myclient desc",
 				Policy:      "one_factor",
-				Scopes:      []string{"openid", "profile"},
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 			{
 				ID:          "myotherclient",
 				Description: "myclient desc",
 				Policy:      "two_factor",
-				Scopes:      []string{"openid", "profile"},
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
@@ -52,7 +52,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 				ID:          "myclient",
 				Description: "myclient desc",
 				Policy:      "one_factor",
-				Scopes:      []string{"openid", "profile"},
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
@@ -73,7 +73,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		ID:          "myclient",
 		Description: "myclient desc",
 		Policy:      "one_factor",
-		Scopes:      []string{"openid", "profile"},
+		Scopes:      []string{ScopeOpenID, ScopeProfile},
 		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
 
@@ -101,7 +101,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		ID:          "myclient",
 		Description: "myclient desc",
 		Policy:      "one_factor",
-		Scopes:      []string{"openid", "profile"},
+		Scopes:      []string{ScopeOpenID, ScopeProfile},
 		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
 
@@ -125,7 +125,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 				ID:          "myclient",
 				Description: "myclient desc",
 				Policy:      "one_factor",
-				Scopes:      []string{"openid", "profile"},
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
 				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},

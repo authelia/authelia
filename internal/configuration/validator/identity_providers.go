@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -22,15 +23,22 @@ func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.S
 
 	setOIDCDefaults(config)
 
-	if config.IssuerPrivateKey == nil {
+	switch {
+	case config.IssuerPrivateKey == nil:
 		validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
-	} else if config.IssuerCertificateChain.HasCertificates() {
-		if !config.IssuerCertificateChain.EqualKey(config.IssuerPrivateKey) {
-			validator.Push(fmt.Errorf(errFmtOIDCCertificateMismatch))
+	default:
+		if config.IssuerCertificateChain.HasCertificates() {
+			if !config.IssuerCertificateChain.EqualKey(config.IssuerPrivateKey) {
+				validator.Push(fmt.Errorf(errFmtOIDCCertificateMismatch))
+			}
+
+			if err := config.IssuerCertificateChain.Validate(); err != nil {
+				validator.Push(fmt.Errorf(errFmtOIDCCertificateChain, err))
+			}
 		}
 
-		if err := config.IssuerCertificateChain.Validate(); err != nil {
-			validator.Push(fmt.Errorf(errFmtOIDCCertificateChain, err))
+		if config.IssuerPrivateKey.Size()*8 < 2048 {
+			validator.Push(fmt.Errorf(errFmtOIDCInvalidPrivateKeyBitSize, 2048, config.IssuerPrivateKey.Size()*8))
 		}
 	}
 
@@ -132,6 +140,7 @@ func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration,
 	}
 }
 
+//nolint:gocyclo // TODO: Refactor.
 func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, duplicateIDs := false, false
 
@@ -165,6 +174,23 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 			config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
 		} else if client.Policy != policyOneFactor && client.Policy != policyTwoFactor {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
+		}
+
+		switch {
+		case utils.IsStringInSlice(client.ConsentMode, []string{"", "auto"}):
+			if client.ConsentPreConfiguredDuration != nil {
+				config.Clients[c].ConsentMode = oidc.ClientConsentModePreConfigured.String()
+			} else {
+				config.Clients[c].ConsentMode = oidc.ClientConsentModeExplicit.String()
+			}
+		case utils.IsStringInSlice(client.ConsentMode, validOIDCClientConsentModes):
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, client.ID, strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), client.ConsentMode))
+		}
+
+		if client.ConsentPreConfiguredDuration == nil {
+			config.Clients[c].ConsentPreConfiguredDuration = schema.DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration
 		}
 
 		validateOIDCClientSectorIdentifier(client, validator)
@@ -227,8 +253,8 @@ func validateOIDCClientScopes(c int, configuration *schema.OpenIDConnectConfigur
 		return
 	}
 
-	if !utils.IsStringInSlice("openid", configuration.Clients[c].Scopes) {
-		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, "openid")
+	if !utils.IsStringInSlice(oidc.ScopeOpenID, configuration.Clients[c].Scopes) {
+		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, oidc.ScopeOpenID)
 	}
 
 	for _, scope := range configuration.Clients[c].Scopes {

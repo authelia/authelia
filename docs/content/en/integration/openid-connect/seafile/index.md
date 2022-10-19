@@ -16,9 +16,9 @@ community: true
 ## Tested Versions
 
 * [Authelia]
-  * [v4.35.5](https://github.com/authelia/authelia/releases/tag/v4.35.5)
+  * [v4.36.9](https://github.com/authelia/authelia/releases/tag/v4.36.9)
 * [Seafile] Server
-  * 9.0.4
+  * [9.0.9](https://manual.seafile.com/changelog/server-changelog/#909-2022-09-22)
 
 ## Before You Begin
 
@@ -39,7 +39,10 @@ This example makes the following assumptions:
 
 To configure [Seafile] to utilize Authelia as an [OpenID Connect] Provider:
 
-1. Edit your [Seafile] `seahub_settings.py` configuration file and add configure the following:
+1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed. 
+   See the [Seafile] documentation in the [see also](#see-also) section for more information.
+
+2. Edit your [Seafile] `seahub_settings.py` configuration file and add configure the following:
 
 ```python
 ENABLE_OAUTH = True
@@ -52,15 +55,14 @@ OAUTH_AUTHORIZATION_URL = 'https://auth.example.com/api/oidc/authorization'
 OAUTH_TOKEN_URL = 'https://auth.example.com/api/oidc/token'
 OAUTH_USER_INFO_URL = 'https://auth.example.com/api/oidc/userinfo'
 OAUTH_SCOPE = [
-  "openid",
-  "profile",
-  "email",
-  "groups",
+    "openid",
+    "profile",
+    "email",
 ]
 OAUTH_ATTRIBUTE_MAP = {
-    "id": (True, "preferred_username"),
+    "email": (True, "email"),
     "name": (False, "name"),
-    "email": (False, "email"),
+    "id": (False, "not used"),
 }
 ```
 

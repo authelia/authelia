@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 type OIDCScenario struct {
@@ -101,36 +103,44 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	rBase64 := regexp.MustCompile(`^[-_A-Za-z0-9+\\/]+([=]{0,3})$`)
 
 	testCases := []struct {
-		desc, elementID, elementText string
-		pattern                      *regexp.Regexp
+		desc, elementID string
+		expected        any
 	}{
-		{"welcome", "welcome", "Logged in as john!", nil},
-		{"at_hash", "claim-at_hash", "", rBase64},
-		{"jti", "claim-jti", "", rUUID},
-		{"iat", "claim-iat", "", rInteger},
-		{"nbf", "claim-nbf", "", rInteger},
-		{"rat", "claim-rat", "", rInteger},
-		{"expires", "claim-exp", "", rInteger},
-		{"amr", "claim-amr", "pwd, otp, mfa", nil},
-		{"acr", "claim-acr", "", nil},
-		{"issuer", "claim-iss", "https://login.example.com:8080", nil},
-		{"name", "claim-name", "John Doe", nil},
-		{"preferred_username", "claim-preferred_username", "john", nil},
-		{"groups", "claim-groups", "admins, dev", nil},
-		{"email", "claim-email", "john.doe@authelia.com", nil},
-		{"email_verified", "claim-email_verified", "", rBoolean},
+		{"welcome", "welcome", "Logged in as john!"},
+		{oidc.ClaimAccessTokenHash, "", rBase64},
+		{oidc.ClaimJWTID, "", rUUID},
+		{oidc.ClaimIssuedAt, "", rInteger},
+		{oidc.ClaimSubject, "", rUUID},
+		{oidc.ClaimNotBefore, "", rInteger},
+		{oidc.ClaimRequestedAt, "", rInteger},
+		{oidc.ClaimExpirationTime, "", rInteger},
+		{oidc.ClaimAuthenticationMethodsReference, "", "pwd, otp, mfa"},
+		{oidc.ClaimAuthenticationContextClassReference, "", ""},
+		{oidc.ClaimIssuer, "", "https://login.example.com:8080"},
+		{oidc.ClaimFullName, "", "John Doe"},
+		{oidc.ClaimPreferredUsername, "", "john"},
+		{oidc.ClaimGroups, "", "admins, dev"},
+		{oidc.ClaimPreferredEmail, "", "john.doe@authelia.com"},
+		{oidc.ClaimEmailVerified, "", rBoolean},
 	}
 
-	var text string
+	var actual string
 
 	for _, tc := range testCases {
 		s.T().Run(fmt.Sprintf("check_claims/%s", tc.desc), func(t *testing.T) {
-			text, err = s.WaitElementLocatedByID(t, s.Context(ctx), tc.elementID).Text()
+			switch tc.elementID {
+			case "":
+				actual, err = s.WaitElementLocatedByID(t, s.Context(ctx), "claim-"+tc.desc).Text()
+			default:
+				actual, err = s.WaitElementLocatedByID(t, s.Context(ctx), tc.elementID).Text()
+			}
+
 			assert.NoError(t, err)
-			if tc.pattern == nil {
-				assert.Equal(t, tc.elementText, text)
-			} else {
-				assert.Regexp(t, tc.pattern, text)
+			switch expected := tc.expected.(type) {
+			case *regexp.Regexp:
+				assert.Regexp(t, expected, actual)
+			default:
+				assert.Equal(t, expected, actual)
 			}
 		})
 	}

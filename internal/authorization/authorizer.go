@@ -88,12 +88,13 @@ func (p Authorizer) GetRuleMatchResults(subject Subject, object Object) (results
 			Rule:    rule,
 			Skipped: skipped,
 
-			MatchDomain:        isMatchForDomains(subject, object, rule),
-			MatchResources:     isMatchForResources(subject, object, rule),
-			MatchMethods:       isMatchForMethods(object, rule),
-			MatchNetworks:      isMatchForNetworks(subject, rule),
-			MatchSubjects:      isMatchForSubjects(subject, rule),
-			MatchSubjectsExact: isExactMatchForSubjects(subject, rule),
+			MatchDomain:        rule.MatchesDomains(subject, object),
+			MatchResources:     rule.MatchesResources(subject, object),
+			MatchQuery:         rule.MatchesQuery(object),
+			MatchMethods:       rule.MatchesMethods(object),
+			MatchNetworks:      rule.MatchesNetworks(subject),
+			MatchSubjects:      rule.MatchesSubjects(subject),
+			MatchSubjectsExact: rule.MatchesSubjectExact(subject),
 		}
 
 		skipped = skipped || results[i].IsMatch()
