@@ -42,6 +42,17 @@ access_control:
     - HEAD
     resources:
     - '^/api.*'
+    query:
+    - - operator: 'present'
+        key: 'secure'
+      - operator: 'absent'
+        key: 'insecure'
+    - - operator: 'pattern'
+        key: 'token'
+        value: '^(abc123|zyx789)$'
+      - operator: 'not pattern'
+        key: 'random'
+        value: '^(1|2)$'
 ```
 
 ## Options
@@ -414,6 +425,61 @@ access_control:
     policy: bypass
     resources:
     - '^/api([/?].*)?$'
+```
+
+#### query
+
+{{< confkey type="list(list(object))" required="no" >}}
+
+The query criteria is an advanced criteria which can allow configuration of rules that match specific query argument
+keys against various rules. It's recommended to use [resources](#resources) rules instead for basic needs.
+
+The format of this rule is unique in as much as it is a list of lists. The logic behind this format is to allow for both
+`OR` and `AND` logic. The first level of the list defines the `OR` logic, and the second level defines the `AND` logic.
+Additionally each level of these lists does not have to be explicitly defined.
+
+##### key
+
+{{< confkey type="string" required="yes" >}}
+
+The query argument key to check.
+
+##### value
+
+{{< confkey type="string" required="situational" >}}
+
+The value to match against. This is required unless the operator is `absent` or `present`. It's recommended this value
+is always quoted as per the examples.
+
+##### operator
+
+{{< confkey type="string" required="situational" >}}
+
+The rule operator for this rule. Valid operators can be found in the
+[Rule Operators](../../reference/guides/rule-operators.md#operators) reference guide.
+
+If [key](#key) and [value](#value) are specified this defaults to `equal`, otherwise if [key](#key) is specified it
+defaults to `present`.
+
+
+##### Examples
+
+```yaml
+access_control:
+  rules:
+    - domain: app.example.com
+      policy: bypass
+      query:
+      - - operator: 'present'
+          key: 'secure'
+        - operator: 'absent'
+          key: 'insecure'
+      - - operator: 'pattern'
+          key: 'token'
+          value: '^(abc123|zyx789)$'
+        - operator: 'not pattern'
+          key: 'random'
+          value: '^(1|2)$'
 ```
 
 ## Policies

@@ -214,6 +214,18 @@ const (
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
 		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalid = "access control: rule %s: 'query' option 'operator' with value '%s' is " +
+		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalidNoValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value"
+	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must not have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValueParse = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: %w"
+	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: 'query' option 'value' is " +
+		"invalid: expected type was string but got %T"
 )
 
 // Theme Error constants.
@@ -320,9 +332,20 @@ var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH"
 
 var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 
-var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+const (
+	operatorPresent    = "present"
+	operatorAbsent     = "absent"
+	operatorEqual      = "equal"
+	operatorNotEqual   = "not equal"
+	operatorPattern    = "pattern"
+	operatorNotPattern = "not pattern"
+)
 
-var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+var (
+	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
+)
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
