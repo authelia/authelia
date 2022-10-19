@@ -1,6 +1,6 @@
 ---
-title: "authelia storage user"
-description: "Reference for the authelia storage user command."
+title: "authelia storage user webauthn delete"
+description: "Reference for the authelia storage user webauthn delete command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -12,26 +12,41 @@ weight: 330
 toc: true
 ---
 
-## authelia storage user
+## authelia storage user webauthn delete
 
-Manages user settings
+Delete a WebAuthn device
 
 ### Synopsis
 
-Manages user settings.
+Delete a WebAuthn device.
 
-This subcommand allows modifying and exporting user settings.
+This subcommand allows deleting a WebAuthn device directly from the database.
+
+```
+authelia storage user webauthn delete [username] [flags]
+```
 
 ### Examples
 
 ```
-authelia storage user --help
+authelia storage user webauthn delete john --all
+authelia storage user webauthn delete john --all --config config.yml
+authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn delete john --description Primary
+authelia storage user webauthn delete john --description Primary --config config.yml
+authelia storage user webauthn delete john --description Primary --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn delete --kid abc123
+authelia storage user webauthn delete --kid abc123 --config config.yml
+authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-  -h, --help   help for user
+      --all                  delete all of the users webauthn devices
+      --description string   delete a users webauthn device by description
+  -h, --help                 help for delete
+      --kid string           delete a users webauthn device by key id
 ```
 
 ### Options inherited from parent commands
@@ -59,8 +74,5 @@ authelia storage user --help
 
 ### SEE ALSO
 
-* [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
-* [authelia storage user identifiers](authelia_storage_user_identifiers.md)	 - Manage user opaque identifiers
-* [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
 * [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage Webauthn devices
 
