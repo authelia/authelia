@@ -448,7 +448,8 @@ The query argument key to check.
 
 {{< confkey type="string" required="situational" >}}
 
-The value to match against. This is required unless the operator is `absent` or `present`.
+The value to match against. This is required unless the operator is `absent` or `present`. It's recommended this value
+is always quoted as per the examples.
 
 ##### operator
 
@@ -459,6 +460,27 @@ The rule operator for this rule. Valid operators can be found in the
 
 If [key](#key) and [value](#value) are specified this defaults to `equal`, otherwise if [key](#key) is specified it
 defaults to `present`.
+
+
+##### Examples
+
+```yaml
+access_control:
+  rules:
+    - domain: app.example.com
+      policy: bypass
+      query:
+      - - operator: 'present'
+          key: 'secure'
+        - operator: 'absent'
+          key: 'insecure'
+      - - operator: 'pattern'
+          key: 'token'
+          value: '^(abc123|zyx789)$'
+        - operator: 'not pattern'
+          key: 'random'
+          value: '^(1|2)$'
+```
 
 ## Policies
 

@@ -2,7 +2,7 @@
 title: "Access Control Rule Guide"
 description: "A reference guide on access control rule operators"
 lead: "This section contains a reference guide on access control rule operators."
-date: 2022-06-15T17:51:47+10:00
+date: 2022-09-09T15:44:23+10:00
 draft: false
 images: []
 menu:

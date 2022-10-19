@@ -148,6 +148,7 @@ var Keys = []string{
 	"access_control.rules[].networks",
 	"access_control.rules[].resources",
 	"access_control.rules[].methods",
+	"access_control.rules[].query",
 	"ntp.address",
 	"ntp.version",
 	"ntp.max_desync",
