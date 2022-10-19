@@ -21,10 +21,24 @@ const (
 	policyDeny      = "deny"
 )
 
+const (
+	digestSHA1   = "sha1"
+	digestSHA224 = "sha224"
+	digestSHA256 = "sha256"
+	digestSHA384 = "sha384"
+	digestSHA512 = "sha512"
+)
+
 // Hashing constants.
 const (
-	hashArgon2id = "argon2id"
-	hashSHA512   = "sha512"
+	hashLegacyArgon2id = "argon2id"
+	hashLegacySHA512   = digestSHA512
+
+	hashArgon2    = "argon2"
+	hashSHA2Crypt = "sha2crypt"
+	hashPBKDF2    = "pbkdf2"
+	hashSCrypt    = "scrypt"
+	hashBCrypt    = "bcrypt"
 )
 
 // Scheme constants.
@@ -33,18 +47,6 @@ const (
 	schemeLDAPS = "ldaps"
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
-)
-
-// Test constants.
-const (
-	testInvalidPolicy = "invalid"
-	testJWTSecret     = "a_secret"
-	testLDAPBaseDN    = "base_dn"
-	testLDAPPassword  = "password"
-	testLDAPURL       = "ldap://ldap"
-	testLDAPUser      = "user"
-	testModeDisabled  = "disable"
-	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
 
 // Notifier Error constants.
@@ -59,6 +61,10 @@ const (
 	errFmtNotifierStartTlsDisabled                = "Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS"
 )
 
+const (
+	errSuffixMustBeOneOf = "is configured as '%s' but must be one of the following values: '%s'"
+)
+
 // Authentication Backend Error constants.
 const (
 	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
@@ -71,19 +77,16 @@ const (
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
-	errFmtFileAuthBackendPasswordSaltLength = "authentication_backend: file: password: option 'salt_length' " +
-		"must be 2 or more but it is configured a '%d'"
 	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
-		"must be either 'argon2id' or 'sha512' but it is configured as '%s'"
-	errFmtFileAuthBackendPasswordInvalidIterations = "authentication_backend: file: password: option " +
-		"'iterations' must be 1 or more but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidKeyLength = "authentication_backend: file: password: option " +
-		"'key_length' must be 16 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidParallelism = "authentication_backend: file: password: option " +
-		"'parallelism' must be 1 or more when using algorithm 'argon2id' but it is configured as '%d'"
-	errFmtFileAuthBackendPasswordArgon2idInvalidMemory = "authentication_backend: file: password: option 'memory' " +
-		"must at least be parallelism multiplied by 8 when using algorithm 'argon2id' " +
-		"with parallelism %d it should be at least %d but it is configured as '%d'"
+		errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordInvalidVariant = "authentication_backend: file: password: %s: " +
+		"option 'variant' " + errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordOptionTooLarge = "authentication_backend: file: password: %s: " +
+		"option '%s' is configured as '%d' but must be less than or equal to '%d'"
+	errFmtFileAuthBackendPasswordOptionTooSmall = "authentication_backend: file: password: %s: " +
+		"option '%s' is configured as '%d' but must be greater than or equal to '%d'"
+	errFmtFileAuthBackendPasswordArgon2MemoryTooLow = "authentication_backend: file: password: argon2: " +
+		"option 'memory' is configured as '%d' but must be greater than or equal to '%d' or '%d' (the value of 'parallelism) multiplied by '%d'"
 
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
@@ -92,7 +95,7 @@ const (
 	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
 		"'minimum_tls_version' is invalid: %s: %w"
 	errFmtLDAPAuthBackendImplementation = "authentication_backend: ldap: option 'implementation' " +
-		"is configured as '%s' but must be one of the following values: '%s'"
+		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
 	errFmtLDAPAuthBackendURLNotParsable = "authentication_backend: ldap: option " +
@@ -201,13 +204,25 @@ const (
 		"https://www.authelia.com/c/acl#bypass"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = "access control: rule %s: 'policy' option 'bypass' is " +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
-		"https://www.authelia.com/c/acl#bypass-and-user-identity"
+		"https://www.authelia.com/c/acl-match-concept-2"
 	errFmtAccessControlRuleNetworksInvalid = "access control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access control: rule %s: 'subject' option '%s' is " +
 		"invalid: must start with 'user:' or 'group:'"
 	errFmtAccessControlRuleMethodInvalid = "access control: rule %s: 'methods' option '%s' is " +
 		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalid = "access control: rule %s: 'query' option 'operator' with value '%s' is " +
+		"invalid: must be one of '%s'"
+	errFmtAccessControlRuleQueryInvalidNoValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value"
+	errFmtAccessControlRuleQueryInvalidNoValueOperator = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValue = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: must not have a value when the operator is '%s'"
+	errFmtAccessControlRuleQueryInvalidValueParse = "access control: rule %s: 'query' option '%s' is " +
+		"invalid: %w"
+	errFmtAccessControlRuleQueryInvalidValueType = "access control: rule %s: 'query' option 'value' is " +
+		"invalid: expected type was string but got %T"
 )
 
 // Theme Error constants.
@@ -288,7 +303,17 @@ const (
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
 
-var validStoragePostgreSQLSSLModes = []string{testModeDisabled, "require", "verify-ca", "verify-full"}
+var validArgon2Variants = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
+
+var validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
+
+var validPBKDF2Variants = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
+
+var validBCryptVariants = []string{"standard", digestSHA256}
+
+var validHashAlgorithms = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
+
+var validStoragePostgreSQLSSLModes = []string{"disable", "require", "verify-ca", "verify-full"}
 
 var validThemeNames = []string{"light", "dark", "grey", "auto"}
 
@@ -304,9 +329,20 @@ var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH"
 
 var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 
-var validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+const (
+	operatorPresent    = "present"
+	operatorAbsent     = "absent"
+	operatorEqual      = "equal"
+	operatorNotEqual   = "not equal"
+	operatorPattern    = "pattern"
+	operatorNotPattern = "not pattern"
+)
 
-var validACLRulePolicies = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+var (
+	validACLHTTPMethodVerbs = append(validRFC7231HTTPMethodVerbs, validRFC4918HTTPMethodVerbs...)
+	validACLRulePolicies    = []string{policyBypass, policyOneFactor, policyTwoFactor, policyDeny}
+	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
+)
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 

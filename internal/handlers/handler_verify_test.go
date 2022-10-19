@@ -22,9 +22,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var verifyGetCfg = schema.AuthenticationBackendConfiguration{
+var verifyGetCfg = schema.AuthenticationBackend{
 	RefreshInterval: schema.RefreshIntervalDefault,
-	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
+	LDAP:            &schema.LDAPAuthenticationBackend{},
 }
 
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {

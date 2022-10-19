@@ -5,7 +5,12 @@ import (
 	"time"
 )
 
-const argon2id = "argon2id"
+const (
+	argon2   = "argon2"
+	argon2id = "argon2id"
+	sha512   = "sha512"
+	sha256   = "sha256"
+)
 
 // ProfileRefreshDisabled represents a value for refresh_interval that disables the check entirely.
 const ProfileRefreshDisabled = "disable"
