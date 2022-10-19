@@ -201,6 +201,7 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 	return false
 }
 
+//nolint:gocyclo
 func readTags(prefix string, t reflect.Type) (tags []string) {
 	tags = make([]string, 0)
 
@@ -223,12 +224,17 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 				continue
 			}
 		case reflect.Slice:
-			if field.Type.Elem().Kind() == reflect.Struct {
+			switch field.Type.Elem().Kind() {
+			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false))
 					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
 
 					continue
+				}
+			case reflect.Slice:
+				if field.Type.Elem().Elem().Kind() == reflect.Struct {
+					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag+"[]", true), field.Type.Elem().Elem())...)
 				}
 			}
 		case reflect.Ptr:
