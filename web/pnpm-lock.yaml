@@ -15,7 +15,7 @@ specifiers:
   '@mui/styles': 5.10.10
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0
-  '@types/jest': 29.1.2
+  '@types/jest': 29.2.0
   '@types/node': 18.11.2
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.21
@@ -97,7 +97,7 @@ devDependencies:
   '@commitlint/config-conventional': 17.1.0
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0_biqbaboplfbrettd7655fr4n2y
-  '@types/jest': 29.1.2
+  '@types/jest': 29.2.0
   '@types/node': 18.11.2
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.21
@@ -2505,8 +2505,8 @@ packages:
       '@jest/types': 29.1.2
       '@types/node': 18.11.2
       chalk: 4.1.2
-      jest-message-util: 29.1.2
-      jest-util: 29.1.2
+      jest-message-util: 29.2.1
+      jest-util: 29.2.1
       slash: 3.0.0
     dev: true
 
@@ -2572,13 +2572,6 @@ packages:
       '@jest/types': 29.2.1
       '@types/node': 18.11.2
       jest-mock: 29.2.1
-    dev: true
-
-  /@jest/expect-utils/29.1.2:
-    resolution: {integrity: sha512-4a48bhKfGj/KAH39u0ppzNTABXQ8QPccWAFUFobWBaEMSMp+sB31Z2fK/l47c4a/Mu1po2ffmfAIPxXbVTXdtg==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      jest-get-type: 29.2.0
     dev: true
 
   /@jest/expect-utils/29.2.1:
@@ -3502,11 +3495,11 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest/29.1.2:
-    resolution: {integrity: sha512-y+nlX0h87U0R+wsGn6EBuoRWYyv3KFtwRNP3QWp9+k2tJ2/bqcGS3UxD7jgT+tiwJWWq3UsyV4Y+T6rsMT4XMg==}
+  /@types/jest/29.2.0:
+    resolution: {integrity: sha512-KO7bPV21d65PKwv3LLsD8Jn3E05pjNjRZvkm+YTacWhVmykAb07wW6IkZUmQAltwQafNcDUEUrMO2h3jeBSisg==}
     dependencies:
-      expect: 29.1.2
-      pretty-format: 29.1.2
+      expect: 29.2.1
+      pretty-format: 29.2.1
     dev: true
 
   /@types/jsdom/20.0.0:
@@ -3596,7 +3589,7 @@ packages:
   /@types/testing-library__jest-dom/5.14.5:
     resolution: {integrity: sha512-SBwbxYoyPIvxHbeHxTZX2Pe/74F/tX2/D3mMvzabdeJ25bBojfW0TyB8BHrbq/9zaaKICJZjLP+8r6AeZMFCuQ==}
     dependencies:
-      '@types/jest': 29.1.2
+      '@types/jest': 29.2.0
     dev: true
 
   /@types/tough-cookie/4.0.2:
@@ -5730,17 +5723,6 @@ packages:
       - supports-color
     dev: true
 
-  /expect/29.1.2:
-    resolution: {integrity: sha512-AuAGn1uxva5YBbBlXb+2JPxJRuemZsmlGcapPXWNSBNsQtAULfjioREGBWuI0EOvYUKjDnrCy8PW5Zlr1md5mw==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@jest/expect-utils': 29.1.2
-      jest-get-type: 29.0.0
-      jest-matcher-utils: 29.1.2
-      jest-message-util: 29.1.2
-      jest-util: 29.1.2
-    dev: true
-
   /expect/29.2.1:
     resolution: {integrity: sha512-BJtA754Fba0YWRWHgjKUMTA3ltWarKgITXHQnbZ2mTxTXC4yMQlR0FI7HkB3fJYkhWBf4qjNiqvg3LDtXCcVRQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -6814,11 +6796,6 @@ packages:
       jest-util: 29.2.1
     dev: true
 
-  /jest-get-type/29.0.0:
-    resolution: {integrity: sha512-83X19z/HuLKYXYHskZlBAShO7UfLFXu/vWajw9ZNJASN32li8yHMaVGAQqxFW1RCFOkB7cubaL6FaJVQqqJLSw==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dev: true
-
   /jest-get-type/29.2.0:
     resolution: {integrity: sha512-uXNJlg8hKFEnDgFsrCjznB+sTxdkuqiCL6zMgA75qEbAJjJYTs9XPrvDctrEig2GDow22T/LvHgO57iJhXB/UA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -6874,16 +6851,6 @@ packages:
       pretty-format: 29.2.1
     dev: true
 
-  /jest-matcher-utils/29.1.2:
-    resolution: {integrity: sha512-MV5XrD3qYSW2zZSHRRceFzqJ39B2z11Qv0KPyZYxnzDHFeYZGJlgGi0SW+IXSJfOewgJp/Km/7lpcFT+cgZypw==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      chalk: 4.1.2
-      jest-diff: 29.2.1
-      jest-get-type: 29.2.0
-      pretty-format: 29.2.1
-    dev: true
-
   /jest-matcher-utils/29.2.1:
     resolution: {integrity: sha512-hUTBh7H/Mnb6GTpihbLh8uF5rjAMdekfW/oZNXUMAXi7bbmym2HiRpzgqf/zzkjgejMrVAkPdVSQj+32enlUww==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -6892,21 +6859,6 @@ packages:
       jest-diff: 29.2.1
       jest-get-type: 29.2.0
       pretty-format: 29.2.1
-    dev: true
-
-  /jest-message-util/29.1.2:
-    resolution: {integrity: sha512-9oJ2Os+Qh6IlxLpmvshVbGUiSkZVc2FK+uGOm6tghafnB2RyjKAxMZhtxThRMxfX1J1SOMhTn9oK3/MutRWQJQ==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@babel/code-frame': 7.18.6
-      '@jest/types': 29.2.1
-      '@types/stack-utils': 2.0.1
-      chalk: 4.1.2
-      graceful-fs: 4.2.10
-      micromatch: 4.0.5
-      pretty-format: 29.2.1
-      slash: 3.0.0
-      stack-utils: 2.0.5
     dev: true
 
   /jest-message-util/29.2.1:
@@ -8103,15 +8055,6 @@ packages:
       ansi-regex: 5.0.1
       ansi-styles: 5.2.0
       react-is: 17.0.2
-    dev: true
-
-  /pretty-format/29.1.2:
-    resolution: {integrity: sha512-CGJ6VVGXVRP2o2Dorl4mAwwvDWT25luIsYhkyVQW32E4nL+TgW939J7LlKT/npq5Cpq6j3s+sy+13yk7xYpBmg==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@jest/schemas': 29.0.0
-      ansi-styles: 5.2.0
-      react-is: 18.2.0
     dev: true
 
   /pretty-format/29.2.1:
