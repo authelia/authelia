@@ -93,16 +93,23 @@ Feature List:
 
 ### Beta 5
 
-{{< roadmap-status stage="in-progress" version="v4.37.0" >}}
+{{< roadmap-status stage="complete" version="v4.37.0" >}}
 
 Feature List:
 
 * [JWK's backed by X509 Certificate Chains](https://www.rfc-editor.org/rfc/rfc7517#section-4.7)
-* Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode
-  * Explicit
-  * Implicit
-  * Pre-Configured
 * Hashed Client Secrets
+* Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode:
+  * Explicit:
+    * The default
+    * Always asks for end-user consent
+  * Implicit:
+    * Not expressly standards compliant
+    * Never asks for end-user consent
+    * Not compatible with the consent prompt type
+  * Pre-Configured:
+    * Allows users to save consent sessions for a duration configured by the administrator
+    * Operates nearly identically to the explicit consent mode
 
 ### Beta 6
 
