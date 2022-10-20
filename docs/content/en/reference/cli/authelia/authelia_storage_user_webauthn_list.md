@@ -1,6 +1,6 @@
 ---
-title: "authelia storage user"
-description: "Reference for the authelia storage user command."
+title: "authelia storage user webauthn list"
+description: "Reference for the authelia storage user webauthn list command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -12,26 +12,35 @@ weight: 330
 toc: true
 ---
 
-## authelia storage user
+## authelia storage user webauthn list
 
-Manages user settings
+List WebAuthn devices
 
 ### Synopsis
 
-Manages user settings.
+List WebAuthn devices.
 
-This subcommand allows modifying and exporting user settings.
+This subcommand allows listing WebAuthn devices.
+
+```
+authelia storage user webauthn list [username] [flags]
+```
 
 ### Examples
 
 ```
-authelia storage user --help
+authelia storage user webauthn list
+authelia storage user webauthn list john
+authelia storage user webauthn list --config config.yml
+authelia storage user webauthn list john --config config.yml
+authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-  -h, --help   help for user
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -59,8 +68,5 @@ authelia storage user --help
 
 ### SEE ALSO
 
-* [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
-* [authelia storage user identifiers](authelia_storage_user_identifiers.md)	 - Manage user opaque identifiers
-* [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
 * [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage Webauthn devices
 

@@ -977,7 +977,7 @@ notifier:
 
         ## This value controls the duration a consent on this client remains remembered when the consent mode is
         ## configured as 'auto' or 'pre-configured'.
-        # pre_configured_consent_duration:
+        # pre_configured_consent_duration: 1w
 
         ## Audience this client is allowed to request.
         # audience: []
