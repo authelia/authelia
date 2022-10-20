@@ -17,6 +17,11 @@ func NewDefaultUserSession() UserSession {
 	}
 }
 
+// IsAnonymous returns true if the username is empty or the AuthenticationLevel is authentication.NotAuthenticated.
+func (s *UserSession) IsAnonymous() bool {
+	return s.Username == "" || s.AuthenticationLevel == authentication.NotAuthenticated
+}
+
 // SetOneFactor sets the 1FA AMR's and expected property values for one factor authentication.
 func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()

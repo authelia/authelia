@@ -131,6 +131,8 @@ function encodeAttestationPublicKeyCredential(
 function encodeAssertionPublicKeyCredential(
     credential: PublicKeyCredential,
     targetURL: string | undefined,
+    workflow: string | undefined,
+    workflowID: string | undefined,
 ): PublicKeyCredentialJSON {
     const response = credential.response as AuthenticatorAssertionResponse;
 
@@ -154,6 +156,8 @@ function encodeAssertionPublicKeyCredential(
             userHandle: userHandle,
         },
         targetURL: targetURL,
+        workflow: workflow,
+        workflowID: workflowID,
     };
 }
 
@@ -319,8 +323,10 @@ async function postAttestationPublicKeyCredentialResult(
 export async function postAssertionPublicKeyCredentialResult(
     credential: PublicKeyCredential,
     targetURL: string | undefined,
+    workflow?: string,
+    workflowID?: string,
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
-    const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL);
+    const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL, workflow, workflowID);
 
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
 }
@@ -353,7 +359,11 @@ export async function performAttestationCeremony(token: string): Promise<Attesta
     return AttestationResult.Failure;
 }
 
-export async function performAssertionCeremony(targetURL: string | undefined): Promise<AssertionResult> {
+export async function performAssertionCeremony(
+    targetURL?: string,
+    workflow?: string,
+    workflowID?: string,
+): Promise<AssertionResult> {
     const assertionRequestOpts = await getAssertionRequestOptions();
 
     if (assertionRequestOpts.status !== 200 || assertionRequestOpts.options == null) {
@@ -368,7 +378,12 @@ export async function performAssertionCeremony(targetURL: string | undefined): P
         return AssertionResult.Failure;
     }
 
-    const response = await postAssertionPublicKeyCredentialResult(assertionResult.credential, targetURL);
+    const response = await postAssertionPublicKeyCredentialResult(
+        assertionResult.credential,
+        targetURL,
+        workflow,
+        workflowID,
+    );
 
     if (response.data.status === "OK" && response.status === 200) {
         return AssertionResult.Success;

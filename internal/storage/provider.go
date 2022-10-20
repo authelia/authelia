@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -32,13 +33,13 @@ type Provider interface {
 	FindIdentityVerification(ctx context.Context, jti string) (found bool, err error)
 
 	SaveTOTPConfiguration(ctx context.Context, config model.TOTPConfiguration) (err error)
-	UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt *time.Time) (err error)
+	UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt sql.NullTime) (err error)
 	DeleteTOTPConfiguration(ctx context.Context, username string) (err error)
 	LoadTOTPConfiguration(ctx context.Context, username string) (config *model.TOTPConfiguration, err error)
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error)
 
 	SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error)
-	UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt *time.Time, signCount uint32, cloneWarning bool) (err error)
+	UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error)
 	DeleteWebauthnDevice(ctx context.Context, kid string) (err error)
 	DeleteWebauthnDeviceByUsername(ctx context.Context, username, description string) (err error)
 	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebauthnDevice, err error)
@@ -48,12 +49,14 @@ type Provider interface {
 	DeletePreferredDuoDevice(ctx context.Context, username string) (err error)
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
 
+	SaveOAuth2ConsentPreConfiguration(ctx context.Context, config model.OAuth2ConsentPreConfig) (insertedID int64, err error)
+	LoadOAuth2ConsentPreConfigurations(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentPreConfigRows, err error)
+
 	SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
 	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
 	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, rejection bool) (err error)
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)
-	LoadOAuth2ConsentSessionsPreConfigured(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentSessionRows, err error)
 
 	SaveOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, session model.OAuth2Session) (err error)
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)

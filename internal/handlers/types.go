@@ -1,7 +1,17 @@
 package handlers
 
 import (
+	"net/http"
+	"net/url"
+
+	"github.com/google/uuid"
+	"github.com/ory/fosite"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // MethodList is the list of available methods.
@@ -14,36 +24,41 @@ type configurationBody struct {
 	AvailableMethods MethodList `json:"available_methods"`
 }
 
-// signTOTPRequestBody model of the request body received by TOTP authentication endpoint.
-type signTOTPRequestBody struct {
-	Token     string `json:"token" valid:"required"`
-	TargetURL string `json:"targetURL"`
-	Workflow  string `json:"workflow"`
+// bodySignTOTPRequest is the  model of the request body of TOTP 2FA authentication endpoint.
+type bodySignTOTPRequest struct {
+	Token      string `json:"token" valid:"required"`
+	TargetURL  string `json:"targetURL"`
+	Workflow   string `json:"workflow"`
+	WorkflowID string `json:"workflowID"`
 }
 
-// signWebauthnRequestBody model of the request body of Webauthn authentication endpoint.
-type signWebauthnRequestBody struct {
-	TargetURL string `json:"targetURL"`
-	Workflow  string `json:"workflow"`
+// bodySignWebauthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
+type bodySignWebauthnRequest struct {
+	TargetURL  string `json:"targetURL"`
+	Workflow   string `json:"workflow"`
+	WorkflowID string `json:"workflowID"`
 }
 
-type signDuoRequestBody struct {
-	TargetURL string `json:"targetURL"`
-	Passcode  string `json:"passcode"`
-	Workflow  string `json:"workflow"`
+// bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.
+type bodySignDuoRequest struct {
+	TargetURL  string `json:"targetURL"`
+	Passcode   string `json:"passcode"`
+	Workflow   string `json:"workflow"`
+	WorkflowID string `json:"workflowID"`
 }
 
-// preferred2FAMethodBody the selected 2FA method.
-type preferred2FAMethodBody struct {
+// bodyPreferred2FAMethod the selected 2FA method.
+type bodyPreferred2FAMethod struct {
 	Method string `json:"method" valid:"required"`
 }
 
-// firstFactorRequestBody represents the JSON body received by the endpoint.
-type firstFactorRequestBody struct {
+// bodyFirstFactorRequest represents the JSON body received by the endpoint.
+type bodyFirstFactorRequest struct {
 	Username       string `json:"username" valid:"required"`
 	Password       string `json:"password" valid:"required"`
 	TargetURL      string `json:"targetURL"`
 	Workflow       string `json:"workflow"`
+	WorkflowID     string `json:"workflowID"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
 	// KeepMeLoggedIn: Cannot require this field because of https://github.com/asaskevich/govalidator/pull/329
@@ -128,3 +143,9 @@ type PasswordPolicyBody struct {
 	RequireNumber    bool   `json:"require_number"`
 	RequireSpecial   bool   `json:"require_special"`
 }
+
+type handlerAuthorizationConsent func(
+	ctx *middlewares.AutheliaCtx, issuer *url.URL, client *oidc.Client,
+	userSession session.UserSession, subject uuid.UUID,
+	rw http.ResponseWriter, r *http.Request,
+	requester fosite.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool)

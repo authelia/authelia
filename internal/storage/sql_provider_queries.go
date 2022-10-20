@@ -234,22 +234,30 @@ const (
 )
 
 const (
+	queryFmtSelectOAuth2ConsentPreConfigurations = `
+		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience
+		FROM %s
+		WHERE client_id = ? AND subject = ? AND
+			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
+
+	queryFmtInsertOAuth2ConsentPreConfiguration = `
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience)
+		VALUES(?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL = `
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience)
+		VALUES($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id;`
+
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
-		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration
 		FROM %s
 		WHERE challenge_id = ?;`
 
-	queryFmtSelectOAuth2ConsentSessionsPreConfigured = `
-		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
-		FROM %s
-		WHERE client_id = ? AND subject = ? AND
-			  authorized = TRUE AND granted = TRUE AND expires_at IS NOT NULL AND expires_at >= CURRENT_TIMESTAMP;`
-
 	queryFmtInsertOAuth2ConsentSession = `
-		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtUpdateOAuth2ConsentSessionSubject = `
@@ -259,7 +267,7 @@ const (
 
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
-		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, expires_at = ?, granted_scopes = ?, granted_audience = ?
+		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `

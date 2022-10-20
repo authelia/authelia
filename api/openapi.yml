@@ -176,7 +176,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/handlers.firstFactorRequestBody'
+              $ref: '#/components/schemas/handlers.bodyFirstFactorRequest'
       responses:
         "200":
           description: Successful Operation
@@ -446,7 +446,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/handlers.signTOTPRequestBody'
+              $ref: '#/components/schemas/handlers.bodySignTOTPRequest'
       responses:
         "200":
           description: Successful Operation
@@ -579,7 +579,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/handlers.signDuoRequestBody'
+              $ref: '#/components/schemas/handlers.bodySignDuoRequest'
       responses:
         "200":
           description: Successful Operation
@@ -785,7 +785,7 @@ components:
                     items:
                       type: string
                       example: push
-    handlers.firstFactorRequestBody:
+    handlers.bodyFirstFactorRequest:
       required:
         - username
         - password
@@ -800,6 +800,12 @@ components:
         targetURL:
           type: string
           example: https://home.example.com
+        workflow:
+          type: string
+          example: openid_connect
+        workflowID:
+          type: string
+          example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
         requestMethod:
           type: string
           example: GET
@@ -852,13 +858,21 @@ components:
         password:
           type: string
           example: password
-    handlers.signDuoRequestBody:
+    handlers.bodySignDuoRequest:
       type: object
       properties:
         targetURL:
           type: string
           example: https://secure.example.com
-    handlers.signTOTPRequestBody:
+        passcode:
+          type: string
+        workflow:
+          type: string
+          example: openid_connect
+        workflowID:
+          type: string
+          example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
+    handlers.bodySignTOTPRequest:
       type: object
       properties:
         token:
@@ -867,6 +881,12 @@ components:
         targetURL:
           type: string
           example: https://secure.example.com
+        workflow:
+          type: string
+          example: openid_connect
+        workflowID:
+          type: string
+          example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
     handlers.StateResponse:
       type: object
       properties:
@@ -1047,6 +1067,12 @@ components:
                     userHandle:
                       type: string
                       format: byte
+                    workflow:
+                      type: string
+                      example: openid_connect
+                    workflowID:
+                      type: string
+                      example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:

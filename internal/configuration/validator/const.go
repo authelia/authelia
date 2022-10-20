@@ -135,10 +135,11 @@ const (
 const (
 	errFmtOIDCNoClientsConfigured = "identity_providers: oidc: option 'clients' must have one or " +
 		"more clients configured"
-	errFmtOIDCNoPrivateKey            = "identity_providers: oidc: option 'issuer_private_key' is required"
-	errFmtOIDCCertificateMismatch     = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
-	errFmtOIDCCertificateChain        = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
+	errFmtOIDCNoPrivateKey             = "identity_providers: oidc: option 'issuer_private_key' is required"
+	errFmtOIDCInvalidPrivateKeyBitSize = "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with %d bits or more but it only has %d bits"
+	errFmtOIDCCertificateMismatch      = "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'"
+	errFmtOIDCCertificateChain         = "identity_providers: oidc: option 'issuer_certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCEnforcePKCEInvalidValue  = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it is configured as '%s'"
 
 	errFmtOIDCCORSInvalidOrigin                    = "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value '%s' as it has a %s: origins must only be scheme, hostname, and an optional port"
@@ -165,6 +166,8 @@ const (
 		"invalid value: redirect uri '%s' must have the scheme 'http' or 'https' but it has no scheme"
 	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
 		"or 'two_factor' but it is configured as '%s'"
+	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
+		"'%s' but it is configured as '%s'"
 	errFmtOIDCClientInvalidEntry = "identity_providers: oidc: client '%s': option '%s' must only have the values " +
 		"'%s' but one option is configured as '%s'"
 	errFmtOIDCClientInvalidUserinfoAlgorithm = "identity_providers: oidc: client '%s': option " +
@@ -346,15 +349,14 @@ var (
 
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
-var validOIDCScopes = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
-
-var validOIDCGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
-
-var validOIDCResponseModes = []string{"form_post", "query", "fragment"}
-
-var validOIDCUserinfoAlgorithms = []string{"none", "RS256"}
-
-var validOIDCCORSEndpoints = []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint}
+var (
+	validOIDCScopes             = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess}
+	validOIDCGrantTypes         = []string{oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken, oidc.GrantTypeAuthorizationCode, oidc.GrantTypePassword, oidc.GrantTypeClientCredentials}
+	validOIDCResponseModes      = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment}
+	validOIDCUserinfoAlgorithms = []string{oidc.SigningAlgorithmNone, oidc.SigningAlgorithmRSAWithSHA256}
+	validOIDCCORSEndpoints      = []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCClientConsentModes = []string{"auto", oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
+)
 
 var reKeyReplacer = regexp.MustCompile(`\[\d+]`)
 

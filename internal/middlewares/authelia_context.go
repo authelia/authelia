@@ -218,6 +218,29 @@ func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
 	return externalRootURL, nil
 }
 
+// IssuerURL returns the expected Issuer.
+func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
+	issuerURL = &url.URL{
+		Scheme: "https",
+	}
+
+	if scheme := ctx.XForwardedProto(); scheme != nil {
+		issuerURL.Scheme = string(scheme)
+	}
+
+	if host := ctx.XForwardedHost(); len(host) != 0 {
+		issuerURL.Host = string(host)
+	} else {
+		return nil, errMissingXForwardedHost
+	}
+
+	if base := ctx.BasePath(); base != "" {
+		issuerURL.Path = path.Join(issuerURL.Path, base)
+	}
+
+	return issuerURL, nil
+}
+
 // XOriginalURL return the content of the X-Original-URL header.
 func (ctx *AutheliaCtx) XOriginalURL() []byte {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)

@@ -6,6 +6,7 @@ package mocks
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 	time "time"
 
@@ -239,6 +240,21 @@ func (mr *MockStorageMockRecorder) LoadOAuth2BlacklistedJTI(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2BlacklistedJTI", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2BlacklistedJTI), arg0, arg1)
 }
 
+// LoadOAuth2ConsentPreConfigurations mocks base method.
+func (m *MockStorage) LoadOAuth2ConsentPreConfigurations(arg0 context.Context, arg1 string, arg2 uuid.UUID) (*storage.ConsentPreConfigRows, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2ConsentPreConfigurations", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*storage.ConsentPreConfigRows)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2ConsentPreConfigurations indicates an expected call of LoadOAuth2ConsentPreConfigurations.
+func (mr *MockStorageMockRecorder) LoadOAuth2ConsentPreConfigurations(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentPreConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentPreConfigurations), arg0, arg1, arg2)
+}
+
 // LoadOAuth2ConsentSessionByChallengeID mocks base method.
 func (m *MockStorage) LoadOAuth2ConsentSessionByChallengeID(arg0 context.Context, arg1 uuid.UUID) (*model.OAuth2ConsentSession, error) {
 	m.ctrl.T.Helper()
@@ -252,21 +268,6 @@ func (m *MockStorage) LoadOAuth2ConsentSessionByChallengeID(arg0 context.Context
 func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionByChallengeID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionByChallengeID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionByChallengeID), arg0, arg1)
-}
-
-// LoadOAuth2ConsentSessionsPreConfigured mocks base method.
-func (m *MockStorage) LoadOAuth2ConsentSessionsPreConfigured(arg0 context.Context, arg1 string, arg2 uuid.UUID) (*storage.ConsentSessionRows, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOAuth2ConsentSessionsPreConfigured", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*storage.ConsentSessionRows)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadOAuth2ConsentSessionsPreConfigured indicates an expected call of LoadOAuth2ConsentSessionsPreConfigured.
-func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionsPreConfigured(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionsPreConfigured", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionsPreConfigured), arg0, arg1, arg2)
 }
 
 // LoadOAuth2Session mocks base method.
@@ -502,6 +503,21 @@ func (m *MockStorage) SaveOAuth2BlacklistedJTI(arg0 context.Context, arg1 model.
 func (mr *MockStorageMockRecorder) SaveOAuth2BlacklistedJTI(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2BlacklistedJTI", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2BlacklistedJTI), arg0, arg1)
+}
+
+// SaveOAuth2ConsentPreConfiguration mocks base method.
+func (m *MockStorage) SaveOAuth2ConsentPreConfiguration(arg0 context.Context, arg1 model.OAuth2ConsentPreConfig) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2ConsentPreConfiguration", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveOAuth2ConsentPreConfiguration indicates an expected call of SaveOAuth2ConsentPreConfiguration.
+func (mr *MockStorageMockRecorder) SaveOAuth2ConsentPreConfiguration(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentPreConfiguration", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentPreConfiguration), arg0, arg1)
 }
 
 // SaveOAuth2ConsentSession mocks base method.
@@ -791,7 +807,7 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 }
 
 // UpdateTOTPConfigurationSignIn mocks base method.
-func (m *MockStorage) UpdateTOTPConfigurationSignIn(arg0 context.Context, arg1 int, arg2 *time.Time) error {
+func (m *MockStorage) UpdateTOTPConfigurationSignIn(arg0 context.Context, arg1 int, arg2 sql.NullTime) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTOTPConfigurationSignIn", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -805,7 +821,7 @@ func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(arg0, arg1, arg
 }
 
 // UpdateWebauthnDeviceSignIn mocks base method.
-func (m *MockStorage) UpdateWebauthnDeviceSignIn(arg0 context.Context, arg1 int, arg2 string, arg3 *time.Time, arg4 uint32, arg5 bool) error {
+func (m *MockStorage) UpdateWebauthnDeviceSignIn(arg0 context.Context, arg1 int, arg2 string, arg3 sql.NullTime, arg4 uint32, arg5 bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceSignIn", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)

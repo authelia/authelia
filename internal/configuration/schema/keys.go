@@ -45,6 +45,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].response_modes",
 	"identity_providers.oidc.clients[].userinfo_signing_algorithm",
 	"identity_providers.oidc.clients[].authorization_policy",
+	"identity_providers.oidc.clients[].consent_mode",
 	"identity_providers.oidc.clients[].pre_configured_consent_duration",
 	"authentication_backend.password_reset.disable",
 	"authentication_backend.password_reset.custom_url",
