@@ -22,12 +22,19 @@ community: true
 
 ## Before You Begin
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+### Common Notes
+
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+### Specific Notes
 
 *__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect]. It is therefore
 recommended that you ensure Authelia and [Synology DSM] share a LDAP server.*
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -69,7 +76,7 @@ which will operate with the above example:
 ```yaml
 - id: synology-dsm
   description: Synology DSM
-  secret: synology-dsm_client_secret
+  secret: '$plaintext$synology-dsm_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

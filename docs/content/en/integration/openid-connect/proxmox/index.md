@@ -22,14 +22,19 @@ aliases:
 * [Proxmox]
   * 7.1-10
 
-## Before You Begin
+### Common Notes
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+### Specific Notes
 
 *__Important Note:__ [Proxmox] requires you create the Realm prior to adding the provider. This is not covered in this
 guide.*
+
+### Assumptions
 
 This example makes the following assumptions:
 
