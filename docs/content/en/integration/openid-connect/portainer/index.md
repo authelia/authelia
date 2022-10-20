@@ -67,7 +67,7 @@ which will operate with the above example:
 ```yaml
 - id: portainer
   description: Portainer
-  secret: portainer_client_secret
+  secret: '$plaintext$portainer_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

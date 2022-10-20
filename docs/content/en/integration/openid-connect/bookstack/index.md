@@ -64,7 +64,7 @@ which will operate with the above example:
 ```yaml
 - id: bookstack
   description: BookStack
-  secret: bookstack_client_secret
+  secret: '$plaintext$bookstack_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

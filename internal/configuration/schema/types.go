@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-crypt/crypt"
 )
 
 // NewAddressFromString returns an *Address and error depending on the ability to parse the string as an Address.
@@ -105,6 +107,29 @@ func (a Address) HostPort() string {
 // Listener creates and returns a net.Listener.
 func (a Address) Listener() (net.Listener, error) {
 	return net.Listen(a.Scheme, a.HostPort())
+}
+
+// NewPasswordDigest returns a new PasswordDigest.
+func NewPasswordDigest(value string, plaintext bool) (digest *PasswordDigest, err error) {
+	var d crypt.Digest
+
+	switch {
+	case plaintext:
+		d, err = crypt.DecodeWithPlainText(value)
+	default:
+		d, err = crypt.Decode(value)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &PasswordDigest{d}, err
+}
+
+// PasswordDigest is a configuration type for the crypt.Digest.
+type PasswordDigest struct {
+	crypt.Digest
 }
 
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.

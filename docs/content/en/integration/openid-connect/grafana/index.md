@@ -93,7 +93,7 @@ which will operate with the above example:
 ```yaml
 - id: grafana
   description: Grafana
-  secret: grafana_client_secret
+  secret: '$plaintext$grafana_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

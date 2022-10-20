@@ -9,8 +9,10 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/go-crypt/crypt"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -410,5 +412,55 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 		default:
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 		}
+	}
+}
+
+// StringToPasswordDigestHookFunc decodes a string into a crypt.Digest.
+func StringToPasswordDigestHookFunc(plaintext bool) mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.PasswordDigest{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.PasswordDigest
+
+		if !strings.HasPrefix(dataStr, "$") {
+			dataStr = fmt.Sprintf(crypt.StorageFormatSimple, crypt.AlgorithmPrefixPlainText, dataStr)
+		}
+
+		if dataStr != "" {
+			if result, err = schema.NewPasswordDigest(dataStr, plaintext); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
+			}
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		if result == nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType.String(), errDecodeNonPtrMustHaveValue)
+		}
+
+		return *result, nil
 	}
 }

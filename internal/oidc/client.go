@@ -14,7 +14,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	client = &Client{
 		ID:               config.ID,
 		Description:      config.Description,
-		Secret:           []byte(config.Secret),
+		Secret:           config.Secret,
 		SectorIdentifier: config.SectorIdentifier.String(),
 		Public:           config.Public,
 
@@ -76,7 +76,11 @@ func (c *Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Con
 
 // GetHashedSecret returns the Secret.
 func (c *Client) GetHashedSecret() []byte {
-	return c.Secret
+	if c.Secret == nil {
+		return []byte(nil)
+	}
+
+	return []byte(c.Secret.Encode())
 }
 
 // GetRedirectURIs returns the RedirectURIs.

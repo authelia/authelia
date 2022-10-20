@@ -62,7 +62,7 @@ which will operate with the above example:
 ```yaml
 - id: argocd
   description: Argo CD
-  secret: argocd_client_secret
+  secret: '$plaintext$argocd_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

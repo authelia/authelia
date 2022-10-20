@@ -87,7 +87,7 @@ which will operate with the above example:
 ```yaml
 - id: nextcloud
   description: NextCloud
-  secret: nextcloud_client_secret
+  secret: '$plaintext$nextcloud_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

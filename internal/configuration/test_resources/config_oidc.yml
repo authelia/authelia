@@ -132,6 +132,6 @@ identity_providers:
         - https://example.com
     clients:
       - id: abc
-        secret: 123
+        secret: '123'
         consent_mode: explicit
 ...

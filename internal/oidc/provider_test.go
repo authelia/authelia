@@ -31,7 +31,7 @@ func TestNewOpenIDConnectProvider_ShouldEnableOptionalDiscoveryValues(t *testing
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:               "a-client",
-				Secret:           "a-client-secret",
+				Secret:           MustDecodeSecret("$plaintext$a-client-secret"),
 				SectorIdentifier: url.URL{Host: "google.com"},
 				Policy:           "one_factor",
 				RedirectURIs: []string{
@@ -62,7 +62,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
-				Secret: "a-client-secret",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -71,7 +71,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 			{
 				ID:          "b-client",
 				Description: "Normal Description",
-				Secret:      "b-client-secret",
+				Secret:      MustDecodeSecret("$plaintext$b-client-secret"),
 				Policy:      "two_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -102,7 +102,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
-				Secret: "a-client-secret",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -192,7 +192,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOAuth2WellKnownConfig
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
-				Secret: "a-client-secret",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",
@@ -271,7 +271,7 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GetOpenIDConnectWellKnow
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:     "a-client",
-				Secret: "a-client-secret",
+				Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 				Policy: "one_factor",
 				RedirectURIs: []string{
 					"https://google.com",

@@ -21,14 +21,14 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 				Description: "myclient desc",
 				Policy:      "one_factor",
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
-				Secret:      "mysecret",
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 			{
 				ID:          "myotherclient",
 				Description: "myclient desc",
 				Policy:      "two_factor",
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
-				Secret:      "mysecret",
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)
@@ -53,7 +53,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 				Description: "myclient desc",
 				Policy:      "one_factor",
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
-				Secret:      "mysecret",
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)
@@ -74,7 +74,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Description: "myclient desc",
 		Policy:      "one_factor",
 		Scopes:      []string{ScopeOpenID, ScopeProfile},
-		Secret:      "mysecret",
+		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
 
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
@@ -93,7 +93,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	assert.Equal(t, client.ResponseTypes, c1.ResponseTypes)
 	assert.Equal(t, client.RedirectURIs, c1.RedirectURIs)
 	assert.Equal(t, client.Policy, authorization.OneFactor)
-	assert.Equal(t, client.Secret, []byte(c1.Secret))
+	assert.Equal(t, client.Secret.Encode(), "$plaintext$mysecret")
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
@@ -102,7 +102,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Description: "myclient desc",
 		Policy:      "one_factor",
 		Scopes:      []string{ScopeOpenID, ScopeProfile},
-		Secret:      "mysecret",
+		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
 
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
@@ -126,7 +126,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 				Description: "myclient desc",
 				Policy:      "one_factor",
 				Scopes:      []string{ScopeOpenID, ScopeProfile},
-				Secret:      "mysecret",
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)

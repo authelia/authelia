@@ -72,7 +72,7 @@ which will operate with the above example:
 ```yaml
 - id: cloudflare
   description: Cloudflare ZeroTrust
-  secret: cloudflare_client_secret
+  secret: '$plaintext$cloudflare_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:
