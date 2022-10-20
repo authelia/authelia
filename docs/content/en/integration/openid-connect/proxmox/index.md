@@ -29,6 +29,8 @@ aliases:
 3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
    [Generating Client Secrets] guide instead.
 
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
 ### Specific Notes
 
 *__Important Note:__ [Proxmox] requires you create the Realm prior to adding the provider. This is not covered in this
