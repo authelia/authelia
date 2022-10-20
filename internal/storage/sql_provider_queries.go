@@ -165,6 +165,18 @@ const (
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
 			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
+
+	queryFmtDeleteWebauthnDevice = `
+		DELETE FROM %s
+		WHERE kid = ?;`
+
+	queryFmtDeleteWebauthnDeviceByUsername = `
+		DELETE FROM %s
+		WHERE username = ?;`
+
+	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
+		DELETE FROM %s
+		WHERE username = ? AND description = ?;`
 )
 
 const (

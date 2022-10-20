@@ -1,6 +1,6 @@
 ---
-title: "authelia storage user"
-description: "Reference for the authelia storage user command."
+title: "authelia storage user webauthn"
+description: "Reference for the authelia storage user webauthn command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -12,26 +12,26 @@ weight: 330
 toc: true
 ---
 
-## authelia storage user
+## authelia storage user webauthn
 
-Manages user settings
+Manage Webauthn devices
 
 ### Synopsis
 
-Manages user settings.
+Manage Webauthn devices.
 
-This subcommand allows modifying and exporting user settings.
+This subcommand allows interacting with Webauthn devices.
 
 ### Examples
 
 ```
-authelia storage user --help
+authelia storage user webauthn --help
 ```
 
 ### Options
 
 ```
-  -h, --help   help for user
+  -h, --help   help for webauthn
 ```
 
 ### Options inherited from parent commands
@@ -59,8 +59,7 @@ authelia storage user --help
 
 ### SEE ALSO
 
-* [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
-* [authelia storage user identifiers](authelia_storage_user_identifiers.md)	 - Manage user opaque identifiers
-* [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
-* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage Webauthn devices
+* [authelia storage user](authelia_storage_user.md)	 - Manages user settings
+* [authelia storage user webauthn delete](authelia_storage_user_webauthn_delete.md)	 - Delete a WebAuthn device
+* [authelia storage user webauthn list](authelia_storage_user_webauthn_list.md)	 - List WebAuthn devices
 
