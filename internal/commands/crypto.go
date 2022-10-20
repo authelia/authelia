@@ -44,53 +44,15 @@ func newCryptoRandCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaCryptoRandExample,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			useCharSet, useCharacters := cmd.Flags().Changed(cmdFlagNameCharSet), cmd.Flags().Changed(cmdFlagNameCharacters)
-			if useCharSet && useCharacters {
-				return fmt.Errorf("flags '--%s' and '--%s' are mutually exclusive, only one may be specified", cmdFlagNameCharSet, cmdFlagNameCharacters)
-			}
-
 			var (
-				charset string
-				n       int
+				random string
 			)
 
-			if n, err = cmd.Flags().GetInt(cmdFlagNameLength); err != nil {
+			if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
 				return err
 			}
 
-			if n < 1 {
-				return fmt.Errorf("length must be at least 1")
-			}
-
-			switch {
-			case useCharSet, !useCharSet && !useCharacters:
-				var c string
-
-				if c, err = cmd.Flags().GetString(cmdFlagNameCharSet); err != nil {
-					return err
-				}
-
-				switch c {
-				case "ascii":
-					charset = utils.CharSetASCII
-				case "alphanumeric":
-					charset = utils.CharSetAlphaNumeric
-				case "alphabetic":
-					charset = utils.CharSetAlphabetic
-				case "numeric-hex":
-					charset = utils.CharSetNumericHex
-				case "numeric":
-					charset = utils.CharSetNumeric
-				default:
-					return fmt.Errorf("invalid charset '%s', must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', or 'numeric-hex'", c)
-				}
-			case useCharacters:
-				if charset, err = cmd.Flags().GetString(cmdFlagNameCharacters); err != nil {
-					return err
-				}
-			}
-
-			fmt.Printf("Random Value: %s\n", utils.RandomString(n, charset, true))
+			fmt.Printf("Random Value: %s\n", random)
 
 			return nil
 		},
@@ -98,9 +60,9 @@ func newCryptoRandCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameCharSet, "c", "alphanumeric", "Sets the charset for the output, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
-	cmd.Flags().String(cmdFlagNameCharacters, "", "Sets the explicit characters for the random output")
-	cmd.Flags().IntP(cmdFlagNameLength, "n", 80, "Sets the length of the random output")
+	cmd.Flags().StringP(cmdFlagNameCharSet, "c", "alphanumeric", "Sets the charset for the random string, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
+	cmd.Flags().String(cmdFlagNameCharacters, "", "Sets the explicit characters for the random string")
+	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, "Sets the length of the random output")
 
 	return cmd
 }

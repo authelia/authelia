@@ -2,7 +2,7 @@
 title: "Specific Information"
 description: "Specific information regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party"
 lead: "Specific information regarding integrating the Authelia OpenID Connect Provider with an OpenID Connect relying party."
-date: 2022-06-15T17:51:47+10:00
+date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
 menu:

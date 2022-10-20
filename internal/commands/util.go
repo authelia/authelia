@@ -3,6 +3,10 @@ package commands
 import (
 	"fmt"
 	"os"
+
+	"github.com/spf13/pflag"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func recoverErr(i any) error {
@@ -28,4 +32,55 @@ func configFilterExisting(configs []string) (finalConfigs []string) {
 	}
 
 	return finalConfigs
+}
+
+func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameCharSet, flagNameCharacters string) (r string, err error) {
+	var (
+		n       int
+		charset string
+	)
+
+	if n, err = flags.GetInt(flagNameLength); err != nil {
+		return "", err
+	}
+
+	if n < 1 {
+		return "", fmt.Errorf("flag --%s with value '%d' is invalid: must be at least 1", flagNameLength, n)
+	}
+
+	useCharSet, useCharacters := flags.Changed(flagNameCharSet), flags.Changed(flagNameCharacters)
+
+	if useCharSet && useCharacters {
+		return "", fmt.Errorf("flag --%s and flag --%s are mutually exclusive, only one may be used", flagNameCharSet, flagNameCharacters)
+	}
+
+	switch {
+	case useCharSet, !useCharSet && !useCharacters:
+		var c string
+
+		if c, err = flags.GetString(flagNameCharSet); err != nil {
+			return "", err
+		}
+
+		switch c {
+		case "ascii":
+			charset = utils.CharSetASCII
+		case "alphanumeric":
+			charset = utils.CharSetAlphaNumeric
+		case "alphabetic":
+			charset = utils.CharSetAlphabetic
+		case "numeric-hex":
+			charset = utils.CharSetNumericHex
+		case "numeric":
+			charset = utils.CharSetNumeric
+		default:
+			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', or 'numeric-hex'", flagNameCharSet, c)
+		}
+	case useCharacters:
+		if charset, err = flags.GetString(flagNameCharacters); err != nil {
+			return "", err
+		}
+	}
+
+	return utils.RandomString(n, charset, true), nil
 }

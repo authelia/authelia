@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func newHashPasswordCmd() (cmd *cobra.Command) {
@@ -105,6 +104,7 @@ func newCryptoHashGenerateCmd() (cmd *cobra.Command) {
 
 	cmdFlagConfig(cmd)
 	cmdFlagPassword(cmd, true)
+	cmdFlagRandomPassword(cmd)
 
 	for _, use := range []string{cmdUseHashArgon2, cmdUseHashSHA2Crypt, cmdUseHashPBKDF2, cmdUseHashBCrypt, cmdUseHashSCrypt} {
 		cmd.AddCommand(newCryptoHashGenerateSubCmd(use))
@@ -128,10 +128,6 @@ func newCryptoHashGenerateSubCmd(use string) (cmd *cobra.Command) {
 
 		DisableAutoGenTag: true,
 	}
-
-	cmdFlagConfig(cmd)
-	cmdFlagPassword(cmd, true)
-	cmdFlagRandomPassword(cmd)
 
 	switch use {
 	case cmdUseHashArgon2:
@@ -419,13 +415,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 
 	switch {
 	case random:
-		var length int
-
-		if length, err = cmd.Flags().GetInt(cmdFlagNameRandomLength); err != nil {
-			return
-		}
-
-		password = utils.RandomString(length, utils.CharSetAlphaNumeric, true)
+		password, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameRandomLength, cmdFlagNameRandomCharSet, cmdFlagNameCharacters)
 
 		return
 	case cmd.Flags().Changed(cmdFlagNamePassword):
@@ -494,20 +484,22 @@ func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 }
 
 func cmdFlagConfig(cmd *cobra.Command) {
-	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
+	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
 }
 
 func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {
-	cmd.Flags().String(cmdFlagNamePassword, "", "manually supply the password rather than using the terminal prompt")
+	cmd.PersistentFlags().String(cmdFlagNamePassword, "", "manually supply the password rather than using the terminal prompt")
 
 	if noConfirm {
-		cmd.Flags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
+		cmd.PersistentFlags().Bool(cmdFlagNameNoConfirm, false, "skip the password confirmation prompt")
 	}
 }
 
 func cmdFlagRandomPassword(cmd *cobra.Command) {
-	cmd.Flags().Bool(cmdFlagNameRandom, false, "uses a randomly generated password")
-	cmd.Flags().Int(cmdFlagNameRandomLength, 72, "when using a randomly generated password it configures the length")
+	cmd.PersistentFlags().Bool(cmdFlagNameRandom, false, "uses a randomly generated password")
+	cmd.PersistentFlags().Int(cmdFlagNameRandomLength, 72, "when using a randomly generated password it configures the length")
+	cmd.PersistentFlags().String(cmdFlagNameRandomCharSet, "alphanumeric", "sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
+	cmd.PersistentFlags().String(cmdFlagNameRandomCharacters, "", "sets the explicit characters for the random string")
 }
 
 func cmdFlagIterations(cmd *cobra.Command, value int) {
