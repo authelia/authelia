@@ -35,15 +35,22 @@ authelia crypto hash generate pbkdf2 --help
 ### Options
 
 ```
-  -c, --config strings      configuration files to load (default [configuration.yml])
-  -h, --help                help for pbkdf2
-  -i, --iterations int      number of iterations (default 310000)
-      --no-confirm          skip the password confirmation prompt
-      --password string     manually supply the password rather than using the terminal prompt
-      --random              uses a randomly generated password
-      --random.length int   when using a randomly generated password it configures the length (default 72)
-  -s, --salt-size int       salt size in bytes (default 16)
-  -v, --variant string      variant, options are 'sha1', 'sha224', 'sha256', 'sha384', and 'sha512' (default "sha512")
+  -h, --help             help for pbkdf2
+  -i, --iterations int   number of iterations (default 310000)
+  -s, --salt-size int    salt size in bytes (default 16)
+  -v, --variant string   variant, options are 'sha1', 'sha224', 'sha256', 'sha384', and 'sha512' (default "sha512")
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings             configuration files to load (default [configuration.yml])
+      --no-confirm                 skip the password confirmation prompt
+      --password string            manually supply the password rather than using the terminal prompt
+      --random                     uses a randomly generated password
+      --random.characters string   sets the explicit characters for the random string
+      --random.charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex' (default "alphanumeric")
+      --random.length int          when using a randomly generated password it configures the length (default 72)
 ```
 
 ### SEE ALSO
