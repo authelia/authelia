@@ -29,6 +29,8 @@ community: true
 3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
    [Generating Client Secrets] guide instead.
 
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
 ### Specific Notes
 
 *__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect]. It is therefore
