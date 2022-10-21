@@ -7,10 +7,10 @@
 
 # List of users
 users:
-  <USERNAME>:
-    displayname: "<DISPLAYNAME>"
-    password: "<PASSWORD>"
-    email: <USERNAME>@example.com
+  ouyangmengyuan:
+    displayname: "ouyang"
+    password: "$argon2id$v=19$m=65536,t=3,p=4$Y1ZlRWZCeG1wRGJPenhwcA$nPrtKw57FYqDqu+ma+TpAcu0rR2gSqcvckHYqpv1y/Y"
+    email: ouyangmengyuan@example.com
     groups:
       - admins
       - dev
