@@ -34,7 +34,7 @@ i18n.use(Backend)
         ns: ["portal"],
         defaultNS: "portal",
         fallbackLng: {
-            default: ["en"],
+            default: ["zh-CN"],
             ar: ["en"],
             "ar-SA": ["ar", "en"],
             cs: ["en"],

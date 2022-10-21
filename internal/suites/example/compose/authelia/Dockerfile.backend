@@ -1,4 +1,4 @@
-FROM golang:1.19.2-alpine
+FROM reg.yhroot.com/yinhe-pub/golang:1.19.2-alpine
 
 ARG USER_ID
 ARG GROUP_ID

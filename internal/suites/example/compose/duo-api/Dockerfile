@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM reg.yhroot.com/yinhe-pub/node:18-alpine
 
 WORKDIR /usr/app/src
 

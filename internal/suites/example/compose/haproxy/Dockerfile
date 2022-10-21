@@ -1,4 +1,4 @@
-FROM haproxy:2.6.6-alpine
+FROM reg.yhroot.com/yinhe-pub/haproxy:2.6.6-alpine
 USER root
 
 RUN \

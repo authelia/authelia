@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:18-alpine AS builder-frontend
+FROM reg.yhroot.com/yinhe-pub/node:18-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -15,7 +15,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.19.2-alpine AS builder-backend
+FROM reg.yhroot.com/yinhe-pub/golang:1.19.2-alpine AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -46,7 +46,7 @@ CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LD
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.16.2
+FROM reg.yhroot.com/yinhe-pub/alpine:3.16.2
 
 RUN apk --no-cache add ca-certificates tzdata
 

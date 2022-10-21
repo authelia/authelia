@@ -1,7 +1,7 @@
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.16.2
+FROM reg.yhroot.com/yinhe-pub/alpine:3.16.2
 
 ARG TARGETOS
 ARG TARGETARCH
