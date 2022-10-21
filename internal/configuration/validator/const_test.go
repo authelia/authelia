@@ -10,3 +10,7 @@ const (
 	testLDAPUser      = "user"
 	testEncryptionKey = "a_not_so_secure_encryption_key"
 )
+
+const (
+	examplecom = "example.com"
+)
