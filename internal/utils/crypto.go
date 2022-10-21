@@ -299,22 +299,6 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 	return certPool, warnings, errors
 }
 
-// TLSStringToTLSConfigVersion returns a go crypto/tls version for a tls.Config based on string input.
-func TLSStringToTLSConfigVersion(input string) (version uint16, err error) {
-	switch strings.ToUpper(input) {
-	case "TLS1.3", TLS13:
-		return tls.VersionTLS13, nil
-	case "TLS1.2", TLS12:
-		return tls.VersionTLS12, nil
-	case "TLS1.1", TLS11:
-		return tls.VersionTLS11, nil
-	case "TLS1.0", TLS10:
-		return tls.VersionTLS10, nil
-	}
-
-	return 0, ErrTLSVersionNotSupported
-}
-
 // WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.
 func WriteCertificateBytesToPEM(cert []byte, path string, csr bool) (err error) {
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)

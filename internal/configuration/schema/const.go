@@ -13,17 +13,32 @@ const (
 )
 
 const (
-	// TLS13 is the textual representation of TLS 1.3.
-	TLS13 = "1.3"
+	// TLSVersion13 is the textual representation of TLS 1.3.
+	TLSVersion13 = "TLS1.3"
 
-	// TLS12 is the textual representation of TLS 1.2.
-	TLS12 = "1.2"
+	// TLSVersion12 is the textual representation of TLS 1.2.
+	TLSVersion12 = "TLS1.2"
 
-	// TLS11 is the textual representation of TLS 1.1.
-	TLS11 = "1.1"
+	// TLSVersion11 is the textual representation of TLS 1.1.
+	TLSVersion11 = "TLS1.1"
 
-	// TLS10 is the textual representation of TLS 1.0.
-	TLS10 = "1.0"
+	// TLSVersion10 is the textual representation of TLS 1.0.
+	TLSVersion10 = "TLS1.0"
+
+	// SSLVersion30 is the textual representation of SSL 3.0.
+	SSLVersion30 = "SSL3.0"
+
+	// Version13 is the textual representation of version 1.3.
+	Version13 = "1.3"
+
+	// Version12 is the textual representation of version 1.2.
+	Version12 = "1.2"
+
+	// Version11 is the textual representation of version 1.1.
+	Version11 = "1.1"
+
+	// Version10 is the textual representation of version 1.0.
+	Version10 = "1.0"
 )
 
 // ErrTLSVersionNotSupported returned when an unknown TLS version supplied.

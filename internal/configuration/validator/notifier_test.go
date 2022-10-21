@@ -23,7 +23,7 @@ func (suite *NotifierSuite) SetupTest() {
 		Username: "john",
 		Password: "password",
 		Sender:   mail.Address{Name: "Authelia", Address: "authelia@example.com"},
-		Host:     "example.com",
+		Host:     examplecom,
 		Port:     25,
 	}
 	suite.config.FileSystem = nil
@@ -78,7 +78,7 @@ func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("example.com", suite.config.SMTP.TLS.ServerName)
+	suite.Assert().Equal(examplecom, suite.config.SMTP.TLS.ServerName)
 	suite.Assert().Equal(uint16(tls.VersionTLS12), suite.config.SMTP.TLS.MinimumVersion.Value)
 	suite.Assert().False(suite.config.SMTP.TLS.SkipVerify)
 }
@@ -111,7 +111,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
-	suite.config.SMTP.Host = "example.com"
+	suite.config.SMTP.Host = examplecom
 	suite.config.SMTP.TLS = &schema.TLSConfig{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
@@ -125,7 +125,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
 }
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
-	suite.config.SMTP.Host = "example.com"
+	suite.config.SMTP.Host = examplecom
 	suite.config.SMTP.TLS = &schema.TLSConfig{
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 		MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
@@ -137,6 +137,18 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "notifier: smtp: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
+}
+
+func (suite *NotifierSuite) TestSMTPShouldWarnOnDisabledSTARTTLS() {
+	suite.config.SMTP.Host = examplecom
+	suite.config.SMTP.DisableStartTLS = true
+
+	ValidateNotifier(&suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 1)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "notifier: smtp: option 'disable_starttls' is enabled: opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS")
 }
 
 func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {

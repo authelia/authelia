@@ -25,7 +25,7 @@ func newDefaultConfig() schema.Configuration {
 		DefaultPolicy: "two_factor",
 	}
 	config.Session = schema.SessionConfiguration{
-		Domain: "example.com",
+		Domain: examplecom,
 		Name:   "authelia_session",
 		Secret: "secret",
 	}

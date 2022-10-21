@@ -178,14 +178,16 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 // NewTLSVersion returns a new TLSVersion given a string.
 func NewTLSVersion(input string) (version *TLSVersion, err error) {
 	switch strings.ReplaceAll(strings.ToUpper(input), " ", "") {
-	case "TLS1.3", TLS13:
+	case TLSVersion13, Version13:
 		return &TLSVersion{tls.VersionTLS13}, nil
-	case "TLS1.2", TLS12:
+	case TLSVersion12, Version12:
 		return &TLSVersion{tls.VersionTLS12}, nil
-	case "TLS1.1", TLS11:
+	case TLSVersion11, Version11:
 		return &TLSVersion{tls.VersionTLS11}, nil
-	case "TLS1.0", TLS10:
+	case TLSVersion10, Version10:
 		return &TLSVersion{tls.VersionTLS10}, nil
+	case SSLVersion30:
+		return &TLSVersion{tls.VersionSSL30}, nil //nolint:staticcheck
 	}
 
 	return nil, ErrTLSVersionNotSupported
@@ -218,15 +220,15 @@ func (v *TLSVersion) MinVersion() uint16 {
 func (v *TLSVersion) String() string {
 	switch v.Value {
 	case tls.VersionTLS10:
-		return "TLS1.0"
+		return TLSVersion10
 	case tls.VersionTLS11:
-		return "TLS1.1"
+		return TLSVersion11
 	case tls.VersionTLS12:
-		return "TLS1.2"
+		return TLSVersion12
 	case tls.VersionTLS13:
-		return "TLS1.3"
+		return TLSVersion13
 	case tls.VersionSSL30: //nolint:staticcheck
-		return "SSL3.0"
+		return SSLVersion30
 	default:
 		return ""
 	}

@@ -130,18 +130,18 @@ instead you should tweak the `server_name` option, and the global option
 {{< confkey type="string" default="TLS1.2" required="no" >}}
 
 Controls the minimum TLS version Authelia will use when performing TLS handshakes.
-The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`, `SSL3.0`. Anything other than `TLS1.3` or `TLS1.2`
 are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
-this value.
+this value. At the time of this writing `SSL3.0` will always produce errors.
 
 ### maximum_version
 
 {{< confkey type="string" default="TLS1.3" required="no" >}}
 
 Controls the maximum TLS version Authelia will use when performing TLS handshakes.
-The possible  are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`. Anything other than `TLS1.3` or `TLS1.2`
-are very old and values deprecated. You should avoid using these and upgrade your backend service instead of decreasing
-this value.
+The possible values are `TLS1.3`, `TLS1.2`, `TLS1.1`, `TLS1.0`, `SSL3.0`. Anything other than `TLS1.3` or `TLS1.2`
+are very old and deprecated. You should avoid using these and upgrade your backend service instead of decreasing
+this value. At the time of this writing `SSL3.0` will always produce errors.
 
 ### certificate_chain
 
