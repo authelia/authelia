@@ -58,7 +58,11 @@ const (
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
-	errFmtNotifierStartTlsDisabled                = "Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS"
+	errFmtNotifierSMTPTLSConfigInvalid            = "notifier: smtp: tls: %w"
+	errFmtNotifierStartTlsDisabled                = "notifier: smtp: option 'disable_starttls' is enabled: " +
+		"opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext " +
+		"and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS " +
+		"when they actually don't support STARTTLS"
 )
 
 const (
@@ -91,10 +95,9 @@ const (
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSMinVersion = "authentication_backend: ldap: tls: option " +
-		"'minimum_tls_version' is invalid: %s: %w"
-	errFmtLDAPAuthBackendImplementation = "authentication_backend: ldap: option 'implementation' " +
+	errFmtLDAPAuthBackendMissingOption    = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendTLSConfigInvalid = "authentication_backend: ldap: tls: %w"
+	errFmtLDAPAuthBackendImplementation   = "authentication_backend: ldap: option 'implementation' " +
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = "authentication_backend: ldap: option " +
 		"'%s' has an invalid placeholder: '%s' has been removed, please use '%s' instead"
@@ -247,6 +250,7 @@ const (
 	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but is configured as '%d'"
 	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
 	errFmtSessionRedisHostOrNodesRequired = "session: redis: option 'host' or the 'high_availability' option 'nodes' is required"
+	errFmtSessionRedisTLSConfigInvalid    = "session: redis: tls: %w"
 
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"

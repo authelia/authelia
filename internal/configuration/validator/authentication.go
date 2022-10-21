@@ -321,17 +321,33 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join([]string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory}, "', '")))
 	}
 
+	configDefaultTLS := &schema.TLSConfig{}
+
 	if implementation != nil {
-		setDefaultImplementationLDAPAuthenticationBackendProfileMisc(config.LDAP, implementation)
+		if config.LDAP.Timeout == 0 {
+			config.LDAP.Timeout = implementation.Timeout
+		}
+
+		configDefaultTLS = &schema.TLSConfig{
+			MinimumVersion: implementation.TLS.MinimumVersion,
+			MaximumVersion: implementation.TLS.MaximumVersion,
+		}
+
 		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.LDAP, implementation)
 	}
 
-	if config.LDAP.TLS != nil {
-		if _, err := utils.TLSStringToTLSConfigVersion(config.LDAP.TLS.MinimumVersion); err != nil {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSMinVersion, config.LDAP.TLS.MinimumVersion, err))
-		}
+	if config.LDAP.URL == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
 	} else {
+		configDefaultTLS.ServerName = validateLDAPAuthenticationBackendURL(config.LDAP, validator)
+	}
+
+	if config.LDAP.TLS == nil {
 		config.LDAP.TLS = &schema.TLSConfig{}
+	}
+
+	if err := ValidateTLSConfig(config.LDAP.TLS, configDefaultTLS); err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSConfigInvalid, err))
 	}
 
 	if strings.Contains(config.LDAP.UsersFilter, "{0}") {
@@ -346,29 +362,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
 	}
 
-	if config.LDAP.URL == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "url"))
-	} else {
-		validateLDAPAuthenticationBackendURL(config.LDAP, validator)
-	}
-
 	validateLDAPRequiredParameters(config, validator)
-}
-
-func setDefaultImplementationLDAPAuthenticationBackendProfileMisc(config *schema.LDAPAuthenticationBackend, implementation *schema.LDAPAuthenticationBackend) {
-	if config.Timeout == 0 {
-		config.Timeout = implementation.Timeout
-	}
-
-	if implementation.TLS == nil {
-		return
-	}
-
-	if config.TLS == nil {
-		config.TLS = implementation.TLS
-	} else if config.TLS.MinimumVersion == "" {
-		config.TLS.MinimumVersion = implementation.TLS.MinimumVersion
-	}
 }
 
 func ldapImplementationShouldSetStr(config, implementation string) bool {
@@ -401,7 +395,7 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 	}
 }
 
-func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) {
+func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBackend, validator *schema.StructValidator) (hostname string) {
 	var (
 		parsedURL *url.URL
 		err       error
@@ -420,9 +414,8 @@ func validateLDAPAuthenticationBackendURL(config *schema.LDAPAuthenticationBacke
 	}
 
 	config.URL = parsedURL.String()
-	if config.TLS.ServerName == "" {
-		config.TLS.ServerName = parsedURL.Hostname()
-	}
+
+	return parsedURL.Hostname()
 }
 
 func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, validator *schema.StructValidator) {

@@ -58,6 +58,18 @@ func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.
 	if config.Secret == "" {
 		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "redis"))
 	}
+
+	if config.Redis.TLS != nil {
+		configDefaultTLS := &schema.TLSConfig{
+			ServerName:     config.Redis.Host,
+			MinimumVersion: schema.DefaultRedisConfiguration.TLS.MinimumVersion,
+			MaximumVersion: schema.DefaultRedisConfiguration.TLS.MaximumVersion,
+		}
+
+		if err := ValidateTLSConfig(config.Redis.TLS, configDefaultTLS); err != nil {
+			validator.Push(fmt.Errorf(errFmtSessionRedisTLSConfigInvalid, err))
+		}
+	}
 }
 
 func validateRedis(config *schema.SessionConfiguration, validator *schema.StructValidator) {

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"crypto/tls"
 	"net/url"
 	"testing"
 	"time"
@@ -625,6 +626,42 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenPasswordNot
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'password' is required")
 }
 
+func (suite *LDAPAuthenticationBackendSuite) TestShouldNotRaiseErrorWhenPasswordNotProvidedWithPermitUnauthenticatedBind() {
+	suite.config.LDAP.Password = ""
+	suite.config.LDAP.PermitUnauthenticatedBind = true
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenPasswordProvidedWithPermitUnauthenticatedBind() {
+	suite.config.LDAP.Password = "test"
+	suite.config.LDAP.PermitUnauthenticatedBind = true
+	suite.config.PasswordReset.Disable = true
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldNotRaiseErrorWhenPermitUnauthenticatedBindConfiguredCorrectly() {
+	suite.config.LDAP.Password = ""
+	suite.config.LDAP.PermitUnauthenticatedBind = true
+	suite.config.PasswordReset.Disable = true
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 0)
+}
+
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotProvided() {
 	suite.config.LDAP.BaseDN = ""
 
@@ -783,19 +820,19 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersion() {
-	suite.config.LDAP.TLS = &schema.TLSConfig{MinimumVersion: ""}
+	suite.config.LDAP.TLS = &schema.TLSConfig{MinimumVersion: schema.TLSVersion{}}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS.MinimumVersion, suite.config.LDAP.TLS.MinimumVersion)
+	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS.MinimumVersion.Value, suite.config.LDAP.TLS.MinimumVersion.MinVersion())
 }
 
-func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
+func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowSSL30() {
 	suite.config.LDAP.TLS = &schema.TLSConfig{
-		MinimumVersion: "SSL2.0",
+		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -803,7 +840,21 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue()
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option 'minimum_tls_version' is invalid: SSL2.0: supplied tls version isn't supported")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowTLSVerMinGreaterThanVerMax() {
+	suite.config.LDAP.TLS = &schema.TLSConfig{
+		MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+		MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.2")
 }
 
 func TestLdapAuthenticationBackend(t *testing.T) {

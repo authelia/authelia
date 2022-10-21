@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/tls"
 	"net/url"
 	"time"
 )
@@ -180,7 +181,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuth
 	GroupNameAttribute:   "cn",
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
-		MinimumVersion: "TLS1.2",
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
 
@@ -194,6 +195,6 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 	GroupNameAttribute:   "cn",
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
-		MinimumVersion: "TLS1.2",
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
