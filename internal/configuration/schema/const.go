@@ -48,13 +48,13 @@ var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported
 const ProfileRefreshDisabled = "disable"
 
 const (
-	// ProfileRefreshAlways represents a Value for refresh_interval that's the same as 0ms.
+	// ProfileRefreshAlways represents a value for refresh_interval that's the same as 0ms.
 	ProfileRefreshAlways = "always"
 
-	// RefreshIntervalDefault represents the default Value of refresh_interval.
+	// RefreshIntervalDefault represents the default value of refresh_interval.
 	RefreshIntervalDefault = "5m"
 
-	// RefreshIntervalAlways represents the duration Value refresh interval should have if set to always.
+	// RefreshIntervalAlways represents the duration value refresh interval should have if set to always.
 	RefreshIntervalAlways = 0 * time.Millisecond
 )
 
