@@ -38,17 +38,17 @@ func getBuild(branch, buildNumber, extra string) (b *Build, err error) {
 		gitTagCommit string
 	)
 
-	//if gitTagCommit, _, err = utils.RunCommandAndReturnOutput("git rev-list --tags --max-count=1"); err != nil {
-	//	return nil, fmt.Errorf("error getting tag commit with git rev-list: %w", err)
-	//}
-	//
-	//if b.Tag, _, err = utils.RunCommandAndReturnOutput(fmt.Sprintf("git describe --tags --abbrev=0 %s", gitTagCommit)); err != nil {
-	//	return nil, fmt.Errorf("error getting tag with git describe: %w", err)
-	//}
-	//
-	//if b.Commit, _, err = utils.RunCommandAndReturnOutput("git rev-parse HEAD"); err != nil {
-	//	return nil, fmt.Errorf("error getting commit with git rev-parse: %w", err)
-	//}
+	if gitTagCommit, _, err = utils.RunCommandAndReturnOutput("git rev-list --tags --max-count=1"); err != nil {
+		return nil, fmt.Errorf("error getting tag commit with git rev-list: %w", err)
+	}
+
+	if b.Tag, _, err = utils.RunCommandAndReturnOutput(fmt.Sprintf("git describe --tags --abbrev=0 %s", gitTagCommit)); err != nil {
+		return nil, fmt.Errorf("error getting tag with git describe: %w", err)
+	}
+
+	if b.Commit, _, err = utils.RunCommandAndReturnOutput("git rev-parse HEAD"); err != nil {
+		return nil, fmt.Errorf("error getting commit with git rev-parse: %w", err)
+	}
 
 	if gitTagCommit == b.Commit {
 		b.Tagged = true
