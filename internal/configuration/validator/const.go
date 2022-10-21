@@ -59,7 +59,10 @@ const (
 	errFmtNotifierFileSystemFileNameNotConfigured = "notifier: filesystem: option 'filename' is required"
 	errFmtNotifierSMTPNotConfigured               = "notifier: smtp: option '%s' is required"
 	errFmtNotifierSMTPTLSConfigInvalid            = "notifier: smtp: tls: %w"
-	errFmtNotifierStartTlsDisabled                = "Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS"
+	errFmtNotifierStartTlsDisabled                = "notifier: smtp: option 'disable_starttls' is enabled: " +
+		"opportunistic STARTTLS is explicitly disabled which means all emails will be sent insecurely over plaintext " +
+		"and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS " +
+		"when they actually don't support STARTTLS"
 )
 
 const (

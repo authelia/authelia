@@ -201,6 +201,22 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(1, suite.config.AccessControl.Rules[0])))
 }
 
+func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGroup() {
+	suite.config.AccessControl.Rules = []schema.ACLRule{
+		{
+			DomainsRegex: MustCompileRegexps([]string{`^(?P<User>\w+)\.example\.com$`}),
+			Policy:       "bypass",
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: rule #1: 'policy' option 'bypass' is not supported when 'domain_regex' option contains the user or group named matches. For more information see: https://www.authelia.com/c/acl-match-concept-2")
+}
+
 func (suite *AccessControl) TestShouldSetQueryDefaults() {
 	domains := []string{"public.example.com"}
 	suite.config.AccessControl.Rules = []schema.ACLRule{
@@ -358,4 +374,14 @@ func TestShouldReturnCorrectResultsForValidNetworkGroups(t *testing.T) {
 
 	assert.True(t, validNetwork)
 	assert.False(t, invalidNetwork)
+}
+
+func MustCompileRegexps(exps []string) (regexps []regexp.Regexp) {
+	regexps = make([]regexp.Regexp, len(exps))
+
+	for i, exp := range exps {
+		regexps[i] = *regexp.MustCompile(exp)
+	}
+
+	return regexps
 }
