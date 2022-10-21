@@ -346,6 +346,76 @@ func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+// StringToTLSVersionHookFunc decodes strings to schema.TLSVersion's.
+func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.TLSVersion{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.TLSVersion
+
+		if result, err = schema.NewTLSVersion(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		return *result, nil
+	}
+}
+
+// StringToCryptoPrivateKeyHookFunc decodes strings to schema.CryptographicPrivateKey's.
+func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		field, _ := reflect.TypeOf(schema.TLSConfig{}).FieldByName("PrivateKey")
+		expectedType := field.Type
+
+		if t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var i any
+
+		if i, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
+		}
+
+		if result, ok := i.(schema.CryptographicPrivateKey); !ok {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, fmt.Errorf("the data is for a %T not a %s", i, expectedType))
+		} else {
+			return result, nil
+		}
+	}
+}
+
 // StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {

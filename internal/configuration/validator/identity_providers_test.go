@@ -257,7 +257,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs: []string{
 						"https://google.com",
 					},
-					SectorIdentifier: mustParseURL("example.com"),
+					SectorIdentifier: mustParseURL(examplecom),
 				},
 			},
 		},
@@ -289,12 +289,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			},
 			Errors: []string{
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "scheme", "https"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "path", "/path"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "query", "query=abc"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "fragment", "fragment"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "username", "user"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "password"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "scheme", "https"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "path", "/path"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "query", "query=abc"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "fragment", "fragment"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "username", "user"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "password"),
 			},
 		},
 		{

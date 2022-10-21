@@ -235,17 +235,26 @@ func IsX509PrivateKey(i any) bool {
 }
 
 // NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *x509.CertPool) (tlsConfig *tls.Config) {
-	minVersion, err := TLSStringToTLSConfigVersion(config.MinimumVersion)
-	if err != nil {
-		minVersion = defaultMinVersion
+func NewTLSConfig(config *schema.TLSConfig, certPool *x509.CertPool) (tlsConfig *tls.Config) {
+	var certificates []tls.Certificate
+
+	if config.CertificateChain.HasCertificates() && config.PrivateKey != nil {
+		certificates = []tls.Certificate{
+			{
+				Certificate: config.CertificateChain.CertificatesRaw(),
+				Leaf:        config.CertificateChain.Leaf(),
+				PrivateKey:  config.PrivateKey,
+			},
+		}
 	}
 
 	return &tls.Config{
 		ServerName:         config.ServerName,
 		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
-		MinVersion:         minVersion,
+		MinVersion:         config.MinimumVersion.MinVersion(),
+		MaxVersion:         config.MinimumVersion.MaxVersion(),
 		RootCAs:            certPool,
+		Certificates:       certificates,
 	}
 }
 
@@ -288,22 +297,6 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 	logger.Tracef("Finished scan of directory %s for certificates", directory)
 
 	return certPool, warnings, errors
-}
-
-// TLSStringToTLSConfigVersion returns a go crypto/tls version for a tls.Config based on string input.
-func TLSStringToTLSConfigVersion(input string) (version uint16, err error) {
-	switch strings.ToUpper(input) {
-	case "TLS1.3", TLS13:
-		return tls.VersionTLS13, nil
-	case "TLS1.2", TLS12:
-		return tls.VersionTLS12, nil
-	case "TLS1.1", TLS11:
-		return tls.VersionTLS11, nil
-	case "TLS1.0", TLS10:
-		return tls.VersionTLS10, nil
-	}
-
-	return 0, ErrTLSVersionNotSupported
 }
 
 // WriteCertificateBytesToPEM writes a certificate/csr to a file in the PEM format.
