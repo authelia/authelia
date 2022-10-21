@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"regexp"
 	"time"
 )
@@ -9,20 +10,36 @@ const (
 	argon2   = "argon2"
 	argon2id = "argon2id"
 	sha512   = "sha512"
-	sha256   = "sha256"
 )
 
-// ProfileRefreshDisabled represents a value for refresh_interval that disables the check entirely.
+const (
+	// TLS13 is the textual representation of TLS 1.3.
+	TLS13 = "1.3"
+
+	// TLS12 is the textual representation of TLS 1.2.
+	TLS12 = "1.2"
+
+	// TLS11 is the textual representation of TLS 1.1.
+	TLS11 = "1.1"
+
+	// TLS10 is the textual representation of TLS 1.0.
+	TLS10 = "1.0"
+)
+
+// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
+var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")
+
+// ProfileRefreshDisabled represents a Value for refresh_interval that disables the check entirely.
 const ProfileRefreshDisabled = "disable"
 
 const (
-	// ProfileRefreshAlways represents a value for refresh_interval that's the same as 0ms.
+	// ProfileRefreshAlways represents a Value for refresh_interval that's the same as 0ms.
 	ProfileRefreshAlways = "always"
 
-	// RefreshIntervalDefault represents the default value of refresh_interval.
+	// RefreshIntervalDefault represents the default Value of refresh_interval.
 	RefreshIntervalDefault = "5m"
 
-	// RefreshIntervalAlways represents the duration value refresh interval should have if set to always.
+	// RefreshIntervalAlways represents the duration Value refresh interval should have if set to always.
 	RefreshIntervalAlways = 0 * time.Millisecond
 )
 

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"crypto/tls"
 	"net/url"
 	"testing"
 	"time"
@@ -783,19 +784,19 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldHelpDetectNoInputPlacehol
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersion() {
-	suite.config.LDAP.TLS = &schema.TLSConfig{MinimumVersion: ""}
+	suite.config.LDAP.TLS = &schema.TLSConfig{MinimumVersion: schema.TLSVersion{}}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS.MinimumVersion, suite.config.LDAP.TLS.MinimumVersion)
+	suite.Assert().Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS.MinimumVersion.Value, suite.config.LDAP.TLS.MinimumVersion.MinVersion())
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue() {
 	suite.config.LDAP.TLS = &schema.TLSConfig{
-		MinimumVersion: "SSL2.0",
+		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -803,7 +804,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowInvalidTLSValue()
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option 'minimum_tls_version' is invalid: SSL2.0: supplied tls version isn't supported")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
 }
 
 func TestLdapAuthenticationBackend(t *testing.T) {

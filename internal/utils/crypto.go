@@ -235,17 +235,26 @@ func IsX509PrivateKey(i any) bool {
 }
 
 // NewTLSConfig generates a tls.Config from a schema.TLSConfig and a x509.CertPool.
-func NewTLSConfig(config *schema.TLSConfig, defaultMinVersion uint16, certPool *x509.CertPool) (tlsConfig *tls.Config) {
-	minVersion, err := TLSStringToTLSConfigVersion(config.MinimumVersion)
-	if err != nil {
-		minVersion = defaultMinVersion
+func NewTLSConfig(config *schema.TLSConfig, certPool *x509.CertPool) (tlsConfig *tls.Config) {
+	var certificates []tls.Certificate
+
+	if config.CertificateChain.HasCertificates() && config.PrivateKey != nil {
+		certificates = []tls.Certificate{
+			{
+				Certificate: config.CertificateChain.CertificatesRaw(),
+				Leaf:        config.CertificateChain.Leaf(),
+				PrivateKey:  config.PrivateKey,
+			},
+		}
 	}
 
 	return &tls.Config{
 		ServerName:         config.ServerName,
 		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
-		MinVersion:         minVersion,
+		MinVersion:         config.MinimumVersion.MinVersion(),
+		MaxVersion:         config.MinimumVersion.MaxVersion(),
 		RootCAs:            certPool,
+		Certificates:       certificates,
 	}
 }
 

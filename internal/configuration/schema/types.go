@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -174,6 +175,69 @@ func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error)
 	return chain, nil
 }
 
+// NewTLSVersion returns a new TLSVersion given a string.
+func NewTLSVersion(input string) (version *TLSVersion, err error) {
+	switch strings.ReplaceAll(strings.ToUpper(input), " ", "") {
+	case "TLS1.3", TLS13:
+		return &TLSVersion{tls.VersionTLS13}, nil
+	case "TLS1.2", TLS12:
+		return &TLSVersion{tls.VersionTLS12}, nil
+	case "TLS1.1", TLS11:
+		return &TLSVersion{tls.VersionTLS11}, nil
+	case "TLS1.0", TLS10:
+		return &TLSVersion{tls.VersionTLS10}, nil
+	}
+
+	return nil, ErrTLSVersionNotSupported
+}
+
+// TLSVersion is a struct which handles tls.Config versions.
+type TLSVersion struct {
+	Value uint16
+}
+
+// MaxVersion returns the value of this as a MaxVersion value.
+func (v *TLSVersion) MaxVersion() uint16 {
+	if v.Value == 0 {
+		return tls.VersionTLS13
+	}
+
+	return v.Value
+}
+
+// MinVersion returns the value of this as a MinVersion value.
+func (v *TLSVersion) MinVersion() uint16 {
+	if v.Value == 0 {
+		return tls.VersionTLS12
+	}
+
+	return v.Value
+}
+
+// String provides the Stringer.
+func (v *TLSVersion) String() string {
+	switch v.Value {
+	case tls.VersionTLS10:
+		return "TLS1.0"
+	case tls.VersionTLS11:
+		return "TLS1.1"
+	case tls.VersionTLS12:
+		return "TLS1.2"
+	case tls.VersionTLS13:
+		return "TLS1.3"
+	case tls.VersionSSL30: //nolint:staticcheck
+		return "SSL3.0"
+	default:
+		return ""
+	}
+}
+
+// CryptographicPrivateKey represents the actual crypto.PrivateKey interface.
+type CryptographicPrivateKey interface {
+	Public() crypto.PublicKey
+	Equal(x crypto.PrivateKey) bool
+}
+
 // X509CertificateChain is a helper struct that holds a list of *x509.Certificate's.
 type X509CertificateChain struct {
 	certs []*x509.Certificate
@@ -259,8 +323,30 @@ func (c *X509CertificateChain) EqualKey(other any) (equal bool) {
 }
 
 // Certificates for this X509CertificateChain.
-func (c *X509CertificateChain) Certificates() []*x509.Certificate {
+func (c *X509CertificateChain) Certificates() (certificates []*x509.Certificate) {
 	return c.certs
+}
+
+// CertificatesRaw for this X509CertificateChain.
+func (c *X509CertificateChain) CertificatesRaw() (certificates [][]byte) {
+	if !c.HasCertificates() {
+		return nil
+	}
+
+	for _, cert := range c.certs {
+		certificates = append(certificates, cert.Raw)
+	}
+
+	return certificates
+}
+
+// Leaf returns the first certificate if available for use with tls.Certificate.
+func (c *X509CertificateChain) Leaf() (leaf *x509.Certificate) {
+	if !c.HasCertificates() {
+		return nil
+	}
+
+	return c.certs[0]
 }
 
 // Validate the X509CertificateChain ensuring the certificates were provided in the correct order

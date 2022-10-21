@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/tls"
 	"time"
 )
 
@@ -53,4 +54,11 @@ var DefaultSessionConfiguration = SessionConfiguration{
 	Inactivity:         time.Minute * 5,
 	RememberMeDuration: time.Hour * 24 * 30,
 	SameSite:           "lax",
+}
+
+// DefaultRedisConfiguration is the default redis configuration.
+var DefaultRedisConfiguration = RedisSessionConfiguration{
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
+	},
 }

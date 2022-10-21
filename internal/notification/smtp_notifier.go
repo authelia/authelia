@@ -27,7 +27,7 @@ import (
 func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
 	notifier := &SMTPNotifier{
 		config:    config,
-		tlsConfig: utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool),
+		tlsConfig: utils.NewTLSConfig(config.TLS, certPool),
 		log:       logging.Logger(),
 		templates: templateProvider,
 	}
