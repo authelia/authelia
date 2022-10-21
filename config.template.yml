@@ -586,7 +586,7 @@ access_control:
     #   policy: one_factor
     # - domain_regex:
     #    - '^appgroup-.*\.example\.com$'
-      #  - '^appgroup2-.*\.example\.com$'
+    #    - '^appgroup2-.*\.example\.com$'
     #   policy: one_factor
     # - domain_regex: '^.*\.example\.com$'
     #   policy: two_factor
