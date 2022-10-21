@@ -53,7 +53,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPa
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
 
-	tlsConfig := utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool)
+	tlsConfig := utils.NewTLSConfig(config.TLS, certPool)
 
 	var dialOpts = []ldap.DialOpt{
 		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
