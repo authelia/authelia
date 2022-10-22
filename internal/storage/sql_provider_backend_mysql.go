@@ -1,11 +1,12 @@
 package storage
 
 import (
+	"crypto/x509"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -16,9 +17,9 @@ type MySQLProvider struct {
 }
 
 // NewMySQLProvider a MySQL provider.
-func NewMySQLProvider(config *schema.Configuration) (provider *MySQLProvider) {
+func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MySQLProvider) {
 	provider = &MySQLProvider{
-		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dataSourceNameMySQL(*config.Storage.MySQL)),
+		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dsnMySQL(config.Storage.MySQL)),
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -30,32 +31,35 @@ func NewMySQLProvider(config *schema.Configuration) (provider *MySQLProvider) {
 	return provider
 }
 
-func dataSourceNameMySQL(config schema.MySQLStorageConfiguration) (dataSourceName string) {
-	dconfig := mysql.NewConfig()
+func dsnMySQL(config *schema.MySQLStorageConfiguration) (dataSourceName string) {
+	dsnConfig := mysql.NewConfig()
 
 	switch {
+	case path.IsAbs(config.Host):
+		dsnConfig.Net = sqlNetworkTypeUnixSocket
+		dsnConfig.Addr = config.Host
 	case config.Port == 0:
-		dconfig.Net = sqlNetworkTypeTCP
-		dconfig.Addr = fmt.Sprintf("%s:%d", config.Host, 3306)
+		dsnConfig.Net = sqlNetworkTypeTCP
+		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, 3306)
 	default:
-		dconfig.Net = sqlNetworkTypeTCP
-		dconfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
+		dsnConfig.Net = sqlNetworkTypeTCP
+		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	}
 
 	switch config.Port {
 	case 0:
-		dconfig.Addr = config.Host
+		dsnConfig.Addr = config.Host
 	default:
-		dconfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
+		dsnConfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	}
 
-	dconfig.DBName = config.Database
-	dconfig.User = config.Username
-	dconfig.Passwd = config.Password
-	dconfig.Timeout = config.Timeout
-	dconfig.MultiStatements = true
-	dconfig.ParseTime = true
-	dconfig.Loc = time.Local
+	dsnConfig.DBName = config.Database
+	dsnConfig.User = config.Username
+	dsnConfig.Passwd = config.Password
+	dsnConfig.Timeout = config.Timeout
+	dsnConfig.MultiStatements = true
+	dsnConfig.ParseTime = true
+	dsnConfig.Loc = time.Local
 
-	return dconfig.FormatDSN()
+	return dsnConfig.FormatDSN()
 }

@@ -55,12 +55,22 @@ See the [encryption_key docs](introduction.md#encryption_key).
 
 {{< confkey type="string" default="localhost" required="no" >}}
 
-The database server host.
+The database server host. This can also be a unix socket.
 
 If utilising an IPv6 literal address it must be enclosed by square brackets and quoted:
 
 ```yaml
-host: "[fd00:1111:2222:3333::1]"
+storage:
+  mysql:
+    host: "[fd00:1111:2222:3333::1]"
+```
+
+If utilizing a unix socket it must have the `unix:` prefix:
+
+```yaml
+storage:
+  mysql:
+    host: /var/run/mysqld.sock
 ```
 
 ### port
