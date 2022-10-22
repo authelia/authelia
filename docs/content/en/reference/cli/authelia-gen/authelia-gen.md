@@ -40,7 +40,7 @@ authelia-gen [flags]
       --file.docs.data.misc string               The misc docs data file in relation to the docs data folder (default "misc.json")
       --file.feature-request string              Sets the path of the feature request issue template file (default ".github/ISSUE_TEMPLATE/feature-request.yml")
       --file.scripts.gen string                  Sets the path of the authelia-scripts gen file (default "cmd/authelia-scripts/cmd/gen.go")
-      --file.server.generated string             Sets the path of the server generated file (default "internal/server/generated.go")
+      --file.server.generated string             Sets the path of the server generated file (default "internal/server/gen.go")
       --file.web-i18n string                     The i18n typescript configuration file in relation to the root (default "web/src/i18n/index.ts")
   -h, --help                                     help for authelia-gen
       --package.configuration.keys string        Sets the package name of the keys file (default "schema")

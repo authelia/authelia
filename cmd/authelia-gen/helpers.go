@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/pflag"
 )
@@ -27,4 +28,21 @@ func getPFlagPath(flags *pflag.FlagSet, flagNames ...string) (fullPath string, e
 	}
 
 	return fullPath, nil
+}
+
+func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
+	var rules []string
+
+	for _, ruleSet := range ruleSets {
+		for _, rule := range ruleSet {
+			switch rule.Name {
+			case "default-src":
+				rules = append(rules, fmt.Sprintf("%s %s", rule.Name, defaultSrc))
+			default:
+				rules = append(rules, fmt.Sprintf("%s %s", rule.Name, rule.Value))
+			}
+		}
+	}
+
+	return strings.Join(rules, "; ")
 }

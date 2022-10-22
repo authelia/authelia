@@ -43,10 +43,13 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data := DocsDataMisc{
 		CSP: TemplateCSP{
 			PlaceholderNONCE:    codeCSPNonce,
-			TemplateDefault:     fmt.Sprintf(codeTmplCSPDefault, "", codeCSPNonce),
-			TemplateDevelopment: fmt.Sprintf(codeTmplCSPDefault, " 'unsafe-eval'", codeCSPNonce),
+			TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+			TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon),
 		},
 	}
+
+	data.CSP.TemplateDefault = strings.ReplaceAll(data.CSP.TemplateDefault, "%s", codeCSPNonce)
+	data.CSP.TemplateDevelopment = strings.ReplaceAll(data.CSP.TemplateDevelopment, "%s", codeCSPNonce)
 
 	var (
 		outputPath string

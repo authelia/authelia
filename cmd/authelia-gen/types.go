@@ -138,3 +138,8 @@ var labelTypeDescriptions = [...]string{
 func (t labelType) String() string {
 	return fmt.Sprintf("%s/%s", labelAreaPrefixType, labelTypeDescriptions[t])
 }
+
+type CSPValue struct {
+	Name  string
+	Value string
+}

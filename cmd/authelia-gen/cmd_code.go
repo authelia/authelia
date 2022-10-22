@@ -74,8 +74,8 @@ func newCodeKeysCmd() *cobra.Command {
 func codeServerRunE(cmd *cobra.Command, args []string) (err error) {
 	data := TemplateCSP{
 		PlaceholderNONCE:    codeCSPNonce,
-		TemplateDefault:     fmt.Sprintf(codeTmplCSPDefault, "", "%s"),
-		TemplateDevelopment: fmt.Sprintf(codeTmplCSPDefault, " 'unsafe-eval'", "%s"),
+		TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+		TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon),
 	}
 
 	var outputPath string

@@ -13,7 +13,7 @@ const (
 	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/guidelines/commit-message.md"
 
 	fileCodeConfigKeys  = "internal/configuration/schema/keys.go"
-	fileServerGenerated = "internal/server/generated.go"
+	fileServerGenerated = "internal/server/gen.go"
 	fileScriptsGen      = "cmd/authelia-scripts/cmd/gen.go"
 
 	dirDocs             = "docs"
@@ -92,6 +92,22 @@ const (
 )
 
 const (
-	codeTmplCSPDefault = "default-src 'self'%s; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'; require-trusted-types-for 'script'"
-	codeCSPNonce       = "${NONCE}"
+	codeCSPProductionDefaultSrc  = "'self'"
+	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
+	codeCSPNonce                 = "${NONCE}"
+)
+
+var (
+	codeCSPValuesCommon = []CSPValue{
+		{Name: "default-src", Value: ""},
+		{Name: "frame-src", Value: "'none'"},
+		{Name: "object-src", Value: "'none'"},
+		{Name: "style-src", Value: "'self' 'nonce-%s'"},
+		{Name: "frame-ancestors", Value: "'none'"},
+		{Name: "base-uri", Value: "'self'"},
+	}
+
+	codeCSPValuesProduction = []CSPValue{
+		{Name: "require-trusted-types-for", Value: "'script'"},
+	}
 )
