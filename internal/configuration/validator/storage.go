@@ -56,10 +56,22 @@ func validatePostgreSQLConfiguration(config *schema.PostgreSQLStorageConfigurati
 		config.Schema = schema.DefaultPostgreSQLStorageConfiguration.Schema
 	}
 
-	if config.SSL.Mode == "" {
-		config.SSL.Mode = schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode
-	} else if !utils.IsStringInSlice(config.SSL.Mode, validStoragePostgreSQLSSLModes) {
-		validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, strings.Join(validStoragePostgreSQLSSLModes, "', '"), config.SSL.Mode))
+	switch {
+	case config.TLS != nil && config.SSL != nil:
+		validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLAndTLSConfig))
+	case config.TLS != nil:
+		if config.TLS.MinimumVersion.Value == 0 {
+			config.TLS.MinimumVersion = schema.DefaultPostgreSQLStorageConfiguration.TLS.MinimumVersion
+		}
+	case config.SSL != nil:
+		validator.PushWarning(fmt.Errorf(warnFmtStoragePostgreSQLInvalidSSLDeprecated))
+
+		switch {
+		case config.SSL.Mode == "":
+			config.SSL.Mode = schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode
+		case !utils.IsStringInSlice(config.SSL.Mode, validStoragePostgreSQLSSLModes):
+			validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, strings.Join(validStoragePostgreSQLSSLModes, "', '"), config.SSL.Mode))
+		}
 	}
 }
 

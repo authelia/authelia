@@ -121,12 +121,14 @@ const (
 
 // Storage Error constants.
 const (
-	errStrStorage                            = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageEncryptionKeyMustBeProvided = "storage: option 'encryption_key' is required"
-	errStrStorageEncryptionKeyTooShort       = "storage: option 'encryption_key' must be 20 characters or longer"
-	errFmtStorageUserPassMustBeProvided      = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
-	errFmtStorageOptionMustBeProvided        = "storage: %s: option '%s' is required"
-	errFmtStoragePostgreSQLInvalidSSLMode    = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
+	errStrStorage                                 = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
+	errStrStorageEncryptionKeyMustBeProvided      = "storage: option 'encryption_key' is required"
+	errStrStorageEncryptionKeyTooShort            = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageUserPassMustBeProvided           = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
+	errFmtStorageOptionMustBeProvided             = "storage: %s: option '%s' is required"
+	errFmtStoragePostgreSQLInvalidSSLMode         = "storage: postgres: ssl: option 'mode' must be one of '%s' but it is configured as '%s'"
+	errFmtStoragePostgreSQLInvalidSSLAndTLSConfig = "storage: postgres: can't define both 'tls' and 'ssl' configuration options"
+	warnFmtStoragePostgreSQLInvalidSSLDeprecated  = "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead"
 )
 
 // Telemetry Error constants.

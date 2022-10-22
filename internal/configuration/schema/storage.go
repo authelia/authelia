@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"crypto/tls"
+	"time"
+)
 
 // LocalStorageConfiguration represents the configuration when using local storage.
 type LocalStorageConfiguration struct {
@@ -59,4 +62,10 @@ var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	Schema: "public",
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+	SSL: &PostgreSQLSSLStorageConfiguration{
+		Mode: "disable",
+	},
 }

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"crypto/tls"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -104,7 +105,7 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
-func (suite *StorageSuite) TestShouldValidatePostgresSSLModeAndSchemaDefaults() {
+func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
 		SQLStorageConfiguration: schema.SQLStorageConfiguration{
 			Host:     "db1",
@@ -119,8 +120,74 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeAndSchemaDefaults() 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().Equal("disable", suite.config.PostgreSQL.SSL.Mode)
+	suite.Assert().Nil(suite.config.PostgreSQL.SSL)
+	suite.Assert().Nil(suite.config.PostgreSQL.TLS)
+
 	suite.Assert().Equal("public", suite.config.PostgreSQL.Schema)
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
+	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Nil(suite.config.PostgreSQL.SSL)
+	suite.Require().NotNil(suite.config.PostgreSQL.TLS)
+
+	suite.Assert().Equal(uint16(tls.VersionTLS12), suite.config.PostgreSQL.TLS.MinimumVersion.Value)
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
+	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		SSL: &schema.PostgreSQLSSLStorageConfiguration{},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 1)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().NotNil(suite.config.PostgreSQL.SSL)
+	suite.Require().Nil(suite.config.PostgreSQL.TLS)
+
+	suite.Assert().Equal(schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode, suite.config.PostgreSQL.SSL.Mode)
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
+	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		SSL: &schema.PostgreSQLSSLStorageConfiguration{},
+		TLS: &schema.TLSConfig{},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: can't define both 'tls' and 'ssl' configuration options")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfiguration() {
@@ -132,18 +199,20 @@ func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfigu
 			Database: "database",
 		},
 		Schema: "authelia",
-		SSL: schema.PostgreSQLSSLStorageConfiguration{
+		SSL: &schema.PostgreSQLSSLStorageConfiguration{
 			Mode: "require",
 		},
 	}
 
 	ValidateStorage(suite.config, suite.validator)
 
-	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Warnings(), 1)
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal("require", suite.config.PostgreSQL.SSL.Mode)
 	suite.Assert().Equal("authelia", suite.config.PostgreSQL.Schema)
+
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
@@ -154,14 +223,14 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 			Password: "pass",
 			Database: "database",
 		},
-		SSL: schema.PostgreSQLSSLStorageConfiguration{
+		SSL: &schema.PostgreSQLSSLStorageConfiguration{
 			Mode: "unknown",
 		},
 	}
 
 	ValidateStorage(suite.config, suite.validator)
 
-	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Warnings(), 1)
 	suite.Require().Len(suite.validator.Errors(), 1)
 	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', 'verify-full' but it is configured as 'unknown'")
 }
