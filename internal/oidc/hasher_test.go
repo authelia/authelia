@@ -8,9 +8,9 @@ import (
 )
 
 func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
-	hasher := PlainTextHasher{}
+	hasher := AdaptiveHasher{}
 
-	a := []byte("abc")
+	a := []byte("$plaintext$abc")
 	b := []byte("abc")
 
 	ctx := context.Background()
@@ -21,9 +21,9 @@ func TestShouldNotRaiseErrorOnEqualPasswordsPlainText(t *testing.T) {
 }
 
 func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
-	hasher := PlainTextHasher{}
+	hasher := AdaptiveHasher{}
 
-	a := []byte("abc")
+	a := []byte("$plaintext$abc")
 	b := []byte("abcd")
 
 	ctx := context.Background()
@@ -34,7 +34,7 @@ func TestShouldRaiseErrorOnNonEqualPasswordsPlainText(t *testing.T) {
 }
 
 func TestShouldHashPassword(t *testing.T) {
-	hasher := PlainTextHasher{}
+	hasher := AdaptiveHasher{}
 
 	data := []byte("abc")
 

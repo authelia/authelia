@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"image"
 	"net/url"
 	"strconv"
@@ -11,15 +12,23 @@ import (
 
 // TOTPConfiguration represents a users TOTP configuration row in the database.
 type TOTPConfiguration struct {
-	ID         int        `db:"id" json:"-"`
-	CreatedAt  time.Time  `db:"created_at" json:"-"`
-	LastUsedAt *time.Time `db:"last_used_at" json:"-"`
-	Username   string     `db:"username" json:"-"`
-	Issuer     string     `db:"issuer" json:"-"`
-	Algorithm  string     `db:"algorithm" json:"-"`
-	Digits     uint       `db:"digits" json:"digits"`
-	Period     uint       `db:"period" json:"period"`
-	Secret     []byte     `db:"secret" json:"-"`
+	ID         int          `db:"id" json:"-"`
+	CreatedAt  time.Time    `db:"created_at" json:"-"`
+	LastUsedAt sql.NullTime `db:"last_used_at" json:"-"`
+	Username   string       `db:"username" json:"-"`
+	Issuer     string       `db:"issuer" json:"-"`
+	Algorithm  string       `db:"algorithm" json:"-"`
+	Digits     uint         `db:"digits" json:"digits"`
+	Period     uint         `db:"period" json:"period"`
+	Secret     []byte       `db:"secret" json:"-"`
+}
+
+func (c *TOTPConfiguration) LastUsed() *time.Time {
+	if c.LastUsedAt.Valid {
+		return &c.LastUsedAt.Time
+	}
+
+	return nil
 }
 
 // URI shows the configuration in the URI representation.
@@ -43,7 +52,7 @@ func (c *TOTPConfiguration) URI() (uri string) {
 
 // UpdateSignInInfo adjusts the values of the TOTPConfiguration after a sign in.
 func (c *TOTPConfiguration) UpdateSignInInfo(now time.Time) {
-	c.LastUsedAt = &now
+	c.LastUsedAt = sql.NullTime{Time: now, Valid: true}
 }
 
 // Key returns the *otp.Key using TOTPConfiguration.URI with otp.NewKeyFromURL.

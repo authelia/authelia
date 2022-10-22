@@ -12,6 +12,7 @@ weight: 320
 toc: true
 aliases:
   - /docs/contributing/commitmsg-guidelines.html
+  - /contributing/development/guidelines-commit-message/
 ---
 
 The reasons for these conventions are as follows:

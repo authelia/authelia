@@ -20,12 +20,12 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	oidcSession := oidc.NewSession()
 
-	if responder, err = ctx.Providers.OpenIDConnect.Fosite.NewIntrospectionRequest(ctx, req, oidcSession); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewIntrospectionRequest(ctx, req, oidcSession); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Introspection Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.Fosite.WriteIntrospectionError(rw, err)
+		ctx.Providers.OpenIDConnect.WriteIntrospectionError(rw, err)
 
 		return
 	}
@@ -34,5 +34,5 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	ctx.Logger.Tracef("Introspection Request yeilded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", responder.GetTokenUse(), responder.IsActive(), requester.GetRequestedAt().String(), requester.GetID(), requester.GetClient().GetID())
 
-	ctx.Providers.OpenIDConnect.Fosite.WriteIntrospectionResponse(rw, responder)
+	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(rw, responder)
 }

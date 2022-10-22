@@ -795,6 +795,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "LongerHV",
+      "name": "Michał Mieszczak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46924944?v=4",
+      "profile": "https://github.com/LongerHV",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7

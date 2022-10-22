@@ -1,13 +1,15 @@
 package oidc
 
 import (
+	"net/url"
 	"time"
 
+	"github.com/go-crypt/crypt"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -31,7 +33,7 @@ func NewSession() (session *model.OpenIDSession) {
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]any,
+func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
 		extra = map[string]any{}
@@ -41,11 +43,11 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Subject:     consent.Subject.UUID.String(),
-				Issuer:      issuer,
+				Issuer:      issuer.String(),
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
 				IssuedAt:    time.Now(),
-				Nonce:       requester.GetRequestForm().Get("nonce"),
+				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
 				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
 
@@ -53,7 +55,7 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 			},
 			Headers: &jwt.Headers{
 				Extra: map[string]any{
-					"kid": kid,
+					JWTHeaderKeyIdentifier: kid,
 				},
 			},
 			Subject:  consent.Subject.UUID.String(),
@@ -69,29 +71,29 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
 	}
 
-	session.Claims.Add("azp", session.ClientID)
-	session.Claims.Add("client_id", session.ClientID)
+	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
+	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
 }
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	Fosite     fosite.OAuth2Provider
-	Store      *OpenIDConnectStore
-	KeyManager *KeyManager
+	fosite.OAuth2Provider
+	*herodot.JSONWriter
+	*Store
 
-	herodot *herodot.JSONWriter
+	KeyManager *KeyManager
 
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// Store is Authelia's internal representation of the fosite.Storage interface. It maps the following
 // interfaces to the storage.Provider interface:
 // fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
-type OpenIDConnectStore struct {
+type Store struct {
 	provider storage.Provider
 	clients  map[string]*Client
 }
@@ -100,7 +102,7 @@ type OpenIDConnectStore struct {
 type Client struct {
 	ID               string
 	Description      string
-	Secret           []byte
+	Secret           crypt.Digest
 	SectorIdentifier string
 	Public           bool
 
@@ -115,7 +117,63 @@ type Client struct {
 
 	Policy authorization.Level
 
-	PreConfiguredConsentDuration *time.Duration
+	Consent ClientConsent
+}
+
+// NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
+func NewClientConsent(mode string, duration *time.Duration) ClientConsent {
+	switch mode {
+	case ClientConsentModeImplicit.String():
+		return ClientConsent{Mode: ClientConsentModeImplicit}
+	case ClientConsentModePreConfigured.String():
+		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *duration}
+	case ClientConsentModeExplicit.String():
+		return ClientConsent{Mode: ClientConsentModeExplicit}
+	default:
+		return ClientConsent{Mode: ClientConsentModeExplicit}
+	}
+}
+
+// ClientConsent is the consent configuration for a client.
+type ClientConsent struct {
+	Mode     ClientConsentMode
+	Duration time.Duration
+}
+
+// String returns the string representation of the ClientConsentMode.
+func (c ClientConsent) String() string {
+	return c.Mode.String()
+}
+
+// ClientConsentMode represents the consent mode for a client.
+type ClientConsentMode int
+
+const (
+	// ClientConsentModeExplicit means the client does not implicitly assume consent, and does not allow pre-configured
+	// consent sessions.
+	ClientConsentModeExplicit ClientConsentMode = iota
+
+	// ClientConsentModePreConfigured means the client does not implicitly assume consent, but does allow pre-configured
+	// consent sessions.
+	ClientConsentModePreConfigured
+
+	// ClientConsentModeImplicit means the client does implicitly assume consent, and does not allow pre-configured
+	// consent sessions.
+	ClientConsentModeImplicit
+)
+
+// String returns the string representation of the ClientConsentMode.
+func (c ClientConsentMode) String() string {
+	switch c {
+	case ClientConsentModeExplicit:
+		return explicit
+	case ClientConsentModeImplicit:
+		return implicit
+	case ClientConsentModePreConfigured:
+		return preconfigured
+	default:
+		return ""
+	}
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
@@ -125,8 +183,8 @@ type KeyManager struct {
 	jwks *jose.JSONWebKeySet
 }
 
-// PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
-type PlainTextHasher struct{}
+// AdaptiveHasher implements the fosite.Hasher interface without an actual hashing algo.
+type AdaptiveHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
@@ -139,8 +197,8 @@ type ConsentGetResponseBody struct {
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
+	ConsentID    string `json:"id"`
 	ClientID     string `json:"client_id"`
-	ConsentID    string `json:"consent_id"`
 	Consent      bool   `json:"consent"`
 	PreConfigure bool   `json:"pre_configure"`
 }

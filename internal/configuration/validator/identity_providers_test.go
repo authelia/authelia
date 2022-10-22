@@ -39,14 +39,14 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
-				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint},
+				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "example",
-					Secret: "example",
+					Secret: MustDecodeSecret("$plaintext$example"),
 				},
 			},
 		},
@@ -62,14 +62,14 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
-				Endpoints: []string{oidc.AuthorizationEndpoint, oidc.TokenEndpoint, oidc.IntrospectionEndpoint, oidc.RevocationEndpoint, oidc.UserinfoEndpoint, "invalid_endpoint"},
+				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
 			},
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "example",
-					Secret: "example",
+					Secret: MustDecodeSecret("$plaintext$example"),
 				},
 			},
 		},
@@ -87,8 +87,8 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
-			EnforcePKCE:      "invalid",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
+			EnforcePKCE:      testInvalid,
 		},
 	}
 
@@ -106,7 +106,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			CORS: schema.OpenIDConnectCORSConfiguration{
 				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
 				AllowedOriginsFromClientRedirectURIs: true,
@@ -114,7 +114,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "myclient",
-					Secret:       "jk12nb3klqwmnelqkwenm",
+					Secret:       MustDecodeSecret("$plaintext$jk12nb3klqwmnelqkwenm"),
 					Policy:       "two_factor",
 					RedirectURIs: []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
 				},
@@ -142,7 +142,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 		},
 	}
 
@@ -173,7 +173,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "",
-					Secret:       "",
+					Secret:       nil,
 					Policy:       "",
 					RedirectURIs: []string{},
 				},
@@ -188,7 +188,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-1",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: "a-policy",
 					RedirectURIs: []string{
 						"https://google.com",
@@ -202,13 +202,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:           "client-x",
-					Secret:       "a-secret",
+					Secret:       MustDecodeSecret("$plaintext$a-secret"),
 					Policy:       policyTwoFactor,
 					RedirectURIs: []string{},
 				},
 				{
 					ID:           "client-x",
-					Secret:       "a-secret",
+					Secret:       MustDecodeSecret("$plaintext$a-secret"),
 					Policy:       policyTwoFactor,
 					RedirectURIs: []string{},
 				},
@@ -220,7 +220,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-parse",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"http://abc@%two",
@@ -236,7 +236,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-check-uri-abs",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"google.com",
@@ -252,12 +252,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-valid-sector",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
 					},
-					SectorIdentifier: mustParseURL("example.com"),
+					SectorIdentifier: mustParseURL(examplecom),
 				},
 			},
 		},
@@ -266,7 +266,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-valid-sector",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -280,7 +280,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-invalid-sector",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -289,12 +289,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			},
 			Errors: []string{
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "scheme", "https"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "path", "/path"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "query", "query=abc"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "fragment", "fragment"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "username", "user"),
-				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", "example.com", "password"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "scheme", "https"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "path", "/path"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "query", "query=abc"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "fragment", "fragment"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifier, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "username", "user"),
+				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, "client-invalid-sector", "https://user:pass@example.com/path?query=abc#fragment", examplecom, "password"),
 			},
 		},
 		{
@@ -302,7 +302,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-invalid-sector",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Policy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -322,7 +322,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			config := &schema.IdentityProvidersConfiguration{
 				OIDC: &schema.OpenIDConnectConfiguration{
 					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: &rsa.PrivateKey{},
+					IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 					Clients:          tc.Clients,
 				},
 			}
@@ -346,11 +346,11 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadScopes(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: "good_secret",
+					Secret: MustDecodeSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					Scopes: []string{"openid", "bad_scope"},
 					RedirectURIs: []string{
@@ -372,11 +372,11 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:         "good_id",
-					Secret:     "good_secret",
+					Secret:     MustDecodeSecret("$plaintext$good_secret"),
 					Policy:     "two_factor",
 					GrantTypes: []string{"bad_grant_type"},
 					RedirectURIs: []string{
@@ -398,12 +398,12 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: mustParseX509CertificateChain(testCert1),
-			IssuerPrivateKey:       mustParseRSAPrivateKey(testKey1),
+			IssuerCertificateChain: MustParseX509CertificateChain(testCert1),
+			IssuerPrivateKey:       MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: "good_secret",
+					Secret: MustDecodeSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -424,12 +424,12 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: mustParseX509CertificateChain(testCert1),
-			IssuerPrivateKey:       mustParseRSAPrivateKey(testKey2),
+			IssuerCertificateChain: MustParseX509CertificateChain(testCert1),
+			IssuerPrivateKey:       MustParseRSAPrivateKey(testKey2),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: "good_secret",
+					Secret: MustDecodeSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -447,16 +447,43 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' does not appear to be the private key the certificate provided by option 'issuer_certificate_chain'")
 }
 
+func TestShouldRaiseErrorOnKeySizeTooSmall(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := &schema.IdentityProvidersConfiguration{
+		OIDC: &schema.OpenIDConnectConfiguration{
+			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey3),
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "good_id",
+					Secret: MustDecodeSecret("$plaintext$good_secret"),
+					Policy: "two_factor",
+					RedirectURIs: []string{
+						"https://google.com/callback",
+					},
+				},
+			},
+		},
+	}
+
+	ValidateIdentityProviders(config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'issuer_private_key' must be an RSA private key with 2048 bits or more but it only has 1024 bits")
+}
+
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadResponseModes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:            "good_id",
-					Secret:        "good_secret",
+					Secret:        MustDecodeSecret("$plaintext$good_secret"),
 					Policy:        "two_factor",
 					ResponseModes: []string{"bad_responsemode"},
 					RedirectURIs: []string{
@@ -478,11 +505,11 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadUserinfoAlg(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:                       "good_id",
-					Secret:                   "good_secret",
+					Secret:                   MustDecodeSecret("$plaintext$good_secret"),
 					Policy:                   "two_factor",
 					UserinfoSigningAlgorithm: "rs256",
 					RedirectURIs: []string{
@@ -504,12 +531,12 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnSecurityIssue(t *testing.T
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:              "abc",
-			IssuerPrivateKey:        &rsa.PrivateKey{},
+			IssuerPrivateKey:        MustParseRSAPrivateKey(testKey1),
 			MinimumParameterEntropy: 1,
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "good_id",
-					Secret: "good_secret",
+					Secret: MustDecodeSecret("$plaintext$good_secret"),
 					Policy: "two_factor",
 					RedirectURIs: []string{
 						"https://google.com/callback",
@@ -532,11 +559,11 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "client-with-invalid-secret",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Public: true,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -545,7 +572,7 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 				},
 				{
 					ID:     "client-with-bad-redirect-uri",
-					Secret: "a-secret",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
 					Public: false,
 					Policy: "two_factor",
 					RedirectURIs: []string{
@@ -570,7 +597,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "hmac1",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "installed-app-client",
@@ -611,11 +638,11 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
 			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: &rsa.PrivateKey{},
+			IssuerPrivateKey: MustParseRSAPrivateKey(testKey1),
 			Clients: []schema.OpenIDConnectClientConfiguration{
 				{
 					ID:     "a-client",
-					Secret: "a-client-secret",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
 					RedirectURIs: []string{
 						"https://google.com",
 					},
@@ -623,7 +650,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 				{
 					ID:                       "b-client",
 					Description:              "Normal Description",
-					Secret:                   "b-client-secret",
+					Secret:                   MustDecodeSecret("$plaintext$b-client-secret"),
 					Policy:                   policyOneFactor,
 					UserinfoSigningAlgorithm: "RS256",
 					RedirectURIs: []string{
@@ -748,6 +775,42 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 	})
 }
 
+func MustDecodeSecret(value string) *schema.PasswordDigest {
+	if secret, err := schema.NewPasswordDigest(value, true); err != nil {
+		panic(err)
+	} else {
+		return secret
+	}
+}
+
+func MustParseRSAPrivateKey(data string) *rsa.PrivateKey {
+	block, _ := pem.Decode([]byte(data))
+	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
+		panic("not pem encoded")
+	}
+
+	if block.Type != "RSA PRIVATE KEY" {
+		panic("not private key")
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return key
+}
+
+func MustParseX509CertificateChain(data string) schema.X509CertificateChain {
+	chain, err := schema.NewX509CertificateChain(data)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return *chain
+}
+
 var (
 	testCert1 = `
 -----BEGIN CERTIFICATE-----
@@ -826,32 +889,20 @@ tQnOWwKBgQC40yZY0PcjuILhy+sIc0Wvh7LUA7taSdTye149kRvbvsCDN7Jh75lM
 USjhLXY0Nld2zBm9r8wMb81mXH29uvD+tDqqsICvyuKlA/tyzXR+QTr7dCVKVwu0
 1YjCJ36UpTsLre2f8nOSLtNmRfDPtbOE2mkOoO9dD9UU0XZwnvn9xw==
 -----END RSA PRIVATE KEY-----`
+
+	testKey3 = `-----BEGIN RSA PRIVATE KEY-----
+MIICXgIBAAKBgQDBi7fdmUmlpWklpgAvNUdhDrpsDVqAHuEzVApK6f6ohYAi0/q2
++YmOwyPKDSrOc6Sy1myJtV3FbZGvYaQhnokc4bnkS9DH0lY+6Hk2vKps5PrhRY/q
+1EjnfwXvzhAzb25rGFwKcSvfvndMTVvxgqXVob+3pRt9maD6HFHAh2/NCQIDAQAB
+AoGACT2bfLgJ3R/FomeHkLlxe//RBMGqdX2D8QhtKWB8qR0engsS6FOHrspAVjBE
+v/Cjh2pXake/f2KY1w/JX1WLZEFXja2RFPeeDiiC/4S7pKCySUVeHO9rQ4SY5Frg
+/s/QWWtmq7+1iu2DXhdGJA6fIurzSoDgUXo3NGFCYqIFaAECQQDUi9AAgEljmc2q
+dAUQD0KNTcJFkpTafhfPiYc2GT1vS/bArtXRmvJmbIiRfVuGbM8z5ES7JGd5FyYL
+i2WCCzUBAkEA6R14GVhN8NIPWEUrzjgOvjKlc2ZHskT3dYb3djpm69TK7GjLtHyq
+qO7l4VJowsXI+o/6YucagF6+rH0O0VrwCQJBAM8twYDbi63knA8MrGqtFUg7haTf
+bu1Tf84y1nOrQrEcMNg9E/sOuD2SicSXlwF/SrHgTgbFQ39LSzBxnm6WkgECQQCh
+AQmB98tdGLggbyXiODV2h+Rd37aFGb0QHzerIIsVNtMwlPCcp733D4kWJqTUYWZ+
+KBL3XEahgs6Os5EYZ4aBAkEAjKE+2/nBYUdHVusjMXeNsE5rqwJND5zvYzmToG7+
+xhv4RUAe4dHL4IDQoQRjhr3Nw+JYvtzBx0Iq/178xMnGKg==
+-----END RSA PRIVATE KEY-----`
 )
-
-func mustParseRSAPrivateKey(data string) *rsa.PrivateKey {
-	block, _ := pem.Decode([]byte(data))
-	if block == nil || block.Bytes == nil || len(block.Bytes) == 0 {
-		panic("not pem encoded")
-	}
-
-	if block.Type != "RSA PRIVATE KEY" {
-		panic("not private key")
-	}
-
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	return key
-}
-
-func mustParseX509CertificateChain(data string) schema.X509CertificateChain {
-	chain, err := schema.NewX509CertificateChain(data)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return *chain
-}

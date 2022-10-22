@@ -11,7 +11,7 @@ menu:
 weight: 320
 toc: true
 aliases:
-  - /contributing/development/pull-request/
+  - /contributing/development/guidelines-pull-request/
 ---
 
 [Pull Request] guidelines are in place in order to maintain consistency and clearly communicate our process for

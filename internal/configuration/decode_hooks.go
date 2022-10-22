@@ -9,8 +9,10 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/go-crypt/crypt"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -344,6 +346,76 @@ func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+// StringToTLSVersionHookFunc decodes strings to schema.TLSVersion's.
+func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.TLSVersion{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.TLSVersion
+
+		if result, err = schema.NewTLSVersion(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		return *result, nil
+	}
+}
+
+// StringToCryptoPrivateKeyHookFunc decodes strings to schema.CryptographicPrivateKey's.
+func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		field, _ := reflect.TypeOf(schema.TLSConfig{}).FieldByName("PrivateKey")
+		expectedType := field.Type
+
+		if t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var i any
+
+		if i, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
+		}
+
+		if result, ok := i.(schema.CryptographicPrivateKey); !ok {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, fmt.Errorf("the data is for a %T not a %s", i, expectedType))
+		} else {
+			return result, nil
+		}
+	}
+}
+
 // StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's.
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
@@ -396,6 +468,10 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 			}
 
+			if err = r.Validate(); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, err)
+			}
+
 			return r, nil
 		case *ecdsa.PrivateKey:
 			if expectedType != expectedTypeECDSA {
@@ -406,5 +482,55 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 		default:
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "*", expectedType, fmt.Errorf("the data is for a %T not a *%s", r, expectedType))
 		}
+	}
+}
+
+// StringToPasswordDigestHookFunc decodes a string into a crypt.Digest.
+func StringToPasswordDigestHookFunc(plaintext bool) mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(schema.PasswordDigest{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result *schema.PasswordDigest
+
+		if !strings.HasPrefix(dataStr, "$") {
+			dataStr = fmt.Sprintf(crypt.StorageFormatSimple, crypt.AlgorithmPrefixPlainText, dataStr)
+		}
+
+		if dataStr != "" {
+			if result, err = schema.NewPasswordDigest(dataStr, plaintext); err != nil {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
+			}
+		}
+
+		if ptr {
+			return result, nil
+		}
+
+		if result == nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType.String(), errDecodeNonPtrMustHaveValue)
+		}
+
+		return *result, nil
 	}
 }

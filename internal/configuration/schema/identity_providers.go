@@ -43,11 +43,11 @@ type OpenIDConnectCORSConfiguration struct {
 
 // OpenIDConnectClientConfiguration configuration for an OpenID Connect client.
 type OpenIDConnectClientConfiguration struct {
-	ID               string  `koanf:"id"`
-	Description      string  `koanf:"description"`
-	Secret           string  `koanf:"secret"`
-	SectorIdentifier url.URL `koanf:"sector_identifier"`
-	Public           bool    `koanf:"public"`
+	ID               string          `koanf:"id"`
+	Description      string          `koanf:"description"`
+	Secret           *PasswordDigest `koanf:"secret"`
+	SectorIdentifier url.URL         `koanf:"sector_identifier"`
+	Public           bool            `koanf:"public"`
 
 	RedirectURIs []string `koanf:"redirect_uris"`
 
@@ -61,7 +61,8 @@ type OpenIDConnectClientConfiguration struct {
 
 	Policy string `koanf:"authorization_policy"`
 
-	PreConfiguredConsentDuration *time.Duration `koanf:"pre_configured_consent_duration"`
+	ConsentMode                  string         `koanf:"consent_mode"`
+	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`
 }
 
 // DefaultOpenIDConnectConfiguration contains defaults for OIDC.
@@ -73,6 +74,8 @@ var DefaultOpenIDConnectConfiguration = OpenIDConnectConfiguration{
 	EnforcePKCE:           "public_clients_only",
 }
 
+var defaultOIDCClientConsentPreConfiguredDuration = time.Hour * 24 * 7
+
 // DefaultOpenIDConnectClientConfiguration contains defaults for OIDC Clients.
 var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	Policy:        "two_factor",
@@ -81,5 +84,7 @@ var DefaultOpenIDConnectClientConfiguration = OpenIDConnectClientConfiguration{
 	ResponseTypes: []string{"code"},
 	ResponseModes: []string{"form_post", "query", "fragment"},
 
-	UserinfoSigningAlgorithm: "none",
+	UserinfoSigningAlgorithm:     "none",
+	ConsentMode:                  "auto",
+	ConsentPreConfiguredDuration: &defaultOIDCClientConsentPreConfiguredDuration,
 }

@@ -1,13 +1,50 @@
 package schema
 
 import (
+	"errors"
 	"regexp"
 	"time"
 )
 
-const argon2id = "argon2id"
+const (
+	argon2   = "argon2"
+	argon2id = "argon2id"
+	sha512   = "sha512"
+)
 
-// ProfileRefreshDisabled represents a value for refresh_interval that disables the check entirely.
+const (
+	// TLSVersion13 is the textual representation of TLS 1.3.
+	TLSVersion13 = "TLS1.3"
+
+	// TLSVersion12 is the textual representation of TLS 1.2.
+	TLSVersion12 = "TLS1.2"
+
+	// TLSVersion11 is the textual representation of TLS 1.1.
+	TLSVersion11 = "TLS1.1"
+
+	// TLSVersion10 is the textual representation of TLS 1.0.
+	TLSVersion10 = "TLS1.0"
+
+	// SSLVersion30 is the textual representation of SSL 3.0.
+	SSLVersion30 = "SSL3.0"
+
+	// Version13 is the textual representation of version 1.3.
+	Version13 = "1.3"
+
+	// Version12 is the textual representation of version 1.2.
+	Version12 = "1.2"
+
+	// Version11 is the textual representation of version 1.1.
+	Version11 = "1.1"
+
+	// Version10 is the textual representation of version 1.0.
+	Version10 = "1.0"
+)
+
+// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
+var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")
+
+// ProfileRefreshDisabled represents a Value for refresh_interval that disables the check entirely.
 const ProfileRefreshDisabled = "disable"
 
 const (
