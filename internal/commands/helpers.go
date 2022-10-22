@@ -18,7 +18,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func getStorageProvider(caCertPool *x509.CertPool) (provider storage.Provider) {
+func getStorageProvider() (provider storage.Provider) {
+	switch {
+	case config.Storage.Local == nil:
+		return getStorageProviderWithPool(nil)
+	default:
+		caCertPool, _, _ := utils.NewX509CertPool(config.CertificatesDirectory)
+
+		return getStorageProviderWithPool(caCertPool)
+	}
+}
+
+func getStorageProviderWithPool(caCertPool *x509.CertPool) (provider storage.Provider) {
 	switch {
 	case config.Storage.PostgreSQL != nil:
 		return storage.NewPostgreSQLProvider(config, caCertPool)
@@ -38,7 +49,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		return providers, warnings, errors
 	}
 
-	storageProvider := getStorageProvider(caCertPool)
+	storageProvider := getStorageProviderWithPool(caCertPool)
 
 	var (
 		userProvider authentication.UserProvider
