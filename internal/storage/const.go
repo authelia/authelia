@@ -41,7 +41,8 @@ const (
 )
 
 const (
-	sqlNetworkTypeTCP = "tcp"
+	sqlNetworkTypeTCP        = "tcp"
+	sqlNetworkTypeUnixSocket = "unix"
 )
 
 const (

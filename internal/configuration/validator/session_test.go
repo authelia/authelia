@@ -149,7 +149,7 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "A redis port different than 0 must be provided")
+	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but is configured as '0'")
 }
 
 func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testing.T) {
