@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen github issue-templates bug-report"
-description: "Reference for the authelia-gen github issue-templates bug-report command."
+title: "authelia-gen docs data misc"
+description: "Reference for the authelia-gen docs data misc command."
 lead: ""
-date: 2022-09-16T14:21:05+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -12,18 +12,18 @@ weight: 330
 toc: true
 ---
 
-## authelia-gen github issue-templates bug-report
+## authelia-gen docs data misc
 
-Generate GitHub bug report issue template
+Generate docs data file misc.json
 
 ```
-authelia-gen github issue-templates bug-report [flags]
+authelia-gen docs data misc [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for bug-report
+  -h, --help   help for misc
 ```
 
 ### Options inherited from parent commands
@@ -55,5 +55,5 @@ authelia-gen github issue-templates bug-report [flags]
 
 ### SEE ALSO
 
-* [authelia-gen github issue-templates](authelia-gen_github_issue-templates.md)	 - Generate GitHub issue templates
+* [authelia-gen docs data](authelia-gen_docs_data.md)	 - Generate docs data files
 
