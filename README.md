@@ -304,6 +304,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/polarathene"><img src="https://avatars.githubusercontent.com/u/5098581?v=4?s=100" width="100px;" alt="Brennan Kinney"/><br /><sub><b>Brennan Kinney</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=polarathene" title="Documentation">📖</a></td>
       <td align="center"><a href="https://github.com/LongerHV"><img src="https://avatars.githubusercontent.com/u/46924944?v=4?s=100" width="100px;" alt="Michał Mieszczak"/><br /><sub><b>Michał Mieszczak</b></sub></a><br /><a href="#ideas-LongerHV" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/authelia/authelia/commits?author=LongerHV" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/paul-ohl"><img src="https://avatars.githubusercontent.com/u/37795294?v=4?s=100" width="100px;" alt="Paul Ohl"/><br /><sub><b>Paul Ohl</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=paul-ohl" title="Documentation">📖</a></td>
+    </tr>
   </tbody>
 </table>
 
