@@ -1,0 +1,1 @@
+{"csp":{"default":"default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'; require-trusted-types-for 'script'","development":"default-src 'self' 'unsafe-eval'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'","nonce":"${NONCE}"}}

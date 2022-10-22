@@ -46,7 +46,7 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if pathDocsDataLanguages, err = cmd.Flags().GetString(cmdFlagDocsDataLanguages); err != nil {
+	if pathDocsDataLanguages, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsData, cmdFlagDocsDataLanguages); err != nil {
 		return err
 	}
 
