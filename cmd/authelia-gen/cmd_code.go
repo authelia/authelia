@@ -75,7 +75,7 @@ func codeServerRunE(cmd *cobra.Command, args []string) (err error) {
 	data := TemplateCSP{
 		PlaceholderNONCE:    codeCSPNonce,
 		TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
-		TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon),
+		TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
 	}
 
 	var outputPath string

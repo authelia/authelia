@@ -107,7 +107,7 @@ var (
 		{Name: "base-uri", Value: "'self'"},
 	}
 
-	codeCSPValuesProduction = []CSPValue{
-		{Name: "require-trusted-types-for", Value: "'script'"},
-	}
+	codeCSPValuesProduction = []CSPValue{}
+
+	codeCSPValuesDevelopment = []CSPValue{}
 )
