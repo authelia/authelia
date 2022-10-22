@@ -11,5 +11,5 @@ import (
 func TestGetStorageProvider(t *testing.T) {
 	config = &schema.Configuration{}
 
-	assert.Nil(t, getStorageProvider())
+	assert.Nil(t, getStorageProvider(nil))
 }

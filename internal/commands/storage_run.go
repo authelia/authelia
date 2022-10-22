@@ -132,7 +132,7 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -167,7 +167,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -215,7 +215,7 @@ func storageWebAuthnListRunE(cmd *cobra.Command, args []string) (err error) {
 		ctx      = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -250,7 +250,7 @@ func storageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx      = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -292,7 +292,7 @@ func storageWebAuthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 		ctx      = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -397,7 +397,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		img              image.Image
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -482,7 +482,7 @@ func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 
 	user := args[0]
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -511,7 +511,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -613,7 +613,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 	if provider == nil {
 		return errNoStorageProvider
 	}
@@ -657,7 +657,7 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 			directionStr string
 		)
 
-		provider = getStorageProvider()
+		provider = getStorageProvider(nil)
 
 		defer func() {
 			_ = provider.Close()
@@ -699,7 +699,7 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 			ctx = context.Background()
 		)
 
-		provider = getStorageProvider()
+		provider = getStorageProvider(nil)
 
 		defer func() {
 			_ = provider.Close()
@@ -773,7 +773,7 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	defer func() {
 		_ = provider.Close()
@@ -860,7 +860,7 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("error occurred opening '%s': %w", file, err)
 	}
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	var (
 		export model.UserOpaqueIdentifiersExport
@@ -928,7 +928,7 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("can't import a file with no data")
 	}
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	for _, opaqueID := range export.Identifiers {
 		if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
@@ -960,7 +960,7 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 		users, services, sectors []string
 	)
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	identifiers, err := provider.LoadUserOpaqueIdentifiers(ctx)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -1076,7 +1076,7 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	provider = getStorageProvider()
+	provider = getStorageProvider(nil)
 
 	if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
 		return err
