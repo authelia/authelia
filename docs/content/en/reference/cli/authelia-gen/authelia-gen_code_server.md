@@ -2,7 +2,7 @@
 title: "authelia-gen code server"
 description: "Reference for the authelia-gen code server command."
 lead: ""
-date: 2022-10-11T22:34:28+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:

@@ -2,7 +2,7 @@
 title: "authelia-gen docs data misc"
 description: "Reference for the authelia-gen docs data misc command."
 lead: ""
-date: 2022-10-11T22:34:28+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
