@@ -20,6 +20,8 @@ type SQLStorageConfiguration struct {
 // MySQLStorageConfiguration represents the configuration of a MySQL database.
 type MySQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
+
+	TLS *TLSConfig `koanf:"tls"`
 }
 
 // PostgreSQLStorageConfiguration represents the configuration of a PostgreSQL database.
@@ -27,7 +29,9 @@ type PostgreSQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
 	Schema                  string `koanf:"schema"`
 
-	SSL PostgreSQLSSLStorageConfiguration `koanf:"ssl"`
+	TLS *TLSConfig `koanf:"tls"`
+
+	SSL *PostgreSQLSSLStorageConfiguration `koanf:"ssl"`
 }
 
 // PostgreSQLSSLStorageConfiguration represents the SSL configuration of a PostgreSQL database.
@@ -55,7 +59,4 @@ var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	Schema: "public",
-	SSL: PostgreSQLSSLStorageConfiguration{
-		Mode: "disable",
-	},
 }
