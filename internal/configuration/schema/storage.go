@@ -59,6 +59,13 @@ var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
 	Timeout: 5 * time.Second,
 }
 
+// DefaultMySQLStorageConfiguration represents the default MySQL configuration.
+var DefaultMySQLStorageConfiguration = MySQLStorageConfiguration{
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
+
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	Schema: "public",

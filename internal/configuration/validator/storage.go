@@ -17,7 +17,7 @@ func ValidateStorage(config schema.StorageConfiguration, validator *schema.Struc
 
 	switch {
 	case config.MySQL != nil:
-		validateSQLConfiguration(&config.MySQL.SQLStorageConfiguration, validator, "mysql")
+		validateMySQLConfiguration(config.MySQL, validator)
 	case config.PostgreSQL != nil:
 		validatePostgreSQLConfiguration(config.PostgreSQL, validator)
 	case config.Local != nil:
@@ -49,6 +49,22 @@ func validateSQLConfiguration(config *schema.SQLStorageConfiguration, validator 
 	}
 }
 
+func validateMySQLConfiguration(config *schema.MySQLStorageConfiguration, validator *schema.StructValidator) {
+	validateSQLConfiguration(&config.SQLStorageConfiguration, validator, "mysql")
+
+	if config.TLS != nil {
+		configDefaultTLS := &schema.TLSConfig{
+			ServerName:     config.Host,
+			MinimumVersion: schema.DefaultMySQLStorageConfiguration.TLS.MinimumVersion,
+			MaximumVersion: schema.DefaultMySQLStorageConfiguration.TLS.MaximumVersion,
+		}
+
+		if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
+			validator.Push(fmt.Errorf(errFmtStorageTLSConfigInvalid, "mysql", err))
+		}
+	}
+}
+
 func validatePostgreSQLConfiguration(config *schema.PostgreSQLStorageConfiguration, validator *schema.StructValidator) {
 	validateSQLConfiguration(&config.SQLStorageConfiguration, validator, "postgres")
 
@@ -60,8 +76,14 @@ func validatePostgreSQLConfiguration(config *schema.PostgreSQLStorageConfigurati
 	case config.TLS != nil && config.SSL != nil:
 		validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLAndTLSConfig))
 	case config.TLS != nil:
-		if config.TLS.MinimumVersion.Value == 0 {
-			config.TLS.MinimumVersion = schema.DefaultPostgreSQLStorageConfiguration.TLS.MinimumVersion
+		configDefaultTLS := &schema.TLSConfig{
+			ServerName:     config.Host,
+			MinimumVersion: schema.DefaultPostgreSQLStorageConfiguration.TLS.MinimumVersion,
+			MaximumVersion: schema.DefaultPostgreSQLStorageConfiguration.TLS.MaximumVersion,
+		}
+
+		if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
+			validator.Push(fmt.Errorf(errFmtStorageTLSConfigInvalid, "postgres", err))
 		}
 	case config.SSL != nil:
 		validator.PushWarning(fmt.Errorf(warnFmtStoragePostgreSQLInvalidSSLDeprecated))

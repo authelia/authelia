@@ -80,6 +80,70 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	suite.Require().Len(suite.validator.Errors(), 0)
 }
 
+func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
+	suite.config.MySQL = &schema.MySQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "mysql1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(suite.config.MySQL.Host, suite.config.MySQL.TLS.ServerName)
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
+	suite.config.MySQL = &schema.MySQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+		},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreaterThanMaximum() {
+	suite.config.MySQL = &schema.MySQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: mysql: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
+}
+
 func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDatabaseAreProvided() {
 	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{}
 	suite.config.MySQL = nil
@@ -146,6 +210,70 @@ func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
 	suite.Require().NotNil(suite.config.PostgreSQL.TLS)
 
 	suite.Assert().Equal(uint16(tls.VersionTLS12), suite.config.PostgreSQL.TLS.MinimumVersion.Value)
+}
+
+func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
+	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "mysql1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(suite.config.PostgreSQL.Host, suite.config.PostgreSQL.TLS.ServerName)
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
+	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+		},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
+}
+
+func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGreaterThanMaximum() {
+	suite.config.PostgreSQL = &schema.PostgreSQLStorageConfiguration{
+		SQLStorageConfiguration: schema.SQLStorageConfiguration{
+			Host:     "db1",
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "storage: postgres: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {

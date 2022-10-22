@@ -304,7 +304,7 @@ authentication_backend:
     # start_tls: false
 
     # tls:
-      ## Server Name for certificate validation (in case the host in the url option does not match a SAN for the server).
+      ## Server Name for certificate validation (in case the host in the url does not match a SAN for the server).
       # server_name: ldap.example.com
 
       ## Skip verifying the server certificate (to allow a self-signed certificate).
