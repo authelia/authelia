@@ -8,6 +8,6 @@ package server
 
 const (
 	placeholderCSPNonce = "${NONCE}"
-	tmplCSPDefault      = "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'; require-trusted-types-for 'script'"
+	tmplCSPDefault      = "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
 	tmplCSPDevelopment  = "default-src 'self' 'unsafe-eval'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
 )
