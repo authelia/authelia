@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -135,18 +133,9 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 }
 
 func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (dsn string) {
-	var host string
-
-	switch {
-	case path.IsAbs(config.Host):
-		host = strings.SplitN(config.Host, ":", 2)[1]
-	default:
-		host = config.Host
-	}
+	dsnConfig, _ := pgx.ParseConfig("")
 
 	ca, certs := loadPostgreSQLLegacyTLS(config)
-
-	var tlsConfig *tls.Config
 
 	switch config.SSL.Mode {
 	case "disable":
@@ -162,7 +151,7 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 			caCertPool.AddCert(ca)
 		}
 
-		tlsConfig = &tls.Config{
+		dsnConfig.TLSConfig = &tls.Config{
 			Certificates:       certs,
 			RootCAs:            caCertPool,
 			InsecureSkipVerify: true, //nolint:gosec
@@ -170,26 +159,25 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 
 		switch {
 		case config.SSL.Mode == "require" && config.SSL.RootCertificate != "" || config.SSL.Mode == "verify-ca":
-			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(tlsConfig)
+			dsnConfig.TLSConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(dsnConfig.TLSConfig)
 		case config.SSL.Mode == "verify-full":
-			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = host
+			dsnConfig.TLSConfig.InsecureSkipVerify = false
+			dsnConfig.TLSConfig.ServerName = config.Host
 		}
 	}
 
-	dsnConfig := &pgx.ConnConfig{
-		Config: pgconn.Config{
-			Host:           host,
-			Port:           uint16(config.Port),
-			Database:       config.Database,
-			User:           config.Username,
-			Password:       config.Password,
-			TLSConfig:      tlsConfig,
-			ConnectTimeout: config.Timeout,
-			RuntimeParams: map[string]string{
-				"search_path": config.Schema,
-			},
-		},
+	dsnConfig.Host = config.Host
+	dsnConfig.Port = uint16(config.Port)
+	dsnConfig.Database = config.Database
+	dsnConfig.User = config.Username
+	dsnConfig.Password = config.Password
+	dsnConfig.ConnectTimeout = config.Timeout
+	dsnConfig.RuntimeParams = map[string]string{
+		"search_path": config.Schema,
+	}
+
+	if dsnConfig.Port == 0 && !path.IsAbs(dsnConfig.Host) {
+		dsnConfig.Port = 4321
 	}
 
 	return stdlib.RegisterConnConfig(dsnConfig)
