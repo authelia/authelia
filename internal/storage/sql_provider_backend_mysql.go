@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql" // Load the MySQL Driver used in the connection string.
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -30,21 +31,31 @@ func NewMySQLProvider(config *schema.Configuration) (provider *MySQLProvider) {
 }
 
 func dataSourceNameMySQL(config schema.MySQLStorageConfiguration) (dataSourceName string) {
-	dataSourceName = fmt.Sprintf("%s:%s", config.Username, config.Password)
+	dconfig := mysql.NewConfig()
 
-	if dataSourceName != "" {
-		dataSourceName += "@"
+	switch {
+	case config.Port == 0:
+		dconfig.Net = sqlNetworkTypeTCP
+		dconfig.Addr = fmt.Sprintf("%s:%d", config.Host, 3306)
+	default:
+		dconfig.Net = sqlNetworkTypeTCP
+		dconfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	}
 
-	address := config.Host
-	if config.Port > 0 {
-		address += fmt.Sprintf(":%d", config.Port)
+	switch config.Port {
+	case 0:
+		dconfig.Addr = config.Host
+	default:
+		dconfig.Addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	}
 
-	dataSourceName += fmt.Sprintf("tcp(%s)/%s", address, config.Database)
+	dconfig.DBName = config.Database
+	dconfig.User = config.Username
+	dconfig.Passwd = config.Password
+	dconfig.Timeout = config.Timeout
+	dconfig.MultiStatements = true
+	dconfig.ParseTime = true
+	dconfig.Loc = time.Local
 
-	dataSourceName += "?"
-	dataSourceName += fmt.Sprintf("timeout=%ds&multiStatements=true&parseTime=true", int32(config.Timeout/time.Second))
-
-	return dataSourceName
+	return dconfig.FormatDSN()
 }

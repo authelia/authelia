@@ -396,13 +396,13 @@ authentication_backend:
     # base_dn: dc=example,dc=com
 
     ## The attribute holding the username of the user. This attribute is used to populate the username in the session
-    ## information. It was introduced due to #561 to handle case insensitive search queries. For you information,
-    ## Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually uses 'uid'. Beware that this
-    ## attribute holds the unique identifiers for the users binding the user and the configuration stored in database.
-    ## Therefore only single value attributes are allowed and the value must never be changed once attributed to a user
-    ## otherwise it would break the configuration for that user. Technically, non-unique attributes like 'mail' can also
-    ## be used but we don't recommend using them, we instead advise to use the attributes mentioned above
-    ## (sAMAccountName and uid) to follow https://www.ietf.org/rfc/rfc2307.txt.
+    ## information. For your information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually
+    ## uses 'uid'. Beware that this attribute holds the unique identifiers for the users binding the user and the
+    ## configuration stored in database. Therefore only single value attributes are allowed and the value must never be
+    ## changed once attributed to a user otherwise it would break the configuration for that user. Technically,
+    ## non-unique attributes like 'mail' can also be used but we don't recommend using them, we instead advise to use
+    ## a filter to perform alternative lookups and the attributes mentioned above (sAMAccountName and uid) to
+    ## follow https://www.ietf.org/rfc/rfc2307.txt.
     # username_attribute: uid
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
