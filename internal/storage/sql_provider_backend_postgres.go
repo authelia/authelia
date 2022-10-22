@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // PostgreSQLProvider is a PostgreSQL provider.
@@ -135,42 +136,12 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (dsn string) {
 	dsnConfig, _ := pgx.ParseConfig("")
 
-	ca, certs := loadPostgreSQLLegacyTLS(config)
-
-	switch config.SSL.Mode {
-	case "disable":
-		break
-	default:
-		var caCertPool *x509.CertPool
-
-		switch ca {
-		case nil:
-			caCertPool = globalCACertPool
-		default:
-			caCertPool = globalCACertPool.Clone()
-			caCertPool.AddCert(ca)
-		}
-
-		dsnConfig.TLSConfig = &tls.Config{
-			Certificates:       certs,
-			RootCAs:            caCertPool,
-			InsecureSkipVerify: true, //nolint:gosec
-		}
-
-		switch {
-		case config.SSL.Mode == "require" && config.SSL.RootCertificate != "" || config.SSL.Mode == "verify-ca":
-			dsnConfig.TLSConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(dsnConfig.TLSConfig)
-		case config.SSL.Mode == "verify-full":
-			dsnConfig.TLSConfig.InsecureSkipVerify = false
-			dsnConfig.TLSConfig.ServerName = config.Host
-		}
-	}
-
 	dsnConfig.Host = config.Host
 	dsnConfig.Port = uint16(config.Port)
 	dsnConfig.Database = config.Database
 	dsnConfig.User = config.Username
 	dsnConfig.Password = config.Password
+	dsnConfig.TLSConfig = loadPostgreSQLTLSConfig(config, globalCACertPool)
 	dsnConfig.ConnectTimeout = config.Timeout
 	dsnConfig.RuntimeParams = map[string]string{
 		"search_path": config.Schema,
@@ -183,7 +154,50 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 	return stdlib.RegisterConnConfig(dsnConfig)
 }
 
-func loadPostgreSQLLegacyTLS(config *schema.PostgreSQLStorageConfiguration) (ca *x509.Certificate, certs []tls.Certificate) {
+func loadPostgreSQLTLSConfig(config *schema.PostgreSQLStorageConfiguration, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
+	if config.TLS == nil && config.SSL == nil {
+		return nil
+	}
+
+	if config.TLS != nil {
+		return utils.NewTLSConfig(config.TLS, globalCACertPool)
+	}
+
+	ca, certs := loadPostgreSQLLegacyTLSConfig(config)
+
+	switch config.SSL.Mode {
+	case "disable":
+		return nil
+	default:
+		var caCertPool *x509.CertPool
+
+		switch ca {
+		case nil:
+			caCertPool = globalCACertPool
+		default:
+			caCertPool = globalCACertPool.Clone()
+			caCertPool.AddCert(ca)
+		}
+
+		tlsConfig = &tls.Config{
+			Certificates:       certs,
+			RootCAs:            caCertPool,
+			InsecureSkipVerify: true, //nolint:gosec
+		}
+
+		switch {
+		case config.SSL.Mode == "require" && config.SSL.RootCertificate != "" || config.SSL.Mode == "verify-ca":
+			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(tlsConfig)
+		case config.SSL.Mode == "verify-full":
+			tlsConfig.InsecureSkipVerify = false
+			tlsConfig.ServerName = config.Host
+		}
+	}
+
+	return tlsConfig
+}
+
+func loadPostgreSQLLegacyTLSConfig(config *schema.PostgreSQLStorageConfiguration) (ca *x509.Certificate, certs []tls.Certificate) {
 	var (
 		err error
 	)
