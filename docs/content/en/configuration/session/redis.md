@@ -154,7 +154,7 @@ especially for containerized deployments.*
 The password for [redis authentication](https://redis.io/commands/auth).
 
 It's __strongly recommended__ this is a
-[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
 ### database_index
@@ -213,7 +213,7 @@ authenticate to the Redis Sentinel with ACL-based authentication. Otherwise, thi
 authentication.
 
 It's __strongly recommended__ this is a
-[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
 #### nodes

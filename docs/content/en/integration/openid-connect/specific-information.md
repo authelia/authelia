@@ -25,12 +25,12 @@ We strongly recommend the following guidelines for generating client secrets:
 5. Secrets should only have alphanumeric characters as some implementations do not appropriately encode the secret
    when using it to access the token endpoint.
 
-Authelia provides an easy way to perform such actions via the [authelia crypto hash generate] command. Users can
+Authelia provides an easy way to perform such actions via the [Generating a Random Password Hash] guide. Users can
 perform a command such as `authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72` command to
 both generate a client secret with 72 characters which is printed and is to be used with the relying party and hash it
 using PBKDF2 which can be stored in the Authelia configuration.
 
-[authelia crypto hash generate]: ../../reference/cli/authelia/authelia_crypto_hash_generate.md
+[Generating a Random Password Hash]: ../../reference/guides/generating-secure-values.md#generating-a-random-password-hash
 
 ### Plaintext
 
