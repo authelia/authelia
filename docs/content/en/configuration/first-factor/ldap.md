@@ -289,7 +289,7 @@ especially for containerized deployments.*
 The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
 
 It's __strongly recommended__ this is a
-[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
 ## Refresh Interval

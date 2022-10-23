@@ -54,5 +54,5 @@ connections. Please note that it has been decided that we won't support websites
 risk due to misconfiguration (see [#590](https://github.com/authelia/authelia/issues/590)).
 
 If a self-signed certificate is required, the
-[Generating an RSA Self-Signed Certificate](../../../configuration/miscellaneous/guides.md#generating-an-rsa-self-signed-certificate)
+[Generating an RSA Self-Signed Certificate](../../../reference/guides/generating-secure-values.md#generating-an-rsa-self-signed-certificate)
 guide should be followed.

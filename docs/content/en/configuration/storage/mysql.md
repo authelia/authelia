@@ -174,7 +174,7 @@ especially for containerized deployments.*
 The password paired with the [username](#username) used to connect to the database.
 
 It's __strongly recommended__ this is a
-[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
 ### timeout
