@@ -148,7 +148,7 @@ func dsnPostgreSQL(config *schema.PostgreSQLStorageConfiguration, globalCACertPo
 	}
 
 	if dsnConfig.Port == 0 && !path.IsAbs(dsnConfig.Host) {
-		dsnConfig.Port = 4321
+		dsnConfig.Port = 5432
 	}
 
 	return stdlib.RegisterConnConfig(dsnConfig)

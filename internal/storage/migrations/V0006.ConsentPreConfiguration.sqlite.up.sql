@@ -8,7 +8,7 @@ CREATE TABLE oauth2_consent_preconfiguration (
     scopes TEXT NOT NULL,
     audience TEXT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT oauth2_consent_preconfiguration_subjct_fkey
+    CONSTRAINT oauth2_consent_preconfiguration_subject_fkey
         FOREIGN KEY(subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
