@@ -60,13 +60,18 @@ other configuration using the environment but instead of loading a file the valu
 [duo_api.secret_key]: ../second-factor/duo.md#secret_key
 [session.secret]: ../session/introduction.md#secret
 [session.redis.password]: ../session/redis.md#password
+[session.redis.tls.private_key]: ../session/redis.md#tls
 [session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinel_password
 [storage.encryption_key]: ../storage/introduction.md#encryption_key
 [storage.mysql.password]: ../storage/mysql.md#password
+[storage.mysql.tls.private_key]: ../storage/mysql.md#tls
 [storage.postgres.password]: ../storage/postgres.md#password
-[storage.postgres.ssl.key]: ../storage/postgres.md#key
+[storage.postgres.tls.private_key]: ../storage/postgres.md#tls
+[storage.postgres.ssl.key]: ../storage/postgres.md
 [notifier.smtp.password]: ../notifications/smtp.md#password
+[notifier.tls.private_key]: ../notifications/smtp.md#tls
 [authentication_backend.ldap.password]: ../first-factor/ldap.md#password
+[authentication_backend.ldap.tls.private_key]: ../first-factor/ldap.md#tls
 [identity_providers.oidc.issuer_private_key]: ../identity-providers/open-id-connect.md#issuer_private_key
 [identity_providers.oidc.hmac_secret]: ../identity-providers/open-id-connect.md#hmac_secret
 
