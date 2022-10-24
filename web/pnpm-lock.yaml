@@ -19,7 +19,7 @@ specifiers:
   '@types/node': 18.11.4
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.21
-  '@types/react-dom': 18.0.6
+  '@types/react-dom': 18.0.7
   '@types/zxcvbn': 4.4.1
   '@typescript-eslint/eslint-plugin': 5.40.1
   '@typescript-eslint/parser': 5.40.1
@@ -101,7 +101,7 @@ devDependencies:
   '@types/node': 18.11.4
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.21
-  '@types/react-dom': 18.0.6
+  '@types/react-dom': 18.0.7
   '@types/zxcvbn': 4.4.1
   '@typescript-eslint/eslint-plugin': 5.40.1_c4zyna56jjjrggqkyejnaxjxfu
   '@typescript-eslint/parser': 5.40.1_wyqvi574yv7oiwfeinomdzmc3m
@@ -3403,7 +3403,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.18.9
       '@testing-library/dom': 8.16.0
-      '@types/react-dom': 18.0.6
+      '@types/react-dom': 18.0.7
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: true
@@ -3550,8 +3550,8 @@ packages:
       '@types/react': 18.0.21
     dev: true
 
-  /@types/react-dom/18.0.6:
-    resolution: {integrity: sha512-/5OFZgfIPSwy+YuIBP/FgJnQnsxhZhjjrnxudMddeblOouIodEQ75X14Rr4wGSG/bknL+Omy9iWlLo1u/9GzAA==}
+  /@types/react-dom/18.0.7:
+    resolution: {integrity: sha512-HaXc+BbqAZE1RdsK3tC8SbkFy6UL2xF76lT9rQs5JkPrJg3rWA3Ou/Lhw3YJQzEDkBpmJ79nBsfnd05WrBd2QQ==}
     dependencies:
       '@types/react': 18.0.21
     dev: true
