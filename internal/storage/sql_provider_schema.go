@@ -177,8 +177,8 @@ func (p *SQLProvider) schemaCheckAdvanced(ctx context.Context) (err error) {
 	}
 
 	for _, table = range tables {
-		if _, err = p.db.ExecContext(ctx, queryMySQLAlterTableCharacterSetCollation,
-			table, sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
+		if _, err = p.db.ExecContext(ctx, fmt.Sprintf(queryMySQLAlterTableCharacterSetCollation, table),
+			sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
 			return fmt.Errorf("error updating table collation: %w", err)
 		}
 	}
