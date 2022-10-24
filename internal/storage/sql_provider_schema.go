@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -165,7 +166,8 @@ func (p *SQLProvider) schemaCheckAdvanced(ctx context.Context) (err error) {
 			return err
 		}
 
-		if utils.IsStringInSliceFold(table, tablesAll) {
+		switch {
+		case utils.IsStringInSliceFold(table, tablesAll), strings.HasPrefix(table, tablePrefixBackup) && utils.IsStringInSliceFold(table[5:], tablesAll):
 			tables = append(tables, table)
 		}
 	}
