@@ -37,7 +37,7 @@ const (
 	sqlMySQLCharacterSetUTF8                    = "utf8mb4"
 	sqlMySQLCollationUTF8GeneralCaseInsensitive = "utf8mb4_general_ci"
 
-	queryMySQLAlterDatabaseCharacterSetCollation = `ALTER DATABASE CHARACTER SET ? COLLATE ?;`
+	queryMySQLAlterDatabaseCharacterSetCollation = `ALTER DATABASE %s CHARACTER SET %s COLLATE %s;`
 	queryMySQLAlterTableCharacterSetCollation    = `ALTER TABLE ? CONVERT TO CHARACTER SET ? COLLATE ?;`
 	queryMySQLSelectTablesWithIncorrectCollation = `
 		SELECT TABLE_NAME

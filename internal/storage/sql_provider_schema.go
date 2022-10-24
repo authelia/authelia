@@ -142,16 +142,16 @@ func (p *SQLProvider) schemaCheckAdvanced(ctx context.Context) (err error) {
 		return nil
 	}
 
-	if _, err = p.db.ExecContext(ctx, queryMySQLAlterDatabaseCharacterSetCollation,
-		sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
-		return err
+	if _, err = p.db.ExecContext(ctx, fmt.Sprintf(queryMySQLAlterDatabaseCharacterSetCollation,
+		p.config.Storage.MySQL.Database, sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive)); err != nil {
+		return fmt.Errorf("error updating database collation: %w", err)
 	}
 
 	var rows *sqlx.Rows
 
 	if rows, err = p.db.QueryxContext(ctx, queryMySQLSelectTablesWithIncorrectCollation,
 		sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
-		return err
+		return fmt.Errorf("error selecting tables with invalid collation: %w", err)
 	}
 
 	var tables []string
@@ -177,7 +177,7 @@ func (p *SQLProvider) schemaCheckAdvanced(ctx context.Context) (err error) {
 	for _, table = range tables {
 		if _, err = p.db.ExecContext(ctx, queryMySQLAlterTableCharacterSetCollation,
 			table, sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
-			return err
+			return fmt.Errorf("error updating table collation: %w", err)
 		}
 	}
 
