@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/ory/fosite/token/jwt"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -34,7 +34,7 @@ func NewKeyManager() (manager *KeyManager) {
 }
 
 // Strategy returns the fosite jwt.JWTStrategy.
-func (m *KeyManager) Strategy() (strategy jwt.JWTStrategy) {
+func (m *KeyManager) Strategy() (strategy jwt.Signer) {
 	if m.jwk == nil {
 		return nil
 	}
@@ -98,7 +98,7 @@ func (m *KeyManager) AddActiveJWK(chain schema.X509CertificateChain, key *rsa.Pr
 
 // JWTStrategy is a decorator struct for the fosite jwt.JWTStrategy.
 type JWTStrategy struct {
-	jwt.JWTStrategy
+	jwt.Signer
 
 	id string
 }
@@ -157,8 +157,12 @@ type JWK struct {
 }
 
 // Strategy returns the relevant jwt.JWTStrategy for this JWT.
-func (j *JWK) Strategy() (strategy jwt.JWTStrategy) {
-	return &JWTStrategy{id: j.id, JWTStrategy: &jwt.RS256JWTStrategy{PrivateKey: j.key}}
+func (j *JWK) Strategy() (strategy jwt.Signer) {
+	return &JWTStrategy{id: j.id, Signer: &jwt.DefaultSigner{GetPrivateKey: j.GetPrivateKey}}
+}
+
+func (j *JWK) GetPrivateKey(ctx context.Context) (key any, err error) {
+	return j.key, nil
 }
 
 // JSONWebKey returns the relevant *jose.JSONWebKey for this JWT.

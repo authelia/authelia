@@ -30,7 +30,7 @@ func handleOIDCAuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, is
 		if consentID, err = uuid.Parse(string(bytesConsentID)); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.Consent, bytesConsentID, err)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentMalformedChallengeID)
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
 
 			return nil, true
 		}
@@ -49,7 +49,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 	if consentID.ID() == 0 {
 		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.Consent)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
 		return nil, true
 	}
@@ -57,7 +57,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.Consent, consentID, err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
 		return nil, true
 	}
@@ -65,7 +65,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 	if subject.ID() != consent.Subject.UUID.ID() {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotLookup)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
 		return nil, true
 	}
@@ -73,7 +73,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 	if !consent.CanGrant() {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID, "explicit")
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotPerform)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
 
 		return nil, true
 	}
@@ -82,7 +82,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 		if consent.Responded() {
 			ctx.Logger.Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.Consent, consent.ChallengeID)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, fosite.ErrAccessDenied)
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrAccessDenied)
 
 			return nil, true
 		}
