@@ -31,6 +31,9 @@ can adjust this setting in the mysql.cnf file like so:
 explicit_defaults_for_timestamp = 1
 ```
 
+The [MySQL] or [MariaDB] server *__MUST__* support the charset `utf8mb4` and the collation `utf8mb4_general_ci` and the
+user connecting to the database *__MUST__* be allowed to adjust these values.
+
 ## Configuration
 
 ```yaml

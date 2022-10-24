@@ -126,11 +126,62 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 		return err
 	}
 
+	if err = p.schemaCheckAdvanced(ctx); err != nil {
+		return fmt.Errorf("error during schema migrate pre-check: %w", err)
+	}
+
 	if err = schemaMigrateChecks(p.name, up, version, currentVersion); err != nil {
 		return err
 	}
 
 	return p.schemaMigrate(ctx, currentVersion, version)
+}
+
+func (p *SQLProvider) schemaCheckAdvanced(ctx context.Context) (err error) {
+	if p.name != providerMySQL {
+		return nil
+	}
+
+	if _, err = p.db.ExecContext(ctx, queryMySQLAlterDatabaseCharacterSetCollation,
+		sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
+		return err
+	}
+
+	var rows *sqlx.Rows
+
+	if rows, err = p.db.QueryxContext(ctx, queryMySQLSelectTablesWithIncorrectCollation,
+		sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
+		return err
+	}
+
+	var tables []string
+
+	var table string
+
+	for rows.Next() {
+		if err = rows.Scan(&table); err != nil {
+			_ = rows.Close()
+
+			return err
+		}
+
+		if utils.IsStringInSliceFold(table, tablesAll) {
+			tables = append(tables, table)
+		}
+	}
+
+	if err = rows.Close(); err != nil {
+		return err
+	}
+
+	for _, table = range tables {
+		if _, err = p.db.ExecContext(ctx, queryMySQLAlterTableCharacterSetCollation,
+			table, sqlMySQLCharacterSetUTF8, sqlMySQLCollationUTF8GeneralCaseInsensitive); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 //nolint:gocyclo // TODO: Consider refactoring time permitting.

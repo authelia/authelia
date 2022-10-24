@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS user_opaque_identifier (
     username VARCHAR(100) NOT NULL,
     identifier CHAR(36) NOT NULL,
     PRIMARY KEY (id)
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX user_opaque_identifier_service_sector_id_username_key ON user_opaque_identifier (service, sector_id, username);
 CREATE UNIQUE INDEX user_opaque_identifier_identifier_key ON user_opaque_identifier (identifier);
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS oauth2_blacklisted_jti (
     signature VARCHAR(64) NOT NULL,
     expires_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX oauth2_blacklisted_jti_signature_key ON oauth2_blacklisted_jti (signature);
 
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     CONSTRAINT oauth2_consent_subject_fkey
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
 
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
     CONSTRAINT oauth2_authorization_code_session_subject_fkey
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
 CREATE INDEX oauth2_authorization_code_session_client_id_idx ON oauth2_authorization_code_session (client_id);
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     CONSTRAINT oauth2_access_token_session_subject_fkey
         FOREIGN KEY(subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
 CREATE INDEX oauth2_access_token_session_client_id_idx ON oauth2_access_token_session (client_id);
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
     CONSTRAINT oauth2_refresh_token_session_subject_fkey
         FOREIGN KEY(subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
 CREATE INDEX oauth2_refresh_token_session_client_id_idx ON oauth2_refresh_token_session (client_id);
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
     CONSTRAINT oauth2_pkce_request_session_subject_fkey
         FOREIGN KEY(subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
 CREATE INDEX oauth2_pkce_request_session_client_id_idx ON oauth2_pkce_request_session (client_id);
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
     CONSTRAINT oauth2_openid_connect_session_subject_fkey
         FOREIGN KEY(subject)
             REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
 CREATE INDEX oauth2_openid_connect_session_client_id_idx ON oauth2_openid_connect_session (client_id);

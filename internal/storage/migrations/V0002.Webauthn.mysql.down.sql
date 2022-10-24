@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period, secret)
 SELECT id, username, issuer, algorithm, digits, period, secret
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS u2f_devices (
     public_key BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username, description)
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 INSERT INTO u2f_devices (id, username, description, key_handle, public_key)
 SELECT id, username, description, FROM_BASE64(kid), public_key

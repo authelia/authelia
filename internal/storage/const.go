@@ -66,6 +66,38 @@ const (
 	tableAlphaU2FDeviceHandles           = "U2FDeviceHandles"
 )
 
+var tablesAll = []string{
+	tableAuthenticationLogs,
+	tableDuoDevices,
+	tableIdentityVerification,
+	tableTOTPConfigurations,
+	tableUserOpaqueIdentifier,
+	tableUserPreferences,
+	tableWebauthnDevices,
+	tableOAuth2ConsentSession,
+	tableOAuth2ConsentPreConfiguration,
+	tableOAuth2AuthorizeCodeSession,
+	tableOAuth2AccessTokenSession,
+	tableOAuth2RefreshTokenSession,
+	tableOAuth2PKCERequestSession,
+	tableOAuth2OpenIDConnectSession,
+	tableOAuth2BlacklistedJTI,
+	tableMigrations,
+	tableEncryption,
+	tablePre1TOTPSecrets,
+	tablePre1IdentityVerificationTokens,
+	tablePre1U2FDevices,
+	tablePre1Config,
+	tableAlphaAuthenticationLogs,
+	tableAlphaIdentityVerificationTokens,
+	tableAlphaPreferences,
+	tableAlphaPreferencesTableName,
+	tableAlphaPreferences,
+	tableAlphaSecondFactorPreferences,
+	tableAlphaTOTPSecrets,
+	tableAlphaU2FDeviceHandles,
+}
+
 var tablesPre1 = []string{
 	tablePre1TOTPSecrets,
 	tablePre1IdentityVerificationTokens,

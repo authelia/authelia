@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period, secret)
 SELECT id, username, issuer, algorithm, digits, period, secret
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     PRIMARY KEY (id),
     UNIQUE KEY (username, description),
     UNIQUE KEY (kid)
-);
+) DEFAULT CHARACTER SET uf8mb4 COLLATE utf8mb4_general_ci;
 
 INSERT INTO webauthn_devices (id, rpid, username, description, kid, public_key, attestation_type, aaguid, sign_count)
 SELECT id, '', username, description, TO_BASE64(key_handle), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0

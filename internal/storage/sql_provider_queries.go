@@ -19,8 +19,8 @@ const (
 const (
 	queryMySQLSelectExistingTables = `
 		SELECT table_name
-		FROM information_schema.tables
-		WHERE table_type = 'BASE TABLE' AND table_schema = database();`
+		FROM information_schema.TABLES
+		WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = database();`
 
 	queryPostgreSelectExistingTables = `
 		SELECT table_name
@@ -31,6 +31,18 @@ const (
 		SELECT name
 		FROM sqlite_master
 		WHERE type = 'table';`
+)
+
+const (
+	sqlMySQLCharacterSetUTF8                    = "utf8mb4"
+	sqlMySQLCollationUTF8GeneralCaseInsensitive = "utf8mb4_general_ci"
+
+	queryMySQLAlterDatabaseCharacterSetCollation = `ALTER DATABASE CHARACTER SET ? COLLATE ?;`
+	queryMySQLAlterTableCharacterSetCollation    = `ALTER TABLE ? CONVERT TO CHARACTER SET ? COLLATE ?;`
+	queryMySQLSelectTablesWithIncorrectCollation = `
+		SELECT TABLE_NAME
+		FROM information_schema.TABLES
+		WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = database() AND (TABLE_COLLATION <> ? AND TABLE_COLLATION IS NOT NULL);`
 )
 
 const (
