@@ -1,6 +1,6 @@
 ALTER TABLE webauthn_devices RENAME _bkp_UP_V0003_webauthn_devices;
 
-CREATE TABLE IF NOT EXISTS webauthn_devices (
+CREATE TABLE webauthn_devices (
     id INTEGER AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
@@ -17,10 +17,10 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     PRIMARY KEY (id),
     UNIQUE KEY (username, description),
     UNIQUE KEY (kid)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 INSERT INTO webauthn_devices (id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 FROM _bkp_UP_V0003_webauthn_devices;
 
-DROP TABLE IF EXISTS _bkp_UP_V0003_webauthn_devices;
+DROP TABLE _bkp_UP_V0003_webauthn_devices;

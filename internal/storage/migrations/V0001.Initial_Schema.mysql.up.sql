@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS authentication_logs (
+CREATE TABLE authentication_logs (
     id INTEGER AUTO_INCREMENT,
     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful BOOLEAN NOT NULL,
@@ -9,12 +9,12 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
     request_uri TEXT,
     request_method VARCHAR(8) NOT NULL DEFAULT '',
     PRIMARY KEY (id)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
 CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
 
-CREATE TABLE IF NOT EXISTS identity_verification (
+CREATE TABLE identity_verification (
     id INTEGER AUTO_INCREMENT,
     jti CHAR(36),
     iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -26,9 +26,9 @@ CREATE TABLE IF NOT EXISTS identity_verification (
     consumed_ip VARCHAR(39) NULL DEFAULT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (jti)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
-CREATE TABLE IF NOT EXISTS totp_configurations (
+CREATE TABLE totp_configurations (
     id INTEGER AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
@@ -38,9 +38,9 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
-CREATE TABLE IF NOT EXISTS u2f_devices (
+CREATE TABLE u2f_devices (
     id INTEGER AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',
@@ -48,38 +48,38 @@ CREATE TABLE IF NOT EXISTS u2f_devices (
     public_key BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username, description)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
-CREATE TABLE IF NOT EXISTS duo_devices (
+CREATE TABLE duo_devices (
     id INTEGER AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     device VARCHAR(32) NOT NULL,
     method VARCHAR(16) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
-CREATE TABLE IF NOT EXISTS user_preferences (
+CREATE TABLE user_preferences (
     id INTEGER AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     second_factor_method VARCHAR(11) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
-CREATE TABLE IF NOT EXISTS migrations (
+CREATE TABLE migrations (
     id INTEGER AUTO_INCREMENT,
     applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version_before INTEGER NULL DEFAULT NULL,
     version_after INTEGER NOT NULL,
     application_version VARCHAR(128) NOT NULL,
     PRIMARY KEY (id)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
-CREATE TABLE IF NOT EXISTS encryption (
+CREATE TABLE encryption (
   id INTEGER AUTO_INCREMENT,
   name VARCHAR(100),
   value BLOB NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY (name)
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;

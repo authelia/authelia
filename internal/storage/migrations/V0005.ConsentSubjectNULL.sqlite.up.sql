@@ -8,7 +8,7 @@ DELETE FROM user_opaque_identifier WHERE service <> 'openid';
 
 ALTER TABLE oauth2_consent_session RENAME TO _bkp_UP_V0005_oauth2_consent_session;
 
-CREATE TABLE IF NOT EXISTS oauth2_consent_session (
+CREATE TABLE oauth2_consent_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     granted_audience TEXT NULL DEFAULT '',
     PRIMARY KEY (id),
     CONSTRAINT oauth2_consent_session_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
+        FOREIGN KEY (subject)
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_consent_session (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
@@ -42,7 +42,7 @@ DROP TABLE _bkp_UP_V0005_oauth2_consent_session;
 
 ALTER TABLE oauth2_authorization_code_session RENAME TO _bkp_UP_V0005_oauth2_authorization_code_session;
 
-CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
+CREATE TABLE oauth2_authorization_code_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -60,11 +60,11 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT oauth2_authorization_code_session_challenge_id_fkey
-        FOREIGN KEY(challenge_id)
-            REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (challenge_id)
+            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_authorization_code_session_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
+        FOREIGN KEY (subject)
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_authorization_code_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
@@ -84,7 +84,7 @@ DROP TABLE _bkp_UP_V0005_oauth2_authorization_code_session;
 
 ALTER TABLE oauth2_access_token_session RENAME TO _bkp_UP_V0005_oauth2_access_token_session;
 
-CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
+CREATE TABLE oauth2_access_token_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -102,11 +102,11 @@ CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT oauth2_access_token_session_challenge_id_fkey
-        FOREIGN KEY(challenge_id)
-            REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (challenge_id)
+            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_access_token_session_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
+        FOREIGN KEY (subject)
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_access_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
@@ -126,7 +126,7 @@ DROP TABLE _bkp_UP_V0005_oauth2_access_token_session;
 
 ALTER TABLE oauth2_refresh_token_session RENAME TO _bkp_UP_V0005_oauth2_refresh_token_session;
 
-CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
+CREATE TABLE oauth2_refresh_token_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -144,11 +144,11 @@ CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT oauth2_refresh_token_session_challenge_id_fkey
-        FOREIGN KEY(challenge_id)
-            REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (challenge_id)
+            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_refresh_token_session_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
+        FOREIGN KEY (subject)
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
@@ -168,7 +168,7 @@ DROP TABLE _bkp_UP_V0005_oauth2_refresh_token_session;
 
 ALTER TABLE oauth2_pkce_request_session RENAME TO _bkp_UP_V0005_oauth2_pkce_request_session;
 
-CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
+CREATE TABLE oauth2_pkce_request_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -186,11 +186,11 @@ CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT oauth2_pkce_request_session_challenge_id_fkey
-        FOREIGN KEY(challenge_id)
-            REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (challenge_id)
+            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_pkce_request_session_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
+        FOREIGN KEY (subject)
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_pkce_request_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
@@ -210,7 +210,7 @@ DROP TABLE _bkp_UP_V0005_oauth2_pkce_request_session;
 
 ALTER TABLE oauth2_openid_connect_session RENAME TO _bkp_UP_V0005_oauth2_openid_connect_session;
 
-CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
+CREATE TABLE oauth2_openid_connect_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -228,11 +228,11 @@ CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT oauth2_openid_connect_session_challenge_id_fkey
-        FOREIGN KEY(challenge_id)
-            REFERENCES oauth2_consent_session(challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (challenge_id)
+            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_openid_connect_session_subject_fkey
-        FOREIGN KEY(subject)
-            REFERENCES user_opaque_identifier(identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
+        FOREIGN KEY (subject)
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_openid_connect_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)

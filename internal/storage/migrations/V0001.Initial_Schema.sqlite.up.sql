@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS authentication_logs (
+CREATE TABLE authentication_logs (
     id INTEGER,
     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful BOOLEAN NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS authentication_logs (
 CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
 CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
 
-CREATE TABLE IF NOT EXISTS identity_verification (
+CREATE TABLE identity_verification (
     id INTEGER,
     jti VARCHAR(36),
     iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS identity_verification (
     UNIQUE (jti)
 );
 
-CREATE TABLE IF NOT EXISTS totp_configurations (
+CREATE TABLE totp_configurations (
     id INTEGER,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS totp_configurations (
     UNIQUE (username)
 );
 
-CREATE TABLE IF NOT EXISTS u2f_devices (
+CREATE TABLE u2f_devices (
     id INTEGER,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS u2f_devices (
     UNIQUE (username, description)
 );
 
-CREATE TABLE IF NOT EXISTS duo_devices (
+CREATE TABLE duo_devices (
     id INTEGER,
     username VARCHAR(100) NOT NULL,
     device VARCHAR(32) NOT NULL,
@@ -59,14 +59,14 @@ CREATE TABLE IF NOT EXISTS duo_devices (
     UNIQUE (username)
 );
 
-CREATE TABLE IF NOT EXISTS user_preferences (
+CREATE TABLE user_preferences (
     id INTEGER,
     username VARCHAR(100) UNIQUE NOT NULL,
     second_factor_method VARCHAR(11) NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS migrations (
+CREATE TABLE migrations (
     id INTEGER,
     applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version_before INTEGER NULL DEFAULT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS migrations (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS encryption (
+CREATE TABLE encryption (
   id INTEGER,
   name VARCHAR(100),
   value BLOB NOT NULL,
