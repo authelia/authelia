@@ -9,7 +9,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -608,7 +608,7 @@ type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	BackChannelLogoutSessionSupported bool `json:"backchannel_logout_session_supported"`
 }
 
-// PushedAuthorizationDiscoveryOptions represents teh well known discovery document specific to the
+// PushedAuthorizationDiscoveryOptions represents the well known discovery document specific to the
 // OAuth 2.0 Pushed Authorization Requests (RFC9126) implementation.
 //
 // OAuth 2.0 Pushed Authorization Requests: https://datatracker.ietf.org/doc/html/rfc9126#section-5

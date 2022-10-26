@@ -207,7 +207,7 @@ func (c *Config) GetRedirectSecureChecker(ctx context.Context) func(context.Cont
 }
 
 // GetOmitRedirectScopeParam must be set to true if the scope query param is to be omitted
-// in the authorization's redirect URI
+// in the authorization's redirect URI.
 func (c *Config) GetOmitRedirectScopeParam(ctx context.Context) (omit bool) {
 	return c.OmitRedirectScopeParameter
 }

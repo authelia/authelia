@@ -193,6 +193,10 @@ func runServices(config *schema.Configuration, providers middlewares.Providers, 
 		}
 	}
 
+	if err = providers.StorageProvider.Close(); err != nil {
+		log.WithError(err).Errorf("Error occurred closing the database connection")
+	}
+
 	if err = g.Wait(); err != nil {
 		log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
