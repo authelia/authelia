@@ -340,8 +340,8 @@ github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsI
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b h1:C8S2+VttkHFdOOCXJe+YGfa4vHYwlt4Zx+IVXQ97jYg=
 github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b/go.mod h1:vsD4gTJCa9TptPL8sPkXrLZ+hDuNrZCnj29CQpr4X1E=
-github.com/jackc/pgx/v5 v5.0.3 h1:4flM5ecR/555F0EcnjdaZa6MhBU+nr0QbZIo5vaKjuM=
-github.com/jackc/pgx/v5 v5.0.3/go.mod h1:JBbvW3Hdw77jKl9uJrEDATUZIFM2VFPzRq4RWIhkF4o=
+github.com/jackc/pgx/v5 v5.0.4 h1:r5O6y84qHX/z/HZV40JBdx2obsHz7/uRj5b+CcYEdeY=
+github.com/jackc/pgx/v5 v5.0.4/go.mod h1:U0ynklHtgg43fue9Ly30w3OCSTDPlXjig9ghrNGaguQ=
 github.com/jandelgado/gcov2lcov v1.0.5 h1:rkBt40h0CVK4oCb8Dps950gvfd1rYvQ8+cWa346lVU0=
 github.com/jandelgado/gcov2lcov v1.0.5/go.mod h1:NnSxK6TMlg1oGDBfGelGbjgorT5/L3cchlbtgFYZSss=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
