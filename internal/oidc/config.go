@@ -396,7 +396,7 @@ func (c *Config) GetSecretsHasher(ctx context.Context) (hasher fosite.Hasher) {
 
 // GetUseLegacyErrorFormat returns whether to use the legacy error format.
 //
-// DEPRECATED: Do not use this flag anymore.
+// Deprecated: Do not use this flag anymore.
 func (c *Config) GetUseLegacyErrorFormat(ctx context.Context) (use bool) {
 	return false
 }
