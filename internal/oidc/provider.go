@@ -148,15 +148,19 @@ func (p *OpenIDConnectProvider) LoadHandlers() {
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
 			c.AuthorizeEndpoint.Append(h)
 		}
+
 		if h, ok := handler.(fosite.TokenEndpointHandler); ok {
 			c.TokenEndpoint.Append(h)
 		}
+
 		if h, ok := handler.(fosite.TokenIntrospector); ok {
 			c.TokenIntrospection.Append(h)
 		}
+
 		if h, ok := handler.(fosite.RevocationHandler); ok {
 			c.Revocation.Append(h)
 		}
+
 		if h, ok := handler.(fosite.PushedAuthorizeEndpointHandler); ok {
 			c.PushedAuthorizeEndpoint.Append(h)
 		}
