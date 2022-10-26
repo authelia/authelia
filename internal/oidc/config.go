@@ -12,6 +12,8 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
+	"github.com/ory/fosite/handler/par"
+	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/fosite/i18n"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
@@ -152,6 +154,127 @@ const (
 	PromptLogin   = "login"
 	PromptConsent = "consent"
 )
+
+func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
+	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
+
+	handlers := []any{
+		&oauth2.AuthorizeExplicitGrantHandler{
+			AccessTokenStrategy:    c.Strategy.Core,
+			RefreshTokenStrategy:   c.Strategy.Core,
+			AuthorizeCodeStrategy:  c.Strategy.Core,
+			CoreStorage:            store,
+			TokenRevocationStorage: store,
+			Config:                 c,
+		},
+		&oauth2.AuthorizeImplicitGrantTypeHandler{
+			AccessTokenStrategy: c.Strategy.Core,
+			AccessTokenStorage:  store,
+			Config:              c,
+		},
+		&oauth2.ClientCredentialsGrantHandler{
+			HandleHelper: &oauth2.HandleHelper{
+				AccessTokenStrategy: c.Strategy.Core,
+				AccessTokenStorage:  store,
+				Config:              c,
+			},
+			Config: c,
+		},
+		&oauth2.RefreshTokenGrantHandler{
+			AccessTokenStrategy:    c.Strategy.Core,
+			RefreshTokenStrategy:   c.Strategy.Core,
+			TokenRevocationStorage: store,
+			Config:                 c,
+		},
+		&openid.OpenIDConnectExplicitHandler{
+			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
+				IDTokenStrategy: c.Strategy.OpenID,
+			},
+			OpenIDConnectRequestValidator: validator,
+			OpenIDConnectRequestStorage:   store,
+			Config:                        c,
+		},
+		&openid.OpenIDConnectImplicitHandler{
+			AuthorizeImplicitGrantTypeHandler: &oauth2.AuthorizeImplicitGrantTypeHandler{
+				AccessTokenStrategy: c.Strategy.Core,
+				AccessTokenStorage:  store,
+				Config:              c,
+			},
+			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
+				IDTokenStrategy: c.Strategy.OpenID,
+			},
+			OpenIDConnectRequestValidator: validator,
+			Config:                        c,
+		},
+		&openid.OpenIDConnectHybridHandler{
+			AuthorizeExplicitGrantHandler: &oauth2.AuthorizeExplicitGrantHandler{
+				AccessTokenStrategy:   c.Strategy.Core,
+				RefreshTokenStrategy:  c.Strategy.Core,
+				AuthorizeCodeStrategy: c.Strategy.Core,
+				CoreStorage:           store,
+				Config:                c,
+			},
+			Config: c,
+			AuthorizeImplicitGrantTypeHandler: &oauth2.AuthorizeImplicitGrantTypeHandler{
+				AccessTokenStrategy: c.Strategy.Core,
+				AccessTokenStorage:  store,
+				Config:              c,
+			},
+			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
+				IDTokenStrategy: c.Strategy.OpenID,
+			},
+			OpenIDConnectRequestValidator: validator,
+			OpenIDConnectRequestStorage:   store,
+		},
+		&openid.OpenIDConnectRefreshHandler{
+			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
+				IDTokenStrategy: c.Strategy.OpenID,
+			},
+			Config: c,
+		},
+		&oauth2.CoreValidator{
+			CoreStrategy: c.Strategy.Core,
+			CoreStorage:  store,
+			Config:       c,
+		},
+		&oauth2.TokenRevocationHandler{
+			AccessTokenStrategy:    c.Strategy.Core,
+			RefreshTokenStrategy:   c.Strategy.Core,
+			TokenRevocationStorage: store,
+		},
+		&pkce.Handler{
+			AuthorizeCodeStrategy: c.Strategy.Core,
+			Storage:               store,
+			Config:                c,
+		},
+		&par.PushedAuthorizeHandler{
+			Storage: store,
+			Config:  c,
+		},
+	}
+
+	x := HandlersConfig{}
+
+	for _, handler := range handlers {
+		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
+			x.AuthorizeEndpoint.Append(h)
+		}
+
+		if h, ok := handler.(fosite.TokenEndpointHandler); ok {
+			x.TokenEndpoint.Append(h)
+		}
+
+		if h, ok := handler.(fosite.TokenIntrospector); ok {
+			x.TokenIntrospection.Append(h)
+		}
+
+		if h, ok := handler.(fosite.RevocationHandler); ok {
+			x.Revocation.Append(h)
+		}
+	}
+
+	c.Handlers = x
+}
 
 // GetAllowedPrompts returns the allowed prompts.
 func (c *Config) GetAllowedPrompts(ctx context.Context) (prompts []string) {

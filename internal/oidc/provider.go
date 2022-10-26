@@ -4,10 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/handler/par"
-	"github.com/ory/fosite/handler/pkce"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -22,7 +19,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 
 	provider = &OpenIDConnectProvider{
 		JSONWriter: herodot.NewJSONWriter(nil),
-		Store:      NewOpenIDConnectStore(config, store),
+		Store:      NewStore(config, store),
 		Config:     NewConfig(config),
 	}
 
@@ -37,136 +34,11 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 		Config: provider.Config,
 	}
 
-	provider.LoadHandlers()
+	provider.Config.LoadHandlers(provider.Store, provider.KeyManager.Strategy())
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Store.clients)
 
 	return provider, nil
-}
-
-func (p *OpenIDConnectProvider) LoadHandlers() {
-	validator := openid.NewOpenIDConnectRequestValidator(p.KeyManager.Strategy(), p.Config)
-
-	handlers := []any{
-		&oauth2.AuthorizeExplicitGrantHandler{
-			AccessTokenStrategy:    p.Strategy.Core,
-			RefreshTokenStrategy:   p.Strategy.Core,
-			AuthorizeCodeStrategy:  p.Strategy.Core,
-			CoreStorage:            p.Store,
-			TokenRevocationStorage: p.Store,
-			Config:                 p.Config,
-		},
-		&oauth2.AuthorizeImplicitGrantTypeHandler{
-			AccessTokenStrategy: p.Strategy.Core,
-			AccessTokenStorage:  p.Store,
-			Config:              p.Config,
-		},
-		&oauth2.ClientCredentialsGrantHandler{
-			HandleHelper: &oauth2.HandleHelper{
-				AccessTokenStrategy: p.Strategy.Core,
-				AccessTokenStorage:  p.Store,
-				Config:              p.Config,
-			},
-			Config: p.Config,
-		},
-		&oauth2.RefreshTokenGrantHandler{
-			AccessTokenStrategy:    p.Strategy.Core,
-			RefreshTokenStrategy:   p.Strategy.Core,
-			TokenRevocationStorage: p.Store,
-			Config:                 p.Config,
-		},
-		&openid.OpenIDConnectExplicitHandler{
-			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
-				IDTokenStrategy: p.Strategy.OpenID,
-			},
-			OpenIDConnectRequestValidator: validator,
-			OpenIDConnectRequestStorage:   p.Store,
-			Config:                        p.Config,
-		},
-		&openid.OpenIDConnectImplicitHandler{
-			AuthorizeImplicitGrantTypeHandler: &oauth2.AuthorizeImplicitGrantTypeHandler{
-				AccessTokenStrategy: p.Strategy.Core,
-				AccessTokenStorage:  p.Store,
-				Config:              p.Config,
-			},
-			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
-				IDTokenStrategy: p.Strategy.OpenID,
-			},
-			OpenIDConnectRequestValidator: validator,
-			Config:                        p.Config,
-		},
-		&openid.OpenIDConnectHybridHandler{
-			AuthorizeExplicitGrantHandler: &oauth2.AuthorizeExplicitGrantHandler{
-				AccessTokenStrategy:   p.Strategy.Core,
-				RefreshTokenStrategy:  p.Strategy.Core,
-				AuthorizeCodeStrategy: p.Strategy.Core,
-				CoreStorage:           p.Store,
-				Config:                p.Config,
-			},
-			Config: p.Config,
-			AuthorizeImplicitGrantTypeHandler: &oauth2.AuthorizeImplicitGrantTypeHandler{
-				AccessTokenStrategy: p.Strategy.Core,
-				AccessTokenStorage:  p.Store,
-				Config:              p.Config,
-			},
-			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
-				IDTokenStrategy: p.Strategy.OpenID,
-			},
-			OpenIDConnectRequestValidator: validator,
-			OpenIDConnectRequestStorage:   p.Store,
-		},
-		&openid.OpenIDConnectRefreshHandler{
-			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
-				IDTokenStrategy: p.Strategy.OpenID,
-			},
-			Config: p.Config,
-		},
-		&oauth2.CoreValidator{
-			CoreStrategy: p.Strategy.Core,
-			CoreStorage:  p.Store,
-			Config:       p.Config,
-		},
-		&oauth2.TokenRevocationHandler{
-			AccessTokenStrategy:    p.Strategy.Core,
-			RefreshTokenStrategy:   p.Strategy.Core,
-			TokenRevocationStorage: p.Store,
-		},
-		&pkce.Handler{
-			AuthorizeCodeStrategy: p.Strategy.Core,
-			Storage:               p.Store,
-			Config:                p.Config,
-		},
-		&par.PushedAuthorizeHandler{
-			Storage: p.Store,
-			Config:  p.Config,
-		},
-	}
-
-	c := HandlersConfig{}
-
-	for _, handler := range handlers {
-		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
-			c.AuthorizeEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(fosite.TokenEndpointHandler); ok {
-			c.TokenEndpoint.Append(h)
-		}
-
-		if h, ok := handler.(fosite.TokenIntrospector); ok {
-			c.TokenIntrospection.Append(h)
-		}
-
-		if h, ok := handler.(fosite.RevocationHandler); ok {
-			c.Revocation.Append(h)
-		}
-
-		if h, ok := handler.(fosite.PushedAuthorizeEndpointHandler); ok {
-			c.PushedAuthorizeEndpoint.Append(h)
-		}
-	}
-
-	p.Config.Handlers = c
 }
 
 // GetOAuth2WellKnownConfiguration returns the discovery document for the OAuth Configuration.
