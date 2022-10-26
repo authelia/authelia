@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
@@ -279,7 +279,7 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 // GetAllowedPrompts returns the allowed prompts.
 func (c *Config) GetAllowedPrompts(ctx context.Context) (prompts []string) {
 	if len(c.AllowedPrompts) == 0 {
-		return []string{PromptNone, PromptLogin, PromptConsent}
+		c.AllowedPrompts = []string{PromptNone, PromptLogin, PromptConsent}
 	}
 
 	return c.AllowedPrompts
@@ -368,7 +368,7 @@ func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable 
 // GetAuthorizeCodeLifespan returns the authorization code lifespan.
 func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.Lifespans.AuthorizeCode <= 0 {
-		return lifespanAuthorizeCodeDefault
+		c.Lifespans.AccessToken = lifespanAuthorizeCodeDefault
 	}
 
 	return c.Lifespans.AuthorizeCode
@@ -377,7 +377,7 @@ func (c *Config) GetAuthorizeCodeLifespan(ctx context.Context) (lifespan time.Du
 // GetRefreshTokenLifespan returns the refresh token lifespan.
 func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.Lifespans.RefreshToken <= 0 {
-		return lifespanRefreshTokenDefault
+		c.Lifespans.AccessToken = lifespanRefreshTokenDefault
 	}
 
 	return c.Lifespans.RefreshToken
@@ -386,7 +386,7 @@ func (c *Config) GetRefreshTokenLifespan(ctx context.Context) (lifespan time.Dur
 // GetIDTokenLifespan returns the ID token lifespan.
 func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.Lifespans.IDToken <= 0 {
-		return lifespanTokenDefault
+		c.Lifespans.AccessToken = lifespanTokenDefault
 	}
 
 	return c.Lifespans.IDToken
@@ -395,7 +395,7 @@ func (c *Config) GetIDTokenLifespan(ctx context.Context) (lifespan time.Duration
 // GetAccessTokenLifespan returns the access token lifespan.
 func (c *Config) GetAccessTokenLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.Lifespans.AccessToken <= 0 {
-		return lifespanTokenDefault
+		c.Lifespans.AccessToken = lifespanTokenDefault
 	}
 
 	return c.Lifespans.AccessToken
@@ -423,7 +423,7 @@ func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte)
 // GetHTTPClient returns the HTTP client provider.
 func (c *Config) GetHTTPClient(ctx context.Context) (client *retryablehttp.Client) {
 	if c.HTTPClient == nil {
-		return retryablehttp.NewClient()
+		c.HTTPClient = retryablehttp.NewClient()
 	}
 
 	return c.HTTPClient
@@ -432,7 +432,7 @@ func (c *Config) GetHTTPClient(ctx context.Context) (client *retryablehttp.Clien
 // GetRefreshTokenScopes returns the refresh token scopes.
 func (c *Config) GetRefreshTokenScopes(ctx context.Context) (scopes []string) {
 	if c.RefreshTokenScopes == nil {
-		return []string{ScopeOffline, ScopeOfflineAccess}
+		c.RefreshTokenScopes = []string{ScopeOffline, ScopeOfflineAccess}
 	}
 
 	return c.RefreshTokenScopes
@@ -574,7 +574,7 @@ func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.
 func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespan time.Duration) {
 	if c.PAR.ContextLifespan == 0 {
-		return lifespanPARContextDefault
+		c.PAR.ContextLifespan = lifespanPARContextDefault
 	}
 
 	return c.PAR.ContextLifespan
