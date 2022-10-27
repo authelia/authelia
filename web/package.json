@@ -150,7 +150,7 @@
     "@types/jest": "29.2.0",
     "@types/node": "18.11.7",
     "@types/qrcode.react": "1.0.2",
-    "@types/react": "18.0.22",
+    "@types/react": "18.0.23",
     "@types/react-dom": "18.0.7",
     "@types/zxcvbn": "4.4.1",
     "@typescript-eslint/eslint-plugin": "5.41.0",
