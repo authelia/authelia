@@ -146,14 +146,15 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 These endpoints implement OpenID Connect elements.
 
-|      Endpoint       |                      Path                       |  Discovery Attribute   |
-|:-------------------:|:-----------------------------------------------:|:----------------------:|
-| [JSON Web Key Sets] |       https://auth.example.com/jwks.json        |        jwks_uri        |
-|   [Authorization]   | https://auth.example.com/api/oidc/authorization | authorization_endpoint |
-|       [Token]       |     https://auth.example.com/api/oidc/token     |     token_endpoint     |
-|     [UserInfo]      |   https://auth.example.com/api/oidc/userinfo    |   userinfo_endpoint    |
-|   [Introspection]   | https://auth.example.com/api/oidc/introspection | introspection_endpoint |
-|    [Revocation]     |  https://auth.example.com/api/oidc/revocation   |  revocation_endpoint   |
+|            Endpoint             |                      Path                       |          Discovery Attribute          |
+|:-------------------------------:|:-----------------------------------------------:|:-------------------------------------:|
+|       [JSON Web Key Set]        |       https://auth.example.com/jwks.json        |               jwks_uri                |
+|         [Authorization]         | https://auth.example.com/api/oidc/authorization |        authorization_endpoint         |
+| [Pushed Authorization Requests] |      https://auth.example.com/api/oidc/par      | pushed_authorization_request_endpoint |
+|             [Token]             |     https://auth.example.com/api/oidc/token     |            token_endpoint             |
+|           [UserInfo]            |   https://auth.example.com/api/oidc/userinfo    |           userinfo_endpoint           |
+|         [Introspection]         | https://auth.example.com/api/oidc/introspection |        introspection_endpoint         |
+|          [Revocation]           |  https://auth.example.com/api/oidc/revocation   |          revocation_endpoint          |
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
@@ -167,9 +168,10 @@ These endpoints implement OpenID Connect elements.
 [OpenID Connect Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OAuth 2.0 Authorization Server Metadata]: https://www.rfc-editor.org/rfc/rfc8414.html
 
-[JSON Web Key Sets]: https://www.rfc-editor.org/rfc/rfc7517.html#section-5
+[JSON Web Key Set]: https://www.rfc-editor.org/rfc/rfc7517.html#section-5
 
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
+[Pushed Authorization Requests]: https://www.rfc-editor.org/rfc/rfc9126.html
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [Introspection]: https://www.rfc-editor.org/rfc/rfc7662.html

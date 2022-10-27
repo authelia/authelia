@@ -93,7 +93,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	assert.Equal(t, client.ResponseTypes, c1.ResponseTypes)
 	assert.Equal(t, client.RedirectURIs, c1.RedirectURIs)
 	assert.Equal(t, client.Policy, authorization.OneFactor)
-	assert.Equal(t, client.Secret.Encode(), "$plaintext$mysecret")
+	assert.Equal(t, string(client.Secret), "$plaintext$mysecret")
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {

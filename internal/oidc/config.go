@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	retryablehttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
@@ -253,27 +253,31 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 		},
 	}
 
-	x := HandlersConfig{}
+	config := HandlersConfig{}
 
 	for _, handler := range handlers {
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
-			x.AuthorizeEndpoint.Append(h)
+			config.AuthorizeEndpoint.Append(h)
 		}
 
 		if h, ok := handler.(fosite.TokenEndpointHandler); ok {
-			x.TokenEndpoint.Append(h)
+			config.TokenEndpoint.Append(h)
 		}
 
 		if h, ok := handler.(fosite.TokenIntrospector); ok {
-			x.TokenIntrospection.Append(h)
+			config.TokenIntrospection.Append(h)
 		}
 
 		if h, ok := handler.(fosite.RevocationHandler); ok {
-			x.Revocation.Append(h)
+			config.Revocation.Append(h)
+		}
+
+		if h, ok := handler.(fosite.PushedAuthorizeEndpointHandler); ok {
+			config.PushedAuthorizeEndpoint.Append(h)
 		}
 	}
 
-	c.Handlers = x
+	c.Handlers = config
 }
 
 // GetAllowedPrompts returns the allowed prompts.

@@ -13,14 +13,15 @@ const (
 	tableUserPreferences      = "user_preferences"
 	tableWebauthnDevices      = "webauthn_devices"
 
+	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
+	tableOAuth2AccessTokenSession      = "oauth2_access_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2AuthorizeCodeSession    = "oauth2_authorization_code_session"
-	tableOAuth2AccessTokenSession      = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2RefreshTokenSession     = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2PKCERequestSession      = "oauth2_pkce_request_session"
 	tableOAuth2OpenIDConnectSession    = "oauth2_openid_connect_session"
-	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
+	tableOAuth2PARContext              = "oauth2_par_context"
+	tableOAuth2PKCERequestSession      = "oauth2_pkce_request_session"
+	tableOAuth2RefreshTokenSession     = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
@@ -33,26 +34,29 @@ type OAuth2SessionType int
 
 // Representation of specific OAuth 2.0 session types.
 const (
-	OAuth2SessionTypeAuthorizeCode OAuth2SessionType = iota
-	OAuth2SessionTypeAccessToken
-	OAuth2SessionTypeRefreshToken
-	OAuth2SessionTypePKCEChallenge
+	OAuth2SessionTypeAccessToken OAuth2SessionType = iota
+	OAuth2SessionTypeAuthorizeCode
 	OAuth2SessionTypeOpenIDConnect
+	OAuth2SessionTypePAR
+	OAuth2SessionTypePKCEChallenge
+	OAuth2SessionTypeRefreshToken
 )
 
 // String returns a string representation of this OAuth2SessionType.
 func (s OAuth2SessionType) String() string {
 	switch s {
-	case OAuth2SessionTypeAuthorizeCode:
-		return "authorization code"
 	case OAuth2SessionTypeAccessToken:
 		return "access token"
-	case OAuth2SessionTypeRefreshToken:
-		return "refresh token"
-	case OAuth2SessionTypePKCEChallenge:
-		return "pkce challenge"
+	case OAuth2SessionTypeAuthorizeCode:
+		return "authorization code"
 	case OAuth2SessionTypeOpenIDConnect:
 		return "openid connect"
+	case OAuth2SessionTypePAR:
+		return "pushed authorization request context"
+	case OAuth2SessionTypePKCEChallenge:
+		return "pkce challenge"
+	case OAuth2SessionTypeRefreshToken:
+		return "refresh token"
 	default:
 		return "invalid"
 	}
@@ -112,5 +116,5 @@ const (
 )
 
 var (
-	reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
+	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Provider>(all|sqlite|postgres|mysql))\.(?P<Direction>(up|down))\.sql$`)
 )

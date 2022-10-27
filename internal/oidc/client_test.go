@@ -141,9 +141,9 @@ func TestClient_Hashing(t *testing.T) {
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = MustDecodeSecret("$plaintext$a_bad_secret")
+	c.Secret = []byte("$plaintext$a_bad_secret")
 
-	assert.True(t, c.Secret.MatchBytes([]byte("a_bad_secret")))
+	assert.True(t, MustDecodeSecret(string(c.Secret)).MatchBytes([]byte("a_bad_secret")))
 }
 
 func TestClient_GetHashedSecret(t *testing.T) {
@@ -152,7 +152,7 @@ func TestClient_GetHashedSecret(t *testing.T) {
 	hashedSecret := c.GetHashedSecret()
 	assert.Equal(t, []byte(nil), hashedSecret)
 
-	c.Secret = MustDecodeSecret("$plaintext$a_bad_secret")
+	c.Secret = []byte("$plaintext$a_bad_secret")
 
 	hashedSecret = c.GetHashedSecret()
 	assert.Equal(t, []byte("$plaintext$a_bad_secret"), hashedSecret)

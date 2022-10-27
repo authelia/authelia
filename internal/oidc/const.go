@@ -98,6 +98,8 @@ const (
 	EndpointUserinfo      = "userinfo"
 	EndpointIntrospection = "introspection"
 	EndpointRevocation    = "revocation"
+
+	EndpointPushedAuthorizationRequest = "par"
 )
 
 // JWT Headers.
@@ -120,6 +122,8 @@ const (
 	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
 	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
 	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
+
+	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

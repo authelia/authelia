@@ -83,13 +83,13 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 
-	oidcSession := oidc.NewSessionWithAuthorizeRequest(issuer, ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
+	session := oidc.NewSessionWithAuthorizeRequest(issuer, ctx.Providers.OpenIDConnect.KeyManager.GetActiveKeyID(),
 		userSession.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extraClaims, authTime, consent, requester)
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
-		requester.GetID(), oidcSession.ClientID, oidcSession.Subject, oidcSession.Username, oidcSession.Claims)
+		requester.GetID(), session.ClientID, session.Subject, session.Username, session.Claims)
 
-	if responder, err = ctx.Providers.OpenIDConnect.NewAuthorizeResponse(ctx, requester, oidcSession); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewAuthorizeResponse(ctx, requester, session); err != nil {
 		rfc := fosite.ErrorToRFC6749Error(err)
 
 		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
@@ -108,4 +108,37 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
+}
+
+// OpenIDConnectPushedAuthorizationRequest handles POST requests to the OAuth 2.0 Pushed Authorization Requests endpoint.
+//
+// RFC9126 https://www.rfc-editor.org/rfc/rfc9126.html
+func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+	var (
+		requester fosite.AuthorizeRequester
+		responder fosite.PushedAuthorizeResponder
+		err       error
+	)
+
+	if requester, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeRequest(ctx, r); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSession()); err != nil {
+		rfc := fosite.ErrorToRFC6749Error(err)
+
+		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
+
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	ctx.Providers.OpenIDConnect.WritePushedAuthorizeResponse(ctx, rw, requester, responder)
 }
