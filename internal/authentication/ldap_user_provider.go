@@ -126,20 +126,23 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}
 
 	var (
-		filter  string
 		request *ldap.SearchRequest
 		result  *ldap.SearchResult
 	)
 
-	if filter, err = p.resolveGroupsFilter(username, profile); err != nil {
-		return nil, fmt.Errorf("unable to create group filter for user '%s'. Cause: %w", username, err)
-	}
-
 	// Search for the users groups.
 	request = ldap.NewSearchRequest(
 		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, filter, p.groupsAttributes, nil,
+		0, 0, false, p.resolveGroupsFilter(username, profile), p.groupsAttributes, nil,
 	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing group search")
 
 	if result, err = p.search(client, request); err != nil {
 		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
@@ -318,13 +321,19 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 }
 
 func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (profile *ldapUserProfile, err error) {
-	userFilter := p.resolveUsersFilter(username)
-
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, userFilter, p.usersAttributes, nil,
+		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
 	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing user search")
 
 	var result *ldap.SearchResult
 
@@ -398,7 +407,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
 	return filter
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
+func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string) {
 	filter = p.config.GroupsFilter
 
 	if p.groupsFilterReplacementInput {
@@ -418,7 +427,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUse
 
 	p.log.Tracef("Computed groups filter is %s", filter)
 
-	return filter, nil
+	return filter
 }
 
 func (p *LDAPUserProvider) modify(client LDAPClient, modifyRequest *ldap.ModifyRequest) (err error) {
