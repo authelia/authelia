@@ -42,7 +42,7 @@ specifiers:
   husky: 8.0.1
   i18next: 22.0.3
   i18next-browser-languagedetector: 7.0.0
-  i18next-http-backend: 1.4.5
+  i18next-http-backend: 2.0.0
   jest: 29.2.2
   jest-environment-jsdom: 29.2.2
   jest-transform-stub: 2.0.0
@@ -81,7 +81,7 @@ dependencies:
   classnames: 2.3.2
   i18next: 22.0.3
   i18next-browser-languagedetector: 7.0.0
-  i18next-http-backend: 1.4.5
+  i18next-http-backend: 2.0.0
   qrcode.react: 3.1.0_react@18.2.0
   query-string: 7.1.1
   react: 18.2.0
@@ -6354,8 +6354,8 @@ packages:
       '@babel/runtime': 7.19.4
     dev: false
 
-  /i18next-http-backend/1.4.5:
-    resolution: {integrity: sha512-tLuHWuLWl6CmS07o+UB6EcQCaUjrZ1yhdseIN7sfq0u7phsMePJ8pqlGhIAdRDPF/q7ooyo5MID5DRFBCH+x5w==}
+  /i18next-http-backend/2.0.0:
+    resolution: {integrity: sha512-6aFT5LcDOSxFyaoezruIxZDzpp6nu92j1iZc444nrz/OOaF7rsxQFNi1es19la53MQQFzG7uD2Koxi7Jav8khg==}
     dependencies:
       cross-fetch: 3.1.5
     transitivePeerDependencies:
