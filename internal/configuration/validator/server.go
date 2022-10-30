@@ -89,4 +89,36 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 	if config.Server.Timeouts.Idle <= 0 {
 		config.Server.Timeouts.Idle = schema.DefaultServerConfiguration.Timeouts.Idle
 	}
+
+	ValidateServerEndpoints(config, validator)
+}
+
+// ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
+func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
+	// TODO: log pprof/expvars.
+	if len(config.Server.Endpoints.Authz) == 0 {
+		config.Server.Endpoints.Authz = schema.DefaultServerConfiguration.Endpoints.Authz
+
+		return
+	}
+
+	for name, entrypoint := range config.Server.Endpoints.Authz {
+		if !utils.IsStringInSlice(entrypoint.Implementation, validAuthzImplementations) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strings.Join(validAuthzImplementations, "', '"), entrypoint.Implementation))
+		}
+
+		var strategies []string
+
+		for _, strategy := range entrypoint.AuthnStrategies {
+			if utils.IsStringInSlice(strategy.Name, strategies) {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyDuplicate, name, strategy.Name))
+			}
+
+			strategies = append(strategies, strategy.Name)
+
+			if !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies) {
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strings.Join(validAuthzAuthnStrategies, "', '"), strategy.Name))
+			}
+		}
+	}
 }

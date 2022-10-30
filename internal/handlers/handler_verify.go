@@ -19,18 +19,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func isURLUnderProtectedDomain(url *url.URL, domain string) bool {
-	return strings.HasSuffix(url.Hostname(), domain)
-}
-
-func isSchemeHTTPS(url *url.URL) bool {
-	return url.Scheme == "https"
-}
-
-func isSchemeWSS(url *url.URL) bool {
-	return url.Scheme == "wss"
-}
-
 // parseBasicAuth parses an HTTP Basic Authentication string.
 // "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==" returns ("Aladdin", "open sesame", true).
 func parseBasicAuth(header []byte, auth string) (username, password string, err error) {
@@ -55,7 +43,7 @@ func parseBasicAuth(header []byte, auth string) (username, password string, err 
 
 // isTargetURLAuthorized check whether the given user is authorized to access the resource.
 func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.URL,
-	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) authorizationMatching {
+	username string, userGroups []string, clientIP net.IP, method []byte, authLevel authentication.Level) AuthzResult {
 	hasSubject, level := authorizer.GetRequiredLevel(
 		authorization.Subject{
 			Username: username,
@@ -66,20 +54,18 @@ func isTargetURLAuthorized(authorizer *authorization.Authorizer, targetURL url.U
 
 	switch {
 	case level == authorization.Bypass:
-		return Authorized
+		return AuthzResultAuthorized
 	case level == authorization.Denied && (username != "" || !hasSubject):
-		// If the user is not anonymous, it means that we went through
-		// all the rules related to that user and knowing who he is we can
-		// deduce the access is forbidden
-		// For anonymous users though, we check that the matched rule has no subject
-		// if matched rule has not subject then this rule applies to all users including anonymous.
-		return Forbidden
+		// If the user is not anonymous, it means that we went through all the rules related to that user and knowing
+		// who they are we can deduce the access is forbidden.
+		// For anonymous users though we can only accurately deduce this if the rule doesn't contain subject criteria.
+		return AuthzResultForbidden
 	case level == authorization.OneFactor && authLevel >= authentication.OneFactor,
 		level == authorization.TwoFactor && authLevel >= authentication.TwoFactor:
-		return Authorized
+		return AuthzResultAuthorized
 	}
 
-	return NotAuthorized
+	return AuthzResultUnauthorized
 }
 
 // verifyBasicAuth verify that the provided username and password are correct and
@@ -179,34 +165,24 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
 	var (
-		statusCode            int
-		friendlyUsername      string
-		friendlyRequestMethod string
+		statusCode int
+		fUsername  string
+		fMethod    string
 	)
 
-	switch username {
-	case "":
-		friendlyUsername = "<anonymous>"
-	default:
-		friendlyUsername = username
-	}
+	fUsername = friendlyUsername(username)
 
 	if isBasicAuth {
-		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), friendlyUsername)
+		ctx.Logger.Infof("Access to %s is not authorized to user %s, sending 401 response with basic auth header", targetURL.String(), fUsername)
 		ctx.ReplyUnauthorized()
-		ctx.Response.Header.Add("WWW-Authenticate", "Basic realm=\"Authentication required\"")
+		ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
 
 		return
 	}
 
 	rm := string(method)
 
-	switch rm {
-	case "":
-		friendlyRequestMethod = "unknown"
-	default:
-		friendlyRequestMethod = rm
-	}
+	fMethod = friendlyMethod(rm)
 
 	redirectionURL := ctxGetPortalURL(ctx)
 
@@ -243,10 +219,10 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 	}
 
 	if redirectionURL != nil {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), fMethod, fUsername, statusCode, redirectionURL)
 		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
+		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), fMethod, fUsername, statusCode)
 		ctx.ReplyUnauthorized()
 	}
 }
@@ -266,54 +242,6 @@ func updateActivityTimestamp(ctx *middlewares.AutheliaCtx, isBasicAuth bool) err
 	userSession.LastActivity = ctx.Clock.Now().Unix()
 
 	return ctx.SaveSession(userSession)
-}
-
-// generateVerifySessionHasUpToDateProfileTraceLogs is used to generate trace logs only when trace logging is enabled.
-// The information calculated in this function is completely useless other than trace for now.
-func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
-	details *authentication.UserDetails) {
-	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
-	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
-	nameDelta := userSession.DisplayName != details.DisplayName
-
-	// Check Groups.
-	var groupsDelta []string
-	if len(groupsAdded) != 0 {
-		groupsDelta = append(groupsDelta, fmt.Sprintf("added: %s.", strings.Join(groupsAdded, ", ")))
-	}
-
-	if len(groupsRemoved) != 0 {
-		groupsDelta = append(groupsDelta, fmt.Sprintf("removed: %s.", strings.Join(groupsRemoved, ", ")))
-	}
-
-	if len(groupsDelta) != 0 {
-		ctx.Logger.Tracef("Updated groups detected for %s. %s", userSession.Username, strings.Join(groupsDelta, " "))
-	} else {
-		ctx.Logger.Tracef("No updated groups detected for %s", userSession.Username)
-	}
-
-	// Check Emails.
-	var emailsDelta []string
-	if len(emailsAdded) != 0 {
-		emailsDelta = append(emailsDelta, fmt.Sprintf("added: %s.", strings.Join(emailsAdded, ", ")))
-	}
-
-	if len(emailsRemoved) != 0 {
-		emailsDelta = append(emailsDelta, fmt.Sprintf("removed: %s.", strings.Join(emailsRemoved, ", ")))
-	}
-
-	if len(emailsDelta) != 0 {
-		ctx.Logger.Tracef("Updated emails detected for %s. %s", userSession.Username, strings.Join(emailsDelta, " "))
-	} else {
-		ctx.Logger.Tracef("No updated emails detected for %s", userSession.Username)
-	}
-
-	// Check Name.
-	if nameDelta {
-		ctx.Logger.Tracef("Updated display name detected for %s. Added: %s. Removed: %s.", userSession.Username, details.DisplayName, userSession.DisplayName)
-	} else {
-		ctx.Logger.Tracef("No updated display name detected for %s", userSession.Username)
-	}
 }
 
 func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession,
@@ -361,7 +289,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 		userSession.Groups = details.Groups
 		userSession.DisplayName = details.DisplayName
 
-		// Only update TTL if the user has a interval set.
+		// Only update TTL if the user has an interval set.
 		if refreshProfileInterval != schema.RefreshIntervalAlways {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(refreshProfileInterval)
 		}
@@ -371,26 +299,6 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 
 	// Return nil if disabled or if no changes and refresh interval set to always.
 	return nil
-}
-
-func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
-	if cfg.LDAP != nil {
-		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
-			refresh = false
-			refreshInterval = 0
-		} else {
-			refresh = true
-
-			if cfg.RefreshInterval != schema.ProfileRefreshAlways {
-				// Skip Error Check since validator checks it.
-				refreshInterval, _ = utils.ParseDurationString(cfg.RefreshInterval)
-			} else {
-				refreshInterval = schema.RefreshIntervalAlways
-			}
-		}
-	}
-
-	return refresh, refreshInterval
 }
 
 func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile bool, refreshProfileInterval time.Duration) (isBasicAuth bool, username, name string, groups, emails []string, authLevel authentication.Level, err error) {
@@ -438,7 +346,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Tracef("Headers=%s", ctx.Request.Header.String())
-		targetURL, err := ctx.GetOriginalURL()
+		targetURL, err := ctx.GetXOriginalURLOrXForwardedURL()
 
 		if err != nil {
 			ctx.Logger.Errorf("Unable to parse target URL: %s", err)
@@ -447,7 +355,7 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			return
 		}
 
-		if !isSchemeHTTPS(targetURL) && !isSchemeWSS(targetURL) {
+		if !utils.IsURISecure(targetURL) {
 			ctx.Logger.Errorf("Scheme of target URL %s must be secure since cookies are "+
 				"only transported over a secure connection for security reasons", targetURL.String())
 			ctx.ReplyUnauthorized()
@@ -483,12 +391,12 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			groups, ctx.RemoteIP(), method, authLevel)
 
 		switch authorized {
-		case Forbidden:
+		case AuthzResultForbidden:
 			ctx.Logger.Infof("Access to %s is forbidden to user %s", targetURL.String(), username)
 			ctx.ReplyForbidden()
-		case NotAuthorized:
+		case AuthzResultUnauthorized:
 			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
-		case Authorized:
+		case AuthzResultAuthorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
 		}
 

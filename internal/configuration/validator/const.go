@@ -275,6 +275,10 @@ const (
 
 	errFmtServerPathNoForwardSlashes = "server: option 'path' must not contain any forward slashes"
 	errFmtServerPathAlphaNum         = "server: option 'path' must only contain alpha numeric characters"
+
+	errFmtServerEndpointsAuthzImplementation    = "server: endpoints: authz: %s: option 'implementation' must be one of '%s' but is configured as '%s'"
+	errFmtServerEndpointsAuthzStrategy          = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of '%s' but is configured as '%s'"
+	errFmtServerEndpointsAuthzStrategyDuplicate = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
 )
 
 const (
@@ -329,7 +333,11 @@ var validThemeNames = []string{"light", "dark", "grey", "auto"}
 
 var validSessionSameSiteValues = []string{"none", "lax", "strict"}
 
-var validLoLevels = []string{"trace", "debug", "info", "warn", "error"}
+var validLogLevels = []string{"trace", "debug", "info", "warn", "error"}
+
+var validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", "ExtAuthz", "Legacy"}
+
+var validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
 
 var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
 

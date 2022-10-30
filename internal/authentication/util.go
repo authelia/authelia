@@ -1,15 +1,15 @@
 package authentication
 
-// LevelToString returns a string representation of an authentication.Level.
-func LevelToString(level Level) string {
-	switch level {
+// String representation of a Level.
+func (l Level) String() string {
+	switch l {
 	case NotAuthenticated:
 		return "not_authenticated"
 	case OneFactor:
 		return "one_factor"
 	case TwoFactor:
 		return "two_factor"
+	default:
+		return "invalid"
 	}
-
-	return "invalid"
 }

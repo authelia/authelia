@@ -16,7 +16,7 @@ func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
 	}
 }
 
-// Call call to the DuoAPI.
+// Call performs a request to the DuoAPI.
 func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method string, path string) (*Response, error) {
 	var response Response
 
@@ -42,7 +42,7 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, values url.Values, method s
 	return &response, nil
 }
 
-// PreAuthCall call to the DuoAPI.
+// PreAuthCall performs a preauth request to the DuoAPI.
 func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*PreAuthResponse, error) {
 	var preAuthResponse PreAuthResponse
 
@@ -59,7 +59,7 @@ func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (
 	return &preAuthResponse, nil
 }
 
-// AuthCall call to the DuoAPI.
+// AuthCall performs an auth request to the DuoAPI.
 func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, values url.Values) (*AuthResponse, error) {
 	var authResponse AuthResponse
 

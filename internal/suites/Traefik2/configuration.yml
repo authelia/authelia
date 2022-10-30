@@ -11,6 +11,11 @@ server:
   tls:
     certificate: /config/ssl/cert.pem
     key: /config/ssl/key.pem
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+        authn_strategies: []
 
 log:
   level: debug

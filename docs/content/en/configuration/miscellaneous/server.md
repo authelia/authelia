@@ -22,8 +22,6 @@ server:
   host: 0.0.0.0
   port: 9091
   path: ""
-  enable_pprof: false
-  enable_expvars: false
   disable_healthcheck: false
   tls:
     key: ""
@@ -38,6 +36,22 @@ server:
     read: 6s
     write: 6s
     idle: 30s
+  endpoints:
+    enable_pprof: false
+    enable_expvars: false
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+        authn_strategies: []
+      ext-authz:
+        implementation: ExtAuthz
+        authn_strategies: []
+      auth-request:
+        implementation: AuthRequest
+        authn_strategies: []
+      legacy:
+        implementation: Legacy
+        authn_strategies: []
 ```
 
 ## Options
@@ -99,18 +113,6 @@ Modifying this setting will allow you to override and serve specific assets for 
 assets that can be overridden must be placed in the `asset_path`. The structure of this directory and the assets which
 can be overriden is documented in the
 [Sever Asset Overrides Reference Guide](../../reference/guides/server-asset-overrides.md).
-
-### enable_pprof
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Enables the go pprof endpoints.
-
-### enable_expvars
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Enables the go expvars endpoints.
 
 ### disable_healthcheck
 
@@ -176,6 +178,32 @@ information.
 
 Configures the server timeouts. See the [Server Timeouts](../prologue/common.md#server-timeouts) documentation for more
 information.
+
+### endpoints
+
+#### enable_pprof
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.*
+
+Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
+
+#### enable_expvars
+
+*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.*
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
+
+#### authz
+
+This is an *__advanced__* option allowing configuration of the authorization endpoints and has its own section.
+Generally this does not need to be configured for most use cases. See the
+[authz configuration](./server-endpoints-authz.md) for more information.
 
 ## Additional Notes
 

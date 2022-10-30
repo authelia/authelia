@@ -152,7 +152,7 @@ services:
       - 'traefik.http.routers.authelia.rule=Host(`auth.example.com`)'
       - 'traefik.http.routers.authelia.entryPoints=https'
       - 'traefik.http.routers.authelia.tls=true'
-      - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.example.com%2F'
+      - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
       - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
       - 'traefik.http.middlewares.authelia-basic.forwardAuth.address=http://authelia:9091/api/verify?auth=basic'
@@ -364,7 +364,7 @@ http:
   middlewares:
     authelia:
       forwardAuth:
-        address: https://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.example.com%2F
+        address: https://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F
         trustForwardHeader: true
         authResponseHeaders:
           - "Remote-User"
@@ -491,7 +491,7 @@ This can be avoided a couple different ways:
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
 ```yaml
-- 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.example.com%2F'
+- 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
 - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
 - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
 ```

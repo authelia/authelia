@@ -18,9 +18,22 @@ const (
 )
 
 var (
-	headerAuthorization      = []byte(fasthttp.HeaderAuthorization)
-	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
+	headerAuthorization   = []byte(fasthttp.HeaderAuthorization)
+	headerWWWAuthenticate = []byte(fasthttp.HeaderWWWAuthenticate)
 
+	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
+	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
+)
+
+const (
+	headerAuthorizationSchemeBasic = "Basic"
+)
+
+var (
+	headerValueAuthenticateBasic = []byte(`Basic realm="Authorization Required"`)
+)
+
+var (
 	headerSessionUsername = []byte("Session-Username")
 	headerRemoteUser      = []byte("Remote-User")
 	headerRemoteGroups    = []byte("Remote-Groups")
@@ -30,7 +43,9 @@ var (
 
 const (
 	queryArgRD         = "rd"
+	queryArgRM         = "rm"
 	queryArgID         = "id"
+	queryArgAuth       = "auth"
 	queryArgConsentID  = "consent_id"
 	queryArgWorkflow   = "workflow"
 	queryArgWorkflowID = "workflow_id"
@@ -38,16 +53,14 @@ const (
 
 var (
 	qryArgID        = []byte(queryArgID)
+	qryArgRD        = []byte(queryArgRD)
+	qryArgAuth      = []byte(queryArgAuth)
 	qryArgConsentID = []byte(queryArgConsentID)
 )
 
-const (
-	// Forbidden means the user is forbidden the access to a resource.
-	Forbidden authorizationMatching = iota
-	// NotAuthorized means the user can access the resource with more permissions.
-	NotAuthorized authorizationMatching = iota
-	// Authorized means the user is authorized given her current permissions.
-	Authorized authorizationMatching = iota
+var (
+	qryValueBasic = []byte("basic")
+	qryValueEmpty = []byte("")
 )
 
 const (

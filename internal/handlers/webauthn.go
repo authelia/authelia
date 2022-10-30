@@ -34,7 +34,7 @@ func newWebauthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error)
 		u *url.URL
 	)
 
-	if u, err = ctx.GetOriginalURL(); err != nil {
+	if u, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
 		return nil, err
 	}
 

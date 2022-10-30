@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"strconv"
@@ -111,7 +112,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	middleware := middlewares.NewBridgeBuilder(config, providers).
+	bridge := middlewares.NewBridgeBuilder(config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
@@ -122,7 +123,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r := router.New()
 
 	// Static Assets.
-	r.GET("/", middleware(serveIndexHandler))
+	r.GET("/", bridge(serveIndexHandler))
 
 	for _, f := range filesRoot {
 		r.GET("/"+f, handlerPublicHTML)
@@ -137,9 +138,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
 
 	// Swagger.
-	r.GET("/api/", middleware(serveSwaggerHandler))
+	r.GET("/api/", bridge(serveSwaggerHandler))
 	r.OPTIONS("/api/", policyCORSPublicGET.HandleOPTIONS)
-	r.GET("/api/"+fileOpenAPI, policyCORSPublicGET.Middleware(middleware(serveSwaggerAPIHandler)))
+	r.GET("/api/"+fileOpenAPI, policyCORSPublicGET.Middleware(bridge(serveSwaggerAPIHandler)))
 	r.OPTIONS("/api/"+fileOpenAPI, policyCORSPublicGET.HandleOPTIONS)
 
 	for _, file := range filesSwagger {
@@ -164,11 +165,29 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	for name, endpoint := range config.Server.Endpoints.Authz {
+		path := fmt.Sprintf("/api/authz/%s", name)
 
-	r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+		logging.Logger().Debugf("Registering endpoint '%s' with config %+v", path, endpoint)
+
+		authz := handlers.NewAuthzBuilder().WithConfig(&config).WithEndpointConfig(endpoint).Build()
+
+		r.GET(path, middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+		r.HEAD(path, middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+
+		switch endpoint.Implementation {
+		case "Legacy", "ExtAuthz":
+			r.GET(path+"/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+			r.HEAD(path+"/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+		}
+
+		if name == "legacy" {
+			r.GET("/api/verify", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+			r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+			r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+			r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+		}
+	}
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
@@ -229,11 +248,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
-	if config.Server.EnablePprof {
+	if config.Server.Endpoints.EnablePprof {
 		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 	}
 
-	if config.Server.EnableExpvars {
+	if config.Server.Endpoints.EnableExpvars {
 		r.GET("/debug/vars", expvarhandler.ExpvarHandler)
 	}
 
@@ -327,7 +346,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)
-	r.NotFound = handleNotFound(middleware(serveIndexHandler))
+	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
 	handler := middlewares.LogRequest(r.Handler)
 	if config.Server.Path != "" {

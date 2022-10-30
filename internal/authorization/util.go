@@ -9,8 +9,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// StringToLevel converts a string policy to int authorization level.
-func StringToLevel(policy string) Level {
+// NewLevel converts a string policy to int authorization level.
+func NewLevel(policy string) Level {
 	switch policy {
 	case bypass:
 		return Bypass
@@ -25,9 +25,9 @@ func StringToLevel(policy string) Level {
 	return Denied
 }
 
-// LevelToString converts a int authorization level to string policy.
-func LevelToString(level Level) (policy string) {
-	switch level {
+// String representation of a Level.
+func (l Level) String() string {
+	switch l {
 	case Bypass:
 		return bypass
 	case OneFactor:
@@ -36,9 +36,9 @@ func LevelToString(level Level) (policy string) {
 		return twoFactor
 	case Denied:
 		return deny
+	default:
+		return deny
 	}
-
-	return deny
 }
 
 func stringSliceToRegexpSlice(strings []string) (regexps []regexp.Regexp, err error) {

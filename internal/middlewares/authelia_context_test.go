@@ -36,7 +36,7 @@ func TestIssuerURL(t *testing.T) {
 		{
 			name:  "NoHost",
 			proto: "https", host: "", base: "",
-			err: "Missing header X-Forwarded-Host",
+			err: "missing required X-Forwarded-Host header",
 		},
 	}
 
@@ -100,7 +100,7 @@ func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://home.example.com")
-	originalURL, err := mock.Ctx.GetOriginalURL()
+	originalURL, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.NoError(t, err)
 
 	expectedURL, err := url.ParseRequestURI("https://home.example.com")
@@ -113,7 +113,7 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithoutURI(t *testing.T) {
 	defer mock.Close()
 	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
-	originalURL, err := mock.Ctx.GetOriginalURL()
+	originalURL, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.NoError(t, err)
 
 	expectedURL, err := url.ParseRequestURI("https://home.example.com/")
@@ -125,9 +125,9 @@ func TestShouldGetOriginalURLFromForwardedHeadersWithURI(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 	mock.Ctx.Request.Header.Set("X-Original-URL", "htt-ps//home?-.example.com")
-	_, err := mock.Ctx.GetOriginalURL()
+	_, err := mock.Ctx.GetXOriginalURLOrXForwardedURL()
 	assert.Error(t, err)
-	assert.Equal(t, "Unable to parse URL extracted from X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request", err.Error())
+	assert.EqualError(t, err, "failed to parse X-Original-URL header: parse \"htt-ps//home?-.example.com\": invalid URI for request")
 }
 
 func TestShouldFallbackToNonXForwardedHeaders(t *testing.T) {

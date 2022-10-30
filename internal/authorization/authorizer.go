@@ -19,7 +19,7 @@ type Authorizer struct {
 // NewAuthorizer create an instance of authorizer with a given access control config.
 func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 	authorizer = &Authorizer{
-		defaultPolicy: StringToLevel(config.AccessControl.DefaultPolicy),
+		defaultPolicy: NewLevel(config.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(config.AccessControl),
 		config:        config,
 		log:           logging.Logger(),
@@ -53,12 +53,12 @@ func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 }
 
 // IsSecondFactorEnabled return true if at least one policy is set to second factor.
-func (p Authorizer) IsSecondFactorEnabled() bool {
+func (p *Authorizer) IsSecondFactorEnabled() bool {
 	return p.mfa
 }
 
 // GetRequiredLevel retrieve the required level of authorization to access the object.
-func (p Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubjects bool, level Level) {
+func (p *Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubjects bool, level Level) {
 	p.log.Debugf("Check authorization of subject %s and object %s (method %s).",
 		subject.String(), object.String(), object.Method)
 
@@ -78,7 +78,7 @@ func (p Authorizer) GetRequiredLevel(subject Subject, object Object) (hasSubject
 }
 
 // GetRuleMatchResults iterates through the rules and produces a list of RuleMatchResult provided a subject and object.
-func (p Authorizer) GetRuleMatchResults(subject Subject, object Object) (results []RuleMatchResult) {
+func (p *Authorizer) GetRuleMatchResults(subject Subject, object Object) (results []RuleMatchResult) {
 	skipped := false
 
 	results = make([]RuleMatchResult, len(p.rules))
