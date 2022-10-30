@@ -188,6 +188,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
+	// Management of the webauthn devices.
+	r.GET("/api/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGet))
+
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
 		r.GET("/api/user/info/totp", middleware1FA(handlers.UserTOTPInfoGET))

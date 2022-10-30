@@ -127,3 +127,19 @@ export interface AssertionPublicKeyCredentialResultJSON {
     credential?: PublicKeyCredentialJSON;
     result: AssertionResult;
 }
+
+export interface WebauthnDevice {
+   id: string;
+   created_at: Date;
+   last_used_at?: Date;
+   rpid: string;
+   username: string;
+   description: string;
+   kid: string;
+   public_key: Uint8Array;
+   attestation_type: string;
+   transport: string;
+   aaguid: string;
+   sign_count: number;
+   clone_warning: boolean;
+}

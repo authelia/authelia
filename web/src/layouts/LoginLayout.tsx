@@ -1,12 +1,15 @@
 import React, { ReactNode, useEffect } from "react";
 
-import { Container, Grid, Link, Theme } from "@mui/material";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { AppBar, Box, Container, Grid, IconButton, Link, Theme, Toolbar, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import TypographyWithTooltip from "@components/TypographyWithTootip";
+import { SettingsRoute } from "@root/constants/Routes";
 import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {
@@ -17,11 +20,13 @@ export interface Props {
     subtitle?: string;
     subtitleTooltip?: string;
     showBrand?: boolean;
+    showSettings?: boolean;
 }
 
 const url = "https://www.authelia.com";
 
 const LoginLayout = function (props: Props) {
+    const navigate = useNavigate();
     const styles = useStyles();
     const logo = getLogoOverride() ? (
         <img src="./static/media/logo.png" alt="Logo" className={styles.icon} />
@@ -32,40 +37,77 @@ const LoginLayout = function (props: Props) {
     useEffect(() => {
         document.title = `${translate("Login")} - Authelia`;
     }, [translate]);
+
+    const handleSettingsClick = () => {
+        navigate({
+            pathname: SettingsRoute,
+        });
+    };
+
     return (
-        <Grid id={props.id} className={styles.root} container spacing={0} alignItems="center" justifyContent="center">
-            <Container maxWidth="xs" className={styles.rootContainer}>
-                <Grid container>
-                    <Grid item xs={12}>
-                        {logo}
+        <Box>
+            <AppBar position="static" color="transparent" elevation={0}>
+                <Toolbar variant="dense">
+                    <Typography style={{ flexGrow: 1 }} />
+                    {props.showSettings ? (
+                        <IconButton
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"
+                            sx={{ mr: 2 }}
+                            onClick={handleSettingsClick}
+                        >
+                            <SettingsIcon />
+                        </IconButton>
+                    ) : null}
+                </Toolbar>
+            </AppBar>
+            <Grid
+                id={props.id}
+                className={styles.root}
+                container
+                spacing={0}
+                alignItems="center"
+                justifyContent="center"
+            >
+                <Container maxWidth="xs" className={styles.rootContainer}>
+                    <Grid container>
+                        <Grid item xs={12}>
+                            {logo}
+                        </Grid>
+                        {props.title ? (
+                            <Grid item xs={12}>
+                                <TypographyWithTooltip
+                                    variant={"h5"}
+                                    value={props.title}
+                                    tooltip={props.titleTooltip}
+                                />
+                            </Grid>
+                        ) : null}
+                        {props.subtitle ? (
+                            <Grid item xs={12}>
+                                <TypographyWithTooltip
+                                    variant={"h6"}
+                                    value={props.subtitle}
+                                    tooltip={props.subtitleTooltip}
+                                />
+                            </Grid>
+                        ) : null}
+                        <Grid item xs={12} className={styles.body}>
+                            {props.children}
+                        </Grid>
+                        {props.showBrand ? (
+                            <Grid item xs={12}>
+                                <Link href={url} target="_blank" underline="hover" className={styles.poweredBy}>
+                                    {translate("Powered by")} Authelia
+                                </Link>
+                            </Grid>
+                        ) : null}
                     </Grid>
-                    {props.title ? (
-                        <Grid item xs={12}>
-                            <TypographyWithTooltip variant={"h5"} value={props.title} tooltip={props.titleTooltip} />
-                        </Grid>
-                    ) : null}
-                    {props.subtitle ? (
-                        <Grid item xs={12}>
-                            <TypographyWithTooltip
-                                variant={"h6"}
-                                value={props.subtitle}
-                                tooltip={props.subtitleTooltip}
-                            />
-                        </Grid>
-                    ) : null}
-                    <Grid item xs={12} className={styles.body}>
-                        {props.children}
-                    </Grid>
-                    {props.showBrand ? (
-                        <Grid item xs={12}>
-                            <Link href={url} target="_blank" underline="hover" className={styles.poweredBy}>
-                                {translate("Powered by")} Authelia
-                            </Link>
-                        </Grid>
-                    ) : null}
-                </Grid>
-            </Container>
-        </Grid>
+                </Container>
+            </Grid>
+        </Box>
     );
 };
 

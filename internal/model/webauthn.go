@@ -133,19 +133,19 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
-	ID              int        `db:"id"`
-	CreatedAt       time.Time  `db:"created_at"`
-	LastUsedAt      *time.Time `db:"last_used_at"`
-	RPID            string     `db:"rpid"`
-	Username        string     `db:"username"`
-	Description     string     `db:"description"`
-	KID             Base64     `db:"kid"`
-	PublicKey       []byte     `db:"public_key"`
-	AttestationType string     `db:"attestation_type"`
-	Transport       string     `db:"transport"`
-	AAGUID          uuid.UUID  `db:"aaguid"`
-	SignCount       uint32     `db:"sign_count"`
-	CloneWarning    bool       `db:"clone_warning"`
+	ID              int        `db:"id" json:"id"`
+	CreatedAt       time.Time  `db:"created_at" json:"created_at"`
+	LastUsedAt      *time.Time `db:"last_used_at" json:"last_used_at"`
+	RPID            string     `db:"rpid" json:"rpid"`
+	Username        string     `db:"username" json:"username"`
+	Description     string     `db:"description" json:"description"`
+	KID             Base64     `db:"kid" json:"kid"`
+	PublicKey       []byte     `db:"public_key" json:"public_key"`
+	AttestationType string     `db:"attestation_type" json:"attestation_type"`
+	Transport       string     `db:"transport" json:"transport"`
+	AAGUID          uuid.UUID  `db:"aaguid" json:"aaguid"`
+	SignCount       uint32     `db:"sign_count" json:"sign_count"`
+	CloneWarning    bool       `db:"clone_warning" json:"clone_warning"`
 }
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.

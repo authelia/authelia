@@ -15,6 +15,7 @@ import {
     RegisterWebauthnRoute,
     ResetPasswordStep1Route,
     ResetPasswordStep2Route,
+    SettingsRoute,
 } from "@constants/Routes";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
@@ -35,6 +36,7 @@ import LoginPortal from "@views/LoginPortal/LoginPortal";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
 import ResetPasswordStep1 from "@views/ResetPassword/ResetPasswordStep1";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
+import SettingsView from "@views/Settings/SettingsView";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
@@ -93,6 +95,7 @@ const App: React.FC<Props> = (props: Props) => {
                                 <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />
+                                <Route path={SettingsRoute} element={<SettingsView />} />
                                 <Route
                                     path={`${IndexRoute}*`}
                                     element={

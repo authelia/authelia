@@ -85,7 +85,12 @@ const SecondFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="second-factor-stage" title={`${translate("Hi")} ${props.userInfo.display_name}`} showBrand>
+        <LoginLayout
+            id="second-factor-stage"
+            title={`${translate("Hi")} ${props.userInfo.display_name}`}
+            showBrand
+            showSettings
+        >
             {props.configuration.available_methods.size > 1 ? (
                 <MethodSelectionDialog
                     open={methodSelectionOpen}
