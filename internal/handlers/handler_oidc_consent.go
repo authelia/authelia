@@ -23,7 +23,7 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		err       error
 	)
 
-	if consentID, err = uuid.Parse(string(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgID))); err != nil {
+	if consentID, err = uuid.ParseBytes(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgID)); err != nil {
 		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(qryArgID), err)
 		ctx.ReplyForbidden()
 
