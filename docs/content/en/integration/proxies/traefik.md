@@ -90,7 +90,7 @@ networks:
 services:
   traefik:
     container_name: traefik
-    image: traefik:v2.8
+    image: traefik:v2.9
     restart: unless-stopped
     command:
       - '--api=true'
@@ -227,7 +227,7 @@ networks:
 services:
   traefik:
     container_name: traefik
-    image: traefik:v2.6
+    image: traefik:v2.9
     restart: unless-stopped
     command:
       - '--api=true'
