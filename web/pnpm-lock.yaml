@@ -15,7 +15,7 @@ specifiers:
   '@mui/styles': 5.10.10
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0
-  '@types/jest': 29.2.0
+  '@types/jest': 29.2.1
   '@types/node': 18.11.8
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.24
@@ -97,7 +97,7 @@ devDependencies:
   '@commitlint/config-conventional': 17.1.0
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0_biqbaboplfbrettd7655fr4n2y
-  '@types/jest': 29.2.0
+  '@types/jest': 29.2.1
   '@types/node': 18.11.8
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.24
@@ -2651,13 +2651,6 @@ packages:
       jest-mock: 29.2.2
     dev: true
 
-  /@jest/expect-utils/29.2.1:
-    resolution: {integrity: sha512-yr4aHNg5Z1CjKby5ozm7sKjgBlCOorlAoFcvrOQ/4rbZRfgZQdnmh7cth192PYIgiPZo2bBXvqdOApnAMWFJZg==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      jest-get-type: 29.2.0
-    dev: true
-
   /@jest/expect-utils/29.2.2:
     resolution: {integrity: sha512-vwnVmrVhTmGgQzyvcpze08br91OL61t9O0lJMDyb6Y/D8EKQ9V7rGUb/p7PDt0GPzK0zFYqXWFo4EO2legXmkg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -3579,10 +3572,10 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest/29.2.0:
-    resolution: {integrity: sha512-KO7bPV21d65PKwv3LLsD8Jn3E05pjNjRZvkm+YTacWhVmykAb07wW6IkZUmQAltwQafNcDUEUrMO2h3jeBSisg==}
+  /@types/jest/29.2.1:
+    resolution: {integrity: sha512-nKixEdnGDqFOZkMTF74avFNr3yRqB1ZJ6sRZv5/28D5x2oLN14KApv7F9mfDT/vUic0L3tRCsh3XWpWjtJisUQ==}
     dependencies:
-      expect: 29.2.1
+      expect: 29.2.2
       pretty-format: 29.2.1
     dev: true
 
@@ -3673,7 +3666,7 @@ packages:
   /@types/testing-library__jest-dom/5.14.5:
     resolution: {integrity: sha512-SBwbxYoyPIvxHbeHxTZX2Pe/74F/tX2/D3mMvzabdeJ25bBojfW0TyB8BHrbq/9zaaKICJZjLP+8r6AeZMFCuQ==}
     dependencies:
-      '@types/jest': 29.2.0
+      '@types/jest': 29.2.1
     dev: true
 
   /@types/tough-cookie/4.0.2:
@@ -5829,17 +5822,6 @@ packages:
       - supports-color
     dev: true
 
-  /expect/29.2.1:
-    resolution: {integrity: sha512-BJtA754Fba0YWRWHgjKUMTA3ltWarKgITXHQnbZ2mTxTXC4yMQlR0FI7HkB3fJYkhWBf4qjNiqvg3LDtXCcVRQ==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@jest/expect-utils': 29.2.1
-      jest-get-type: 29.2.0
-      jest-matcher-utils: 29.2.1
-      jest-message-util: 29.2.1
-      jest-util: 29.2.1
-    dev: true
-
   /expect/29.2.2:
     resolution: {integrity: sha512-hE09QerxZ5wXiOhqkXy5d2G9ar+EqOyifnCXCpMNu+vZ6DG9TJ6CO2c2kPDSLqERTTWrO7OZj8EkYHQqSd78Yw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -6973,16 +6955,6 @@ packages:
       pretty-format: 29.2.1
     dev: true
 
-  /jest-matcher-utils/29.2.1:
-    resolution: {integrity: sha512-hUTBh7H/Mnb6GTpihbLh8uF5rjAMdekfW/oZNXUMAXi7bbmym2HiRpzgqf/zzkjgejMrVAkPdVSQj+32enlUww==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      chalk: 4.1.2
-      jest-diff: 29.2.1
-      jest-get-type: 29.2.0
-      pretty-format: 29.2.1
-    dev: true
-
   /jest-matcher-utils/29.2.2:
     resolution: {integrity: sha512-4DkJ1sDPT+UX2MR7Y3od6KtvRi9Im1ZGLGgdLFLm4lPexbTaCgJW5NN3IOXlQHF7NSHY/VHhflQ+WoKtD/vyCw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -7184,18 +7156,6 @@ packages:
       micromatch: 4.0.5
     dev: true
 
-  /jest-util/29.1.2:
-    resolution: {integrity: sha512-vPCk9F353i0Ymx3WQq3+a4lZ07NXu9Ca8wya6o4Fe4/aO1e1awMMprZ3woPFpKwghEOW+UXgd15vVotuNN9ONQ==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@jest/types': 29.2.1
-      '@types/node': 18.11.8
-      chalk: 4.1.2
-      ci-info: 3.3.2
-      graceful-fs: 4.2.10
-      picomatch: 2.3.1
-    dev: true
-
   /jest-util/29.2.1:
     resolution: {integrity: sha512-P5VWDj25r7kj7kl4pN2rG/RN2c1TLfYYYZYULnS/35nFDjBai+hBeo3MDrYZS7p6IoY3YHZnt2vq4L6mKnLk0g==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -7246,7 +7206,7 @@ packages:
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.10.2
-      jest-util: 29.1.2
+      jest-util: 29.2.1
       string-length: 4.0.2
     dev: true
 
