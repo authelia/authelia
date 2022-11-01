@@ -11,7 +11,7 @@ specifiers:
   '@fortawesome/free-solid-svg-icons': 6.2.0
   '@fortawesome/react-fontawesome': 0.2.0
   '@mui/icons-material': 5.10.9
-  '@mui/material': 5.10.11
+  '@mui/material': 5.10.12
   '@mui/styles': 5.10.10
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0
@@ -73,8 +73,8 @@ dependencies:
   '@fortawesome/free-regular-svg-icons': 6.2.0
   '@fortawesome/free-solid-svg-icons': 6.2.0
   '@fortawesome/react-fontawesome': 0.2.0_6j2wdqxompc6mcokhxkpep2gqu
-  '@mui/icons-material': 5.10.9_4ucrevsrp5tdlzg44kesjenzrm
-  '@mui/material': 5.10.11_gs4twfomdgooimayvnfrqgiwam
+  '@mui/icons-material': 5.10.9_5n7l3nqogz2ltkpvtlyqobxizm
+  '@mui/material': 5.10.12_gs4twfomdgooimayvnfrqgiwam
   '@mui/styles': 5.10.10_bbvjflvjoibwhtpmedigb26h6y
   axios: 0.27.2
   broadcast-channel: 4.18.1
@@ -2901,8 +2901,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
 
-  /@mui/base/5.0.0-alpha.103_knhnagtyfncgg2hpin7s37uixq:
-    resolution: {integrity: sha512-fJIyB2df3CHn7D26WHnutnY7vew6aytTlhmRJz6GX7ag19zU2GcOUhJAzY5qwWcrXKnlYgzimhEjaEnuiUWU4g==}
+  /@mui/base/5.0.0-alpha.104_knhnagtyfncgg2hpin7s37uixq:
+    resolution: {integrity: sha512-tQPxZTzfYMwxYfKhEwufbTfdLpNjFdW7bXq6dK0j8651AAyZL4M8wynWUQ98hH1362R26mZFhVxHB2UD9t7VuA==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@types/react': ^17.0.0 || ^18.0.0 || 18
@@ -2925,11 +2925,11 @@ packages:
       react-is: 18.2.0
     dev: false
 
-  /@mui/core-downloads-tracker/5.10.11:
-    resolution: {integrity: sha512-u5ff+UCFDHcR8MoQ8tuJR4c35vt7T/ki3aMEE2O3XQoGs8KJSrBiisFpFKyldg9/W2NSyoZxN+kxEGIfRxh+9Q==}
+  /@mui/core-downloads-tracker/5.10.12:
+    resolution: {integrity: sha512-cR8lOS606G++iVHR8I6ySgMAEiPoA3DxO/nLeqiv7w7d1707kvKoV4/7SWjh4ui+kHb052xlf/G196q2EKx31w==}
     dev: false
 
-  /@mui/icons-material/5.10.9_4ucrevsrp5tdlzg44kesjenzrm:
+  /@mui/icons-material/5.10.9_5n7l3nqogz2ltkpvtlyqobxizm:
     resolution: {integrity: sha512-sqClXdEM39WKQJOQ0ZCPTptaZgqwibhj2EFV9N0v7BU1PO8y4OcX/a2wIQHn4fNuDjIZktJIBrmU23h7aqlGgg==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -2941,13 +2941,13 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.19.0
-      '@mui/material': 5.10.11_gs4twfomdgooimayvnfrqgiwam
+      '@mui/material': 5.10.12_gs4twfomdgooimayvnfrqgiwam
       '@types/react': 18.0.24
       react: 18.2.0
     dev: false
 
-  /@mui/material/5.10.11_gs4twfomdgooimayvnfrqgiwam:
-    resolution: {integrity: sha512-KJ0wPCTbv6sFzwA3dgg0gowdfF+SRl7D510J9l6Nl/KFX0EawcewQudqKY4slYGFXniKa5PykqokpaWXsCCPqg==}
+  /@mui/material/5.10.12_gs4twfomdgooimayvnfrqgiwam:
+    resolution: {integrity: sha512-rG9ZTkG9qUwujyAY1I+uQAa9pkGdsWY3KN+wvS/6H6ZbYIA06QRwmig6ySC6LbeB3WL/I/1ngwJqWX7nfINSbA==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
@@ -2963,12 +2963,12 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@babel/runtime': 7.19.0
+      '@babel/runtime': 7.19.4
       '@emotion/react': 11.10.5_bbvjflvjoibwhtpmedigb26h6y
       '@emotion/styled': 11.10.5_wm6ohc3abj5yburmg6pjdgzp24
-      '@mui/base': 5.0.0-alpha.103_knhnagtyfncgg2hpin7s37uixq
-      '@mui/core-downloads-tracker': 5.10.11
-      '@mui/system': 5.10.10_3ccit3vaizg4wqqen3724viway
+      '@mui/base': 5.0.0-alpha.104_knhnagtyfncgg2hpin7s37uixq
+      '@mui/core-downloads-tracker': 5.10.12
+      '@mui/system': 5.10.12_3ccit3vaizg4wqqen3724viway
       '@mui/types': 7.2.0_@types+react@18.0.24
       '@mui/utils': 5.10.9_react@18.2.0
       '@types/react': 18.0.24
@@ -3052,8 +3052,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@mui/system/5.10.10_3ccit3vaizg4wqqen3724viway:
-    resolution: {integrity: sha512-TXwtKN0adKpBrZmO+eilQWoPf2veh050HLYrN78Kps9OhlvO70v/2Kya0+mORFhu9yhpAwjHXO8JII/R4a5ZLA==}
+  /@mui/system/5.10.12_3ccit3vaizg4wqqen3724viway:
+    resolution: {integrity: sha512-9DcN3hF2KTTTpZ0K5Tn20B+Tz7tIqDmJLk1M6P0CYoAGUN/xrcF/6dn1zZ829rxE5tmauoDUekTfomrvPsvlSQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@emotion/react': ^11.5.0
