@@ -143,8 +143,8 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "17.1.2",
-    "@commitlint/config-conventional": "17.1.0",
+    "@commitlint/cli": "17.2.0",
+    "@commitlint/config-conventional": "17.2.0",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@types/jest": "29.2.1",
