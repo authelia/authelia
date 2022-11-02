@@ -306,6 +306,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center"><a href="https://github.com/paul-ohl"><img src="https://avatars.githubusercontent.com/u/37795294?v=4?s=100" width="100px;" alt="Paul Ohl"/><br /><sub><b>Paul Ohl</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=paul-ohl" title="Documentation">📖</a></td>
+      <td align="center"><a href="https://github.com/smkent"><img src="https://avatars.githubusercontent.com/u/2831985?v=4?s=100" width="100px;" alt="Stephen Kent"/><br /><sub><b>Stephen Kent</b></sub></a><br /><a href="#ideas-smkent" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
