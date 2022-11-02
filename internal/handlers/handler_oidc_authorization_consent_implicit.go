@@ -21,13 +21,11 @@ func handleOIDCAuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, is
 		err       error
 	)
 
-	bytesConsentID := ctx.QueryArgs().PeekBytes(qryArgConsentID)
-
-	switch len(bytesConsentID) {
+	switch bytesConsentID := ctx.QueryArgs().PeekBytes(qryArgConsentID); len(bytesConsentID) {
 	case 0:
 		return handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx, issuer, client, userSession, subject, rw, r, requester)
 	default:
-		if consentID, err = uuid.Parse(string(bytesConsentID)); err != nil {
+		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.Consent, bytesConsentID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
