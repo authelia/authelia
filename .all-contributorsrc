@@ -814,6 +814,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "great",
+      "name": "Intae Kim",
+      "avatar_url": "https://avatars.githubusercontent.com/u/218355?v=4",
+      "profile": "https://github.com/great",
+      "contributions": [
+        "maintenance"
+      ]
     }
   ],
   "contributorsPerLine": 7
