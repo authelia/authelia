@@ -814,6 +814,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "smkent",
+      "name": "Stephen Kent",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2831985?v=4",
+      "profile": "https://github.com/smkent",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7
