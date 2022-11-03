@@ -25,6 +25,7 @@ import (
 func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
 	c := &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
+		AuthorizationBearers:       config.AuthorizationBearers,
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
 		Lifespans: LifespanConfig{
@@ -53,6 +54,8 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
 type Config struct {
 	// GlobalSecret is the global secret used to sign and verify signatures.
 	GlobalSecret []byte
+
+	AuthorizationBearers schema.OpenIDConnectAuthorizationBearersConfiguration
 
 	// RotatedGlobalSecrets is a list of global secrets that are used to verify signatures.
 	RotatedGlobalSecrets [][]byte

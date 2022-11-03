@@ -28,9 +28,26 @@ type OpenIDConnectConfiguration struct {
 	EnforcePKCE              string `koanf:"enforce_pkce"`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
-	CORS OpenIDConnectCORSConfiguration `koanf:"cors"`
+	CORS                 OpenIDConnectCORSConfiguration                 `koanf:"cors"`
+	AuthorizationBearers OpenIDConnectAuthorizationBearersConfiguration `koanf:"authorization_bearers"`
 
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
+}
+
+// OpenIDConnectAuthorizationBearersConfiguration represents URLs which should automatically be issued tokens etc.
+type OpenIDConnectAuthorizationBearersConfiguration struct {
+	RedirectURI *url.URL `koanf:"redirect_uri"`
+
+	Configurations []OpenIDConnectAuthorizationBearerConfiguration `koanf:"configurations"`
+}
+
+// OpenIDConnectAuthorizationBearerConfiguration represents URLs which should automatically be issued tokens etc.
+type OpenIDConnectAuthorizationBearerConfiguration struct {
+	URLPrefixes []string `koanf:"url_prefixes"`
+	ClientID    string   `koanf:"client_id"`
+	Secret      string   `koanf:"secret"`
+	Scopes      []string `koanf:"scopes"`
+	TokenType   string   `koanf:"token_type"`
 }
 
 // OpenIDConnectCORSConfiguration represents an OpenID Connect CORS config.

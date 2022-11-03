@@ -14,6 +14,10 @@ const (
 	ScopeGroups        = "groups"
 )
 
+const (
+	valueClientID = "client_id"
+)
+
 // Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
 const (
 	ClaimJWTID                               = "jti"
@@ -37,7 +41,23 @@ const (
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
-	ClaimClientIdentifier                    = "client_id"
+	ClaimClientIdentifier                    = valueClientID
+)
+
+// Form Parameters.
+const (
+	FormScope               = "scope"
+	FormResponseType        = "response_type"
+	FormGrantType           = "grant_type"
+	FormClientID            = valueClientID
+	FormClientSecret        = "client_secret"
+	FormCodeVerifier        = "code_verifier"
+	FormCodeChallenge       = "code_challenge"
+	FormCodeChallengeMethod = "code_challenge_method"
+	FormRedirectURI         = "redirect_uri"
+	FormState               = "state"
+	FormNonce               = "nonce"
+	FormCode                = "code"
 )
 
 const (

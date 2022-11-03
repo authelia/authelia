@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
@@ -81,4 +82,27 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathUserinfo)
 
 	return options
+}
+
+// GetAuthorizationBearerConfiguration returns the client and schema.OpenIDConnectAuthorizationBearerConfiguration if the target URI matches.
+func (p *OpenIDConnectProvider) GetAuthorizationBearerConfiguration(targetURI string) (client *Client, config *schema.OpenIDConnectAuthorizationBearerConfiguration) {
+	if targetURI == "" || p.Config.AuthorizationBearers.RedirectURI == nil {
+		return nil, nil
+	}
+
+	var err error
+
+	for _, c := range p.Config.AuthorizationBearers.Configurations {
+		for _, prefix := range c.URLPrefixes {
+			if strings.HasPrefix(strings.ToLower(targetURI), strings.ToLower(prefix)) {
+				if client, err = p.GetFullClient(c.ClientID); err != nil {
+					return nil, nil
+				}
+
+				return client, &c
+			}
+		}
+	}
+
+	return nil, nil
 }

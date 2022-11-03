@@ -257,7 +257,7 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 
 		tag := field.Tag.Get("koanf")
 
-		if tag == "" {
+		if tag == "" || tag == "-" {
 			tags = append(tags, prefix)
 
 			continue
