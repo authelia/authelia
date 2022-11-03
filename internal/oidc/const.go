@@ -61,6 +61,10 @@ const (
 )
 
 const (
+	ContextKeySecretInternal = "urn:authelia:secret:internal"
+)
+
+const (
 	lifespanTokenDefault         = time.Hour
 	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
 	lifespanAuthorizeCodeDefault = time.Minute * 15

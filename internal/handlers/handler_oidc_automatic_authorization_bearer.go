@@ -154,7 +154,7 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 	accessForm.Set(oidc.FormCode, responder.GetParameters().Get(oidc.FormCode))
 	accessForm.Set(oidc.FormCodeVerifier, verifier)
 	accessForm.Set(oidc.FormClientID, client.GetID())
-	accessForm.Set(oidc.FormClientSecret, config.Secret)
+	//accessForm.Set(oidc.FormClientSecret, config.Secret)
 	accessForm.Set(oidc.FormRedirectURI, ctx.Configuration.IdentityProviders.OIDC.AuthorizationBearers.RedirectURI.String())
 
 	reqURLAccess := &url.URL{
@@ -172,6 +172,7 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 	reqHTTPAccess.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	accessCtx := context.Background()
+	accessCtx = context.WithValue(accessCtx, oidc.ContextKeySecretInternal, true)
 	accessSession := oidc.NewSession()
 
 	if accessReqester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(accessCtx, reqHTTPAccess, accessSession); err != nil {

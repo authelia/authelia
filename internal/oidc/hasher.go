@@ -7,7 +7,11 @@ import (
 )
 
 // Compare compares the hash with the data and returns an error if they don't match.
-func (h AdaptiveHasher) Compare(_ context.Context, hash, data []byte) (err error) {
+func (h AdaptiveHasher) Compare(ctx context.Context, hash, data []byte) (err error) {
+	if internal, ok := ctx.Value(ContextKeySecretInternal).(bool); ok && internal {
+		return nil
+	}
+
 	var digest crypt.Digest
 
 	if digest, err = crypt.DecodeWithPlainText(string(hash)); err != nil {
