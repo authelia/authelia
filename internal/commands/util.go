@@ -34,6 +34,7 @@ func configFilterExisting(configs []string) (finalConfigs []string) {
 	return finalConfigs
 }
 
+//nolint:gocyclo
 func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameCharSet, flagNameCharacters string) (r string, err error) {
 	var (
 		n       int
