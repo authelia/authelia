@@ -3,6 +3,7 @@ package schema
 import (
 	"crypto/rsa"
 	"net/url"
+	"regexp"
 	"time"
 )
 
@@ -43,11 +44,10 @@ type OpenIDConnectAuthorizationBearersConfiguration struct {
 
 // OpenIDConnectAuthorizationBearerConfiguration represents URLs which should automatically be issued tokens etc.
 type OpenIDConnectAuthorizationBearerConfiguration struct {
-	URLPrefixes []string `koanf:"url_prefixes"`
-	ClientID    string   `koanf:"client_id"`
-	Secret      string   `koanf:"secret"`
-	Scopes      []string `koanf:"scopes"`
-	TokenType   string   `koanf:"token_type"`
+	URLPatterns []*regexp.Regexp `koanf:"url_patterns"`
+	ClientID    string           `koanf:"client_id"`
+	Scopes      []string         `koanf:"scopes"`
+	TokenType   string           `koanf:"token_type"`
 }
 
 // OpenIDConnectCORSConfiguration represents an OpenID Connect CORS config.
