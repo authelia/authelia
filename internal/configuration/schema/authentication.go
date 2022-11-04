@@ -191,7 +191,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 	UsernameAttribute:    "sAMAccountName",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayName",
-	GroupsFilter:         "(&(member={dn})(objectClass=group))",
+	GroupsFilter:         "(&(member={dn})(sAMAccountType=268435456))",
 	GroupNameAttribute:   "cn",
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
