@@ -178,7 +178,7 @@
     "typescript": "4.8.4",
     "vite": "3.2.2",
     "vite-plugin-eslint": "1.8.1",
-    "vite-plugin-istanbul": "3.0.1",
+    "vite-plugin-istanbul": "3.0.2",
     "vite-plugin-svgr": "2.2.2",
     "vite-tsconfig-paths": "3.5.2"
   }
