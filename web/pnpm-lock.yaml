@@ -60,7 +60,7 @@ specifiers:
   typescript: 4.8.4
   vite: 3.2.2
   vite-plugin-eslint: 1.8.1
-  vite-plugin-istanbul: 3.0.1
+  vite-plugin-istanbul: 3.0.2
   vite-plugin-svgr: 2.2.2
   vite-tsconfig-paths: 3.5.2
   zxcvbn: 4.4.2
@@ -128,7 +128,7 @@ devDependencies:
   typescript: 4.8.4
   vite: 3.2.2
   vite-plugin-eslint: 1.8.1_eslint@8.26.0+vite@3.2.2
-  vite-plugin-istanbul: 3.0.1
+  vite-plugin-istanbul: 3.0.2
   vite-plugin-svgr: 2.2.2_vite@3.2.2
   vite-tsconfig-paths: 3.5.2_vite@3.2.2
 
@@ -3513,7 +3513,7 @@ packages:
   /@types/babel__core/7.1.19:
     resolution: {integrity: sha512-WEOTgRsbYkvA/KCsDwVEGkd7WAr1e3g31VHQ8zy5gul/V1qKullU/BU5I68X5v7V3GnB9eotmom4v5a5gjxorw==}
     dependencies:
-      '@babel/parser': 7.18.11
+      '@babel/parser': 7.19.6
       '@babel/types': 7.19.0
       '@types/babel__generator': 7.6.4
       '@types/babel__template': 7.4.1
@@ -6699,7 +6699,7 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       '@babel/core': 7.19.6
-      '@babel/parser': 7.18.11
+      '@babel/parser': 7.19.6
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.0
       semver: 6.3.0
@@ -9382,8 +9382,8 @@ packages:
       vite: 3.2.2
     dev: true
 
-  /vite-plugin-istanbul/3.0.1:
-    resolution: {integrity: sha512-b6yBg7WHXHTaULcyb/d17/YXFcYrV6nHTiqYxOIhhbIFjgp8CgVkuP3iGQU1vRxeutrIwTa4pFNmS4uZSAKhGA==}
+  /vite-plugin-istanbul/3.0.2:
+    resolution: {integrity: sha512-eOKedaeciqJTLEAUo7mkMqXjjeAXGhHUYuiLLBUaBwj8AdO31uVOsZvKeVViRqHKyhi5YlarmGh8r7jJVlX0VQ==}
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       istanbul-lib-instrument: 5.2.0
