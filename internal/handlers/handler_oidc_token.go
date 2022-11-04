@@ -36,7 +36,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
 	// If this is a client_credentials grant, grant all scopes the client is allowed to perform.
-	if requester.GetGrantTypes().ExactOne("client_credentials") {
+	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
 		for _, scope := range requester.GetRequestedScopes() {
 			if fosite.HierarchicScopeStrategy(client.GetScopes(), scope) {
 				requester.GrantScope(scope)

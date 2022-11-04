@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -32,7 +31,7 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 
 		requester       fosite.AuthorizeRequester
 		responder       fosite.AuthorizeResponder
-		accessReqester  fosite.AccessRequester
+		accessRequester fosite.AccessRequester
 		accessResponder fosite.AccessResponder
 		issuer          *url.URL
 		consent         *model.OAuth2ConsentSession
@@ -49,11 +48,8 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 
 	state := utils.RandomString(64, utils.CharSetAlphaNumeric, true)
 	nonce := utils.RandomString(64, utils.CharSetAlphaNumeric, true)
-	verifier := utils.RandomString(64, utils.CharSetAlphaNumeric, true)
 
-	challenge := sha256.New()
-
-	challenge.Write([]byte(verifier))
+	verifier := oidc.NewPKCEVerifier(128)
 
 	authorizeForm := url.Values{}
 
@@ -63,8 +59,8 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 	authorizeForm.Set(oidc.FormRedirectURI, ctx.Configuration.IdentityProviders.OIDC.AuthorizationBearers.RedirectURI.String())
 	authorizeForm.Set(oidc.FormState, state)
 	authorizeForm.Set(oidc.FormNonce, nonce)
-	authorizeForm.Set(oidc.FormCodeChallenge, base64.RawURLEncoding.EncodeToString(challenge.Sum([]byte{})))
-	authorizeForm.Set(oidc.FormCodeChallengeMethod, oidc.PKCEChallengeMethodSHA256)
+
+	verifier.SetAuthorizationEndpointParameters(&authorizeForm)
 
 	reqURLAuthorize := &url.URL{
 		Scheme:   "https",
@@ -152,10 +148,10 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 
 	accessForm.Set(oidc.FormGrantType, oidc.GrantTypeAuthorizationCode)
 	accessForm.Set(oidc.FormCode, responder.GetParameters().Get(oidc.FormCode))
-	accessForm.Set(oidc.FormCodeVerifier, verifier)
 	accessForm.Set(oidc.FormClientID, client.GetID())
-	//accessForm.Set(oidc.FormClientSecret, config.Secret)
 	accessForm.Set(oidc.FormRedirectURI, ctx.Configuration.IdentityProviders.OIDC.AuthorizationBearers.RedirectURI.String())
+
+	verifier.SetTokenEndpointParameters(&accessForm)
 
 	reqURLAccess := &url.URL{
 		Scheme: "https",
@@ -169,27 +165,27 @@ func OpenIDConnectAutomaticAuthorizationBearer(ctx *middlewares.AutheliaCtx, cli
 		return
 	}
 
-	reqHTTPAccess.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	reqHTTPAccess.Header.Set(fasthttp.HeaderContentType, "application/x-www-form-urlencoded")
 
 	accessCtx := context.Background()
 	accessCtx = context.WithValue(accessCtx, oidc.ContextKeySecretInternal, true)
 	accessSession := oidc.NewSession()
 
-	if accessReqester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(accessCtx, reqHTTPAccess, accessSession); err != nil {
+	if accessRequester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(accessCtx, reqHTTPAccess, accessSession); err != nil {
 		ctx.Logger.Errorf("Automatic Authorization Bearer failed with error creating the internal access request: %s", fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
 
 		return
 	}
 
-	if accessReqester.GetGrantTypes().ExactOne("client_credentials") {
-		for _, scope := range accessReqester.GetRequestedScopes() {
+	if accessRequester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
+		for _, scope := range accessRequester.GetRequestedScopes() {
 			if fosite.HierarchicScopeStrategy(client.GetScopes(), scope) {
-				accessReqester.GrantScope(scope)
+				accessRequester.GrantScope(scope)
 			}
 		}
 	}
 
-	if accessResponder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(accessCtx, accessReqester); err != nil {
+	if accessResponder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(accessCtx, accessRequester); err != nil {
 		ctx.Logger.Errorf("Automatic Authorization Bearer failed with error generating the access response: %s", fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
 
 		return
