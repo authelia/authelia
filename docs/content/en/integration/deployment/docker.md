@@ -35,7 +35,7 @@ bootstrapping *Authelia*.
 
 ### Standalone Example
 
-The following is an examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
+The following examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
 proxies.
 
 It expects the following:
