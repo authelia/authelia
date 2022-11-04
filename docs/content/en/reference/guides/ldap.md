@@ -94,10 +94,10 @@ accounts. The active directory example has two attribute filters that accomplish
 be appreciated). The userAccountControl filter checks that the account is not disabled and the pwdLastSet makes sure that
 value is not 0 which means the password requires changing at the next login.
 
-| Implementation  |                                                                          Users Filter                                                                           |                         Groups Filter                         |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------:|
-|     custom      |                                                                               N/A                                                                               |                              N/A                              |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(objectClass=group)(sAMAccountType=268435456)) |
+| Implementation  |                                                                          Users Filter                                                                           |               Groups Filter                |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
+|     custom      |                                                                               N/A                                                                               |                    N/A                     |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(sAMAccountType=268435456)) |
 
 ##### Microsoft Active Directory sAMAccountType
 
