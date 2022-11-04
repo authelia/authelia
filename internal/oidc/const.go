@@ -1,12 +1,21 @@
 package oidc
 
+import (
+	"time"
+)
+
 // Scope strings.
 const (
 	ScopeOfflineAccess = "offline_access"
+	ScopeOffline       = "offline"
 	ScopeOpenID        = "openid"
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
 	ScopeGroups        = "groups"
+)
+
+const (
+	valueClientID = "client_id"
 )
 
 // Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
@@ -32,7 +41,38 @@ const (
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
-	ClaimClientIdentifier                    = "client_id"
+	ClaimClientIdentifier                    = valueClientID
+)
+
+// Form Parameters.
+const (
+	FormScope               = "scope"
+	FormResponseType        = "response_type"
+	FormGrantType           = "grant_type"
+	FormClientID            = valueClientID
+	FormClientSecret        = "client_secret"
+	FormCodeVerifier        = "code_verifier"
+	FormCodeChallenge       = "code_challenge"
+	FormCodeChallengeMethod = "code_challenge_method"
+	FormRedirectURI         = "redirect_uri"
+	FormState               = "state"
+	FormNonce               = "nonce"
+	FormCode                = "code"
+)
+
+const (
+	ContextKeySecretInternal = "urn:authelia:secret:internal"
+)
+
+const (
+	lifespanTokenDefault         = time.Hour
+	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault = time.Minute * 15
+	lifespanPARContextDefault    = time.Minute * 5
+)
+
+const (
+	urnPARPrefix = "urn:ietf:params:oauth:request_uri:"
 )
 
 const (

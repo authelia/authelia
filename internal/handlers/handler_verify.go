@@ -490,6 +490,12 @@ func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 			handleUnauthorized(ctx, targetURL, isBasicAuth, username, method)
 		case Authorized:
 			setForwardedHeaders(&ctx.Response.Header, username, name, groups, emails)
+
+			if ctx.Providers.OpenIDConnect != nil {
+				if client, config := ctx.Providers.OpenIDConnect.GetAuthorizationBearerConfiguration(targetURL.String()); client != nil {
+					OpenIDConnectAutomaticAuthorizationBearer(ctx, client, config)
+				}
+			}
 		}
 
 		if err = updateActivityTimestamp(ctx, isBasicAuth); err != nil {

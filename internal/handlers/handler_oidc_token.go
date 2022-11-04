@@ -26,7 +26,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 		ctx.Logger.Errorf("Access Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.WriteAccessError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
@@ -36,7 +36,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
 	// If this is a client_credentials grant, grant all scopes the client is allowed to perform.
-	if requester.GetGrantTypes().ExactOne("client_credentials") {
+	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
 		for _, scope := range requester.GetRequestedScopes() {
 			if fosite.HierarchicScopeStrategy(client.GetScopes(), scope) {
 				requester.GrantScope(scope)
@@ -51,7 +51,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.WriteAccessError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
@@ -60,5 +60,5 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	ctx.Logger.Tracef("Access Request with id '%s' on client with id '%s' produced the following claims: %+v", requester.GetID(), client.GetID(), responder.ToMap())
 
-	ctx.Providers.OpenIDConnect.WriteAccessResponse(rw, requester, responder)
+	ctx.Providers.OpenIDConnect.WriteAccessResponse(ctx, rw, requester, responder)
 }
