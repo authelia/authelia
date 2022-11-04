@@ -13,17 +13,17 @@ toc: true
 ---
 
 The`X-Forwarded-*` headers presented to __Authelia__ must be from trusted sources. As such you must ensure that the
-reverse proxies and load balances utilized with __Authelia__ are configured to remove and replace specific headers when
+reverse proxies and load balancers utilized with __Authelia__ are configured to remove and replace specific headers when
 they come directly from clients and not from proxies in your trusted environment.
 
 Some proxies require users explicitly configure the proxy to trust another proxy, however some implicitly trust all
-headers regardless of the source and you have to manually
+headers regardless of the source so you will have to manually configure them.
 
 ## Network Rules
 
 In particular this is important for [Access Control Rules](../../../configuration/security/access-control.md#rules) as
 the [network criteria](../../../configuration/security/access-control.md#networks) relies on the [X-Forwarded-For]
-header. This header is expected to have a true representation of the clients actual IP address.
+header. This header is expected to have a true representation of the client's actual IP address.
 
 If this is not removed from non-trusted proxies a user could theoretically hijack any rule that contains this criteria
 to potentially skip an authentication criteria depending on how it is configured.

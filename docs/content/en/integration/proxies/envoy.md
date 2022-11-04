@@ -60,7 +60,7 @@ networks:
 services:
   envoy:
     container_name: envoy
-    image: envoyproxy/envoy:v1.23.0
+    image: envoyproxy/envoy:v1.24
     restart: unless-stopped
     networks:
       net: {}

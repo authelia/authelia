@@ -41,6 +41,11 @@ const (
 )
 
 const (
+	sqlNetworkTypeTCP        = "tcp"
+	sqlNetworkTypeUnixSocket = "unix"
+)
+
+const (
 	encryptionNameCheck = "check"
 )
 

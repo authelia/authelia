@@ -26,6 +26,9 @@ body:
       description: What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - v4.37.2
+        - v4.37.1
+        - v4.37.0
         - v4.36.9
         - v4.36.8
         - v4.36.7
@@ -56,7 +59,6 @@ body:
         - v4.32.2
         - v4.32.1
         - v4.32.0
-        - v4.31.0
     validations:
       required: true
   - type: dropdown

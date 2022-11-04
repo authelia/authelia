@@ -547,9 +547,13 @@ const (
 	cmdFlagNameSHA512           = "sha512"
 	cmdFlagNameConfig           = "config"
 
-	cmdFlagNameCharSet    = "charset"
-	cmdFlagNameCharacters = "characters"
-	cmdFlagNameLength     = "length"
+	cmdFlagNameCharSet     = "charset"
+	cmdFlagValueCharSet    = "alphanumeric"
+	cmdFlagUsageCharset    = "sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986'"
+	cmdFlagNameCharacters  = "characters"
+	cmdFlagUsageCharacters = "sets the explicit characters for the random string"
+	cmdFlagNameLength      = "length"
+	cmdFlagUsageLength     = "sets the character length for the random string"
 )
 
 const (

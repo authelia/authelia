@@ -97,12 +97,12 @@ authentication_backend:
         DO NOT USE==
         -----END RSA PRIVATE KEY-----
     base_dn: DC=example,DC=com
-    additional_users_dn: ou=users
+    additional_users_dn: OU=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
     username_attribute: uid
     mail_attribute: mail
     display_name_attribute: displayName
-    additional_groups_dn: ou=groups
+    additional_groups_dn: OU=groups
     groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     permit_referrals: false
@@ -266,6 +266,13 @@ server and utilizing a service account.*
 Permits binding to the server without a password. For this option to be enabled both the [password](#password)
 configuration option must be blank and the [password_reset disable](introduction.md#disable) option must be `true`.
 
+### permit_feature_detection_failure
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Authelia searches for the RootDSE to discover supported controls and extensions. This option is a compatability option
+which *__should not__* be enabled unless the LDAP server returns an error when searching for the RootDSE.
+
 ### user
 
 {{< confkey type="string" required="yes" >}}
@@ -282,7 +289,7 @@ especially for containerized deployments.*
 The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
 
 It's __strongly recommended__ this is a
-[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
 ## Refresh Interval
