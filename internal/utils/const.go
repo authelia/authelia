@@ -141,7 +141,7 @@ const (
 
 	// CharSetRFC3986Unreserved are RFC3986 unreserved characters.
 	// See https://www.rfc-editor.org/rfc/rfc3986#section-2.3.
-	CharSetRFC3986Unreserved = CharSetAlphabetic + CharSetSymbolicRFC3986Unreserved
+	CharSetRFC3986Unreserved = CharSetAlphabetic + CharSetNumeric + CharSetSymbolicRFC3986Unreserved
 )
 
 var htmlEscaper = strings.NewReplacer(
