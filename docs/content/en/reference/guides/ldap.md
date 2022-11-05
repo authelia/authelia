@@ -94,11 +94,18 @@ accounts. The active directory example has two attribute filters that accomplish
 be appreciated). The userAccountControl filter checks that the account is not disabled and the pwdLastSet makes sure that
 value is not 0 which means the password requires changing at the next login.
 
-| Implementation  |                                                                          Users Filter                                                                           |                       Groups Filter                       |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------:|
-|     custom      |                                                                               N/A                                                                               |                            N/A                            |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(objectClass=group)(objectCategory=group)) |
+| Implementation  |                                                                          Users Filter                                                                           |                         Groups Filter                         |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------:|
+|     custom      |                                                                               N/A                                                                               |                              N/A                              |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(objectClass=group)(sAMAccountType=268435456)) |
 
-*__Note:__* The Active Directory filter `(sAMAccountType=805306368)` is exactly the same as
-`(&(objectCategory=person)(objectClass=user))` except that the former is more performant, you can read more about this
-and other Active Directory filters on the [TechNet wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx).
+##### Microsoft Active Directory sAMAccountType
+
+| Account Type Value |        Description         |               Equivalent Filter                |
+|:------------------:|:--------------------------:|:----------------------------------------------:|
+|     268435456      |    Normal Group Objects    |                      N/A                       |
+|     805306368      |    Normal User Accounts    | `(&(objectCategory=person)(objectClass=user))` |
+
+*__References:__*
+- Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe).
+- LDAP Syntax Filters: [Microsoft TechNet Wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx)

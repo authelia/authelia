@@ -37,8 +37,8 @@ In your Authelia configuration you will need to enter and update the following v
 * url `ldap://OpenLDAP:1389` - servers dns name & port.
   *tip: if you have Authelia on a container network that is routable, you can just use the container name*
 * server_name `ldap01.example.com` - servers name
-* base_dn `dc=example,dc=com` - common name of domain root.
-* groups_filter `dc=example,dc=com` - replace relevant section with your own domain in common name format, same as base_dn.
+* base_dn `DC=example,DC=com` - common name of domain root.
+* groups_filter `DC=example,DC=com` - replace relevant section with your own domain in common name format, same as base_dn.
 * user `authelia` - username for Authelia service account
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
@@ -52,16 +52,16 @@ In your Authelia configuration you will need to enter and update the following v
       server_name: ldap01.example.com
       skip_verify: true
       minimum_version: TLS1.2
-    base_dn: dc=example,dc=com
-    additional_users_dn: ou=users
+    base_dn: DC=example,DC=com
+    additional_users_dn: OU=users
     users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     username_attribute: uid
     mail_attribute: mail
     display_name_attribute: displayName
-    additional_groups_dn: ou=groups
-    groups_filter: (&(member=uid={input},ou=users,dc=example,dc=com)(objectclass=groupofnames))
+    additional_groups_dn: OU=groups
+    groups_filter: (&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))
     group_name_attribute: cn
-    user: uid=authelia,ou=service accounts,dc=example,dc=com
+    user: UID=authelia,OU=service accounts,DC=example,DC=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
 Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
@@ -84,8 +84,8 @@ login, and reference it within the filters below.
 In your Authelia configuration you will need to enter and update the following variables -
 * url `ldap://ldap` - servers dns name. Port will assume 389 as standard. Specify custom port with `:port` if needed.
 * server_name `ldap01.example.com` - servers name
-* base_dn `dc=example,dc=com` - common name of domain root.
-* groups_filter `dc=example,dc=com` - replace relevant section with your own domain in common name format, same as base_dn.
+* base_dn `DC=example,DC=com` - common name of domain root.
+* groups_filter `DC=example,DC=com` - replace relevant section with your own domain in common name format, same as base_dn.
 * user `authelia` - username for Authelia service account
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
@@ -99,16 +99,16 @@ In your Authelia configuration you will need to enter and update the following v
       server_name: ldap.example.com
       skip_verify: true
       minimum_version: TLS1.2
-    base_dn: dc=example,dc=com
+    base_dn: dc=example,DC=com
     username_attribute: uid
-    additional_users_dn: cn=users,cn=accounts
+    additional_users_dn: CN=users,CN=accounts
     users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    additional_groups_dn: ou=groups
-    groups_filter: (&(member=uid={input},cn=users,cn=accounts,dc=example,dc=com)(objectclass=groupofnames))
+    additional_groups_dn: OU=groups
+    groups_filter: (&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))
     group_name_attribute: cn
     mail_attribute: mail
     display_name_attribute: displayName
-    user: uid=authelia,cn=users,cn=accounts,dc=example,dc=com
+    user: UID=authelia,CN=users,CN=accounts,DC=example,DC=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
 Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
@@ -128,7 +128,7 @@ within the filters below.
 In your Authelia configuration you will need to enter and update the following variables -
 * url `ldap://OpenLDAP:1389` - servers dns name & port.
   *tip: if you have Authelia on a container network that is routable, you can just use the container name*
-* base_dn `dc=example,dc=com` - common name of domain root.
+* base_dn `DC=example,DC=com` - common name of domain root.
 * user `authelia` - username for Authelia service account.
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account,
 
@@ -138,19 +138,19 @@ ldap:
     url: ldap://lldap:3890
     timeout: 5s
     start_tls: false
-    base_dn: dc=example,dc=com
+    base_dn: dc=example,DC=com
     username_attribute: uid
-    additional_users_dn: ou=people
+    additional_users_dn: OU=people
     # To allow sign in both with username and email, one can use a filter like
     # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     users_filter: (&({username_attribute}={input})(objectClass=person))
-    additional_groups_dn: ou=groups
+    additional_groups_dn: OU=groups
     groups_filter: (member={dn})
     group_name_attribute: cn
     mail_attribute: mail
     display_name_attribute: displayName
     # The username and password of the admin or service user.
-    user: uid=authelia,ou=people,dc=example,dc=com
+    user: UID=authelia,OU=people,DC=example,DC=com
     password: "SUPER_COMPLEX_PASSWORD"
 ```
 Following this, restart Authelia, and you should be able to begin using lldap integration for your user logins, with

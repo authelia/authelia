@@ -34,6 +34,7 @@ func configFilterExisting(configs []string) (finalConfigs []string) {
 	return finalConfigs
 }
 
+//nolint:gocyclo
 func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameCharSet, flagNameCharacters string) (r string, err error) {
 	var (
 		n       int
@@ -67,14 +68,28 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 			charset = utils.CharSetASCII
 		case "alphanumeric":
 			charset = utils.CharSetAlphaNumeric
+		case "alphanumeric-lower":
+			charset = utils.CharSetAlphabeticLower + utils.CharSetNumeric
+		case "alphanumeric-upper":
+			charset = utils.CharSetAlphabeticUpper + utils.CharSetNumeric
 		case "alphabetic":
 			charset = utils.CharSetAlphabetic
+		case "alphabetic-lower":
+			charset = utils.CharSetAlphabeticLower
+		case "alphabetic-upper":
+			charset = utils.CharSetAlphabeticUpper
 		case "numeric-hex":
 			charset = utils.CharSetNumericHex
 		case "numeric":
 			charset = utils.CharSetNumeric
+		case "rfc3986":
+			charset = utils.CharSetRFC3986Unreserved
+		case "rfc3986-lower":
+			charset = utils.CharSetAlphabeticLower + utils.CharSetNumeric + utils.CharSetSymbolicRFC3986Unreserved
+		case "rfc3986-upper":
+			charset = utils.CharSetAlphabeticUpper + utils.CharSetNumeric + utils.CharSetSymbolicRFC3986Unreserved
 		default:
-			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', or 'numeric-hex'", flagNameCharSet, c)
+			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', or 'rfc3986'", flagNameCharSet, c)
 		}
 	case useCharacters:
 		if charset, err = flags.GetString(flagNameCharacters); err != nil {
