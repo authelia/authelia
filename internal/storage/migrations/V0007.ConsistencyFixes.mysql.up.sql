@@ -1,10 +1,30 @@
+DROP PROCEDURE IF EXISTS PROC_DROP_FOREIGN_KEY;
+DELIMITER $$
+CREATE PROCEDURE PROC_DROP_FOREIGN_KEY(IN tableName VARCHAR(64), IN constraintName VARCHAR(64))
+BEGIN
+        IF EXISTS(
+            SELECT * FROM information_schema.table_constraints
+            WHERE
+                table_schema    = DATABASE()     AND
+                table_name      = tableName      AND
+                constraint_name = constraintName AND
+                constraint_type = 'FOREIGN KEY')
+        THEN
+            SET @query = CONCAT('ALTER TABLE ', tableName, ' DROP FOREIGN KEY ', constraintName, ';');
+PREPARE stmt FROM @query;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+END IF;
+    END$$
+DELIMITER;
+
 DROP TABLE _bkp_UP_V0002_totp_configurations;
 DROP TABLE _bkp_UP_V0002_u2f_devices;
 
 ALTER TABLE oauth2_consent_session DROP FOREIGN KEY oauth2_consent_session_subject_fkey;
 ALTER TABLE oauth2_consent_session DROP FOREIGN KEY oauth2_consent_session_preconfiguration_fkey;
-ALTER TABLE oauth2_consent_session DROP FOREIGN KEY IF EXISTS oauth2_consent_preconfiguration_subjct_fkey;
-ALTER TABLE oauth2_consent_preconfiguration DROP FOREIGN KEY IF EXISTS oauth2_consent_preconfiguration_subject_fkey;
+CALL PROC_DROP_FOREIGN_KEY('oauth2_consent_session', 'oauth2_consent_preconfiguration_subjct_fkey');
+CALL PROC_DROP_FOREIGN_KEY('oauth2_consent_preconfiguration', 'oauth2_consent_preconfiguration_subject_fkey');
 ALTER TABLE oauth2_access_token_session DROP FOREIGN KEY oauth2_access_token_session_challenge_id_fkey;
 ALTER TABLE oauth2_access_token_session DROP FOREIGN KEY oauth2_access_token_session_subject_fkey;
 ALTER TABLE oauth2_authorization_code_session DROP FOREIGN KEY oauth2_authorization_code_session_challenge_id_fkey;

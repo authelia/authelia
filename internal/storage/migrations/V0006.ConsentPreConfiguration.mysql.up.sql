@@ -1,23 +1,3 @@
-DROP TABLE oauth2_access_token_session;
-DROP TABLE oauth2_authorization_code_session;
-DROP TABLE oauth2_openid_connect_session;
-DROP TABLE oauth2_pkce_request_session;
-DROP TABLE oauth2_refresh_token_session;
-
-ALTER TABLE oauth2_consent_session DROP FOREIGN KEY IF EXISTS oauth2_consent_session_subject_fkey;
-ALTER TABLE oauth2_consent_session DROP FOREIGN KEY IF EXISTS oauth2_consent_session_fkey;
-
-ALTER TABLE authentication_logs CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE duo_devices CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE encryption CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE identity_verification CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE migrations CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE oauth2_blacklisted_jti CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE totp_configurations CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE user_opaque_identifier CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE user_preferences CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-ALTER TABLE webauthn_devices CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
-
 CREATE TABLE oauth2_consent_preconfiguration (
     id INTEGER AUTO_INCREMENT,
     client_id VARCHAR(255) NOT NULL,
@@ -28,7 +8,7 @@ CREATE TABLE oauth2_consent_preconfiguration (
     scopes TEXT NOT NULL,
     audience TEXT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_consent_preconfiguration ADD CONSTRAINT oauth2_consent_preconfiguration_subject_fkey FOREIGN KEY (subject) REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
@@ -56,7 +36,7 @@ CREATE TABLE oauth2_consent_session (
     granted_audience TEXT NULL,
     preconfiguration INTEGER NULL DEFAULT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
 ALTER TABLE oauth2_consent_session ADD CONSTRAINT oauth2_consent_session_subject_fkey FOREIGN KEY (subject) REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
@@ -79,7 +59,7 @@ CREATE TABLE oauth2_access_token_session (
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
 CREATE INDEX oauth2_access_token_session_client_id_idx ON oauth2_access_token_session (client_id);
@@ -104,7 +84,7 @@ CREATE TABLE oauth2_authorization_code_session (
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
 CREATE INDEX oauth2_authorization_code_session_client_id_idx ON oauth2_authorization_code_session (client_id);
@@ -129,7 +109,7 @@ CREATE TABLE oauth2_openid_connect_session (
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
 CREATE INDEX oauth2_openid_connect_session_client_id_idx ON oauth2_openid_connect_session (client_id);
@@ -154,7 +134,7 @@ CREATE TABLE oauth2_pkce_request_session (
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
 CREATE INDEX oauth2_pkce_request_session_client_id_idx ON oauth2_pkce_request_session (client_id);
@@ -179,7 +159,7 @@ CREATE TABLE oauth2_refresh_token_session (
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
 CREATE INDEX oauth2_refresh_token_session_client_id_idx ON oauth2_refresh_token_session (client_id);
