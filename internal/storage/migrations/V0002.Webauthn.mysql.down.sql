@@ -36,5 +36,5 @@ UPDATE user_preferences
 SET second_factor_method = 'u2f'
 WHERE second_factor_method = 'webauthn';
 
-DROP TABLE _bkp_DOWN_V0002_totp_configurations;
-DROP TABLE _bkp_DOWN_V0002_webauthn_devices;
+DROP TABLE IF EXISTS _bkp_DOWN_V0002_totp_configurations;
+DROP TABLE IF EXISTS _bkp_DOWN_V0002_webauthn_devices;

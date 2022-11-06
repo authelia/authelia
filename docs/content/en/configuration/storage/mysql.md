@@ -15,6 +15,14 @@ aliases:
   - /docs/configuration/storage/mysql.html
 ---
 
+## Requirements
+
+- Support for the InnoDB Engine
+- Support for the `utf8mb4_unicode_520_ci` collation
+- Support for the `utf8mb4` charset
+- Support for key indexes with a length of 2048 bits or more
+- The `explicit_defaults_for_timestamp` configuration option must be enabled
+
 ## Version support
 
 When using [MySQL] or [MariaDB] we recommend using the latest version that is officially supported by the [MySQL] or
