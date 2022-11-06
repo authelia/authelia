@@ -16,7 +16,7 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 END IF;
     END$$
-DELIMITER;
+DELIMITER ;
 
 DROP TABLE _bkp_UP_V0002_totp_configurations;
 DROP TABLE _bkp_UP_V0002_u2f_devices;
