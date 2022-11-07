@@ -37,7 +37,7 @@ server:
   timeouts:
     read: 6s
     write: 6s
-    idle: 10s
+    idle: 30s
 ```
 
 ## Options

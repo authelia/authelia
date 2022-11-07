@@ -43,10 +43,10 @@ authelia crypto rand --characters 0123456789ABCDEF
 ### Options
 
 ```
-      --characters string   Sets the explicit characters for the random string
-  -c, --charset string      Sets the charset for the random string, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex' (default "alphanumeric")
+      --characters string   sets the explicit characters for the random string
+  -c, --charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
   -h, --help                help for rand
-  -n, --length int          Sets the length of the random output (default 72)
+  -n, --length int          sets the character length for the random string (default 72)
 ```
 
 ### SEE ALSO
