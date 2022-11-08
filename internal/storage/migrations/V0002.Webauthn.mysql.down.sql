@@ -11,7 +11,7 @@ CREATE TABLE totp_configurations (
     secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period, secret)
 SELECT id, username, issuer, algorithm, digits, period, secret
@@ -25,7 +25,7 @@ CREATE TABLE u2f_devices (
     public_key BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username, description)
-) ENGINE InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 INSERT INTO u2f_devices (id, username, description, key_handle, public_key)
 SELECT id, username, description, FROM_BASE64(kid), public_key

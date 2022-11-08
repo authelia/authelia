@@ -9,7 +9,7 @@ CREATE TABLE authentication_logs (
     request_uri TEXT,
     request_method VARCHAR(8) NOT NULL DEFAULT '',
     PRIMARY KEY (id)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
 CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
@@ -26,7 +26,7 @@ CREATE TABLE identity_verification (
     consumed_ip VARCHAR(39) NULL DEFAULT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (jti)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE totp_configurations (
     id INTEGER AUTO_INCREMENT,
@@ -38,7 +38,7 @@ CREATE TABLE totp_configurations (
     secret BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE u2f_devices (
     id INTEGER AUTO_INCREMENT,
@@ -48,7 +48,7 @@ CREATE TABLE u2f_devices (
     public_key BLOB NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username, description)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE duo_devices (
     id INTEGER AUTO_INCREMENT,
@@ -57,7 +57,7 @@ CREATE TABLE duo_devices (
     method VARCHAR(16) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE user_preferences (
     id INTEGER AUTO_INCREMENT,
@@ -65,7 +65,7 @@ CREATE TABLE user_preferences (
     second_factor_method VARCHAR(11) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY (username)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE migrations (
     id INTEGER AUTO_INCREMENT,
@@ -74,7 +74,7 @@ CREATE TABLE migrations (
     version_after INTEGER NOT NULL,
     application_version VARCHAR(128) NOT NULL,
     PRIMARY KEY (id)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE encryption (
   id INTEGER AUTO_INCREMENT,
@@ -82,4 +82,4 @@ CREATE TABLE encryption (
   value BLOB NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY (name)
-) ENGINE INNODB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
