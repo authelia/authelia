@@ -1,5 +1,8 @@
-ALTER TABLE totp_configurations RENAME TO _bkp_UP_V0002_totp_configurations;
-ALTER TABLE u2f_devices RENAME TO _bkp_UP_V0002_u2f_devices;
+ALTER TABLE totp_configurations
+    RENAME TO _bkp_UP_V0002_totp_configurations;
+
+ALTER TABLE u2f_devices
+    RENAME TO _bkp_UP_V0002_u2f_devices;
 
 CREATE TABLE totp_configurations (
     id SERIAL,

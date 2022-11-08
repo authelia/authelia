@@ -1,5 +1,8 @@
-ALTER TABLE totp_configurations RENAME _bkp_DOWN_V0002_totp_configurations;
-ALTER TABLE webauthn_devices RENAME _bkp_DOWN_V0002_webauthn_devices;
+ALTER TABLE totp_configurations
+    RENAME _bkp_DOWN_V0002_totp_configurations;
+
+ALTER TABLE webauthn_devices
+    RENAME _bkp_DOWN_V0002_webauthn_devices;
 
 CREATE TABLE totp_configurations (
     id INTEGER AUTO_INCREMENT,
@@ -38,3 +41,5 @@ WHERE second_factor_method = 'webauthn';
 
 DROP TABLE IF EXISTS _bkp_DOWN_V0002_totp_configurations;
 DROP TABLE IF EXISTS _bkp_DOWN_V0002_webauthn_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;
+DROP TABLE IF EXISTS _bkp_UP_V0002_u2f_devices;

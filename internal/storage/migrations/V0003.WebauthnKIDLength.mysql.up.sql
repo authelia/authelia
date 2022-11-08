@@ -1,4 +1,5 @@
-ALTER TABLE webauthn_devices RENAME _bkp_UP_V0003_webauthn_devices;
+ALTER TABLE webauthn_devices
+    RENAME _bkp_UP_V0003_webauthn_devices;
 
 CREATE TABLE webauthn_devices (
     id INTEGER AUTO_INCREMENT,

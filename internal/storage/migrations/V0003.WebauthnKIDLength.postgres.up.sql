@@ -1,4 +1,5 @@
-ALTER TABLE webauthn_devices RENAME TO _bkp_UP_V0003_webauthn_devices;
+ALTER TABLE webauthn_devices
+    RENAME TO _bkp_UP_V0003_webauthn_devices;
 
 CREATE TABLE webauthn_devices (
     id SERIAL,

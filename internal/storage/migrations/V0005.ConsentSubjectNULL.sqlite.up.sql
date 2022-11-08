@@ -2,11 +2,17 @@ PRAGMA foreign_keys=off;
 
 BEGIN TRANSACTION;
 
-DELETE FROM oauth2_consent_session WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
-DELETE FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect');
-DELETE FROM user_opaque_identifier WHERE service <> 'openid';
+DELETE FROM oauth2_consent_session
+       WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
 
-ALTER TABLE oauth2_consent_session RENAME TO _bkp_UP_V0005_oauth2_consent_session;
+DELETE FROM user_opaque_identifier
+       WHERE username = '' AND service IN('openid', 'openid_connect');
+
+DELETE FROM user_opaque_identifier
+       WHERE service <> 'openid';
+
+ALTER TABLE oauth2_consent_session
+    RENAME TO _bkp_UP_V0005_oauth2_consent_session;
 
 CREATE TABLE oauth2_consent_session (
     id INTEGER,
@@ -40,7 +46,8 @@ CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_se
 
 DROP TABLE _bkp_UP_V0005_oauth2_consent_session;
 
-ALTER TABLE oauth2_authorization_code_session RENAME TO _bkp_UP_V0005_oauth2_authorization_code_session;
+ALTER TABLE oauth2_authorization_code_session
+    RENAME TO _bkp_UP_V0005_oauth2_authorization_code_session;
 
 CREATE TABLE oauth2_authorization_code_session (
     id INTEGER,
@@ -82,7 +89,8 @@ CREATE INDEX oauth2_authorization_code_session_client_id_subject_idx ON oauth2_a
 
 DROP TABLE _bkp_UP_V0005_oauth2_authorization_code_session;
 
-ALTER TABLE oauth2_access_token_session RENAME TO _bkp_UP_V0005_oauth2_access_token_session;
+ALTER TABLE oauth2_access_token_session
+    RENAME TO _bkp_UP_V0005_oauth2_access_token_session;
 
 CREATE TABLE oauth2_access_token_session (
     id INTEGER,
@@ -124,7 +132,8 @@ CREATE INDEX oauth2_access_token_session_client_id_subject_idx ON oauth2_access_
 
 DROP TABLE _bkp_UP_V0005_oauth2_access_token_session;
 
-ALTER TABLE oauth2_refresh_token_session RENAME TO _bkp_UP_V0005_oauth2_refresh_token_session;
+ALTER TABLE oauth2_refresh_token_session
+    RENAME TO _bkp_UP_V0005_oauth2_refresh_token_session;
 
 CREATE TABLE oauth2_refresh_token_session (
     id INTEGER,
@@ -166,7 +175,8 @@ CREATE INDEX oauth2_refresh_token_session_client_id_subject_idx ON oauth2_refres
 
 DROP TABLE _bkp_UP_V0005_oauth2_refresh_token_session;
 
-ALTER TABLE oauth2_pkce_request_session RENAME TO _bkp_UP_V0005_oauth2_pkce_request_session;
+ALTER TABLE oauth2_pkce_request_session
+    RENAME TO _bkp_UP_V0005_oauth2_pkce_request_session;
 
 CREATE TABLE oauth2_pkce_request_session (
     id INTEGER,
@@ -208,7 +218,8 @@ CREATE INDEX oauth2_pkce_request_session_client_id_subject_idx ON oauth2_pkce_re
 
 DROP TABLE _bkp_UP_V0005_oauth2_pkce_request_session;
 
-ALTER TABLE oauth2_openid_connect_session RENAME TO _bkp_UP_V0005_oauth2_openid_connect_session;
+ALTER TABLE oauth2_openid_connect_session
+    RENAME TO _bkp_UP_V0005_oauth2_openid_connect_session;
 
 CREATE TABLE oauth2_openid_connect_session (
     id INTEGER,
