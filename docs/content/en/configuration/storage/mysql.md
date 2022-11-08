@@ -17,7 +17,7 @@ aliases:
 
 ## Requirements
 
-- Support for the InnoDB Engine
+- Support for the InnoDB Engine (and it must be the default database engine)
 - Support for the `utf8mb4_unicode_520_ci` collation
 - Support for the `utf8mb4` charset
 - Support for key indexes with a length of 2048 bits or more
