@@ -2,16 +2,16 @@ PRAGMA foreign_keys=off;
 
 BEGIN TRANSACTION;
 
-DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;
-DROP TABLE IF EXISTS _bkp_UP_V0002_u2f_devices;
+
+
 
 ALTER TABLE webauthn_devices
-    RENAME TO _bkp_UP_V0007_webauthn_devices;
+    RENAME TO _bkp_DOWN_V0007_webauthn_devices;
 
 CREATE TABLE webauthn_devices (
     id INTEGER,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_used_at DATETIME NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMP NULL DEFAULT NULL,
     rpid TEXT,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',
@@ -19,157 +19,157 @@ CREATE TABLE webauthn_devices (
     public_key BLOB NOT NULL,
     attestation_type VARCHAR(32),
     transport VARCHAR(20) DEFAULT '',
-    aaguid CHAR(36) NULL,
+    aaguid CHAR(36) NOT NULL,
     sign_count INTEGER DEFAULT 0,
-    clone_warning TINYINT NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (id)
+    clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id),
+    UNIQUE (username, description),
+    UNIQUE (kid)
 );
 
-CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (username, description);
-CREATE UNIQUE INDEX webauthn_devices_kid_key ON webauthn_devices (kid);
 
 INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning)
 SELECT created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
-FROM _bkp_UP_V0007_webauthn_devices;
+FROM _bkp_DOWN_V0007_webauthn_devices;
 
-DROP TABLE _bkp_UP_V0007_webauthn_devices;
+DROP TABLE _bkp_DOWN_V0007_webauthn_devices;
 
 ALTER TABLE identity_verification
-    RENAME TO _bkp_UP_V0007_identity_verification;
+    RENAME TO _bkp_DOWN_V0007_identity_verification;
 
 CREATE TABLE identity_verification (
     id INTEGER,
     jti VARCHAR(36),
-    iat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     issued_ip VARCHAR(39) NOT NULL,
-    exp DATETIME NOT NULL,
+    exp TIMESTAMP NOT NULL,
     username VARCHAR(100) NOT NULL,
     action VARCHAR(50) NOT NULL,
-    consumed DATETIME NULL DEFAULT NULL,
+    consumed TIMESTAMP NULL DEFAULT NULL,
     consumed_ip VARCHAR(39) NULL DEFAULT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (jti)
 );
 
-CREATE UNIQUE INDEX identity_verification_jti_key ON identity_verification (jti);
 
 INSERT INTO identity_verification (jti, iat, issued_ip, exp, username, action, consumed, consumed_ip)
 SELECT jti, iat, issued_ip, exp, username, action, consumed, consumed_ip
-FROM _bkp_UP_V0007_identity_verification
+FROM _bkp_DOWN_V0007_identity_verification
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_identity_verification;
+DROP TABLE _bkp_DOWN_V0007_identity_verification;
 
 ALTER TABLE totp_configurations
-    RENAME TO _bkp_UP_V0007_totp_configurations;
+    RENAME TO _bkp_DOWN_V0007_totp_configurations;
 
 CREATE TABLE totp_configurations (
     id INTEGER,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_used_at DATETIME NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMP NULL DEFAULT NULL,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
     algorithm VARCHAR(6) NOT NULL DEFAULT 'SHA1',
     digits INTEGER NOT NULL DEFAULT 6,
     period INTEGER NOT NULL DEFAULT 30,
     secret BLOB NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (username)
 );
-
-CREATE UNIQUE INDEX totp_configurations_username_key ON totp_configurations (username);
 
 INSERT INTO totp_configurations (username, issuer, algorithm, digits, period, secret)
 SELECT username, issuer, algorithm, digits, period, secret
-FROM _bkp_UP_V0007_totp_configurations
+FROM _bkp_DOWN_V0007_totp_configurations
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_totp_configurations;
+
+DROP TABLE _bkp_DOWN_V0007_totp_configurations;
 
 ALTER TABLE duo_devices
-    RENAME TO _bkp_UP_V0007_duo_devices;
+    RENAME TO _bkp_DOWN_V0007_duo_devices;
 
 CREATE TABLE duo_devices (
     id INTEGER,
     username VARCHAR(100) NOT NULL,
     device VARCHAR(32) NOT NULL,
     method VARCHAR(16) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (username)
 );
-
-CREATE UNIQUE INDEX duo_devices_username_key ON duo_devices (username);
 
 INSERT INTO duo_devices (username, device, method)
 SELECT username, device, method
-FROM _bkp_UP_V0007_duo_devices
+FROM _bkp_DOWN_V0007_duo_devices
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_duo_devices;
+
+DROP TABLE _bkp_DOWN_V0007_duo_devices;
 
 ALTER TABLE user_preferences
-    RENAME TO _bkp_UP_V0007_user_preferences;
+    RENAME TO _bkp_DOWN_V0007_user_preferences;
 
 CREATE TABLE user_preferences (
     id INTEGER,
     username VARCHAR(100) NOT NULL,
     second_factor_method VARCHAR(11) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (username)
 );
 
-CREATE UNIQUE INDEX user_preferences_username_key ON user_preferences (username);
 
 INSERT INTO user_preferences (username, second_factor_method)
 SELECT username, second_factor_method
-FROM _bkp_UP_V0007_user_preferences
+FROM _bkp_DOWN_V0007_user_preferences
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_user_preferences;
+DROP TABLE _bkp_DOWN_V0007_user_preferences;
 
 ALTER TABLE encryption
-    RENAME TO _bkp_UP_V0007_encryption;
+    RENAME TO _bkp_DOWN_V0007_encryption;
 
 CREATE TABLE encryption (
   id INTEGER,
   name VARCHAR(100),
   value BLOB NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  UNIQUE (name)
 );
 
-CREATE UNIQUE INDEX encryption_name_key ON encryption (name);
 
 INSERT INTO encryption (name, value)
 SELECT name, value
-FROM _bkp_UP_V0007_encryption
+FROM _bkp_DOWN_V0007_encryption
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_encryption;
+DROP TABLE _bkp_DOWN_V0007_encryption;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_consent_preconfiguration (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_consent_preconfiguration (
     id INTEGER,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	expires_at DATETIME NULL DEFAULT NULL,
-	revoked TINYINT NOT NULL DEFAULT FALSE,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	expires_at TIMESTAMP NULL DEFAULT NULL,
+	revoked BOOLEAN NOT NULL DEFAULT FALSE,
     scopes TEXT NOT NULL,
     audience TEXT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_consent_preconfiguration (client_id, subject, created_at, expires_at, revoked, scopes, audience)
+INSERT INTO _bkp_DOWN_V0007_oauth2_consent_preconfiguration (client_id, subject, created_at, expires_at, revoked, scopes, audience)
 SELECT client_id, subject, created_at, expires_at, revoked, scopes, audience
 FROM oauth2_consent_preconfiguration
 ORDER BY id;
 
 DROP TABLE oauth2_consent_preconfiguration;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_consent_session (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_consent_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    authorized TINYINT NOT NULL DEFAULT FALSE,
-    granted TINYINT NOT NULL DEFAULT FALSE,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    responded_at DATETIME NULL DEFAULT NULL,
+    authorized BOOLEAN NOT NULL DEFAULT FALSE,
+    granted BOOLEAN NOT NULL DEFAULT FALSE,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    responded_at TIMESTAMP NULL DEFAULT NULL,
     form_data TEXT NOT NULL,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
@@ -179,137 +179,137 @@ CREATE TABLE _bkp_UP_V0007_oauth2_consent_session (
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_consent_session (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration)
+INSERT INTO _bkp_DOWN_V0007_oauth2_consent_session (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration)
 SELECT challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration
 FROM oauth2_consent_session
 ORDER BY id;
 
 DROP TABLE oauth2_consent_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_authorization_code_session (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_authorization_code_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_authorization_code_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+INSERT INTO _bkp_DOWN_V0007_oauth2_authorization_code_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM oauth2_authorization_code_session
 ORDER BY id;
 
 DROP TABLE oauth2_authorization_code_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_access_token_session (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_access_token_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_access_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+INSERT INTO _bkp_DOWN_V0007_oauth2_access_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM oauth2_access_token_session
 ORDER BY id;
 
 DROP TABLE oauth2_access_token_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_refresh_token_session (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_refresh_token_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+INSERT INTO _bkp_DOWN_V0007_oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM oauth2_refresh_token_session
 ORDER BY id;
 
 DROP TABLE oauth2_refresh_token_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_pkce_request_session (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_pkce_request_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_pkce_request_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+INSERT INTO _bkp_DOWN_V0007_oauth2_pkce_request_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM oauth2_pkce_request_session
 ORDER BY id;
 
 DROP TABLE oauth2_pkce_request_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_openid_connect_session (
+CREATE TABLE _bkp_DOWN_V0007_oauth2_openid_connect_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id)
 );
 
-INSERT INTO _bkp_UP_V0007_oauth2_openid_connect_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
+INSERT INTO _bkp_DOWN_V0007_oauth2_openid_connect_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM oauth2_openid_connect_session
 ORDER BY id;
@@ -317,10 +317,10 @@ ORDER BY id;
 DROP TABLE oauth2_openid_connect_session;
 
 DROP INDEX user_opaque_identifier_identifier_key;
-DROP INDEX user_opaque_identifier_service_sector_id_username_key;
+DROP INDEX user_opaque_identifier_lookup_key;
 
 ALTER TABLE user_opaque_identifier
-	RENAME TO _bkp_UP_V0007_user_opaque_identifier;
+	RENAME TO _bkp_DOWN_V0007_user_opaque_identifier;
 
 CREATE TABLE user_opaque_identifier (
     id INTEGER,
@@ -331,27 +331,27 @@ CREATE TABLE user_opaque_identifier (
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX user_opaque_identifier_lookup_key ON user_opaque_identifier (service, sector_id, username);
+CREATE UNIQUE INDEX user_opaque_identifier_service_sector_id_username_key ON user_opaque_identifier (service, sector_id, username);
 CREATE UNIQUE INDEX user_opaque_identifier_identifier_key ON user_opaque_identifier (identifier);
 
 INSERT INTO user_opaque_identifier (service, sector_id, username, identifier)
 SELECT service, sector_id, username, identifier
-FROM _bkp_UP_V0007_user_opaque_identifier
+FROM _bkp_DOWN_V0007_user_opaque_identifier
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_user_opaque_identifier;
+DROP TABLE _bkp_DOWN_V0007_user_opaque_identifier;
 
 DROP INDEX authentication_logs_username_idx;
 DROP INDEX authentication_logs_remote_ip_idx;
 
 ALTER TABLE authentication_logs
-	RENAME TO _bkp_UP_V0007_authentication_logs;
+	RENAME TO _bkp_DOWN_V0007_authentication_logs;
 
 CREATE TABLE authentication_logs (
     id INTEGER,
-    time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    successful TINYINT NOT NULL,
-    banned TINYINT NOT NULL DEFAULT FALSE,
+    time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    successful BOOLEAN NOT NULL,
+    banned BOOLEAN NOT NULL DEFAULT FALSE,
     username VARCHAR(100) NOT NULL,
     auth_type VARCHAR(8) NOT NULL DEFAULT '1FA',
     remote_ip VARCHAR(39) NULL DEFAULT NULL,
@@ -365,17 +365,17 @@ CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, rem
 
 INSERT INTO authentication_logs (time, successful, banned, username, auth_type, remote_ip, request_uri, request_method)
 SELECT time, successful, banned, username, auth_type, remote_ip, request_uri, request_method
-FROM _bkp_UP_V0007_authentication_logs
+FROM _bkp_DOWN_V0007_authentication_logs
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_authentication_logs;
+DROP TABLE _bkp_DOWN_V0007_authentication_logs;
 
 ALTER TABLE migrations
-	RENAME TO _bkp_UP_V0007_migrations;
+	RENAME TO _bkp_DOWN_V0007_migrations;
 
 CREATE TABLE migrations (
     id INTEGER,
-    applied DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version_before INTEGER NULL DEFAULT NULL,
     version_after INTEGER NOT NULL,
     application_version VARCHAR(128) NOT NULL,
@@ -384,20 +384,20 @@ CREATE TABLE migrations (
 
 INSERT INTO migrations (applied, version_before, version_after, application_version)
 SELECT applied, version_before, version_after, application_version
-FROM _bkp_UP_V0007_migrations
+FROM _bkp_DOWN_V0007_migrations
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_migrations;
+DROP TABLE _bkp_DOWN_V0007_migrations;
 
 DROP INDEX oauth2_blacklisted_jti_signature_key;
 
 ALTER TABLE oauth2_blacklisted_jti
-	RENAME TO _bkp_UP_V0007_oauth2_blacklisted_jti;
+	RENAME TO _bkp_DOWN_V0007_oauth2_blacklisted_jti;
 
 CREATE TABLE oauth2_blacklisted_jti (
     id INTEGER,
     signature VARCHAR(64) NOT NULL,
-    expires_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
 
@@ -405,42 +405,42 @@ CREATE UNIQUE INDEX oauth2_blacklisted_jti_signature_key ON oauth2_blacklisted_j
 
 INSERT INTO oauth2_blacklisted_jti (signature, expires_at)
 SELECT signature, expires_at
-FROM _bkp_UP_V0007_oauth2_blacklisted_jti
+FROM _bkp_DOWN_V0007_oauth2_blacklisted_jti
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_blacklisted_jti;
+DROP TABLE _bkp_DOWN_V0007_oauth2_blacklisted_jti;
 
 CREATE TABLE oauth2_consent_preconfiguration (
     id INTEGER,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	expires_at DATETIME NULL DEFAULT NULL,
-	revoked TINYINT NOT NULL DEFAULT FALSE,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	expires_at TIMESTAMP NULL DEFAULT NULL,
+	revoked BOOLEAN NOT NULL DEFAULT FALSE,
     scopes TEXT NOT NULL,
     audience TEXT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT "oauth2_consent_preconfiguration_subject_fkey"
+    CONSTRAINT oauth2_consent_preconfiguration_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_consent_preconfiguration (client_id, subject, created_at, expires_at, revoked, scopes, audience)
 SELECT client_id, subject, created_at, expires_at, revoked, scopes, audience
-FROM _bkp_UP_V0007_oauth2_consent_preconfiguration
+FROM _bkp_DOWN_V0007_oauth2_consent_preconfiguration
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_consent_preconfiguration;
+DROP TABLE _bkp_DOWN_V0007_oauth2_consent_preconfiguration;
 
 CREATE TABLE oauth2_consent_session (
     id INTEGER,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    authorized TINYINT NOT NULL DEFAULT FALSE,
-    granted TINYINT NOT NULL DEFAULT FALSE,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    responded_at DATETIME NULL DEFAULT NULL,
+    authorized BOOLEAN NOT NULL DEFAULT FALSE,
+    granted BOOLEAN NOT NULL DEFAULT FALSE,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    responded_at TIMESTAMP NULL DEFAULT NULL,
     form_data TEXT NOT NULL,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
@@ -450,7 +450,7 @@ CREATE TABLE oauth2_consent_session (
     PRIMARY KEY (id),
     CONSTRAINT oauth2_consent_session_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT,
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT oauth2_consent_session_preconfiguration_fkey
         FOREIGN KEY (preconfiguration)
             REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE
@@ -460,10 +460,10 @@ CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_se
 
 INSERT INTO oauth2_consent_session (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration)
 SELECT challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration
-FROM _bkp_UP_V0007_oauth2_consent_session
+FROM _bkp_DOWN_V0007_oauth2_consent_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_consent_session;
+DROP TABLE _bkp_DOWN_V0007_oauth2_consent_session;
 
 CREATE TABLE oauth2_authorization_code_session (
     id INTEGER,
@@ -472,13 +472,13 @@ CREATE TABLE oauth2_authorization_code_session (
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
@@ -487,7 +487,7 @@ CREATE TABLE oauth2_authorization_code_session (
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_authorization_code_session_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
@@ -496,10 +496,10 @@ CREATE INDEX oauth2_authorization_code_session_client_id_subject_idx ON oauth2_a
 
 INSERT INTO oauth2_authorization_code_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
-FROM _bkp_UP_V0007_oauth2_authorization_code_session
+FROM _bkp_DOWN_V0007_oauth2_authorization_code_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_authorization_code_session;
+DROP TABLE _bkp_DOWN_V0007_oauth2_authorization_code_session;
 
 CREATE TABLE oauth2_access_token_session (
     id INTEGER,
@@ -508,13 +508,13 @@ CREATE TABLE oauth2_access_token_session (
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
@@ -523,7 +523,7 @@ CREATE TABLE oauth2_access_token_session (
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_access_token_session_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
@@ -532,10 +532,10 @@ CREATE INDEX oauth2_access_token_session_client_id_subject_idx ON oauth2_access_
 
 INSERT INTO oauth2_access_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
-FROM _bkp_UP_V0007_oauth2_access_token_session
+FROM _bkp_DOWN_V0007_oauth2_access_token_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_access_token_session;
+DROP TABLE _bkp_DOWN_V0007_oauth2_access_token_session;
 
 CREATE TABLE oauth2_refresh_token_session (
     id INTEGER,
@@ -544,13 +544,13 @@ CREATE TABLE oauth2_refresh_token_session (
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
@@ -559,7 +559,7 @@ CREATE TABLE oauth2_refresh_token_session (
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_refresh_token_session_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
@@ -568,10 +568,10 @@ CREATE INDEX oauth2_refresh_token_session_client_id_subject_idx ON oauth2_refres
 
 INSERT INTO oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
-FROM _bkp_UP_V0007_oauth2_refresh_token_session
+FROM _bkp_DOWN_V0007_oauth2_refresh_token_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_refresh_token_session;
+DROP TABLE _bkp_DOWN_V0007_oauth2_refresh_token_session;
 
 CREATE TABLE oauth2_pkce_request_session (
     id INTEGER,
@@ -580,13 +580,13 @@ CREATE TABLE oauth2_pkce_request_session (
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
@@ -595,7 +595,7 @@ CREATE TABLE oauth2_pkce_request_session (
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_pkce_request_session_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
@@ -604,10 +604,10 @@ CREATE INDEX oauth2_pkce_request_session_client_id_subject_idx ON oauth2_pkce_re
 
 INSERT INTO oauth2_pkce_request_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
-FROM _bkp_UP_V0007_oauth2_pkce_request_session
+FROM _bkp_DOWN_V0007_oauth2_pkce_request_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_pkce_request_session;
+DROP TABLE _bkp_DOWN_V0007_oauth2_pkce_request_session;
 
 CREATE TABLE oauth2_openid_connect_session (
     id INTEGER,
@@ -616,13 +616,13 @@ CREATE TABLE oauth2_openid_connect_session (
     client_id VARCHAR(255) NOT NULL,
     signature VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     PRIMARY KEY (id),
@@ -631,7 +631,7 @@ CREATE TABLE oauth2_openid_connect_session (
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT oauth2_openid_connect_session_subject_fkey
         FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
 CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
@@ -640,10 +640,10 @@ CREATE INDEX oauth2_openid_connect_session_client_id_subject_idx ON oauth2_openi
 
 INSERT INTO oauth2_openid_connect_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
-FROM _bkp_UP_V0007_oauth2_openid_connect_session
+FROM _bkp_DOWN_V0007_oauth2_openid_connect_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_openid_connect_session;
+DROP TABLE _bkp_DOWN_V0007_oauth2_openid_connect_session;
 
 COMMIT;
 

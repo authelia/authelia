@@ -11,6 +11,8 @@ DELETE FROM user_opaque_identifier
 DELETE FROM user_opaque_identifier
        WHERE service <> 'openid';
 
+DROP INDEX oauth2_consent_session_challenge_id_key;
+
 ALTER TABLE oauth2_consent_session
     RENAME TO _bkp_UP_V0005_oauth2_consent_session;
 
@@ -35,16 +37,18 @@ CREATE TABLE oauth2_consent_session (
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
+CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
+
 INSERT INTO oauth2_consent_session (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
 SELECT challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at, form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
 FROM _bkp_UP_V0005_oauth2_consent_session
 ORDER BY id;
 
-DROP INDEX oauth2_consent_session_challenge_id_key;
-
-CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
-
 DROP TABLE _bkp_UP_V0005_oauth2_consent_session;
+
+DROP INDEX oauth2_authorization_code_session_request_id_idx;
+DROP INDEX oauth2_authorization_code_session_client_id_idx;
+DROP INDEX oauth2_authorization_code_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_authorization_code_session
     RENAME TO _bkp_UP_V0005_oauth2_authorization_code_session;
@@ -74,20 +78,20 @@ CREATE TABLE oauth2_authorization_code_session (
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
+CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
+CREATE INDEX oauth2_authorization_code_session_client_id_idx ON oauth2_authorization_code_session (client_id);
+CREATE INDEX oauth2_authorization_code_session_client_id_subject_idx ON oauth2_authorization_code_session (client_id, subject);
+
 INSERT INTO oauth2_authorization_code_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_authorization_code_session
 ORDER BY id;
 
-DROP INDEX oauth2_authorization_code_session_request_id_idx;
-DROP INDEX oauth2_authorization_code_session_client_id_idx;
-DROP INDEX oauth2_authorization_code_session_client_id_subject_idx;
-
-CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
-CREATE INDEX oauth2_authorization_code_session_client_id_idx ON oauth2_authorization_code_session (client_id);
-CREATE INDEX oauth2_authorization_code_session_client_id_subject_idx ON oauth2_authorization_code_session (client_id, subject);
-
 DROP TABLE _bkp_UP_V0005_oauth2_authorization_code_session;
+
+DROP INDEX oauth2_access_token_session_request_id_idx;
+DROP INDEX oauth2_access_token_session_client_id_idx;
+DROP INDEX oauth2_access_token_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_access_token_session
     RENAME TO _bkp_UP_V0005_oauth2_access_token_session;
@@ -117,20 +121,20 @@ CREATE TABLE oauth2_access_token_session (
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
+CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
+CREATE INDEX oauth2_access_token_session_client_id_idx ON oauth2_access_token_session (client_id);
+CREATE INDEX oauth2_access_token_session_client_id_subject_idx ON oauth2_access_token_session (client_id, subject);
+
 INSERT INTO oauth2_access_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_access_token_session
 ORDER BY id;
 
-DROP INDEX oauth2_access_token_session_request_id_idx;
-DROP INDEX oauth2_access_token_session_client_id_idx;
-DROP INDEX oauth2_access_token_session_client_id_subject_idx;
-
-CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
-CREATE INDEX oauth2_access_token_session_client_id_idx ON oauth2_access_token_session (client_id);
-CREATE INDEX oauth2_access_token_session_client_id_subject_idx ON oauth2_access_token_session (client_id, subject);
-
 DROP TABLE _bkp_UP_V0005_oauth2_access_token_session;
+
+DROP INDEX oauth2_refresh_token_session_request_id_idx;
+DROP INDEX oauth2_refresh_token_session_client_id_idx;
+DROP INDEX oauth2_refresh_token_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_refresh_token_session
     RENAME TO _bkp_UP_V0005_oauth2_refresh_token_session;
@@ -160,20 +164,20 @@ CREATE TABLE oauth2_refresh_token_session (
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
+CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
+CREATE INDEX oauth2_refresh_token_session_client_id_idx ON oauth2_refresh_token_session (client_id);
+CREATE INDEX oauth2_refresh_token_session_client_id_subject_idx ON oauth2_refresh_token_session (client_id, subject);
+
 INSERT INTO oauth2_refresh_token_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_refresh_token_session
 ORDER BY id;
 
-DROP INDEX oauth2_refresh_token_session_request_id_idx;
-DROP INDEX oauth2_refresh_token_session_client_id_idx;
-DROP INDEX oauth2_refresh_token_session_client_id_subject_idx;
-
-CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
-CREATE INDEX oauth2_refresh_token_session_client_id_idx ON oauth2_refresh_token_session (client_id);
-CREATE INDEX oauth2_refresh_token_session_client_id_subject_idx ON oauth2_refresh_token_session (client_id, subject);
-
 DROP TABLE _bkp_UP_V0005_oauth2_refresh_token_session;
+
+DROP INDEX oauth2_pkce_request_session_request_id_idx;
+DROP INDEX oauth2_pkce_request_session_client_id_idx;
+DROP INDEX oauth2_pkce_request_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_pkce_request_session
     RENAME TO _bkp_UP_V0005_oauth2_pkce_request_session;
@@ -203,20 +207,20 @@ CREATE TABLE oauth2_pkce_request_session (
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
+CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
+CREATE INDEX oauth2_pkce_request_session_client_id_idx ON oauth2_pkce_request_session (client_id);
+CREATE INDEX oauth2_pkce_request_session_client_id_subject_idx ON oauth2_pkce_request_session (client_id, subject);
+
 INSERT INTO oauth2_pkce_request_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_pkce_request_session
 ORDER BY id;
 
-DROP INDEX oauth2_pkce_request_session_request_id_idx;
-DROP INDEX oauth2_pkce_request_session_client_id_idx;
-DROP INDEX oauth2_pkce_request_session_client_id_subject_idx;
-
-CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
-CREATE INDEX oauth2_pkce_request_session_client_id_idx ON oauth2_pkce_request_session (client_id);
-CREATE INDEX oauth2_pkce_request_session_client_id_subject_idx ON oauth2_pkce_request_session (client_id, subject);
-
 DROP TABLE _bkp_UP_V0005_oauth2_pkce_request_session;
+
+DROP INDEX oauth2_openid_connect_session_request_id_idx;
+DROP INDEX oauth2_openid_connect_session_client_id_idx;
+DROP INDEX oauth2_openid_connect_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_openid_connect_session
     RENAME TO _bkp_UP_V0005_oauth2_openid_connect_session;
@@ -246,18 +250,14 @@ CREATE TABLE oauth2_openid_connect_session (
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
+CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
+CREATE INDEX oauth2_openid_connect_session_client_id_idx ON oauth2_openid_connect_session (client_id);
+CREATE INDEX oauth2_openid_connect_session_client_id_subject_idx ON oauth2_openid_connect_session (client_id, subject);
+
 INSERT INTO oauth2_openid_connect_session (challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data)
 SELECT challenge_id, request_id, client_id, signature, subject, requested_at, requested_scopes, granted_scopes, requested_audience, granted_audience, active, revoked, form_data, session_data
 FROM _bkp_UP_V0005_oauth2_openid_connect_session
 ORDER BY id;
-
-DROP INDEX oauth2_openid_connect_session_request_id_idx;
-DROP INDEX oauth2_openid_connect_session_client_id_idx;
-DROP INDEX oauth2_openid_connect_session_client_id_subject_idx;
-
-CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
-CREATE INDEX oauth2_openid_connect_session_client_id_idx ON oauth2_openid_connect_session (client_id);
-CREATE INDEX oauth2_openid_connect_session_client_id_subject_idx ON oauth2_openid_connect_session (client_id, subject);
 
 DROP TABLE _bkp_UP_V0005_oauth2_openid_connect_session;
 
