@@ -57,16 +57,23 @@ According to the Oracle documentation this is the default behaviour in
 [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_large_prefix) and it can't be
 turned off in [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or in [MariaDB] 10.3 and later.
 
+```cnf
+[mysqld]
+innodb_large_prefix = ON
+```
+
 #### ANSI standard time behaviours
 
 This can be configured in the [MySQL] configuration file by setting the `explicit_defaults_for_timestamp` value to on.
 According to the Oracle documentation this is the default behaviour in
-[5.7](https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp)
-and [8.0](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp).
+[MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp)
+and [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp).
+This is however not the default behaviour in
+[MariaDB](https://mariadb.com/kb/en/server-system-variables/#explicit_defaults_for_timestamp) before 10.10.
 
 ```cnf
 [mysqld]
-explicit_defaults_for_timestamp = on
+explicit_defaults_for_timestamp = ON
 ```
 
 ### Vendor Supported Versions
