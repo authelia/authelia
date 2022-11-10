@@ -98,18 +98,7 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 		return err
 	}
 
-	var weight int
-
-	switch name {
-	case "authelia":
-		weight = 900
-	case "authelia-gen":
-		weight = 910
-	case "authelia-scripts":
-		weight = 920
-	default:
-		weight = 990
-	}
+	weight := genCLIDocCmdToWeight(name)
 
 	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), "cli-"+name, weight)
 
@@ -126,24 +115,26 @@ func prepend(input string) string {
 
 	args := strings.Join(parts, " ")
 
-	var weight int
-
-	switch parts[0] {
-	case "authelia":
-		weight = 900
-	case "authelia-gen":
-		weight = 910
-	case "authelia-scripts":
-		weight = 920
-	default:
-		weight = 990
-	}
+	weight := genCLIDocCmdToWeight(parts[0])
 
 	if len(parts) != 1 {
 		weight += 5
 	}
 
 	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), "cli-"+cmd, weight)
+}
+
+func genCLIDocCmdToWeight(cmd string) int {
+	switch cmd {
+	case "authelia":
+		return 900
+	case "authelia-gen":
+		return 910
+	case "authelia-scripts":
+		return 920
+	default:
+		return 990
+	}
 }
 
 func linker(input string) string {
