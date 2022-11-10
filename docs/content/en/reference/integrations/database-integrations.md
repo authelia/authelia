@@ -2,7 +2,7 @@
 title: "Database Integrations"
 description: "A database integration reference guide"
 lead: "This section contains a database integration reference guide for Authelia."
-date: 2022-06-15T17:51:47+10:00
+date: 2022-11-10T11:03:47+11:00
 draft: false
 images: []
 menu:
