@@ -22,8 +22,8 @@ The only current support criteria for [PostgreSQL] at present is that the versio
 [PostgreSQL] developers. See their [Versioning Policy](https://www.postgresql.org/support/versioning/) for more
 information.
 
-We generally perform testing against the latest supported version of [PostgreSQL] and that is generally the recommended
-version for new installations.
+We generally perform integration testing against the latest supported version of [PostgreSQL] and that is generally the
+recommended version for new installations.
 
 ## MySQL
 
@@ -37,14 +37,16 @@ party.
 1. Must both support the `InnoDB` engine and this engine must be the default engine.
 2. Must support the `utf8mb4` charset.
 3. Must support the `utf8mb4_unicode_520_ci` collation.
-4. Must support maximum index size of no less than 2048 bytes.
-   1. With [MySQL] the default maximum index size for the InnoDB engine is 3072 bytes on:
-      1. [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) provided
-         [innodb_large_prefix](#innodb-large-prefixes).
-      2. [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html).
-   2. With [MariaDB] the default maximum index size for the InnoDB engine is 3072 bytes on:
-      1. [10.3](https://mariadb.com/kb/en/innodb-system-variables/#innodb_large_prefix) and later.
+4. Must support maximum index size of no less than 2048 bytes. The default maximum index size for the InnoDB engine is
+   3072 bytes on:
+    1. [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or later.
+    2. [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) provided
+         [innodb_large_prefix](#innodb-large-prefixes) or later.
+    3. [MariaDB] [10.3](https://mariadb.com/kb/en/innodb-system-variables/#innodb_large_prefix) or later.
 5. Must support ANSI standard time behaviours. See [ANSI standard time behaviours](#ansi-standard-time-behaviours).
+
+We generally perform integration testing against the latest supported version of [MySQL] and [MariaDB], and the latest
+supported version of [MariaDB] is generally the recommended version for new installations.
 
 ### Specific Notes
 
