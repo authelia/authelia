@@ -98,10 +98,17 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 		return err
 	}
 
-	weight := 900
+	var weight int
 
-	if name == "authelia" {
-		weight = 320
+	switch name {
+	case "authelia":
+		weight = 900
+	case "authelia-gen":
+		weight = 910
+	case "authelia-scripts":
+		weight = 920
+	default:
+		weight = 990
 	}
 
 	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), "cli-"+name, weight)
@@ -119,9 +126,21 @@ func prepend(input string) string {
 
 	args := strings.Join(parts, " ")
 
-	weight := 330
-	if len(parts) == 1 {
-		weight = 320
+	var weight int
+
+	switch parts[0] {
+	case "authelia":
+		weight = 900
+	case "authelia-gen":
+		weight = 910
+	case "authelia-scripts":
+		weight = 920
+	default:
+		weight = 990
+	}
+
+	if len(parts) != 1 {
+		weight += 5
 	}
 
 	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), "cli-"+cmd, weight)

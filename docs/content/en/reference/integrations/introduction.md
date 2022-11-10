@@ -1,0 +1,24 @@
+---
+title: "Integrations"
+description: "A collection of integration reference guides"
+lead: "This section contains integration reference guides for Authelia."
+date: 2022-06-15T17:51:47+10:00
+draft: false
+images: []
+menu:
+  reference:
+    parent: "integrations"
+weight: 310
+toc: true
+---
+
+The integration guides in this section detail specific requirements when integrating Authelia with other products such
+as supported versions, configurations, etc.
+
+## General Rules
+
+1. If the version or platform of the third party integration or combination thereof is not unsupported by the
+   developer/vendor/etc of the third party integration we likely will not support it.
+2. When we claim to support a product it is expressly the official releases of the product. It does not include
+   versions that are heavily modified or drop in replacements (such as KeyDB which is a drop in replacement for redis
+   that IS NOT supported).

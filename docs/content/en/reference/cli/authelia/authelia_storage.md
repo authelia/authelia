@@ -8,7 +8,7 @@ images: []
 menu:
   reference:
     parent: "cli-authelia"
-weight: 330
+weight: 905
 toc: true
 ---
 
@@ -60,5 +60,6 @@ authelia storage --help
 * [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
 * [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations
 * [authelia storage schema-info](authelia_storage_schema-info.md)	 - Show the storage information
+* [authelia storage test](authelia_storage_test.md)	 - 
 * [authelia storage user](authelia_storage_user.md)	 - Manages user settings
 
