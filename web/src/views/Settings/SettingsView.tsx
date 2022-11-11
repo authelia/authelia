@@ -27,9 +27,14 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
+import { IndexRoute } from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useAutheliaState } from "@hooks/State";
 import { WebauthnDevice } from "@root/models/Webauthn";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
+import { AuthenticationLevel } from "@services/State";
 
 import AddSecurityKeyDialog from "./AddSecurityDialog";
 
@@ -38,8 +43,11 @@ interface Props {}
 const drawerWidth = 240;
 
 export default function SettingsView(props: Props) {
+    const { createErrorNotification } = useNotifications();
+    const navigate = useNavigate();
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
     const [addKeyOpen, setAddKeyOpen] = useState<boolean>(false);
+    const [state, fetchState, , fetchStateError] = useAutheliaState();
 
     useEffect(() => {
         (async function () {
@@ -47,6 +55,24 @@ export default function SettingsView(props: Props) {
             setWebauthnDevices(devices);
         })();
     }, []);
+
+    useEffect(() => {
+        if (!state || state.authentication_level <= AuthenticationLevel.Unauthenticated) {
+            navigate(IndexRoute);
+        }
+    }, [state, navigate]);
+
+    // Fetch the state when portal is mounted.
+    useEffect(() => {
+        fetchState();
+    }, [fetchState]);
+
+    // Display an error when state fetching fails
+    useEffect(() => {
+        if (fetchStateError) {
+            createErrorNotification("There was an issue fetching the current user state");
+        }
+    }, [fetchStateError, createErrorNotification]);
 
     const handleKeyClose = () => {
         setAddKeyOpen(false);
