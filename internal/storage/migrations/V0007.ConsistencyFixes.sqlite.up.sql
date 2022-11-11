@@ -110,8 +110,7 @@ CREATE UNIQUE INDEX duo_devices_username_key ON duo_devices (username);
 
 INSERT INTO duo_devices (username, device, method)
 SELECT username, device, method
-FROM _bkp_UP_V0007_duo_devices
-ORDER BY id;
+FROM _bkp_UP_V0007_duo_devices;
 
 DROP TABLE _bkp_UP_V0007_duo_devices;
 
