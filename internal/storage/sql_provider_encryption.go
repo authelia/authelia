@@ -278,7 +278,7 @@ func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (valu
 	return p.decrypt(encryptedValue)
 }
 
-func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, key *[32]byte, e sqlx.ExecerContext) (err error) {
+func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, key *[32]byte, client SQLXClient) (err error) {
 	valueClearText, err := uuid.NewRandom()
 	if err != nil {
 		return err
@@ -289,11 +289,7 @@ func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, key *[32]b
 		return err
 	}
 
-	if e != nil {
-		_, err = e.ExecContext(ctx, p.sqlUpsertEncryptionValue, encryptionNameCheck, value)
-	} else {
-		_, err = p.db.ExecContext(ctx, p.sqlUpsertEncryptionValue, encryptionNameCheck, value)
-	}
+	_, err = client.ExecContext(ctx, p.sqlUpsertEncryptionValue, encryptionNameCheck, value)
 
 	return err
 }

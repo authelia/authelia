@@ -1,7 +1,5 @@
 PRAGMA foreign_keys=off;
 
-BEGIN TRANSACTION;
-
 DELETE FROM oauth2_consent_session WHERE subject IN(SELECT identifier FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect'));
 DELETE FROM user_opaque_identifier WHERE username = '' AND service IN('openid', 'openid_connect');
 DELETE FROM user_opaque_identifier WHERE service <> 'openid';
@@ -249,7 +247,5 @@ CREATE INDEX oauth2_openid_connect_session_client_id_idx ON oauth2_openid_connec
 CREATE INDEX oauth2_openid_connect_session_client_id_subject_idx ON oauth2_openid_connect_session (client_id, subject);
 
 DROP TABLE _bkp_UP_V0005_oauth2_openid_connect_session;
-
-COMMIT;
 
 PRAGMA foreign_keys=on;

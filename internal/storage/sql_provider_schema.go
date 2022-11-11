@@ -84,8 +84,7 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *model.Migration, err error) {
 	migration = &model.Migration{}
 
-	err = p.db.QueryRowxContext(ctx, p.sqlSelectLatestMigration).StructScan(migration)
-	if err != nil {
+	if err = p.db.QueryRowxContext(ctx, p.sqlSelectLatestMigration).StructScan(migration); err != nil {
 		return nil, err
 	}
 
@@ -140,88 +139,85 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 		return err
 	}
 
-	if len(migrations) == 0 && (prior != 1 || target != -1) {
+	if len(migrations) == 0 {
 		return ErrNoMigrationsFound
 	}
 
-	switch {
-	case prior == -1:
-		p.log.Infof(logFmtMigrationFromTo, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
+	p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 
-		err = p.schemaMigratePre1To1(ctx)
-		if err != nil {
-			if errRollback := p.schemaMigratePre1To1Rollback(ctx, true); errRollback != nil {
-				return fmt.Errorf(errFmtFailedMigrationPre1, err)
-			}
+	var tx *sqlx.Tx
 
-			return fmt.Errorf(errFmtFailedMigrationPre1, err)
+	if p.name != "mysql" {
+		if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
+			return fmt.Errorf("failed to begin transaction: %w", err)
 		}
-	case target == -1:
-		p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), "pre1")
-	default:
-		p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 	}
 
 	for _, migration := range migrations {
-		if prior == -1 && migration.Version == 1 {
-			// Skip migration version 1 when upgrading from pre1 as it's applied as part of the pre1 upgrade.
-			continue
-		}
-
-		err = p.schemaMigrateApply(ctx, migration)
-		if err != nil {
-			return p.schemaMigrateRollback(ctx, prior, migration.After(), err)
+		switch tx {
+		case nil:
+			if err = p.schemaMigrateApplyWithoutTx(ctx, migration); err != nil {
+				return p.schemaMigrateRollbackWithoutTx(ctx, prior, migration.After(), err)
+			}
+		default:
+			if err = p.schemaMigrateApply(ctx, tx, migration); err != nil {
+				return p.schemaMigrateRollback(ctx, tx, err)
+			}
 		}
 	}
 
-	switch {
-	case prior == -1:
-		p.log.Infof(logFmtMigrationComplete, "pre1", strconv.Itoa(migrations[len(migrations)-1].After()))
-	case target == -1:
-		err = p.schemaMigrate1ToPre1(ctx)
-		if err != nil {
-			if errRollback := p.schemaMigratePre1To1Rollback(ctx, false); errRollback != nil {
-				return fmt.Errorf(errFmtFailedMigrationPre1, err)
+	p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
+
+	if tx != nil {
+		if err = tx.Commit(); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("failed to commit the transaction with: commit error: %w, rollback error: %+v", err, rollbackErr)
 			}
 
-			return fmt.Errorf(errFmtFailedMigrationPre1, err)
+			return fmt.Errorf("failed to commit the transaction but it has been rolled back: commit error: %w", err)
 		}
-
-		p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), "pre1")
-	default:
-		p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 	}
-
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, prior, after int, migrateErr error) (err error) {
-	migrations, err := loadMigrations(p.name, after, prior)
-	if err != nil {
-		return fmt.Errorf("error loading migrations from version %d to version %d for rollback: %+v. rollback caused by: %+v", prior, after, err, migrateErr)
-	}
-
-	for _, migration := range migrations {
-		if prior == -1 && !migration.Up && migration.Version == 1 {
-			continue
-		}
-
-		err = p.schemaMigrateApply(ctx, migration)
-		if err != nil {
-			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %+v", migration.Before(), migration.After(), err, migrateErr)
-		}
-	}
-
-	if prior == -1 {
-		if err = p.schemaMigrate1ToPre1(ctx); err != nil {
-			return fmt.Errorf("error applying migration version 1 to version pre1 for rollback: %+v. rollback caused by: %+v", err, migrateErr)
-		}
+func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, tx *sqlx.Tx, migrateErr error) (err error) {
+	if err = tx.Rollback(); err != nil {
+		return fmt.Errorf("error applying rollback %+v. rollback caused by: %w", err, migrateErr)
 	}
 
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
 }
 
-func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration model.SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateApply(ctx context.Context, tx *sqlx.Tx, migration model.SchemaMigration) (err error) {
+	if _, err = tx.ExecContext(ctx, migration.Query); err != nil {
+		return err
+	}
+
+	if migration.Version == 1 && migration.Up {
+		// Add the schema encryption value if upgrading to v1.
+		if err = p.setNewEncryptionCheckValue(ctx, &p.key, tx); err != nil {
+			return err
+		}
+	}
+
+	if err = p.schemaMigrateFinalize(ctx, tx, migration); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, tx *sqlx.Tx, migration model.SchemaMigration) (err error) {
+	if _, err = tx.ExecContext(ctx, p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version()); err != nil {
+		return fmt.Errorf("failed inserting migration record: %w", err)
+	}
+
+	p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
+
+	return nil
+}
+
+func (p *SQLProvider) schemaMigrateApplyWithoutTx(ctx context.Context, migration model.SchemaMigration) (err error) {
 	_, err = p.db.ExecContext(ctx, migration.Query)
 	if err != nil {
 		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
@@ -234,7 +230,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration model.Sc
 		}
 
 		// Add the schema encryption value if upgrading to v1.
-		if err = p.setNewEncryptionCheckValue(ctx, &p.key, nil); err != nil {
+		if err = p.setNewEncryptionCheckValue(ctx, &p.key, p.db); err != nil {
 			return err
 		}
 	}
@@ -243,20 +239,30 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, migration model.Sc
 		return nil
 	}
 
-	return p.schemaMigrateFinalize(ctx, migration)
+	return p.schemaMigrateFinalizeWithoutTx(ctx, migration)
 }
 
-func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, migration model.SchemaMigration) (err error) {
-	return p.schemaMigrateFinalizeAdvanced(ctx, migration.Before(), migration.After())
-}
-
-func (p *SQLProvider) schemaMigrateFinalizeAdvanced(ctx context.Context, before, after int) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlInsertMigration, time.Now(), before, after, utils.Version())
+func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior, after int, migrateErr error) (err error) {
+	migrations, err := loadMigrations(p.name, after, prior)
 	if err != nil {
+		return fmt.Errorf("error loading migrations from version %d to version %d for rollback: %+v. rollback caused by: %+v", prior, after, err, migrateErr)
+	}
+
+	for _, migration := range migrations {
+		if err = p.schemaMigrateApplyWithoutTx(ctx, migration); err != nil {
+			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %+v", migration.Before(), migration.After(), err, migrateErr)
+		}
+	}
+
+	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
+}
+
+func (p *SQLProvider) schemaMigrateFinalizeWithoutTx(ctx context.Context, migration model.SchemaMigration) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version()); err != nil {
 		return err
 	}
 
-	p.log.Debugf("Storage schema migrated from version %d to %d", before, after)
+	p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
 
 	return nil
 }
@@ -299,6 +305,14 @@ func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
 }
 
 func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
+	if currentVersion == -1 {
+		return fmt.Errorf("schema migration from pre1 is no longer supported and you must use a previous version to achieve this")
+	}
+
+	if targetVersion == -1 {
+		return fmt.Errorf("schema migration to pre1 is no longer supported and you must use a previous version to achieve this")
+	}
+
 	if targetVersion == currentVersion {
 		return fmt.Errorf(ErrFmtMigrateAlreadyOnTargetVersion, targetVersion, currentVersion)
 	}
@@ -325,7 +339,7 @@ func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVer
 			return fmt.Errorf(ErrFmtMigrateUpTargetGreaterThanLatest, targetVersion, latest)
 		}
 	} else {
-		if targetVersion < -1 {
+		if targetVersion < 0 {
 			return fmt.Errorf(ErrFmtMigrateDownTargetLessThanMinimum, targetVersion)
 		}
 

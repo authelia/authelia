@@ -15,17 +15,16 @@ const (
 
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
-	tableOAuth2AuthorizeCodeSession    = "oauth2_authorization_code_session"
-	tableOAuth2AccessTokenSession      = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2RefreshTokenSession     = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
-	tableOAuth2PKCERequestSession      = "oauth2_pkce_request_session"
-	tableOAuth2OpenIDConnectSession    = "oauth2_openid_connect_session"
-	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
+
+	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
+	tableOAuth2AccessTokenSession   = "oauth2_access_token_session"  //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2RefreshTokenSession  = "oauth2_refresh_token_session" //nolint:gosec // This is not a hardcoded credential.
+	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
+	tableOAuth2OpenIDConnectSession = "oauth2_openid_connect_session"
+	tableOAuth2BlacklistedJTI       = "oauth2_blacklisted_jti"
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
-
-	tablePrefixBackup = "_bkp_"
 )
 
 // OAuth2SessionType represents the potential OAuth 2.0 session types.
@@ -54,16 +53,6 @@ const (
 	tablePre1TOTPSecrets                = "totp_secrets"
 	tablePre1IdentityVerificationTokens = "identity_verification_tokens"
 	tablePre1U2FDevices                 = "u2f_devices"
-
-	tablePre1Config = "config"
-
-	tableAlphaAuthenticationLogs         = "AuthenticationLogs"
-	tableAlphaIdentityVerificationTokens = "IdentityVerificationTokens"
-	tableAlphaPreferences                = "Preferences"
-	tableAlphaPreferencesTableName       = "PreferencesTableName"
-	tableAlphaSecondFactorPreferences    = "SecondFactorPreferences"
-	tableAlphaTOTPSecrets                = "TOTPSecrets"
-	tableAlphaU2FDeviceHandles           = "U2FDeviceHandles"
 )
 
 var tablesPre1 = []string{
