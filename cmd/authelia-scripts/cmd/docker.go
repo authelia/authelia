@@ -100,15 +100,14 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 			log.Infof("Detected tags: '%s' | '%s' | '%s'", tags[1], tags[2], tags[3])
 			login(docker, dockerhub)
 			login(docker, ghcr)
-			deployManifest(docker, tags[1])
-			publishDockerReadme(docker)
 
-			if !ignoredSuffixes.MatchString(ciTag) {
-				deployManifest(docker, tags[2])
-				deployManifest(docker, tags[3])
-				deployManifest(docker, "latest")
-				publishDockerReadme(docker)
+			if ignoredSuffixes.MatchString(ciTag) {
+				deployManifest(docker, tags[1])
+			} else {
+				deployManifest(docker, tags[1], tags[2], tags[3], "latest")
 			}
+
+			publishDockerReadme(docker)
 		} else {
 			log.Fatal("Docker manifest will not be published, the specified tag does not conform to the standard")
 		}
@@ -182,13 +181,17 @@ func login(docker *Docker, registry string) {
 	}
 }
 
-func deployManifest(docker *Docker, tag string) {
-	log.Infof("Docker manifest %s:%s will be deployed on %s and %s", DockerImageName, tag, dockerhub, ghcr)
+func deployManifest(docker *Docker, tag ...string) {
+	tags = make([]string, 0)
 
-	dockerhub := dockerhub + "/" + DockerImageName + ":" + tag
-	ghcr := ghcr + "/" + DockerImageName + ":" + tag
+	log.Infof("The following Docker manifest(s) will be deployed on %s and %s", dockerhub, ghcr)
 
-	if err := docker.Manifest(dockerhub, ghcr); err != nil {
+	for _, t := range tag {
+		log.Infof("- %s:%s", DockerImageName, t)
+		tags = append(tags, dockerhub+"/"+DockerImageName+":"+t, ghcr+"/"+DockerImageName+":"+t)
+	}
+
+	if err := docker.Manifest(tags); err != nil {
 		log.Fatal(err)
 	}
 }
