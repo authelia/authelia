@@ -191,9 +191,6 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
-	// Management of the webauthn devices.
-	r.GET("/api/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGet))
-
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
 		r.GET("/api/user/info/totp", middleware1FA(handlers.UserTOTPInfoGET))
@@ -204,6 +201,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	if !config.Webauthn.Disable {
 		// Webauthn Endpoints.
+		r.GET("/api/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGet))
 		r.POST("/api/secondfactor/webauthn/identity/start", middleware1FA(handlers.WebauthnIdentityStart))
 		r.POST("/api/secondfactor/webauthn/identity/finish", middleware1FA(handlers.WebauthnIdentityFinish))
 		r.POST("/api/secondfactor/webauthn/attestation", middleware1FA(handlers.WebauthnAttestationPOST))
