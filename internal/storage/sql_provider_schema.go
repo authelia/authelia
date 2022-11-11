@@ -161,7 +161,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 			}
 		default:
 			if err = p.schemaMigrateApply(ctx, tx, migration); err != nil {
-				return p.schemaMigrateRollback(ctx, tx, err)
+				return p.schemaMigrateRollback(tx, err)
 			}
 		}
 	}
@@ -177,10 +177,11 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 			return fmt.Errorf("failed to commit the transaction but it has been rolled back: commit error: %w", err)
 		}
 	}
+
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, tx *sqlx.Tx, migrateErr error) (err error) {
+func (p *SQLProvider) schemaMigrateRollback(tx *sqlx.Tx, migrateErr error) (err error) {
 	if err = tx.Rollback(); err != nil {
 		return fmt.Errorf("error applying rollback %+v. rollback caused by: %w", err, migrateErr)
 	}
