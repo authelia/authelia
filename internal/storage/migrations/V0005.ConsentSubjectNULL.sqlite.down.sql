@@ -17,7 +17,7 @@ ALTER TABLE oauth2_consent_session
     RENAME TO _bkp_DOWN_V0005_oauth2_consent_session;
 
 CREATE TABLE oauth2_consent_session (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
@@ -31,7 +31,6 @@ CREATE TABLE oauth2_consent_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    PRIMARY KEY (id),
     CONSTRAINT oauth2_consent_subject_fkey
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT
@@ -55,7 +54,7 @@ ALTER TABLE oauth2_authorization_code_session
     RENAME TO _bkp_DOWN_V0005_oauth2_authorization_code_session;
 
 CREATE TABLE oauth2_authorization_code_session (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -70,7 +69,6 @@ CREATE TABLE oauth2_authorization_code_session (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
-    PRIMARY KEY (id),
     CONSTRAINT oauth2_authorization_code_session_challenge_id_fkey
         FOREIGN KEY (challenge_id)
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -99,7 +97,7 @@ ALTER TABLE oauth2_access_token_session
     RENAME TO _bkp_DOWN_V0005_oauth2_access_token_session;
 
 CREATE TABLE oauth2_access_token_session (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -114,7 +112,6 @@ CREATE TABLE oauth2_access_token_session (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
-    PRIMARY KEY (id),
     CONSTRAINT oauth2_access_token_session_challenge_id_fkey
         FOREIGN KEY (challenge_id)
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -143,7 +140,7 @@ ALTER TABLE oauth2_refresh_token_session
     RENAME TO _bkp_DOWN_V0005_oauth2_refresh_token_session;
 
 CREATE TABLE oauth2_refresh_token_session (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -158,7 +155,6 @@ CREATE TABLE oauth2_refresh_token_session (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
-    PRIMARY KEY (id),
     CONSTRAINT oauth2_refresh_token_session_challenge_id_fkey
         FOREIGN KEY (challenge_id)
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -187,7 +183,7 @@ ALTER TABLE oauth2_pkce_request_session
     RENAME TO _bkp_DOWN_V0005_oauth2_pkce_request_session;
 
 CREATE TABLE oauth2_pkce_request_session (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -202,7 +198,6 @@ CREATE TABLE oauth2_pkce_request_session (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
-    PRIMARY KEY (id),
     CONSTRAINT oauth2_pkce_request_session_challenge_id_fkey
         FOREIGN KEY (challenge_id)
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -231,7 +226,7 @@ ALTER TABLE oauth2_openid_connect_session
     RENAME TO _bkp_DOWN_V0005_oauth2_openid_connect_session;
 
 CREATE TABLE oauth2_openid_connect_session (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -246,7 +241,6 @@ CREATE TABLE oauth2_openid_connect_session (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
-    PRIMARY KEY (id),
     CONSTRAINT oauth2_openid_connect_session_challenge_id_fkey
         FOREIGN KEY (challenge_id)
             REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,

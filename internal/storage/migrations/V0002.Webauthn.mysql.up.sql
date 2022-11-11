@@ -5,7 +5,7 @@ ALTER TABLE u2f_devices
     RENAME _bkp_UP_V0002_u2f_devices;
 
 CREATE TABLE totp_configurations (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
     username VARCHAR(100) NOT NULL,
@@ -14,7 +14,6 @@ CREATE TABLE totp_configurations (
     digits INTEGER NOT NULL DEFAULT 6,
     period INTEGER NOT NULL DEFAULT 30,
     secret BLOB NOT NULL,
-    PRIMARY KEY (id),
     UNIQUE KEY (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -23,7 +22,7 @@ SELECT id, username, issuer, algorithm, digits, period, secret
 FROM _bkp_UP_V0002_totp_configurations;
 
 CREATE TABLE webauthn_devices (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
     rpid TEXT,
@@ -36,7 +35,6 @@ CREATE TABLE webauthn_devices (
     aaguid CHAR(36) NOT NULL,
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (id),
     UNIQUE KEY (username, description),
     UNIQUE KEY (kid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;

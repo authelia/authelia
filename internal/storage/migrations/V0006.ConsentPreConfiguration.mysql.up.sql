@@ -1,13 +1,12 @@
 CREATE TABLE oauth2_consent_preconfiguration (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	expires_at TIMESTAMP NULL DEFAULT NULL,
 	revoked BOOLEAN NOT NULL DEFAULT FALSE,
     scopes TEXT NOT NULL,
-    audience TEXT NULL,
-    PRIMARY KEY (id)
+    audience TEXT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_consent_preconfiguration
@@ -29,7 +28,7 @@ DROP TABLE oauth2_refresh_token_session;
 DROP TABLE oauth2_consent_session;
 
 CREATE TABLE oauth2_consent_session (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
@@ -42,8 +41,7 @@ CREATE TABLE oauth2_consent_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL,
     granted_audience TEXT NULL,
-    preconfiguration INTEGER NULL DEFAULT NULL,
-    PRIMARY KEY (id)
+    preconfiguration INTEGER NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
@@ -57,7 +55,7 @@ ALTER TABLE oauth2_consent_session
             REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 CREATE TABLE oauth2_access_token_session (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -71,8 +69,7 @@ CREATE TABLE oauth2_access_token_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BLOB NOT NULL,
-    PRIMARY KEY (id)
+    session_data BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
@@ -88,7 +85,7 @@ ALTER TABLE oauth2_access_token_session
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 CREATE TABLE oauth2_authorization_code_session (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -102,8 +99,7 @@ CREATE TABLE oauth2_authorization_code_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BLOB NOT NULL,
-    PRIMARY KEY (id)
+    session_data BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
@@ -119,7 +115,7 @@ ALTER TABLE oauth2_authorization_code_session
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 CREATE TABLE oauth2_openid_connect_session (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -133,8 +129,7 @@ CREATE TABLE oauth2_openid_connect_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BLOB NOT NULL,
-    PRIMARY KEY (id)
+    session_data BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
@@ -150,7 +145,7 @@ ALTER TABLE oauth2_openid_connect_session
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 CREATE TABLE oauth2_pkce_request_session (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -164,8 +159,7 @@ CREATE TABLE oauth2_pkce_request_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BLOB NOT NULL,
-    PRIMARY KEY (id)
+    session_data BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
@@ -181,7 +175,7 @@ ALTER TABLE oauth2_pkce_request_session
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 CREATE TABLE oauth2_refresh_token_session (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -195,8 +189,7 @@ CREATE TABLE oauth2_refresh_token_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BLOB NOT NULL,
-    PRIMARY KEY (id)
+    session_data BLOB NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);

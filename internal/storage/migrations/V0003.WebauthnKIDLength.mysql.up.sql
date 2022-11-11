@@ -2,7 +2,7 @@ ALTER TABLE webauthn_devices
     RENAME _bkp_UP_V0003_webauthn_devices;
 
 CREATE TABLE webauthn_devices (
-    id INTEGER AUTO_INCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
     rpid TEXT,
@@ -15,7 +15,6 @@ CREATE TABLE webauthn_devices (
     aaguid CHAR(36) NOT NULL,
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (id),
     UNIQUE KEY (username, description),
     UNIQUE KEY (kid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;

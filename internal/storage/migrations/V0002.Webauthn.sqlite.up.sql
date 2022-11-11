@@ -5,7 +5,7 @@ ALTER TABLE u2f_devices
     RENAME TO _bkp_UP_V0002_u2f_devices;
 
 CREATE TABLE totp_configurations (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
     username VARCHAR(100) NOT NULL,
@@ -14,7 +14,6 @@ CREATE TABLE totp_configurations (
     digits INTEGER NOT NULL DEFAULT 6,
     period INTEGER NOT NULL DEFAULT 30,
     secret BLOB NOT NULL,
-    PRIMARY KEY (id),
     UNIQUE (username)
 );
 
@@ -22,8 +21,10 @@ INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period
 SELECT id, username, issuer, algorithm, digits, period, secret
 FROM _bkp_UP_V0002_totp_configurations;
 
+DROP TABLE _bkp_UP_V0002_totp_configurations;
+
 CREATE TABLE webauthn_devices (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
     rpid TEXT,
@@ -36,7 +37,6 @@ CREATE TABLE webauthn_devices (
     aaguid CHAR(36) NOT NULL,
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (id),
     UNIQUE (username, description),
     UNIQUE (kid)
 );
@@ -44,6 +44,8 @@ CREATE TABLE webauthn_devices (
 INSERT INTO webauthn_devices (id, rpid, username, description, kid, public_key, attestation_type, aaguid, sign_count)
 SELECT id, '', username, description, BIN2B64(key_handle), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0
 FROM _bkp_UP_V0002_u2f_devices;
+
+DROP TABLE _bkp_UP_V0002_u2f_devices;
 
 UPDATE user_preferences
 SET second_factor_method = 'webauthn'
