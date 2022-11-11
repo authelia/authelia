@@ -101,17 +101,6 @@ const SecondFactorForm = function (props: Props) {
                 />
             ) : null}
             <Grid container>
-                <Grid item xs={12}>
-                    <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
-                        {translate("Logout")}
-                    </Button>
-                    {props.configuration.available_methods.size > 1 ? " | " : null}
-                    {props.configuration.available_methods.size > 1 ? (
-                        <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
-                            {translate("Methods")}
-                        </Button>
-                    ) : null}
-                </Grid>
                 <Grid item xs={12} className={styles.methodContainer}>
                     <Routes>
                         <Route
@@ -157,6 +146,17 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                     </Routes>
+                    <Grid item xs={12}>
+                        <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
+                            {translate("Logout")}
+                        </Button>
+                        {props.configuration.available_methods.size > 1 ? " | " : null}
+                        {props.configuration.available_methods.size > 1 ? (
+                            <Button color="primary" onClick={handleMethodSelectionClick} id="methods-button">
+                                {translate("Methods")}
+                            </Button>
+                        ) : null}
+                    </Grid>
                 </Grid>
             </Grid>
         </LoginLayout>

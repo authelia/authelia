@@ -57,7 +57,7 @@ export default function SettingsView(props: Props) {
     }, []);
 
     useEffect(() => {
-        if (!state || state.authentication_level <= AuthenticationLevel.Unauthenticated) {
+        if (state && state.authentication_level <= AuthenticationLevel.Unauthenticated) {
             navigate(IndexRoute);
         }
     }, [state, navigate]);

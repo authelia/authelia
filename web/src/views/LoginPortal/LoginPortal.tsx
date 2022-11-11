@@ -142,12 +142,16 @@ const LoginPortal = function (props: Props) {
                 if (configuration.available_methods.size === 0) {
                     redirect(AuthenticatedRoute, false);
                 } else {
-                    if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`);
-                    } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
+                    if (state.authentication_level >= AuthenticationLevel.TwoFactor) {
+                        redirect(AuthenticatedRoute, false);
                     } else {
-                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
+                        if (userInfo.method === SecondFactorMethod.Webauthn) {
+                            redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`);
+                        } else if (userInfo.method === SecondFactorMethod.MobilePush) {
+                            redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
+                        } else {
+                            redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
+                        }
                     }
                 }
             }
