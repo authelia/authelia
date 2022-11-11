@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"crypto/tls"
 	"fmt"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 func newDefaultSessionConfig() schema.SessionConfiguration {
 	config := schema.SessionConfiguration{}
 	config.Secret = testJWTSecret
-	config.Domain = "example.com"
+	config.Domain = examplecom
 
 	return config
 }
@@ -148,7 +149,7 @@ func TestShouldRaiseErrorWhenRedisHasHostnameButNoPort(t *testing.T) {
 
 	assert.False(t, validator.HasWarnings())
 	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "A redis port different than 0 must be provided")
+	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but is configured as '0'")
 }
 
 func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testing.T) {
@@ -352,6 +353,67 @@ func TestShouldRaiseErrorsWhenRedisHostNotSet(t *testing.T) {
 	require.Len(t, errors, 1)
 
 	assert.EqualError(t, errors[0], errFmtSessionRedisHostRequired)
+}
+
+func TestShouldSetDefaultRedisTLSOptions(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host: "redis.local",
+		Port: 6379,
+		TLS:  &schema.TLSConfig{},
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+
+	assert.Equal(t, uint16(tls.VersionTLS12), config.Redis.TLS.MinimumVersion.Value)
+	assert.Equal(t, uint16(0), config.Redis.TLS.MaximumVersion.Value)
+	assert.Equal(t, "redis.local", config.Redis.TLS.ServerName)
+}
+
+func TestShouldRaiseErrorOnBadRedisTLSOptionsSSL30(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host: "redis.local",
+		Port: 6379,
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+		},
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: redis: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
+}
+
+func TestShouldRaiseErrorOnBadRedisTLSOptionsMinVerGreaterThanMax(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Redis = &schema.RedisSessionConfiguration{
+		Host: "redis.local",
+		Port: 6379,
+		TLS: &schema.TLSConfig{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
+		},
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], "session: redis: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
 }
 
 func TestShouldRaiseErrorWhenDomainNotSet(t *testing.T) {

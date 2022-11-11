@@ -143,7 +143,7 @@ func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session
 func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool,
 	refreshProfileInterval time.Duration) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	// No username in the session means the user is anonymous.
-	isUserAnonymous := userSession.Username == ""
+	isUserAnonymous := userSession.IsAnonymous()
 
 	if isUserAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
 		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("an anonymous user cannot be authenticated (this might be the sign of a security compromise)")
@@ -180,7 +180,6 @@ func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userS
 func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, isBasicAuth bool, username string, method []byte) {
 	var (
 		statusCode            int
-		redirectionURL        string
 		friendlyUsername      string
 		friendlyRequestMethod string
 	)
@@ -200,10 +199,6 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		return
 	}
 
-	// Kubernetes ingress controller and Traefik use the rd parameter of the verify
-	// endpoint to provide the URL of the login portal. The target URL of the user
-	// is computed from X-Forwarded-* headers or X-Original-URL.
-	rd := string(ctx.QueryArgs().Peek("rd"))
 	rm := string(method)
 
 	switch rm {
@@ -213,17 +208,30 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		friendlyRequestMethod = rm
 	}
 
-	if rd != "" {
-		switch rm {
-		case "":
-			redirectionURL = fmt.Sprintf("%s?rd=%s", rd, url.QueryEscape(targetURL.String()))
-		default:
-			redirectionURL = fmt.Sprintf("%s?rd=%s&rm=%s", rd, url.QueryEscape(targetURL.String()), rm)
+	redirectionURL := ctxGetPortalURL(ctx)
+
+	if redirectionURL != nil {
+		if !utils.IsURISafeRedirection(redirectionURL, ctx.Configuration.Session.Domain) {
+			ctx.Logger.Errorf("Configured Portal URL '%s' does not appear to be able to write cookies for the '%s' domain", redirectionURL, ctx.Configuration.Session.Domain)
+
+			ctx.ReplyUnauthorized()
+
+			return
 		}
+
+		qry := redirectionURL.Query()
+
+		qry.Set(queryArgRD, targetURL.String())
+
+		if rm != "" {
+			qry.Set("rm", rm)
+		}
+
+		redirectionURL.RawQuery = qry.Encode()
 	}
 
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || rd == "":
+	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
 		statusCode = fasthttp.StatusUnauthorized
 	default:
 		switch rm {
@@ -234,9 +242,9 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 		}
 	}
 
-	if redirectionURL != "" {
+	if redirectionURL != nil {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode, redirectionURL)
-		ctx.SpecialRedirect(redirectionURL, statusCode)
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", targetURL.String(), friendlyRequestMethod, friendlyUsername, statusCode)
 		ctx.ReplyUnauthorized()
@@ -314,7 +322,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	// See https://www.authelia.com/o/threatmodel#potential-future-guarantees
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
-	if !refreshProfile || userSession.Username == "" || targetURL == nil {
+	if !refreshProfile || userSession.IsAnonymous() || targetURL == nil {
 		return nil
 	}
 
@@ -365,7 +373,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	return nil
 }
 
-func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
+func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
 	if cfg.LDAP != nil {
 		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
 			refresh = false
@@ -425,7 +433,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 }
 
 // VerifyGET returns the handler verifying if a request is allowed to go through.
-func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
+func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {

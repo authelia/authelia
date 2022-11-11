@@ -36,7 +36,7 @@ func NewYAMLFileSources(paths []string) (sources []*YAMLFileSource) {
 }
 
 // Name of the Source.
-func (s YAMLFileSource) Name() (name string) {
+func (s *YAMLFileSource) Name() (name string) {
 	return fmt.Sprintf("yaml file(%s)", s.path)
 }
 
@@ -64,7 +64,7 @@ func NewEnvironmentSource(prefix, delimiter string) (source *EnvironmentSource) 
 }
 
 // Name of the Source.
-func (s EnvironmentSource) Name() (name string) {
+func (s *EnvironmentSource) Name() (name string) {
 	return "environment"
 }
 
@@ -90,7 +90,7 @@ func NewSecretsSource(prefix, delimiter string) (source *SecretsSource) {
 }
 
 // Name of the Source.
-func (s SecretsSource) Name() (name string) {
+func (s *SecretsSource) Name() (name string) {
 	return "secrets"
 }
 
@@ -127,7 +127,7 @@ func NewCommandLineSourceWithMapping(flags *pflag.FlagSet, mapping map[string]st
 }
 
 // Name of the Source.
-func (s CommandLineSource) Name() (name string) {
+func (s *CommandLineSource) Name() (name string) {
 	return "command-line"
 }
 
@@ -145,8 +145,8 @@ func (s *CommandLineSource) Load(_ *schema.StructValidator) (err error) {
 	return s.koanf.Load(posflag.Provider(s.flags, ".", s.koanf), nil)
 }
 
-// NewMapSource returns a new map[string]interface{} source.
-func NewMapSource(m map[string]interface{}) (source *MapSource) {
+// NewMapSource returns a new map[string]any source.
+func NewMapSource(m map[string]any) (source *MapSource) {
 	return &MapSource{
 		m:     m,
 		koanf: koanf.New(constDelimiter),
@@ -154,7 +154,7 @@ func NewMapSource(m map[string]interface{}) (source *MapSource) {
 }
 
 // Name of the Source.
-func (s MapSource) Name() (name string) {
+func (s *MapSource) Name() (name string) {
 	return "map"
 }
 

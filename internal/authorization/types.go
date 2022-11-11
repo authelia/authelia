@@ -24,6 +24,11 @@ type SubjectObjectMatcher interface {
 	IsMatch(subject Subject, object Object) (match bool)
 }
 
+// ObjectMatcher is a matcher that takes an object.
+type ObjectMatcher interface {
+	IsMatch(object Object) (match bool)
+}
+
 // Subject represents the identity of a user for the purposes of ACL matching.
 type Subject struct {
 	Username string
@@ -43,7 +48,7 @@ func (s Subject) IsAnonymous() bool {
 
 // Object represents a protected object for the purposes of ACL matching.
 type Object struct {
-	URL url.URL
+	URL *url.URL
 
 	Domain string
 	Path   string
@@ -63,7 +68,7 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 // NewObject creates a new Object type from a URL and a method header.
 func NewObject(targetURL *url.URL, method string) (object Object) {
 	return Object{
-		URL:    *targetURL,
+		URL:    targetURL,
 		Domain: targetURL.Hostname(),
 		Path:   utils.URLPathFullClean(targetURL),
 		Method: method,
@@ -78,6 +83,7 @@ type RuleMatchResult struct {
 
 	MatchDomain        bool
 	MatchResources     bool
+	MatchQuery         bool
 	MatchMethods       bool
 	MatchNetworks      bool
 	MatchSubjects      bool

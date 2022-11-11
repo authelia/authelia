@@ -45,7 +45,7 @@ const PushNotificationMethod = function (props: Props) {
     const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useRedirectionURL();
-    const workflow = useWorkflow();
+    const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
@@ -95,7 +95,7 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL, workflow);
+            const res = await completePushNotificationSignIn(redirectionURL, workflow, workflowID);
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
@@ -139,6 +139,7 @@ const PushNotificationMethod = function (props: Props) {
         props.duoSelfEnrollment,
         redirectionURL,
         workflow,
+        workflowID,
         mounted,
         onSignInErrorCallback,
         onSignInSuccessCallback,

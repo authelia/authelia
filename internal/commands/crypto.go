@@ -17,7 +17,7 @@ import (
 
 func newCryptoCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "crypto",
+		Use:     cmdUseCrypto,
 		Short:   cmdAutheliaCryptoShort,
 		Long:    cmdAutheliaCryptoLong,
 		Example: cmdAutheliaCryptoExample,
@@ -27,9 +27,42 @@ func newCryptoCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.AddCommand(
+		newCryptoRandCmd(),
 		newCryptoCertificateCmd(),
+		newCryptoHashCmd(),
 		newCryptoPairCmd(),
 	)
+
+	return cmd
+}
+
+func newCryptoRandCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseRand,
+		Short:   cmdAutheliaCryptoRandShort,
+		Long:    cmdAutheliaCryptoRandLong,
+		Example: cmdAutheliaCryptoRandExample,
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			var (
+				random string
+			)
+
+			if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
+				return err
+			}
+
+			fmt.Printf("Random Value: %s\n", random)
+
+			return nil
+		},
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().StringP(cmdFlagNameCharSet, "c", cmdFlagValueCharSet, cmdFlagUsageCharset)
+	cmd.Flags().String(cmdFlagNameCharacters, "", cmdFlagUsageCharacters)
+	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, cmdFlagUsageLength)
 
 	return cmd
 }
@@ -55,26 +88,13 @@ func newCryptoCertificateCmd() (cmd *cobra.Command) {
 }
 
 func newCryptoCertificateSubCmd(use string) (cmd *cobra.Command) {
-	var (
-		example, useFmt string
-	)
-
-	useFmt = fmtCryptoUse(use)
-
-	switch use {
-	case cmdUseRSA:
-		example = cmdAutheliaCryptoCertificateRSAExample
-	case cmdUseECDSA:
-		example = cmdAutheliaCryptoCertificateECDSAExample
-	case cmdUseEd25519:
-		example = cmdAutheliaCryptoCertificateEd25519Example
-	}
+	useFmt := fmtCryptoCertificateUse(use)
 
 	cmd = &cobra.Command{
 		Use:     use,
 		Short:   fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubShort, useFmt),
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubLong, useFmt, useFmt),
-		Example: example,
+		Example: fmt.Sprintf(fmtCmdAutheliaCryptoCertificateSubExample, use),
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -98,7 +118,7 @@ func newCryptoCertificateRequestCmd(algorithm string) (cmd *cobra.Command) {
 	cmdFlagsCryptoCertificateCommon(cmd)
 	cmdFlagsCryptoCertificateRequest(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	cmd.Short = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestShort, algorithmFmt, cryptoCertCSROut)
 	cmd.Long = fmt.Sprintf(fmtCmdAutheliaCryptoCertificateGenerateRequestLong, algorithmFmt, cryptoCertCSROut, algorithmFmt, cryptoCertCSROut)
@@ -146,7 +166,7 @@ func newCryptoPairSubCmd(use string) (cmd *cobra.Command) {
 		example, useFmt string
 	)
 
-	useFmt = fmtCryptoUse(use)
+	useFmt = fmtCryptoCertificateUse(use)
 
 	switch use {
 	case cmdUseRSA:
@@ -184,7 +204,7 @@ func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 
 	cmdFlagsCryptoPrivateKey(cmd)
 
-	algorithmFmt := fmtCryptoUse(algorithm)
+	algorithmFmt := fmtCryptoCertificateUse(algorithm)
 
 	switch category {
 	case cmdUseCertificate:
@@ -235,7 +255,7 @@ func newCryptoGenerateCmd(category, algorithm string) (cmd *cobra.Command) {
 
 func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		privateKey interface{}
+		privateKey any
 	)
 
 	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
@@ -251,7 +271,7 @@ func cryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 
 func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		privateKey interface{}
+		privateKey any
 	)
 
 	if privateKey, err = cryptoGenPrivateKeyFromCmd(cmd); err != nil {
@@ -320,10 +340,10 @@ func cryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		template, caCertificate, parent       *x509.Certificate
-		publicKey, caPrivateKey, signatureKey interface{}
+		publicKey, caPrivateKey, signatureKey any
 	)
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
@@ -412,7 +432,7 @@ func cryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey in
 	return nil
 }
 
-func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface{}) (err error) {
+func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		privateKeyPath, publicKeyPath string
 		pkcs8                         bool
@@ -451,7 +471,7 @@ func cryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey interface
 		return err
 	}
 
-	var publicKey interface{}
+	var publicKey any
 
 	if publicKey = utils.PublicKeyFromPrivateKey(privateKey); publicKey == nil {
 		return fmt.Errorf("failed to obtain public key from private key")

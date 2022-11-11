@@ -26,6 +26,7 @@ services:
       - 9091
     restart: unless-stopped
     healthcheck:
+      ## In production the healthcheck section should be commented.
       disable: true
     environment:
       - TZ=Australia/Melbourne
@@ -44,7 +45,7 @@ services:
       - TZ=Australia/Melbourne
 
   traefik:
-    image: traefik:v2.8
+    image: traefik:v2.9.4
     container_name: traefik
     volumes:
       - ./traefik:/etc/traefik

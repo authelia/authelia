@@ -16,52 +16,50 @@ import (
 
 func newDocsCLICmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cli",
+		Use:   cmdUseDocsCLI,
 		Short: "Generate CLI docs",
 		RunE:  docsCLIRunE,
 
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP("directory", "d", "./docs/content/en/reference/cli", "The directory to store the markdown in")
-
 	return cmd
 }
 
 func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
-	var root string
+	var outputPath string
 
-	if root, err = cmd.Flags().GetString("directory"); err != nil {
+	if outputPath, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsContent, cmdFlagDocsCLIReference); err != nil {
 		return err
 	}
 
-	if err = os.MkdirAll(root, 0775); err != nil {
+	if err = os.MkdirAll(outputPath, 0775); err != nil {
 		if !os.IsExist(err) {
 			return err
 		}
 	}
 
-	if err = genCLIDoc(commands.NewRootCmd(), filepath.Join(root, "authelia")); err != nil {
+	if err = genCLIDoc(commands.NewRootCmd(), filepath.Join(outputPath, "authelia")); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(root, "authelia"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, "authelia"); err != nil {
 		return err
 	}
 
-	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(root, "authelia-scripts")); err != nil {
+	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(outputPath, "authelia-scripts")); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(root, "authelia-scripts"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, "authelia-scripts"); err != nil {
 		return err
 	}
 
-	if err = genCLIDoc(newRootCmd(), filepath.Join(root, "authelia-gen")); err != nil {
+	if err = genCLIDoc(newRootCmd(), filepath.Join(outputPath, cmdUseRoot)); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(root, "authelia-gen"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, cmdUseRoot); err != nil {
 		return err
 	}
 
@@ -69,6 +67,16 @@ func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func genCLIDoc(cmd *cobra.Command, path string) (err error) {
+	if _, err = os.Stat(path); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	if err == nil || !os.IsNotExist(err) {
+		if err = os.RemoveAll(path); err != nil {
+			return fmt.Errorf("failed to remove docs: %w", err)
+		}
+	}
+
 	if err = os.Mkdir(path, 0755); err != nil {
 		if !os.IsExist(err) {
 			return err

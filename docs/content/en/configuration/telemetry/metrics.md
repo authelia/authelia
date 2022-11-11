@@ -25,8 +25,8 @@ telemetry:
       read: 4096
       write: 4096
     timeouts:
-      read: 2s
-      write: 2s
+      read: 6s
+      write: 6s
       idle: 30s
 ```
 

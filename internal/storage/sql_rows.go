@@ -8,13 +8,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// ConsentSessionRows holds and assists with retrieving multiple model.OAuth2ConsentSession rows.
-type ConsentSessionRows struct {
+// ConsentPreConfigRows holds and assists with retrieving multiple model.OAuth2ConsentSession rows.
+type ConsentPreConfigRows struct {
 	rows *sqlx.Rows
 }
 
 // Next is the row iterator.
-func (r *ConsentSessionRows) Next() bool {
+func (r *ConsentPreConfigRows) Next() bool {
 	if r.rows == nil {
 		return false
 	}
@@ -23,7 +23,7 @@ func (r *ConsentSessionRows) Next() bool {
 }
 
 // Close the rows.
-func (r *ConsentSessionRows) Close() (err error) {
+func (r *ConsentPreConfigRows) Close() (err error) {
 	if r.rows == nil {
 		return nil
 	}
@@ -32,16 +32,16 @@ func (r *ConsentSessionRows) Close() (err error) {
 }
 
 // Get returns the *model.OAuth2ConsentSession or scan error.
-func (r *ConsentSessionRows) Get() (consent *model.OAuth2ConsentSession, err error) {
+func (r *ConsentPreConfigRows) Get() (config *model.OAuth2ConsentPreConfig, err error) {
 	if r.rows == nil {
 		return nil, sql.ErrNoRows
 	}
 
-	consent = &model.OAuth2ConsentSession{}
+	config = &model.OAuth2ConsentPreConfig{}
 
-	if err = r.rows.StructScan(consent); err != nil {
+	if err = r.rows.StructScan(config); err != nil {
 		return nil, err
 	}
 
-	return consent, nil
+	return config, nil
 }

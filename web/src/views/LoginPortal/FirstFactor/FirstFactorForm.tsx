@@ -2,6 +2,7 @@ import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "r
 
 import { Button, Checkbox, FormControlLabel, Grid, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { BroadcastChannel } from "broadcast-channel";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +26,7 @@ export interface Props {
     onAuthenticationStart: () => void;
     onAuthenticationFailure: () => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onChannelStateChange: () => void;
 }
 
 const FirstFactorForm = function (props: Props) {
@@ -32,9 +34,9 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useRedirectionURL();
     const requestMethod = useRequestMethod();
-    const workflow = useWorkflow();
+    const [workflow] = useWorkflow();
 
-    const loginChannel = useMemo(() => new BroadcastChannel("login"), []);
+    const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -52,9 +54,9 @@ const FirstFactorForm = function (props: Props) {
     }, [usernameRef]);
 
     useEffect(() => {
-        loginChannel.addEventListener("message", (ev) => {
-            if (ev.data) {
-                props.onAuthenticationSuccess(redirectionURL);
+        loginChannel.addEventListener("message", (authenticated) => {
+            if (authenticated) {
+                props.onChannelStateChange();
             }
         });
     }, [loginChannel, redirectionURL, props]);
@@ -80,7 +82,7 @@ const FirstFactorForm = function (props: Props) {
         props.onAuthenticationStart();
         try {
             const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
-            loginChannel.postMessage(true);
+            await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);

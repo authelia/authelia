@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:18-alpine AS builder-frontend
+FROM node:19-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -15,7 +15,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.19.1-alpine AS builder-backend
+FROM golang:1.19.3-alpine AS builder-backend
 
 WORKDIR /go/src/app
 

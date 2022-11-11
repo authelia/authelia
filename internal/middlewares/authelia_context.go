@@ -95,7 +95,7 @@ func (ctx *AutheliaCtx) ReplyStatusCode(statusCode int) {
 }
 
 // ReplyJSON writes a JSON response.
-func (ctx *AutheliaCtx) ReplyJSON(data interface{}, statusCode int) (err error) {
+func (ctx *AutheliaCtx) ReplyJSON(data any, statusCode int) (err error) {
 	var (
 		body []byte
 	)
@@ -171,6 +171,16 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return uri
 }
 
+// XAutheliaURL return the content of the X-Authelia-URL header.
+func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXAutheliaURL)
+}
+
+// QueryArgRedirect return the content of the rd query argument.
+func (ctx *AutheliaCtx) QueryArgRedirect() (val []byte) {
+	return ctx.RequestCtx.QueryArgs().PeekBytes(queryArgRedirect)
+}
+
 // BasePath returns the base_url as per the path visited by the client.
 func (ctx *AutheliaCtx) BasePath() (base string) {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
@@ -208,6 +218,29 @@ func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
 	return externalRootURL, nil
 }
 
+// IssuerURL returns the expected Issuer.
+func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
+	issuerURL = &url.URL{
+		Scheme: "https",
+	}
+
+	if scheme := ctx.XForwardedProto(); scheme != nil {
+		issuerURL.Scheme = string(scheme)
+	}
+
+	if host := ctx.XForwardedHost(); len(host) != 0 {
+		issuerURL.Host = string(host)
+	} else {
+		return nil, errMissingXForwardedHost
+	}
+
+	if base := ctx.BasePath(); base != "" {
+		issuerURL.Path = path.Join(issuerURL.Path, base)
+	}
+
+	return issuerURL, nil
+}
+
 // XOriginalURL return the content of the X-Original-URL header.
 func (ctx *AutheliaCtx) XOriginalURL() []byte {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
@@ -236,7 +269,7 @@ func (ctx *AutheliaCtx) ReplyOK() {
 }
 
 // ParseBody parse the request body into the type of value.
-func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
+func (ctx *AutheliaCtx) ParseBody(value any) error {
 	err := json.Unmarshal(ctx.PostBody(), &value)
 
 	if err != nil {
@@ -257,7 +290,7 @@ func (ctx *AutheliaCtx) ParseBody(value interface{}) error {
 }
 
 // SetJSONBody Set json body.
-func (ctx *AutheliaCtx) SetJSONBody(value interface{}) error {
+func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
 }
 

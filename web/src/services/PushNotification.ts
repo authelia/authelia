@@ -5,20 +5,18 @@ import {
 } from "@services/Api";
 import { Get, PostWithOptionalResponse } from "@services/Client";
 
-interface CompletePushSigninBody {
+interface CompletePushSignInBody {
     targetURL?: string;
     workflow?: string;
+    workflowID?: string;
 }
 
-export function completePushNotificationSignIn(targetURL?: string, workflow?: string) {
-    const body: CompletePushSigninBody = {};
-    if (targetURL) {
-        body.targetURL = targetURL;
-    }
-
-    if (workflow) {
-        body.workflow = workflow;
-    }
+export function completePushNotificationSignIn(targetURL?: string, workflow?: string, workflowID?: string) {
+    const body: CompletePushSignInBody = {
+        targetURL: targetURL,
+        workflow: workflow,
+        workflowID: workflowID,
+    };
 
     return PostWithOptionalResponse<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
 }

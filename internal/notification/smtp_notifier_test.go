@@ -18,7 +18,7 @@ func TestShouldConfigureSMTPNotifierWithTLS11(t *testing.T) {
 			Port: 25,
 			TLS: &schema.TLSConfig{
 				ServerName:     "smtp.example.com",
-				MinimumVersion: "TLS1.1",
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
 			},
 		},
 	}
