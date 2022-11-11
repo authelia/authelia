@@ -1,14 +1,15 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
-    AuthenticatedRoute,
+    FirstFactorRoute,
     IndexRoute,
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
+    SettingsRoute,
 } from "@constants/Routes";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -23,6 +24,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 import AuthenticatedView from "@views/LoginPortal/AuthenticatedView/AuthenticatedView";
 import FirstFactorForm from "@views/LoginPortal/FirstFactor/FirstFactorForm";
 import SecondFactorForm from "@views/LoginPortal/SecondFactor/SecondFactorForm";
+import SettingsView from "@views/Settings/SettingsView";
 
 export interface Props {
     duoSelfEnrollment: boolean;
@@ -137,13 +139,13 @@ const LoginPortal = function (props: Props) {
 
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(IndexRoute);
+                redirect(FirstFactorRoute);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
-                    redirect(AuthenticatedRoute, false);
+                    redirect(IndexRoute, false);
                 } else {
                     if (state.authentication_level >= AuthenticationLevel.TwoFactor) {
-                        redirect(AuthenticatedRoute, false);
+                        // Land on whatever login portal page was requested
                     } else {
                         if (userInfo.method === SecondFactorMethod.Webauthn) {
                             redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`);
@@ -186,12 +188,12 @@ const LoginPortal = function (props: Props) {
     const firstFactorReady =
         state !== undefined &&
         state.authentication_level === AuthenticationLevel.Unauthenticated &&
-        location.pathname === IndexRoute;
+        location.pathname === FirstFactorRoute;
 
     return (
         <Routes>
             <Route
-                path={IndexRoute}
+                path={FirstFactorRoute}
                 element={
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
@@ -222,10 +224,9 @@ const LoginPortal = function (props: Props) {
                     ) : null
                 }
             />
-            <Route
-                path={AuthenticatedRoute}
-                element={userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null}
-            />
+            <Route path={IndexRoute} element={userInfo ? <AuthenticatedView name={userInfo.display_name} /> : null} />
+            <Route path={SettingsRoute} element={<SettingsView />} />
+            <Route path="*" element={<Navigate to={IndexRoute} />} />
         </Routes>
     );
 };
