@@ -37,6 +37,17 @@ END;
 
 DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;
 DROP TABLE IF EXISTS _bkp_UP_V0002_u2f_devices;
+DROP TABLE IF EXISTS totp_secrets;
+DROP TABLE IF EXISTS identity_verification_tokens;
+DROP TABLE IF EXISTS u2f_devices;
+DROP TABLE IF EXISTS config;
+DROP TABLE IF EXISTS AuthenticationLogs;
+DROP TABLE IF EXISTS IdentityVerificationTokens;
+DROP TABLE IF EXISTS Preferences;
+DROP TABLE IF EXISTS PreferencesTableName;
+DROP TABLE IF EXISTS SecondFactorPreferences;
+DROP TABLE IF EXISTS TOTPSecrets;
+DROP TABLE IF EXISTS U2FDeviceHandles;
 
 CALL PROC_DROP_FOREIGN_KEY('oauth2_consent_session', 'oauth2_consent_session_subject_fkey');
 CALL PROC_DROP_FOREIGN_KEY('oauth2_consent_session', 'oauth2_consent_session_preconfiguration_fkey');

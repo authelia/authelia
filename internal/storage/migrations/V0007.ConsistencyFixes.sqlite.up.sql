@@ -4,6 +4,17 @@ BEGIN TRANSACTION;
 
 DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;
 DROP TABLE IF EXISTS _bkp_UP_V0002_u2f_devices;
+DROP TABLE IF EXISTS totp_secrets;
+DROP TABLE IF EXISTS identity_verification_tokens;
+DROP TABLE IF EXISTS u2f_devices;
+DROP TABLE IF EXISTS config;
+DROP TABLE IF EXISTS AuthenticationLogs;
+DROP TABLE IF EXISTS IdentityVerificationTokens;
+DROP TABLE IF EXISTS Preferences;
+DROP TABLE IF EXISTS PreferencesTableName;
+DROP TABLE IF EXISTS SecondFactorPreferences;
+DROP TABLE IF EXISTS TOTPSecrets;
+DROP TABLE IF EXISTS U2FDeviceHandles;
 
 ALTER TABLE webauthn_devices
     RENAME TO _bkp_UP_V0007_webauthn_devices;

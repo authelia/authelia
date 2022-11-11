@@ -1,13 +1,12 @@
-CREATE TABLE oauth2_consent_preconfiguration (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_consent_preconfiguration (
+    id SERIAL CONSTRAINT oauth2_consent_preconfiguration_pkey PRIMARY KEY,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
 	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
 	revoked BOOLEAN NOT NULL DEFAULT FALSE,
     scopes TEXT NOT NULL,
-    audience TEXT NULL,
-    PRIMARY KEY (id)
+    audience TEXT NULL
 );
 
 ALTER TABLE oauth2_consent_preconfiguration
@@ -28,8 +27,8 @@ DROP TABLE oauth2_pkce_request_session;
 DROP TABLE oauth2_refresh_token_session;
 DROP TABLE oauth2_consent_session;
 
-CREATE TABLE oauth2_consent_session (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_consent_session (
+    id SERIAL CONSTRAINT oauth2_consent_session_pkey PRIMARY KEY,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
@@ -42,8 +41,7 @@ CREATE TABLE oauth2_consent_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL,
     granted_audience TEXT NULL,
-    preconfiguration INTEGER NULL DEFAULT NULL,
-    PRIMARY KEY (id)
+    preconfiguration INTEGER NULL DEFAULT NULL
 );
 
 CREATE UNIQUE INDEX oauth2_consent_session_challenge_id_key ON oauth2_consent_session (challenge_id);
@@ -56,8 +54,8 @@ ALTER TABLE oauth2_consent_session
     	FOREIGN KEY (preconfiguration)
     		REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-CREATE TABLE oauth2_access_token_session (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
+    id SERIAL CONSTRAINT oauth2_access_token_session_pkey PRIMARY KEY,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -71,8 +69,7 @@ CREATE TABLE oauth2_access_token_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BYTEA NOT NULL,
-    PRIMARY KEY (id)
+    session_data BYTEA NOT NULL
 );
 
 CREATE INDEX oauth2_access_token_session_request_id_idx ON oauth2_access_token_session (request_id);
@@ -87,8 +84,8 @@ ALTER TABLE oauth2_access_token_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_authorization_code_session (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
+    id SERIAL CONSTRAINT oauth2_authorization_code_session_pkey PRIMARY KEY,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -102,8 +99,7 @@ CREATE TABLE oauth2_authorization_code_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BYTEA NOT NULL,
-	PRIMARY KEY (id)
+    session_data BYTEA NOT NULL
 );
 
 CREATE INDEX oauth2_authorization_code_session_request_id_idx ON oauth2_authorization_code_session (request_id);
@@ -118,8 +114,8 @@ ALTER TABLE oauth2_authorization_code_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_openid_connect_session (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
+    id SERIAL CONSTRAINT oauth2_openid_connect_session_pkey PRIMARY KEY,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -133,8 +129,7 @@ CREATE TABLE oauth2_openid_connect_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BYTEA NOT NULL,
-    PRIMARY KEY (id)
+    session_data BYTEA NOT NULL
 );
 
 CREATE INDEX oauth2_openid_connect_session_request_id_idx ON oauth2_openid_connect_session (request_id);
@@ -149,8 +144,8 @@ ALTER TABLE oauth2_openid_connect_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_pkce_request_session (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
+    id SERIAL CONSTRAINT oauth2_pkce_request_session_pkey PRIMARY KEY,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -164,8 +159,7 @@ CREATE TABLE oauth2_pkce_request_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BYTEA NOT NULL,
-    PRIMARY KEY (id)
+    session_data BYTEA NOT NULL
 );
 
 CREATE INDEX oauth2_pkce_request_session_request_id_idx ON oauth2_pkce_request_session (request_id);
@@ -180,8 +174,8 @@ ALTER TABLE oauth2_pkce_request_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_refresh_token_session (
-    id SERIAL,
+CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
+    id SERIAL CONSTRAINT oauth2_refresh_token_session_pkey PRIMARY KEY,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -195,8 +189,7 @@ CREATE TABLE oauth2_refresh_token_session (
     active BOOLEAN NOT NULL DEFAULT FALSE,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
-    session_data BYTEA NOT NULL,
-    PRIMARY KEY (id)
+    session_data BYTEA NOT NULL
 );
 
 CREATE INDEX oauth2_refresh_token_session_request_id_idx ON oauth2_refresh_token_session (request_id);
