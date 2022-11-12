@@ -69,9 +69,8 @@ CREATE TABLE IF NOT EXISTS migrations (
 );
 
 CREATE TABLE IF NOT EXISTS encryption (
-  id INTEGER,
-  name VARCHAR(100),
-  value BLOB NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (name)
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	name VARCHAR(100),
+	value BLOB NOT NULL,
+	UNIQUE (name)
 );

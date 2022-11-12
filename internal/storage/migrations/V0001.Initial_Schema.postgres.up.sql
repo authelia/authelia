@@ -75,9 +75,9 @@ CREATE TABLE IF NOT EXISTS migrations (
 );
 
 CREATE TABLE IF NOT EXISTS encryption (
-  id SERIAL CONSTRAINT encryption_pkey PRIMARY KEY,
-  name VARCHAR(100),
-  value BYTEA NOT NULL
+	id SERIAL CONSTRAINT encryption_pkey PRIMARY KEY,
+	name VARCHAR(100),
+	value BYTEA NOT NULL
 );
 
 CREATE UNIQUE INDEX encryption_name_key ON encryption (name);
