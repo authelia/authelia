@@ -4,7 +4,7 @@ ALTER TABLE totp_configurations
 ALTER TABLE webauthn_devices
     RENAME TO _bkp_DOWN_V0002_webauthn_devices;
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
@@ -19,7 +19,7 @@ INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period
 SELECT id, username, issuer, algorithm, digits, period, secret
 FROM _bkp_DOWN_V0002_totp_configurations;
 
-CREATE TABLE u2f_devices (
+CREATE TABLE IF NOT EXISTS u2f_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',

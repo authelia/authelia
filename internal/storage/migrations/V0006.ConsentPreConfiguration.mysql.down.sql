@@ -1,12 +1,12 @@
-DROP TABLE oauth2_authorization_code_session;
-DROP TABLE oauth2_access_token_session;
-DROP TABLE oauth2_refresh_token_session;
-DROP TABLE oauth2_pkce_request_session;
-DROP TABLE oauth2_openid_connect_session;
-DROP TABLE oauth2_consent_session;
-DROP TABLE oauth2_consent_preconfiguration;
+DROP TABLE IF EXISTS oauth2_authorization_code_session;
+DROP TABLE IF EXISTS oauth2_access_token_session;
+DROP TABLE IF EXISTS oauth2_refresh_token_session;
+DROP TABLE IF EXISTS oauth2_pkce_request_session;
+DROP TABLE IF EXISTS oauth2_openid_connect_session;
+DROP TABLE IF EXISTS oauth2_consent_session;
+DROP TABLE IF EXISTS oauth2_consent_preconfiguration;
 
-CREATE TABLE oauth2_consent_session (
+CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -30,7 +30,7 @@ ALTER TABLE oauth2_consent_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_access_token_session (
+CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -60,7 +60,7 @@ ALTER TABLE oauth2_access_token_session
     	FOREIGN KEY (subject)
    			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_authorization_code_session (
+CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -90,7 +90,7 @@ ALTER TABLE oauth2_authorization_code_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_openid_connect_session (
+CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -120,7 +120,7 @@ ALTER TABLE oauth2_openid_connect_session
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_pkce_request_session (
+CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -151,7 +151,7 @@ ALTER TABLE oauth2_pkce_request_session
    		FOREIGN KEY (subject)
 		   	REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
-CREATE TABLE oauth2_refresh_token_session (
+CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,

@@ -59,7 +59,7 @@ DROP INDEX IF EXISTS totp_configurations_username_key;
 ALTER TABLE totp_configurations
     RENAME TO _bkp_UP_V0007_totp_configurations;
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id SERIAL CONSTRAINT totp_configurations_pkey PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
@@ -78,7 +78,7 @@ SELECT created_at, last_used_at, username, issuer, algorithm, digits, period, se
 FROM _bkp_UP_V0007_totp_configurations
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_totp_configurations;
+DROP TABLE IF EXISTS _bkp_UP_V0007_totp_configurations;
 
 ALTER TABLE webauthn_devices
 	DROP CONSTRAINT IF EXISTS webauthn_devices_username_description_key1,
@@ -100,7 +100,7 @@ DROP INDEX IF EXISTS webauthn_devices_lookup_key;
 ALTER TABLE webauthn_devices
 	RENAME TO _bkp_UP_V0007_webauthn_devices;
 
-CREATE TABLE webauthn_devices (
+CREATE TABLE IF NOT EXISTS webauthn_devices (
     id SERIAL CONSTRAINT webauthn_devices_pkey PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NULL,
@@ -123,7 +123,7 @@ INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, descript
 SELECT created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 FROM _bkp_UP_V0007_webauthn_devices;
 
-DROP TABLE _bkp_UP_V0007_webauthn_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0007_webauthn_devices;
 
 ALTER TABLE oauth2_consent_session
     DROP CONSTRAINT oauth2_consent_session_subject_fkey,

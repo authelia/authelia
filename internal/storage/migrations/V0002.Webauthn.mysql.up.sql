@@ -4,7 +4,7 @@ ALTER TABLE totp_configurations
 ALTER TABLE u2f_devices
     RENAME _bkp_UP_V0002_u2f_devices;
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
@@ -21,7 +21,7 @@ INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period
 SELECT id, username, issuer, algorithm, digits, period, secret
 FROM _bkp_UP_V0002_totp_configurations;
 
-CREATE TABLE webauthn_devices (
+CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,

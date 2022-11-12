@@ -20,12 +20,12 @@ FROM oauth2_consent_session
 WHERE expires_at IS NOT NULL AND responded_at IS NOT NULL
 ORDER BY responded_at;
 
-DROP TABLE oauth2_access_token_session;
-DROP TABLE oauth2_authorization_code_session;
-DROP TABLE oauth2_openid_connect_session;
-DROP TABLE oauth2_pkce_request_session;
-DROP TABLE oauth2_refresh_token_session;
-DROP TABLE oauth2_consent_session;
+DROP TABLE IF EXISTS oauth2_access_token_session;
+DROP TABLE IF EXISTS oauth2_authorization_code_session;
+DROP TABLE IF EXISTS oauth2_openid_connect_session;
+DROP TABLE IF EXISTS oauth2_pkce_request_session;
+DROP TABLE IF EXISTS oauth2_refresh_token_session;
+DROP TABLE IF EXISTS oauth2_consent_session;
 
 CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     id SERIAL CONSTRAINT oauth2_consent_session_pkey PRIMARY KEY,

@@ -22,7 +22,7 @@ DROP INDEX IF EXISTS webauthn_devices_kid_key;
 ALTER TABLE webauthn_devices
     RENAME TO _bkp_UP_V0007_webauthn_devices;
 
-CREATE TABLE webauthn_devices (
+CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at DATETIME NULL DEFAULT NULL,
@@ -45,14 +45,14 @@ INSERT INTO webauthn_devices (created_at, last_used_at, rpid, username, descript
 SELECT created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 FROM _bkp_UP_V0007_webauthn_devices;
 
-DROP TABLE _bkp_UP_V0007_webauthn_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0007_webauthn_devices;
 
 DROP INDEX IF EXISTS identity_verification_jti_key;
 
 ALTER TABLE identity_verification
     RENAME TO _bkp_UP_V0007_identity_verification;
 
-CREATE TABLE identity_verification (
+CREATE TABLE IF NOT EXISTS identity_verification (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     jti VARCHAR(36),
     iat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -71,14 +71,14 @@ SELECT jti, iat, issued_ip, exp, username, action, consumed, consumed_ip
 FROM _bkp_UP_V0007_identity_verification
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_identity_verification;
+DROP TABLE IF EXISTS _bkp_UP_V0007_identity_verification;
 
 DROP INDEX IF EXISTS totp_configurations_username_key;
 
 ALTER TABLE totp_configurations
     RENAME TO _bkp_UP_V0007_totp_configurations;
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at DATETIME NULL DEFAULT NULL,
@@ -97,14 +97,14 @@ SELECT username, issuer, algorithm, digits, period, secret
 FROM _bkp_UP_V0007_totp_configurations
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_totp_configurations;
+DROP TABLE IF EXISTS _bkp_UP_V0007_totp_configurations;
 
 DROP INDEX IF EXISTS duo_devices_username_key;
 
 ALTER TABLE duo_devices
     RENAME TO _bkp_UP_V0007_duo_devices;
 
-CREATE TABLE duo_devices (
+CREATE TABLE IF NOT EXISTS duo_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     device VARCHAR(32) NOT NULL,
@@ -117,12 +117,12 @@ INSERT INTO duo_devices (username, device, method)
 SELECT username, device, method
 FROM _bkp_UP_V0007_duo_devices;
 
-DROP TABLE _bkp_UP_V0007_duo_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0007_duo_devices;
 
 ALTER TABLE user_preferences
     RENAME TO _bkp_UP_V0007_user_preferences;
 
-CREATE TABLE user_preferences (
+CREATE TABLE IF NOT EXISTS user_preferences (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     second_factor_method VARCHAR(11) NOT NULL
@@ -135,12 +135,12 @@ SELECT username, second_factor_method
 FROM _bkp_UP_V0007_user_preferences
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_user_preferences;
+DROP TABLE IF EXISTS _bkp_UP_V0007_user_preferences;
 
 ALTER TABLE encryption
     RENAME TO _bkp_UP_V0007_encryption;
 
-CREATE TABLE encryption (
+CREATE TABLE IF NOT EXISTS encryption (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100),
     value BLOB NOT NULL
@@ -153,9 +153,9 @@ SELECT name, value
 FROM _bkp_UP_V0007_encryption
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_encryption;
+DROP TABLE IF EXISTS _bkp_UP_V0007_encryption;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_consent_preconfiguration (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_consent_preconfiguration (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
@@ -171,9 +171,9 @@ SELECT client_id, subject, created_at, expires_at, revoked, scopes, audience
 FROM oauth2_consent_preconfiguration
 ORDER BY id;
 
-DROP TABLE oauth2_consent_preconfiguration;
+DROP TABLE IF EXISTS oauth2_consent_preconfiguration;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_consent_session (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_consent_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -195,9 +195,9 @@ SELECT challenge_id, client_id, subject, authorized, granted, requested_at, resp
 FROM oauth2_consent_session
 ORDER BY id;
 
-DROP TABLE oauth2_consent_session;
+DROP TABLE IF EXISTS oauth2_consent_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_authorization_code_session (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_authorization_code_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -220,9 +220,9 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM oauth2_authorization_code_session
 ORDER BY id;
 
-DROP TABLE oauth2_authorization_code_session;
+DROP TABLE IF EXISTS oauth2_authorization_code_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_access_token_session (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_access_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -245,9 +245,9 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM oauth2_access_token_session
 ORDER BY id;
 
-DROP TABLE oauth2_access_token_session;
+DROP TABLE IF EXISTS oauth2_access_token_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_refresh_token_session (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_refresh_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -270,9 +270,9 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM oauth2_refresh_token_session
 ORDER BY id;
 
-DROP TABLE oauth2_refresh_token_session;
+DROP TABLE IF EXISTS oauth2_refresh_token_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_pkce_request_session (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_pkce_request_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -295,9 +295,9 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM oauth2_pkce_request_session
 ORDER BY id;
 
-DROP TABLE oauth2_pkce_request_session;
+DROP TABLE IF EXISTS oauth2_pkce_request_session;
 
-CREATE TABLE _bkp_UP_V0007_oauth2_openid_connect_session (
+CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_openid_connect_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -320,15 +320,15 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM oauth2_openid_connect_session
 ORDER BY id;
 
-DROP TABLE oauth2_openid_connect_session;
+DROP TABLE IF EXISTS oauth2_openid_connect_session;
 
-DROP INDEX user_opaque_identifier_identifier_key;
-DROP INDEX user_opaque_identifier_service_sector_id_username_key;
+DROP INDEX IF EXISTS user_opaque_identifier_identifier_key;
+DROP INDEX IF EXISTS user_opaque_identifier_service_sector_id_username_key;
 
 ALTER TABLE user_opaque_identifier
 	RENAME TO _bkp_UP_V0007_user_opaque_identifier;
 
-CREATE TABLE user_opaque_identifier (
+CREATE TABLE IF NOT EXISTS user_opaque_identifier (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     service VARCHAR(20) NOT NULL,
     sector_id VARCHAR(255) NOT NULL,
@@ -344,15 +344,15 @@ SELECT service, sector_id, username, identifier
 FROM _bkp_UP_V0007_user_opaque_identifier
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_user_opaque_identifier;
+DROP TABLE IF EXISTS _bkp_UP_V0007_user_opaque_identifier;
 
-DROP INDEX authentication_logs_username_idx;
-DROP INDEX authentication_logs_remote_ip_idx;
+DROP INDEX IF EXISTS authentication_logs_username_idx;
+DROP INDEX IF EXISTS authentication_logs_remote_ip_idx;
 
 ALTER TABLE authentication_logs
 	RENAME TO _bkp_UP_V0007_authentication_logs;
 
-CREATE TABLE authentication_logs (
+CREATE TABLE IF NOT EXISTS authentication_logs (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful TINYINT NOT NULL,
@@ -372,12 +372,12 @@ SELECT time, successful, banned, username, auth_type, remote_ip, request_uri, re
 FROM _bkp_UP_V0007_authentication_logs
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_authentication_logs;
+DROP TABLE IF EXISTS _bkp_UP_V0007_authentication_logs;
 
 ALTER TABLE migrations
 	RENAME TO _bkp_UP_V0007_migrations;
 
-CREATE TABLE migrations (
+CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     applied DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version_before INTEGER NULL DEFAULT NULL,
@@ -390,14 +390,14 @@ SELECT applied, version_before, version_after, application_version
 FROM _bkp_UP_V0007_migrations
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_migrations;
+DROP TABLE IF EXISTS _bkp_UP_V0007_migrations;
 
-DROP INDEX oauth2_blacklisted_jti_signature_key;
+DROP INDEX IF EXISTS oauth2_blacklisted_jti_signature_key;
 
 ALTER TABLE oauth2_blacklisted_jti
 	RENAME TO _bkp_UP_V0007_oauth2_blacklisted_jti;
 
-CREATE TABLE oauth2_blacklisted_jti (
+CREATE TABLE IF NOT EXISTS oauth2_blacklisted_jti (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     signature VARCHAR(64) NOT NULL,
     expires_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -410,9 +410,9 @@ SELECT signature, expires_at
 FROM _bkp_UP_V0007_oauth2_blacklisted_jti
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_blacklisted_jti;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_blacklisted_jti;
 
-CREATE TABLE oauth2_consent_preconfiguration (
+CREATE TABLE IF NOT EXISTS oauth2_consent_preconfiguration (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
@@ -431,11 +431,11 @@ SELECT client_id, subject, created_at, expires_at, revoked, scopes, audience
 FROM _bkp_UP_V0007_oauth2_consent_preconfiguration
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_consent_preconfiguration;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_consent_preconfiguration;
 
 DROP INDEX IF EXISTS oauth2_consent_session_challenge_id_key;
 
-CREATE TABLE oauth2_consent_session (
+CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -465,13 +465,13 @@ SELECT challenge_id, client_id, subject, authorized, granted, requested_at, resp
 FROM _bkp_UP_V0007_oauth2_consent_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_consent_session;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_consent_session;
 
 DROP INDEX IF EXISTS oauth2_authorization_code_session_request_id_idx;
 DROP INDEX IF EXISTS oauth2_authorization_code_session_client_id_idx;
 DROP INDEX IF EXISTS oauth2_authorization_code_session_client_id_subject_idx;
 
-CREATE TABLE oauth2_authorization_code_session (
+CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -504,13 +504,13 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM _bkp_UP_V0007_oauth2_authorization_code_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_authorization_code_session;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_authorization_code_session;
 
 DROP INDEX IF EXISTS oauth2_access_token_session_request_id_idx;
 DROP INDEX IF EXISTS oauth2_access_token_session_client_id_idx;
 DROP INDEX IF EXISTS oauth2_access_token_session_client_id_subject_idx;
 
-CREATE TABLE oauth2_access_token_session (
+CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -543,13 +543,13 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM _bkp_UP_V0007_oauth2_access_token_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_access_token_session;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_access_token_session;
 
 DROP INDEX IF EXISTS oauth2_refresh_token_session_request_id_idx;
 DROP INDEX IF EXISTS oauth2_refresh_token_session_client_id_idx;
 DROP INDEX IF EXISTS oauth2_refresh_token_session_client_id_subject_idx;
 
-CREATE TABLE oauth2_refresh_token_session (
+CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -582,13 +582,13 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM _bkp_UP_V0007_oauth2_refresh_token_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_refresh_token_session;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_refresh_token_session;
 
 DROP INDEX IF EXISTS oauth2_pkce_request_session_request_id_idx;
 DROP INDEX IF EXISTS oauth2_pkce_request_session_client_id_idx;
 DROP INDEX IF EXISTS oauth2_pkce_request_session_client_id_subject_idx;
 
-CREATE TABLE oauth2_pkce_request_session (
+CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -621,13 +621,13 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM _bkp_UP_V0007_oauth2_pkce_request_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_pkce_request_session;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_pkce_request_session;
 
 DROP INDEX IF EXISTS oauth2_openid_connect_session_request_id_idx;
 DROP INDEX IF EXISTS oauth2_openid_connect_session_client_id_idx;
 DROP INDEX IF EXISTS oauth2_openid_connect_session_client_id_subject_idx;
 
-CREATE TABLE oauth2_openid_connect_session (
+CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -660,7 +660,7 @@ SELECT challenge_id, request_id, client_id, signature, subject, requested_at, re
 FROM _bkp_UP_V0007_oauth2_openid_connect_session
 ORDER BY id;
 
-DROP TABLE _bkp_UP_V0007_oauth2_openid_connect_session;
+DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_openid_connect_session;
 
 COMMIT;
 

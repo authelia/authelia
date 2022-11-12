@@ -4,7 +4,7 @@ ALTER TABLE totp_configurations
 ALTER TABLE u2f_devices
     RENAME TO _bkp_UP_V0002_u2f_devices;
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
@@ -21,9 +21,9 @@ INSERT INTO totp_configurations (id, username, issuer, algorithm, digits, period
 SELECT id, username, issuer, algorithm, digits, period, secret
 FROM _bkp_UP_V0002_totp_configurations;
 
-DROP TABLE _bkp_UP_V0002_totp_configurations;
+DROP TABLE IF EXISTS _bkp_UP_V0002_totp_configurations;
 
-CREATE TABLE webauthn_devices (
+CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
@@ -45,7 +45,7 @@ INSERT INTO webauthn_devices (id, rpid, username, description, kid, public_key, 
 SELECT id, '', username, description, BIN2B64(key_handle), public_key, 'fido-u2f', '00000000-0000-0000-0000-000000000000', 0
 FROM _bkp_UP_V0002_u2f_devices;
 
-DROP TABLE _bkp_UP_V0002_u2f_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0002_u2f_devices;
 
 UPDATE user_preferences
 SET second_factor_method = 'webauthn'

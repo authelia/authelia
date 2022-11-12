@@ -1,7 +1,7 @@
 ALTER TABLE webauthn_devices
     RENAME TO _bkp_UP_V0003_webauthn_devices;
 
-CREATE TABLE webauthn_devices (
+CREATE TABLE IF NOT EXISTS webauthn_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
@@ -23,4 +23,4 @@ INSERT INTO webauthn_devices (id, created_at, last_used_at, rpid, username, desc
 SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 FROM _bkp_UP_V0003_webauthn_devices;
 
-DROP TABLE _bkp_UP_V0003_webauthn_devices;
+DROP TABLE IF EXISTS _bkp_UP_V0003_webauthn_devices;

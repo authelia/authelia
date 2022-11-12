@@ -1,4 +1,4 @@
-CREATE TABLE authentication_logs (
+CREATE TABLE IF NOT EXISTS authentication_logs (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful BOOLEAN NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE authentication_logs (
 CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
 CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
 
-CREATE TABLE identity_verification (
+CREATE TABLE IF NOT EXISTS identity_verification (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     jti CHAR(36),
     iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +26,7 @@ CREATE TABLE identity_verification (
     UNIQUE KEY (jti)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
@@ -37,7 +37,7 @@ CREATE TABLE totp_configurations (
     UNIQUE KEY (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE TABLE u2f_devices (
+CREATE TABLE IF NOT EXISTS u2f_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',
@@ -46,7 +46,7 @@ CREATE TABLE u2f_devices (
     UNIQUE KEY (username, description)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE TABLE duo_devices (
+CREATE TABLE IF NOT EXISTS duo_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     device VARCHAR(32) NOT NULL,
@@ -54,14 +54,14 @@ CREATE TABLE duo_devices (
     UNIQUE KEY (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE TABLE user_preferences (
+CREATE TABLE IF NOT EXISTS user_preferences (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(100) NOT NULL,
     second_factor_method VARCHAR(11) NOT NULL,
     UNIQUE KEY (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE TABLE migrations (
+CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version_before INTEGER NULL DEFAULT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE migrations (
     application_version VARCHAR(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
-CREATE TABLE encryption (
+CREATE TABLE IF NOT EXISTS encryption (
   id INTEGER AUTO_INCREMENT,
   name VARCHAR(100),
   value BLOB NOT NULL,

@@ -1,4 +1,4 @@
-CREATE TABLE authentication_logs (
+CREATE TABLE IF NOT EXISTS authentication_logs (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     successful BOOLEAN NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE authentication_logs (
 CREATE INDEX authentication_logs_username_idx ON authentication_logs (time, username, auth_type);
 CREATE INDEX authentication_logs_remote_ip_idx ON authentication_logs (time, remote_ip, auth_type);
 
-CREATE TABLE identity_verification (
+CREATE TABLE IF NOT EXISTS identity_verification (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     jti VARCHAR(36),
     iat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +26,7 @@ CREATE TABLE identity_verification (
     UNIQUE (jti)
 );
 
-CREATE TABLE totp_configurations (
+CREATE TABLE IF NOT EXISTS totp_configurations (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     issuer VARCHAR(100),
@@ -37,7 +37,7 @@ CREATE TABLE totp_configurations (
     UNIQUE (username)
 );
 
-CREATE TABLE u2f_devices (
+CREATE TABLE IF NOT EXISTS u2f_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     description VARCHAR(30) NOT NULL DEFAULT 'Primary',
@@ -46,7 +46,7 @@ CREATE TABLE u2f_devices (
     UNIQUE (username, description)
 );
 
-CREATE TABLE duo_devices (
+CREATE TABLE IF NOT EXISTS duo_devices (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) NOT NULL,
     device VARCHAR(32) NOT NULL,
@@ -54,13 +54,13 @@ CREATE TABLE duo_devices (
     UNIQUE (username)
 );
 
-CREATE TABLE user_preferences (
+CREATE TABLE IF NOT EXISTS user_preferences (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(100) UNIQUE NOT NULL,
     second_factor_method VARCHAR(11) NOT NULL
 );
 
-CREATE TABLE migrations (
+CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     applied TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version_before INTEGER NULL DEFAULT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE migrations (
     application_version VARCHAR(128) NOT NULL
 );
 
-CREATE TABLE encryption (
+CREATE TABLE IF NOT EXISTS encryption (
   id INTEGER,
   name VARCHAR(100),
   value BLOB NOT NULL,

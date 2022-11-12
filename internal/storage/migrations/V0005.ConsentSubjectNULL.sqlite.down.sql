@@ -11,12 +11,12 @@ DELETE FROM user_opaque_identifier
 DELETE FROM user_opaque_identifier
        WHERE service <> 'openid';
 
-DROP INDEX oauth2_consent_session_challenge_id_key;
+DROP INDEX IF EXISTS oauth2_consent_session_challenge_id_key;
 
 ALTER TABLE oauth2_consent_session
     RENAME TO _bkp_DOWN_V0005_oauth2_consent_session;
 
-CREATE TABLE oauth2_consent_session (
+CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
@@ -44,16 +44,16 @@ FROM _bkp_DOWN_V0005_oauth2_consent_session
 WHERE subject IS NOT NULL
 ORDER BY id;
 
-DROP TABLE _bkp_DOWN_V0005_oauth2_consent_session;
+DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_consent_session;
 
-DROP INDEX oauth2_authorization_code_session_request_id_idx;
-DROP INDEX oauth2_authorization_code_session_client_id_idx;
-DROP INDEX oauth2_authorization_code_session_client_id_subject_idx;
+DROP INDEX IF EXISTS oauth2_authorization_code_session_request_id_idx;
+DROP INDEX IF EXISTS oauth2_authorization_code_session_client_id_idx;
+DROP INDEX IF EXISTS oauth2_authorization_code_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_authorization_code_session
     RENAME TO _bkp_DOWN_V0005_oauth2_authorization_code_session;
 
-CREATE TABLE oauth2_authorization_code_session (
+CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -87,16 +87,16 @@ FROM _bkp_DOWN_V0005_oauth2_authorization_code_session
 WHERE challenge_id IN (SELECT challenge_id FROM oauth2_consent_session)
 ORDER BY id;
 
-DROP TABLE _bkp_DOWN_V0005_oauth2_authorization_code_session;
+DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_authorization_code_session;
 
-DROP INDEX oauth2_access_token_session_request_id_idx;
-DROP INDEX oauth2_access_token_session_client_id_idx;
-DROP INDEX oauth2_access_token_session_client_id_subject_idx;
+DROP INDEX IF EXISTS oauth2_access_token_session_request_id_idx;
+DROP INDEX IF EXISTS oauth2_access_token_session_client_id_idx;
+DROP INDEX IF EXISTS oauth2_access_token_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_access_token_session
     RENAME TO _bkp_DOWN_V0005_oauth2_access_token_session;
 
-CREATE TABLE oauth2_access_token_session (
+CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -130,16 +130,16 @@ FROM _bkp_DOWN_V0005_oauth2_access_token_session
 WHERE challenge_id IN (SELECT challenge_id FROM oauth2_consent_session)
 ORDER BY id;
 
-DROP TABLE _bkp_DOWN_V0005_oauth2_access_token_session;
+DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_access_token_session;
 
-DROP INDEX oauth2_refresh_token_session_request_id_idx;
-DROP INDEX oauth2_refresh_token_session_client_id_idx;
-DROP INDEX oauth2_refresh_token_session_client_id_subject_idx;
+DROP INDEX IF EXISTS oauth2_refresh_token_session_request_id_idx;
+DROP INDEX IF EXISTS oauth2_refresh_token_session_client_id_idx;
+DROP INDEX IF EXISTS oauth2_refresh_token_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_refresh_token_session
     RENAME TO _bkp_DOWN_V0005_oauth2_refresh_token_session;
 
-CREATE TABLE oauth2_refresh_token_session (
+CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -173,16 +173,16 @@ FROM _bkp_DOWN_V0005_oauth2_refresh_token_session
 WHERE challenge_id IN (SELECT challenge_id FROM oauth2_consent_session)
 ORDER BY id;
 
-DROP TABLE _bkp_DOWN_V0005_oauth2_refresh_token_session;
+DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_refresh_token_session;
 
-DROP INDEX oauth2_pkce_request_session_request_id_idx;
-DROP INDEX oauth2_pkce_request_session_client_id_idx;
-DROP INDEX oauth2_pkce_request_session_client_id_subject_idx;
+DROP INDEX IF EXISTS oauth2_pkce_request_session_request_id_idx;
+DROP INDEX IF EXISTS oauth2_pkce_request_session_client_id_idx;
+DROP INDEX IF EXISTS oauth2_pkce_request_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_pkce_request_session
     RENAME TO _bkp_DOWN_V0005_oauth2_pkce_request_session;
 
-CREATE TABLE oauth2_pkce_request_session (
+CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -216,16 +216,16 @@ FROM _bkp_DOWN_V0005_oauth2_pkce_request_session
 WHERE challenge_id IN (SELECT challenge_id FROM oauth2_consent_session)
 ORDER BY id;
 
-DROP TABLE _bkp_DOWN_V0005_oauth2_pkce_request_session;
+DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_pkce_request_session;
 
-DROP INDEX oauth2_openid_connect_session_request_id_idx;
-DROP INDEX oauth2_openid_connect_session_client_id_idx;
-DROP INDEX oauth2_openid_connect_session_client_id_subject_idx;
+DROP INDEX IF EXISTS oauth2_openid_connect_session_request_id_idx;
+DROP INDEX IF EXISTS oauth2_openid_connect_session_client_id_idx;
+DROP INDEX IF EXISTS oauth2_openid_connect_session_client_id_subject_idx;
 
 ALTER TABLE oauth2_openid_connect_session
     RENAME TO _bkp_DOWN_V0005_oauth2_openid_connect_session;
 
-CREATE TABLE oauth2_openid_connect_session (
+CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     challenge_id CHAR(36) NOT NULL,
     request_id VARCHAR(40) NOT NULL,
@@ -259,7 +259,7 @@ FROM _bkp_DOWN_V0005_oauth2_openid_connect_session
 WHERE challenge_id IN (SELECT challenge_id FROM oauth2_consent_session)
 ORDER BY id;
 
-DROP TABLE _bkp_DOWN_V0005_oauth2_openid_connect_session;
+DROP TABLE IF EXISTS _bkp_DOWN_V0005_oauth2_openid_connect_session;
 
 COMMIT;
 
