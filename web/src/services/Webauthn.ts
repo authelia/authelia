@@ -314,10 +314,14 @@ export async function getAssertionPublicKeyCredentialResult(
 
 async function postAttestationPublicKeyCredentialResult(
     credential: AttestationPublicKeyCredential,
+    description: string,
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
     const credentialJSON = encodeAttestationPublicKeyCredential(credential);
-
-    return axios.post<OptionalDataServiceResponse<any>>(WebauthnAttestationPath, credentialJSON);
+    const postBody = {
+        credential: credentialJSON,
+        description: description,
+    };
+    return axios.post<OptionalDataServiceResponse<any>>(WebauthnAttestationPath, postBody);
 }
 
 export async function postAssertionPublicKeyCredentialResult(
@@ -327,11 +331,10 @@ export async function postAssertionPublicKeyCredentialResult(
     workflowID?: string,
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
     const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL, workflow, workflowID);
-
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
 }
 
-export async function performAttestationCeremony(token: string): Promise<AttestationResult> {
+export async function performAttestationCeremony(token: string, description: string): Promise<AttestationResult> {
     const attestationCreationOpts = await getAttestationCreationOptions(token);
 
     if (attestationCreationOpts.status !== 200 || attestationCreationOpts.options == null) {
@@ -350,7 +353,7 @@ export async function performAttestationCeremony(token: string): Promise<Attesta
         return AttestationResult.Failure;
     }
 
-    const response = await postAttestationPublicKeyCredentialResult(attestationResult.credential);
+    const response = await postAttestationPublicKeyCredentialResult(attestationResult.credential, description);
 
     if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
         return AttestationResult.Success;

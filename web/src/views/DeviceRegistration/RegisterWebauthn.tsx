@@ -12,6 +12,8 @@ import { FirstFactorPath } from "@services/Api";
 import { performAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
+const description = "Primary";
+
 const RegisterWebauthn = function () {
     const styles = useStyles();
     const navigate = useNavigate();
@@ -32,7 +34,7 @@ const RegisterWebauthn = function () {
         try {
             setRegistrationInProgress(true);
 
-            const result = await performAttestationCeremony(processToken);
+            const result = await performAttestationCeremony(processToken, description);
 
             setRegistrationInProgress(false);
 
