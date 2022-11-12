@@ -132,9 +132,9 @@ services:
       - net
     labels:
       - 'traefik.frontend.rule=Host:nextcloud.example.com'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?rd=https://auth.example.com/'
+      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth?rd=https://auth.example.com/'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:
       - 443
     restart: unless-stopped
@@ -153,7 +153,7 @@ services:
       - 'traefik.frontend.rule=Host:heimdall.example.com'
       - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/verify?auth=basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     expose:
       - 443
     restart: unless-stopped

@@ -198,7 +198,7 @@ server {
         proxy_pass $upstream;
     }
 
-    location /api/authz/auth-request {
+    location /api/authz/ {
         proxy_pass $upstream;
     }
 }

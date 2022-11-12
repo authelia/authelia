@@ -154,10 +154,10 @@ services:
       - 'traefik.http.routers.authelia.tls=true'
       - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
       - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
       - 'traefik.http.middlewares.authelia-basic.forwardAuth.address=http://authelia:9091/api/verify?auth=basic'
       - 'traefik.http.middlewares.authelia-basic.forwardAuth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia-basic.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+      - 'traefik.http.middlewares.authelia-basic.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
   nextcloud:
     container_name: nextcloud
     image: linuxserver/nextcloud
@@ -364,13 +364,15 @@ http:
   middlewares:
     authelia:
       forwardAuth:
-        address: https://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F
+        address: 'https://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
         trustForwardHeader: true
         authResponseHeaders:
-          - "Remote-User"
-          - "Remote-Groups"
-          - "Remote-Email"
-          - "Remote-Name"
+          - 'Authorization'
+          - 'Authorization'
+          - 'Remote-User'
+          - 'Remote-Groups'
+          - 'Remote-Email'
+          - 'Remote-Name'
         tls:
           ca: /certificates/ca.public.crt
           cert: /certificates/traefik.public.crt
@@ -380,10 +382,12 @@ http:
         address: https://authelia:9091/api/verify?auth=basic
         trustForwardHeader: true
         authResponseHeaders:
-          - "Remote-User"
-          - "Remote-Groups"
-          - "Remote-Email"
-          - "Remote-Name"
+          - 'Authorization'
+          - 'Authorization'
+          - 'Remote-User'
+          - 'Remote-Groups'
+          - 'Remote-Email'
+          - 'Remote-Name'
         tls:
           ca: /certificates/ca.public.crt
           cert: /certificates/traefik.public.crt
@@ -493,7 +497,7 @@ This can be avoided a couple different ways:
 ```yaml
 - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?rd=https%3A%2F%2Fauth.example.com%2F'
 - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
-- 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+- 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Name,Remote-Email'
 ```
 
 ## See Also

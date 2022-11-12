@@ -39,7 +39,7 @@ spec:
         envoyExtAuthzHttp:
           service: 'authelia.default.svc.cluster.local'
           port: 80
-          pathPrefix: '/api/verify/'
+          pathPrefix: '/api/authz/ext-authz/'
           includeRequestHeadersInCheck:
             - accept
             - cookie
