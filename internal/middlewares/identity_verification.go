@@ -10,9 +10,15 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
+
+// Return true if skip enabled at TwoFactor auth level and user's auth level is 2FA, false otherwise.
+func shouldSkipIdentityVerification(args IdentityVerificationCommonArgs, ctx *AutheliaCtx) bool {
+	return args.SkipIfAuthLevelTwoFactor && ctx.GetSession().AuthenticationLevel >= authentication.TwoFactor
+}
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
 func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc TimingAttackDelayFunc) RequestHandler {
@@ -21,6 +27,11 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 	}
 
 	return func(ctx *AutheliaCtx) {
+		if shouldSkipIdentityVerification(args.IdentityVerificationCommonArgs, ctx) {
+			ctx.ReplyOK()
+			return
+		}
+
 		requestTime := time.Now()
 		success := false
 
@@ -112,48 +123,62 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 	}
 }
 
+func identityVerificationValidateToken(ctx *AutheliaCtx) (*jwt.Token, error) {
+	var finishBody IdentityVerificationFinishBody
+
+	b := ctx.PostBody()
+
+	err := json.Unmarshal(b, &finishBody)
+
+	if err != nil {
+		ctx.Error(err, messageOperationFailed)
+		return nil, err
+	}
+
+	if finishBody.Token == "" {
+		ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
+		return nil, err
+	}
+
+	token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
+		func(token *jwt.Token) (any, error) {
+			return []byte(ctx.Configuration.JWTSecret), nil
+		})
+
+	if err != nil {
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			switch {
+			case ve.Errors&jwt.ValidationErrorMalformed != 0:
+				ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
+				return nil, err
+			case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
+				// Token is either expired or not active yet.
+				ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
+				return nil, err
+			default:
+				ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), messageOperationFailed)
+				return nil, err
+			}
+		}
+
+		ctx.Error(err, messageOperationFailed)
+
+		return nil, err
+	}
+
+	return token, nil
+}
+
 // IdentityVerificationFinish the middleware for finishing the identity validation process.
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		var finishBody IdentityVerificationFinishBody
-
-		b := ctx.PostBody()
-
-		err := json.Unmarshal(b, &finishBody)
-
-		if err != nil {
-			ctx.Error(err, messageOperationFailed)
+		if shouldSkipIdentityVerification(args.IdentityVerificationCommonArgs, ctx) {
+			next(ctx, "")
 			return
 		}
 
-		if finishBody.Token == "" {
-			ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
-			return
-		}
-
-		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
-			func(token *jwt.Token) (any, error) {
-				return []byte(ctx.Configuration.JWTSecret), nil
-			})
-
-		if err != nil {
-			if ve, ok := err.(*jwt.ValidationError); ok {
-				switch {
-				case ve.Errors&jwt.ValidationErrorMalformed != 0:
-					ctx.Error(fmt.Errorf("Cannot parse token"), messageOperationFailed)
-					return
-				case ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0:
-					// Token is either expired or not active yet.
-					ctx.Error(fmt.Errorf("Token expired"), messageIdentityVerificationTokenHasExpired)
-					return
-				default:
-					ctx.Error(fmt.Errorf("Cannot handle this token: %s", ve), messageOperationFailed)
-					return
-				}
-			}
-
-			ctx.Error(err, messageOperationFailed)
-
+		token, err := identityVerificationValidateToken(ctx)
+		if token == nil || err != nil {
 			return
 		}
 

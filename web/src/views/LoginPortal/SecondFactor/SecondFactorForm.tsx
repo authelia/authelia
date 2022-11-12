@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
+    RegisterOneTimePasswordRoute,
+    RegisterWebauthnRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
@@ -48,20 +50,24 @@ const SecondFactorForm = function (props: Props) {
         setWebauthnSupported(isWebauthnSupported());
     }, [setWebauthnSupported]);
 
-    const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
+    const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>, redirectRoute: string) => {
         return async () => {
-            if (registrationInProgress) {
-                return;
+            if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+                navigate(redirectRoute);
+            } else {
+                if (registrationInProgress) {
+                    return;
+                }
+                setRegistrationInProgress(true);
+                try {
+                    await initiateRegistrationFunc();
+                    createInfoNotification(translate("An email has been sent to your address to complete the process"));
+                } catch (err) {
+                    console.error(err);
+                    createErrorNotification(translate("There was a problem initiating the registration process"));
+                }
+                setRegistrationInProgress(false);
             }
-            setRegistrationInProgress(true);
-            try {
-                await initiateRegistrationFunc();
-                createInfoNotification(translate("An email has been sent to your address to complete the process"));
-            } catch (err) {
-                console.error(err);
-                createErrorNotification(translate("There was a problem initiating the registration process"));
-            }
-            setRegistrationInProgress(false);
         };
     };
 
@@ -117,7 +123,10 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a TOTP secret registered already
                                     registered={props.userInfo.has_totp}
-                                    onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
+                                    onRegisterClick={initiateRegistration(
+                                        initiateTOTPRegistrationProcess,
+                                        RegisterOneTimePasswordRoute,
+                                    )}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />
@@ -131,7 +140,10 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
+                                    onRegisterClick={initiateRegistration(
+                                        initiateWebauthnRegistrationProcess,
+                                        RegisterWebauthnRoute,
+                                    )}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

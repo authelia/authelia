@@ -212,7 +212,7 @@ function getAssertionResultFromDOMException(
     }
 }
 
-async function getAttestationCreationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsStatus> {
+async function getAttestationCreationOptions(token: null | string): Promise<PublicKeyCredentialCreationOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
 
     response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityFinishPath, {
@@ -334,7 +334,10 @@ export async function postAssertionPublicKeyCredentialResult(
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
 }
 
-export async function performAttestationCeremony(token: string, description: string): Promise<AttestationResult> {
+export async function performAttestationCeremony(
+    token: null | string,
+    description: string,
+): Promise<AttestationResult> {
     const attestationCreationOpts = await getAttestationCreationOptions(token);
 
     if (attestationCreationOpts.status !== 200 || attestationCreationOpts.options == null) {
