@@ -16,7 +16,7 @@ import (
 func TestKoanfEnvironmentCallback(t *testing.T) {
 	var (
 		key   string
-		value interface{}
+		value any
 	)
 
 	keyMap := map[string]string{
@@ -46,7 +46,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 	var (
 		key   string
-		value interface{}
+		value any
 	)
 
 	keyMap := map[string]string{

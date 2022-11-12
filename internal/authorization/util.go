@@ -70,24 +70,40 @@ func schemaSubjectToACLSubject(subjectRule string) (subject SubjectMatcher) {
 	return nil
 }
 
-func schemaDomainsToACL(domainRules []string, domainRegexRules []regexp.Regexp) (domains []AccessControlDomain) {
+func ruleAddDomain(domainRules []string, rule *AccessControlRule) {
 	for _, domainRule := range domainRules {
-		domains = append(domains, NewAccessControlDomain(domainRule))
-	}
+		subjects, r := NewAccessControlDomain(domainRule)
 
-	for _, domainRegexRule := range domainRegexRules {
-		domains = append(domains, NewAccessControlDomainRegex(domainRegexRule))
-	}
+		rule.Domains = append(rule.Domains, r)
 
-	return domains
+		if !rule.HasSubjects && subjects {
+			rule.HasSubjects = true
+		}
+	}
 }
 
-func schemaResourcesToACL(resourceRules []regexp.Regexp) (resources []AccessControlResource) {
-	for _, resourceRule := range resourceRules {
-		resources = append(resources, NewAccessControlResource(resourceRule))
-	}
+func ruleAddDomainRegex(exps []regexp.Regexp, rule *AccessControlRule) {
+	for _, exp := range exps {
+		subjects, r := NewAccessControlDomainRegex(exp)
 
-	return resources
+		rule.Domains = append(rule.Domains, r)
+
+		if !rule.HasSubjects && subjects {
+			rule.HasSubjects = true
+		}
+	}
+}
+
+func ruleAddResources(exps []regexp.Regexp, rule *AccessControlRule) {
+	for _, exp := range exps {
+		subjects, r := NewAccessControlResource(exp)
+
+		rule.Resources = append(rule.Resources, r)
+
+		if !rule.HasSubjects && subjects {
+			rule.HasSubjects = true
+		}
+	}
 }
 
 func schemaMethodsToACL(methodRules []string) (methods []string) {

@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -12,7 +11,7 @@ import (
 func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 	userSession := ctx.GetSession()
 
-	if userSession.AuthenticationLevel == authentication.NotAuthenticated {
+	if userSession.IsAnonymous() {
 		ctx.ReplyUnauthorized()
 		return
 	}

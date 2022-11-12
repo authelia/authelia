@@ -22,11 +22,21 @@ aliases:
 * [Proxmox]
   * 7.1-10
 
-## Before You Begin
+### Common Notes
 
-You are required to utilize a unique client id and a unique and random client secret for all [OpenID Connect] relying
-parties. You should not use the client secret in this example, you should randomly generate one yourself. You may also
-choose to utilize a different client id, it's completely up to you.
+1. You are *__required__* to utilize a unique client id for every client.
+2. The client id on this page is merely an example and you can theoretically use any alphanumeric string.
+3. You *__should not__* use the client secret in this example, We *__strongly recommend__* reading the
+   [Generating Client Secrets] guide instead.
+
+[Generating Client Secrets]: ../specific-information.md#generating-client-secrets
+
+### Specific Notes
+
+*__Important Note:__ [Proxmox] requires you create the Realm prior to adding the provider. This is not covered in this
+guide.*
+
+### Assumptions
 
 This example makes the following assumptions:
 
@@ -34,6 +44,7 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com`
 * __Client ID:__ `proxmox`
 * __Client Secret:__ `proxmox_client_secret`
+* __Realm__ `authelia`
 
 ## Configuration
 
@@ -47,14 +58,14 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect] Provider:
 4. Add an OpenID Connect Server
 5. Set the following values:
    1. Issuer URL: `https://auth.example.com`
-   2. Realm: anything you wish
+   2. Realm: `authelia`
    3. Client ID: `proxmox`
    4. Client Key: `proxmox_client_secret`
    5. Username Claim `preferred_username`
    6. Scopes: `openid profile email`
    7. Enable *Autocreate Users* if you want users to automatically be created in [Proxmox].
 
-{{< figure src="proxmox.gif" alt="Proxmox" width="736" style="padding-right: 10px" >}}
+{{< figure src="proxmox.png" alt="Proxmox" width="736" style="padding-right: 10px" >}}
 
 ### Authelia
 
@@ -65,7 +76,7 @@ which will operate with the above example:
 ```yaml
 - id: proxmox
   description: Proxmox
-  secret: proxmox_client_secret
+  secret: '$plaintext$proxmox_client_secret'
   public: false
   authorization_policy: two_factor
   redirect_uris:

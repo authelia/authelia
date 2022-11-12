@@ -176,6 +176,43 @@ This subcommand allows manually adding an opaque identifier for a user to the da
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --config config.yml
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
+	cmdAutheliaStorageUserWebAuthnShort = "Manage Webauthn devices"
+
+	cmdAutheliaStorageUserWebAuthnLong = `Manage Webauthn devices.
+
+This subcommand allows interacting with Webauthn devices.`
+
+	cmdAutheliaStorageUserWebAuthnExample = `authelia storage user webauthn --help`
+
+	cmdAutheliaStorageUserWebAuthnListShort = "List WebAuthn devices"
+
+	cmdAutheliaStorageUserWebAuthnListLong = `List WebAuthn devices.
+
+This subcommand allows listing WebAuthn devices.`
+
+	cmdAutheliaStorageUserWebAuthnListExample = `authelia storage user webauthn list
+authelia storage user webauthn list john
+authelia storage user webauthn list --config config.yml
+authelia storage user webauthn list john --config config.yml
+authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserWebAuthnDeleteShort = "Delete a WebAuthn device"
+
+	cmdAutheliaStorageUserWebAuthnDeleteLong = `Delete a WebAuthn device.
+
+This subcommand allows deleting a WebAuthn device directly from the database.`
+
+	cmdAutheliaStorageUserWebAuthnDeleteExample = `authelia storage user webauthn delete john --all
+authelia storage user webauthn delete john --all --config config.yml
+authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn delete john --description Primary
+authelia storage user webauthn delete john --description Primary --config config.yml
+authelia storage user webauthn delete john --description Primary --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn delete --kid abc123
+authelia storage user webauthn delete --kid abc123 --config config.yml
+authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
 	cmdAutheliaStorageUserTOTPShort = "Manage TOTP configurations"
 
 	cmdAutheliaStorageUserTOTPLong = `Manage TOTP configurations.
@@ -310,6 +347,57 @@ This subcommand allows preforming cryptographic certificate, key pair, etc tasks
 
 	cmdAutheliaCryptoExample = `authelia crypto --help`
 
+	cmdAutheliaCryptoRandShort = "Generate a cryptographically secure random string"
+
+	cmdAutheliaCryptoRandLong = `Generate a cryptographically secure random string.
+
+This subcommand allows generating cryptographically secure random strings for use for encryption keys, HMAC keys, etc.`
+
+	cmdAutheliaCryptoRandExample = `authelia crypto rand --help
+authelia crypto rand --length 80
+authelia crypto rand -n 80
+authelia crypto rand --charset alphanumeric
+authelia crypto rand --charset alphabetic
+authelia crypto rand --charset ascii
+authelia crypto rand --charset numeric
+authelia crypto rand --charset numeric-hex
+authelia crypto rand --characters 0123456789ABCDEF`
+
+	cmdAutheliaCryptoHashShort = "Perform cryptographic hash operations"
+
+	cmdAutheliaCryptoHashLong = `Perform cryptographic hash operations.
+
+This subcommand allows preforming hashing cryptographic tasks.`
+
+	cmdAutheliaCryptoHashExample = `authelia crypto hash --help`
+
+	cmdAutheliaCryptoHashValidateShort = "Perform cryptographic hash validations"
+
+	cmdAutheliaCryptoHashValidateLong = `Perform cryptographic hash validations.
+
+This subcommand allows preforming cryptographic hash validations. i.e. checking hash digests against a password.`
+
+	cmdAutheliaCryptoHashValidateExample = `authelia crypto hash validate --help
+authelia crypto hash validate '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8Cw5diHgGfe5pE0iJvxcVG3.CVnQe.' -- 'p@ssw0rd'`
+
+	cmdAutheliaCryptoHashGenerateShort = "Generate cryptographic hash digests"
+
+	cmdAutheliaCryptoHashGenerateLong = `Generate cryptographic hash digests.
+
+This subcommand allows generating cryptographic hash digests.
+
+See the help for the subcommands if you want to override the configuration or defaults.`
+
+	cmdAutheliaCryptoHashGenerateExample = `authelia crypto hash generate --help`
+
+	fmtCmdAutheliaCryptoHashGenerateSubShort = "Generate cryptographic %s hash digests"
+
+	fmtCmdAutheliaCryptoHashGenerateSubLong = `Generate cryptographic %s hash digests.
+
+This subcommand allows generating cryptographic %s hash digests.`
+
+	fmtCmdAutheliaCryptoHashGenerateSubExample = `authelia crypto hash generate %s --help`
+
 	cmdAutheliaCryptoCertificateShort = "Perform certificate cryptographic operations"
 
 	cmdAutheliaCryptoCertificateLong = `Perform certificate cryptographic operations.
@@ -324,11 +412,7 @@ This subcommand allows preforming certificate cryptographic tasks.`
 
 This subcommand allows preforming %s certificate cryptographic tasks.`
 
-	cmdAutheliaCryptoCertificateRSAExample = `authelia crypto certificate rsa --help`
-
-	cmdAutheliaCryptoCertificateECDSAExample = `authelia crypto certificate ecdsa --help`
-
-	cmdAutheliaCryptoCertificateEd25519Example = `authelia crypto certificate ed25519 --help`
+	fmtCmdAutheliaCryptoCertificateSubExample = `authelia crypto certificate %s --help`
 
 	fmtCmdAutheliaCryptoCertificateGenerateRequestShort = "Generate an %s private key and %s"
 
@@ -444,11 +528,49 @@ const (
 	cmdFlagNamePKCS8 = "pkcs8"
 	cmdFlagNameBits  = "bits"
 	cmdFlagNameCurve = "curve"
+
+	cmdFlagNamePassword         = "password"
+	cmdFlagNameRandom           = "random"
+	cmdFlagNameRandomLength     = "random.length"
+	cmdFlagNameRandomCharSet    = "random.charset"
+	cmdFlagNameRandomCharacters = "random.characters"
+	cmdFlagNameNoConfirm        = "no-confirm"
+	cmdFlagNameVariant          = "variant"
+	cmdFlagNameCost             = "cost"
+	cmdFlagNameIterations       = "iterations"
+	cmdFlagNameParallelism      = "parallelism"
+	cmdFlagNameBlockSize        = "block-size"
+	cmdFlagNameMemory           = "memory"
+	cmdFlagNameKeySize          = "key-size"
+	cmdFlagNameSaltSize         = "salt-size"
+	cmdFlagNameProfile          = "profile"
+	cmdFlagNameSHA512           = "sha512"
+	cmdFlagNameConfig           = "config"
+
+	cmdFlagNameCharSet     = "charset"
+	cmdFlagValueCharSet    = "alphanumeric"
+	cmdFlagUsageCharset    = "sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986'"
+	cmdFlagNameCharacters  = "characters"
+	cmdFlagUsageCharacters = "sets the explicit characters for the random string"
+	cmdFlagNameLength      = "length"
+	cmdFlagUsageLength     = "sets the character length for the random string"
 )
 
 const (
+	cmdUseHashPassword  = "hash-password [flags] -- [password]"
+	cmdUseHash          = "hash"
+	cmdUseHashArgon2    = "argon2"
+	cmdUseHashSHA2Crypt = "sha2crypt"
+	cmdUseHashPBKDF2    = "pbkdf2"
+	cmdUseHashBCrypt    = "bcrypt"
+	cmdUseHashSCrypt    = "scrypt"
+
+	cmdUseCrypto      = "crypto"
+	cmdUseRand        = "rand"
 	cmdUseCertificate = "certificate"
 	cmdUseGenerate    = "generate"
+	cmdUseValidate    = "validate"
+	cmdUseFmtValidate = "%s [flags] -- <digest>"
 	cmdUseRequest     = "request"
 	cmdUsePair        = "pair"
 	cmdUseRSA         = "rsa"
@@ -459,6 +581,8 @@ const (
 const (
 	cryptoCertPubCertOut = "certificate"
 	cryptoCertCSROut     = "certificate signing request"
+
+	prefixFilePassword = "authentication_backend.file.password"
 )
 
 var (

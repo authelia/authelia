@@ -2,19 +2,26 @@ package oidc
 
 import (
 	"context"
-	"crypto/subtle"
+
+	"github.com/go-crypt/crypt"
 )
 
 // Compare compares the hash with the data and returns an error if they don't match.
-func (h PlainTextHasher) Compare(_ context.Context, hash, data []byte) (err error) {
-	if subtle.ConstantTimeCompare(hash, data) == 0 {
-		return errPasswordsDoNotMatch
+func (h AdaptiveHasher) Compare(_ context.Context, hash, data []byte) (err error) {
+	var digest crypt.Digest
+
+	if digest, err = crypt.DecodeWithPlainText(string(hash)); err != nil {
+		return err
 	}
 
-	return nil
+	if digest.MatchBytes(data) {
+		return nil
+	}
+
+	return errPasswordsDoNotMatch
 }
 
 // Hash creates a new hash from data.
-func (h PlainTextHasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
+func (h AdaptiveHasher) Hash(_ context.Context, data []byte) (hash []byte, err error) {
 	return data, nil
 }

@@ -795,6 +795,34 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "LongerHV",
+      "name": "Michał Mieszczak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46924944?v=4",
+      "profile": "https://github.com/LongerHV",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
+    },
+    {
+      "login": "paul-ohl",
+      "name": "Paul Ohl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37795294?v=4",
+      "profile": "https://github.com/paul-ohl",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "smkent",
+      "name": "Stephen Kent",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2831985?v=4",
+      "profile": "https://github.com/smkent",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7

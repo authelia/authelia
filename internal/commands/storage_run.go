@@ -29,13 +29,13 @@ import (
 func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	var configs []string
 
-	if configs, err = cmd.Flags().GetStringSlice("config"); err != nil {
+	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
 		return err
 	}
 
 	sources := make([]configuration.Source, 0, len(configs)+3)
 
-	if cmd.Flags().Changed("config") {
+	if cmd.Flags().Changed(cmdFlagNameConfig) {
 		for _, configFile := range configs {
 			if _, err := os.Stat(configFile); os.IsNotExist(err) {
 				return fmt.Errorf("could not load the provided configuration file %s: %w", configFile, err)
@@ -203,6 +203,187 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	fmt.Println("Completed the encryption key change. Please adjust your configuration to use the new key.")
 
 	return nil
+}
+
+func storageWebAuthnListRunE(cmd *cobra.Command, args []string) (err error) {
+	if len(args) == 0 || args[0] == "" {
+		return storageWebAuthnListAllRunE(cmd, args)
+	}
+
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	provider = getStorageProvider()
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	var devices []model.WebauthnDevice
+
+	user := args[0]
+
+	devices, err = provider.LoadWebauthnDevicesByUsername(ctx, user)
+
+	switch {
+	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebauthnDevice)):
+		return fmt.Errorf("user '%s' has no webauthn devices", user)
+	case err != nil:
+		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
+	default:
+		fmt.Printf("Webauthn Devices for user '%s':\n\n", user)
+		fmt.Printf("ID\tKID\tDescription\n")
+
+		for _, device := range devices {
+			fmt.Printf("%d\t%s\t%s", device.ID, device.KID, device.Description)
+		}
+	}
+
+	return nil
+}
+
+func storageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	provider = getStorageProvider()
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	var devices []model.WebauthnDevice
+
+	limit := 10
+
+	output := strings.Builder{}
+
+	for page := 0; true; page++ {
+		if devices, err = provider.LoadWebauthnDevices(ctx, limit, page); err != nil {
+			return fmt.Errorf("failed to list devices: %w", err)
+		}
+
+		if page == 0 && len(devices) == 0 {
+			return errors.New("no webauthn devices in database")
+		}
+
+		for _, device := range devices {
+			output.WriteString(fmt.Sprintf("%d\t%s\t%s\t%s\n", device.ID, device.KID, device.Description, device.Username))
+		}
+
+		if len(devices) < limit {
+			break
+		}
+	}
+
+	fmt.Printf("Webauthn Devices:\n\nID\tKID\tDescription\tUsername\n")
+	fmt.Println(output.String())
+
+	return nil
+}
+
+func storageWebAuthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		provider storage.Provider
+		ctx      = context.Background()
+	)
+
+	provider = getStorageProvider()
+
+	defer func() {
+		_ = provider.Close()
+	}()
+
+	var (
+		all, byKID             bool
+		description, kid, user string
+	)
+
+	if all, byKID, description, kid, user, err = storageWebAuthnDeleteGetAndValidateConfig(cmd, args); err != nil {
+		return err
+	}
+
+	if byKID {
+		if err = provider.DeleteWebauthnDevice(ctx, kid); err != nil {
+			return fmt.Errorf("failed to delete WebAuthn device with kid '%s': %w", kid, err)
+		}
+
+		fmt.Printf("Deleted WebAuthn device with kid '%s'", kid)
+	} else {
+		err = provider.DeleteWebauthnDeviceByUsername(ctx, user, description)
+
+		if all {
+			if err != nil {
+				return fmt.Errorf("failed to delete all WebAuthn devices with username '%s': %w", user, err)
+			}
+
+			fmt.Printf("Deleted all WebAuthn devices for user '%s'", user)
+		} else {
+			if err != nil {
+				return fmt.Errorf("failed to delete WebAuthn device with username '%s' and description '%s': %w", user, description, err)
+			}
+
+			fmt.Printf("Deleted WebAuthn device with username '%s' and description '%s'", user, description)
+		}
+	}
+
+	return nil
+}
+
+func storageWebAuthnDeleteGetAndValidateConfig(cmd *cobra.Command, args []string) (all, byKID bool, description, kid, user string, err error) {
+	if len(args) != 0 {
+		user = args[0]
+	}
+
+	flags := 0
+
+	if cmd.Flags().Changed("all") {
+		if all, err = cmd.Flags().GetBool("all"); err != nil {
+			return
+		}
+
+		flags++
+	}
+
+	if cmd.Flags().Changed("description") {
+		if description, err = cmd.Flags().GetString("description"); err != nil {
+			return
+		}
+
+		flags++
+	}
+
+	if byKID = cmd.Flags().Changed("kid"); byKID {
+		if kid, err = cmd.Flags().GetString("kid"); err != nil {
+			return
+		}
+
+		flags++
+	}
+
+	if flags > 1 {
+		err = fmt.Errorf("must only supply one of the flags --all, --description, and --kid but %d were specified", flags)
+
+		return
+	}
+
+	if flags == 0 {
+		err = fmt.Errorf("must supply one of the flags --all, --description, or --kid")
+
+		return
+	}
+
+	if !byKID && len(user) == 0 {
+		err = fmt.Errorf("must supply the username or the --kid flag")
+
+		return
+	}
+
+	return
 }
 
 func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
@@ -406,7 +587,7 @@ func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string
 		break
 	case storageTOTPExportFormatPNG:
 		if dir == "" {
-			dir = utils.RandomString(8, utils.AlphaNumericCharacters, false)
+			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
 		}
 
 		if _, err = os.Stat(dir); !os.IsNotExist(err) {

@@ -13,21 +13,22 @@ import (
 
 func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          "myclient",
 				Description: "myclient desc",
 				Policy:      "one_factor",
-				Scopes:      []string{"openid", "profile"},
-				Secret:      "mysecret",
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 			{
 				ID:          "myotherclient",
 				Description: "myclient desc",
 				Policy:      "two_factor",
-				Scopes:      []string{"openid", "profile"},
-				Secret:      "mysecret",
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)
@@ -44,14 +45,15 @@ func TestOpenIDConnectStore_GetClientPolicy(t *testing.T) {
 
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          "myclient",
 				Description: "myclient desc",
 				Policy:      "one_factor",
-				Scopes:      []string{"openid", "profile"},
-				Secret:      "mysecret",
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)
@@ -71,13 +73,14 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		ID:          "myclient",
 		Description: "myclient desc",
 		Policy:      "one_factor",
-		Scopes:      []string{"openid", "profile"},
-		Secret:      "mysecret",
+		Scopes:      []string{ScopeOpenID, ScopeProfile},
+		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
 
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
 	client, err := s.GetFullClient(c1.ID)
@@ -90,7 +93,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	assert.Equal(t, client.ResponseTypes, c1.ResponseTypes)
 	assert.Equal(t, client.RedirectURIs, c1.RedirectURIs)
 	assert.Equal(t, client.Policy, authorization.OneFactor)
-	assert.Equal(t, client.Secret, []byte(c1.Secret))
+	assert.Equal(t, client.Secret.Encode(), "$plaintext$mysecret")
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
@@ -98,13 +101,14 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		ID:          "myclient",
 		Description: "myclient desc",
 		Policy:      "one_factor",
-		Scopes:      []string{"openid", "profile"},
-		Secret:      "mysecret",
+		Scopes:      []string{ScopeOpenID, ScopeProfile},
+		Secret:      MustDecodeSecret("$plaintext$mysecret"),
 	}
 
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
-		Clients:          []schema.OpenIDConnectClientConfiguration{c1},
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
+		Clients:                []schema.OpenIDConnectClientConfiguration{c1},
 	}, nil)
 
 	client, err := s.GetFullClient("another-client")
@@ -114,14 +118,15 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 	s := NewOpenIDConnectStore(&schema.OpenIDConnectConfiguration{
-		IssuerPrivateKey: exampleIssuerPrivateKey,
+		IssuerCertificateChain: schema.X509CertificateChain{},
+		IssuerPrivateKey:       mustParseRSAPrivateKey(exampleIssuerPrivateKey),
 		Clients: []schema.OpenIDConnectClientConfiguration{
 			{
 				ID:          "myclient",
 				Description: "myclient desc",
 				Policy:      "one_factor",
-				Scopes:      []string{"openid", "profile"},
-				Secret:      "mysecret",
+				Scopes:      []string{ScopeOpenID, ScopeProfile},
+				Secret:      MustDecodeSecret("$plaintext$mysecret"),
 			},
 		},
 	}, nil)

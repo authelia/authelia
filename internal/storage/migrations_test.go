@@ -7,11 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	// This is the latest schema version for the purpose of tests.
+	LatestVersion = 6
+)
+
 func TestShouldObtainCorrectUpMigrations(t *testing.T) {
 	ver, err := latestMigrationVersion(providerSQLite)
 	require.NoError(t, err)
 
-	assert.Equal(t, testLatestVersion, ver)
+	assert.Equal(t, LatestVersion, ver)
 
 	migrations, err := loadMigrations(providerSQLite, 0, ver)
 	require.NoError(t, err)
@@ -27,7 +32,7 @@ func TestShouldObtainCorrectDownMigrations(t *testing.T) {
 	ver, err := latestMigrationVersion(providerSQLite)
 	require.NoError(t, err)
 
-	assert.Equal(t, testLatestVersion, ver)
+	assert.Equal(t, LatestVersion, ver)
 
 	migrations, err := loadMigrations(providerSQLite, ver, 0)
 	require.NoError(t, err)

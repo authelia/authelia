@@ -42,7 +42,7 @@ func TestShouldCreateRedisSessionProviderTLS(t *testing.T) {
 		Password: "pass",
 		TLS: &schema.TLSConfig{
 			ServerName:     "redis.fqdn.example.com",
-			MinimumVersion: "TLS1.3",
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
 		},
 	}
 	providerConfig := NewProviderConfig(configuration, nil)

@@ -6,14 +6,17 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -42,12 +45,12 @@ func NewRootCmd() (cmd *cobra.Command) {
 	cmdWithConfigFlags(cmd, false, []string{})
 
 	cmd.AddCommand(
+		newAccessControlCommand(),
 		newBuildInfoCmd(),
 		newCryptoCmd(),
 		newHashPasswordCmd(),
 		newStorageCmd(),
 		newValidateConfigCmd(),
-		newAccessControlCommand(),
 	)
 
 	return cmd
@@ -83,11 +86,11 @@ func cmdRootRun(_ *cobra.Command, _ []string) {
 
 	doStartupChecks(config, &providers, logger)
 
-	runServers(config, providers, logger)
+	runServices(config, providers, logger)
 }
 
 //nolint:gocyclo // Complexity is required in this function.
-func runServers(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
+func runServices(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
 	ctx := context.Background()
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -151,6 +154,15 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		return nil
 	})
 
+	if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
+		provider := providers.UserProvider.(*authentication.FileUserProvider)
+		if watcher, err := runServiceFileWatcher(g, log, config.AuthenticationBackend.File.Path, provider); err != nil {
+			log.WithError(err).Errorf("Error opening file watcher")
+		} else {
+			defer watcher.Close()
+		}
+	}
+
 	select {
 	case s := <-quit:
 		switch s {
@@ -181,9 +193,82 @@ func runServers(config *schema.Configuration, providers middlewares.Providers, l
 		}
 	}
 
+	if err = providers.StorageProvider.Close(); err != nil {
+		log.WithError(err).Errorf("Error occurred closing the database connection")
+	}
+
 	if err = g.Wait(); err != nil {
 		log.WithError(err).Errorf("Error occurred waiting for shutdown")
 	}
+}
+
+type ReloadFilter func(path string) (skipped bool)
+
+type ProviderReload interface {
+	Reload() (reloaded bool, err error)
+}
+
+func runServiceFileWatcher(g *errgroup.Group, log *logrus.Logger, path string, reload ProviderReload) (watcher *fsnotify.Watcher, err error) {
+	if watcher, err = fsnotify.NewWatcher(); err != nil {
+		return nil, err
+	}
+
+	failed := make(chan struct{})
+
+	var directory, filename string
+
+	if path != "" {
+		directory, filename = filepath.Dir(path), filepath.Base(path)
+	}
+
+	g.Go(func() error {
+		for {
+			select {
+			case <-failed:
+				return nil
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return nil
+				}
+
+				if filename != filepath.Base(event.Name) {
+					log.WithField("file", event.Name).WithField("op", event.Op).Tracef("File modification detected to irrelevant file")
+					break
+				}
+
+				switch {
+				case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
+					log.WithField("file", event.Name).WithField("op", event.Op).Debug("File modification detected")
+
+					switch reloaded, err := reload.Reload(); {
+					case err != nil:
+						log.WithField("file", event.Name).WithField("op", event.Op).WithError(err).Error("Error occurred reloading file")
+					case reloaded:
+						log.WithField("file", event.Name).Info("Reloaded file successfully")
+					default:
+						log.WithField("file", event.Name).Debug("Reload of file was triggered but it was skipped")
+					}
+				case event.Op&fsnotify.Remove == fsnotify.Remove:
+					log.WithField("file", event.Name).WithField("op", event.Op).Debug("Remove of file was detected")
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return nil
+				}
+				log.WithError(err).Errorf("Error while watching files")
+			}
+		}
+	})
+
+	if err := watcher.Add(directory); err != nil {
+		failed <- struct{}{}
+
+		return nil, err
+	}
+
+	log.WithField("directory", directory).WithField("file", filename).Debug("Directory is being watched for changes to the file")
+
+	return watcher, nil
 }
 
 func doStartupChecks(config *schema.Configuration, providers *middlewares.Providers, log *logrus.Logger) {

@@ -6,14 +6,4 @@ files:
   - source: /internal/server/locales/en/*
     translation: /internal/server/locales/%locale%/%original_file_name%
     skip_untranslated_files: true
-    languages_mapping:
-      locale:
-        "de-DE": de
-        "en-EN": en
-        "es-ES": es
-        "fr-FR": fr
-        "nl-NL": nl
-        "pt-PT": pt
-        "ru-RU": ru
-        "zh-CH": zh
 ...
