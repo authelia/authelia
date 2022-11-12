@@ -497,9 +497,9 @@ func cmdFlagPassword(cmd *cobra.Command, noConfirm bool) {
 
 func cmdFlagRandomPassword(cmd *cobra.Command) {
 	cmd.PersistentFlags().Bool(cmdFlagNameRandom, false, "uses a randomly generated password")
-	cmd.PersistentFlags().Int(cmdFlagNameRandomLength, 72, "when using a randomly generated password it configures the length")
-	cmd.PersistentFlags().String(cmdFlagNameRandomCharSet, "alphanumeric", "sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
-	cmd.PersistentFlags().String(cmdFlagNameRandomCharacters, "", "sets the explicit characters for the random string")
+	cmd.PersistentFlags().String(cmdFlagNameRandomCharSet, cmdFlagValueCharSet, cmdFlagUsageCharset)
+	cmd.PersistentFlags().String(cmdFlagNameRandomCharacters, "", cmdFlagUsageCharacters)
+	cmd.PersistentFlags().Int(cmdFlagNameRandomLength, 72, cmdFlagUsageLength)
 }
 
 func cmdFlagIterations(cmd *cobra.Command, value int) {

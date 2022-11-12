@@ -97,12 +97,12 @@ authentication_backend:
         DO NOT USE==
         -----END RSA PRIVATE KEY-----
     base_dn: DC=example,DC=com
-    additional_users_dn: ou=users
+    additional_users_dn: OU=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
     username_attribute: uid
     mail_attribute: mail
     display_name_attribute: displayName
-    additional_groups_dn: ou=groups
+    additional_groups_dn: OU=groups
     groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     permit_referrals: false
