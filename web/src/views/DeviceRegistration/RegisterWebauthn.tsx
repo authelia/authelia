@@ -28,9 +28,6 @@ const RegisterWebauthn = function () {
     };
 
     const attestation = useCallback(async () => {
-        if (!processToken) {
-            return;
-        }
         try {
             setRegistrationInProgress(true);
 
