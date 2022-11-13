@@ -158,7 +158,7 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
 		RPID            string     `json:"rpid"`
 		Description     string     `json:"description"`
-		KID             string     `json:"kid"`
+		KID             []byte     `json:"kid"`
 		PublicKey       []byte     `json:"public_key"`
 		AttestationType string     `json:"attestation_type"`
 		Transport       []string   `json:"transport"`
@@ -170,7 +170,7 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		CreatedAt:       w.CreatedAt,
 		RPID:            w.RPID,
 		Description:     w.Description,
-		KID:             w.KID.String(),
+		KID:             w.KID.data,
 		PublicKey:       w.PublicKey,
 		AttestationType: w.AttestationType,
 		Transport:       strings.Split(w.Transport, ","),

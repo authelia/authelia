@@ -136,7 +136,7 @@ export interface WebauthnDevice {
     last_used_at?: Date;
     rpid: string;
     description: string;
-    kid: string;
+    kid: Uint8Array;
     public_key: Uint8Array;
     attestation_type: string;
     transport: string[];
