@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     transport VARCHAR(20) DEFAULT '',
     aaguid CHAR(36) NULL,
     sign_count INTEGER DEFAULT 0,
-    clone_warning TINYINT NOT NULL DEFAULT FALSE
+    clone_warning BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE UNIQUE INDEX webauthn_devices_lookup_key ON webauthn_devices (username, description);
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_consent_preconfiguration (
     subject CHAR(36) NOT NULL,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	expires_at DATETIME NULL DEFAULT NULL,
-	revoked TINYINT NOT NULL DEFAULT FALSE,
+	revoked BOOLEAN NOT NULL DEFAULT FALSE,
     scopes TEXT NOT NULL,
     audience TEXT NULL
 );
@@ -178,8 +178,8 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_consent_session (
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    authorized TINYINT NOT NULL DEFAULT FALSE,
-    granted TINYINT NOT NULL DEFAULT FALSE,
+    authorized BOOLEAN NOT NULL DEFAULT FALSE,
+    granted BOOLEAN NOT NULL DEFAULT FALSE,
     requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     responded_at DATETIME NULL DEFAULT NULL,
     form_data TEXT NOT NULL,
@@ -209,8 +209,8 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_authorization_code_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL
 );
@@ -234,8 +234,8 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_access_token_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL
 );
@@ -259,8 +259,8 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_refresh_token_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL
 );
@@ -284,8 +284,8 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_pkce_request_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL
 );
@@ -309,8 +309,8 @@ CREATE TABLE IF NOT EXISTS _bkp_UP_V0007_oauth2_openid_connect_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL
 );
@@ -355,8 +355,8 @@ ALTER TABLE authentication_logs
 CREATE TABLE IF NOT EXISTS authentication_logs (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    successful TINYINT NOT NULL,
-    banned TINYINT NOT NULL DEFAULT FALSE,
+    successful BOOLEAN NOT NULL,
+    banned BOOLEAN NOT NULL DEFAULT FALSE,
     username VARCHAR(100) NOT NULL,
     auth_type VARCHAR(8) NOT NULL DEFAULT '1FA',
     remote_ip VARCHAR(39) NULL DEFAULT NULL,
@@ -413,17 +413,17 @@ ORDER BY id;
 DROP TABLE IF EXISTS _bkp_UP_V0007_oauth2_blacklisted_jti;
 
 CREATE TABLE IF NOT EXISTS oauth2_consent_preconfiguration (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    client_id VARCHAR(255) NOT NULL,
-    subject CHAR(36) NOT NULL,
+	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	client_id VARCHAR(255) NOT NULL,
+	subject CHAR(36) NOT NULL,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	expires_at DATETIME NULL DEFAULT NULL,
-	revoked TINYINT NOT NULL DEFAULT FALSE,
-    scopes TEXT NOT NULL,
-    audience TEXT NULL,
-    CONSTRAINT "oauth2_consent_preconfiguration_subject_fkey"
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
+	revoked BOOLEAN NOT NULL DEFAULT FALSE,
+	scopes TEXT NOT NULL,
+	audience TEXT NULL,
+	CONSTRAINT "oauth2_consent_preconfiguration_subject_fkey"
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 INSERT INTO oauth2_consent_preconfiguration (client_id, subject, created_at, expires_at, revoked, scopes, audience)
@@ -440,8 +440,8 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_session (
     challenge_id CHAR(36) NOT NULL,
     client_id VARCHAR(255) NOT NULL,
     subject CHAR(36) NOT NULL,
-    authorized TINYINT NOT NULL DEFAULT FALSE,
-    granted TINYINT NOT NULL DEFAULT FALSE,
+    authorized BOOLEAN NOT NULL DEFAULT FALSE,
+    granted BOOLEAN NOT NULL DEFAULT FALSE,
     requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     responded_at DATETIME NULL DEFAULT NULL,
     form_data TEXT NOT NULL,
@@ -483,8 +483,8 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization_code_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     CONSTRAINT oauth2_authorization_code_session_challenge_id_fkey
@@ -522,8 +522,8 @@ CREATE TABLE IF NOT EXISTS oauth2_access_token_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     CONSTRAINT oauth2_access_token_session_challenge_id_fkey
@@ -561,8 +561,8 @@ CREATE TABLE IF NOT EXISTS oauth2_refresh_token_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     CONSTRAINT oauth2_refresh_token_session_challenge_id_fkey
@@ -600,8 +600,8 @@ CREATE TABLE IF NOT EXISTS oauth2_pkce_request_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     CONSTRAINT oauth2_pkce_request_session_challenge_id_fkey
@@ -639,8 +639,8 @@ CREATE TABLE IF NOT EXISTS oauth2_openid_connect_session (
     granted_scopes TEXT NOT NULL,
     requested_audience TEXT NULL DEFAULT '',
     granted_audience TEXT NULL DEFAULT '',
-    active TINYINT NOT NULL DEFAULT FALSE,
-    revoked TINYINT NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
     form_data TEXT NOT NULL,
     session_data BLOB NOT NULL,
     CONSTRAINT oauth2_openid_connect_session_challenge_id_fkey

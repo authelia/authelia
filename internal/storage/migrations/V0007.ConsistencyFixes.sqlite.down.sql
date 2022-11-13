@@ -128,14 +128,14 @@ ORDER BY id;
 DROP TABLE IF EXISTS _bkp_DOWN_V0007_encryption;
 
 CREATE TABLE IF NOT EXISTS _bkp_DOWN_V0007_oauth2_consent_preconfiguration (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    client_id VARCHAR(255) NOT NULL,
-    subject CHAR(36) NOT NULL,
+	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	client_id VARCHAR(255) NOT NULL,
+	subject CHAR(36) NOT NULL,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	expires_at TIMESTAMP NULL DEFAULT NULL,
 	revoked BOOLEAN NOT NULL DEFAULT FALSE,
-    scopes TEXT NOT NULL,
-    audience TEXT NULL
+	scopes TEXT NOT NULL,
+	audience TEXT NULL
 );
 
 INSERT INTO _bkp_DOWN_V0007_oauth2_consent_preconfiguration (client_id, subject, created_at, expires_at, revoked, scopes, audience)
@@ -146,12 +146,12 @@ ORDER BY id;
 DROP TABLE IF EXISTS oauth2_consent_preconfiguration;
 
 CREATE TABLE IF NOT EXISTS _bkp_DOWN_V0007_oauth2_consent_session (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    challenge_id CHAR(36) NOT NULL,
-    client_id VARCHAR(255) NOT NULL,
-    subject CHAR(36) NOT NULL,
-    authorized BOOLEAN NOT NULL DEFAULT FALSE,
-    granted BOOLEAN NOT NULL DEFAULT FALSE,
+	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	challenge_id CHAR(36) NOT NULL,
+	client_id VARCHAR(255) NOT NULL,
+	subject CHAR(36) NOT NULL,
+	authorized BOOLEAN NOT NULL DEFAULT FALSE,
+	granted BOOLEAN NOT NULL DEFAULT FALSE,
     requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     responded_at TIMESTAMP NULL DEFAULT NULL,
     form_data TEXT NOT NULL,
