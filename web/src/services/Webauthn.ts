@@ -334,34 +334,33 @@ export async function postAssertionPublicKeyCredentialResult(
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
 }
 
-export async function performAttestationCeremony(
-    token: null | string,
-    description: string,
-): Promise<AttestationResult> {
+export async function startAttestationCeremony(token: null | string): Promise<AttestationPublicKeyCredentialResult> {
     const attestationCreationOpts = await getAttestationCreationOptions(token);
 
     if (attestationCreationOpts.status !== 200 || attestationCreationOpts.options == null) {
         if (attestationCreationOpts.status === 403) {
-            return AttestationResult.FailureToken;
+            return { result: AttestationResult.FailureToken } as AttestationPublicKeyCredentialResult;
         }
 
-        return AttestationResult.Failure;
+        return { result: AttestationResult.Failure } as AttestationPublicKeyCredentialResult;
     }
 
     const attestationResult = await getAttestationPublicKeyCredentialResult(attestationCreationOpts.options);
 
-    if (attestationResult.result !== AttestationResult.Success) {
-        return attestationResult.result;
-    } else if (attestationResult.credential == null) {
-        return AttestationResult.Failure;
+    if (attestationResult.credential == null) {
+        return { result: AttestationResult.Failure } as AttestationPublicKeyCredentialResult;
     }
+    return attestationResult;
+}
 
-    const response = await postAttestationPublicKeyCredentialResult(attestationResult.credential, description);
-
+export async function finishAttestationCeremony(
+    credential: AttestationPublicKeyCredential,
+    description: string,
+): Promise<AttestationResult> {
+    const response = await postAttestationPublicKeyCredentialResult(credential, description);
     if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
         return AttestationResult.Success;
     }
-
     return AttestationResult.Failure;
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // WebauthnIdentityStart the handler for initiating the identity validation.
@@ -155,6 +156,25 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		return
+	}
+
+	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
+	if err != nil && err != storage.ErrNoWebauthnDevice {
+		ctx.Logger.Errorf("Unable to load existing %s devices for for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	for _, existingDevice := range devices {
+		if existingDevice.Description == postData.Description {
+			ctx.Logger.Errorf("%s device for for user '%s' with name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, postData.Description)
+
+			respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+			return
+		}
 	}
 
 	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, postData.Description, credential)
