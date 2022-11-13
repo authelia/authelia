@@ -1021,23 +1021,28 @@ components:
           type: string
           format: byte
     webauthn.CredentialAttestationResponse:
-      allOf:
-        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
-        - type: object
-          properties:
-            clientExtensionResults:
-              type: object
+      type: object
+      properties:
+        credential:
+          allOf:
+            - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+            - type: object
               properties:
-                appidExclude:
-                  type: boolean
-            response:
-              allOf:
-                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
-                - type: object
+                clientExtensionResults:
+                  type: object
                   properties:
-                    attestationObject:
-                      type: string
-                      format: byte
+                    appidExclude:
+                      type: boolean
+                response:
+                  allOf:
+                    - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                    - type: object
+                      properties:
+                        attestationObject:
+                          type: string
+                          format: byte
+        description:
+          type: string
     webauthn.CredentialAssertionResponse:
       allOf:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'

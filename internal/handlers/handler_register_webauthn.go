@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -83,6 +84,11 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 
 // WebauthnAttestationPOST processes the attestation challenge response from the client.
 func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
+	type requestPostData struct {
+		Credential  json.RawMessage `json:"credential"`
+		Description string          `json:"description"`
+	}
+
 	var (
 		err  error
 		w    *webauthn.WebAuthn
@@ -90,6 +96,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 
 		attestationResponse *protocol.ParsedCredentialCreationData
 		credential          *webauthn.Credential
+		postData            *requestPostData
 	)
 
 	userSession := ctx.GetSession()
@@ -110,8 +117,17 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if attestationResponse, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {
-		ctx.Logger.Errorf("Unable to parse %s assertionfor user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+	err = json.Unmarshal(ctx.PostBody(), &postData)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to parse %s assertion request data for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	if attestationResponse, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(postData.Credential)); err != nil {
+		ctx.Logger.Errorf("Unable to parse %s assertion for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
@@ -134,7 +150,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, "Primary", credential)
+	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, postData.Description, credential)
 
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
