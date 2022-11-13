@@ -44,6 +44,15 @@ const drawerWidth = 240;
 export default function SettingsView(props: Props) {
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
     const [addKeyOpen, setAddKeyOpen] = useState<boolean>(false);
+    const [webauthnShowDetails, setWebauthnShowDetails] = useState<number | null>(null);
+
+    const handleWebAuthnDetailsChange = (idx: number) => {
+        if (webauthnShowDetails === idx) {
+            setWebauthnShowDetails(null);
+        } else {
+            setWebauthnShowDetails(idx);
+        }
+    };
 
     useEffect(() => {
         (async function () {
@@ -115,7 +124,190 @@ export default function SettingsView(props: Props) {
                                 <TableBody>
                                     {webauthnDevices
                                         ? webauthnDevices.map((x, idx) => {
-                                              return <WebauthnDeviceRow device={x} />;
+                                              return (
+                                                  <React.Fragment>
+                                                      <TableRow
+                                                          sx={{ "& > *": { borderBottom: "unset" } }}
+                                                          key={x.kid.toString()}
+                                                      >
+                                                          <TableCell>
+                                                              <Tooltip title="Show Details" placement="right">
+                                                                  <IconButton
+                                                                      aria-label="expand row"
+                                                                      size="small"
+                                                                      onClick={() => handleWebAuthnDetailsChange(idx)}
+                                                                  >
+                                                                      {webauthnShowDetails === idx ? (
+                                                                          <KeyboardArrowUpIcon />
+                                                                      ) : (
+                                                                          <KeyboardArrowDownIcon />
+                                                                      )}
+                                                                  </IconButton>
+                                                              </Tooltip>
+                                                          </TableCell>
+                                                          <TableCell component="th" scope="row">
+                                                              {x.description}
+                                                          </TableCell>
+                                                          <TableCell>
+                                                              <Switch defaultChecked={false} size="small" />
+                                                          </TableCell>
+                                                          <TableCell align="center">
+                                                              <Stack
+                                                                  direction="row"
+                                                                  spacing={1}
+                                                                  alignItems="center"
+                                                                  justifyContent="center"
+                                                              >
+                                                                  <Tooltip title="Edit" placement="bottom">
+                                                                      <IconButton aria-label="edit">
+                                                                          <EditIcon />
+                                                                      </IconButton>
+                                                                  </Tooltip>
+                                                                  <Tooltip title="Delete" placement="bottom">
+                                                                      <IconButton aria-label="delete">
+                                                                          <DeleteIcon />
+                                                                      </IconButton>
+                                                                  </Tooltip>
+                                                              </Stack>
+                                                          </TableCell>
+                                                      </TableRow>
+                                                      <TableRow>
+                                                          <TableCell
+                                                              style={{ paddingBottom: 0, paddingTop: 0 }}
+                                                              colSpan={4}
+                                                          >
+                                                              <Collapse
+                                                                  in={webauthnShowDetails === idx}
+                                                                  timeout="auto"
+                                                                  unmountOnExit
+                                                              >
+                                                                  <Grid container spacing={2} sx={{ mb: 3, margin: 1 }}>
+                                                                      <Grid
+                                                                          item
+                                                                          xs={12}
+                                                                          sm={12}
+                                                                          md={12}
+                                                                          lg={12}
+                                                                          xl={12}
+                                                                      >
+                                                                          <Box sx={{ margin: 1 }}>
+                                                                              <Typography
+                                                                                  variant="h6"
+                                                                                  gutterBottom
+                                                                                  component="div"
+                                                                              >
+                                                                                  Details
+                                                                              </Typography>
+                                                                          </Box>
+                                                                      </Grid>
+                                                                      <Grid
+                                                                          item
+                                                                          xs={12}
+                                                                          sm={12}
+                                                                          md={12}
+                                                                          lg={12}
+                                                                          xl={12}
+                                                                      >
+                                                                          <Divider variant="middle" />
+                                                                      </Grid>
+                                                                      <Grid
+                                                                          item
+                                                                          xs={12}
+                                                                          sm={12}
+                                                                          md={12}
+                                                                          lg={12}
+                                                                          xl={12}
+                                                                      >
+                                                                          <Typography>Key ID: {x.kid}</Typography>
+                                                                      </Grid>
+                                                                      <Grid
+                                                                          item
+                                                                          xs={12}
+                                                                          sm={12}
+                                                                          md={12}
+                                                                          lg={12}
+                                                                          xl={12}
+                                                                      >
+                                                                          <Typography>
+                                                                              Public Key: {x.public_key}
+                                                                          </Typography>
+                                                                      </Grid>
+                                                                      <Grid
+                                                                          item
+                                                                          xs={12}
+                                                                          sm={12}
+                                                                          md={12}
+                                                                          lg={12}
+                                                                          xl={12}
+                                                                      >
+                                                                          <Divider variant="middle" />
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Relying Party ID</Typography>
+                                                                          <Typography>{x.rpid}</Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>
+                                                                              Authenticator Attestation GUID
+                                                                          </Typography>
+                                                                          <Typography>{x.aaguid}</Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Attestation Type</Typography>
+                                                                          <Typography>{x.attestation_type}</Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Transports</Typography>
+                                                                          <Typography>
+                                                                              {x.transports.length === 0
+                                                                                  ? "N/A"
+                                                                                  : x.transports.join(", ")}
+                                                                          </Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Clone Warning</Typography>
+                                                                          <Typography>
+                                                                              {x.clone_warning ? "Yes" : "No"}
+                                                                          </Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Created</Typography>
+                                                                          <Typography>
+                                                                              {x.created_at.toString()}
+                                                                          </Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Last Used</Typography>
+                                                                          <Typography>
+                                                                              {x.last_used_at === undefined
+                                                                                  ? "Never"
+                                                                                  : x.last_used_at.toString()}
+                                                                          </Typography>
+                                                                      </Grid>
+                                                                      <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                                                          <Typography>Usage Count</Typography>
+                                                                          <Typography>
+                                                                              {x.sign_count === 0
+                                                                                  ? "Never"
+                                                                                  : x.sign_count}
+                                                                          </Typography>
+                                                                      </Grid>
+                                                                      <Grid
+                                                                          item
+                                                                          xs={12}
+                                                                          sm={12}
+                                                                          md={12}
+                                                                          lg={12}
+                                                                          xl={12}
+                                                                      >
+                                                                          <Divider variant="middle" />
+                                                                      </Grid>
+                                                                  </Grid>
+                                                              </Collapse>
+                                                          </TableCell>
+                                                      </TableRow>
+                                                  </React.Fragment>
+                                              );
                                           })
                                         : null}
                                 </TableBody>
@@ -126,117 +318,5 @@ export default function SettingsView(props: Props) {
             </Box>
             <AddSecurityKeyDialog open={addKeyOpen} onClose={handleKeyClose} />
         </Box>
-    );
-}
-
-interface WebauthnDeviceRowProps {
-    device: WebauthnDevice;
-}
-
-function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
-    const [showDetails, setShowDetails] = useState<boolean>(false);
-
-    return (
-        <React.Fragment>
-            <TableRow sx={{ "& > *": { borderBottom: "unset" } }} key={props.device.kid.toString()}>
-                <TableCell>
-                    <Tooltip title="Show Details" placement="right">
-                        <IconButton aria-label="expand row" size="small" onClick={() => setShowDetails(!showDetails)}>
-                            {showDetails ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                        </IconButton>
-                    </Tooltip>
-                </TableCell>
-                <TableCell component="th" scope="row">
-                    {props.device.description}
-                </TableCell>
-                <TableCell>
-                    <Switch defaultChecked={false} size="small" />
-                </TableCell>
-                <TableCell align="center">
-                    <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                        <Tooltip title="Edit" placement="bottom">
-                            <IconButton aria-label="edit">
-                                <EditIcon />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete" placement="bottom">
-                            <IconButton aria-label="delete">
-                                <DeleteIcon />
-                            </IconButton>
-                        </Tooltip>
-                    </Stack>
-                </TableCell>
-            </TableRow>
-            <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                    <Collapse in={showDetails} timeout="auto" unmountOnExit>
-                        <Grid container spacing={2} sx={{ mb: 3, margin: 1 }}>
-                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Box sx={{ margin: 1 }}>
-                                    <Typography variant="h6" gutterBottom component="div">
-                                        Details
-                                    </Typography>
-                                </Box>
-                            </Grid>
-                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Divider variant="middle" />
-                            </Grid>
-                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Typography>Key ID: {props.device.kid}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Typography>Public Key: {props.device.public_key}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Divider variant="middle" />
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Relying Party ID</Typography>
-                                <Typography>{props.device.rpid}</Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Authenticator Attestation GUID</Typography>
-                                <Typography>{props.device.aaguid}</Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Attestation Type</Typography>
-                                <Typography>{props.device.attestation_type}</Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Transports</Typography>
-                                <Typography>
-                                    {props.device.transports.length === 0 ? "N/A" : props.device.transports.join(", ")}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Clone Warning</Typography>
-                                <Typography>{props.device.clone_warning ? "Yes" : "No"}</Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Created</Typography>
-                                <Typography>{props.device.created_at.toString()}</Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Last Used</Typography>
-                                <Typography>
-                                    {props.device.last_used_at === undefined
-                                        ? "Never"
-                                        : props.device.last_used_at.toString()}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Usage Count</Typography>
-                                <Typography>
-                                    {props.device.sign_count === 0 ? "Never" : props.device.sign_count}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Divider variant="middle" />
-                            </Grid>
-                        </Grid>
-                    </Collapse>
-                </TableCell>
-            </TableRow>
-        </React.Fragment>
     );
 }
