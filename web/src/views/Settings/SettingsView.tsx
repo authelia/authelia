@@ -153,7 +153,7 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                     <Switch defaultChecked={false} size="small" />
                 </TableCell>
                 <TableCell align="center">
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={1} alignItems="center">
                         <Tooltip title="Edit" placement="bottom">
                             <IconButton aria-label="edit">
                                 <EditIcon />
