@@ -27,6 +27,7 @@ import {
     TableHead,
     TableRow,
     Toolbar,
+    Tooltip,
     Typography,
 } from "@mui/material";
 
@@ -138,9 +139,11 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
         <React.Fragment>
             <TableRow sx={{ "& > *": { borderBottom: "unset" } }} key={props.device.kid}>
                 <TableCell>
-                    <IconButton aria-label="expand row" size="small" onClick={() => setShowDetails(!showDetails)}>
-                        {showDetails ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                    </IconButton>
+                    <Tooltip title="Show Details" placement="left">
+                        <IconButton aria-label="expand row" size="small" onClick={() => setShowDetails(!showDetails)}>
+                            {showDetails ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        </IconButton>
+                    </Tooltip>
                 </TableCell>
                 <TableCell component="th" scope="row">
                     {props.device.description}
@@ -162,7 +165,7 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                     <Collapse in={showDetails} timeout="auto" unmountOnExit>
-                        <Grid container spacing={2}>
+                        <Grid container spacing={2} sx={{ margin: 1 }}>
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                                 <Box sx={{ margin: 1 }}>
                                     <Typography variant="h6" gutterBottom component="div">
