@@ -20,5 +20,5 @@ func OAuthRevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r
 		ctx.Logger.Errorf("Revocation Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 	}
 
-	ctx.Providers.OpenIDConnect.WriteRevocationResponse(rw, err)
+	ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, err)
 }
