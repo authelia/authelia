@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
 import {
     AppBar,
     Box,
     Button,
+    Collapse,
     Drawer,
     Grid,
     IconButton,
@@ -24,7 +27,6 @@ import {
     TableHead,
     TableRow,
     Toolbar,
-    Tooltip,
     Typography,
 } from "@mui/material";
 
@@ -104,48 +106,13 @@ export default function SettingsView(props: Props) {
                                     <TableRow>
                                         <TableCell>Name</TableCell>
                                         <TableCell>Enabled</TableCell>
-                                        <TableCell>Activation</TableCell>
-                                        <TableCell>Public Key</TableCell>
                                         <TableCell>Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {webauthnDevices
                                         ? webauthnDevices.map((x, idx) => {
-                                              return (
-                                                  <TableRow key={x.description}>
-                                                      <TableCell>{x.description}</TableCell>
-                                                      <TableCell>
-                                                          <Switch defaultChecked={false} size="small" />
-                                                      </TableCell>
-                                                      <TableCell>
-                                                          <Typography>{false ? "<ADATE>" : "Not enabled"}</Typography>
-                                                      </TableCell>
-                                                      <TableCell>
-                                                          <Tooltip title={x.public_key}>
-                                                              <div
-                                                                  style={{
-                                                                      overflow: "hidden",
-                                                                      textOverflow: "ellipsis",
-                                                                      width: "300px",
-                                                                  }}
-                                                              >
-                                                                  <Typography noWrap>{x.public_key}</Typography>
-                                                              </div>
-                                                          </Tooltip>
-                                                      </TableCell>
-                                                      <TableCell>
-                                                          <Stack direction="row" spacing={1}>
-                                                              <IconButton aria-label="edit">
-                                                                  <EditIcon />
-                                                              </IconButton>
-                                                              <IconButton aria-label="delete">
-                                                                  <DeleteIcon />
-                                                              </IconButton>
-                                                          </Stack>
-                                                      </TableCell>
-                                                  </TableRow>
-                                              );
+                                              return <WebauthnDeviceRow device={x} />;
                                           })
                                         : null}
                                 </TableBody>
@@ -156,5 +123,100 @@ export default function SettingsView(props: Props) {
             </Box>
             <AddSecurityKeyDialog open={addKeyOpen} onClose={handleKeyClose} />
         </Box>
+    );
+}
+
+interface WebauthnDeviceRowProps {
+    device: WebauthnDevice;
+}
+
+function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
+    const [showDetails, setShowDetails] = useState<boolean>(false);
+
+    return (
+        <React.Fragment>
+            <TableRow sx={{ "& > *": { borderBottom: "unset" } }} key={props.device.kid}>
+                <TableCell>
+                    <IconButton aria-label="expand row" size="small" onClick={() => setShowDetails(!showDetails)}>
+                        {showDetails ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                    </IconButton>
+                </TableCell>
+                <TableCell component="th" scope="row">
+                    {props.device.description}
+                </TableCell>
+                <TableCell>
+                    <Switch defaultChecked={false} size="small" />
+                </TableCell>
+                <TableCell>
+                    <Stack direction="row" spacing={1}>
+                        <IconButton aria-label="edit">
+                            <EditIcon />
+                        </IconButton>
+                        <IconButton aria-label="delete">
+                            <DeleteIcon />
+                        </IconButton>
+                    </Stack>
+                </TableCell>
+            </TableRow>
+            <TableRow>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                    <Collapse in={showDetails} timeout="auto" unmountOnExit>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Box sx={{ margin: 1 }}>
+                                    <Typography variant="h6" gutterBottom component="div">
+                                        Details
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Key ID:</Typography>
+                                <Typography>{props.device.kid}</Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Relying Party ID:</Typography>
+                                <Typography>{props.device.rpid}</Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Authenticator Attestation GUID:</Typography>
+                                <Typography>{props.device.aaguid}</Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Attestation Type:</Typography>
+                                <Typography>{props.device.attestation_type}</Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Transports:</Typography>
+                                <Typography>
+                                    {props.device.transport === "" ? "N/A" : props.device.transport}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Clone Warning:</Typography>
+                                <Typography>{props.device.clone_warning ? "Yes" : "No"}</Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Created:</Typography>
+                                <Typography>{props.device.created_at.toString()}</Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Last Used:</Typography>
+                                <Typography>
+                                    {props.device.last_used_at === undefined
+                                        ? "Never"
+                                        : props.device.last_used_at.toString()}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
+                                <Typography>Usage Count:</Typography>
+                                <Typography>
+                                    {props.device.sign_count === 0 ? "Never" : props.device.sign_count}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                    </Collapse>
+                </TableCell>
+            </TableRow>
+        </React.Fragment>
     );
 }
