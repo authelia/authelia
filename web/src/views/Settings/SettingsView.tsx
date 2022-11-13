@@ -104,6 +104,7 @@ export default function SettingsView(props: Props) {
                             <Table>
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell />
                                         <TableCell>Name</TableCell>
                                         <TableCell>Enabled</TableCell>
                                         <TableCell>Actions</TableCell>
