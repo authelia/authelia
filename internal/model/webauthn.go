@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -134,19 +135,54 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
-	ID              int          `db:"id" json:"id"`
-	CreatedAt       time.Time    `db:"created_at" json:"created_at"`
-	LastUsedAt      sql.NullTime `db:"last_used_at" json:"last_used_at"`
-	RPID            string       `db:"rpid" json:"rpid"`
-	Username        string       `db:"username" json:"username"`
-	Description     string       `db:"description" json:"description"`
-	KID             Base64       `db:"kid" json:"kid"`
-	PublicKey       []byte       `db:"public_key" json:"public_key"`
-	AttestationType string       `db:"attestation_type" json:"attestation_type"`
-	Transport       string       `db:"transport" json:"transport"`
-	AAGUID          uuid.UUID    `db:"aaguid" json:"aaguid"`
-	SignCount       uint32       `db:"sign_count" json:"sign_count"`
-	CloneWarning    bool         `db:"clone_warning" json:"clone_warning"`
+	ID              int          `db:"id"`
+	CreatedAt       time.Time    `db:"created_at"`
+	LastUsedAt      sql.NullTime `db:"last_used_at"`
+	RPID            string       `db:"rpid"`
+	Username        string       `db:"username"`
+	Description     string       `db:"description"`
+	KID             Base64       `db:"kid"`
+	PublicKey       []byte       `db:"public_key"`
+	AttestationType string       `db:"attestation_type"`
+	Transport       string       `db:"transport"`
+	AAGUID          uuid.UUID    `db:"aaguid"`
+	SignCount       uint32       `db:"sign_count"`
+	CloneWarning    bool         `db:"clone_warning"`
+}
+
+// MarshalJSON returns the WebauthnDevice in a JSON friendly manner.
+func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
+	o := struct {
+		ID              int        `json:"id"`
+		CreatedAt       time.Time  `json:"created_at"`
+		LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
+		RPID            string     `json:"rpid"`
+		Description     string     `json:"description"`
+		KID             string     `json:"kid"`
+		PublicKey       []byte     `json:"public_key"`
+		AttestationType string     `json:"attestation_type"`
+		Transport       []string   `json:"transport"`
+		AAGUID          string     `json:"aaguid"`
+		SignCount       uint32     `json:"sign_count"`
+		CloneWarning    bool       `json:"clone_warning"`
+	}{
+		ID:              w.ID,
+		CreatedAt:       w.CreatedAt,
+		RPID:            w.RPID,
+		KID:             w.KID.String(),
+		PublicKey:       w.PublicKey,
+		AttestationType: w.AttestationType,
+		Transport:       strings.Split(w.Transport, ","),
+		AAGUID:          w.AAGUID.String(),
+		SignCount:       w.SignCount,
+		CloneWarning:    w.CloneWarning,
+	}
+
+	if w.LastUsedAt.Valid {
+		o.LastUsedAt = &w.LastUsedAt.Time
+	}
+
+	return json.Marshal(o)
 }
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.

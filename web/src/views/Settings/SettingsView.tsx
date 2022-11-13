@@ -170,38 +170,42 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                                     </Typography>
                                 </Box>
                             </Grid>
-                            <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Key ID:</Typography>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Typography>Key ID</Typography>
                                 <Typography>{props.device.kid}</Typography>
                             </Grid>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Typography>Public Key</Typography>
+                                <Typography>{props.device.public_key}</Typography>
+                            </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Relying Party ID:</Typography>
+                                <Typography>Relying Party ID</Typography>
                                 <Typography>{props.device.rpid}</Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Authenticator Attestation GUID:</Typography>
+                                <Typography>Authenticator Attestation GUID</Typography>
                                 <Typography>{props.device.aaguid}</Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Attestation Type:</Typography>
+                                <Typography>Attestation Type</Typography>
                                 <Typography>{props.device.attestation_type}</Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Transports:</Typography>
+                                <Typography>Transports</Typography>
                                 <Typography>
-                                    {props.device.transport === "" ? "N/A" : props.device.transport}
+                                    {props.device.transport.length === 0 ? "N/A" : props.device.transport.join(", ")}
                                 </Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Clone Warning:</Typography>
+                                <Typography>Clone Warning</Typography>
                                 <Typography>{props.device.clone_warning ? "Yes" : "No"}</Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Created:</Typography>
+                                <Typography>Created</Typography>
                                 <Typography>{props.device.created_at.toString()}</Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Last Used:</Typography>
+                                <Typography>Last Used</Typography>
                                 <Typography>
                                     {props.device.last_used_at === undefined
                                         ? "Never"
@@ -209,7 +213,7 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                                 </Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                <Typography>Usage Count:</Typography>
+                                <Typography>Usage Count</Typography>
                                 <Typography>
                                     {props.device.sign_count === 0 ? "Never" : props.device.sign_count}
                                 </Typography>

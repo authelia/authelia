@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net"
 
@@ -116,10 +115,6 @@ type Base64 struct {
 // String returns the Base64 string encoded as base64.
 func (b Base64) String() string {
 	return base64.StdEncoding.EncodeToString(b.data)
-}
-
-func (b *Base64) MarshalJSON() (data []byte, err error) {
-	return json.Marshal(b.String())
 }
 
 // Bytes returns the Base64 string encoded as bytes.
