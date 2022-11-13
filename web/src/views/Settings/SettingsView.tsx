@@ -109,7 +109,7 @@ export default function SettingsView(props: Props) {
                                         <TableCell />
                                         <TableCell>Name</TableCell>
                                         <TableCell>Enabled</TableCell>
-                                        <TableCell>Actions</TableCell>
+                                        <TableCell align="center">Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -140,7 +140,7 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
         <React.Fragment>
             <TableRow sx={{ "& > *": { borderBottom: "unset" } }} key={props.device.kid.toString()}>
                 <TableCell>
-                    <Tooltip title="Show Details" placement="left">
+                    <Tooltip title="Show Details" placement="right">
                         <IconButton aria-label="expand row" size="small" onClick={() => setShowDetails(!showDetails)}>
                             {showDetails ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                         </IconButton>
@@ -152,19 +152,23 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                 <TableCell>
                     <Switch defaultChecked={false} size="small" />
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                     <Stack direction="row" spacing={1}>
-                        <IconButton aria-label="edit">
-                            <EditIcon />
-                        </IconButton>
-                        <IconButton aria-label="delete">
-                            <DeleteIcon />
-                        </IconButton>
+                        <Tooltip title="Edit" placement="bottom">
+                            <IconButton aria-label="edit">
+                                <EditIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete" placement="bottom">
+                            <IconButton aria-label="delete">
+                                <DeleteIcon />
+                            </IconButton>
+                        </Tooltip>
                     </Stack>
                 </TableCell>
             </TableRow>
             <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
                     <Collapse in={showDetails} timeout="auto" unmountOnExit>
                         <Grid container spacing={2} sx={{ mb: 3, margin: 1 }}>
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
