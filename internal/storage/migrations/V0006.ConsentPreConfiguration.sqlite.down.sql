@@ -19,8 +19,8 @@ CREATE TABLE oauth2_consent_session (
     form_data TEXT NOT NULL,
     requested_scopes TEXT NOT NULL,
     granted_scopes TEXT NOT NULL,
-	requested_audience TEXT NULL DEFAULT '',
-	granted_audience TEXT NULL DEFAULT '',
+    requested_audience TEXT NULL DEFAULT '',
+    granted_audience TEXT NULL DEFAULT '',
     PRIMARY KEY (id),
     CONSTRAINT oauth2_consent_session_subject_fkey
         FOREIGN KEY(subject)
