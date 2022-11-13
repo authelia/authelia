@@ -161,7 +161,7 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		KID             []byte     `json:"kid"`
 		PublicKey       []byte     `json:"public_key"`
 		AttestationType string     `json:"attestation_type"`
-		Transport       []string   `json:"transport"`
+		Transports      []string   `json:"transports"`
 		AAGUID          string     `json:"aaguid"`
 		SignCount       uint32     `json:"sign_count"`
 		CloneWarning    bool       `json:"clone_warning"`
@@ -173,10 +173,13 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		KID:             w.KID.data,
 		PublicKey:       w.PublicKey,
 		AttestationType: w.AttestationType,
-		Transport:       strings.Split(w.Transport, ","),
 		AAGUID:          w.AAGUID.String(),
 		SignCount:       w.SignCount,
 		CloneWarning:    w.CloneWarning,
+	}
+
+	if w.Transport != "" {
+		o.Transports = strings.Split(w.Transport, ",")
 	}
 
 	if w.LastUsedAt.Valid {

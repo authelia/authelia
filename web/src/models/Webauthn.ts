@@ -139,7 +139,7 @@ export interface WebauthnDevice {
     kid: Uint8Array;
     public_key: Uint8Array;
     attestation_type: string;
-    transport: string[];
+    transports: string[];
     aaguid: string;
     sign_count: number;
     clone_warning: boolean;

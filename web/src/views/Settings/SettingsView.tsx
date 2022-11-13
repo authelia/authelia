@@ -205,7 +205,7 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
                                 <Typography>Transports</Typography>
                                 <Typography>
-                                    {props.device.transport.length === 0 ? "N/A" : props.device.transport.join(", ")}
+                                    {props.device.transports.length === 0 ? "N/A" : props.device.transports.join(", ")}
                                 </Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
