@@ -169,6 +169,7 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		ID:              w.ID,
 		CreatedAt:       w.CreatedAt,
 		RPID:            w.RPID,
+		Description:     w.Description,
 		KID:             w.KID.String(),
 		PublicKey:       w.PublicKey,
 		AttestationType: w.AttestationType,
