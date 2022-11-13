@@ -6,8 +6,8 @@ BEGIN
 	IF EXISTS(
 		SELECT * FROM information_schema.TABLE_CONSTRAINTS
 		WHERE
-			TABLE_SCHEMA    = DATABASE()     AND
-			TABLE_NAME      = tableName      AND
+			TABLE_SCHEMA	= DATABASE()	 AND
+			TABLE_NAME	  = tableName	  AND
 			CONSTRAINT_NAME = constraintName AND
 			CONSTRAINT_TYPE = 'FOREIGN KEY')
 	THEN
@@ -23,10 +23,10 @@ BEGIN
 	IF EXISTS(
 		SELECT * FROM information_schema.STATISTICS
 		WHERE
-			TABLE_SCHEMA    = DATABASE()     AND
-			INDEX_SCHEMA    = DATABASE()     AND
-			TABLE_NAME      = tableName      AND
-			INDEX_NAME      = indexName)
+			TABLE_SCHEMA	= DATABASE()	 AND
+			INDEX_SCHEMA	= DATABASE()	 AND
+			TABLE_NAME	  = tableName	  AND
+			INDEX_NAME	  = indexName)
 	THEN
 		SET @query = CONCAT('ALTER TABLE ', tableName, ' DROP INDEX ', indexName, ';');
 		PREPARE stmt FROM @query;
@@ -92,122 +92,122 @@ SET aaguid = NULL
 WHERE aaguid = '' OR aaguid = '00000000-00000000-00000000-00000000';
 
 ALTER TABLE authentication_logs
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE duo_devices
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE encryption
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE identity_verification
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE migrations
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_blacklisted_jti
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_consent_session
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_consent_preconfiguration
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_access_token_session
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_authorization_code_session
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_openid_connect_session
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_pkce_request_session
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_refresh_token_session
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE totp_configurations
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE user_opaque_identifier
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE user_preferences
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE webauthn_devices
-    ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+	ENGINE=InnoDB,
+	CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 
 ALTER TABLE oauth2_consent_session
-    ADD CONSTRAINT oauth2_consent_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT,
+	ADD CONSTRAINT oauth2_consent_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT,
 	ADD CONSTRAINT oauth2_consent_session_preconfiguration_fkey
-	    FOREIGN KEY (preconfiguration)
-	        REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE;
+		FOREIGN KEY (preconfiguration)
+			REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE oauth2_consent_preconfiguration
-    ADD CONSTRAINT oauth2_consent_preconfiguration_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_consent_preconfiguration_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_access_token_session
-    ADD CONSTRAINT oauth2_access_token_session_challenge_id_fkey
-        FOREIGN KEY (challenge_id)
-            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_access_token_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_access_token_session_challenge_id_fkey
+		FOREIGN KEY (challenge_id)
+			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	ADD CONSTRAINT oauth2_access_token_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_authorization_code_session
-    ADD CONSTRAINT oauth2_authorization_code_session_challenge_id_fkey
-        FOREIGN KEY (challenge_id)
-            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_authorization_code_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_authorization_code_session_challenge_id_fkey
+		FOREIGN KEY (challenge_id)
+			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	ADD CONSTRAINT oauth2_authorization_code_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_openid_connect_session
-    ADD CONSTRAINT oauth2_openid_connect_session_challenge_id_fkey
-        FOREIGN KEY (challenge_id)
-            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_openid_connect_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_openid_connect_session_challenge_id_fkey
+		FOREIGN KEY (challenge_id)
+			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	ADD CONSTRAINT oauth2_openid_connect_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_pkce_request_session
-    ADD CONSTRAINT oauth2_pkce_request_session_challenge_id_fkey
-        FOREIGN KEY (challenge_id)
-            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_pkce_request_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_pkce_request_session_challenge_id_fkey
+		FOREIGN KEY (challenge_id)
+			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	ADD CONSTRAINT oauth2_pkce_request_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_refresh_token_session
-    ADD CONSTRAINT oauth2_refresh_token_session_challenge_id_fkey
-        FOREIGN KEY (challenge_id)
-            REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_refresh_token_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_refresh_token_session_challenge_id_fkey
+		FOREIGN KEY (challenge_id)
+			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	ADD CONSTRAINT oauth2_refresh_token_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT;

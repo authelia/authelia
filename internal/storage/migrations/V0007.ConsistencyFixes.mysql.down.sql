@@ -44,8 +44,8 @@ ALTER TABLE oauth2_consent_session
 		FOREIGN KEY (subject)
 			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT,
 	ADD CONSTRAINT oauth2_consent_session_preconfiguration_fkey
-	    FOREIGN KEY (preconfiguration)
-	        REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE;
+		FOREIGN KEY (preconfiguration)
+			REFERENCES oauth2_consent_preconfiguration (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE oauth2_consent_preconfiguration
 	ADD CONSTRAINT oauth2_consent_preconfiguration_subjct_fkey
@@ -56,41 +56,41 @@ ALTER TABLE oauth2_access_token_session
 	ADD CONSTRAINT oauth2_access_token_session_challenge_id_fkey
 		FOREIGN KEY (challenge_id)
 			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_access_token_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_access_token_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_authorization_code_session
 	ADD CONSTRAINT oauth2_authorization_code_session_challenge_id_fkey
 		FOREIGN KEY (challenge_id)
 			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_authorization_code_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_authorization_code_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_openid_connect_session
 	ADD CONSTRAINT oauth2_openid_connect_session_challenge_id_fkey
 		FOREIGN KEY (challenge_id)
 			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_openid_connect_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_openid_connect_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_pkce_request_session
 	ADD CONSTRAINT oauth2_pkce_request_session_challenge_id_fkey
 		FOREIGN KEY (challenge_id)
 			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_pkce_request_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_pkce_request_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 ALTER TABLE oauth2_refresh_token_session
 	ADD CONSTRAINT oauth2_refresh_token_session_challenge_id_fkey
 		FOREIGN KEY (challenge_id)
 			REFERENCES oauth2_consent_session (challenge_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD CONSTRAINT oauth2_refresh_token_session_subject_fkey
-        FOREIGN KEY (subject)
-            REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
+	ADD CONSTRAINT oauth2_refresh_token_session_subject_fkey
+		FOREIGN KEY (subject)
+			REFERENCES user_opaque_identifier (identifier) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 DROP PROCEDURE IF EXISTS PROC_DROP_FOREIGN_KEY;
 DROP PROCEDURE IF EXISTS PROC_DROP_INDEX;
