@@ -10,6 +10,7 @@ import {
     Box,
     Button,
     Collapse,
+    Divider,
     Drawer,
     Grid,
     IconButton,
@@ -174,12 +175,16 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                                 </Box>
                             </Grid>
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Typography>Key ID</Typography>
-                                <Typography>{props.device.kid}</Typography>
+                                <Divider variant="middle" />
                             </Grid>
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                                <Typography>Public Key</Typography>
-                                <Typography>{props.device.public_key}</Typography>
+                                <Typography>Key ID: {props.device.kid}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Typography>Public Key: {props.device.public_key}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Divider variant="middle" />
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
                                 <Typography>Relying Party ID</Typography>
@@ -220,6 +225,9 @@ function WebauthnDeviceRow(props: WebauthnDeviceRowProps) {
                                 <Typography>
                                     {props.device.sign_count === 0 ? "Never" : props.device.sign_count}
                                 </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Divider variant="middle" />
                             </Grid>
                         </Grid>
                     </Collapse>
