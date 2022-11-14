@@ -228,7 +228,3 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
         </Fragment>
     );
 }
-
-function URLSearchParamsHasValues(params?: URLSearchParams) {
-    return params ? !params.entries().next().done : false;
-}

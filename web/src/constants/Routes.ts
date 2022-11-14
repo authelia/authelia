@@ -14,4 +14,4 @@ export const RegisterOneTimePasswordRoute: string = "/one-time-password/register
 export const LogoutRoute: string = "/logout";
 
 export const SettingsRoute: string = "/settings";
-export const SettingsTwoFactorAuthenticationRoute: string = "/settings/two-factor-authentication";
+export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";

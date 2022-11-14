@@ -3,7 +3,7 @@ import React from "react";
 import { Typography } from "@mui/material";
 import { Route, Routes } from "react-router-dom";
 
-import { SettingsRoute, SettingsTwoFactorAuthenticationRoute } from "@constants/Routes";
+import { IndexRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import SettingsLayout from "@layouts/SettingsLayout";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
@@ -13,14 +13,14 @@ const SettingsRouter = function (props: Props) {
     return (
         <Routes>
             <Route>
-                path={SettingsRoute} element=
+                path={IndexRoute} element=
                 {
                     <SettingsLayout>
                         <Typography>Portal Placeholder</Typography>
                     </SettingsLayout>
                 }
             </Route>
-            <Route path={SettingsTwoFactorAuthenticationRoute} element={<TwoFactorAuthenticationView />} />
+            <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
         </Routes>
     );
 };

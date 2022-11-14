@@ -17,7 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import Brand from "@components/Brand";
-import { SettingsTwoFactorAuthenticationRoute } from "@constants/Routes";
+import { SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -71,7 +71,7 @@ const SettingsLayout = function (props: Props) {
                 <Toolbar variant="dense" />
                 <Box sx={{ overflow: "auto" }}>
                     <List>
-                        <ListItem disablePadding onClick={() => navigate(SettingsTwoFactorAuthenticationRoute)}>
+                        <ListItem disablePadding onClick={() => navigate(SettingsTwoFactorAuthenticationSubRoute)}>
                             <ListItemButton selected={true}>
                                 <ListItemIcon>
                                     <SystemSecurityUpdateGoodIcon />
