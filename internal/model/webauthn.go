@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -147,6 +148,46 @@ type WebauthnDevice struct {
 	AAGUID          uuid.UUID    `db:"aaguid"`
 	SignCount       uint32       `db:"sign_count"`
 	CloneWarning    bool         `db:"clone_warning"`
+}
+
+// MarshalJSON returns the WebauthnDevice in a JSON friendly manner.
+func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
+	o := struct {
+		ID              int        `json:"id"`
+		CreatedAt       time.Time  `json:"created_at"`
+		LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
+		RPID            string     `json:"rpid"`
+		Description     string     `json:"description"`
+		KID             []byte     `json:"kid"`
+		PublicKey       []byte     `json:"public_key"`
+		AttestationType string     `json:"attestation_type"`
+		Transports      []string   `json:"transports"`
+		AAGUID          string     `json:"aaguid"`
+		SignCount       uint32     `json:"sign_count"`
+		CloneWarning    bool       `json:"clone_warning"`
+	}{
+		ID:              w.ID,
+		CreatedAt:       w.CreatedAt,
+		RPID:            w.RPID,
+		Description:     w.Description,
+		KID:             w.KID.data,
+		PublicKey:       w.PublicKey,
+		AttestationType: w.AttestationType,
+		Transports:      []string{},
+		AAGUID:          w.AAGUID.String(),
+		SignCount:       w.SignCount,
+		CloneWarning:    w.CloneWarning,
+	}
+
+	if w.Transport != "" {
+		o.Transports = strings.Split(w.Transport, ",")
+	}
+
+	if w.LastUsedAt.Valid {
+		o.LastUsedAt = &w.LastUsedAt.Time
+	}
+
+	return json.Marshal(o)
 }
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.

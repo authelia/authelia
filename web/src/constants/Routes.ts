@@ -12,3 +12,4 @@ export const ResetPasswordStep2Route: string = "/reset-password/step2";
 export const RegisterWebauthnRoute: string = "/webauthn/register";
 export const RegisterOneTimePasswordRoute: string = "/one-time-password/register";
 export const LogoutRoute: string = "/logout";
+export const SettingsRoute: string = "/settings";
