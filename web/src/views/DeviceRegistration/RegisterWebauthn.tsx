@@ -5,10 +5,10 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
+import { SettingsRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { AttestationResult } from "@models/Webauthn";
-import { FirstFactorPath } from "@services/Api";
 import { performAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
@@ -24,7 +24,7 @@ const RegisterWebauthn = function () {
     const processToken = extractIdentityToken(location.search);
 
     const handleBackClick = () => {
-        navigate(FirstFactorPath);
+        navigate(SettingsRoute);
     };
 
     const attestation = useCallback(async () => {
@@ -37,7 +37,7 @@ const RegisterWebauthn = function () {
 
             switch (result) {
                 case AttestationResult.Success:
-                    navigate(FirstFactorPath);
+                    navigate(SettingsRoute);
                     break;
                 case AttestationResult.FailureToken:
                     createErrorNotification(

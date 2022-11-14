@@ -95,7 +95,7 @@ const App: React.FC<Props> = (props: Props) => {
                                 <Route path={RegisterOneTimePasswordRoute} element={<RegisterOneTimePassword />} />
                                 <Route path={LogoutRoute} element={<SignOut />} />
                                 <Route path={ConsentRoute} element={<ConsentView />} />
-                                <Route path={SettingsRoute} element={<SettingsView />} />
+                                <Route path={`${SettingsRoute}*`} element={<SettingsView />} />
                                 <Route
                                     path={`${IndexRoute}*`}
                                     element={

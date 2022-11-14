@@ -7,7 +7,6 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
     RegisterOneTimePasswordRoute,
-    RegisterWebauthnRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
@@ -18,7 +17,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
+import { initiateTOTPRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import { isWebauthnSupported } from "@services/Webauthn";
@@ -145,10 +144,6 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={initiateRegistration(
-                                        initiateWebauthnRegistrationProcess,
-                                        RegisterWebauthnRoute,
-                                    )}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

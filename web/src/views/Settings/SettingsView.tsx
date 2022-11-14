@@ -32,28 +32,57 @@ import {
     Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
+import { RegisterWebauthnRoute } from "@constants/Routes";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useAutheliaState } from "@hooks/State";
 import { WebauthnDevice } from "@root/models/Webauthn";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
-
-import AddSecurityKeyDialog from "./AddSecurityDialog";
+import { initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
+import { AuthenticationLevel } from "@services/State";
 
 interface Props {}
 
 const drawerWidth = 240;
 
 export default function SettingsView(props: Props) {
+    const navigate = useNavigate();
     const { t: translate } = useTranslation("settings");
 
+    const { createInfoNotification, createErrorNotification } = useNotifications();
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
-    const [addKeyOpen, setAddKeyOpen] = useState<boolean>(false);
     const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
+    const [registrationInProgress, setRegistrationInProgress] = useState(false);
+    const [state, fetchState, , fetchStateError] = useAutheliaState();
 
     const handleWebAuthnDetailsChange = (idx: number) => {
         if (webauthnShowDetails === idx) {
             setWebauthnShowDetails(-1);
         } else {
             setWebauthnShowDetails(idx);
+        }
+    };
+
+    const initiateRegistration = async (initiateRegistrationFunc: () => Promise<void>, redirectRoute: string) => {
+        if (!state || fetchStateError) {
+            return;
+        }
+        if (state.authentication_level >= AuthenticationLevel.TwoFactor) {
+            navigate(redirectRoute);
+        } else {
+            if (registrationInProgress) {
+                return;
+            }
+            setRegistrationInProgress(true);
+            try {
+                await initiateRegistrationFunc();
+                createInfoNotification(translate("An email has been sent to your address to complete the process"));
+            } catch (err) {
+                console.error(err);
+                createErrorNotification(translate("There was a problem initiating the registration process"));
+            }
+            setRegistrationInProgress(false);
         }
     };
 
@@ -64,12 +93,13 @@ export default function SettingsView(props: Props) {
         })();
     }, []);
 
-    const handleKeyClose = () => {
-        setAddKeyOpen(false);
-    };
+    // Fetch the state when portal is mounted.
+    useEffect(() => {
+        fetchState();
+    }, [fetchState]);
 
     const handleAddKeyButtonClick = () => {
-        setAddKeyOpen(true);
+        initiateRegistration(initiateWebauthnRegistrationProcess, RegisterWebauthnRoute);
     };
 
     return (
@@ -354,7 +384,6 @@ export default function SettingsView(props: Props) {
                     </Grid>
                 </Grid>
             </Box>
-            <AddSecurityKeyDialog open={addKeyOpen} onClose={handleKeyClose} />
         </Box>
     );
 }
