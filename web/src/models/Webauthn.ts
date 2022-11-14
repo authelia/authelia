@@ -135,12 +135,11 @@ export interface WebauthnDevice {
     created_at: Date;
     last_used_at?: Date;
     rpid: string;
-    username: string;
     description: string;
-    kid: string;
+    kid: Uint8Array;
     public_key: Uint8Array;
     attestation_type: string;
-    transport: string;
+    transports: string[];
     aaguid: string;
     sign_count: number;
     clone_warning: boolean;
