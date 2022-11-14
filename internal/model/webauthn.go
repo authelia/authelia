@@ -173,6 +173,7 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 		KID:             w.KID.data,
 		PublicKey:       w.PublicKey,
 		AttestationType: w.AttestationType,
+		Transports:      []string{},
 		AAGUID:          w.AAGUID.String(),
 		SignCount:       w.SignCount,
 		CloneWarning:    w.CloneWarning,
