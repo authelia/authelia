@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useCallback, useEffect } from "react";
 
 import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
 import {
@@ -16,8 +16,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import Brand from "@components/Brand";
-import { SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -51,8 +50,6 @@ const SettingsLayout = function (props: Props) {
 
     const drawerWidth = props.drawerWidth === undefined ? defaultDrawerWidth : props.drawerWidth;
 
-    const navigate = useRouterNavigate();
-
     return (
         <Box sx={{ display: "flex" }}>
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
@@ -71,14 +68,11 @@ const SettingsLayout = function (props: Props) {
                 <Toolbar variant="dense" />
                 <Box sx={{ overflow: "auto" }}>
                     <List>
-                        <ListItem disablePadding onClick={() => navigate(SettingsTwoFactorAuthenticationSubRoute)}>
-                            <ListItemButton selected={true}>
-                                <ListItemIcon>
-                                    <SystemSecurityUpdateGoodIcon />
-                                </ListItemIcon>
-                                <ListItemText primary={translate("Security Keys")} />
-                            </ListItemButton>
-                        </ListItem>
+                        <SettingsMenuItem
+                            pathname={`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`}
+                            text={translate("Security Keys")}
+                            icon={<SystemSecurityUpdateGoodIcon />}
+                        />
                     </List>
                 </Box>
             </Drawer>
@@ -89,10 +83,29 @@ const SettingsLayout = function (props: Props) {
                         {props.children}
                     </Box>
                 </Grid>
-                <Brand />
             </Grid>
         </Box>
     );
 };
 
 export default SettingsLayout;
+
+interface SettingsMenuItemProps {
+    pathname: string;
+    text: string;
+    icon: ReactNode;
+}
+
+const SettingsMenuItem = function (props: SettingsMenuItemProps) {
+    const selected = window.location.pathname === props.pathname;
+    const navigate = useRouterNavigate();
+
+    return (
+        <ListItem disablePadding onClick={selected ? () => console.log("selected") : () => navigate(props.pathname)}>
+            <ListItemButton selected={selected}>
+                <ListItemIcon>{props.icon}</ListItemIcon>
+                <ListItemText primary={props.text} />
+            </ListItemButton>
+        </ListItem>
+    );
+};
