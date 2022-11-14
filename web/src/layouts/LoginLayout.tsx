@@ -1,13 +1,13 @@
 import React, { ReactNode, useEffect } from "react";
 
 import SettingsIcon from "@mui/icons-material/Settings";
-import { AppBar, Box, Container, Grid, IconButton, Link, Theme, Toolbar, Typography } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { AppBar, Box, Container, Grid, IconButton, Theme, Toolbar, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
+import Brand from "@components/Brand";
 import TypographyWithTooltip from "@components/TypographyWithTootip";
 import { SettingsRoute } from "@root/constants/Routes";
 import { getLogoOverride } from "@utils/Configuration";
@@ -22,8 +22,6 @@ export interface Props {
     showBrand?: boolean;
     showSettings?: boolean;
 }
-
-const url = "https://www.authelia.com";
 
 const LoginLayout = function (props: Props) {
     const navigate = useNavigate();
@@ -64,9 +62,9 @@ const LoginLayout = function (props: Props) {
                 </Toolbar>
             </AppBar>
             <Grid
+                container
                 id={props.id}
                 className={styles.root}
-                container
                 spacing={0}
                 alignItems="center"
                 justifyContent="center"
@@ -97,13 +95,7 @@ const LoginLayout = function (props: Props) {
                         <Grid item xs={12} className={styles.body}>
                             {props.children}
                         </Grid>
-                        {props.showBrand ? (
-                            <Grid item xs={12}>
-                                <Link href={url} target="_blank" underline="hover" className={styles.poweredBy}>
-                                    {translate("Powered by")} Authelia
-                                </Link>
-                            </Grid>
-                        ) : null}
+                        {props.showBrand ? <Brand /> : null}
                     </Grid>
                 </Container>
             </Grid>
@@ -133,9 +125,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         marginTop: theme.spacing(),
         paddingTop: theme.spacing(),
         paddingBottom: theme.spacing(),
-    },
-    poweredBy: {
-        fontSize: "0.7em",
-        color: grey[500],
     },
 }));
