@@ -1,25 +1,15 @@
 import React, { useEffect, useState } from "react";
 
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
-    Box,
     Button,
-    Collapse,
-    Divider,
     Grid,
-    IconButton,
     Paper,
     Stack,
-    Switch,
     Table,
     TableBody,
     TableCell,
     TableHead,
     TableRow,
-    Tooltip,
     Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
