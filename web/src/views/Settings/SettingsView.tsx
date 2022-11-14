@@ -102,6 +102,7 @@ export default function SettingsView(props: Props) {
                 </Box>
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+                <Toolbar variant="dense" />
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
                         <Typography>{translate("Manage your security keys")}</Typography>
