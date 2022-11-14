@@ -10,10 +10,13 @@ import {
     DialogTitle,
     TextField,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 interface Props extends DialogProps {}
 
 export default function AddSecurityKeyDialog(props: Props) {
+    const { t: translate } = useTranslation("settings");
+
     const handleAddClick = () => {
         if (props.onClose) {
             props.onClose({}, "backdropClick");
@@ -28,22 +31,22 @@ export default function AddSecurityKeyDialog(props: Props) {
 
     return (
         <Dialog {...props}>
-            <DialogTitle>Add new Security Key</DialogTitle>
+            <DialogTitle>{translate("Add new Security Key")}</DialogTitle>
             <DialogContent>
-                <DialogContentText>Provide the details for the new security key.</DialogContentText>
+                <DialogContentText>{translate("Provide the details for the new security key")}.</DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="description"
-                    label="Description"
+                    label={translate("Description")}
                     type="text"
                     fullWidth
                     variant="standard"
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancelClick}>Cancel</Button>
-                <Button onClick={handleAddClick}>Add</Button>
+                <Button onClick={handleCancelClick}>{translate("Cancel")}</Button>
+                <Button onClick={handleAddClick}>{translate("Add")}</Button>
             </DialogActions>
         </Dialog>
     );

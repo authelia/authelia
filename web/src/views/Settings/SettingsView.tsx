@@ -31,6 +31,7 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { WebauthnDevice } from "@root/models/Webauthn";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
@@ -42,6 +43,8 @@ interface Props {}
 const drawerWidth = 240;
 
 export default function SettingsView(props: Props) {
+    const { t: translate } = useTranslation("settings");
+
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
     const [addKeyOpen, setAddKeyOpen] = useState<boolean>(false);
     const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
@@ -73,7 +76,7 @@ export default function SettingsView(props: Props) {
         <Box sx={{ display: "flex" }}>
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <Toolbar variant="dense">
-                    <Typography style={{ flexGrow: 1 }}>Settings</Typography>
+                    <Typography style={{ flexGrow: 1 }}>{translate("Settings")}</Typography>
                 </Toolbar>
             </AppBar>
             <Drawer
@@ -92,7 +95,7 @@ export default function SettingsView(props: Props) {
                                 <ListItemIcon>
                                     <SystemSecurityUpdateGoodIcon />
                                 </ListItemIcon>
-                                <ListItemText primary={"Security Keys"} />
+                                <ListItemText primary={translate("Security Keys")} />
                             </ListItemButton>
                         </ListItem>
                     </List>
@@ -101,12 +104,12 @@ export default function SettingsView(props: Props) {
             <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
-                        <Typography>Manage your security keys</Typography>
+                        <Typography>{translate("Manage your security keys")}</Typography>
                     </Grid>
                     <Grid item xs={12}>
                         <Stack spacing={1} direction="row">
                             <Button color="primary" variant="contained" onClick={handleAddKeyButtonClick}>
-                                Add
+                                {translate("Add")}
                             </Button>
                         </Stack>
                     </Grid>
@@ -116,9 +119,9 @@ export default function SettingsView(props: Props) {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell />
-                                        <TableCell>Name</TableCell>
-                                        <TableCell>Enabled</TableCell>
-                                        <TableCell align="center">Actions</TableCell>
+                                        <TableCell>{translate("Name")}</TableCell>
+                                        <TableCell>{translate("Enabled")}</TableCell>
+                                        <TableCell align="center">{translate("Actions")}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -131,7 +134,10 @@ export default function SettingsView(props: Props) {
                                                           key={x.kid.toString()}
                                                       >
                                                           <TableCell>
-                                                              <Tooltip title="Show Details" placement="right">
+                                                              <Tooltip
+                                                                  title={translate("Show Details")}
+                                                                  placement="right"
+                                                              >
                                                                   <IconButton
                                                                       aria-label="expand row"
                                                                       size="small"
@@ -158,12 +164,15 @@ export default function SettingsView(props: Props) {
                                                                   alignItems="center"
                                                                   justifyContent="center"
                                                               >
-                                                                  <Tooltip title="Edit" placement="bottom">
+                                                                  <Tooltip title={translate("Edit")} placement="bottom">
                                                                       <IconButton aria-label="edit">
                                                                           <EditIcon />
                                                                       </IconButton>
                                                                   </Tooltip>
-                                                                  <Tooltip title="Delete" placement="bottom">
+                                                                  <Tooltip
+                                                                      title={translate("Delete")}
+                                                                      placement="bottom"
+                                                                  >
                                                                       <IconButton aria-label="delete">
                                                                           <DeleteIcon />
                                                                       </IconButton>
@@ -196,7 +205,7 @@ export default function SettingsView(props: Props) {
                                                                                   gutterBottom
                                                                                   component="div"
                                                                               >
-                                                                                  Details
+                                                                                  {translate("Details")}
                                                                               </Typography>
                                                                           </Box>
                                                                       </Grid>
@@ -218,7 +227,14 @@ export default function SettingsView(props: Props) {
                                                                           lg={12}
                                                                           xl={12}
                                                                       >
-                                                                          <Typography>Key ID: {x.kid}</Typography>
+                                                                          <Typography>
+                                                                              {translate(
+                                                                                  "Webauthn Credential Identifier",
+                                                                                  {
+                                                                                      id: x.kid.toString(),
+                                                                                  },
+                                                                              )}
+                                                                          </Typography>
                                                                       </Grid>
                                                                       <Grid
                                                                           item
@@ -230,6 +246,9 @@ export default function SettingsView(props: Props) {
                                                                       >
                                                                           <Typography>
                                                                               Public Key: {x.public_key}
+                                                                              {translate("Webauthn Public Key", {
+                                                                                  key: x.public_key.toString(),
+                                                                              })}
                                                                           </Typography>
                                                                       </Grid>
                                                                       <Grid
@@ -243,21 +262,29 @@ export default function SettingsView(props: Props) {
                                                                           <Divider variant="middle" />
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Relying Party ID</Typography>
+                                                                          <Typography>
+                                                                              {translate("Relying Party ID")}
+                                                                          </Typography>
                                                                           <Typography>{x.rpid}</Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
                                                                           <Typography>
-                                                                              Authenticator Attestation GUID
+                                                                              {translate(
+                                                                                  "Authenticator Attestation GUID",
+                                                                              )}
                                                                           </Typography>
                                                                           <Typography>{x.aaguid}</Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Attestation Type</Typography>
+                                                                          <Typography>
+                                                                              {translate("Attestation Type")}
+                                                                          </Typography>
                                                                           <Typography>{x.attestation_type}</Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Transports</Typography>
+                                                                          <Typography>
+                                                                              {translate("Transports")}
+                                                                          </Typography>
                                                                           <Typography>
                                                                               {x.transports.length === 0
                                                                                   ? "N/A"
@@ -265,30 +292,40 @@ export default function SettingsView(props: Props) {
                                                                           </Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Clone Warning</Typography>
                                                                           <Typography>
-                                                                              {x.clone_warning ? "Yes" : "No"}
+                                                                              {translate("Clone Warning")}
+                                                                          </Typography>
+                                                                          <Typography>
+                                                                              {x.clone_warning
+                                                                                  ? translate("Yes")
+                                                                                  : translate("No")}
                                                                           </Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Created</Typography>
+                                                                          <Typography>
+                                                                              {translate("Created")}
+                                                                          </Typography>
                                                                           <Typography>
                                                                               {x.created_at.toString()}
                                                                           </Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Last Used</Typography>
+                                                                          <Typography>
+                                                                              {translate("Last Used")}
+                                                                          </Typography>
                                                                           <Typography>
                                                                               {x.last_used_at === undefined
-                                                                                  ? "Never"
+                                                                                  ? translate("Never")
                                                                                   : x.last_used_at.toString()}
                                                                           </Typography>
                                                                       </Grid>
                                                                       <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
-                                                                          <Typography>Usage Count</Typography>
+                                                                          <Typography>
+                                                                              {translate("Usage Count")}
+                                                                          </Typography>
                                                                           <Typography>
                                                                               {x.sign_count === 0
-                                                                                  ? "Never"
+                                                                                  ? translate("Never")
                                                                                   : x.sign_count}
                                                                           </Typography>
                                                                       </Grid>
