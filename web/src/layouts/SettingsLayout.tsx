@@ -85,6 +85,7 @@ const SettingsLayout = function (props: Props) {
             <Grid container id={props.id} spacing={0}>
                 <Grid item xs={12}>
                     <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+                        <Toolbar variant="dense" />
                         {props.children}
                     </Box>
                 </Grid>
