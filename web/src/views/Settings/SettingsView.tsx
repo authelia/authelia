@@ -44,11 +44,11 @@ const drawerWidth = 240;
 export default function SettingsView(props: Props) {
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
     const [addKeyOpen, setAddKeyOpen] = useState<boolean>(false);
-    const [webauthnShowDetails, setWebauthnShowDetails] = useState<number | null>(null);
+    const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
 
     const handleWebAuthnDetailsChange = (idx: number) => {
         if (webauthnShowDetails === idx) {
-            setWebauthnShowDetails(null);
+            setWebauthnShowDetails(-1);
         } else {
             setWebauthnShowDetails(idx);
         }
