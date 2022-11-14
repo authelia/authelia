@@ -87,6 +87,7 @@ export default function TwoFactorAuthSettings(props: Props) {
                                                   idx={idx}
                                                   webauthnShowDetails={webauthnShowDetails}
                                                   handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
+                                                  key={`webauthn-device-${idx}`}
                                               />
                                           );
                                       })
