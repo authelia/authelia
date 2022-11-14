@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import {
+    Box,
     Button,
     Grid,
     Paper,
@@ -78,41 +79,45 @@ export default function TwoFactorAuthSettings(props: Props) {
     return (
         <Grid container spacing={2}>
             <Grid item xs={12}>
-                <Typography>{translate("Manage your security keys")}</Typography>
-            </Grid>
-            <Grid item xs={12}>
-                <Stack spacing={1} direction="row">
-                    <Button color="primary" variant="contained" onClick={handleAddKeyButtonClick}>
-                        {translate("Add")}
-                    </Button>
-                </Stack>
-            </Grid>
-            <Grid item xs={12}>
-                <Paper>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell />
-                                <TableCell>{translate("Name")}</TableCell>
-                                <TableCell>{translate("Enabled")}</TableCell>
-                                <TableCell align="center">{translate("Actions")}</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {webauthnDevices
-                                ? webauthnDevices.map((x, idx) => {
-                                      return (
-                                          <WebauthnDeviceItem
-                                              device={x}
-                                              idx={idx}
-                                              webauthnShowDetails={webauthnShowDetails}
-                                              handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
-                                          />
-                                      );
-                                  })
-                                : null}
-                        </TableBody>
-                    </Table>
+                <Paper variant="outlined">
+                    <Box sx={{ p: 3 }}>
+                        <Stack spacing={2}>
+                            <Box>
+                                <Typography variant="h5">Webauthn Devices</Typography>
+                            </Box>
+                            <Box>
+                                <Button variant="outlined" color="primary" onClick={handleAddKeyButtonClick}>
+                                    {"Add new device"}
+                                </Button>
+                            </Box>
+                            <Box>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell />
+                                            <TableCell>{translate("Name")}</TableCell>
+                                            <TableCell>{translate("Enabled")}</TableCell>
+                                            <TableCell align="center">{translate("Actions")}</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {webauthnDevices
+                                            ? webauthnDevices.map((x, idx) => {
+                                                  return (
+                                                      <WebauthnDeviceItem
+                                                          device={x}
+                                                          idx={idx}
+                                                          webauthnShowDetails={webauthnShowDetails}
+                                                          handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
+                                                      />
+                                                  );
+                                              })
+                                            : null}
+                                    </TableBody>
+                                </Table>
+                            </Box>
+                        </Stack>
+                    </Box>
                 </Paper>
             </Grid>
         </Grid>
