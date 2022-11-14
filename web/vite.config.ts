@@ -58,13 +58,6 @@ export default defineConfig(({ mode }) => {
             port: 3000,
             open: false,
         },
-        plugins: [
-            ,
-            /* eslintPlugin({ cache: false }) */ htmlPlugin(),
-            istanbulPlugin,
-            react(),
-            svgr(),
-            tsconfigPaths(),
-        ],
+        plugins: [eslintPlugin({ cache: false }), htmlPlugin(), istanbulPlugin, react(), svgr(), tsconfigPaths()],
     };
 });
