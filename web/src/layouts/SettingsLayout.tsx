@@ -1,5 +1,6 @@
 import React, { ReactNode, useCallback, useEffect } from "react";
 
+import { Dashboard } from "@mui/icons-material";
 import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpdateGood";
 import {
     AppBar,
@@ -68,9 +69,10 @@ const SettingsLayout = function (props: Props) {
                 <Toolbar variant="dense" />
                 <Box sx={{ overflow: "auto" }}>
                     <List>
+                        <SettingsMenuItem pathname={SettingsRoute} text={translate("Overview")} icon={<Dashboard />} />
                         <SettingsMenuItem
                             pathname={`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`}
-                            text={translate("Security Keys")}
+                            text={translate("Two-Factor Authentication")}
                             icon={<SystemSecurityUpdateGoodIcon />}
                         />
                     </List>
@@ -97,7 +99,7 @@ interface SettingsMenuItemProps {
 }
 
 const SettingsMenuItem = function (props: SettingsMenuItemProps) {
-    const selected = window.location.pathname === props.pathname;
+    const selected = window.location.pathname === props.pathname || window.location.pathname === props.pathname + "/";
     const navigate = useRouterNavigate();
 
     return (
