@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { Grid } from "@mui/material";
 
+import SettingsLayout from "@layouts/SettingsLayout";
 import { WebauthnDevice } from "@root/models/Webauthn";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
 import { AutheliaState } from "@services/State";
@@ -23,10 +24,12 @@ export default function TwoFactorAuthSettings(props: Props) {
     }, []);
 
     return (
-        <Grid container spacing={2}>
-            <Grid item xs={12}>
-                <WebauthnDevices state={props.state} webauthnDevices={webauthnDevices} />
+        <SettingsLayout>
+            <Grid container spacing={2}>
+                <Grid item xs={12}>
+                    <WebauthnDevices state={props.state} webauthnDevices={webauthnDevices} />
+                </Grid>
             </Grid>
-        </Grid>
+        </SettingsLayout>
     );
 }

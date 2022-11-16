@@ -5,7 +5,7 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
-import { SettingsRoute } from "@constants/Routes";
+import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { AttestationResult } from "@models/Webauthn";
@@ -24,7 +24,7 @@ const RegisterWebauthn = function () {
     const processToken = extractIdentityToken(location.search);
 
     const handleBackClick = () => {
-        navigate(SettingsRoute);
+        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
     };
 
     const attestation = useCallback(async () => {
@@ -37,7 +37,7 @@ const RegisterWebauthn = function () {
 
             switch (result) {
                 case AttestationResult.Success:
-                    navigate(SettingsRoute);
+                    navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
                     break;
                 case AttestationResult.FailureToken:
                     createErrorNotification(
