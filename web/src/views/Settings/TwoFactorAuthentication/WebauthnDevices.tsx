@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Box, Button, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -7,14 +7,14 @@ import { useNavigate } from "react-router-dom";
 import { RegisterWebauthnRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { WebauthnDevice } from "@root/models/Webauthn";
-import { initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
-import { AutheliaState, AuthenticationLevel } from "@services/State";
+import { initiateWebauthnRegistrationProcess } from "@root/services/RegisterDevice";
+import { AutheliaState, AuthenticationLevel } from "@root/services/State";
+import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
 
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
 interface Props {
     state: AutheliaState;
-    webauthnDevices: WebauthnDevice[] | undefined;
 }
 
 export default function TwoFactorAuthSettings(props: Props) {
@@ -24,6 +24,15 @@ export default function TwoFactorAuthSettings(props: Props) {
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
+
+    const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
+
+    useEffect(() => {
+        (async function () {
+            const devices = await getWebauthnDevices();
+            setWebauthnDevices(devices);
+        })();
+    }, []);
 
     const handleWebAuthnDetailsChange = (idx: number) => {
         if (webauthnShowDetails === idx) {
@@ -79,8 +88,8 @@ export default function TwoFactorAuthSettings(props: Props) {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {props.webauthnDevices
-                                    ? props.webauthnDevices.map((x, idx) => {
+                                {webauthnDevices
+                                    ? webauthnDevices.map((x, idx) => {
                                           return (
                                               <WebauthnDeviceItem
                                                   device={x}
