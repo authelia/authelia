@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
+        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug and you still need some form of support we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
 
         Please review the following requirements before submitting this issue type:
 
