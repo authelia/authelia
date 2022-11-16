@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from "react";
 
-import { Box, Button, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import {
+    Box,
+    Button,
+    Chip,
+    Paper,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    Typography,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { RegisterWebauthnRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { WebauthnDevice } from "@root/models/Webauthn";
+import { Configuration } from "@models/Configuration";
+import { SecondFactorMethod } from "@models/Methods";
+import { UserInfo } from "@models/UserInfo";
+import { WebauthnDevice } from "@models/Webauthn";
 import { initiateWebauthnRegistrationProcess } from "@root/services/RegisterDevice";
 import { AutheliaState, AuthenticationLevel } from "@root/services/State";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
@@ -14,10 +29,12 @@ import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
 interface Props {
+    configuration: Configuration;
     state: AutheliaState;
+    userInfo: UserInfo;
 }
 
-export default function TwoFactorAuthSettings(props: Props) {
+export default function WebauthnDevices(props: Props) {
     const { t: translate } = useTranslation("settings");
     const navigate = useNavigate();
 
@@ -69,9 +86,22 @@ export default function TwoFactorAuthSettings(props: Props) {
         <Paper variant="outlined">
             <Box sx={{ p: 3 }}>
                 <Stack spacing={2}>
-                    <Box>
-                        <Typography variant="h5">Webauthn Devices</Typography>
-                    </Box>
+                    <Stack direction="row" spacing={1}>
+                        <Typography variant="h5" style={{ flexGrow: 1 }}>
+                            Webauthn Devices
+                        </Typography>
+                        {!props.configuration.available_methods.has(SecondFactorMethod.Webauthn) && (
+                            <Chip label="not available" color="secondary" variant="outlined" />
+                        )}
+                        {props.userInfo.has_webauthn && (
+                            <>
+                                <Chip label="enabled" color="primary" variant="outlined" />
+                                {props.userInfo.method === SecondFactorMethod.Webauthn && (
+                                    <Chip label="default" color="primary" />
+                                )}
+                            </>
+                        )}
+                    </Stack>
                     <Box>
                         <Button variant="outlined" color="primary" onClick={handleAddKeyButtonClick}>
                             {"Add new device"}
