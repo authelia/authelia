@@ -144,3 +144,9 @@ export interface WebauthnDevice {
     sign_count: number;
     clone_warning: boolean;
 }
+
+export enum WebauthnTouchState {
+    WaitTouch = 1,
+    InProgress = 2,
+    Failure = 3,
+}

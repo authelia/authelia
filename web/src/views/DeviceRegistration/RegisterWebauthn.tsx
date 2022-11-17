@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button, Grid, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
+import { Box, Button, Grid, Stack, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -132,12 +132,18 @@ const RegisterWebauthn = function (props: Props) {
                             <FingerTouchIcon size={64} animated />
                         </div>
                         <Typography className={styles.instruction}>Touch the token on your security key</Typography>
-                        <Button color="primary" onClick={handleBackClick}>
-                            Retry
-                        </Button>
-                        <Button color="primary" onClick={handleBackClick}>
-                            Cancel
-                        </Button>
+                        <Grid container align="center" spacing={1}>
+                            <Grid item xs={12}>
+                                <Stack direction="row" spacing={1} justifyContent="center">
+                                    <Button color="primary" onClick={handleBackClick}>
+                                        Retry
+                                    </Button>
+                                    <Button color="primary" onClick={handleBackClick}>
+                                        Cancel
+                                    </Button>
+                                </Stack>
+                            </Grid>
+                        </Grid>
                     </>
                 );
             case 1:
@@ -177,9 +183,14 @@ const RegisterWebauthn = function (props: Props) {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <Button color="primary" variant="contained" onClick={finishAttestation}>
-                                    Finish
-                                </Button>
+                                <Stack direction="row" spacing={1} justifyContent="center">
+                                    <Button color="primary" variant="outlined" onClick={startAttestation}>
+                                        Back
+                                    </Button>
+                                    <Button color="primary" variant="contained" onClick={finishAttestation}>
+                                        Finish
+                                    </Button>
+                                </Stack>
                             </Grid>
                         </Grid>
                     </div>
