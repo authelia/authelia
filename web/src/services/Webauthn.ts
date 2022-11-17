@@ -174,6 +174,7 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
         case "InvalidStateError":
             // § 6.3.2 Step 3.
             return AttestationResult.FailureExcluded;
+        case "AbortError":
         case "NotAllowedError":
             // § 6.3.2 Step 3 and Step 6.
             return AttestationResult.FailureUserConsent;
