@@ -113,6 +113,7 @@ export enum AssertionResult {
     FailureUnknownSecurity,
     FailureWebauthnNotSupported,
     FailureChallenge,
+    FailureUnrecognized,
 }
 
 export interface DiscoverableAssertionResult {

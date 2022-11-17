@@ -70,6 +70,9 @@ const WebauthnMethod = function (props: Props) {
                     case AssertionResult.FailureWebauthnNotSupported:
                         onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
                         break;
+                    case AssertionResult.FailureUnrecognized:
+                        onSignInErrorCallback(new Error("This device is not registered."));
+                        break;
                     case AssertionResult.FailureUnknownSecurity:
                         onSignInErrorCallback(new Error("An unknown security error occurred."));
                         break;

@@ -197,6 +197,9 @@ function getAssertionResultFromDOMException(
         case "UnknownError":
             // § 6.3.3 Step 1 and Step 12.
             return AssertionResult.FailureSyntax;
+        case "InvalidStateError":
+            // § 6.3.2 Step 3.
+            return AssertionResult.FailureUnrecognized;
         case "AbortError":
         case "NotAllowedError":
             // § 6.3.3 Step 6 and Step 7.
