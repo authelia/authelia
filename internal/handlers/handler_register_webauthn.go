@@ -172,6 +172,8 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 			ctx.Logger.Errorf("%s device for for user '%s' with name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, postData.Description)
 
 			respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+			ctx.SetStatusCode(fasthttp.StatusConflict)
+			ctx.SetJSONError(messageSecurityKeyDuplicateName)
 
 			return
 		}

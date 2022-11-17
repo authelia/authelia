@@ -103,6 +103,11 @@ export interface AttestationPublicKeyCredentialResultJSON {
     result: AttestationResult;
 }
 
+export interface AttestationFinishResult {
+    result: AttestationResult;
+    message: string;
+}
+
 export enum AssertionResult {
     Success = 1,
     Failure,

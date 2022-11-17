@@ -53,16 +53,14 @@ const RegisterWebauthn = function (props: Props) {
             setNameError(true);
             return;
         }
-        try {
-            const result = await finishAttestationCeremony(credential, deviceName);
-            switch (result) {
-                case AttestationResult.Success:
-                    navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
-                    setActiveStep(2);
-            }
-        } catch (err) {
-            console.error(err);
-            createErrorNotification("Device registration failed.");
+        const result = await finishAttestationCeremony(credential, deviceName);
+        switch (result.status) {
+            case AttestationResult.Success:
+                setActiveStep(2);
+                navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                break;
+            case AttestationResult.Failure:
+                createErrorNotification(result.message);
         }
     };
 

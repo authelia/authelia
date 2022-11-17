@@ -1,8 +1,9 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
     AssertionPublicKeyCredentialResult,
     AssertionResult,
+    AttestationFinishResult,
     AttestationPublicKeyCredential,
     AttestationPublicKeyCredentialJSON,
     AttestationPublicKeyCredentialResult,
@@ -343,11 +344,23 @@ export async function finishAttestationCeremony(
     credential: AttestationPublicKeyCredential,
     description: string,
 ): Promise<AttestationResult> {
-    const response = await postAttestationPublicKeyCredentialResult(credential, description);
-    if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
-        return AttestationResult.Success;
+    let result = {
+        status: AttestationResult.Failure,
+        message: "Device registration failed.",
+    } as AttestationResult;
+    try {
+        const response = await postAttestationPublicKeyCredentialResult(credential, description);
+        if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
+            return {
+                status: AttestationResult.Success,
+            } as AttestationFinishResult;
+        }
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            result.message = error.response.data.message;
+        }
     }
-    return AttestationResult.Failure;
+    return result;
 }
 
 export async function performAssertionCeremony(
