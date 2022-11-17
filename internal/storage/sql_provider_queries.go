@@ -174,6 +174,10 @@ const (
 		DELETE FROM %s
 		WHERE username = ?;`
 
+	queryFmtDeleteWebauthnDeviceByUsernameAndID = `
+		DELETE FROM %s
+		WHERE username = ? AND id = ?;`
+
 	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
 		DELETE FROM %s
 		WHERE username = ? AND description = ?;`

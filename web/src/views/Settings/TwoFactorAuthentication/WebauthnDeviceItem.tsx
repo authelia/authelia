@@ -26,6 +26,7 @@ interface Props {
     webauthnShowDetails: number;
     idx: number;
     handleWebAuthnDetailsChange: (idx: number) => void;
+    onDelete: () => void;
 }
 
 export default function WebauthnDeviceItem(props: Props) {
@@ -63,7 +64,7 @@ export default function WebauthnDeviceItem(props: Props) {
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={translate("Delete")} placement="bottom">
-                            <IconButton aria-label="delete">
+                            <IconButton aria-label="delete" onClick={props.onDelete}>
                                 <DeleteIcon />
                             </IconButton>
                         </Tooltip>

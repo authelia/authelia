@@ -568,6 +568,23 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
+  /api/secondfactor/webauthn/devices/{deviceID}:
+    delete:
+      tags:
+        - Second Factor
+      summary: Webauthn Device Deletion
+      description: This endpoint deletes the specified Webauthn credential.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+      parameters:
+        - $ref: '#/components/parameters/deviceID'
   /api/secondfactor/duo:
     post:
       tags:
@@ -633,6 +650,13 @@ paths:
         - authelia_auth: []
 components:
   parameters:
+    deviceID:
+      in: path
+      name: deviceID
+      schema:
+        type: integer
+      required: true
+      description: Numeric Webauthn Device ID
     originalURLParam:
       name: X-Original-URL
       in: header

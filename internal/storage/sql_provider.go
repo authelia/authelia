@@ -59,6 +59,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlDeleteWebauthnDevice:                         fmt.Sprintf(queryFmtDeleteWebauthnDevice, tableWebauthnDevices),
 		sqlDeleteWebauthnDeviceByUsername:               fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsername, tableWebauthnDevices),
+		sqlDeleteWebauthnDeviceByUsernameAndID:          fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsernameAndID, tableWebauthnDevices),
 		sqlDeleteWebauthnDeviceByUsernameAndDescription: fmt.Sprintf(queryFmtDeleteWebauthnDeviceByUsernameAndDescription, tableWebauthnDevices),
 
 		sqlUpsertDuoDevice: fmt.Sprintf(queryFmtUpsertDuoDevice, tableDuoDevices),
@@ -178,6 +179,7 @@ type SQLProvider struct {
 
 	sqlDeleteWebauthnDevice                         string
 	sqlDeleteWebauthnDeviceByUsername               string
+	sqlDeleteWebauthnDeviceByUsernameAndID          string
 	sqlDeleteWebauthnDeviceByUsernameAndDescription string
 
 	// Table: duo_devices.
@@ -902,6 +904,19 @@ func (p *SQLProvider) DeleteWebauthnDeviceByUsername(ctx context.Context, userna
 		if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsernameAndDescription, username, description); err != nil {
 			return fmt.Errorf("error deleting webauthn device with username '%s' and description '%s': %w", username, description, err)
 		}
+	}
+
+	return nil
+}
+
+// DeleteWebauthnDeviceByUsernameAndID deletes a registered Webauthn device by username and ID.
+func (p *SQLProvider) DeleteWebauthnDeviceByUsernameAndID(ctx context.Context, username string, deviceID int) (err error) {
+	if len(username) == 0 {
+		return fmt.Errorf("error deleting webauthn device with username '%s' and id '%d': username must not be empty", username, deviceID)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteWebauthnDeviceByUsernameAndID, username, deviceID); err != nil {
+		return fmt.Errorf("error deleting webauthn device with username '%s' and id '%d': %w", username, deviceID, err)
 	}
 
 	return nil

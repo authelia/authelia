@@ -23,6 +23,7 @@ import {
     ServiceResponse,
     WebauthnAssertionPath,
     WebauthnAttestationPath,
+    WebauthnDevicesPath,
     WebauthnIdentityFinishPath,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
@@ -394,4 +395,9 @@ export async function performAssertionCeremony(
     }
 
     return AssertionResult.Failure;
+}
+
+export async function deleteDevice(deviceID: number): Promise<number> {
+    let response = await axios.delete(`${WebauthnDevicesPath}/${deviceID}`);
+    return response.status;
 }

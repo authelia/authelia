@@ -10,6 +10,7 @@ import { WebauthnDevice } from "@root/models/Webauthn";
 import { initiateWebauthnRegistrationProcess } from "@root/services/RegisterDevice";
 import { AutheliaState, AuthenticationLevel } from "@root/services/State";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
+import { deleteDevice } from "@root/services/Webauthn";
 
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
@@ -40,6 +41,17 @@ export default function TwoFactorAuthSettings(props: Props) {
         } else {
             setWebauthnShowDetails(idx);
         }
+    };
+
+    const handleDelete = async (deviceID: number, idx: number) => {
+        const status = await deleteDevice(deviceID);
+        if (status !== 200) {
+            createErrorNotification(translate("There was a problem deleting the device"));
+            return;
+        }
+        let updatedDevices = [...webauthnDevices];
+        updatedDevices.splice(idx, 1);
+        setWebauthnDevices(updatedDevices);
     };
 
     const initiateRegistration = async (initiateRegistrationFunc: () => Promise<void>, redirectRoute: string) => {
@@ -96,6 +108,7 @@ export default function TwoFactorAuthSettings(props: Props) {
                                                   idx={idx}
                                                   webauthnShowDetails={webauthnShowDetails}
                                                   handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
+                                                  onDelete={() => handleDelete(x.id, idx)}
                                                   key={`webauthn-device-${idx}`}
                                               />
                                           );

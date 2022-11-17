@@ -10,11 +10,10 @@ import (
 	reflect "reflect"
 	time "time"
 
-	gomock "github.com/golang/mock/gomock"
-	uuid "github.com/google/uuid"
-
 	model "github.com/authelia/authelia/v4/internal/model"
 	storage "github.com/authelia/authelia/v4/internal/storage"
+	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 )
 
 // MockStorage is a mock of Provider interface.
@@ -193,6 +192,20 @@ func (m *MockStorage) DeleteWebauthnDeviceByUsername(arg0 context.Context, arg1,
 func (mr *MockStorageMockRecorder) DeleteWebauthnDeviceByUsername(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWebauthnDeviceByUsername", reflect.TypeOf((*MockStorage)(nil).DeleteWebauthnDeviceByUsername), arg0, arg1, arg2)
+}
+
+// DeleteWebauthnDeviceByUsernameAndID mocks base method.
+func (m *MockStorage) DeleteWebauthnDeviceByUsernameAndID(arg0 context.Context, arg1 string, arg2 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteWebauthnDeviceByUsernameAndID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteWebauthnDeviceByUsernameAndID indicates an expected call of DeleteWebauthnDeviceByUsernameAndID.
+func (mr *MockStorageMockRecorder) DeleteWebauthnDeviceByUsernameAndID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWebauthnDeviceByUsernameAndID", reflect.TypeOf((*MockStorage)(nil).DeleteWebauthnDeviceByUsernameAndID), arg0, arg1, arg2)
 }
 
 // FindIdentityVerification mocks base method.
