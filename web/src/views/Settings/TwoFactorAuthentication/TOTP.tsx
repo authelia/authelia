@@ -1,21 +1,16 @@
 import React, { useState } from "react";
 
-import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { RegisterOneTimePasswordRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { Configuration } from "@models/Configuration";
-import { SecondFactorMethod } from "@models/Methods";
-import { UserInfo } from "@models/UserInfo";
 import { initiateTOTPRegistrationProcess } from "@root/services/RegisterDevice";
 import { AutheliaState, AuthenticationLevel } from "@root/services/State";
 
 interface Props {
-    configuration: Configuration;
     state: AutheliaState;
-    userInfo: UserInfo;
 }
 
 export default function TwoFactorAuthSettings(props: Props) {
@@ -53,22 +48,7 @@ export default function TwoFactorAuthSettings(props: Props) {
             <Box sx={{ p: 3 }}>
                 <Stack spacing={2}>
                     <Box>
-                        <Typography variant="h5" style={{ flexGrow: 1 }}>
-                            One-Time Password
-                        </Typography>
-                        <Stack direction="row" spacing={1}>
-                            {!props.configuration.available_methods.has(SecondFactorMethod.TOTP) && (
-                                <Chip label="not available" color="secondary" variant="outlined" />
-                            )}
-                            {props.userInfo.has_totp && (
-                                <>
-                                    <Chip label="enabled" color="primary" variant="outlined" />
-                                    {props.userInfo.method === SecondFactorMethod.TOTP && (
-                                        <Chip label="default" color="primary" />
-                                    )}
-                                </>
-                            )}
-                        </Stack>
+                        <Typography variant="h5">One-Time Password</Typography>
                     </Box>
                     <Box>
                         <Button variant="outlined" color="primary" onClick={handleAddKeyButtonClick}>
