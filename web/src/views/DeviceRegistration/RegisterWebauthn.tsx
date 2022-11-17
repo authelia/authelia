@@ -13,8 +13,11 @@ import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constan
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
 import { AttestationPublicKeyCredential, AttestationResult, WebauthnTouchState } from "@models/Webauthn";
-import { initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
-import { finishAttestationCeremony, startAttestationCeremony } from "@services/Webauthn";
+import {
+    finishAttestationCeremony,
+    getAttestationCreationOptions,
+    getAttestationPublicKeyCredentialResult,
+} from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
 const steps = ["Confirm device", "Choose name"];
@@ -31,6 +34,7 @@ const RegisterWebauthn = function (props: Props) {
 
     const [activeStep, setActiveStep] = React.useState(0);
     const [credential, setCredential] = React.useState(null as null | AttestationPublicKeyCredential);
+    const [creationOptions, setCreationOptions] = useState(null as null | PublicKeyCredentialCreationOptions);
     const [deviceName, setName] = useState("");
     const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const [nameError, setNameError] = useState(false);
@@ -66,13 +70,8 @@ const RegisterWebauthn = function (props: Props) {
         try {
             setState(WebauthnTouchState.WaitTouch);
             setActiveStep(0);
-            try {
-                await initiateWebauthnRegistrationProcess();
-            } catch (err) {
-                console.error(err);
-            }
 
-            const startResult = await startAttestationCeremony(processToken);
+            const startResult = await getAttestationPublicKeyCredentialResult(creationOptions);
 
             switch (startResult.result) {
                 case AttestationResult.Success:
@@ -120,11 +119,26 @@ const RegisterWebauthn = function (props: Props) {
                 "Failed to register your device. The identity verification process might have timed out.",
             );
         }
-    }, [processToken, createErrorNotification]);
+    }, [creationOptions, createErrorNotification]);
 
     useEffect(() => {
-        startAttestation();
-    }, [startAttestation]);
+        if (creationOptions !== null) {
+            startAttestation();
+        }
+    }, [creationOptions, startAttestation]);
+
+    useEffect(() => {
+        (async () => {
+            const result = await getAttestationCreationOptions(processToken);
+            if (result.status !== 200 || !result.options) {
+                createErrorNotification(
+                    "You must open the link from the same device and browser that initiated the registration process.",
+                );
+                return;
+            }
+            setCreationOptions(result.options);
+        })();
+    }, [processToken, setCreationOptions, createErrorNotification]);
 
     function renderStep(step: number) {
         switch (step) {

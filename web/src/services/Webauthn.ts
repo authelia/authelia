@@ -217,7 +217,9 @@ function getAssertionResultFromDOMException(
     }
 }
 
-async function getAttestationCreationOptions(token: null | string): Promise<PublicKeyCredentialCreationOptionsStatus> {
+export async function getAttestationCreationOptions(
+    token: null | string,
+): Promise<PublicKeyCredentialCreationOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
 
     response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityFinishPath, {
@@ -253,7 +255,7 @@ export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialR
     };
 }
 
-async function getAttestationPublicKeyCredentialResult(
+export async function getAttestationPublicKeyCredentialResult(
     creationOptions: PublicKeyCredentialCreationOptions,
 ): Promise<AttestationPublicKeyCredentialResult> {
     const result: AttestationPublicKeyCredentialResult = {
@@ -335,20 +337,6 @@ export async function postAssertionPublicKeyCredentialResult(
 ): Promise<AxiosResponse<ServiceResponse<SignInResponse>>> {
     const credentialJSON = encodeAssertionPublicKeyCredential(credential, targetURL, workflow, workflowID);
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
-}
-
-export async function startAttestationCeremony(token: null | string): Promise<AttestationPublicKeyCredentialResult> {
-    const attestationCreationOpts = await getAttestationCreationOptions(token);
-
-    if (attestationCreationOpts.status !== 200 || attestationCreationOpts.options == null) {
-        if (attestationCreationOpts.status === 403) {
-            return { result: AttestationResult.FailureToken } as AttestationPublicKeyCredentialResult;
-        }
-
-        return { result: AttestationResult.Failure } as AttestationPublicKeyCredentialResult;
-    }
-
-    return await getAttestationPublicKeyCredentialResult(attestationCreationOpts.options);
 }
 
 export async function finishAttestationCeremony(
