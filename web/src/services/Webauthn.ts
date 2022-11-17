@@ -272,9 +272,7 @@ async function getAttestationPublicKeyCredentialResult(
         }
     }
 
-    if (result.credential == null) {
-        result.result = AttestationResult.Failure;
-    } else {
+    if (result.credential != null) {
         result.result = AttestationResult.Success;
     }
 
@@ -345,12 +343,7 @@ export async function startAttestationCeremony(token: null | string): Promise<At
         return { result: AttestationResult.Failure } as AttestationPublicKeyCredentialResult;
     }
 
-    const attestationResult = await getAttestationPublicKeyCredentialResult(attestationCreationOpts.options);
-
-    if (attestationResult.credential == null) {
-        return { result: AttestationResult.Failure } as AttestationPublicKeyCredentialResult;
-    }
-    return attestationResult;
+    return await getAttestationPublicKeyCredentialResult(attestationCreationOpts.options);
 }
 
 export async function finishAttestationCeremony(

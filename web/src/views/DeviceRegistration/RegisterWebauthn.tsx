@@ -117,7 +117,7 @@ const RegisterWebauthn = function (props: Props) {
                 "Failed to register your device. The identity verification process might have timed out.",
             );
         }
-    }, [processToken, createErrorNotification, navigate]);
+    }, [processToken, createErrorNotification]);
 
     useEffect(() => {
         startAttestation();
@@ -140,7 +140,6 @@ const RegisterWebauthn = function (props: Props) {
                         </Button>
                     </>
                 );
-                break;
             case 1:
                 return (
                     <div id="webauthn-registration-name">
@@ -185,7 +184,6 @@ const RegisterWebauthn = function (props: Props) {
                         </Grid>
                     </div>
                 );
-                break;
             case 2:
                 return (
                     <div id="webauthn-registration-success">
