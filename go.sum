@@ -127,8 +127,8 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cu
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/dlclark/regexp2 v1.4.0 h1:F1rxgk7p4uKjwIQxBs9oAXe5CqrXlCduYEJvrF4u93E=
 github.com/dlclark/regexp2 v1.4.0/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55kozfMjCc=
-github.com/duosecurity/duo_api_golang v0.0.0-20220927171823-f4576e85b96c h1:SndVaMnkMWHtn0TyWx8kX7Oees7wPhCCx+wFDWHXsac=
-github.com/duosecurity/duo_api_golang v0.0.0-20220927171823-f4576e85b96c/go.mod h1:jI+QUTOK3wqIOrUl0Cwnwlgc/P6vs6pZOuQY3aKggwg=
+github.com/duosecurity/duo_api_golang v0.0.0-20221117185402-091daa09e19d h1:DdF2JKufY7l8IBJuGeanPFR5gVpWJfEh1LWJFM/zDas=
+github.com/duosecurity/duo_api_golang v0.0.0-20221117185402-091daa09e19d/go.mod h1:jI+QUTOK3wqIOrUl0Cwnwlgc/P6vs6pZOuQY3aKggwg=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/ecordell/optgen v0.0.6 h1:aSknPe6ZUBrjwHGp2+6XfmfCGYGD6W0ZDfCmmsrS7s4=
