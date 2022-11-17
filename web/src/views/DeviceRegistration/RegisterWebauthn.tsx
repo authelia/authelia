@@ -5,23 +5,24 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import FingerTouchIcon from "@components/FingerTouchIcon";
 import FixedTextField from "@components/FixedTextField";
 import InformationIcon from "@components/InformationIcon";
 import SuccessIcon from "@components/SuccessIcon";
+import WebauthnTryIcon from "@components/WebauthnTryIcon";
 import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
-import { AttestationPublicKeyCredential, AttestationResult } from "@models/Webauthn";
+import { AttestationPublicKeyCredential, AttestationResult, WebauthnTouchState } from "@models/Webauthn";
 import { initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
 import { finishAttestationCeremony, startAttestationCeremony } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
-const steps = ["Select device", "Choose name"];
+const steps = ["Confirm device", "Choose name"];
 
 interface Props {}
 
 const RegisterWebauthn = function (props: Props) {
+    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
     const styles = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -63,6 +64,7 @@ const RegisterWebauthn = function (props: Props) {
 
     const startAttestation = useCallback(async () => {
         try {
+            setState(WebauthnTouchState.WaitTouch);
             setActiveStep(0);
             try {
                 await initiateWebauthnRegistrationProcess();
@@ -79,7 +81,7 @@ const RegisterWebauthn = function (props: Props) {
                     }
                     setCredential(startResult.credential);
                     setActiveStep(1);
-                    break;
+                    return;
                 case AttestationResult.FailureToken:
                     createErrorNotification(
                         "You must open the link from the same device and browser that initiated the registration process.",
@@ -111,6 +113,7 @@ const RegisterWebauthn = function (props: Props) {
                     createErrorNotification("An unknown error occurred.");
                     break;
             }
+            setState(WebauthnTouchState.Failure);
         } catch (err) {
             console.error(err);
             createErrorNotification(
@@ -129,15 +132,12 @@ const RegisterWebauthn = function (props: Props) {
                 return (
                     <>
                         <div className={styles.icon}>
-                            <FingerTouchIcon size={64} animated />
+                            <WebauthnTryIcon onRetryClick={startAttestation} webauthnTouchState={state} />
                         </div>
                         <Typography className={styles.instruction}>Touch the token on your security key</Typography>
                         <Grid container align="center" spacing={1}>
                             <Grid item xs={12}>
                                 <Stack direction="row" spacing={1} justifyContent="center">
-                                    <Button color="primary" onClick={handleBackClick}>
-                                        Retry
-                                    </Button>
                                     <Button color="primary" onClick={handleBackClick}>
                                         Cancel
                                     </Button>
