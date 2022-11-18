@@ -879,7 +879,7 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.Webau
 
 // UpdateWebauthnDeviceDescription updates a registered Webauthn device's description.
 func (p *SQLProvider) UpdateWebauthnDeviceDescription(ctx context.Context, username string, deviceID int, description string) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceDescriptionByUsernameAndID, deviceID, description); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceDescriptionByUsernameAndID, description, username, deviceID); err != nil {
 		return fmt.Errorf("error updating Webauthn device description to '%s' for device id '%d': %w", description, deviceID, err)
 	}
 
