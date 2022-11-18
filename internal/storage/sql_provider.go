@@ -52,8 +52,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectWebauthnDevices:           fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByUsername: fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
 
-		sqlUpdateWebauthnDevicePublicKey:              fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
-		sqlUpdateWebauthnDevicePublicKeyByUsername:    fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
+		sqlUpdateWebauthnDeviceDescriptionByUsernameAndID: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID, tableWebauthnDevices),
+
+		sqlUpdateWebauthnDevicePublicKey:           fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
+		sqlUpdateWebauthnDevicePublicKeyByUsername: fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
+
 		sqlUpdateWebauthnDeviceRecordSignIn:           fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignInByUsername, tableWebauthnDevices),
 
@@ -171,6 +174,8 @@ type SQLProvider struct {
 	sqlUpsertWebauthnDevice            string
 	sqlSelectWebauthnDevices           string
 	sqlSelectWebauthnDevicesByUsername string
+
+	sqlUpdateWebauthnDeviceDescriptionByUsernameAndID string
 
 	sqlUpdateWebauthnDevicePublicKey              string
 	sqlUpdateWebauthnDevicePublicKeyByUsername    string
@@ -867,6 +872,15 @@ func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.Webau
 		device.AttestationType, device.Transport, device.AAGUID, device.SignCount, device.CloneWarning,
 	); err != nil {
 		return fmt.Errorf("error upserting Webauthn device for user '%s' kid '%x': %w", device.Username, device.KID, err)
+	}
+
+	return nil
+}
+
+// UpdateWebauthnDeviceDescription updates a registered Webauthn device's description.
+func (p *SQLProvider) UpdateWebauthnDeviceDescription(ctx context.Context, username string, deviceID int, description string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDeviceDescriptionByUsernameAndID, deviceID, description); err != nil {
+		return fmt.Errorf("error updating Webauthn device description to '%s' for device id '%d': %w", description, deviceID, err)
 	}
 
 	return nil

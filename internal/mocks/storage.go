@@ -833,6 +833,20 @@ func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(arg0, arg1, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSignIn), arg0, arg1, arg2)
 }
 
+// UpdateWebauthnDeviceDescription mocks base method.
+func (m *MockStorage) UpdateWebauthnDeviceDescription(arg0 context.Context, arg1 string, arg2 int, arg3 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWebauthnDeviceDescription", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWebauthnDeviceDescription indicates an expected call of UpdateWebauthnDeviceDescription.
+func (mr *MockStorageMockRecorder) UpdateWebauthnDeviceDescription(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebauthnDeviceDescription", reflect.TypeOf((*MockStorage)(nil).UpdateWebauthnDeviceDescription), arg0, arg1, arg2, arg3)
+}
+
 // UpdateWebauthnDeviceSignIn mocks base method.
 func (m *MockStorage) UpdateWebauthnDeviceSignIn(arg0 context.Context, arg1 int, arg2 string, arg3 sql.NullTime, arg4 uint32, arg5 bool) error {
 	m.ctrl.T.Helper()
