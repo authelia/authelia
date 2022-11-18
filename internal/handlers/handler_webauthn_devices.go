@@ -43,18 +43,8 @@ func WebauthnDeviceDelete(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
-	if err != nil {
+	if err := ctx.Providers.StorageProvider.DeleteWebauthnDeviceByUsernameAndID(ctx, userSession.Username, deviceID); err != nil {
 		ctx.Error(err, messageOperationFailed)
-	}
-
-	for _, existingDevice := range devices {
-		if existingDevice.ID == deviceID {
-			if err := ctx.Providers.StorageProvider.DeleteWebauthnDeviceByUsernameAndID(ctx, userSession.Username, deviceID); err != nil {
-				ctx.Error(err, messageOperationFailed)
-			}
-
-			break
-		}
+		return
 	}
 }
