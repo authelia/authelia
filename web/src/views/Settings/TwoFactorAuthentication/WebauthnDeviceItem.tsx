@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -6,6 +6,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
     Box,
+    CircularProgress,
     Collapse,
     Divider,
     Grid,
@@ -19,18 +20,33 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { useNotifications } from "@hooks/NotificationsContext";
 import { WebauthnDevice } from "@root/models/Webauthn";
+import { deleteDevice } from "@root/services/Webauthn";
 
 interface Props {
     device: WebauthnDevice;
     webauthnShowDetails: number;
     idx: number;
     handleWebAuthnDetailsChange: (idx: number) => void;
-    onDelete: () => void;
+    handleDeleteItem: (idx: number) => void;
 }
 
 export default function WebauthnDeviceItem(props: Props) {
     const { t: translate } = useTranslation("settings");
+    const { createErrorNotification } = useNotifications();
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        setDeleting(true);
+        const status = await deleteDevice(props.device.id);
+        setDeleting(false);
+        if (status !== 200) {
+            createErrorNotification(translate("There was a problem deleting the device"));
+            return;
+        }
+        props.handleDeleteItem(props.idx);
+    };
 
     return (
         <React.Fragment>
@@ -63,11 +79,15 @@ export default function WebauthnDeviceItem(props: Props) {
                                 <EditIcon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={translate("Delete")} placement="bottom">
-                            <IconButton aria-label="delete" onClick={props.onDelete}>
-                                <DeleteIcon />
-                            </IconButton>
-                        </Tooltip>
+                        {deleting ? (
+                            <CircularProgress color="inherit" size={24} />
+                        ) : (
+                            <Tooltip title={translate("Delete")} placement="bottom">
+                                <IconButton aria-label="delete" onClick={handleDelete}>
+                                    <DeleteIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
                     </Stack>
                 </TableCell>
             </TableRow>
