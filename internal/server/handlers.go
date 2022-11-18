@@ -155,6 +155,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
+	middleware2FA := middlewares.NewBridgeBuilder(config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.Require2FA).
+		Build()
+
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
@@ -210,8 +215,8 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 		// Management of the webauthn devices.
 		r.GET("/api/secondfactor/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGet))
-		r.PUT("/api/secondfactor/webauthn/devices/{deviceID}", middleware1FA(handlers.WebauthnDeviceUpdate))
-		r.DELETE("/api/secondfactor/webauthn/devices/{deviceID}", middleware1FA(handlers.WebauthnDeviceDelete))
+		r.PUT("/api/secondfactor/webauthn/devices/{deviceID}", middleware2FA(handlers.WebauthnDeviceUpdate))
+		r.DELETE("/api/secondfactor/webauthn/devices/{deviceID}", middleware2FA(handlers.WebauthnDeviceDelete))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
