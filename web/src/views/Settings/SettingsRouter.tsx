@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import { IndexRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import SettingsLayout from "@layouts/SettingsLayout";
 import { AuthenticationLevel } from "@services/State";
@@ -12,7 +13,7 @@ import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication
 export interface Props {}
 
 const SettingsRouter = function (props: Props) {
-    const navigate = useNavigate();
+    const navigate = useRouterNavigate();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
 
     // Fetch the state on page load
