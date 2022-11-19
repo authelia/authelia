@@ -5,6 +5,7 @@ import SystemSecurityUpdateGoodIcon from "@mui/icons-material/SystemSecurityUpda
 import {
     AppBar,
     Box,
+    Button,
     Drawer,
     Grid,
     List,
@@ -17,7 +18,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import { IndexRoute, SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -32,6 +33,7 @@ const defaultDrawerWidth = 240;
 
 const SettingsLayout = function (props: Props) {
     const { t: translate } = useTranslation("settings");
+    const navigate = useRouterNavigate();
 
     useEffect(() => {
         if (props.title) {
@@ -56,6 +58,15 @@ const SettingsLayout = function (props: Props) {
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <Toolbar variant="dense">
                     <Typography style={{ flexGrow: 1 }}>{translate("Settings")}</Typography>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={() => {
+                            navigate(IndexRoute);
+                        }}
+                    >
+                        {"Close"}
+                    </Button>
                 </Toolbar>
             </AppBar>
             <Drawer
