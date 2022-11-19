@@ -83,34 +83,34 @@ export default function TwoFactorAuthSettings(props: Props) {
                             {"Add new device"}
                         </Button>
                     </Box>
-                    <Box>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell />
-                                    <TableCell>{translate("Name")}</TableCell>
-                                    <TableCell>{translate("Enabled")}</TableCell>
-                                    <TableCell align="center">{translate("Actions")}</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {webauthnDevices
-                                    ? webauthnDevices.map((x, idx) => {
-                                          return (
-                                              <WebauthnDeviceItem
-                                                  device={x}
-                                                  idx={idx}
-                                                  webauthnShowDetails={webauthnShowDetails}
-                                                  handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
-                                                  handleDeleteItem={handleDeleteItem}
-                                                  key={`webauthn-device-${idx}`}
-                                              />
-                                          );
-                                      })
-                                    : null}
-                            </TableBody>
-                        </Table>
-                    </Box>
+                    {webauthnDevices ? (
+                        <Box>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell />
+                                        <TableCell>{translate("Name")}</TableCell>
+                                        <TableCell>{translate("Enabled")}</TableCell>
+                                        <TableCell align="center">{translate("Actions")}</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {webauthnDevices.map((x, idx) => {
+                                        return (
+                                            <WebauthnDeviceItem
+                                                device={x}
+                                                idx={idx}
+                                                webauthnShowDetails={webauthnShowDetails}
+                                                handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
+                                                handleDeleteItem={handleDeleteItem}
+                                                key={`webauthn-device-${idx}`}
+                                            />
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                    ) : null}
                 </Stack>
             </Box>
         </Paper>
