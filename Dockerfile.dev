@@ -43,7 +43,7 @@ CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LD
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.16.2
+FROM alpine:3.16.3
 
 WORKDIR /app
 

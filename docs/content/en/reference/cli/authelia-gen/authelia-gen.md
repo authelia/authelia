@@ -8,7 +8,7 @@ images: []
 menu:
   reference:
     parent: "cli-authelia-gen"
-weight: 320
+weight: 910
 toc: true
 ---
 
