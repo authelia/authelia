@@ -6,9 +6,12 @@ import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
+    RegisterOneTimePasswordRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
+    SettingsRoute,
+    SettingsTwoFactorAuthenticationSubRoute,
     LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -16,7 +19,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
-import { initiateTOTPRegistrationProcess, initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
+import { initiateTOTPRegistrationProcess } from "@services/RegisterDevice";
 import { AuthenticationLevel } from "@services/State";
 import { setPreferred2FAMethod } from "@services/UserInfo";
 import { isWebauthnSupported } from "@services/Webauthn";
@@ -48,20 +51,24 @@ const SecondFactorForm = function (props: Props) {
         setWebauthnSupported(isWebauthnSupported());
     }, [setWebauthnSupported]);
 
-    const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>) => {
+    const initiateRegistration = (initiateRegistrationFunc: () => Promise<void>, redirectRoute: string) => {
         return async () => {
-            if (registrationInProgress) {
-                return;
+            if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+                navigate(redirectRoute);
+            } else {
+                if (registrationInProgress) {
+                    return;
+                }
+                setRegistrationInProgress(true);
+                try {
+                    await initiateRegistrationFunc();
+                    createInfoNotification(translate("An email has been sent to your address to complete the process"));
+                } catch (err) {
+                    console.error(err);
+                    createErrorNotification(translate("There was a problem initiating the registration process"));
+                }
+                setRegistrationInProgress(false);
             }
-            setRegistrationInProgress(true);
-            try {
-                await initiateRegistrationFunc();
-                createInfoNotification(translate("An email has been sent to your address to complete the process"));
-            } catch (err) {
-                console.error(err);
-                createErrorNotification(translate("There was a problem initiating the registration process"));
-            }
-            setRegistrationInProgress(false);
         };
     };
 
@@ -122,7 +129,10 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a TOTP secret registered already
                                     registered={props.userInfo.has_totp}
-                                    onRegisterClick={initiateRegistration(initiateTOTPRegistrationProcess)}
+                                    onRegisterClick={initiateRegistration(
+                                        initiateTOTPRegistrationProcess,
+                                        RegisterOneTimePasswordRoute,
+                                    )}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />
@@ -136,7 +146,9 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
-                                    onRegisterClick={initiateRegistration(initiateWebauthnRegistrationProcess)}
+                                    onRegisterClick={() => {
+                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                    }}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

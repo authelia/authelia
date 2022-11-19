@@ -142,6 +142,11 @@ const (
 		SET public_key = ?
 		WHERE username = ? AND kid = ?;`
 
+	queryFmtUpdateUpdateWebauthnDeviceDescriptionByUsernameAndID = `
+		UPDATE %s
+		SET description = ?
+		WHERE username = ? AND id = ?;`
+
 	queryFmtUpdateWebauthnDeviceRecordSignIn = `
 		UPDATE %s
 		SET
@@ -173,6 +178,10 @@ const (
 	queryFmtDeleteWebauthnDeviceByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
+
+	queryFmtDeleteWebauthnDeviceByUsernameAndID = `
+		DELETE FROM %s
+		WHERE username = ? AND id = ?;`
 
 	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
 		DELETE FROM %s

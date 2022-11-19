@@ -1,8 +1,9 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
     AssertionPublicKeyCredentialResult,
     AssertionResult,
+    AttestationFinishResult,
     AttestationPublicKeyCredential,
     AttestationPublicKeyCredentialJSON,
     AttestationPublicKeyCredentialResult,
@@ -22,6 +23,7 @@ import {
     ServiceResponse,
     WebauthnAssertionPath,
     WebauthnAttestationPath,
+    WebauthnDevicesPath,
     WebauthnIdentityFinishPath,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
@@ -174,6 +176,7 @@ function getAttestationResultFromDOMException(exception: DOMException): Attestat
         case "InvalidStateError":
             // § 6.3.2 Step 3.
             return AttestationResult.FailureExcluded;
+        case "AbortError":
         case "NotAllowedError":
             // § 6.3.2 Step 3 and Step 6.
             return AttestationResult.FailureUserConsent;
@@ -196,6 +199,10 @@ function getAssertionResultFromDOMException(
         case "UnknownError":
             // § 6.3.3 Step 1 and Step 12.
             return AssertionResult.FailureSyntax;
+        case "InvalidStateError":
+            // § 6.3.2 Step 3.
+            return AssertionResult.FailureUnrecognized;
+        case "AbortError":
         case "NotAllowedError":
             // § 6.3.3 Step 6 and Step 7.
             return AssertionResult.FailureUserConsent;
@@ -212,7 +219,9 @@ function getAssertionResultFromDOMException(
     }
 }
 
-async function getAttestationCreationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsStatus> {
+export async function getAttestationCreationOptions(
+    token: null | string,
+): Promise<PublicKeyCredentialCreationOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialCreation>>;
 
     response = await axios.post<ServiceResponse<CredentialCreation>>(WebauthnIdentityFinishPath, {
@@ -248,7 +257,7 @@ export async function getAssertionRequestOptions(): Promise<PublicKeyCredentialR
     };
 }
 
-async function getAttestationPublicKeyCredentialResult(
+export async function getAttestationPublicKeyCredentialResult(
     creationOptions: PublicKeyCredentialCreationOptions,
 ): Promise<AttestationPublicKeyCredentialResult> {
     const result: AttestationPublicKeyCredentialResult = {
@@ -272,9 +281,7 @@ async function getAttestationPublicKeyCredentialResult(
         }
     }
 
-    if (result.credential == null) {
-        result.result = AttestationResult.Failure;
-    } else {
+    if (result.credential != null) {
         result.result = AttestationResult.Success;
     }
 
@@ -334,32 +341,27 @@ export async function postAssertionPublicKeyCredentialResult(
     return axios.post<ServiceResponse<SignInResponse>>(WebauthnAssertionPath, credentialJSON);
 }
 
-export async function performAttestationCeremony(token: string, description: string): Promise<AttestationResult> {
-    const attestationCreationOpts = await getAttestationCreationOptions(token);
-
-    if (attestationCreationOpts.status !== 200 || attestationCreationOpts.options == null) {
-        if (attestationCreationOpts.status === 403) {
-            return AttestationResult.FailureToken;
+export async function finishAttestationCeremony(
+    credential: AttestationPublicKeyCredential,
+    description: string,
+): Promise<AttestationResult> {
+    let result = {
+        status: AttestationResult.Failure,
+        message: "Device registration failed.",
+    } as AttestationResult;
+    try {
+        const response = await postAttestationPublicKeyCredentialResult(credential, description);
+        if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
+            return {
+                status: AttestationResult.Success,
+            } as AttestationFinishResult;
         }
-
-        return AttestationResult.Failure;
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            result.message = error.response.data.message;
+        }
     }
-
-    const attestationResult = await getAttestationPublicKeyCredentialResult(attestationCreationOpts.options);
-
-    if (attestationResult.result !== AttestationResult.Success) {
-        return attestationResult.result;
-    } else if (attestationResult.credential == null) {
-        return AttestationResult.Failure;
-    }
-
-    const response = await postAttestationPublicKeyCredentialResult(attestationResult.credential, description);
-
-    if (response.data.status === "OK" && (response.status === 200 || response.status === 201)) {
-        return AttestationResult.Success;
-    }
-
-    return AttestationResult.Failure;
+    return result;
 }
 
 export async function performAssertionCeremony(
@@ -393,4 +395,9 @@ export async function performAssertionCeremony(
     }
 
     return AssertionResult.Failure;
+}
+
+export async function deleteDevice(deviceID: number): Promise<number> {
+    let response = await axios.delete(`${WebauthnDevicesPath}/${deviceID}`);
+    return response.status;
 }

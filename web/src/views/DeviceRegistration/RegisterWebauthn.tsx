@@ -1,47 +1,84 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, Theme, Typography } from "@mui/material";
+import { Box, Button, Grid, Stack, Step, StepLabel, Stepper, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import FingerTouchIcon from "@components/FingerTouchIcon";
+import FixedTextField from "@components/FixedTextField";
+import InformationIcon from "@components/InformationIcon";
+import SuccessIcon from "@components/SuccessIcon";
+import WebauthnTryIcon from "@components/WebauthnTryIcon";
+import { SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import LoginLayout from "@layouts/LoginLayout";
-import { AttestationResult } from "@models/Webauthn";
-import { FirstFactorPath } from "@services/Api";
-import { performAttestationCeremony } from "@services/Webauthn";
+import { AttestationPublicKeyCredential, AttestationResult, WebauthnTouchState } from "@models/Webauthn";
+import {
+    finishAttestationCeremony,
+    getAttestationCreationOptions,
+    getAttestationPublicKeyCredentialResult,
+} from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
-const description = "Primary";
+const steps = ["Confirm device", "Choose name"];
 
-const RegisterWebauthn = function () {
+interface Props {}
+
+const RegisterWebauthn = function (props: Props) {
+    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
     const styles = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
+    const { t: translate } = useTranslation();
     const { createErrorNotification } = useNotifications();
-    const [, setRegistrationInProgress] = useState(false);
+
+    const [activeStep, setActiveStep] = React.useState(0);
+    const [credential, setCredential] = React.useState(null as null | AttestationPublicKeyCredential);
+    const [creationOptions, setCreationOptions] = useState(null as null | PublicKeyCredentialCreationOptions);
+    const [deviceName, setName] = useState("");
+    const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const [nameError, setNameError] = useState(false);
 
     const processToken = extractIdentityToken(location.search);
 
     const handleBackClick = () => {
-        navigate(FirstFactorPath);
+        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
     };
 
-    const attestation = useCallback(async () => {
-        if (!processToken) {
+    const finishAttestation = async () => {
+        if (!credential) {
             return;
         }
+        if (!deviceName.length) {
+            setNameError(true);
+            return;
+        }
+        const result = await finishAttestationCeremony(credential, deviceName);
+        switch (result.status) {
+            case AttestationResult.Success:
+                setActiveStep(2);
+                navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                break;
+            case AttestationResult.Failure:
+                createErrorNotification(result.message);
+        }
+    };
+
+    const startAttestation = useCallback(async () => {
         try {
-            setRegistrationInProgress(true);
+            setState(WebauthnTouchState.WaitTouch);
+            setActiveStep(0);
 
-            const result = await performAttestationCeremony(processToken, description);
+            const startResult = await getAttestationPublicKeyCredentialResult(creationOptions);
 
-            setRegistrationInProgress(false);
-
-            switch (result) {
+            switch (startResult.result) {
                 case AttestationResult.Success:
-                    navigate(FirstFactorPath);
-                    break;
+                    if (startResult.credential == null) {
+                        throw new Error("Attestation request succeeded but credential is empty");
+                    }
+                    setCredential(startResult.credential);
+                    setActiveStep(1);
+                    return;
                 case AttestationResult.FailureToken:
                     createErrorNotification(
                         "You must open the link from the same device and browser that initiated the registration process.",
@@ -73,30 +110,137 @@ const RegisterWebauthn = function () {
                     createErrorNotification("An unknown error occurred.");
                     break;
             }
+            setState(WebauthnTouchState.Failure);
         } catch (err) {
             console.error(err);
             createErrorNotification(
                 "Failed to register your device. The identity verification process might have timed out.",
             );
         }
-    }, [processToken, createErrorNotification, navigate]);
+    }, [creationOptions, createErrorNotification]);
 
     useEffect(() => {
-        attestation();
-    }, [attestation]);
+        if (creationOptions !== null) {
+            startAttestation();
+        }
+    }, [creationOptions, startAttestation]);
+
+    useEffect(() => {
+        (async () => {
+            const result = await getAttestationCreationOptions(processToken);
+            if (result.status !== 200 || !result.options) {
+                createErrorNotification(
+                    "You must open the link from the same device and browser that initiated the registration process.",
+                );
+                return;
+            }
+            setCreationOptions(result.options);
+        })();
+    }, [processToken, setCreationOptions, createErrorNotification]);
+
+    function renderStep(step: number) {
+        switch (step) {
+            case 0:
+                return (
+                    <>
+                        <div className={styles.icon}>
+                            <WebauthnTryIcon onRetryClick={startAttestation} webauthnTouchState={state} />
+                        </div>
+                        <Typography className={styles.instruction}>Touch the token on your security key</Typography>
+                        <Grid container align="center" spacing={1}>
+                            <Grid item xs={12}>
+                                <Stack direction="row" spacing={1} justifyContent="center">
+                                    <Button color="primary" onClick={handleBackClick}>
+                                        Cancel
+                                    </Button>
+                                </Stack>
+                            </Grid>
+                        </Grid>
+                    </>
+                );
+            case 1:
+                return (
+                    <div id="webauthn-registration-name">
+                        <div className={styles.icon}>
+                            <InformationIcon />
+                        </div>
+                        <Typography className={styles.instruction}>Enter a name for this key</Typography>
+                        <Grid container spacing={1}>
+                            <Grid item xs={12}>
+                                <FixedTextField
+                                    // TODO (PR: #806, Issue: #511) potentially refactor
+                                    inputRef={nameRef}
+                                    id="name-textfield"
+                                    label={translate("Name")}
+                                    variant="outlined"
+                                    required
+                                    value={deviceName}
+                                    error={nameError}
+                                    fullWidth
+                                    disabled={false}
+                                    onChange={(v) => setName(v.target.value.substring(0, 30))}
+                                    onFocus={() => setNameError(false)}
+                                    autoCapitalize="none"
+                                    autoComplete="username"
+                                    onKeyPress={(ev) => {
+                                        if (ev.key === "Enter") {
+                                            if (!deviceName.length) {
+                                                setNameError(true);
+                                            } else {
+                                                finishAttestation();
+                                            }
+                                            ev.preventDefault();
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Stack direction="row" spacing={1} justifyContent="center">
+                                    <Button color="primary" variant="outlined" onClick={startAttestation}>
+                                        Back
+                                    </Button>
+                                    <Button color="primary" variant="contained" onClick={finishAttestation}>
+                                        Finish
+                                    </Button>
+                                </Stack>
+                            </Grid>
+                        </Grid>
+                    </div>
+                );
+            case 2:
+                return (
+                    <div id="webauthn-registration-success">
+                        <div className={styles.iconContainer}>
+                            <SuccessIcon />
+                        </div>
+                        <Typography>{translate("Registration success")}</Typography>
+                    </div>
+                );
+        }
+    }
 
     return (
-        <LoginLayout title="Touch Security Key">
-            <div className={styles.icon}>
-                <FingerTouchIcon size={64} animated />
-            </div>
-            <Typography className={styles.instruction}>Touch the token on your security key</Typography>
-            <Button color="primary" onClick={handleBackClick}>
-                Retry
-            </Button>
-            <Button color="primary" onClick={handleBackClick}>
-                Cancel
-            </Button>
+        <LoginLayout title="Register Security Key">
+            <Grid container>
+                <Grid item xs={12} className={styles.methodContainer}>
+                    <Box sx={{ width: "100%" }}>
+                        <Stepper activeStep={activeStep}>
+                            {steps.map((label, index) => {
+                                const stepProps: { completed?: boolean } = {};
+                                const labelProps: {
+                                    optional?: React.ReactNode;
+                                } = {};
+                                return (
+                                    <Step key={label} {...stepProps}>
+                                        <StepLabel {...labelProps}>{label}</StepLabel>
+                                    </Step>
+                                );
+                            })}
+                        </Stepper>
+                        {renderStep(activeStep)}
+                    </Box>
+                </Grid>
+            </Grid>
         </LoginLayout>
     );
 };
@@ -108,7 +252,18 @@ const useStyles = makeStyles((theme: Theme) => ({
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
     },
+    iconContainer: {
+        marginBottom: theme.spacing(2),
+        flex: "0 0 100%",
+    },
     instruction: {
         paddingBottom: theme.spacing(4),
+    },
+    methodContainer: {
+        border: "1px solid #d6d6d6",
+        borderRadius: "10px",
+        padding: theme.spacing(4),
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
     },
 }));

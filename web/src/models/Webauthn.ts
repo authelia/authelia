@@ -103,6 +103,11 @@ export interface AttestationPublicKeyCredentialResultJSON {
     result: AttestationResult;
 }
 
+export interface AttestationFinishResult {
+    result: AttestationResult;
+    message: string;
+}
+
 export enum AssertionResult {
     Success = 1,
     Failure,
@@ -113,6 +118,7 @@ export enum AssertionResult {
     FailureUnknownSecurity,
     FailureWebauthnNotSupported,
     FailureChallenge,
+    FailureUnrecognized,
 }
 
 export interface DiscoverableAssertionResult {
@@ -143,4 +149,10 @@ export interface WebauthnDevice {
     aaguid: string;
     sign_count: number;
     clone_warning: boolean;
+}
+
+export enum WebauthnTouchState {
+    WaitTouch = 1,
+    InProgress = 2,
+    Failure = 3,
 }

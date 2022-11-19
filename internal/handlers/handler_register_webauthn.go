@@ -11,20 +11,28 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // WebauthnIdentityStart the handler for initiating the identity validation.
-var WebauthnIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
-	MailTitle:             "Register your key",
-	MailButtonContent:     "Register",
-	TargetEndpoint:        "/webauthn/register",
-	ActionClaim:           ActionWebauthnRegistration,
-	IdentityRetrieverFunc: identityRetrieverFromSession,
-}, nil)
+var WebauthnIdentityStart = middlewares.IdentityVerificationStart(
+	middlewares.IdentityVerificationStartArgs{
+		IdentityVerificationCommonArgs: middlewares.IdentityVerificationCommonArgs{
+			SkipIfAuthLevelTwoFactor: true,
+		},
+		MailTitle:             "Register your key",
+		MailButtonContent:     "Register",
+		TargetEndpoint:        "/webauthn/register",
+		ActionClaim:           ActionWebauthnRegistration,
+		IdentityRetrieverFunc: identityRetrieverFromSession,
+	}, nil)
 
 // WebauthnIdentityFinish the handler for finishing the identity validation.
 var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
+		IdentityVerificationCommonArgs: middlewares.IdentityVerificationCommonArgs{
+			SkipIfAuthLevelTwoFactor: true,
+		},
 		ActionClaim:          ActionWebauthnRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
 	}, SecondFactorWebauthnAttestationGET)
@@ -57,7 +65,7 @@ func SecondFactorWebauthnAttestationGET(ctx *middlewares.AutheliaCtx, _ string) 
 
 	var credentialCreation *protocol.CredentialCreation
 
-	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user); err != nil {
+	if credentialCreation, userSession.Webauthn, err = w.BeginRegistration(user, webauthn.WithExclusions(user.WebAuthnCredentialDescriptors())); err != nil {
 		ctx.Logger.Errorf("Unable to create %s attestation challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
 		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
@@ -148,6 +156,27 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 		respondUnauthorized(ctx, messageMFAValidationFailed)
 
 		return
+	}
+
+	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
+	if err != nil && err != storage.ErrNoWebauthnDevice {
+		ctx.Logger.Errorf("Unable to load existing %s devices for for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
+
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
+	for _, existingDevice := range devices {
+		if existingDevice.Description == postData.Description {
+			ctx.Logger.Errorf("%s device for for user '%s' with name '%s' already exists", regulation.AuthTypeWebauthn, userSession.Username, postData.Description)
+
+			respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
+			ctx.SetStatusCode(fasthttp.StatusConflict)
+			ctx.SetJSONError(messageSecurityKeyDuplicateName)
+
+			return
+		}
 	}
 
 	device := model.NewWebauthnDeviceFromCredential(w.Config.RPID, userSession.Username, postData.Description, credential)

@@ -188,7 +188,7 @@ const LoginPortal = function (props: Props) {
                 }
             />
             <Route
-                path={`${SecondFactorRoute}*`}
+                path={`${SecondFactorRoute}/*`}
                 element={
                     state && userInfo && configuration ? (
                         <SecondFactorForm

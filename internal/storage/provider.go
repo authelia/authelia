@@ -39,9 +39,11 @@ type Provider interface {
 	LoadTOTPConfigurations(ctx context.Context, limit, page int) (configs []model.TOTPConfiguration, err error)
 
 	SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error)
+	UpdateWebauthnDeviceDescription(ctx context.Context, username string, deviceID int, description string) (err error)
 	UpdateWebauthnDeviceSignIn(ctx context.Context, id int, rpid string, lastUsedAt sql.NullTime, signCount uint32, cloneWarning bool) (err error)
 	DeleteWebauthnDevice(ctx context.Context, kid string) (err error)
 	DeleteWebauthnDeviceByUsername(ctx context.Context, username, description string) (err error)
+	DeleteWebauthnDeviceByUsernameAndID(ctx context.Context, username string, deviceID int) (err error)
 	LoadWebauthnDevices(ctx context.Context, limit, page int) (devices []model.WebauthnDevice, err error)
 	LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error)
 

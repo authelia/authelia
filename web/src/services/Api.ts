@@ -17,6 +17,8 @@ export const WebauthnAttestationPath = basePath + "/api/secondfactor/webauthn/at
 
 export const WebauthnAssertionPath = basePath + "/api/secondfactor/webauthn/assertion";
 
+export const WebauthnDevicesPath = basePath + "/api/secondfactor/webauthn/devices";
+
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
 
@@ -35,8 +37,6 @@ export const StatePath = basePath + "/api/state";
 export const UserInfoPath = basePath + "/api/user/info";
 export const UserInfo2FAMethodPath = basePath + "/api/user/info/2fa_method";
 export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
-
-export const WebauthnDevicesPath = basePath + "/api/webauthn/devices";
 
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";

@@ -1,30 +1,17 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, Theme, useTheme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-
-import FailureIcon from "@components/FailureIcon";
-import FingerTouchIcon from "@components/FingerTouchIcon";
-import LinearProgressBar from "@components/LinearProgressBar";
+import WebauthnTryIcon from "@components/WebauthnTryIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
-import { useTimer } from "@hooks/Timer";
 import { useWorkflow } from "@hooks/Workflow";
-import { AssertionResult } from "@models/Webauthn";
+import { AssertionResult, WebauthnTouchState } from "@models/Webauthn";
 import { AuthenticationLevel } from "@services/State";
 import {
     getAssertionPublicKeyCredentialResult,
     getAssertionRequestOptions,
     postAssertionPublicKeyCredentialResult,
 } from "@services/Webauthn";
-import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
-
-export enum State {
-    WaitTouch = 1,
-    InProgress = 2,
-    Failure = 3,
-}
 
 export interface Props {
     id: string;
@@ -37,13 +24,10 @@ export interface Props {
 }
 
 const WebauthnMethod = function (props: Props) {
-    const signInTimeout = 30;
-    const [state, setState] = useState(State.WaitTouch);
-    const styles = useStyles();
+    const [state, setState] = useState(WebauthnTouchState.WaitTouch);
     const redirectionURL = useRedirectionURL();
     const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
-    const [timerPercent, triggerTimer] = useTimer(signInTimeout * 1000 - 500);
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -56,12 +40,11 @@ const WebauthnMethod = function (props: Props) {
         }
 
         try {
-            triggerTimer();
-            setState(State.WaitTouch);
+            setState(WebauthnTouchState.WaitTouch);
             const assertionRequestResponse = await getAssertionRequestOptions();
 
             if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
-                setState(State.Failure);
+                setState(WebauthnTouchState.Failure);
                 onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
 
                 return;
@@ -88,6 +71,9 @@ const WebauthnMethod = function (props: Props) {
                     case AssertionResult.FailureWebauthnNotSupported:
                         onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
                         break;
+                    case AssertionResult.FailureUnrecognized:
+                        onSignInErrorCallback(new Error("This device is not registered."));
+                        break;
                     case AssertionResult.FailureUnknownSecurity:
                         onSignInErrorCallback(new Error("An unknown security error occurred."));
                         break;
@@ -98,21 +84,21 @@ const WebauthnMethod = function (props: Props) {
                         onSignInErrorCallback(new Error("An unexpected error occurred."));
                         break;
                 }
-                setState(State.Failure);
+                setState(WebauthnTouchState.Failure);
 
                 return;
             }
 
             if (result.credential == null) {
                 onSignInErrorCallback(new Error("The browser did not respond with the expected attestation data."));
-                setState(State.Failure);
+                setState(WebauthnTouchState.Failure);
 
                 return;
             }
 
             if (!mounted.current) return;
 
-            setState(State.InProgress);
+            setState(WebauthnTouchState.InProgress);
 
             const response = await postAssertionPublicKeyCredentialResult(
                 result.credential,
@@ -129,14 +115,14 @@ const WebauthnMethod = function (props: Props) {
             if (!mounted.current) return;
 
             onSignInErrorCallback(new Error("The server rejected the security key."));
-            setState(State.Failure);
+            setState(WebauthnTouchState.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
             onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
-            setState(State.Failure);
+            setState(WebauthnTouchState.Failure);
         }
     }, [
         onSignInErrorCallback,
@@ -145,7 +131,6 @@ const WebauthnMethod = function (props: Props) {
         workflow,
         workflowID,
         mounted,
-        triggerTimer,
         props.authenticationLevel,
         props.registered,
     ]);
@@ -171,59 +156,9 @@ const WebauthnMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <div className={styles.icon}>
-                <Icon state={state} timer={timerPercent} onRetryClick={doInitiateSignIn} />
-            </div>
+            <WebauthnTryIcon onRetryClick={doInitiateSignIn} webauthnTouchState={state} />
         </MethodContainer>
     );
 };
 
 export default WebauthnMethod;
-
-const useStyles = makeStyles((theme: Theme) => ({
-    icon: {
-        display: "inline-block",
-    },
-}));
-
-interface IconProps {
-    state: State;
-
-    timer: number;
-    onRetryClick: () => void;
-}
-
-function Icon(props: IconProps) {
-    const state = props.state as State;
-    const theme = useTheme();
-
-    const styles = makeStyles((theme: Theme) => ({
-        progressBar: {
-            marginTop: theme.spacing(),
-        },
-    }))();
-
-    const touch = (
-        <IconWithContext
-            icon={<FingerTouchIcon size={64} animated strong />}
-            className={state === State.WaitTouch ? undefined : "hidden"}
-        >
-            <LinearProgressBar value={props.timer} className={styles.progressBar} height={theme.spacing(2)} />
-        </IconWithContext>
-    );
-
-    const failure = (
-        <IconWithContext icon={<FailureIcon />} className={state === State.Failure ? undefined : "hidden"}>
-            <Button color="secondary" onClick={props.onRetryClick}>
-                Retry
-            </Button>
-        </IconWithContext>
-    );
-
-    return (
-        <Fragment>
-            {touch}
-            {failure}
-        </Fragment>
-    );
-}

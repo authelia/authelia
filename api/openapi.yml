@@ -568,6 +568,45 @@ paths:
                 $ref: '#/components/schemas/middlewares.OkResponse'
       security:
         - authelia_auth: []
+  /api/secondfactor/webauthn/devices/{deviceID}:
+    delete:
+      tags:
+        - Second Factor
+      summary: Webauthn Device Deletion
+      description: This endpoint deletes the specified Webauthn credential.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+      parameters:
+        - $ref: '#/components/parameters/deviceID'
+    put:
+      tags:
+        - Second Factor
+      summary: Webauthn Device Update
+      description: This endpoint updates the description of the specified Webauthn credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webauthn.DeviceUpdateRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.OkResponse'
+      security:
+        - authelia_auth: []
+      parameters:
+        - $ref: '#/components/parameters/deviceID'
   /api/secondfactor/duo:
     post:
       tags:
@@ -633,6 +672,13 @@ paths:
         - authelia_auth: []
 components:
   parameters:
+    deviceID:
+      in: path
+      name: deviceID
+      schema:
+        type: integer
+      required: true
+      description: Numeric Webauthn Device ID
     originalURLParam:
       name: X-Original-URL
       in: header
@@ -1078,6 +1124,11 @@ components:
                     workflowID:
                       type: string
                       example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
+    webauthn.DeviceUpdateRequest:
+      type: object
+      properties:
+        description:
+          type: string
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
