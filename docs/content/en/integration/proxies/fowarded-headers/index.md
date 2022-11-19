@@ -53,7 +53,7 @@ exhaustive guide on using [Cloudflare] transform rules, however it's enough to c
 achieve a secure result. Please see the [Cloudflare] documentation on
 [transform rules](https://developers.cloudflare.com/rules/transform/) for more information._
 
-Steps:
+#### Steps
 
 1. Click `Rules`.
 2. Click `Transform Rules`.
@@ -73,7 +73,11 @@ Steps:
 {{< figure src="cloudflare_1.png" alt="Steps 1 to 4" width="736" >}}
 {{< figure src="cloudflare_2.png" alt="Steps 5 to 11" width="736" >}}
 
-Criteria:
+#### Criteria
+
+This table describes the criteria needed to achieve a desired result. Only one of these options should be chosen. You
+Should look at the desired result column and apply the appropriate field, operator, and value to [step](#steps) 8.
+Generally speaking the `Always Remove` option is the correct option.
 
 |           Desired Result            |       Field       |    Operator    |               Value                |
 |:-----------------------------------:|:-----------------:|:--------------:|:----------------------------------:|

@@ -1,18 +1,14 @@
 package oidc
 
 import (
-	"crypto/sha512"
 	"fmt"
 
-	"github.com/ory/fosite/compose"
-	"github.com/ory/fosite/handler/oauth2"
+	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
@@ -23,76 +19,22 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 
 	provider = &OpenIDConnectProvider{
 		JSONWriter: herodot.NewJSONWriter(nil),
-		Store:      NewOpenIDConnectStore(config, store),
+		Store:      NewStore(config, store),
+		Config:     NewConfig(config),
 	}
 
-	cconfig := &compose.Config{
-		AccessTokenLifespan:            config.AccessTokenLifespan,
-		AuthorizeCodeLifespan:          config.AuthorizeCodeLifespan,
-		IDTokenLifespan:                config.IDTokenLifespan,
-		RefreshTokenLifespan:           config.RefreshTokenLifespan,
-		SendDebugMessagesToClients:     config.EnableClientDebugMessages,
-		MinParameterEntropy:            config.MinimumParameterEntropy,
-		EnforcePKCE:                    config.EnforcePKCE == "always",
-		EnforcePKCEForPublicClients:    config.EnforcePKCE != "never",
-		EnablePKCEPlainChallengeMethod: config.EnablePKCEPlainChallenge,
-	}
+	provider.OAuth2Provider = fosite.NewOAuth2Provider(provider.Store, provider.Config)
 
 	if provider.KeyManager, err = NewKeyManagerWithConfiguration(config); err != nil {
 		return nil, err
 	}
 
-	jwtStrategy := provider.KeyManager.Strategy()
-
-	strategy := &compose.CommonStrategy{
-		CoreStrategy: &oauth2.HMACSHAStrategy{
-			Enigma: &hmac.HMACStrategy{
-				GlobalSecret:         []byte(utils.HashSHA256FromString(config.HMACSecret)),
-				RotatedGlobalSecrets: nil,
-				TokenEntropy:         cconfig.GetTokenEntropy(),
-				Hash:                 sha512.New512_256,
-			},
-			AccessTokenLifespan:   cconfig.GetAccessTokenLifespan(),
-			AuthorizeCodeLifespan: cconfig.GetAuthorizeCodeLifespan(),
-			RefreshTokenLifespan:  cconfig.GetRefreshTokenLifespan(),
-		},
-		OpenIDConnectTokenStrategy: &openid.DefaultStrategy{
-			JWTStrategy:         jwtStrategy,
-			Expiry:              cconfig.GetIDTokenLifespan(),
-			Issuer:              cconfig.IDTokenIssuer,
-			MinParameterEntropy: cconfig.GetMinParameterEntropy(),
-		},
-		JWTStrategy: jwtStrategy,
+	provider.Config.Strategy.OpenID = &openid.DefaultStrategy{
+		Signer: provider.KeyManager.Strategy(),
+		Config: provider.Config,
 	}
 
-	provider.OAuth2Provider = compose.Compose(
-		cconfig,
-		provider.Store,
-		strategy,
-		AdaptiveHasher{},
-
-		/*
-			These are the OAuth2 and OpenIDConnect factories. Order is important (the OAuth2 factories at the top must
-			be before the OpenIDConnect factories) and taken directly from fosite.compose.ComposeAllEnabled. The
-			commented factories are not enabled as we don't yet use them but are still here for reference purposes.
-		*/
-		compose.OAuth2AuthorizeExplicitFactory,
-		compose.OAuth2AuthorizeImplicitFactory,
-		compose.OAuth2ClientCredentialsGrantFactory,
-		compose.OAuth2RefreshTokenGrantFactory,
-		// compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
-		// compose.RFC7523AssertionGrantFactory,.
-
-		compose.OpenIDConnectExplicitFactory,
-		compose.OpenIDConnectImplicitFactory,
-		compose.OpenIDConnectHybridFactory,
-		compose.OpenIDConnectRefreshFactory,
-
-		compose.OAuth2TokenIntrospectionFactory,
-		compose.OAuth2TokenRevocationFactory,
-
-		compose.OAuth2PKCEFactory,
-	)
+	provider.Config.LoadHandlers(provider.Store, provider.KeyManager.Strategy())
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Store.clients)
 
