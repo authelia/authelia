@@ -146,7 +146,7 @@ export interface WebauthnDevice {
     public_key: Uint8Array;
     attestation_type: string;
     transports: string[];
-    aaguid: string;
+    aaguid?: string;
     sign_count: number;
     clone_warning: boolean;
 }
