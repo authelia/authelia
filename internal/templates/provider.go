@@ -2,7 +2,6 @@ package templates
 
 import (
 	"fmt"
-	"io"
 )
 
 // New creates a new templates' provider.
@@ -24,22 +23,14 @@ type Provider struct {
 	templates Templates
 }
 
-func (p *Provider) GetEmailPasswordTemplate() (t *EmailTemplate) {
+// GetPasswordResetEmailTemplate returns the EmailTemplate for Password Reset notifications.
+func (p *Provider) GetPasswordResetEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.passwordReset
 }
 
-func (p *Provider) GetEmailIdentityVerificationTemplate() (t *EmailTemplate) {
+// GetIdentityVerificationEmailTemplate returns the EmailTemplate for Identity Verification notifications.
+func (p *Provider) GetIdentityVerificationEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.identityVerification
-}
-
-// ExecuteEmailPasswordResetTemplate writes the password reset template to the given io.Writer.
-func (p *Provider) ExecuteEmailPasswordResetTemplate(wr io.Writer, data EmailPasswordResetValues, format Format) (err error) {
-	return p.templates.notification.passwordReset.Get(format).Execute(wr, data)
-}
-
-// ExecuteEmailIdentityVerificationTemplate writes the identity verification template to the given io.Writer.
-func (p *Provider) ExecuteEmailIdentityVerificationTemplate(wr io.Writer, data EmailIdentityVerificationValues, format Format) (err error) {
-	return p.templates.notification.identityVerification.Get(format).Execute(wr, data)
 }
 
 func (p *Provider) load() (err error) {
@@ -53,18 +44,18 @@ func (p *Provider) load() (err error) {
 		errs = append(errs, err)
 	}
 
-	if len(errs) == 0 {
-		return nil
-	}
+	if len(errs) != 0 {
+		for i, e := range errs {
+			if i == 0 {
+				err = e
+				continue
+			}
 
-	for i, e := range errs {
-		if i == 0 {
-			err = e
-			continue
+			err = fmt.Errorf("%v, %w", err, e)
 		}
 
-		err = fmt.Errorf("%v, %w", err, e)
+		return fmt.Errorf("one or more errors occurred loading templates: %w", err)
 	}
 
-	return fmt.Errorf("one or more errors occurred loading templates: %w", err)
+	return nil
 }

@@ -1,8 +1,9 @@
 package templates
 
 import (
+	th "html/template"
 	"io"
-	"time"
+	tt "text/template"
 )
 
 // Templates is the struct which holds all the *template.Template values.
@@ -16,16 +17,6 @@ type NotificationTemplates struct {
 	identityVerification *EmailTemplate
 }
 
-// Format of a template.
-type Format int
-
-// Formats.
-const (
-	DefaultFormat Format = iota
-	HTMLFormat
-	PlainTextFormat
-)
-
 // Template covers shared implementations between the text and html template.Template.
 type Template interface {
 	Execute(wr io.Writer, data any) error
@@ -37,6 +28,12 @@ type Template interface {
 // Config for the Provider.
 type Config struct {
 	EmailTemplatesPath string
+}
+
+// EmailTemplate is the template type which contains both the html and txt versions of a template.
+type EmailTemplate struct {
+	HTML *th.Template
+	Text *tt.Template
 }
 
 // EmailPasswordResetValues are the values used for password reset templates.
@@ -55,18 +52,4 @@ type EmailIdentityVerificationValues struct {
 	RemoteIP    string
 	LinkURL     string
 	LinkText    string
-}
-
-// EmailEnvelopeValues are  the values used for the email envelopes.
-type EmailEnvelopeValues struct {
-	ProcessID    int
-	UUID         string
-	Host         string
-	ServerName   string
-	SenderDomain string
-	Identifier   string
-	From         string
-	To           string
-	Subject      string
-	Date         time.Time
 }

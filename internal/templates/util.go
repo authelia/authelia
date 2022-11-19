@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"bytes"
 	"fmt"
 	th "html/template"
 	"os"
@@ -9,12 +8,6 @@ import (
 	"path/filepath"
 	tt "text/template"
 )
-
-func tmplEnvelopeHasDeprecatedPlaceholders(data []byte) bool {
-	return bytes.Contains(data, []byte("{{ .Boundary }}")) ||
-		bytes.Contains(data, []byte("{{ .Body.PlainText }}")) ||
-		bytes.Contains(data, []byte("{{ .Body.HTML }}"))
-}
 
 func templateExists(path string) (exists bool) {
 	info, err := os.Stat(path)

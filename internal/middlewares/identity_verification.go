@@ -81,7 +81,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(ctx, mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, ctx.Providers.Templates.GetEmailIdentityVerificationTemplate(), data); err != nil {
+		if err = ctx.Providers.Notifier.Send(ctx, mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationEmailTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
