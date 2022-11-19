@@ -4,6 +4,7 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 
 import { IndexRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
 import { useAutheliaState } from "@hooks/State";
+import SettingsLayout from "@layouts/SettingsLayout";
 import { AuthenticationLevel } from "@services/State";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
@@ -26,13 +27,15 @@ const SettingsRouter = function (props: Props) {
     }, [state, fetchStateError, navigate]);
 
     return (
-        <Routes>
-            <Route path={IndexRoute} element={<SettingsView />} />
-            <Route
-                path={SettingsTwoFactorAuthenticationSubRoute}
-                element={<TwoFactorAuthenticationView state={state} />}
-            />
-        </Routes>
+        <SettingsLayout>
+            <Routes>
+                <Route path={IndexRoute} element={<SettingsView />} />
+                <Route
+                    path={SettingsTwoFactorAuthenticationSubRoute}
+                    element={<TwoFactorAuthenticationView state={state} />}
+                />
+            </Routes>
+        </SettingsLayout>
     );
 };
 
