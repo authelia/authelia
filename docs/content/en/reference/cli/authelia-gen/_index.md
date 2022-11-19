@@ -9,6 +9,6 @@ menu:
   reference:
     parent: "cli"
     identifier: "cli-authelia-gen"
-weight: 900
+weight: 910
 toc: true
 ---

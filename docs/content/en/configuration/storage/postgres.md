@@ -16,17 +16,8 @@ aliases:
 
 ## Version support
 
-See [PostgreSQL support](https://www.postgresql.org/support/versioning/) for the versions supported by [PostgreSQL]. We
-recommend the *current minor* version of one of the versions supported by [PostgreSQL].
-
-The versions of [PostgreSQL] that should be supported by Authelia are:
-
-* 14
-* 13
-* 12
-* 11
-* 10
-* 9.6
+See the [PostgreSQL Database Integration](../../reference/integrations/database-integrations.md#postgresql) reference
+guide for supported version information.
 
 ## Configuration
 

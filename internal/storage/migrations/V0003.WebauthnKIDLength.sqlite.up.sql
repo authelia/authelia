@@ -1,7 +1,8 @@
-ALTER TABLE webauthn_devices RENAME TO _bkp_UP_V0003_webauthn_devices;
+ALTER TABLE webauthn_devices
+    RENAME TO _bkp_UP_V0003_webauthn_devices;
 
 CREATE TABLE IF NOT EXISTS webauthn_devices (
-    id INTEGER,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMP NULL DEFAULT NULL,
     rpid TEXT,
@@ -14,7 +15,6 @@ CREATE TABLE IF NOT EXISTS webauthn_devices (
     aaguid CHAR(36) NOT NULL,
     sign_count INTEGER DEFAULT 0,
     clone_warning BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (id),
     UNIQUE (username, description),
     UNIQUE (kid)
 );
