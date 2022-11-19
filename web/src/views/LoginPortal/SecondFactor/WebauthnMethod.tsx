@@ -18,6 +18,7 @@ export interface Props {
     authenticationLevel: AuthenticationLevel;
     registered: boolean;
 
+    onRegisterClick: () => void;
     onSignInError: (err: Error) => void;
     onSignInSuccess: (redirectURL: string | undefined) => void;
 }
@@ -153,6 +154,7 @@ const WebauthnMethod = function (props: Props) {
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}
+            onRegisterClick={props.onRegisterClick}
         >
             <WebauthnTryIcon onRetryClick={doInitiateSignIn} webauthnTouchState={state} />
         </MethodContainer>

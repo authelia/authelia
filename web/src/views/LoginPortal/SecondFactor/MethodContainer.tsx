@@ -33,7 +33,7 @@ const DefaultMethodContainer = function (props: Props) {
     const registerMessage = props.registered
         ? props.title === "Push Notification"
             ? ""
-            : translate("Lost your device?")
+            : translate("Manage devices")
         : translate("Register device");
     const selectMessage = translate("Select a Device");
 

@@ -10,6 +10,8 @@ import {
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebauthnSubRoute,
+    SettingsRoute,
+    SettingsTwoFactorAuthenticationSubRoute,
     LogoutRoute as SignOutRoute,
 } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -144,6 +146,9 @@ const SecondFactorForm = function (props: Props) {
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a Webauthn device registered already
                                     registered={props.userInfo.has_webauthn}
+                                    onRegisterClick={() => {
+                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                    }}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />
