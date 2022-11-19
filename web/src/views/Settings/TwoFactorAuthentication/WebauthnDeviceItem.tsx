@@ -130,7 +130,7 @@ export default function WebauthnDeviceItem(props: Props) {
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
                                 <Typography>{translate("Authenticator Attestation GUID")}</Typography>
                                 <Typography>
-                                    {props.device.aaguid == undefined ? "N/A" : props.device.aaguid}
+                                    {props.device.aaguid === undefined ? "N/A" : props.device.aaguid}
                                 </Typography>
                             </Grid>
                             <Grid item xs={6} sm={6} md={4} lg={4} xl={3}>
