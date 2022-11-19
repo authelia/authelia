@@ -9,8 +9,9 @@ import (
 	mail "net/mail"
 	reflect "reflect"
 
-	templates "github.com/authelia/authelia/v4/internal/templates"
 	gomock "github.com/golang/mock/gomock"
+
+	templates "github.com/authelia/authelia/v4/internal/templates"
 )
 
 // MockNotifier is a mock of Notifier interface.

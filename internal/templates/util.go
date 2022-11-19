@@ -75,21 +75,6 @@ func parseHTMLTemplate(name, tPath string, embed bool, data []byte) (t *th.Templ
 	return t, nil
 }
 
-//nolint:unparam
-func loadTemplate(name, ext, category, overridePath string) (t *tt.Template, err error) {
-	var (
-		embed bool
-		tPath string
-		data  []byte
-	)
-
-	if tPath, embed, data, err = readTemplate(name, ext, category, overridePath); err != nil {
-		return nil, err
-	}
-
-	return parseTextTemplate(name, tPath, embed, data)
-}
-
 func loadEmailTemplate(name, overridePath string) (t *EmailTemplate, err error) {
 	var (
 		embed bool
