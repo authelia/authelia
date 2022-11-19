@@ -24,9 +24,12 @@ type Provider struct {
 	templates Templates
 }
 
-// ExecuteEmailEnvelope writes the envelope template to the given io.Writer.
-func (p *Provider) ExecuteEmailEnvelope(wr io.Writer, data EmailEnvelopeValues) (err error) {
-	return p.templates.notification.envelope.Execute(wr, data)
+func (p *Provider) GetEmailPasswordTemplate() (t *EmailTemplate) {
+	return p.templates.notification.passwordReset
+}
+
+func (p *Provider) GetEmailIdentityVerificationTemplate() (t *EmailTemplate) {
+	return p.templates.notification.identityVerification
 }
 
 // ExecuteEmailPasswordResetTemplate writes the password reset template to the given io.Writer.
@@ -42,33 +45,11 @@ func (p *Provider) ExecuteEmailIdentityVerificationTemplate(wr io.Writer, data E
 func (p *Provider) load() (err error) {
 	var errs []error
 
-	if tPath, embed, data, err := readTemplate(TemplateNameEmailEnvelope, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	} else {
-		if !embed && tmplEnvelopeHasDeprecatedPlaceholders(data) {
-			errs = append(errs, fmt.Errorf("the evelope template override appears to contain removed placeholders"))
-		} else if p.templates.notification.envelope, err = parseTemplate(TemplateNameEmailEnvelope, tPath, embed, data); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if p.templates.notification.envelope, err = loadTemplate(TemplateNameEmailEnvelope, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.identityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerification, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 
-	if p.templates.notification.identityVerification.txt, err = loadTemplate(TemplateNameEmailIdentityVerificationTXT, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	}
-
-	if p.templates.notification.identityVerification.html, err = loadTemplate(TemplateNameEmailIdentityVerificationHTML, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	}
-
-	if p.templates.notification.passwordReset.txt, err = loadTemplate(TemplateNameEmailPasswordResetTXT, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
-	}
-
-	if p.templates.notification.passwordReset.html, err = loadTemplate(TemplateNameEmailPasswordResetHTML, TemplateCategoryNotifications, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.passwordReset, err = loadEmailTemplate(TemplateNameEmailPasswordReset, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 

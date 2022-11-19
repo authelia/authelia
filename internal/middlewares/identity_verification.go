@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/mail"
@@ -71,12 +70,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		disableHTML := false
-		if ctx.Configuration.Notifier.SMTP != nil {
-			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
-		}
-
-		values := templates.EmailIdentityVerificationValues{
+		data := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
 			LinkURL:     fmt.Sprintf("%s%s?token=%s", uri, args.TargetEndpoint, ss),
 			LinkText:    args.MailButtonContent,
@@ -84,24 +78,10 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			RemoteIP:    ctx.RemoteIP().String(),
 		}
 
-		bufHTML, bufText := &bytes.Buffer{}, &bytes.Buffer{}
-
-		if !disableHTML {
-			if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufHTML, values, templates.HTMLFormat); err != nil {
-				ctx.Error(err, messageOperationFailed)
-				return
-			}
-		}
-
-		if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufText, values, templates.PlainTextFormat); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bufText.Bytes(), bufHTML.Bytes()); err != nil {
+		if err = ctx.Providers.Notifier.Send(ctx, mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, ctx.Providers.Templates.GetEmailIdentityVerificationTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

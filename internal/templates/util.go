@@ -3,10 +3,11 @@ package templates
 import (
 	"bytes"
 	"fmt"
+	th "html/template"
 	"os"
 	"path"
 	"path/filepath"
-	"text/template"
+	tt "text/template"
 )
 
 func tmplEnvelopeHasDeprecatedPlaceholders(data []byte) bool {
@@ -28,9 +29,9 @@ func templateExists(path string) (exists bool) {
 	return true
 }
 
-func readTemplate(name, category, overridePath string) (tPath string, embed bool, data []byte, err error) {
+func readTemplate(name, ext, category, overridePath string) (tPath string, embed bool, data []byte, err error) {
 	if overridePath != "" {
-		tPath = filepath.Join(overridePath, name)
+		tPath = filepath.Join(overridePath, name+ext)
 
 		if templateExists(tPath) {
 			if data, err = os.ReadFile(tPath); err != nil {
@@ -41,7 +42,7 @@ func readTemplate(name, category, overridePath string) (tPath string, embed bool
 		}
 	}
 
-	tPath = path.Join("src", category, name)
+	tPath = path.Join("src", category, name+ext)
 
 	if data, err = embedFS.ReadFile(tPath); err != nil {
 		return tPath, true, nil, fmt.Errorf("failed to read embedded template '%s': %w", tPath, err)
@@ -50,8 +51,20 @@ func readTemplate(name, category, overridePath string) (tPath string, embed bool
 	return tPath, true, data, nil
 }
 
-func parseTemplate(name, tPath string, embed bool, data []byte) (t *template.Template, err error) {
-	if t, err = template.New(name).Parse(string(data)); err != nil {
+func parseTextTemplate(name, tPath string, embed bool, data []byte) (t *tt.Template, err error) {
+	if t, err = tt.New(name + extText).Parse(string(data)); err != nil {
+		if embed {
+			return nil, fmt.Errorf("failed to parse embedded template '%s': %w", tPath, err)
+		}
+
+		return nil, fmt.Errorf("failed to parse template override at path '%s': %w", tPath, err)
+	}
+
+	return t, nil
+}
+
+func parseHTMLTemplate(name, tPath string, embed bool, data []byte) (t *th.Template, err error) {
+	if t, err = th.New(name + extHTML).Parse(string(data)); err != nil {
 		if embed {
 			return nil, fmt.Errorf("failed to parse embedded template '%s': %w", tPath, err)
 		}
@@ -63,16 +76,44 @@ func parseTemplate(name, tPath string, embed bool, data []byte) (t *template.Tem
 }
 
 //nolint:unparam
-func loadTemplate(name, category, overridePath string) (t *template.Template, err error) {
+func loadTemplate(name, ext, category, overridePath string) (t *tt.Template, err error) {
 	var (
 		embed bool
 		tPath string
 		data  []byte
 	)
 
-	if tPath, embed, data, err = readTemplate(name, category, overridePath); err != nil {
+	if tPath, embed, data, err = readTemplate(name, ext, category, overridePath); err != nil {
 		return nil, err
 	}
 
-	return parseTemplate(name, tPath, embed, data)
+	return parseTextTemplate(name, tPath, embed, data)
+}
+
+func loadEmailTemplate(name, overridePath string) (t *EmailTemplate, err error) {
+	var (
+		embed bool
+		tpath string
+		data  []byte
+	)
+
+	t = &EmailTemplate{}
+
+	if tpath, embed, data, err = readTemplate(name, extText, TemplateCategoryNotifications, overridePath); err != nil {
+		return nil, err
+	}
+
+	if t.Text, err = parseTextTemplate(name, tpath, embed, data); err != nil {
+		return nil, err
+	}
+
+	if tpath, embed, data, err = readTemplate(name, extHTML, TemplateCategoryNotifications, overridePath); err != nil {
+		return nil, err
+	}
+
+	if t.HTML, err = parseHTMLTemplate(name, tpath, embed, data); err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }

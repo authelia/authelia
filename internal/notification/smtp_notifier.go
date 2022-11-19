@@ -1,21 +1,15 @@
 package notification
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
-	"io"
-	"mime/multipart"
-	"net"
 	"net/mail"
-	"net/smtp"
-	"os"
 	"strings"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	gomail "github.com/wneessen/go-mail"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -24,309 +18,121 @@ import (
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
-func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
-	notifier := &SMTPNotifier{
-		config:    config,
-		tlsConfig: utils.NewTLSConfig(config.TLS, certPool),
-		log:       logging.Logger(),
-		templates: templateProvider,
+func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool) *SMTPNotifier {
+	opts := []gomail.Option{
+		gomail.WithPort(config.Port),
+		gomail.WithTLSConfig(utils.NewTLSConfig(config.TLS, certPool)),
+		gomail.WithPassword(config.Password),
+		gomail.WithHELO(config.Identifier),
 	}
+
+	switch {
+	case config.DisableStartTLS:
+		opts = append(opts, gomail.WithTLSPolicy(gomail.NoTLS))
+	case config.DisableRequireTLS:
+		opts = append(opts, gomail.WithTLSPolicy(gomail.TLSOpportunistic))
+	default:
+		opts = append(opts, gomail.WithTLSPolicy(gomail.TLSMandatory))
+	}
+
+	if config.Port == smtpPortSUBMISSIONS {
+		opts = append(opts, gomail.WithSSL())
+	}
+
+	var domain string
 
 	at := strings.LastIndex(config.Sender.Address, "@")
 
 	if at >= 0 {
-		notifier.domain = config.Sender.Address[at:]
+		domain = config.Sender.Address[at:]
 	}
 
-	return notifier
+	return &SMTPNotifier{
+		config: config,
+		domain: domain,
+		tls:    utils.NewTLSConfig(config.TLS, certPool),
+		log:    logging.Logger(),
+		opts:   opts,
+	}
 }
 
 // SMTPNotifier a notifier to send emails to SMTP servers.
 type SMTPNotifier struct {
-	config    *schema.SMTPNotifierConfiguration
-	domain    string
-	tlsConfig *tls.Config
-	log       *logrus.Logger
-	templates *templates.Provider
-
-	client *smtp.Client
+	config *schema.SMTPNotifierConfiguration
+	domain string
+	tls    *tls.Config
+	log    *logrus.Logger
+	opts   []gomail.Option
 }
 
-// Send is used to email a recipient.
-func (n *SMTPNotifier) Send(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error) {
-	if err = n.dial(); err != nil {
-		return fmt.Errorf(fmtSMTPDialError, err)
-	}
-
-	// Always execute QUIT at the end once we're connected.
-	defer n.cleanup()
-
-	if err = n.preamble(recipient); err != nil {
-		return err
-	}
-
-	// Compose and send the email body to the server.
-	if err = n.compose(recipient, subject, bodyText, bodyHTML); err != nil {
-		return fmt.Errorf(fmtSMTPGenericError, smtpCommandDATA, err)
-	}
-
-	n.log.Debug("Notifier SMTP client successfully sent email")
-
-	return nil
-}
-
-// StartupCheck implements the startup check provider interface.
 func (n *SMTPNotifier) StartupCheck() (err error) {
-	if err = n.dial(); err != nil {
-		return fmt.Errorf(fmtSMTPDialError, err)
+	var client *gomail.Client
+
+	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
+		return fmt.Errorf("failed to establish client: %w", err)
 	}
 
-	// Always execute QUIT at the end once we're connected.
-	defer n.cleanup()
+	ctx := context.Background()
 
-	if err = n.preamble(n.config.StartupCheckAddress); err != nil {
-		return err
+	if err = client.DialWithContext(ctx); err != nil {
+		return fmt.Errorf("failed to dial connection: %w", err)
 	}
 
-	return n.client.Reset()
-}
-
-// preamble performs generic preamble requirements for sending messages via SMTP.
-func (n *SMTPNotifier) preamble(recipient mail.Address) (err error) {
-	if err = n.client.Hello(n.config.Identifier); err != nil {
-		return fmt.Errorf(fmtSMTPGenericError, smtpCommandHELLO, err)
-	}
-
-	if err = n.startTLS(); err != nil {
-		return fmt.Errorf(fmtSMTPGenericError, smtpCommandSTARTTLS, err)
-	}
-
-	if err = n.auth(); err != nil {
-		return fmt.Errorf(fmtSMTPGenericError, smtpCommandAUTH, err)
-	}
-
-	if err = n.client.Mail(n.config.Sender.Address); err != nil {
-		return fmt.Errorf(fmtSMTPGenericError, smtpCommandMAIL, err)
-	}
-
-	if err = n.client.Rcpt(recipient.Address); err != nil {
-		return fmt.Errorf(fmtSMTPGenericError, smtpCommandRCPT, err)
+	if err = client.Close(); err != nil {
+		return fmt.Errorf("failed to close connection: %w", err)
 	}
 
 	return nil
 }
 
-// Dial the SMTP server with the SMTPNotifier config.
-func (n *SMTPNotifier) dial() (err error) {
-	var (
-		client *smtp.Client
-		conn   net.Conn
-		dialer = &net.Dialer{Timeout: n.config.Timeout}
+func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
+	msg := gomail.NewMsg(
+		gomail.WithMIMEVersion(gomail.Mime10),
+		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric, true)),
 	)
 
-	n.log.Debugf("Notifier SMTP client attempting connection to %s:%d", n.config.Host, n.config.Port)
-
-	if n.config.Port == smtpPortSUBMISSIONS {
-		n.log.Debugf("Notifier SMTP client using submissions port 465. Make sure the mail server you are connecting to is configured for submissions and not SMTPS.")
-
-		conn, err = tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port), n.tlsConfig)
-	} else {
-		conn, err = dialer.Dial("tcp", fmt.Sprintf("%s:%d", n.config.Host, n.config.Port))
+	if err = msg.From(n.config.Sender.String()); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to set from address: %w", err)
 	}
+
+	if err = msg.AddTo(recipient.String()); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to set to address: %w", err)
+	}
+
+	msg.Subject(strings.ReplaceAll(n.config.Subject, "{title}", subject))
 
 	switch {
-	case err == nil:
-		break
-	case errors.Is(err, io.EOF):
-		return fmt.Errorf("received %w error: this error often occurs due to network errors such as a firewall, network policies, or closed ports which may be due to smtp service not running or an incorrect port specified in configuration", err)
+	case n.config.DisableHTMLEmails:
+		if err = msg.SetBodyTextTemplate(et.Text, data); err != nil {
+			return fmt.Errorf("notifier: smtp: failed to set body: text template errored: %w", err)
+		}
 	default:
-		return err
-	}
-
-	if client, err = smtp.NewClient(conn, n.config.Host); err != nil {
-		return err
-	}
-
-	n.client = client
-
-	n.log.Debug("Notifier SMTP client connected successfully")
-
-	return nil
-}
-
-// Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred).
-func (n *SMTPNotifier) startTLS() error {
-	// Skips STARTTLS if is disabled in configuration.
-	if n.config.DisableStartTLS {
-		n.log.Warn("Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS")
-		return nil
-	}
-
-	// Only start if not already encrypted.
-	if _, ok := n.client.TLSConnectionState(); ok {
-		n.log.Debugf("Notifier SMTP connection is already encrypted, skipping STARTTLS")
-		return nil
-	}
-
-	switch ok, _ := n.client.Extension(smtpExtSTARTTLS); ok {
-	case true:
-		n.log.Debugf("Notifier SMTP server supports STARTTLS (disableVerifyCert: %t, ServerName: %s), attempting", n.tlsConfig.InsecureSkipVerify, n.tlsConfig.ServerName)
-
-		if err := n.client.StartTLS(n.tlsConfig); err != nil {
-			return err
+		if err = msg.AddAlternativeHTMLTemplate(et.HTML, data); err != nil {
+			return fmt.Errorf("notifier: smtp: failed to set body: html template errored: %w", err)
 		}
 
-		n.log.Debug("Notifier SMTP STARTTLS completed without error")
-	default:
-		switch n.config.DisableRequireTLS {
-		case true:
-			n.log.Warn("Notifier SMTP server does not support STARTTLS and SMTP configuration is set to disable the TLS requirement (only useful for unauthenticated emails over plain text)")
-		default:
-			return errors.New("server does not support TLS and it is required by default (see documentation if you want to disable this highly recommended requirement)")
+		if err = msg.AddAlternativeTextTemplate(et.Text, data); err != nil {
+			return fmt.Errorf("notifier: smtp: failed to set body: text template errored: %w", err)
 		}
+	}
+
+	var client *gomail.Client
+
+	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
+	}
+
+	if err = client.DialWithContext(ctx); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)
+	}
+
+	if err = client.Send(msg); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to send message: %w", err)
+	}
+
+	if err = client.Close(); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to close connection: %w", err)
 	}
 
 	return nil
-}
-
-// Attempt Authentication.
-func (n *SMTPNotifier) auth() (err error) {
-	// Attempt AUTH if password is specified only.
-	if n.config.Password != "" {
-		var (
-			ok bool
-			m  string
-		)
-
-		if _, ok = n.client.TLSConnectionState(); !ok {
-			return errors.New("client does not support authentication over plain text and the connection is currently plain text")
-		}
-
-		// Check the server supports AUTH, and get the mechanisms.
-		if ok, m = n.client.Extension(smtpCommandAUTH); ok {
-			var auth smtp.Auth
-
-			n.log.Debugf("Notifier SMTP server supports authentication with the following mechanisms: %s", m)
-
-			mechanisms := strings.Split(m, " ")
-
-			// Adaptively select the AUTH mechanism to use based on what the server advertised.
-			if utils.IsStringInSlice(smtpAUTHMechanismPlain, mechanisms) {
-				auth = smtp.PlainAuth("", n.config.Username, n.config.Password, n.config.Host)
-
-				n.log.Debug("Notifier SMTP client attempting AUTH PLAIN with server")
-			} else if utils.IsStringInSlice(smtpAUTHMechanismLogin, mechanisms) {
-				auth = newLoginAuth(n.config.Username, n.config.Password, n.config.Host)
-
-				n.log.Debug("Notifier SMTP client attempting AUTH LOGIN with server")
-			}
-
-			// Throw error since AUTH extension is not supported.
-			if auth == nil {
-				return fmt.Errorf("server does not advertise an AUTH mechanism that is supported (PLAIN or LOGIN are supported, but server advertised mechanisms '%s')", m)
-			}
-
-			// Authenticate.
-			if err = n.client.Auth(auth); err != nil {
-				return err
-			}
-
-			n.log.Debug("Notifier SMTP client authenticated successfully with the server")
-
-			return nil
-		}
-
-		return errors.New("server does not advertise the AUTH extension but config requires AUTH (password specified), either disable AUTH, or use an SMTP host that supports AUTH PLAIN or AUTH LOGIN")
-	}
-
-	n.log.Debug("Notifier SMTP config has no password specified so authentication is being skipped")
-
-	return nil
-}
-
-func (n *SMTPNotifier) compose(recipient mail.Address, subject string, bodyText, bodyHTML []byte) (err error) {
-	n.log.Debugf("Notifier SMTP client attempting to send email body to %s", recipient.String())
-
-	if !n.config.DisableRequireTLS {
-		_, ok := n.client.TLSConnectionState()
-		if !ok {
-			return errors.New("client can't send an email over plain text connection")
-		}
-	}
-
-	var (
-		wc    io.WriteCloser
-		muuid uuid.UUID
-	)
-
-	if wc, err = n.client.Data(); err != nil {
-		n.log.Debugf("Notifier SMTP client error while obtaining WriteCloser: %v", err)
-		return err
-	}
-
-	if muuid, err = uuid.NewRandom(); err != nil {
-		return err
-	}
-
-	data := templates.EmailEnvelopeValues{
-		ProcessID:    os.Getpid(),
-		UUID:         muuid.String(),
-		Host:         n.config.Host,
-		ServerName:   n.config.TLS.ServerName,
-		SenderDomain: n.domain,
-		Identifier:   n.config.Identifier,
-		From:         n.config.Sender.String(),
-		To:           recipient.String(),
-		Subject:      strings.ReplaceAll(n.config.Subject, "{title}", subject),
-		Date:         time.Now(),
-	}
-
-	if err = n.templates.ExecuteEmailEnvelope(wc, data); err != nil {
-		n.log.Debugf("Notifier SMTP client error while sending email body over WriteCloser: %v", err)
-
-		return err
-	}
-
-	mwr := multipart.NewWriter(wc)
-
-	if _, err = wc.Write([]byte(fmt.Sprintf(`Content-Type: multipart/alternative; boundary="%s"`, mwr.Boundary()))); err != nil {
-		return err
-	}
-
-	if _, err = wc.Write(rfc2822DoubleNewLine); err != nil {
-		return err
-	}
-
-	ext8BITMIME, _ := n.client.Extension(smtpExt8BITMIME)
-
-	if err = multipartWrite(mwr, smtpMIMEHeaders(ext8BITMIME, smtpContentTypeTextPlain, bodyText), bodyText); err != nil {
-		return fmt.Errorf("failed to write text/plain part: %w", err)
-	}
-
-	if len(bodyHTML) != 0 {
-		if err = multipartWrite(mwr,
-			smtpMIMEHeaders(ext8BITMIME, smtpContentTypeTextHTML, bodyText), bodyHTML); err != nil {
-			return fmt.Errorf("failed to write text/html part: %w", err)
-		}
-	}
-
-	if err = mwr.Close(); err != nil {
-		return fmt.Errorf("failed to finalize the multipart content: %w", err)
-	}
-
-	if err = wc.Close(); err != nil {
-		n.log.Debugf("Notifier SMTP client error while closing the WriteCloser: %v", err)
-		return err
-	}
-
-	return nil
-}
-
-// Closes the connection properly.
-func (n *SMTPNotifier) cleanup() {
-	if err := n.client.Quit(); err != nil {
-		n.log.Warnf("Notifier SMTP client encountered error during cleanup: %v", err)
-	}
-
-	n.client = nil
 }

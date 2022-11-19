@@ -5,9 +5,11 @@
 package mocks
 
 import (
+	context "context"
 	mail "net/mail"
 	reflect "reflect"
 
+	templates "github.com/authelia/authelia/v4/internal/templates"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,17 +37,17 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 }
 
 // Send mocks base method.
-func (m *MockNotifier) Send(arg0 mail.Address, arg1 string, arg2, arg3 []byte) error {
+func (m *MockNotifier) Send(arg0 context.Context, arg1 mail.Address, arg2 string, arg3 *templates.EmailTemplate, arg4 interface{}) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Send indicates an expected call of Send.
-func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2, arg3, arg4)
 }
 
 // StartupCheck mocks base method.

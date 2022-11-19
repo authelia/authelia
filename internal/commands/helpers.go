@@ -72,7 +72,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool, templatesProvider)
+		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}

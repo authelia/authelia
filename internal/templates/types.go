@@ -1,7 +1,7 @@
 package templates
 
 import (
-	"text/template"
+	"io"
 	"time"
 )
 
@@ -12,9 +12,8 @@ type Templates struct {
 
 // NotificationTemplates are the templates for the notification system.
 type NotificationTemplates struct {
-	envelope             *template.Template
-	passwordReset        HTMLPlainTextTemplate
-	identityVerification HTMLPlainTextTemplate
+	passwordReset        *EmailTemplate
+	identityVerification *EmailTemplate
 }
 
 // Format of a template.
@@ -26,6 +25,14 @@ const (
 	HTMLFormat
 	PlainTextFormat
 )
+
+// Template covers shared implementations between the text and html template.Template.
+type Template interface {
+	Execute(wr io.Writer, data any) error
+	ExecuteTemplate(wr io.Writer, name string, data any) error
+	Name() string
+	DefinedTemplates() string
+}
 
 // Config for the Provider.
 type Config struct {

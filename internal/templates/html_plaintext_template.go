@@ -1,23 +1,24 @@
 package templates
 
 import (
-	"text/template"
+	th "html/template"
+	tt "text/template"
 )
 
-// HTMLPlainTextTemplate is the template type which contains both the html and txt versions of a template.
-type HTMLPlainTextTemplate struct {
-	html *template.Template
-	txt  *template.Template
+// EmailTemplate is the template type which contains both the html and txt versions of a template.
+type EmailTemplate struct {
+	HTML *th.Template
+	Text *tt.Template
 }
 
 // Get returns the appropriate template given the format.
-func (f HTMLPlainTextTemplate) Get(format Format) (t *template.Template) {
+func (t *EmailTemplate) Get(format Format) (tmpl Template) {
 	switch format {
 	case HTMLFormat:
-		return f.html
+		return t.HTML
 	case PlainTextFormat:
-		return f.txt
+		return t.Text
 	default:
-		return f.html
+		return t.HTML
 	}
 }
