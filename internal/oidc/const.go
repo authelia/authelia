@@ -1,8 +1,13 @@
 package oidc
 
+import (
+	"time"
+)
+
 // Scope strings.
 const (
 	ScopeOfflineAccess = "offline_access"
+	ScopeOffline       = "offline"
 	ScopeOpenID        = "openid"
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
@@ -33,6 +38,17 @@ const (
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
 	ClaimClientIdentifier                    = "client_id"
+)
+
+const (
+	lifespanTokenDefault         = time.Hour
+	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault = time.Minute * 15
+	lifespanPARContextDefault    = time.Minute * 5
+)
+
+const (
+	urnPARPrefix = "urn:ietf:params:oauth:request_uri:"
 )
 
 const (
