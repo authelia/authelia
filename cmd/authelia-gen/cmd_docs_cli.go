@@ -27,45 +27,39 @@ func newDocsCLICmd() *cobra.Command {
 }
 
 func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
-	var root, pathDocsCLIReference string
+	var outputPath string
 
-	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
+	if outputPath, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsContent, cmdFlagDocsCLIReference); err != nil {
 		return err
 	}
 
-	if pathDocsCLIReference, err = cmd.Flags().GetString(cmdFlagDocsCLIReference); err != nil {
-		return err
-	}
-
-	fullPathDocsCLIReference := filepath.Join(root, pathDocsCLIReference)
-
-	if err = os.MkdirAll(fullPathDocsCLIReference, 0775); err != nil {
+	if err = os.MkdirAll(outputPath, 0775); err != nil {
 		if !os.IsExist(err) {
 			return err
 		}
 	}
 
-	if err = genCLIDoc(commands.NewRootCmd(), filepath.Join(fullPathDocsCLIReference, "authelia")); err != nil {
+	if err = genCLIDoc(commands.NewRootCmd(), filepath.Join(outputPath, "authelia")); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(fullPathDocsCLIReference, "authelia"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, "authelia"); err != nil {
 		return err
 	}
 
-	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(fullPathDocsCLIReference, "authelia-scripts")); err != nil {
+	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(outputPath, "authelia-scripts")); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(fullPathDocsCLIReference, "authelia-scripts"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, "authelia-scripts"); err != nil {
 		return err
 	}
 
-	if err = genCLIDoc(newRootCmd(), filepath.Join(fullPathDocsCLIReference, cmdUseRoot)); err != nil {
+	if err = genCLIDoc(newRootCmd(), filepath.Join(outputPath, cmdUseRoot)); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(fullPathDocsCLIReference, cmdUseRoot); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, cmdUseRoot); err != nil {
 		return err
 	}
 
@@ -104,11 +98,7 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 		return err
 	}
 
-	weight := 900
-
-	if name == "authelia" {
-		weight = 320
-	}
+	weight := genCLIDocCmdToWeight(name)
 
 	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), "cli-"+name, weight)
 
@@ -125,12 +115,26 @@ func prepend(input string) string {
 
 	args := strings.Join(parts, " ")
 
-	weight := 330
-	if len(parts) == 1 {
-		weight = 320
+	weight := genCLIDocCmdToWeight(parts[0])
+
+	if len(parts) != 1 {
+		weight += 5
 	}
 
 	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), "cli-"+cmd, weight)
+}
+
+func genCLIDocCmdToWeight(cmd string) int {
+	switch cmd {
+	case "authelia":
+		return 900
+	case "authelia-gen":
+		return 910
+	case "authelia-scripts":
+		return 920
+	default:
+		return 990
+	}
 }
 
 func linker(input string) string {

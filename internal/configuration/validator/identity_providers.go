@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -16,45 +17,67 @@ func ValidateIdentityProviders(config *schema.IdentityProvidersConfiguration, va
 }
 
 func validateOIDC(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
-	if config != nil {
-		if config.IssuerPrivateKey == "" {
-			validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
+	if config == nil {
+		return
+	}
+
+	setOIDCDefaults(config)
+
+	switch {
+	case config.IssuerPrivateKey == nil:
+		validator.Push(fmt.Errorf(errFmtOIDCNoPrivateKey))
+	default:
+		if config.IssuerCertificateChain.HasCertificates() {
+			if !config.IssuerCertificateChain.EqualKey(config.IssuerPrivateKey) {
+				validator.Push(fmt.Errorf(errFmtOIDCCertificateMismatch))
+			}
+
+			if err := config.IssuerCertificateChain.Validate(); err != nil {
+				validator.Push(fmt.Errorf(errFmtOIDCCertificateChain, err))
+			}
 		}
 
-		if config.AccessTokenLifespan == time.Duration(0) {
-			config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+		if config.IssuerPrivateKey.Size()*8 < 2048 {
+			validator.Push(fmt.Errorf(errFmtOIDCInvalidPrivateKeyBitSize, 2048, config.IssuerPrivateKey.Size()*8))
 		}
+	}
 
-		if config.AuthorizeCodeLifespan == time.Duration(0) {
-			config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
-		}
+	if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
+	}
 
-		if config.IDTokenLifespan == time.Duration(0) {
-			config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
-		}
+	if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
+		validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
+	}
 
-		if config.RefreshTokenLifespan == time.Duration(0) {
-			config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
-		}
+	validateOIDCOptionsCORS(config, validator)
 
-		if config.MinimumParameterEntropy != 0 && config.MinimumParameterEntropy < 8 {
-			validator.PushWarning(fmt.Errorf(errFmtOIDCServerInsecureParameterEntropy, config.MinimumParameterEntropy))
-		}
-
-		if config.EnforcePKCE == "" {
-			config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
-		}
-
-		if config.EnforcePKCE != "never" && config.EnforcePKCE != "public_clients_only" && config.EnforcePKCE != "always" {
-			validator.Push(fmt.Errorf(errFmtOIDCEnforcePKCEInvalidValue, config.EnforcePKCE))
-		}
-
-		validateOIDCOptionsCORS(config, validator)
+	if len(config.Clients) == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
+	} else {
 		validateOIDCClients(config, validator)
+	}
+}
 
-		if len(config.Clients) == 0 {
-			validator.Push(fmt.Errorf(errFmtOIDCNoClientsConfigured))
-		}
+func setOIDCDefaults(config *schema.OpenIDConnectConfiguration) {
+	if config.AccessTokenLifespan == time.Duration(0) {
+		config.AccessTokenLifespan = schema.DefaultOpenIDConnectConfiguration.AccessTokenLifespan
+	}
+
+	if config.AuthorizeCodeLifespan == time.Duration(0) {
+		config.AuthorizeCodeLifespan = schema.DefaultOpenIDConnectConfiguration.AuthorizeCodeLifespan
+	}
+
+	if config.IDTokenLifespan == time.Duration(0) {
+		config.IDTokenLifespan = schema.DefaultOpenIDConnectConfiguration.IDTokenLifespan
+	}
+
+	if config.RefreshTokenLifespan == time.Duration(0) {
+		config.RefreshTokenLifespan = schema.DefaultOpenIDConnectConfiguration.RefreshTokenLifespan
+	}
+
+	if config.EnforcePKCE == "" {
+		config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
 	}
 }
 
@@ -117,6 +140,7 @@ func validateOIDCOptionsCORSEndpoints(config *schema.OpenIDConnectConfiguration,
 	}
 }
 
+//nolint:gocyclo // TODO: Refactor.
 func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *schema.StructValidator) {
 	invalidID, duplicateIDs := false, false
 
@@ -137,11 +161,11 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 		}
 
 		if client.Public {
-			if client.Secret != "" {
+			if client.Secret != nil {
 				validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, client.ID))
 			}
 		} else {
-			if client.Secret == "" {
+			if client.Secret == nil {
 				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, client.ID))
 			}
 		}
@@ -150,6 +174,23 @@ func validateOIDCClients(config *schema.OpenIDConnectConfiguration, validator *s
 			config.Clients[c].Policy = schema.DefaultOpenIDConnectClientConfiguration.Policy
 		} else if client.Policy != policyOneFactor && client.Policy != policyTwoFactor {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPolicy, client.ID, client.Policy))
+		}
+
+		switch {
+		case utils.IsStringInSlice(client.ConsentMode, []string{"", "auto"}):
+			if client.ConsentPreConfiguredDuration != nil {
+				config.Clients[c].ConsentMode = oidc.ClientConsentModePreConfigured.String()
+			} else {
+				config.Clients[c].ConsentMode = oidc.ClientConsentModeExplicit.String()
+			}
+		case utils.IsStringInSlice(client.ConsentMode, validOIDCClientConsentModes):
+			break
+		default:
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidConsentMode, client.ID, strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), client.ConsentMode))
+		}
+
+		if client.ConsentPreConfiguredDuration == nil {
+			config.Clients[c].ConsentPreConfiguredDuration = schema.DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration
 		}
 
 		validateOIDCClientSectorIdentifier(client, validator)
@@ -212,8 +253,8 @@ func validateOIDCClientScopes(c int, configuration *schema.OpenIDConnectConfigur
 		return
 	}
 
-	if !utils.IsStringInSlice("openid", configuration.Clients[c].Scopes) {
-		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, "openid")
+	if !utils.IsStringInSlice(oidc.ScopeOpenID, configuration.Clients[c].Scopes) {
+		configuration.Clients[c].Scopes = append(configuration.Clients[c].Scopes, oidc.ScopeOpenID)
 	}
 
 	for _, scope := range configuration.Clients[c].Scopes {
@@ -289,13 +330,9 @@ func validateOIDCClientRedirectURIs(client schema.OpenIDConnectClientConfigurati
 			continue
 		}
 
-		if !parsedURL.IsAbs() {
+		if !parsedURL.IsAbs() || (!client.Public && parsedURL.Scheme == "") {
 			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURIAbsolute, client.ID, redirectURI))
 			return
-		}
-
-		if !client.Public && parsedURL.Scheme != schemeHTTPS && parsedURL.Scheme != schemeHTTP {
-			validator.Push(fmt.Errorf(errFmtOIDCClientRedirectURI, client.ID, redirectURI, parsedURL.Scheme))
 		}
 	}
 }

@@ -34,7 +34,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	formValues := url.Values{}
 
-	formValues.Set("nonce", "abc123xyzauthelia")
+	formValues.Set(ClaimNonce, "abc123xyzauthelia")
 
 	request := &fosite.AuthorizeRequest{
 		Request: fosite.Request{
@@ -44,8 +44,8 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		},
 	}
 
-	extra := map[string]interface{}{
-		"preferred_username": "john",
+	extra := map[string]any{
+		ClaimPreferredUsername: "john",
 	}
 
 	requested := time.Unix(1647332518, 0)
@@ -59,7 +59,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		Subject:     uuid.NullUUID{UUID: subject, Valid: true},
 	}
 
-	session := NewSessionWithAuthorizeRequest(issuer, "primary", "john", amr, extra, authAt, consent, request)
+	session := NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -80,21 +80,27 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, authAt, session.Claims.AuthTime)
 	assert.Equal(t, requested, session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
-	assert.Equal(t, "john", session.Claims.Extra["preferred_username"])
+	assert.Equal(t, "john", session.Claims.Extra[ClaimPreferredUsername])
 
-	assert.Equal(t, "primary", session.Headers.Get("kid"))
-
-	require.Contains(t, session.Claims.Extra, "preferred_username")
+	assert.Equal(t, "primary", session.Headers.Get(JWTHeaderKeyIdentifier))
 
 	consent = &model.OAuth2ConsentSession{
 		ChallengeID: uuid.New(),
 		RequestedAt: requested,
 	}
 
-	session = NewSessionWithAuthorizeRequest(issuer, "primary", "john", nil, nil, authAt, consent, request)
+	session = NewSessionWithAuthorizeRequest(MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
+}
+
+func MustParseRequestURI(input string) *url.URL {
+	if requestURI, err := url.ParseRequestURI(input); err != nil {
+		panic(err)
+	} else {
+		return requestURI
+	}
 }

@@ -27,7 +27,7 @@ import (
 func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool, templateProvider *templates.Provider) *SMTPNotifier {
 	notifier := &SMTPNotifier{
 		config:    config,
-		tlsConfig: utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool),
+		tlsConfig: utils.NewTLSConfig(config.TLS, certPool),
 		log:       logging.Logger(),
 		templates: templateProvider,
 	}
@@ -156,6 +156,12 @@ func (n *SMTPNotifier) dial() (err error) {
 
 // Do startTLS if available (some servers only provide the auth extension after, and encryption is preferred).
 func (n *SMTPNotifier) startTLS() error {
+	// Skips STARTTLS if is disabled in configuration.
+	if n.config.DisableStartTLS {
+		n.log.Warn("Notifier SMTP connection has opportunistic STARTTLS explicitly disabled which means all emails will be sent insecurely over plain text and this setting is only necessary for non-compliant SMTP servers which advertise they support STARTTLS when they actually don't support STARTTLS")
+		return nil
+	}
+
 	// Only start if not already encrypted.
 	if _, ok := n.client.TLSConnectionState(); ok {
 		n.log.Debugf("Notifier SMTP connection is already encrypted, skipping STARTTLS")

@@ -10,16 +10,20 @@ const (
 	fileCICommitLintConfig = "web/.commitlintrc.js"
 	fileWebI18NIndex       = "web/src/i18n/index.ts"
 
-	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/development/guidelines-commit-message.md"
+	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/guidelines/commit-message.md"
 
-	fileDocsConfigKeys = "docs/data/configkeys.json"
-	fileCodeConfigKeys = "internal/configuration/schema/keys.go"
-	fileScriptsGen     = "cmd/authelia-scripts/cmd/gen.go"
+	fileCodeConfigKeys  = "internal/configuration/schema/keys.go"
+	fileServerGenerated = "internal/server/gen.go"
+	fileScriptsGen      = "cmd/authelia-scripts/cmd/gen.go"
 
-	dirDocsContent      = "docs/content"
-	dirDocsCLIReference = dirDocsContent + "/en/reference/cli"
+	dirDocs             = "docs"
+	dirDocsContent      = "content"
+	dirDocsData         = "data"
+	dirDocsCLIReference = "en/reference/cli"
 
-	fileDocsDataLanguages = "docs/data/languages.json"
+	fileDocsDataLanguages  = "languages.json"
+	fileDocsDataMisc       = "misc.json"
+	fileDocsDataConfigKeys = "configkeys.json"
 
 	fileGitHubIssueTemplateFR = ".github/ISSUE_TEMPLATE/feature-request.yml"
 	fileGitHubIssueTemplateBR = ".github/ISSUE_TEMPLATE/bug-report.yml"
@@ -48,6 +52,8 @@ const (
 	cmdUseDocs                   = "docs"
 	cmdUseDocsDate               = "date"
 	cmdUseDocsCLI                = "cli"
+	cmdUseDocsData               = "data"
+	cmdUseDocsDataMisc           = "misc"
 	cmdUseGitHub                 = "github"
 	cmdUseGitHubIssueTemplates   = "issue-templates"
 	cmdUseGitHubIssueTemplatesFR = "feature-request"
@@ -57,6 +63,7 @@ const (
 	cmdUseCode                   = "code"
 	cmdUseCodeScripts            = "scripts"
 	cmdUseKeys                   = "keys"
+	cmdUseServer                 = "server"
 )
 
 const (
@@ -66,11 +73,15 @@ const (
 	cmdFlagDirLocales                  = "dir.locales"
 	cmdFlagDocsCLIReference            = "dir.docs.cli-reference"
 	cmdFlagDocsContent                 = "dir.docs.content"
+	cmdFlagDocsData                    = "dir.docs.data"
+	cmdFlagDocs                        = "dir.docs"
 	cmdFlagDocsDataLanguages           = "file.docs.data.languages"
+	cmdFlagDocsDataMisc                = "file.docs.data.misc"
+	cmdFlagDocsDataKeys                = "file.docs.data.keys"
 	cmdFlagCwd                         = "cwd"
 	cmdFlagFileConfigKeys              = "file.configuration-keys"
-	cmdFlagFileDocsKeys                = "file.docs-keys"
 	cmdFlagFileScriptsGen              = "file.scripts.gen"
+	cmdFlagFileServerGenerated         = "file.server.generated"
 	cmdFlagFileConfigCommitLint        = "file.commit-lint-config"
 	cmdFlagFileDocsCommitMsgGuidelines = "file.docs-commit-msg-guidelines"
 	cmdFlagFileWebI18N                 = "file.web-i18n"
@@ -78,4 +89,25 @@ const (
 	cmdFlagBugReport                   = "file.bug-report"
 	cmdFlagPackageConfigKeys           = "package.configuration.keys"
 	cmdFlagPackageScriptsGen           = "package.scripts.gen"
+)
+
+const (
+	codeCSPProductionDefaultSrc  = "'self'"
+	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
+	codeCSPNonce                 = "${NONCE}"
+)
+
+var (
+	codeCSPValuesCommon = []CSPValue{
+		{Name: "default-src", Value: ""},
+		{Name: "frame-src", Value: "'none'"},
+		{Name: "object-src", Value: "'none'"},
+		{Name: "style-src", Value: "'self' 'nonce-%s'"},
+		{Name: "frame-ancestors", Value: "'none'"},
+		{Name: "base-uri", Value: "'self'"},
+	}
+
+	codeCSPValuesProduction = []CSPValue{}
+
+	codeCSPValuesDevelopment = []CSPValue{}
 )

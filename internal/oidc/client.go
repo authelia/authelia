@@ -14,7 +14,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 	client = &Client{
 		ID:               config.ID,
 		Description:      config.Description,
-		Secret:           []byte(config.Secret),
+		Secret:           config.Secret,
 		SectorIdentifier: config.SectorIdentifier.String(),
 		Public:           config.Public,
 
@@ -29,7 +29,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		Policy: authorization.StringToLevel(config.Policy),
 
-		PreConfiguredConsentDuration: config.PreConfiguredConsentDuration,
+		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}
 
 	for _, mode := range config.ResponseModes {
@@ -40,26 +40,30 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 }
 
 // IsAuthenticationLevelSufficient returns if the provided authentication.Level is sufficient for the client of the AutheliaClient.
-func (c Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+func (c *Client) IsAuthenticationLevelSufficient(level authentication.Level) bool {
+	if level == authentication.NotAuthenticated {
+		return false
+	}
+
 	return authorization.IsAuthLevelSufficient(level, c.Policy)
 }
 
 // GetID returns the ID.
-func (c Client) GetID() string {
+func (c *Client) GetID() string {
 	return c.ID
 }
 
 // GetSectorIdentifier returns the SectorIdentifier for this client.
-func (c Client) GetSectorIdentifier() string {
+func (c *Client) GetSectorIdentifier() string {
 	return c.SectorIdentifier
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
+func (c *Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Description,
-		PreConfiguration:  c.PreConfiguredConsentDuration != nil,
+		PreConfiguration:  c.Consent.Mode == ClientConsentModePreConfigured,
 	}
 
 	if consent != nil {
@@ -71,17 +75,21 @@ func (c Client) GetConsentResponseBody(consent *model.OAuth2ConsentSession) Cons
 }
 
 // GetHashedSecret returns the Secret.
-func (c Client) GetHashedSecret() []byte {
-	return c.Secret
+func (c *Client) GetHashedSecret() []byte {
+	if c.Secret == nil {
+		return []byte(nil)
+	}
+
+	return []byte(c.Secret.Encode())
 }
 
 // GetRedirectURIs returns the RedirectURIs.
-func (c Client) GetRedirectURIs() []string {
+func (c *Client) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
 // GetGrantTypes returns the GrantTypes.
-func (c Client) GetGrantTypes() fosite.Arguments {
+func (c *Client) GetGrantTypes() fosite.Arguments {
 	if len(c.GrantTypes) == 0 {
 		return fosite.Arguments{"authorization_code"}
 	}
@@ -90,7 +98,7 @@ func (c Client) GetGrantTypes() fosite.Arguments {
 }
 
 // GetResponseTypes returns the ResponseTypes.
-func (c Client) GetResponseTypes() fosite.Arguments {
+func (c *Client) GetResponseTypes() fosite.Arguments {
 	if len(c.ResponseTypes) == 0 {
 		return fosite.Arguments{"code"}
 	}
@@ -99,23 +107,23 @@ func (c Client) GetResponseTypes() fosite.Arguments {
 }
 
 // GetScopes returns the Scopes.
-func (c Client) GetScopes() fosite.Arguments {
+func (c *Client) GetScopes() fosite.Arguments {
 	return c.Scopes
 }
 
 // IsPublic returns the value of the Public property.
-func (c Client) IsPublic() bool {
+func (c *Client) IsPublic() bool {
 	return c.Public
 }
 
 // GetAudience returns the Audience.
-func (c Client) GetAudience() fosite.Arguments {
+func (c *Client) GetAudience() fosite.Arguments {
 	return c.Audience
 }
 
 // GetResponseModes returns the valid response modes for this client.
 //
 // Implements the fosite.ResponseModeClient.
-func (c Client) GetResponseModes() []fosite.ResponseModeType {
+func (c *Client) GetResponseModes() []fosite.ResponseModeType {
 	return c.ResponseModes
 }

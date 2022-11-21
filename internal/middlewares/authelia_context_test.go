@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -14,6 +15,61 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
+
+func TestIssuerURL(t *testing.T) {
+	testCases := []struct {
+		name              string
+		proto, host, base string
+		expected          string
+		err               string
+	}{
+		{
+			name:  "Standard",
+			proto: "https", host: "auth.example.com", base: "",
+			expected: "https://auth.example.com",
+		},
+		{
+			name:  "Base",
+			proto: "https", host: "example.com", base: "auth",
+			expected: "https://example.com/auth",
+		},
+		{
+			name:  "NoHost",
+			proto: "https", host: "", base: "",
+			err: "Missing header X-Forwarded-Host",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Forwarded-Proto", tc.proto)
+			mock.Ctx.Request.Header.Set("X-Forwarded-Host", tc.host)
+
+			if tc.base != "" {
+				mock.Ctx.SetUserValue("base_url", tc.base)
+			}
+
+			actual, err := mock.Ctx.IssuerURL()
+
+			switch tc.err {
+			case "":
+				assert.NoError(t, err)
+				require.NotNil(t, actual)
+
+				assert.Equal(t, tc.expected, actual.String())
+				assert.Equal(t, tc.proto, actual.Scheme)
+				assert.Equal(t, tc.host, actual.Host)
+				assert.Equal(t, tc.base, actual.Path)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
 
 func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctrl := gomock.NewController(t)

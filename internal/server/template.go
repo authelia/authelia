@@ -64,7 +64,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		}
 
 		baseURL := scheme + "://" + string(ctx.XForwardedHost()) + base + "/"
-		nonce := utils.RandomString(32, utils.AlphaNumericCharacters, true)
+		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric, true)
 
 		switch extension := filepath.Ext(file); extension {
 		case ".html":
@@ -75,13 +75,13 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 
 		switch {
 		case publicDir == assetsSwagger:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf("base-uri 'self'; default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline' 'nonce-%s'; style-src 'self' 'nonce-%s'", nonce, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce, nonce))
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, cspNoncePlaceholder, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(ctx.Configuration.Server.Headers.CSPTemplate, placeholderCSPNonce, nonce))
 		case os.Getenv("ENVIRONMENT") == dev:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(cspDefaultTemplate, " 'unsafe-eval'", nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
 		default:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(cspDefaultTemplate, "", nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
 		}
 
 		err := tmpl.Execute(ctx.Response.BodyWriter(), struct{ Base, BaseURL, CSPNonce, DuoSelfEnrollment, LogoOverride, RememberMe, ResetPassword, ResetPasswordCustomURL, Session, Theme string }{Base: base, BaseURL: baseURL, CSPNonce: nonce, DuoSelfEnrollment: duoSelfEnrollment, LogoOverride: logoOverride, RememberMe: rememberMe, ResetPassword: resetPassword, ResetPasswordCustomURL: resetPasswordCustomURL, Session: session, Theme: theme})

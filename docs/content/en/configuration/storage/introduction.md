@@ -44,7 +44,7 @@ value, and use that to encrypt the data with the AES-GCM 256bit algorithm.
 The minimum length of this key is 20 characters.
 
 It's __strongly recommended__ this is a
-[Random Alphanumeric String](../miscellaneous/guides.md#generating-a-random-alphanumeric-string) with 64 or more
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
 See [security measures](../../overview/security/measures.md#storage-security-measures) for more information.

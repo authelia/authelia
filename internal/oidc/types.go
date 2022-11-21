@@ -1,9 +1,10 @@
 package oidc
 
 import (
-	"crypto/rsa"
+	"net/url"
 	"time"
 
+	"github.com/go-crypt/crypt"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
@@ -21,46 +22,46 @@ func NewSession() (session *model.OpenIDSession) {
 	return &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Extra: map[string]interface{}{},
+				Extra: map[string]any{},
 			},
 			Headers: &jwt.Headers{
-				Extra: map[string]interface{}{},
+				Extra: map[string]any{},
 			},
 		},
-		Extra: map[string]interface{}{},
+		Extra: map[string]any{},
 	}
 }
 
 // NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, extra map[string]interface{},
+func NewSessionWithAuthorizeRequest(issuer *url.URL, kid, username string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester fosite.AuthorizeRequester) (session *model.OpenIDSession) {
 	if extra == nil {
-		extra = make(map[string]interface{})
+		extra = map[string]any{}
 	}
 
 	session = &model.OpenIDSession{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Subject:     consent.Subject.UUID.String(),
-				Issuer:      issuer,
+				Issuer:      issuer.String(),
 				AuthTime:    authTime,
 				RequestedAt: consent.RequestedAt,
 				IssuedAt:    time.Now(),
-				Nonce:       requester.GetRequestForm().Get("nonce"),
+				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
 				Audience:    requester.GetGrantedAudience(),
 				Extra:       extra,
 
 				AuthenticationMethodsReferences: amr,
 			},
 			Headers: &jwt.Headers{
-				Extra: map[string]interface{}{
-					"kid": kid,
+				Extra: map[string]any{
+					JWTHeaderKeyIdentifier: kid,
 				},
 			},
 			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
-		Extra:       map[string]interface{}{},
+		Extra:       map[string]any{},
 		ClientID:    requester.GetClient().GetID(),
 		ChallengeID: consent.ChallengeID,
 	}
@@ -70,29 +71,30 @@ func NewSessionWithAuthorizeRequest(issuer, kid, username string, amr []string, 
 		session.Claims.Audience = append(session.Claims.Audience, requester.GetClient().GetID())
 	}
 
-	session.Claims.Add("azp", session.ClientID)
-	session.Claims.Add("client_id", session.ClientID)
+	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
+	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
 }
 
 // OpenIDConnectProvider for OpenID Connect.
 type OpenIDConnectProvider struct {
-	Fosite     fosite.OAuth2Provider
-	Store      *OpenIDConnectStore
-	KeyManager *KeyManager
+	fosite.OAuth2Provider
+	*herodot.JSONWriter
+	*Store
+	*Config
 
-	herodot *herodot.JSONWriter
+	KeyManager *KeyManager
 
 	discovery OpenIDConnectWellKnownConfiguration
 }
 
-// OpenIDConnectStore is Authelia's internal representation of the fosite.Storage interface. It maps the following
+// Store is Authelia's internal representation of the fosite.Storage interface. It maps the following
 // interfaces to the storage.Provider interface:
 // fosite.Storage, fosite.ClientManager, storage.Transactional, oauth2.AuthorizeCodeStorage, oauth2.AccessTokenStorage,
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
-type OpenIDConnectStore struct {
+type Store struct {
 	provider storage.Provider
 	clients  map[string]*Client
 }
@@ -101,7 +103,7 @@ type OpenIDConnectStore struct {
 type Client struct {
 	ID               string
 	Description      string
-	Secret           []byte
+	Secret           crypt.Digest
 	SectorIdentifier string
 	Public           bool
 
@@ -116,20 +118,74 @@ type Client struct {
 
 	Policy authorization.Level
 
-	PreConfiguredConsentDuration *time.Duration
+	Consent ClientConsent
+}
+
+// NewClientConsent converts the schema.OpenIDConnectClientConsentConfig into a oidc.ClientConsent.
+func NewClientConsent(mode string, duration *time.Duration) ClientConsent {
+	switch mode {
+	case ClientConsentModeImplicit.String():
+		return ClientConsent{Mode: ClientConsentModeImplicit}
+	case ClientConsentModePreConfigured.String():
+		return ClientConsent{Mode: ClientConsentModePreConfigured, Duration: *duration}
+	case ClientConsentModeExplicit.String():
+		return ClientConsent{Mode: ClientConsentModeExplicit}
+	default:
+		return ClientConsent{Mode: ClientConsentModeExplicit}
+	}
+}
+
+// ClientConsent is the consent configuration for a client.
+type ClientConsent struct {
+	Mode     ClientConsentMode
+	Duration time.Duration
+}
+
+// String returns the string representation of the ClientConsentMode.
+func (c ClientConsent) String() string {
+	return c.Mode.String()
+}
+
+// ClientConsentMode represents the consent mode for a client.
+type ClientConsentMode int
+
+const (
+	// ClientConsentModeExplicit means the client does not implicitly assume consent, and does not allow pre-configured
+	// consent sessions.
+	ClientConsentModeExplicit ClientConsentMode = iota
+
+	// ClientConsentModePreConfigured means the client does not implicitly assume consent, but does allow pre-configured
+	// consent sessions.
+	ClientConsentModePreConfigured
+
+	// ClientConsentModeImplicit means the client does implicitly assume consent, and does not allow pre-configured
+	// consent sessions.
+	ClientConsentModeImplicit
+)
+
+// String returns the string representation of the ClientConsentMode.
+func (c ClientConsentMode) String() string {
+	switch c {
+	case ClientConsentModeExplicit:
+		return explicit
+	case ClientConsentModeImplicit:
+		return implicit
+	case ClientConsentModePreConfigured:
+		return preconfigured
+	default:
+		return ""
+	}
 }
 
 // KeyManager keeps track of all of the active/inactive rsa keys and provides them to services requiring them.
 // It additionally allows us to add keys for the purpose of key rotation in the future.
 type KeyManager struct {
-	activeKeyID string
-	keys        map[string]*rsa.PrivateKey
-	keySet      *jose.JSONWebKeySet
-	strategy    *RS256JWTStrategy
+	jwk  *JWK
+	jwks *jose.JSONWebKeySet
 }
 
-// PlainTextHasher implements the fosite.Hasher interface without an actual hashing algo.
-type PlainTextHasher struct{}
+// AdaptiveHasher implements the fosite.Hasher interface without an actual hashing algo.
+type AdaptiveHasher struct{}
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
@@ -142,8 +198,8 @@ type ConsentGetResponseBody struct {
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
+	ConsentID    string `json:"id"`
 	ClientID     string `json:"client_id"`
-	ConsentID    string `json:"consent_id"`
 	Consent      bool   `json:"consent"`
 	PreConfigure bool   `json:"pre_configure"`
 }
@@ -552,16 +608,36 @@ type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	BackChannelLogoutSessionSupported bool `json:"backchannel_logout_session_supported"`
 }
 
+// PushedAuthorizationDiscoveryOptions represents the well known discovery document specific to the
+// OAuth 2.0 Pushed Authorization Requests (RFC9126) implementation.
+//
+// OAuth 2.0 Pushed Authorization Requests: https://datatracker.ietf.org/doc/html/rfc9126#section-5
+type PushedAuthorizationDiscoveryOptions struct {
+	/*
+	   The URL of the pushed authorization request endpoint at which a client can post an authorization request to
+	   exchange for a "request_uri" value usable at the authorization server.
+	*/
+	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
+
+	/*
+		    Boolean parameter indicating whether the authorization server accepts authorization request data only via PAR.
+			If omitted, the default value is "false".
+	*/
+	RequirePushedAuthorizationRequests bool `json:"require_pushed_authorization_requests"`
+}
+
 // OAuth2WellKnownConfiguration represents the well known discovery document specific to OAuth 2.0.
 type OAuth2WellKnownConfiguration struct {
 	CommonDiscoveryOptions
 	OAuth2DiscoveryOptions
+	PushedAuthorizationDiscoveryOptions
 }
 
 // OpenIDConnectWellKnownConfiguration represents the well known discovery document specific to OpenID Connect.
 type OpenIDConnectWellKnownConfiguration struct {
 	CommonDiscoveryOptions
 	OAuth2DiscoveryOptions
+	PushedAuthorizationDiscoveryOptions
 	OpenIDConnectDiscoveryOptions
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions

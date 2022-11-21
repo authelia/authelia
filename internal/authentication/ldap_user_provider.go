@@ -17,7 +17,7 @@ import (
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
 type LDAPUserProvider struct {
-	config    schema.LDAPAuthenticationBackendConfiguration
+	config    schema.LDAPAuthenticationBackend
 	tlsConfig *tls.Config
 	dialOpts  []ldap.DialOpt
 	log       *logrus.Logger
@@ -42,18 +42,18 @@ type LDAPUserProvider struct {
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider.
-func NewLDAPUserProvider(config schema.AuthenticationBackendConfiguration, certPool *x509.CertPool) (provider *LDAPUserProvider) {
+func NewLDAPUserProvider(config schema.AuthenticationBackend, certPool *x509.CertPool) (provider *LDAPUserProvider) {
 	provider = newLDAPUserProvider(*config.LDAP, config.PasswordReset.Disable, certPool, nil)
 
 	return provider
 }
 
-func newLDAPUserProvider(config schema.LDAPAuthenticationBackendConfiguration, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
-		config.TLS = schema.DefaultLDAPAuthenticationBackendConfiguration.TLS
+		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
 
-	tlsConfig := utils.NewTLSConfig(config.TLS, tls.VersionTLS12, certPool)
+	tlsConfig := utils.NewTLSConfig(config.TLS, certPool)
 
 	var dialOpts = []ldap.DialOpt{
 		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
@@ -126,28 +126,31 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}
 
 	var (
-		filter        string
-		searchRequest *ldap.SearchRequest
-		searchResult  *ldap.SearchResult
+		request *ldap.SearchRequest
+		result  *ldap.SearchResult
 	)
-
-	if filter, err = p.resolveGroupsFilter(username, profile); err != nil {
-		return nil, fmt.Errorf("unable to create group filter for user '%s'. Cause: %w", username, err)
-	}
 
 	// Search for the users groups.
-	searchRequest = ldap.NewSearchRequest(
+	request = ldap.NewSearchRequest(
 		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, filter, p.groupsAttributes, nil,
+		0, 0, false, p.resolveGroupsFilter(username, profile), p.groupsAttributes, nil,
 	)
 
-	if searchResult, err = p.search(client, searchRequest); err != nil {
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing group search")
+
+	if result, err = p.search(client, request); err != nil {
 		return nil, fmt.Errorf("unable to retrieve groups of user '%s'. Cause: %w", username, err)
 	}
 
 	groups := make([]string, 0)
 
-	for _, res := range searchResult.Entries {
+	for _, res := range result.Entries {
 		if len(res.Attributes) == 0 {
 			p.log.Warningf("No groups retrieved from LDAP for user %s", username)
 			break
@@ -254,35 +257,35 @@ func (p *LDAPUserProvider) connectCustom(url, username, password string, startTL
 	return client, nil
 }
 
-func (p *LDAPUserProvider) search(client LDAPClient, searchRequest *ldap.SearchRequest) (searchResult *ldap.SearchResult, err error) {
-	if searchResult, err = client.Search(searchRequest); err != nil {
+func (p *LDAPUserProvider) search(client LDAPClient, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
+	if result, err = client.Search(request); err != nil {
 		if referral, ok := p.getReferral(err); ok {
-			if searchResult == nil {
-				searchResult = &ldap.SearchResult{
+			if result == nil {
+				result = &ldap.SearchResult{
 					Referrals: []string{referral},
 				}
 			} else {
-				searchResult.Referrals = append(searchResult.Referrals, referral)
+				result.Referrals = append(result.Referrals, referral)
 			}
 		}
 	}
 
-	if !p.config.PermitReferrals || len(searchResult.Referrals) == 0 {
+	if !p.config.PermitReferrals || len(result.Referrals) == 0 {
 		if err != nil {
 			return nil, err
 		}
 
-		return searchResult, nil
+		return result, nil
 	}
 
-	if err = p.searchReferrals(searchRequest, searchResult); err != nil {
+	if err = p.searchReferrals(request, result); err != nil {
 		return nil, err
 	}
 
-	return searchResult, nil
+	return result, nil
 }
 
-func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
+func (p *LDAPUserProvider) searchReferral(referral string, request *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
 	var (
 		client LDAPClient
 		result *ldap.SearchResult
@@ -294,7 +297,7 @@ func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.S
 
 	defer client.Close()
 
-	if result, err = client.Search(searchRequest); err != nil {
+	if result, err = client.Search(request); err != nil {
 		return fmt.Errorf("error occurred performing search on referred LDAP server '%s': %w", referral, err)
 	}
 
@@ -307,9 +310,9 @@ func (p *LDAPUserProvider) searchReferral(referral string, searchRequest *ldap.S
 	return nil
 }
 
-func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
-	for i := 0; i < len(searchResult.Referrals); i++ {
-		if err = p.searchReferral(searchResult.Referrals[i], searchRequest, searchResult); err != nil {
+func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *ldap.SearchResult) (err error) {
+	for i := 0; i < len(result.Referrals); i++ {
+		if err = p.searchReferral(result.Referrals[i], request, result); err != nil {
 			return err
 		}
 	}
@@ -318,33 +321,39 @@ func (p *LDAPUserProvider) searchReferrals(searchRequest *ldap.SearchRequest, se
 }
 
 func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (profile *ldapUserProfile, err error) {
-	userFilter := p.resolveUsersFilter(username)
-
 	// Search for the given username.
-	searchRequest := ldap.NewSearchRequest(
+	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, userFilter, p.usersAttributes, nil,
+		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
 	)
 
-	var searchResult *ldap.SearchResult
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing user search")
 
-	if searchResult, err = p.search(client, searchRequest); err != nil {
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
 		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", username, err)
 	}
 
-	if len(searchResult.Entries) == 0 {
+	if len(result.Entries) == 0 {
 		return nil, ErrUserNotFound
 	}
 
-	if len(searchResult.Entries) > 1 {
-		return nil, fmt.Errorf("there were %d users found when searching for '%s' but there should only be 1", len(searchResult.Entries), username)
+	if len(result.Entries) > 1 {
+		return nil, fmt.Errorf("there were %d users found when searching for '%s' but there should only be 1", len(result.Entries), username)
 	}
 
 	userProfile := ldapUserProfile{
-		DN: searchResult.Entries[0].DN,
+		DN: result.Entries[0].DN,
 	}
 
-	for _, attr := range searchResult.Entries[0].Attributes {
+	for _, attr := range result.Entries[0].Attributes {
 		attrs := len(attr.Values)
 
 		if attr.Name == p.config.UsernameAttribute {
@@ -398,7 +407,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
 	return filter
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string, err error) { //nolint:unparam
+func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string) {
 	filter = p.config.GroupsFilter
 
 	if p.groupsFilterReplacementInput {
@@ -418,7 +427,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUse
 
 	p.log.Tracef("Computed groups filter is %s", filter)
 
-	return filter, nil
+	return filter
 }
 
 func (p *LDAPUserProvider) modify(client LDAPClient, modifyRequest *ldap.ModifyRequest) (err error) {

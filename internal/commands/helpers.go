@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"crypto/x509"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/metrics"
@@ -18,10 +20,21 @@ import (
 
 func getStorageProvider() (provider storage.Provider) {
 	switch {
+	case config.Storage.Local == nil:
+		return getStorageProviderWithPool(nil)
+	default:
+		caCertPool, _, _ := utils.NewX509CertPool(config.CertificatesDirectory)
+
+		return getStorageProviderWithPool(caCertPool)
+	}
+}
+
+func getStorageProviderWithPool(caCertPool *x509.CertPool) (provider storage.Provider) {
+	switch {
 	case config.Storage.PostgreSQL != nil:
-		return storage.NewPostgreSQLProvider(config)
+		return storage.NewPostgreSQLProvider(config, caCertPool)
 	case config.Storage.MySQL != nil:
-		return storage.NewMySQLProvider(config)
+		return storage.NewMySQLProvider(config, caCertPool)
 	case config.Storage.Local != nil:
 		return storage.NewSQLiteProvider(config)
 	default:
@@ -31,12 +44,12 @@ func getStorageProvider() (provider storage.Provider) {
 
 func getProviders() (providers middlewares.Providers, warnings []error, errors []error) {
 	// TODO: Adjust this so the CertPool can be used like a provider.
-	autheliaCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
+	caCertPool, warnings, errors := utils.NewX509CertPool(config.CertificatesDirectory)
 	if len(warnings) != 0 || len(errors) != 0 {
 		return providers, warnings, errors
 	}
 
-	storageProvider := getStorageProvider()
+	storageProvider := getStorageProviderWithPool(caCertPool)
 
 	var (
 		userProvider authentication.UserProvider
@@ -47,7 +60,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 	case config.AuthenticationBackend.File != nil:
 		userProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, autheliaCertPool)
+		userProvider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
 	}
 
 	templatesProvider, err := templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath})
@@ -59,7 +72,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 
 	switch {
 	case config.Notifier.SMTP != nil:
-		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, autheliaCertPool, templatesProvider)
+		notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool, templatesProvider)
 	case config.Notifier.FileSystem != nil:
 		notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}
@@ -68,7 +81,7 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 
 	clock := utils.RealClock{}
 	authorizer := authorization.NewAuthorizer(config)
-	sessionProvider := session.NewProvider(config.Session, autheliaCertPool)
+	sessionProvider := session.NewProvider(config.Session, caCertPool)
 	regulator := regulation.NewRegulator(config.Regulation, storageProvider, clock)
 
 	oidcProvider, err := oidc.NewOpenIDConnectProvider(config.IdentityProviders.OIDC, storageProvider)

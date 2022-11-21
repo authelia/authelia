@@ -15,19 +15,19 @@ aliases:
   - /docs/home/supported-proxies.html
 ---
 
-|         Proxy         |                      [Standard](#standard)                       |                              [Kubernetes](#kubernetes)                               |    [XHR Redirect](#xhr-redirect)     |  [Request Method](#request-method)   |
-|:---------------------:|:----------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:------------------------------------:|:------------------------------------:|
-|       [Traefik]       |         [<i class="icon-support-full"></i>](traefik.md)          | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [NGINX]        |          [<i class="icon-support-full"></i>](nginx.md)           |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-| [NGINX Proxy Manager] |   [<i class="icon-support-full"></i>](nginx-proxy-manager.md)    |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|        [SWAG]         |           [<i class="icon-support-full"></i>](swag.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-none"></i>   |  <i class="icon-support-full"></i>   |
-|       [HAProxy]       |         [<i class="icon-support-full"></i>](haproxy.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> |  <i class="icon-support-full"></i>   |
-|        [Caddy]        |          [<i class="icon-support-full"></i>](caddy.md)           |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|     [Traefik] 1.x     |        [<i class="icon-support-full"></i>](traefikv1.md)         |                         <i class="icon-support-unknown"></i>                         |  <i class="icon-support-full"></i>   |  <i class="icon-support-full"></i>   |
-|        [Envoy]        |         [<i class="icon-support-unknown"></i>](envoy.md)         |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Skipper]       |         [<i class="icon-support-full"></i>](skipper.md)          |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-unknown"></i> | <i class="icon-support-unknown"></i> |
-|       [Apache]        | [<i class="icon-support-none" alt="Not Supported"></i>](#apache) |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
-|         [IIS]         |            [<i class="icon-support-none"></i>](#iis)             |                          <i class="icon-support-none"></i>                           |  <i class="icon-support-none"></i>   |  <i class="icon-support-none"></i>   |
+|         Proxy         |                      [Standard](#standard)                       |                              [Kubernetes](#kubernetes)                               |             [XHR Redirect](#xhr-redirect)             |           [Request Method](#request-method)           |
+|:---------------------:|:----------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:-----------------------------------------------------:|:-----------------------------------------------------:|
+|       [Traefik]       |         [<i class="icon-support-full"></i>](traefik.md)          | [<i class="icon-support-full"></i>](../../integration/kubernetes/traefik-ingress.md) |           <i class="icon-support-full"></i>           |           <i class="icon-support-full"></i>           |
+|        [NGINX]        |          [<i class="icon-support-full"></i>](nginx.md)           |  [<i class="icon-support-full"></i>](../../integration/kubernetes/nginx-ingress.md)  | <i class="icon-support-none" alt="Not Supported"></i> |           <i class="icon-support-full"></i>           |
+| [NGINX Proxy Manager] |   [<i class="icon-support-full"></i>](nginx-proxy-manager.md)    |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-none" alt="Not Supported"></i> |           <i class="icon-support-full"></i>           |
+|        [SWAG]         |           [<i class="icon-support-full"></i>](swag.md)           |                         <i class="icon-support-unknown"></i>                         | <i class="icon-support-none" alt="Not Supported"></i> |           <i class="icon-support-full"></i>           |
+|       [HAProxy]       |         [<i class="icon-support-full"></i>](haproxy.md)          |                         <i class="icon-support-unknown"></i>                         |         <i class="icon-support-unknown"></i>          |           <i class="icon-support-full"></i>           |
+|        [Caddy]        |          [<i class="icon-support-full"></i>](caddy.md)           |                         <i class="icon-support-unknown"></i>                         |           <i class="icon-support-full"></i>           |           <i class="icon-support-full"></i>           |
+|     [Traefik] 1.x     |        [<i class="icon-support-full"></i>](traefikv1.md)         |                         <i class="icon-support-unknown"></i>                         |           <i class="icon-support-full"></i>           |           <i class="icon-support-full"></i>           |
+|        [Envoy]        |          [<i class="icon-support-full"></i>](envoy.md)           |      [<i class="icon-support-full"></i>](../../integration/kubernetes/istio.md)      |         <i class="icon-support-unknown"></i>          |           <i class="icon-support-full"></i>           |
+|       [Skipper]       |         [<i class="icon-support-full"></i>](skipper.md)          |                         <i class="icon-support-unknown"></i>                         |         <i class="icon-support-unknown"></i>          |         <i class="icon-support-unknown"></i>          |
+|       [Apache]        | [<i class="icon-support-none" alt="Not Supported"></i>](#apache) |                <i class="icon-support-none" alt="Not Supported"></i>                 | <i class="icon-support-none" alt="Not Supported"></i> | <i class="icon-support-none" alt="Not Supported"></i> |
+|         [IIS]         |  [<i class="icon-support-none" alt="Not Supported"></i>](#iis)   |                <i class="icon-support-none" alt="Not Supported"></i>                 | <i class="icon-support-none" alt="Not Supported"></i> | <i class="icon-support-none" alt="Not Supported"></i> |
 
 Legend:
 
@@ -87,8 +87,9 @@ available in [Kubernetes]. You would likely have to build your own [HAProxy] ima
 
 ### Envoy
 
-[Envoy] is currently not documented, however a small pending feature will add complete support for [Envoy]. This is
-possible via [Envoy]'s [external authorization](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz).
+[Envoy] is supported with Authelia v4.37.0 and higher via [Envoy]'s [external authorization] filter.
+
+[external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
 ### Caddy
 

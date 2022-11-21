@@ -8,7 +8,7 @@ images: []
 menu:
   reference:
     parent: "cli-authelia"
-weight: 330
+weight: 905
 toc: true
 ---
 
@@ -21,7 +21,7 @@ Hash a password to be used in file-based users database
 Hash a password to be used in file-based users database.
 
 ```
-authelia hash-password [flags] -- <password>
+authelia hash-password [flags] -- [password]
 ```
 
 ### Examples
@@ -38,13 +38,13 @@ authelia hash-password --key-length=64 -- 'mypass'
 ### Options
 
 ```
-  -c, --config strings    Configuration files
+  -c, --config strings    configuration files to load (default [configuration.yml])
   -h, --help              help for hash-password
   -i, --iterations int    set the number of hashing iterations (default 3)
   -k, --key-length int    [argon2id] set the key length param (default 32)
-  -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 64)
+  -m, --memory int        [argon2id] set the amount of memory param (in MB) (default 65536)
+      --no-confirm        skip the password confirmation prompt
   -p, --parallelism int   [argon2id] set the parallelism param (default 4)
-  -s, --salt string       set the salt string
   -l, --salt-length int   set the auto-generated salt length (default 16)
   -z, --sha512            use sha512 as the algorithm (changes iterations to 50000, change with -i)
 ```

@@ -55,7 +55,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -114,7 +114,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&authResponse, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -143,7 +143,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 	values.Set("factor", "push")
 	values.Set("device", "12345ABCDEFGHIJ67890")
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -163,7 +163,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Any()).Return(nil, fmt.Errorf("Connnection error"))
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -192,7 +192,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 
 	s.mock.StorageMock.EXPECT().DeletePreferredDuoDevice(s.mock.Ctx, "john").Return(nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -226,7 +226,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 
 	s.mock.StorageMock.EXPECT().DeletePreferredDuoDevice(s.mock.Ctx, "john").Return(nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -264,7 +264,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -320,7 +320,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&authResponse, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -343,7 +343,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&preAuthResponse, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{TargetURL: "https://target.example.com"})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{TargetURL: "https://target.example.com"})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -373,7 +373,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 	values.Set("factor", "push")
 	values.Set("device", "12345ABCDEFGHIJ67890")
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -391,7 +391,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 
 	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, gomock.Any()).Return(nil, fmt.Errorf("Connnection error"))
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -443,7 +443,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Eq(values)).Return(&response, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -474,7 +474,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(nil, fmt.Errorf("Connnection error"))
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -522,7 +522,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 
 	s.mock.Ctx.Configuration.DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -569,7 +569,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{})
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
@@ -618,15 +618,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{
-		TargetURL: "https://mydomain.example.com",
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{
+		TargetURL: "https://example.com",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
 	DuoPOST(duoMock)(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
-		Redirect: "https://mydomain.example.com",
+		Redirect: "https://example.com",
 	})
 }
 
@@ -667,8 +667,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{
-		TargetURL: "http://mydomain.example.com",
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{
+		TargetURL: "http://example.com",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
@@ -714,8 +714,8 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 
 	duoMock.EXPECT().AuthCall(s.mock.Ctx, gomock.Any()).Return(&response, nil)
 
-	bodyBytes, err := json.Marshal(signDuoRequestBody{
-		TargetURL: "http://mydomain.example.com",
+	bodyBytes, err := json.Marshal(bodySignDuoRequest{
+		TargetURL: "http://example.com",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)

@@ -1,17 +1,17 @@
 #!/bin/sh
 
-PMGR=pnpm
+export PMGR=pnpm
 
-if [[ ! -x "$(command -v golangci-lint)" ]]; then
+if [ ! -x "$(command -v golangci-lint)" ]; then
   echo "You must install golangci-lint."
   exit 1
 fi
 
-if [[ ! -x "$(command -v pnpm)" ]]; then
-  PMGR=yarn
-  if [[ ! -x "$(command -v yarn)" ]]; then
-    PMGR=npm
-    if [[ ! -x "$(command -v npm)" ]]; then
+if [ ! -x "$(command -v pnpm)" ]; then
+  export PMGR=yarn
+  if [ ! -x "$(command -v yarn)" ]; then
+    export PMGR=npm
+    if [ ! -x "$(command -v npm)" ]; then
       echo "You must install a node package manager."
       exit 1
     fi

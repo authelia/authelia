@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,7 +30,19 @@ func newCodeCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newCodeKeysCmd(), newCodeScriptsCmd())
+	cmd.AddCommand(newCodeKeysCmd(), newCodeServerCmd(), newCodeScriptsCmd())
+
+	return cmd
+}
+
+func newCodeServerCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   cmdUseServer,
+		Short: "Generate the Authelia server files",
+		RunE:  codeServerRunE,
+
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }
@@ -55,6 +69,38 @@ func newCodeKeysCmd() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func codeServerRunE(cmd *cobra.Command, args []string) (err error) {
+	data := TemplateCSP{
+		PlaceholderNONCE:    codeCSPNonce,
+		TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+		TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
+	}
+
+	var outputPath string
+
+	if outputPath, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagFileServerGenerated); err != nil {
+		return err
+	}
+
+	var f *os.File
+
+	if f, err = os.Create(outputPath); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", outputPath, err)
+	}
+
+	if err = tmplServer.Execute(f, data); err != nil {
+		_ = f.Close()
+
+		return fmt.Errorf("failed to write output file '%s': %w", outputPath, err)
+	}
+
+	if err = f.Close(); err != nil {
+		return fmt.Errorf("failed to close output file '%s': %w", outputPath, err)
+	}
+
+	return nil
 }
 
 func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
@@ -127,11 +173,6 @@ func codeScriptsRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-// GitHubTagsJSON represents the JSON struct for the GitHub Tags API.
-type GitHubTagsJSON struct {
-	Name string `json:"name"`
-}
-
 func codeKeysRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		pathCodeConfigKeys, root string
@@ -181,6 +222,8 @@ var decodedTypes = []reflect.Type{
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
 	reflect.TypeOf(schema.Address{}),
+	reflect.TypeOf(rsa.PrivateKey{}),
+	reflect.TypeOf(ecdsa.PrivateKey{}),
 }
 
 func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) {
@@ -197,8 +240,17 @@ func containsType(needle reflect.Type, haystack []reflect.Type) (contains bool) 
 	return false
 }
 
+//nolint:gocyclo
 func readTags(prefix string, t reflect.Type) (tags []string) {
 	tags = make([]string, 0)
+
+	if t.Kind() != reflect.Struct {
+		if t.Kind() == reflect.Slice {
+			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true), t.Elem())...)
+		}
+
+		return
+	}
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -219,13 +271,16 @@ func readTags(prefix string, t reflect.Type) (tags []string) {
 				continue
 			}
 		case reflect.Slice:
-			if field.Type.Elem().Kind() == reflect.Struct {
+			switch field.Type.Elem().Kind() {
+			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false))
 					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
 
 					continue
 				}
+			case reflect.Slice:
+				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true), field.Type.Elem())...)
 			}
 		case reflect.Ptr:
 			switch field.Type.Elem().Kind() {
@@ -264,6 +319,10 @@ func getKeyNameFromTagAndPrefix(prefix, name string, slice bool) string {
 	}
 
 	if slice {
+		if name == "" {
+			return fmt.Sprintf("%s[]", prefix)
+		}
+
 		return fmt.Sprintf("%s.%s[]", prefix, nameParts[0])
 	}
 

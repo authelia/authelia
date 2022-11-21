@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"crypto/tls"
 	"net/mail"
 	"time"
 )
@@ -23,6 +24,7 @@ type SMTPNotifierConfiguration struct {
 	StartupCheckAddress mail.Address  `koanf:"startup_check_address"`
 	DisableRequireTLS   bool          `koanf:"disable_require_tls"`
 	DisableHTMLEmails   bool          `koanf:"disable_html_emails"`
+	DisableStartTLS     bool          `koanf:"disable_starttls"`
 	TLS                 *TLSConfig    `koanf:"tls"`
 }
 
@@ -41,6 +43,6 @@ var DefaultSMTPNotifierConfiguration = SMTPNotifierConfiguration{
 	Identifier:          "localhost",
 	StartupCheckAddress: mail.Address{Name: "Authelia Test", Address: "test@authelia.com"},
 	TLS: &TLSConfig{
-		MinimumVersion: "TLS1.2",
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }

@@ -140,7 +140,7 @@ func isSessionInactiveTooLong(ctx *middlewares.AutheliaCtx, userSession *session
 func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool,
 	refreshProfileInterval time.Duration) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
 	// No username in the session means the user is anonymous.
-	isUserAnonymous := userSession.Username == ""
+	isUserAnonymous := userSession.IsAnonymous()
 
 	if isUserAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
 		return "", "", nil, nil, authentication.NotAuthenticated, fmt.Errorf("an anonymous user cannot be authenticated (this might be the sign of a security compromise)")
@@ -218,7 +218,7 @@ func handleUnauthorized(ctx *middlewares.AutheliaCtx, targetURL fmt.Stringer, is
 
 		qry := redirectionURL.Query()
 
-		qry.Set("rd", targetURL.String())
+		qry.Set(queryArgRD, targetURL.String())
 
 		if rm != "" {
 			qry.Set("rm", rm)
@@ -319,7 +319,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	// See https://www.authelia.com/o/threatmodel#potential-future-guarantees
 	ctx.Logger.Tracef("Checking if we need check the authentication backend for an updated profile for %s.", userSession.Username)
 
-	if !refreshProfile || userSession.Username == "" || targetURL == nil {
+	if !refreshProfile || userSession.IsAnonymous() || targetURL == nil {
 		return nil
 	}
 
@@ -370,7 +370,7 @@ func verifySessionHasUpToDateProfile(ctx *middlewares.AutheliaCtx, targetURL *ur
 	return nil
 }
 
-func getProfileRefreshSettings(cfg schema.AuthenticationBackendConfiguration) (refresh bool, refreshInterval time.Duration) {
+func getProfileRefreshSettings(cfg schema.AuthenticationBackend) (refresh bool, refreshInterval time.Duration) {
 	if cfg.LDAP != nil {
 		if cfg.RefreshInterval == schema.ProfileRefreshDisabled {
 			refresh = false
@@ -431,7 +431,7 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 }
 
 // VerifyGET returns the handler verifying if a request is allowed to go through.
-func VerifyGET(cfg schema.AuthenticationBackendConfiguration) middlewares.RequestHandler {
+func VerifyGET(cfg schema.AuthenticationBackend) middlewares.RequestHandler {
 	refreshProfile, refreshProfileInterval := getProfileRefreshSettings(cfg)
 
 	return func(ctx *middlewares.AutheliaCtx) {

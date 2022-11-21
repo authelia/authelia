@@ -151,17 +151,17 @@ func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 		WithDefaultPolicy(deny).
 		WithRule(schema.ACLRule{
 			Domains: []string{"{user}.example.com"},
-			Policy:  bypass,
+			Policy:  oneFactor,
 		}).
 		WithRule(schema.ACLRule{
 			Domains: []string{"{group}.example.com"},
-			Policy:  bypass,
+			Policy:  oneFactor,
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.example.com/", "GET", Bypass)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", "GET", Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.example.com/", "GET", OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://othergroup.example.com/", "GET", Denied)
 }
 
@@ -206,6 +206,129 @@ func (s *AuthorizerSuite) TestShouldCheckFactorsPolicy() {
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://protected.example.com/", "GET", TwoFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://single.example.com/", "GET", OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", "GET", Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldCheckQueryPolicy() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.ACLRule{
+			Domains: []string{"one.example.com"},
+			Query: [][]schema.ACLQueryRule{
+				{
+					{
+						Operator: operatorEqual,
+						Key:      "test",
+						Value:    "two",
+					},
+					{
+						Operator: operatorAbsent,
+						Key:      "admin",
+					},
+				},
+				{
+					{
+						Operator: operatorPresent,
+						Key:      "public",
+					},
+				},
+			},
+			Policy: oneFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"two.example.com"},
+			Query: [][]schema.ACLQueryRule{
+				{
+					{
+						Operator: operatorEqual,
+						Key:      "test",
+						Value:    "one",
+					},
+				},
+				{
+					{
+						Operator: operatorEqual,
+						Key:      "test",
+						Value:    "two",
+					},
+				},
+			},
+			Policy: twoFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"three.example.com"},
+			Query: [][]schema.ACLQueryRule{
+				{
+					{
+						Operator: operatorNotEqual,
+						Key:      "test",
+						Value:    "one",
+					},
+					{
+						Operator: operatorNotEqual,
+						Key:      "test",
+						Value:    "two",
+					},
+				},
+			},
+			Policy: twoFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"four.example.com"},
+			Query: [][]schema.ACLQueryRule{
+				{
+					{
+						Operator: operatorPattern,
+						Key:      "test",
+						Value:    regexp.MustCompile(`^(one|two|three)$`),
+					},
+				},
+			},
+			Policy: twoFactor,
+		}).
+		WithRule(schema.ACLRule{
+			Domains: []string{"five.example.com"},
+			Query: [][]schema.ACLQueryRule{
+				{
+					{
+						Operator: operatorNotPattern,
+						Key:      "test",
+						Value:    regexp.MustCompile(`^(one|two|three)$`),
+					},
+				},
+			},
+			Policy: twoFactor,
+		}).
+		Build()
+
+	testCases := []struct {
+		name, requestURL string
+		expected         Level
+	}{
+		{"ShouldDenyAbsentRule", "https://one.example.com/?admin=true", Denied},
+		{"ShouldAllow1FAPresentRule", "https://one.example.com/?public=true", OneFactor},
+		{"ShouldAllow1FAEqualRule", "https://one.example.com/?test=two", OneFactor},
+		{"ShouldDenyAbsentRuleWithMatchingPresentRule", "https://one.example.com/?test=two&admin=true", Denied},
+		{"ShouldAllow2FARuleWithOneMatchingEqual", "https://two.example.com/?test=one&admin=true", TwoFactor},
+		{"ShouldAllow2FARuleWithAnotherMatchingEqual", "https://two.example.com/?test=two&admin=true", TwoFactor},
+		{"ShouldDenyRuleWithNotMatchingEqual", "https://two.example.com/?test=three&admin=true", Denied},
+		{"ShouldDenyRuleWithNotMatchingNotEqualAND1", "https://three.example.com/?test=one", Denied},
+		{"ShouldDenyRuleWithNotMatchingNotEqualAND2", "https://three.example.com/?test=two", Denied},
+		{"ShouldAllowRuleWithMatchingNotEqualAND", "https://three.example.com/?test=three", TwoFactor},
+		{"ShouldAllowRuleWithMatchingPatternOne", "https://four.example.com/?test=one", TwoFactor},
+		{"ShouldAllowRuleWithMatchingPatternTwo", "https://four.example.com/?test=two", TwoFactor},
+		{"ShouldAllowRuleWithMatchingPatternThree", "https://four.example.com/?test=three", TwoFactor},
+		{"ShouldDenyRuleWithNotMatchingPattern", "https://four.example.com/?test=five", Denied},
+		{"ShouldAllowRuleWithMatchingNotPattern", "https://five.example.com/?test=five", TwoFactor},
+		{"ShouldDenyRuleWithNotMatchingNotPatternOne", "https://five.example.com/?test=one", Denied},
+		{"ShouldDenyRuleWithNotMatchingNotPatternTwo", "https://five.example.com/?test=two", Denied},
+		{"ShouldDenyRuleWithNotMatchingNotPatternThree", "https://five.example.com/?test=three", Denied},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			tester.CheckAuthorizations(t, UserWithGroups, tc.requestURL, "GET", tc.expected)
+		})
+	}
 }
 
 func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {

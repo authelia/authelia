@@ -8,7 +8,7 @@ images: []
 menu:
   reference:
     parent: "cli-authelia"
-weight: 330
+weight: 905
 toc: true
 ---
 
@@ -38,5 +38,7 @@ authelia crypto --help
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
 * [authelia crypto certificate](authelia_crypto_certificate.md)	 - Perform certificate cryptographic operations
+* [authelia crypto hash](authelia_crypto_hash.md)	 - Perform cryptographic hash operations
 * [authelia crypto pair](authelia_crypto_pair.md)	 - Perform key pair cryptographic operations
+* [authelia crypto rand](authelia_crypto_rand.md)	 - Generate a cryptographically secure random string
 

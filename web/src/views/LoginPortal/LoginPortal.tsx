@@ -1,6 +1,6 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
     AuthenticatedRoute,
@@ -14,10 +14,8 @@ import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
 import { useRedirector } from "@hooks/Redirector";
-import { useRequestMethod } from "@hooks/RequestMethod";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
-import { useWorkflow } from "@hooks/Workflow";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
@@ -41,8 +39,6 @@ const LoginPortal = function (props: Props) {
     const navigate = useNavigate();
     const location = useLocation();
     const redirectionURL = useRedirectionURL();
-    const requestMethod = useRequestMethod();
-    const workflow = useWorkflow();
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
@@ -51,16 +47,23 @@ const LoginPortal = function (props: Props) {
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
+    const [searchParams] = useSearchParams();
 
     const redirect = useCallback(
-        (pathname: string, search?: string) => {
-            if (search) {
-                navigate({ pathname: pathname, search: search });
+        (
+            pathname: string,
+            preserveSearchParams: boolean = true,
+            searchParamsOverride: URLSearchParams | undefined = undefined,
+        ) => {
+            if (searchParamsOverride && URLSearchParamsHasValues(searchParamsOverride)) {
+                navigate({ pathname: pathname, search: `?${searchParamsOverride.toString()}` });
+            } else if (preserveSearchParams && URLSearchParamsHasValues(searchParams)) {
+                navigate({ pathname: pathname, search: `?${searchParams.toString()}` });
             } else {
                 navigate({ pathname: pathname });
             }
         },
-        [navigate],
+        [navigate, searchParams],
     );
 
     // Fetch the state when portal is mounted.
@@ -132,25 +135,19 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
-            const search = redirectionURL
-                ? `?rd=${encodeURIComponent(redirectionURL)}${requestMethod ? `&rm=${requestMethod}` : ""}${
-                      workflow ? `&workflow=${workflow}` : ""
-                  }`
-                : undefined;
-
             if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
                 setFirstFactorDisabled(false);
-                redirect(IndexRoute, search);
+                redirect(IndexRoute);
             } else if (state.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
                 if (configuration.available_methods.size === 0) {
-                    redirect(AuthenticatedRoute);
+                    redirect(AuthenticatedRoute, false);
                 } else {
                     if (userInfo.method === SecondFactorMethod.Webauthn) {
-                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`, search);
+                        redirect(`${SecondFactorRoute}${SecondFactorWebauthnSubRoute}`);
                     } else if (userInfo.method === SecondFactorMethod.MobilePush) {
-                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`, search);
+                        redirect(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
                     } else {
-                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`, search);
+                        redirect(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
                     }
                 }
             }
@@ -158,8 +155,6 @@ const LoginPortal = function (props: Props) {
     }, [
         state,
         redirectionURL,
-        requestMethod,
-        workflow,
         redirect,
         userInfo,
         setFirstFactorDisabled,
@@ -248,4 +243,8 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
             {props.ready ? props.children : null}
         </Fragment>
     );
+}
+
+function URLSearchParamsHasValues(params?: URLSearchParams) {
+    return params ? !params.entries().next().done : false;
 }

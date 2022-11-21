@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"crypto/tls"
+	"time"
+)
 
 // LocalStorageConfiguration represents the configuration when using local storage.
 type LocalStorageConfiguration struct {
@@ -20,6 +23,8 @@ type SQLStorageConfiguration struct {
 // MySQLStorageConfiguration represents the configuration of a MySQL database.
 type MySQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
+
+	TLS *TLSConfig `koanf:"tls"`
 }
 
 // PostgreSQLStorageConfiguration represents the configuration of a PostgreSQL database.
@@ -27,7 +32,9 @@ type PostgreSQLStorageConfiguration struct {
 	SQLStorageConfiguration `koanf:",squash"`
 	Schema                  string `koanf:"schema"`
 
-	SSL PostgreSQLSSLStorageConfiguration `koanf:"ssl"`
+	TLS *TLSConfig `koanf:"tls"`
+
+	SSL *PostgreSQLSSLStorageConfiguration `koanf:"ssl"`
 }
 
 // PostgreSQLSSLStorageConfiguration represents the SSL configuration of a PostgreSQL database.
@@ -52,10 +59,20 @@ var DefaultSQLStorageConfiguration = SQLStorageConfiguration{
 	Timeout: 5 * time.Second,
 }
 
+// DefaultMySQLStorageConfiguration represents the default MySQL configuration.
+var DefaultMySQLStorageConfiguration = MySQLStorageConfiguration{
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
+
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = PostgreSQLStorageConfiguration{
 	Schema: "public",
-	SSL: PostgreSQLSSLStorageConfiguration{
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+	SSL: &PostgreSQLSSLStorageConfiguration{
 		Mode: "disable",
 	},
 }

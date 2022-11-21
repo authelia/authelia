@@ -76,6 +76,8 @@ export interface PublicKeyCredentialJSON
     clientExtensionResults: AuthenticationExtensionsClientOutputs;
     response: AuthenticatorAssertionResponseJSON;
     targetURL?: string;
+    workflow?: string;
+    workflowID?: string;
 }
 
 export enum AttestationResult {

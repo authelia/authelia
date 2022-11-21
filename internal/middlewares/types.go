@@ -35,7 +35,7 @@ type Providers struct {
 	Authorizer      *authorization.Authorizer
 	SessionProvider *session.Provider
 	Regulator       *regulation.Regulator
-	OpenIDConnect   oidc.OpenIDConnectProvider
+	OpenIDConnect   *oidc.OpenIDConnectProvider
 	Metrics         metrics.Provider
 	NTP             *ntp.Provider
 	UserProvider    authentication.UserProvider
@@ -108,8 +108,8 @@ type IdentityVerificationFinishBody struct {
 
 // OKResponse model of a status OK response.
 type OKResponse struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
+	Status string `json:"status"`
+	Data   any    `json:"data,omitempty"`
 }
 
 // ErrorResponse model of an error response.

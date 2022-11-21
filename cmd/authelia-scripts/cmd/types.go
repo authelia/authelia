@@ -20,10 +20,10 @@ type DockerImages []DockerImage
 
 // DockerImage represents some of the data from the docker images API.
 type DockerImage struct {
-	Architecture string      `json:"architecture"`
-	Variant      interface{} `json:"variant"`
-	Digest       string      `json:"digest"`
-	OS           string      `json:"os"`
+	Architecture string `json:"architecture"`
+	Variant      any    `json:"variant"`
+	Digest       string `json:"digest"`
+	OS           string `json:"os"`
 }
 
 // Match returns true if this image matches the platform.

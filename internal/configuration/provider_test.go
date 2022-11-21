@@ -48,7 +48,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 
 	errFmt := utils.GetExpectedErrTxt("filenotfound")
 
-	// ignore the errors before this as they are checked by the valdator.
+	// ignore the errors before this as they are checked by the validator.
 	assert.EqualError(t, errs[0], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "authentication"), "authentication_backend.ldap.password", fmt.Sprintf(errFmt, filepath.Join(dir, "authentication"))))
 	assert.EqualError(t, errs[1], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "duo"), "duo_api.secret_key", fmt.Sprintf(errFmt, filepath.Join(dir, "duo"))))
 	assert.EqualError(t, errs[2], fmt.Sprintf(errFmtSecretIOIssue, filepath.Join(dir, "jwt"), "jwt_secret", fmt.Sprintf(errFmt, filepath.Join(dir, "jwt"))))
@@ -217,6 +217,23 @@ func TestShouldLoadURLList(t *testing.T) {
 	require.Len(t, config.IdentityProviders.OIDC.CORS.AllowedOrigins, 2)
 	assert.Equal(t, "https://google.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[0].String())
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
+}
+
+func TestShouldConfigureConsent(t *testing.T) {
+	testReset()
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
+	assert.Equal(t, config.IdentityProviders.OIDC.Clients[0].ConsentMode, "explicit")
 }
 
 func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {

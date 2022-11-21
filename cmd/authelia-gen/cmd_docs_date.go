@@ -32,14 +32,10 @@ func newDocsDateCmd() *cobra.Command {
 
 func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		root, pathDocsContent, cwd, commitUtil, commitSince, commitFilter string
+		pathDocsContent, cwd, commitUtil, commitSince, commitFilter string
 	)
 
-	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
-		return err
-	}
-
-	if pathDocsContent, err = cmd.Flags().GetString(cmdFlagDocsContent); err != nil {
+	if pathDocsContent, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsContent); err != nil {
 		return err
 	}
 
@@ -59,7 +55,7 @@ func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 		commitFilter = fmt.Sprintf("%s...%s", commitUtil, commitSince)
 	}
 
-	return filepath.Walk(filepath.Join(root, pathDocsContent), func(path string, info fs.FileInfo, err error) error {
+	return filepath.Walk(pathDocsContent, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -79,7 +75,7 @@ func docsDateRunE(cmd *cobra.Command, args []string) (err error) {
 			return nil
 		}
 
-		frontmatter := map[string]interface{}{}
+		frontmatter := map[string]any{}
 
 		if err = yaml.Unmarshal(frontmatterBytes, frontmatter); err != nil {
 			return err

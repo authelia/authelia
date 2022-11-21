@@ -34,3 +34,5 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       3        |      4.34.2      |     WebAuthn - fix V2 migration kid column length and provide migration path for anyone on V2      |
 |       4        |      4.35.0      |               Added OpenID Connect storage tables and opaque user identifier tables                |
 |       5        |      4.35.1      | Fixed the oauth2_consent_session table to accept NULL subjects for users who are not yet signed in |
+|       6        |      4.37.0      |          Adjusted the OpenID Connect tables to allow pre-configured consent improvements           |
+|       7        |      4.37.3      |       Fixed some schema inconsistencies most notably the MySQL/MariaDB Engine and Collation        |

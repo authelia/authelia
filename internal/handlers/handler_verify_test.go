@@ -22,9 +22,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var verifyGetCfg = schema.AuthenticationBackendConfiguration{
+var verifyGetCfg = schema.AuthenticationBackend{
 	RefreshInterval: schema.RefreshIntervalDefault,
-	LDAP:            &schema.LDAPAuthenticationBackendConfiguration{},
+	LDAP:            &schema.LDAPAuthenticationBackend{},
 }
 
 func TestShouldRaiseWhenTargetUrlIsMalformed(t *testing.T) {
@@ -855,7 +855,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
 
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryArgRD, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
@@ -874,7 +874,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryArgRD, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
@@ -885,7 +885,7 @@ func TestShouldRedirectWithCorrectStatusCodeBasedOnRequestMethod(t *testing.T) {
 		string(mock.Ctx.Response.Body()))
 	assert.Equal(t, 302, mock.Ctx.Response.StatusCode())
 
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryArgRD, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "POST")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
@@ -1412,7 +1412,7 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	require.NoError(t, err)
 
 	// Should respond 200 OK.
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryArgRD, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://bypass.example.com")
@@ -1421,7 +1421,7 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	assert.Nil(t, mock.Ctx.Response.Header.Peek("Location"))
 
 	// Should respond 302 Found.
-	mock.Ctx.QueryArgs().Add("rd", "https://login.example.com")
+	mock.Ctx.QueryArgs().Add(queryArgRD, "https://login.example.com")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")
@@ -1430,7 +1430,7 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	assert.Equal(t, "https://login.example.com/?rd=https%3A%2F%2Ftwo-factor.example.com&rm=GET", string(mock.Ctx.Response.Header.Peek("Location")))
 
 	// Should respond 401 Unauthorized.
-	mock.Ctx.QueryArgs().Del("rd")
+	mock.Ctx.QueryArgs().Del(queryArgRD)
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://two-factor.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-Method", "GET")
 	mock.Ctx.Request.Header.Set("Accept", "text/html; charset=utf-8")

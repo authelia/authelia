@@ -122,13 +122,13 @@ const (
 
 const (
 	queryFmtSelectWebauthnDevices = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
 	queryFmtSelectWebauthnDevicesByUsername = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning 
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
 		WHERE username = ?;`
 
@@ -144,14 +144,14 @@ const (
 
 	queryFmtUpdateWebauthnDeviceRecordSignIn = `
 		UPDATE %s
-		SET 
+		SET
 			rpid = ?, last_used_at = ?, sign_count = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
 	queryFmtUpdateWebauthnDeviceRecordSignInByUsername = `
 		UPDATE %s
-		SET 
+		SET
 			rpid = ?, last_used_at = ?, sign_count = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE username = ? AND kid = ?;`
@@ -165,6 +165,18 @@ const (
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (username, description)
 			DO UPDATE SET created_at = $1, last_used_at = $2, rpid = $3, kid = $6, public_key = $7, attestation_type = $8, transport = $9, aaguid = $10, sign_count = $11, clone_warning = $12;`
+
+	queryFmtDeleteWebauthnDevice = `
+		DELETE FROM %s
+		WHERE kid = ?;`
+
+	queryFmtDeleteWebauthnDeviceByUsername = `
+		DELETE FROM %s
+		WHERE username = ?;`
+
+	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
+		DELETE FROM %s
+		WHERE username = ? AND description = ?;`
 )
 
 const (
@@ -222,22 +234,30 @@ const (
 )
 
 const (
+	queryFmtSelectOAuth2ConsentPreConfigurations = `
+		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience
+		FROM %s
+		WHERE client_id = ? AND subject = ? AND
+			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
+
+	queryFmtInsertOAuth2ConsentPreConfiguration = `
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience)
+		VALUES(?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL = `
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience)
+		VALUES($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id;`
+
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
-		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration
 		FROM %s
 		WHERE challenge_id = ?;`
 
-	queryFmtSelectOAuth2ConsentSessionsPreConfigured = `
-		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience
-		FROM %s
-		WHERE client_id = ? AND subject = ? AND 
-			  authorized = TRUE AND granted = TRUE AND expires_at IS NOT NULL AND expires_at >= CURRENT_TIMESTAMP;`
-
 	queryFmtInsertOAuth2ConsentSession = `
-		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at, expires_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience)
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtUpdateOAuth2ConsentSessionSubject = `
@@ -247,7 +267,7 @@ const (
 
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
-		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, expires_at = ?, granted_scopes = ?, granted_audience = ?
+		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
@@ -263,8 +283,8 @@ const (
 		WHERE signature = ? AND revoked = FALSE;`
 
 	queryFmtInsertOAuth2Session = `
-		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at, 
-		requested_scopes, granted_scopes, requested_audience, granted_audience, 
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
 		active, revoked, form_data, session_data)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 

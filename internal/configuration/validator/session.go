@@ -1,9 +1,9 @@
 package validator
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
+	"path"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -152,6 +152,18 @@ func validateRedisCommon(config *schema.SessionConfiguration, validator *schema.
 	if config.Secret == "" {
 		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "redis"))
 	}
+
+	if config.Redis.TLS != nil {
+		configDefaultTLS := &schema.TLSConfig{
+			ServerName:     config.Redis.Host,
+			MinimumVersion: schema.DefaultRedisConfiguration.TLS.MinimumVersion,
+			MaximumVersion: schema.DefaultRedisConfiguration.TLS.MaximumVersion,
+		}
+
+		if err := ValidateTLSConfig(config.Redis.TLS, configDefaultTLS); err != nil {
+			validator.Push(fmt.Errorf(errFmtSessionRedisTLSConfigInvalid, err))
+		}
+	}
 }
 
 func validateRedis(config *schema.SessionConfiguration, validator *schema.StructValidator) {
@@ -161,9 +173,7 @@ func validateRedis(config *schema.SessionConfiguration, validator *schema.Struct
 
 	validateRedisCommon(config, validator)
 
-	if !strings.HasPrefix(config.Redis.Host, "/") && config.Redis.Port == 0 {
-		validator.Push(errors.New("A redis port different than 0 must be provided"))
-	} else if config.Redis.Port < 0 || config.Redis.Port > 65535 {
+	if !path.IsAbs(config.Redis.Host) && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
 		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
 	}
 

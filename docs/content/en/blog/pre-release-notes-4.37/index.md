@@ -13,8 +13,9 @@ pinned: false
 homepage: false
 ---
 
-Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing
-features. In this blog post we'll discuss the new features and roughly what it means for users.
+Authelia [4.37](https://github.com/authelia/authelia/milestone/16) is just around the corner. This version has several
+additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly
+what it means for users.
 
 _**Note:** These features are still subject to change however it represents the most likely features._
 

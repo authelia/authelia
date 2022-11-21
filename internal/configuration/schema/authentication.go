@@ -1,12 +1,100 @@
 package schema
 
 import (
+	"crypto/tls"
 	"net/url"
 	"time"
 )
 
-// LDAPAuthenticationBackendConfiguration represents the configuration related to LDAP server.
-type LDAPAuthenticationBackendConfiguration struct {
+// AuthenticationBackend represents the configuration related to the authentication backend.
+type AuthenticationBackend struct {
+	PasswordReset PasswordResetAuthenticationBackend `koanf:"password_reset"`
+
+	RefreshInterval string `koanf:"refresh_interval"`
+
+	File *FileAuthenticationBackend `koanf:"file"`
+	LDAP *LDAPAuthenticationBackend `koanf:"ldap"`
+}
+
+// PasswordResetAuthenticationBackend represents the configuration related to password reset functionality.
+type PasswordResetAuthenticationBackend struct {
+	Disable   bool    `koanf:"disable"`
+	CustomURL url.URL `koanf:"custom_url"`
+}
+
+// FileAuthenticationBackend represents the configuration related to file-based backend.
+type FileAuthenticationBackend struct {
+	Path     string   `koanf:"path"`
+	Watch    bool     `koanf:"watch"`
+	Password Password `koanf:"password"`
+
+	Search FileSearchAuthenticationBackend `koanf:"search"`
+}
+
+// FileSearchAuthenticationBackend represents the configuration related to file-based backend searching.
+type FileSearchAuthenticationBackend struct {
+	Email           bool `koanf:"email"`
+	CaseInsensitive bool `koanf:"case_insensitive"`
+}
+
+// Password represents the configuration related to password hashing.
+type Password struct {
+	Algorithm string `koanf:"algorithm"`
+
+	Argon2    Argon2Password    `koanf:"argon2"`
+	SHA2Crypt SHA2CryptPassword `koanf:"sha2crypt"`
+	PBKDF2    PBKDF2Password    `koanf:"pbkdf2"`
+	BCrypt    BCryptPassword    `koanf:"bcrypt"`
+	SCrypt    SCryptPassword    `koanf:"scrypt"`
+
+	Iterations  int `koanf:"iterations"`
+	Memory      int `koanf:"memory"`
+	Parallelism int `koanf:"parallelism"`
+	KeyLength   int `koanf:"key_length"`
+	SaltLength  int `koanf:"salt_length"`
+}
+
+// Argon2Password represents the argon2 hashing settings.
+type Argon2Password struct {
+	Variant     string `koanf:"variant"`
+	Iterations  int    `koanf:"iterations"`
+	Memory      int    `koanf:"memory"`
+	Parallelism int    `koanf:"parallelism"`
+	KeyLength   int    `koanf:"key_length"`
+	SaltLength  int    `koanf:"salt_length"`
+}
+
+// SHA2CryptPassword represents the sha2crypt hashing settings.
+type SHA2CryptPassword struct {
+	Variant    string `koanf:"variant"`
+	Iterations int    `koanf:"iterations"`
+	SaltLength int    `koanf:"salt_length"`
+}
+
+// PBKDF2Password represents the PBKDF2 hashing settings.
+type PBKDF2Password struct {
+	Variant    string `koanf:"variant"`
+	Iterations int    `koanf:"iterations"`
+	SaltLength int    `koanf:"salt_length"`
+}
+
+// BCryptPassword represents the bcrypt hashing settings.
+type BCryptPassword struct {
+	Variant string `koanf:"variant"`
+	Cost    int    `koanf:"cost"`
+}
+
+// SCryptPassword represents the scrypt hashing settings.
+type SCryptPassword struct {
+	Iterations  int `koanf:"iterations"`
+	BlockSize   int `koanf:"block_size"`
+	Parallelism int `koanf:"parallelism"`
+	KeyLength   int `koanf:"key_length"`
+	SaltLength  int `koanf:"salt_length"`
+}
+
+// LDAPAuthenticationBackend represents the configuration related to LDAP server.
+type LDAPAuthenticationBackend struct {
 	Implementation string        `koanf:"implementation"`
 	URL            string        `koanf:"url"`
 	Timeout        time.Duration `koanf:"timeout"`
@@ -34,84 +122,79 @@ type LDAPAuthenticationBackendConfiguration struct {
 	Password string `koanf:"password"`
 }
 
-// FileAuthenticationBackendConfiguration represents the configuration related to file-based backend.
-type FileAuthenticationBackendConfiguration struct {
-	Path     string                 `koanf:"path"`
-	Password *PasswordConfiguration `koanf:"password"`
+// DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
+var DefaultPasswordConfig = Password{
+	Algorithm: argon2,
+	Argon2: Argon2Password{
+		Variant:     argon2id,
+		Iterations:  3,
+		Memory:      64 * 1024,
+		Parallelism: 4,
+		KeyLength:   32,
+		SaltLength:  16,
+	},
+	SHA2Crypt: SHA2CryptPassword{
+		Variant:    sha512,
+		Iterations: 50000,
+		SaltLength: 16,
+	},
+	PBKDF2: PBKDF2Password{
+		Variant:    sha512,
+		Iterations: 310000,
+		SaltLength: 16,
+	},
+	BCrypt: BCryptPassword{
+		Variant: "standard",
+		Cost:    12,
+	},
+	SCrypt: SCryptPassword{
+		Iterations:  16,
+		BlockSize:   8,
+		Parallelism: 1,
+		KeyLength:   32,
+		SaltLength:  16,
+	},
 }
 
-// PasswordConfiguration represents the configuration related to password hashing.
-type PasswordConfiguration struct {
-	Iterations  int    `koanf:"iterations"`
-	KeyLength   int    `koanf:"key_length"`
-	SaltLength  int    `koanf:"salt_length"`
-	Algorithm   string `koanf:"algorithm"`
-	Memory      int    `koanf:"memory"`
-	Parallelism int    `koanf:"parallelism"`
+// DefaultCIPasswordConfig represents the default configuration related to Argon2id hashing for CI.
+var DefaultCIPasswordConfig = Password{
+	Algorithm: argon2,
+	Argon2: Argon2Password{
+		Iterations:  3,
+		Memory:      64,
+		Parallelism: 4,
+		KeyLength:   32,
+		SaltLength:  16,
+	},
+	SHA2Crypt: SHA2CryptPassword{
+		Variant:    sha512,
+		Iterations: 50000,
+		SaltLength: 16,
+	},
 }
 
-// AuthenticationBackendConfiguration represents the configuration related to the authentication backend.
-type AuthenticationBackendConfiguration struct {
-	LDAP *LDAPAuthenticationBackendConfiguration `koanf:"ldap"`
-	File *FileAuthenticationBackendConfiguration `koanf:"file"`
-
-	PasswordReset PasswordResetAuthenticationBackendConfiguration `koanf:"password_reset"`
-
-	RefreshInterval string `koanf:"refresh_interval"`
-}
-
-// PasswordResetAuthenticationBackendConfiguration represents the configuration related to password reset functionality.
-type PasswordResetAuthenticationBackendConfiguration struct {
-	Disable   bool    `koanf:"disable"`
-	CustomURL url.URL `koanf:"custom_url"`
-}
-
-// DefaultPasswordConfiguration represents the default configuration related to Argon2id hashing.
-var DefaultPasswordConfiguration = PasswordConfiguration{
-	Iterations:  3,
-	KeyLength:   32,
-	SaltLength:  16,
-	Algorithm:   argon2id,
-	Memory:      64,
-	Parallelism: 4,
-}
-
-// DefaultCIPasswordConfiguration represents the default configuration related to Argon2id hashing for CI.
-var DefaultCIPasswordConfiguration = PasswordConfiguration{
-	Iterations:  3,
-	KeyLength:   32,
-	SaltLength:  16,
-	Algorithm:   argon2id,
-	Memory:      64,
-	Parallelism: 4,
-}
-
-// DefaultPasswordSHA512Configuration represents the default configuration related to SHA512 hashing.
-var DefaultPasswordSHA512Configuration = PasswordConfiguration{
-	Iterations: 50000,
-	SaltLength: 16,
-	Algorithm:  "sha512",
-}
-
-// DefaultLDAPAuthenticationBackendConfiguration represents the default LDAP config.
-var DefaultLDAPAuthenticationBackendConfiguration = LDAPAuthenticationBackendConfiguration{
-	Implementation:       LDAPImplementationCustom,
+// DefaultLDAPAuthenticationBackendConfigurationImplementationCustom represents the default LDAP config.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuthenticationBackend{
 	UsernameAttribute:    "uid",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayName",
 	GroupNameAttribute:   "cn",
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
-		MinimumVersion: "TLS1.2",
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
 
-// DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration represents the default LDAP config for the MSAD Implementation.
-var DefaultLDAPAuthenticationBackendImplementationActiveDirectoryConfiguration = LDAPAuthenticationBackendConfiguration{
+// DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the MSAD Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = LDAPAuthenticationBackend{
 	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))",
 	UsernameAttribute:    "sAMAccountName",
 	MailAttribute:        "mail",
 	DisplayNameAttribute: "displayName",
-	GroupsFilter:         "(&(member={dn})(objectClass=group))",
+	GroupsFilter:         "(&(member={dn})(sAMAccountType=268435456))",
 	GroupNameAttribute:   "cn",
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
 }

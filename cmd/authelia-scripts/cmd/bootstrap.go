@@ -53,8 +53,11 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 	}
 
 	createTemporaryDirectory()
-	createPNPMDirectory()
-	pnpmInstall()
+
+	if os.Getenv("CI") != "true" {
+		createPNPMDirectory()
+		pnpmInstall()
+	}
 
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
@@ -168,8 +171,8 @@ func pnpmInstall() {
 	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
 }
 
-func bootstrapPrintln(args ...interface{}) {
-	a := make([]interface{}, 0)
+func bootstrapPrintln(args ...any) {
+	a := make([]any, 0)
 	a = append(a, "[BOOTSTRAP]")
 	a = append(a, args...)
 	fmt.Println(a...)

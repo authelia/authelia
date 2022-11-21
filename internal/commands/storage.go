@@ -117,6 +117,7 @@ func newStorageUserCmd() (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageUserIdentifiersCmd(),
 		newStorageUserTOTPCmd(),
+		newStorageUserWebAuthnCmd(),
 	)
 
 	return cmd
@@ -207,6 +208,58 @@ func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 	cmd.Flags().String("identifier", "", "The optional version 4 UUID to use, if not set a random one will be used")
 	cmd.Flags().String("service", identifierServiceOpenIDConnect, fmt.Sprintf("The service to add the identifier for, valid values are: %s", strings.Join(validIdentifierServices, ", ")))
 	cmd.Flags().String("sector", "", "The sector identifier to use (should usually be blank)")
+
+	return cmd
+}
+
+func newStorageUserWebAuthnCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "webauthn",
+		Short:   cmdAutheliaStorageUserWebAuthnShort,
+		Long:    cmdAutheliaStorageUserWebAuthnLong,
+		Example: cmdAutheliaStorageUserWebAuthnExample,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageUserWebAuthnListCmd(),
+		newStorageUserWebAuthnDeleteCmd(),
+	)
+
+	return cmd
+}
+
+func newStorageUserWebAuthnListCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "list [username]",
+		Short:   cmdAutheliaStorageUserWebAuthnListShort,
+		Long:    cmdAutheliaStorageUserWebAuthnListLong,
+		Example: cmdAutheliaStorageUserWebAuthnListExample,
+		RunE:    storageWebAuthnListRunE,
+		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserWebAuthnDeleteCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "delete [username]",
+		Short:   cmdAutheliaStorageUserWebAuthnDeleteShort,
+		Long:    cmdAutheliaStorageUserWebAuthnDeleteLong,
+		Example: cmdAutheliaStorageUserWebAuthnDeleteExample,
+		RunE:    storageWebAuthnDeleteRunE,
+		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().Bool("all", false, "delete all of the users webauthn devices")
+	cmd.Flags().String("description", "", "delete a users webauthn device by description")
+	cmd.Flags().String("kid", "", "delete a users webauthn device by key id")
 
 	return cmd
 }

@@ -1,46 +1,125 @@
 package oidc
 
+import (
+	"time"
+)
+
 // Scope strings.
 const (
 	ScopeOfflineAccess = "offline_access"
+	ScopeOffline       = "offline"
 	ScopeOpenID        = "openid"
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
 	ScopeGroups        = "groups"
 )
 
-// Claim strings.
+// Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
 const (
-	ClaimGroups            = "groups"
-	ClaimDisplayName       = "name"
-	ClaimPreferredUsername = "preferred_username"
-	ClaimEmail             = "email"
-	ClaimEmailVerified     = "email_verified"
-	ClaimEmailAlts         = "alt_emails"
+	ClaimJWTID                               = "jti"
+	ClaimSessionID                           = "sid"
+	ClaimAccessTokenHash                     = "at_hash"
+	ClaimCodeHash                            = "c_hash"
+	ClaimIssuedAt                            = "iat"
+	ClaimNotBefore                           = "nbf"
+	ClaimRequestedAt                         = "rat"
+	ClaimExpirationTime                      = "exp"
+	ClaimAuthenticationTime                  = "auth_time"
+	ClaimIssuer                              = "iss"
+	ClaimSubject                             = "sub"
+	ClaimNonce                               = "nonce"
+	ClaimAudience                            = "aud"
+	ClaimGroups                              = "groups"
+	ClaimFullName                            = "name"
+	ClaimPreferredUsername                   = "preferred_username"
+	ClaimPreferredEmail                      = "email"
+	ClaimEmailVerified                       = "email_verified"
+	ClaimAuthorizedParty                     = "azp"
+	ClaimAuthenticationContextClassReference = "acr"
+	ClaimAuthenticationMethodsReference      = "amr"
+	ClaimClientIdentifier                    = "client_id"
+)
+
+const (
+	lifespanTokenDefault         = time.Hour
+	lifespanRefreshTokenDefault  = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault = time.Minute * 15
+	lifespanPARContextDefault    = time.Minute * 5
+)
+
+const (
+	urnPARPrefix = "urn:ietf:params:oauth:request_uri:"
+)
+
+const (
+	// ClaimEmailAlts is an unregistered/custom claim.
+	// It represents the emails which are not considered primary.
+	ClaimEmailAlts = "alt_emails"
+)
+
+// Response Mode strings.
+const (
+	ResponseModeQuery    = "query"
+	ResponseModeFormPost = "form_post"
+	ResponseModeFragment = "fragment"
+)
+
+// Grant Type strings.
+const (
+	GrantTypeImplicit          = implicit
+	GrantTypeRefreshToken      = "refresh_token"
+	GrantTypeAuthorizationCode = "authorization_code"
+	GrantTypePassword          = "password"
+	GrantTypeClientCredentials = "client_credentials"
+)
+
+// Signing Algorithm strings.
+const (
+	SigningAlgorithmNone          = none
+	SigningAlgorithmRSAWithSHA256 = "RS256"
+)
+
+// Subject Type strings.
+const (
+	SubjectTypePublic   = "public"
+	SubjectTypePairwise = "pairwise"
+)
+
+// Proof Key Code Exchange Challenge Method strings.
+const (
+	PKCEChallengeMethodPlain  = "plain"
+	PKCEChallengeMethodSHA256 = "S256"
 )
 
 // Endpoints.
 const (
-	AuthorizationEndpoint = "authorization"
-	TokenEndpoint         = "token"
-	UserinfoEndpoint      = "userinfo"
-	IntrospectionEndpoint = "introspection"
-	RevocationEndpoint    = "revocation"
+	EndpointAuthorization = "authorization"
+	EndpointToken         = "token"
+	EndpointUserinfo      = "userinfo"
+	EndpointIntrospection = "introspection"
+	EndpointRevocation    = "revocation"
+)
+
+// JWT Headers.
+const (
+	// JWTHeaderKeyIdentifier is the JWT Header referencing the JWS Key Identifier used to sign a token.
+	JWTHeaderKeyIdentifier = "kid"
 )
 
 // Paths.
 const (
-	WellKnownOpenIDConfigurationPath      = "/.well-known/openid-configuration"
-	WellKnownOAuthAuthorizationServerPath = "/.well-known/oauth-authorization-server"
-	JWKsPath                              = "/jwks.json"
+	EndpointPathConsent                           = "/consent"
+	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
+	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
+	EndpointPathJWKs                              = "/jwks.json"
 
-	RootPath = "/api/oidc"
+	EndpointPathRoot = "/api/oidc"
 
-	AuthorizationPath = RootPath + "/" + AuthorizationEndpoint
-	TokenPath         = RootPath + "/" + TokenEndpoint
-	UserinfoPath      = RootPath + "/" + UserinfoEndpoint
-	IntrospectionPath = RootPath + "/" + IntrospectionEndpoint
-	RevocationPath    = RootPath + "/" + RevocationEndpoint
+	EndpointPathAuthorization = EndpointPathRoot + "/" + EndpointAuthorization
+	EndpointPathToken         = EndpointPathRoot + "/" + EndpointToken
+	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
+	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
+	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176
@@ -135,4 +214,11 @@ const (
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRShortMessageService = "sms"
+)
+
+const (
+	implicit      = "implicit"
+	explicit      = "explicit"
+	preconfigured = "pre-configured"
+	none          = "none"
 )
