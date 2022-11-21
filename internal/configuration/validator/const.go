@@ -161,15 +161,13 @@ const (
 	errFmtOIDCClientInvalidSecret       = "identity_providers: oidc: client '%s': option 'secret' is required"
 	errFmtOIDCClientPublicInvalidSecret = "identity_providers: oidc: client '%s': option 'secret' is " +
 		"required to be empty when option 'public' is true"
-	errFmtOIDCClientRedirectURI = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
-		"invalid value: redirect uri '%s' must have a scheme of 'http' or 'https' but '%s' is configured"
 	errFmtOIDCClientRedirectURICantBeParsed = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
 		"invalid value: redirect uri '%s' could not be parsed: %v"
-	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the" +
+	errFmtOIDCClientRedirectURIPublic = "identity_providers: oidc: client '%s': option 'redirect_uris' has the " +
 		"redirect uri '%s' when option 'public' is false but this is invalid as this uri is not valid " +
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = "identity_providers: oidc: client '%s': option 'redirect_uris' has an " +
-		"invalid value: redirect uri '%s' must have the scheme 'http' or 'https' but it has no scheme"
+		"invalid value: redirect uri '%s' must have the scheme but it is absent"
 	errFmtOIDCClientInvalidPolicy = "identity_providers: oidc: client '%s': option 'policy' must be 'one_factor' " +
 		"or 'two_factor' but it is configured as '%s'"
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: client '%s': consent: option 'mode' must be one of " +
