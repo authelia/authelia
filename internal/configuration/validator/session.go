@@ -2,8 +2,8 @@ package validator
 
 import (
 	"fmt"
-	"regexp"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
