@@ -215,8 +215,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, pr
 	p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 
 	for i, migration := range migrations {
-		switch {
-		case migration.Up && prior == 0 && i == 1:
+		if migration.Up && prior == 0 && i == 1 {
 			if err = p.schemaMigrateLock(ctx, conn); err != nil {
 				return err
 			}
@@ -233,11 +232,12 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, pr
 }
 
 func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection) (err error) {
-	switch p.name {
-	case providerPostgres:
-		if _, err = conn.ExecContext(ctx, fmt.Sprintf(queryFmtPostgreSQLLockTable, tableMigrations, "ACCESS EXCLUSIVE")); err != nil {
-			return fmt.Errorf("failed to lock tables: %w", err)
-		}
+	if p.name != providerPostgres {
+		return nil
+	}
+
+	if _, err = conn.ExecContext(ctx, fmt.Sprintf(queryFmtPostgreSQLLockTable, tableMigrations, "ACCESS EXCLUSIVE")); err != nil {
+		return fmt.Errorf("failed to lock tables: %w", err)
 	}
 
 	return nil
