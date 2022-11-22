@@ -29,7 +29,7 @@ func TestShouldReturnErrOnTargetSameAsCurrent(t *testing.T) {
 		fmt.Sprintf(ErrFmtMigrateAlreadyOnTargetVersion, 1, 1))
 }
 
-func TestShouldReturnErrOnUpMigrationTargetVersionLessTHanCurrent(t *testing.T) {
+func TestShouldReturnErrOnUpMigrationTargetVersionLessThanCurrent(t *testing.T) {
 	assert.EqualError(t,
 		schemaMigrateChecks(providerPostgres, true, 0, LatestVersion),
 		fmt.Sprintf(ErrFmtMigrateUpTargetLessThanCurrent, 0, LatestVersion))
@@ -80,7 +80,7 @@ func TestShouldReturnErrOnVersionDoesntExits(t *testing.T) {
 		fmt.Sprintf(ErrFmtMigrateUpTargetGreaterThanLatest, SchemaLatest-1, LatestVersion))
 }
 
-func TestMigrationDownShouldReturnErrOnTargetLessThanPre1(t *testing.T) {
+func TestMigrationDownShouldReturnErrOnTargetLessThan1(t *testing.T) {
 	assert.EqualError(t,
 		schemaMigrateChecks(providerSQLite, false, -4, LatestVersion),
 		fmt.Sprintf(ErrFmtMigrateDownTargetLessThanMinimum, -4))
@@ -93,8 +93,15 @@ func TestMigrationDownShouldReturnErrOnTargetLessThanPre1(t *testing.T) {
 		schemaMigrateChecks(providerPostgres, false, -2, LatestVersion),
 		fmt.Sprintf(ErrFmtMigrateDownTargetLessThanMinimum, -2))
 
-	assert.NoError(t,
-		schemaMigrateChecks(providerPostgres, false, -1, LatestVersion))
+	assert.EqualError(t,
+		schemaMigrateChecks(providerPostgres, false, -1, LatestVersion),
+		"schema migration to pre1 is no longer supported and you must migrate down to database schema version 1 first and then use a previous version to downgrade to database schema version pre1: the suggested authelia version is 4.37.2")
+}
+
+func TestMigrationDownShouldReturnErrOnCurrentLessThan0(t *testing.T) {
+	assert.EqualError(t,
+		schemaMigrateChecks(providerPostgres, true, LatestVersion, -1),
+		"schema migration from pre1 is no longer supported and you must use a previous authelia version to achieve this: the suggested authelia version is 4.37.2")
 }
 
 func TestMigrationDownShouldReturnErrOnTargetVersionGreaterThanCurrent(t *testing.T) {

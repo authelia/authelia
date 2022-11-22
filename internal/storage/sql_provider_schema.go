@@ -81,6 +81,43 @@ func (p *SQLProvider) SchemaVersion(ctx context.Context) (version int, err error
 	return 0, nil
 }
 
+// SchemaLatestVersion returns the latest version available for migration.
+func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
+	return latestMigrationVersion(p.name)
+}
+
+// SchemaMigrationsUp returns a list of migrations up available between the current version and the provided version.
+func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
+	current, err := p.SchemaVersion(ctx)
+	if err != nil {
+		return migrations, err
+	}
+
+	if version == 0 {
+		version = SchemaLatest
+	}
+
+	if current >= version {
+		return migrations, ErrNoAvailableMigrations
+	}
+
+	return loadMigrations(p.name, current, version)
+}
+
+// SchemaMigrationsDown returns a list of migrations down available between the current version and the provided version.
+func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
+	current, err := p.SchemaVersion(ctx)
+	if err != nil {
+		return migrations, err
+	}
+
+	if current <= version {
+		return migrations, ErrNoAvailableMigrations
+	}
+
+	return loadMigrations(p.name, current, version)
+}
+
 func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *model.Migration, err error) {
 	migration = &model.Migration{}
 
@@ -132,7 +169,6 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 	return p.schemaMigrate(ctx, currentVersion, version)
 }
 
-
 func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err error) {
 	migrations, err := loadMigrations(p.name, prior, target)
 	if err != nil {
@@ -154,15 +190,8 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 	}
 
 	for _, migration := range migrations {
-		switch tx {
-		case nil:
-			if err = p.schemaMigrateApplyWithoutTx(ctx, migration); err != nil {
-				return p.schemaMigrateRollbackWithoutTx(ctx, prior, migration.After(), err)
-			}
-		default:
-			if err = p.schemaMigrateApply(ctx, tx, migration); err != nil {
-				return p.schemaMigrateRollback(tx, err)
-			}
+		if err = p.schemaMigrateApply(ctx, tx, migration); err != nil {
+			return p.schemaMigrateRollback(ctx, tx, prior, migration.After(), err)
 		}
 	}
 
@@ -181,7 +210,16 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateRollback(tx *sqlx.Tx, migrateErr error) (err error) {
+func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, tx *sqlx.Tx, prior, after int, merr error) (err error) {
+	switch tx {
+	case nil:
+		return p.schemaMigrateRollbackWithoutTx(ctx, prior, after, merr)
+	default:
+		return p.schemaMigrateRollbackWithTx(ctx, tx, err)
+	}
+}
+
+func (p *SQLProvider) schemaMigrateRollbackWithTx(_ context.Context, tx *sqlx.Tx, migrateErr error) (err error) {
 	if err = tx.Rollback(); err != nil {
 		return fmt.Errorf("error applying rollback %+v. rollback caused by: %w", err, migrateErr)
 	}
@@ -189,7 +227,31 @@ func (p *SQLProvider) schemaMigrateRollback(tx *sqlx.Tx, migrateErr error) (err 
 	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
 }
 
+func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior, after int, migrateErr error) (err error) {
+	migrations, err := loadMigrations(p.name, after, prior)
+	if err != nil {
+		return fmt.Errorf("error loading migrations from version %d to version %d for rollback: %+v. rollback caused by: %+v", prior, after, err, migrateErr)
+	}
+
+	for _, migration := range migrations {
+		if err = p.schemaMigrateApplyWithoutTx(ctx, migration); err != nil {
+			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %+v", migration.Before(), migration.After(), err, migrateErr)
+		}
+	}
+
+	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
+}
+
 func (p *SQLProvider) schemaMigrateApply(ctx context.Context, tx *sqlx.Tx, migration model.SchemaMigration) (err error) {
+	switch tx {
+	case nil:
+		return p.schemaMigrateApplyWithoutTx(ctx, migration)
+	default:
+		return p.schemaMigrateApplyWithTx(ctx, tx, migration)
+	}
+}
+
+func (p *SQLProvider) schemaMigrateApplyWithTx(ctx context.Context, tx *sqlx.Tx, migration model.SchemaMigration) (err error) {
 	if _, err = tx.ExecContext(ctx, migration.Query); err != nil {
 		return err
 	}
@@ -204,16 +266,6 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, tx *sqlx.Tx, migra
 	if err = p.schemaMigrateFinalize(ctx, tx, migration); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, tx *sqlx.Tx, migration model.SchemaMigration) (err error) {
-	if _, err = tx.ExecContext(ctx, p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version()); err != nil {
-		return fmt.Errorf("failed inserting migration record: %w", err)
-	}
-
-	p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
 
 	return nil
 }
@@ -243,19 +295,14 @@ func (p *SQLProvider) schemaMigrateApplyWithoutTx(ctx context.Context, migration
 	return p.schemaMigrateFinalizeWithoutTx(ctx, migration)
 }
 
-func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior, after int, migrateErr error) (err error) {
-	migrations, err := loadMigrations(p.name, after, prior)
-	if err != nil {
-		return fmt.Errorf("error loading migrations from version %d to version %d for rollback: %+v. rollback caused by: %+v", prior, after, err, migrateErr)
+func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, tx *sqlx.Tx, migration model.SchemaMigration) (err error) {
+	if _, err = tx.ExecContext(ctx, p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version()); err != nil {
+		return fmt.Errorf("failed inserting migration record: %w", err)
 	}
 
-	for _, migration := range migrations {
-		if err = p.schemaMigrateApplyWithoutTx(ctx, migration); err != nil {
-			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %+v", migration.Before(), migration.After(), err, migrateErr)
-		}
-	}
+	p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
 
-	return fmt.Errorf("migration rollback complete. rollback caused by: %+v", migrateErr)
+	return nil
 }
 
 func (p *SQLProvider) schemaMigrateFinalizeWithoutTx(ctx context.Context, migration model.SchemaMigration) (err error) {
@@ -268,50 +315,13 @@ func (p *SQLProvider) schemaMigrateFinalizeWithoutTx(ctx context.Context, migrat
 	return nil
 }
 
-// SchemaMigrationsUp returns a list of migrations up available between the current version and the provided version.
-func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
-	current, err := p.SchemaVersion(ctx)
-	if err != nil {
-		return migrations, err
-	}
-
-	if version == 0 {
-		version = SchemaLatest
-	}
-
-	if current >= version {
-		return migrations, ErrNoAvailableMigrations
-	}
-
-	return loadMigrations(p.name, current, version)
-}
-
-// SchemaMigrationsDown returns a list of migrations down available between the current version and the provided version.
-func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (migrations []model.SchemaMigration, err error) {
-	current, err := p.SchemaVersion(ctx)
-	if err != nil {
-		return migrations, err
-	}
-
-	if current <= version {
-		return migrations, ErrNoAvailableMigrations
-	}
-
-	return loadMigrations(p.name, current, version)
-}
-
-// SchemaLatestVersion returns the latest version available for migration.
-func (p *SQLProvider) SchemaLatestVersion() (version int, err error) {
-	return latestMigrationVersion(p.name)
-}
-
 func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
 	if currentVersion == -1 {
-		return fmt.Errorf("schema migration from pre1 is no longer supported and you must use a previous version to achieve this")
+		return fmt.Errorf("schema migration from pre1 is no longer supported and you must use a previous authelia version to achieve this: the suggested authelia version is 4.37.2")
 	}
 
 	if targetVersion == -1 {
-		return fmt.Errorf("schema migration to pre1 is no longer supported and you must use a previous version to achieve this")
+		return fmt.Errorf("schema migration to pre1 is no longer supported and you must migrate down to database schema version 1 first and then use a previous version to downgrade to database schema version pre1: the suggested authelia version is 4.37.2")
 	}
 
 	if targetVersion == currentVersion {
