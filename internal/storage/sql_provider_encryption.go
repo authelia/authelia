@@ -30,7 +30,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, encryptionK
 		return err
 	}
 
-	if err = p.setNewEncryptionCheckValue(ctx, &key, tx); err != nil {
+	if err = p.setNewEncryptionCheckValue(ctx, tx, &key); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
 		}
@@ -278,7 +278,7 @@ func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (valu
 	return p.decrypt(encryptedValue)
 }
 
-func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, key *[32]byte, client SQLXClient) (err error) {
+func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, client SQLXConnection, key *[32]byte) (err error) {
 	valueClearText, err := uuid.NewRandom()
 	if err != nil {
 		return err

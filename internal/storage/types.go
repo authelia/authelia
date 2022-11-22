@@ -4,8 +4,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// SQLXClient is a *sqlx.DB or *sqlx.Tx.
-type SQLXClient interface {
+// SQLXConnection is a *sqlx.DB or *sqlx.Tx.
+type SQLXConnection interface {
 	sqlx.Execer
 	sqlx.ExecerContext
 
