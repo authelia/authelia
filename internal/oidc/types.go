@@ -9,7 +9,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"github.com/ory/herodot"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -82,6 +82,7 @@ type OpenIDConnectProvider struct {
 	fosite.OAuth2Provider
 	*herodot.JSONWriter
 	*Store
+	*Config
 
 	KeyManager *KeyManager
 
@@ -607,16 +608,36 @@ type OpenIDConnectBackChannelLogoutDiscoveryOptions struct {
 	BackChannelLogoutSessionSupported bool `json:"backchannel_logout_session_supported"`
 }
 
+// PushedAuthorizationDiscoveryOptions represents the well known discovery document specific to the
+// OAuth 2.0 Pushed Authorization Requests (RFC9126) implementation.
+//
+// OAuth 2.0 Pushed Authorization Requests: https://datatracker.ietf.org/doc/html/rfc9126#section-5
+type PushedAuthorizationDiscoveryOptions struct {
+	/*
+	   The URL of the pushed authorization request endpoint at which a client can post an authorization request to
+	   exchange for a "request_uri" value usable at the authorization server.
+	*/
+	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint,omitempty"`
+
+	/*
+		    Boolean parameter indicating whether the authorization server accepts authorization request data only via PAR.
+			If omitted, the default value is "false".
+	*/
+	RequirePushedAuthorizationRequests bool `json:"require_pushed_authorization_requests"`
+}
+
 // OAuth2WellKnownConfiguration represents the well known discovery document specific to OAuth 2.0.
 type OAuth2WellKnownConfiguration struct {
 	CommonDiscoveryOptions
 	OAuth2DiscoveryOptions
+	PushedAuthorizationDiscoveryOptions
 }
 
 // OpenIDConnectWellKnownConfiguration represents the well known discovery document specific to OpenID Connect.
 type OpenIDConnectWellKnownConfiguration struct {
 	CommonDiscoveryOptions
 	OAuth2DiscoveryOptions
+	PushedAuthorizationDiscoveryOptions
 	OpenIDConnectDiscoveryOptions
 	OpenIDConnectFrontChannelLogoutDiscoveryOptions
 	OpenIDConnectBackChannelLogoutDiscoveryOptions

@@ -42,8 +42,13 @@ func (d *Docker) Login(username, password, registry string) error {
 }
 
 // Manifest push a docker manifest to dockerhub.
-func (d *Docker) Manifest(tag1, tag2 string) error {
-	args := []string{"build", "-t", tag1, "-t", tag2}
+func (d *Docker) Manifest(tags []string) error {
+	args := []string{"build"}
+
+	for _, tag := range tags {
+		args = append(args, "-t", tag)
+	}
+
 	annotations := ""
 
 	buildMetaData, err := getBuild(ciBranch, os.Getenv("BUILDKITE_BUILD_NUMBER"), "")
