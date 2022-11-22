@@ -8,4 +8,6 @@ const (
 	queryFmtMySQLRenameTable = `
 		ALTER TABLE %s
 		RENAME %s;`
+
+	queryFmtPostgreSQLLockTable = `LOCK TABLE %s IN %s MODE;`
 )

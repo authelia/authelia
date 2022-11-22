@@ -118,16 +118,6 @@ func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (mi
 	return loadMigrations(p.name, current, version)
 }
 
-func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *model.Migration, err error) {
-	migration = &model.Migration{}
-
-	if err = p.db.QueryRowxContext(ctx, p.sqlSelectLatestMigration).StructScan(migration); err != nil {
-		return nil, err
-	}
-
-	return migration, nil
-}
-
 // SchemaMigrationHistory returns migration history rows.
 func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []model.Migration, err error) {
 	rows, err := p.db.QueryxContext(ctx, p.sqlSelectMigrations)
@@ -157,30 +147,6 @@ func (p *SQLProvider) SchemaMigrationHistory(ctx context.Context) (migrations []
 
 // SchemaMigrate migrates from the current version to the provided version.
 func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (err error) {
-	currentVersion, err := p.SchemaVersion(ctx)
-	if err != nil {
-		return err
-	}
-
-	if err = schemaMigrateChecks(p.name, up, version, currentVersion); err != nil {
-		return err
-	}
-
-	return p.schemaMigrate(ctx, currentVersion, version)
-}
-
-func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err error) {
-	migrations, err := loadMigrations(p.name, prior, target)
-	if err != nil {
-		return err
-	}
-
-	if len(migrations) == 0 {
-		return ErrNoMigrationsFound
-	}
-
-	p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
-
 	var (
 		tx   *sqlx.Tx
 		conn SQLXConnection
@@ -196,13 +162,32 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 		conn = p.db
 	}
 
-	for _, migration := range migrations {
-		if err = p.schemaMigrateApply(ctx, conn, migration); err != nil {
-			return p.schemaMigrateRollback(ctx, tx, prior, migration.After(), err)
+	currentVersion, err := p.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+
+	if currentVersion != 0 {
+		if err = p.schemaMigrateLock(ctx, conn); err != nil {
+			return err
 		}
 	}
 
-	p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
+	if err = schemaMigrateChecks(p.name, up, version, currentVersion); err != nil {
+		if tx != nil {
+			_ = tx.Rollback()
+		}
+
+		return err
+	}
+
+	if err = p.schemaMigrate(ctx, conn, currentVersion, version); err != nil {
+		if tx != nil && err == ErrNoMigrationsFound {
+			_ = tx.Rollback()
+		}
+
+		return err
+	}
 
 	if tx != nil {
 		if err = tx.Commit(); err != nil {
@@ -211,6 +196,47 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, prior, target int) (err
 			}
 
 			return fmt.Errorf("failed to commit the transaction but it has been rolled back: commit error: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, prior, target int) (err error) {
+	migrations, err := loadMigrations(p.name, prior, target)
+	if err != nil {
+		return err
+	}
+
+	if len(migrations) == 0 {
+		return ErrNoMigrationsFound
+	}
+
+	p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
+
+	for i, migration := range migrations {
+		switch {
+		case migration.Up && prior == 0 && i == 1:
+			if err = p.schemaMigrateLock(ctx, conn); err != nil {
+				return err
+			}
+		}
+
+		if err = p.schemaMigrateApply(ctx, conn, migration); err != nil {
+			return p.schemaMigrateRollback(ctx, conn, prior, migration.After(), err)
+		}
+	}
+
+	p.log.Infof(logFmtMigrationComplete, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
+
+	return nil
+}
+
+func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection) (err error) {
+	switch p.name {
+	case providerPostgres:
+		if _, err = conn.ExecContext(ctx, fmt.Sprintf(queryFmtPostgreSQLLockTable, tableMigrations, "ACCESS EXCLUSIVE")); err != nil {
+			return fmt.Errorf("failed to lock tables: %w", err)
 		}
 	}
 
@@ -250,12 +276,12 @@ func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, conn SQLXConnec
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, tx *sqlx.Tx, prior, after int, merr error) (err error) {
-	switch tx {
-	case nil:
-		return p.schemaMigrateRollbackWithoutTx(ctx, prior, after, merr)
-	default:
+func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, conn SQLXConnection, prior, after int, merr error) (err error) {
+	switch tx := conn.(type) {
+	case *sqlx.Tx:
 		return p.schemaMigrateRollbackWithTx(ctx, tx, merr)
+	default:
+		return p.schemaMigrateRollbackWithoutTx(ctx, prior, after, merr)
 	}
 }
 
@@ -280,6 +306,16 @@ func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior,
 	}
 
 	return fmt.Errorf("migration rollback complete. rollback caused by: %w", merr)
+}
+
+func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *model.Migration, err error) {
+	migration = &model.Migration{}
+
+	if err = p.db.QueryRowxContext(ctx, p.sqlSelectLatestMigration).StructScan(migration); err != nil {
+		return nil, err
+	}
+
+	return migration, nil
 }
 
 func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {

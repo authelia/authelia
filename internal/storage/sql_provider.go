@@ -296,9 +296,7 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	err = p.SchemaMigrate(ctx, true, SchemaLatest)
-
-	switch err {
+	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
 	case ErrSchemaAlreadyUpToDate:
 		p.log.Infof("Storage schema is already up to date")
 		return nil
