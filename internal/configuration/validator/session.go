@@ -41,6 +41,8 @@ func validateSession(config *schema.SessionConfiguration, validator *schema.Stru
 
 	if config.Domain == "" {
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "domain"))
+	} else if strings.HasPrefix(config.Domain, ".") {
+		validator.PushWarning(fmt.Errorf("session: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"))
 	}
 
 	if strings.HasPrefix(config.Domain, "*.") {
