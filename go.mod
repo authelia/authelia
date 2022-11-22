@@ -13,7 +13,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.1.14
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.112.0
+	github.com/go-rod/rod v0.112.1
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.5.0
 	github.com/golang-jwt/jwt/v4 v4.4.2
