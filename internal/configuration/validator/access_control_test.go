@@ -101,7 +101,7 @@ func (suite *AccessControl) TestShouldRaiseWarningOnBadDomain() {
 	suite.Assert().Len(suite.validator.Warnings(), 1)
 	suite.Require().Len(suite.validator.Errors(), 0)
 
-	suite.Assert().EqualError(suite.validator.Warnings()[0], "access control: rule #1: option 'domain' in position #1 with value '*example.com' is ineffective and should probably be '*.example.com' instead")
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "access control: rule #1: domain #1: domain '*example.com' is ineffective and should probably be '*.example.com' instead")
 }
 
 func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {

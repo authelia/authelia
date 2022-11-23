@@ -90,11 +90,11 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 	for i, rule := range config.AccessControl.Rules {
 		rulePosition := i + 1
 
+		validateDomains(rulePosition, rule, validator)
+
 		if !IsPolicyValid(rule.Policy) {
 			validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), rule.Policy))
 		}
-
-		validateDomains(rulePosition, rule, validator)
 
 		validateNetworks(rulePosition, rule, config.AccessControl, validator)
 
