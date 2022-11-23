@@ -542,14 +542,14 @@ if they have a path of exactly `/api` or if they start with `/api/`. This means 
 a match for that request.
 
 ```yaml
-- domains:
+- domain:
     - 'example.com'
     - '*.example.com'
   policy: bypass
   resources:
     - '^/api$'
     - '^/api/'
-- domains:
+- domain:
     - 'app.example.com'
   policy: two_factor
 ```
