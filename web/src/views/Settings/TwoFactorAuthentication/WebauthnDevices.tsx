@@ -24,6 +24,7 @@ import { AutheliaState, AuthenticationLevel } from "@root/services/State";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
 import { deleteDevice } from "@root/services/Webauthn";
 
+import WebauthnDeviceDeleteDialog from "./WebauthnDeviceDeleteDialog";
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
 interface Props {
@@ -40,10 +41,12 @@ export default function WebauthnDevices(props: Props) {
 
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
+    const [deletingIdx, setDeletingIdx] = useState<number>(-1);
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [ready, setReady] = useState(false);
 
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDeviceDisplay[]>([]);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
         (async function () {
@@ -65,10 +68,21 @@ export default function WebauthnDevices(props: Props) {
     };
 
     const handleDeleteItem = async (idx: number) => {
+        setDeletingIdx(idx);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteItemConfirm = async (ok: boolean) => {
+        setDeleteDialogOpen(false);
+        const idx = deletingIdx;
+        setDeletingIdx(-1);
+        if (ok !== true) {
+            return;
+        }
         webauthnDevices[idx].deleting = true;
         const status = await deleteDevice(webauthnDevices[idx].id);
-        webauthnDevices[idx].deleting = false;
         if (status !== 200) {
+            webauthnDevices[idx].deleting = false;
             createErrorNotification(translate("There was a problem deleting the device"));
             return;
         }
@@ -101,60 +115,67 @@ export default function WebauthnDevices(props: Props) {
     };
 
     return (
-        <Paper variant="outlined">
-            <Box sx={{ p: 3 }}>
-                <Stack spacing={2}>
-                    <Box>
-                        <Typography variant="h5">Webauthn Devices</Typography>
-                    </Box>
-                    <Box>
-                        <Button variant="outlined" color="primary" onClick={handleAddKeyButtonClick}>
-                            {"Add new device"}
-                        </Button>
-                    </Box>
-                    <Box>
-                        {ready ? (
-                            <>
-                                {webauthnDevices ? (
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell />
-                                                <TableCell>{translate("Name")}</TableCell>
-                                                <TableCell>{translate("Enabled")}</TableCell>
-                                                <TableCell align="center">{translate("Actions")}</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {webauthnDevices.map((x, idx) => {
-                                                return (
-                                                    <WebauthnDeviceItem
-                                                        device={x}
-                                                        deleting={x.deleting}
-                                                        webauthnShowDetails={webauthnShowDetails === idx}
-                                                        handleWebAuthnDetailsChange={() => {
-                                                            handleWebAuthnDetailsChange(idx);
-                                                        }}
-                                                        handleDelete={() => {
-                                                            handleDeleteItem(idx);
-                                                        }}
-                                                        key={`webauthn-device-${idx}`}
-                                                    />
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                ) : null}
-                            </>
-                        ) : (
-                            <>
-                                <Skeleton height={20} />
-                                <Skeleton height={40} />
-                            </>
-                        )}
-                    </Box>
-                </Stack>
-            </Box>
-        </Paper>
+        <>
+            <WebauthnDeviceDeleteDialog
+                device={deletingIdx > -1 ? webauthnDevices[deletingIdx] : undefined}
+                open={deleteDialogOpen}
+                handleClose={handleDeleteItemConfirm}
+            />
+            <Paper variant="outlined">
+                <Box sx={{ p: 3 }}>
+                    <Stack spacing={2}>
+                        <Box>
+                            <Typography variant="h5">Webauthn Devices</Typography>
+                        </Box>
+                        <Box>
+                            <Button variant="outlined" color="primary" onClick={handleAddKeyButtonClick}>
+                                {"Add new device"}
+                            </Button>
+                        </Box>
+                        <Box>
+                            {ready ? (
+                                <>
+                                    {webauthnDevices ? (
+                                        <Table>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell />
+                                                    <TableCell>{translate("Name")}</TableCell>
+                                                    <TableCell>{translate("Enabled")}</TableCell>
+                                                    <TableCell align="center">{translate("Actions")}</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {webauthnDevices.map((x, idx) => {
+                                                    return (
+                                                        <WebauthnDeviceItem
+                                                            device={x}
+                                                            deleting={x.deleting}
+                                                            webauthnShowDetails={webauthnShowDetails === idx}
+                                                            handleWebAuthnDetailsChange={() => {
+                                                                handleWebAuthnDetailsChange(idx);
+                                                            }}
+                                                            handleDelete={() => {
+                                                                handleDeleteItem(idx);
+                                                            }}
+                                                            key={`webauthn-device-${idx}`}
+                                                        />
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    ) : null}
+                                </>
+                            ) : (
+                                <>
+                                    <Skeleton height={20} />
+                                    <Skeleton height={40} />
+                                </>
+                            )}
+                        </Box>
+                    </Stack>
+                </Box>
+            </Paper>
+        </>
     );
 }
