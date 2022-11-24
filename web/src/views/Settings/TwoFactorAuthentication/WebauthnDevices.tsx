@@ -75,7 +75,6 @@ export default function WebauthnDevices(props: Props) {
     const handleDeleteItemConfirm = async (ok: boolean) => {
         setDeleteDialogOpen(false);
         const idx = deletingIdx;
-        setDeletingIdx(-1);
         if (ok !== true) {
             return;
         }
