@@ -22,6 +22,7 @@ import { WebauthnDevice } from "@root/models/Webauthn";
 import { initiateWebauthnRegistrationProcess } from "@root/services/RegisterDevice";
 import { AutheliaState, AuthenticationLevel } from "@root/services/State";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
+import { deleteDevice } from "@root/services/Webauthn";
 
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
@@ -29,7 +30,11 @@ interface Props {
     state: AutheliaState;
 }
 
-export default function TwoFactorAuthSettings(props: Props) {
+interface WebauthnDeviceDisplay extends WebauthnDevice {
+    deleting: boolean;
+}
+
+export default function WebauthnDevices(props: Props) {
     const { t: translate } = useTranslation("settings");
     const navigate = useNavigate();
 
@@ -38,12 +43,15 @@ export default function TwoFactorAuthSettings(props: Props) {
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [ready, setReady] = useState(false);
 
-    const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDevice[] | undefined>();
+    const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDeviceDisplay[]>([]);
 
     useEffect(() => {
         (async function () {
             const devices = await getWebauthnDevices();
-            setWebauthnDevices(devices);
+            const devicesDisplay = devices.map((x, idx) => {
+                return { ...x, deleting: false } as WebauthnDeviceDisplay;
+            });
+            setWebauthnDevices(devicesDisplay);
             setReady(true);
         })();
     }, []);
@@ -57,6 +65,13 @@ export default function TwoFactorAuthSettings(props: Props) {
     };
 
     const handleDeleteItem = async (idx: number) => {
+        webauthnDevices[idx].deleting = true;
+        const status = await deleteDevice(webauthnDevices[idx].id);
+        webauthnDevices[idx].deleting = false;
+        if (status !== 200) {
+            createErrorNotification(translate("There was a problem deleting the device"));
+            return;
+        }
         let updatedDevices = [...webauthnDevices];
         updatedDevices.splice(idx, 1);
         setWebauthnDevices(updatedDevices);
@@ -115,10 +130,14 @@ export default function TwoFactorAuthSettings(props: Props) {
                                                 return (
                                                     <WebauthnDeviceItem
                                                         device={x}
-                                                        idx={idx}
-                                                        webauthnShowDetails={webauthnShowDetails}
-                                                        handleWebAuthnDetailsChange={handleWebAuthnDetailsChange}
-                                                        handleDeleteItem={handleDeleteItem}
+                                                        deleting={x.deleting}
+                                                        webauthnShowDetails={webauthnShowDetails === idx}
+                                                        handleWebAuthnDetailsChange={() => {
+                                                            handleWebAuthnDetailsChange(idx);
+                                                        }}
+                                                        handleDelete={() => {
+                                                            handleDeleteItem(idx);
+                                                        }}
                                                         key={`webauthn-device-${idx}`}
                                                     />
                                                 );
