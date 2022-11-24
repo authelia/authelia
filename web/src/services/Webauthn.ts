@@ -17,6 +17,7 @@ import {
     PublicKeyCredentialJSON,
     PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
+    WebauthnDeviceUpdateRequest,
 } from "@models/Webauthn";
 import {
     OptionalDataServiceResponse,
@@ -399,5 +400,12 @@ export async function performAssertionCeremony(
 
 export async function deleteDevice(deviceID: string): Promise<number> {
     let response = await axios.delete(`${WebauthnDevicesPath}/${deviceID}`);
+    return response.status;
+}
+
+export async function updateDevice(deviceID: string, description: string): Promise<number> {
+    let response = await axios.put<ServiceResponse<WebauthnDeviceUpdateRequest>>(`${WebauthnDevicesPath}/${deviceID}`, {
+        description: description,
+    });
     return response.status;
 }

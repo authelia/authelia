@@ -22,9 +22,10 @@ import { WebauthnDevice } from "@root/models/Webauthn";
 import { initiateWebauthnRegistrationProcess } from "@root/services/RegisterDevice";
 import { AutheliaState, AuthenticationLevel } from "@root/services/State";
 import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
-import { deleteDevice } from "@root/services/Webauthn";
+import { deleteDevice, updateDevice } from "@root/services/Webauthn";
 
 import WebauthnDeviceDeleteDialog from "./WebauthnDeviceDeleteDialog";
+import WebauthnDeviceEditDialog from "./WebauthnDeviceEditDialog";
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
 interface Props {
@@ -33,6 +34,7 @@ interface Props {
 
 interface WebauthnDeviceDisplay extends WebauthnDevice {
     deleting: boolean;
+    editing: boolean;
 }
 
 export default function WebauthnDevices(props: Props) {
@@ -42,11 +44,13 @@ export default function WebauthnDevices(props: Props) {
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
     const [deletingIdx, setDeletingIdx] = useState<number>(-1);
+    const [editingIdx, setEditingIdx] = useState<number>(-1);
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [ready, setReady] = useState(false);
 
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDeviceDisplay[]>([]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     useEffect(() => {
         (async function () {
@@ -90,6 +94,29 @@ export default function WebauthnDevices(props: Props) {
         setWebauthnDevices(updatedDevices);
     };
 
+    const handleEditItem = async (idx: number) => {
+        setEditingIdx(idx);
+        setEditDialogOpen(true);
+    };
+
+    const handleEditItemConfirm = async (ok: boolean, name: string) => {
+        setEditDialogOpen(false);
+        const idx = editingIdx;
+        if (ok !== true) {
+            return;
+        }
+        webauthnDevices[idx].editing = true;
+        const status = await updateDevice(webauthnDevices[idx].id, name);
+        webauthnDevices[idx].editing = false;
+        if (status !== 200) {
+            createErrorNotification(translate("There was a problem updating the device"));
+            return;
+        }
+        let updatedDevices = [...webauthnDevices];
+        updatedDevices[idx].description = name;
+        setWebauthnDevices(updatedDevices);
+    };
+
     const initiateRegistration = async (initiateRegistrationFunc: () => Promise<void>, redirectRoute: string) => {
         if (props.state.authentication_level >= AuthenticationLevel.TwoFactor) {
             navigate(redirectRoute);
@@ -115,6 +142,11 @@ export default function WebauthnDevices(props: Props) {
 
     return (
         <>
+            <WebauthnDeviceEditDialog
+                device={editingIdx > -1 ? webauthnDevices[editingIdx] : undefined}
+                open={editDialogOpen}
+                handleClose={handleEditItemConfirm}
+            />
             <WebauthnDeviceDeleteDialog
                 device={deletingIdx > -1 ? webauthnDevices[deletingIdx] : undefined}
                 open={deleteDialogOpen}
@@ -150,9 +182,13 @@ export default function WebauthnDevices(props: Props) {
                                                         <WebauthnDeviceItem
                                                             device={x}
                                                             deleting={x.deleting}
+                                                            editing={x.editing}
                                                             webauthnShowDetails={webauthnShowDetails === idx}
                                                             handleWebAuthnDetailsChange={() => {
                                                                 handleWebAuthnDetailsChange(idx);
+                                                            }}
+                                                            handleEdit={() => {
+                                                                handleEditItem(idx);
                                                             }}
                                                             handleDelete={() => {
                                                                 handleDeleteItem(idx);
