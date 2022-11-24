@@ -245,7 +245,7 @@ func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection
 
 func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration) (err error) {
 	if _, err = conn.ExecContext(ctx, migration.Query); err != nil {
-		return err
+		return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 	}
 
 	if migration.Version == 1 && migration.Up {

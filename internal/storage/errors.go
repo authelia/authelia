@@ -48,6 +48,7 @@ const (
 )
 
 const (
+	errFmtFailedMigration                     = "schema migration %d (%s) failed: %w"
 	errFmtSchemaCurrentGreaterThanLatestKnown = "current schema version is greater than the latest known schema " +
 		"version, you must downgrade to schema version %d before you can use this version of Authelia"
 )
