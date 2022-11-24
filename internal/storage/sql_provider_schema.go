@@ -319,12 +319,11 @@ func (p *SQLProvider) schemaLatestMigration(ctx context.Context) (migration *mod
 }
 
 func schemaMigrateChecks(providerName string, up bool, targetVersion, currentVersion int) (err error) {
-	if currentVersion == -1 {
-		return fmt.Errorf("schema migration from pre1 is no longer supported and you must use a previous authelia version to achieve this: the suggested authelia version is 4.37.2")
-	}
-
-	if targetVersion == -1 {
-		return fmt.Errorf("schema migration to pre1 is no longer supported and you must migrate down to database schema version 1 first and then use a previous version to downgrade to database schema version pre1: the suggested authelia version is 4.37.2")
+	switch {
+	case currentVersion == -1:
+		return fmt.Errorf(errFmtMigrationPre1, "up from", errFmtMigrationPre1SuggestedVersion)
+	case targetVersion == -1:
+		return fmt.Errorf(errFmtMigrationPre1, "down to", fmt.Sprintf("you should downgrade to schema version 1 using the current authelia version then use the suggested authelia version to downgrade to pre1: %s", errFmtMigrationPre1SuggestedVersion))
 	}
 
 	if targetVersion == currentVersion {

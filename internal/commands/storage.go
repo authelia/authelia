@@ -449,7 +449,6 @@ func newStorageMigrateDownCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")
-	cmd.Flags().Bool("pre1", false, "sets pre1 as the version to migrate to")
 	cmd.Flags().Bool("destroy-data", false, "confirms you want to destroy data with this migration")
 
 	return cmd

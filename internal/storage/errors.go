@@ -48,8 +48,6 @@ const (
 )
 
 const (
-	errFmtFailedMigration                     = "schema migration %d (%s) failed: %w"
-	errFmtFailedMigrationPre1                 = "schema migration pre1 failed: %w"
 	errFmtSchemaCurrentGreaterThanLatestKnown = "current schema version is greater than the latest known schema " +
 		"version, you must downgrade to schema version %d before you can use this version of Authelia"
 )
@@ -58,4 +56,9 @@ const (
 	logFmtMigrationFromTo   = "Storage schema migration from %s to %s is being attempted"
 	logFmtMigrationComplete = "Storage schema migration from %s to %s is complete"
 	logFmtErrClosingConn    = "Error occurred closing SQL connection: %v"
+)
+
+const (
+	errFmtMigrationPre1                 = "schema migration %s pre1 is no longer supported: you must use an older version of authelia to perform this migration: %s"
+	errFmtMigrationPre1SuggestedVersion = "the suggested authelia version is 4.37.2"
 )
