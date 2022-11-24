@@ -397,7 +397,7 @@ export async function performAssertionCeremony(
     return AssertionResult.Failure;
 }
 
-export async function deleteDevice(deviceID: number): Promise<number> {
+export async function deleteDevice(deviceID: string): Promise<number> {
     let response = await axios.delete(`${WebauthnDevicesPath}/${deviceID}`);
     return response.status;
 }
