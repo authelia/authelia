@@ -252,7 +252,7 @@ func NewTLSConfig(config *schema.TLSConfig, caCertPool *x509.CertPool) (tlsConfi
 		ServerName:         config.ServerName,
 		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
 		MinVersion:         config.MinimumVersion.MinVersion(),
-		MaxVersion:         config.MinimumVersion.MaxVersion(),
+		MaxVersion:         config.MaximumVersion.MaxVersion(),
 		RootCAs:            caCertPool,
 		Certificates:       certificates,
 	}
