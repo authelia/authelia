@@ -40,7 +40,6 @@ authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-94
 ```
       --destroy-data   confirms you want to destroy data with this migration
   -h, --help           help for down
-      --pre1           sets pre1 as the version to migrate to
   -t, --target int     sets the version to migrate to
 ```
 
