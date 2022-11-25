@@ -2,7 +2,7 @@ import React from "react";
 
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 
-import { WebauthnDevice } from "@root/models/Webauthn";
+import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
     open: boolean;
