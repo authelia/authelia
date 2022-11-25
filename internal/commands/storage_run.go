@@ -210,7 +210,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 
 			fmt.Println("")
 		} else {
-			return errors.New("you must set the --new-encryption-key flag or use an interactive terminal")
+			return errors.New("you must either use an interactive terminal or use the --new-encryption-key flag")
 		}
 	}
 

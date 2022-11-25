@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"syscall"
@@ -434,7 +435,11 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	)
 
 	if data, err = termReadPasswordWithPrompt("Enter Password: "); err != nil {
-		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+		if errors.Is(err, ErrStdinIsNotTerminal) {
+			err = fmt.Errorf("you must either use an interactive terminal or use the --password flag")
+		} else {
+			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+		}
 
 		return
 	}
@@ -450,6 +455,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
 		if data, err = termReadPasswordWithPrompt("Confirm Password: "); err != nil {
 			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+
 			return
 		}
 
@@ -467,16 +473,19 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	return
 }
 
+// ErrStdinIsNotTerminal is returned when Stdin is not an interactive terminal.
+var ErrStdinIsNotTerminal = errors.New("stdin is not a terminal")
+
 func termReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Print(prompt)
 
 	fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
 
 	if isTerm := term.IsTerminal(fd); !isTerm {
-		return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use a flag or use an interactive terminal: %w", err)
+		return nil, ErrStdinIsNotTerminal
 	}
 
-	if data, err = term.ReadPassword(fd); err != nil { //nolint:unconvert,nolintlint
+	if data, err = term.ReadPassword(fd); err != nil {
 		return nil, err
 	}
 

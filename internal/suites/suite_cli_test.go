@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -1156,7 +1156,7 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 
-	s.Assert().Contains(output, "Error: you must set the --new-encryption-key flag\n")
+	s.Assert().Contains(output, "Error: you must either use an interactive terminal or use the --new-encryption-key flag\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--new-encryption-key=abc", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
