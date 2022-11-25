@@ -10,6 +10,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -48,31 +49,32 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	mapping := map[string]string{
-		"encryption-key": "storage.encryption_key",
-		"sqlite.path":    "storage.local.path",
+		cmdFlagNameEncryptionKey: "storage.encryption_key",
 
-		"mysql.host":     "storage.mysql.host",
-		"mysql.port":     "storage.mysql.port",
-		"mysql.database": "storage.mysql.database",
-		"mysql.username": "storage.mysql.username",
-		"mysql.password": "storage.mysql.password",
+		cmdFlagNameSQLite3Path: "storage.local.path",
 
-		"postgres.host":                 "storage.postgres.host",
-		"postgres.port":                 "storage.postgres.port",
-		"postgres.database":             "storage.postgres.database",
-		"postgres.schema":               "storage.postgres.schema",
-		"postgres.username":             "storage.postgres.username",
-		"postgres.password":             "storage.postgres.password",
+		cmdFlagNameMySQLHost:     "storage.mysql.host",
+		cmdFlagNameMySQLPort:     "storage.mysql.port",
+		cmdFlagNameMySQLDatabase: "storage.mysql.database",
+		cmdFlagNameMySQLUsername: "storage.mysql.username",
+		cmdFlagNameMySQLPassword: "storage.mysql.password",
+
+		cmdFlagNamePostgreSQLHost:       "storage.postgres.host",
+		cmdFlagNamePostgreSQLPort:       "storage.postgres.port",
+		cmdFlagNamePostgreSQLDatabase:   "storage.postgres.database",
+		cmdFlagNamePostgreSQLSchema:     "storage.postgres.schema",
+		cmdFlagNamePostgreSQLUsername:   "storage.postgres.username",
+		cmdFlagNamePostgreSQLPassword:   "storage.postgres.password",
 		"postgres.ssl.mode":             "storage.postgres.ssl.mode",
 		"postgres.ssl.root_certificate": "storage.postgres.ssl.root_certificate",
 		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
 		"postgres.ssl.key":              "storage.postgres.ssl.key",
 
-		"period":      "totp.period",
-		"digits":      "totp.digits",
-		"algorithm":   "totp.algorithm",
-		"issuer":      "totp.issuer",
-		"secret-size": "totp.secret_size",
+		cmdFlagNamePeriod:     "totp.period",
+		cmdFlagNameDigits:     "totp.digits",
+		cmdFlagNameAlgorithm:  "totp.algorithm",
+		cmdFlagNameIssuer:     "totp.issuer",
+		cmdFlagNameSecretSize: "totp.secret_size",
 	}
 
 	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
@@ -128,6 +130,7 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 	var (
 		provider storage.Provider
 		verbose  bool
+		result   storage.EncryptionValidationResult
 
 		ctx = context.Background()
 	)
@@ -138,21 +141,43 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 		_ = provider.Close()
 	}()
 
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+	if verbose, err = cmd.Flags().GetBool(cmdFlagNameVerbose); err != nil {
 		return err
 	}
 
-	if err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
+	if result, err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
-			fmt.Printf("Could not check encryption key for validity. The schema version doesn't support encryption.\n")
-		case errors.Is(err, storage.ErrSchemaEncryptionInvalidKey):
-			fmt.Printf("Encryption key validation: failed.\n\nError: %v.\n", err)
+			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
 		default:
-			fmt.Printf("Could not check encryption key for validity.\n\nError: %v.\n", err)
+			fmt.Printf("Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
 		}
 	} else {
-		fmt.Println("Encryption key validation: success.")
+		if result.Success() {
+			fmt.Println("Storage Encryption Key Validation: SUCCESS")
+		} else {
+			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: %v.\n", storage.ErrSchemaEncryptionInvalidKey)
+		}
+
+		if verbose {
+			fmt.Printf("\nTables:")
+
+			tables := make([]string, 0, len(result.Tables))
+
+			for name := range result.Tables {
+				tables = append(tables, name)
+			}
+
+			sort.Strings(tables)
+
+			for _, name := range tables {
+				table := result.Tables[name]
+
+				fmt.Printf("\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
+			}
+
+			fmt.Printf("\n")
+		}
 	}
 
 	return nil
@@ -185,13 +210,22 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return errors.New("schema version must be at least version 1 to change the encryption key")
 	}
 
-	key, err = cmd.Flags().GetString("new-encryption-key")
+	useFlag := cmd.Flags().Changed(cmdFlagNameNewEncryptionKey)
+	if useFlag {
+		if key, err = cmd.Flags().GetString(cmdFlagNameNewEncryptionKey); err != nil {
+			return err
+		}
+	}
+
+	if !useFlag || key == "" {
+		if key, err = termReadPasswordStrWithPrompt("Enter New Storage Encryption Key: ", cmdFlagNameNewEncryptionKey); err != nil {
+			return err
+		}
+	}
 
 	switch {
-	case err != nil:
-		return err
 	case key == "":
-		return errors.New("you must set the --new-encryption-key flag")
+		return errors.New("the new encryption key must not be blank")
 	case len(key) < 20:
 		return errors.New("the new encryption key must be at least 20 characters")
 	}
@@ -341,24 +375,24 @@ func storageWebAuthnDeleteGetAndValidateConfig(cmd *cobra.Command, args []string
 
 	flags := 0
 
-	if cmd.Flags().Changed("all") {
-		if all, err = cmd.Flags().GetBool("all"); err != nil {
+	if cmd.Flags().Changed(cmdFlagNameAll) {
+		if all, err = cmd.Flags().GetBool(cmdFlagNameAll); err != nil {
 			return
 		}
 
 		flags++
 	}
 
-	if cmd.Flags().Changed("description") {
-		if description, err = cmd.Flags().GetString("description"); err != nil {
+	if cmd.Flags().Changed(cmdFlagNameDescription) {
+		if description, err = cmd.Flags().GetString(cmdFlagNameDescription); err != nil {
 			return
 		}
 
 		flags++
 	}
 
-	if byKID = cmd.Flags().Changed("kid"); byKID {
-		if kid, err = cmd.Flags().GetString("kid"); err != nil {
+	if byKID = cmd.Flags().Changed(cmdFlagNameKeyID); byKID {
+		if kid, err = cmd.Flags().GetString(cmdFlagNameKeyID); err != nil {
 			return
 		}
 
@@ -574,7 +608,7 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string, err error) {
-	if format, err = cmd.Flags().GetString("format"); err != nil {
+	if format, err = cmd.Flags().GetString(cmdFlagNameFormat); err != nil {
 		return "", "", err
 	}
 
@@ -694,7 +728,6 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 		var (
 			provider storage.Provider
 			target   int
-			pre1     bool
 
 			ctx = context.Background()
 		)
@@ -705,37 +738,28 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 			_ = provider.Close()
 		}()
 
-		if target, err = cmd.Flags().GetInt("target"); err != nil {
+		if target, err = cmd.Flags().GetInt(cmdFlagNameTarget); err != nil {
 			return err
 		}
 
 		switch {
 		case up:
-			switch cmd.Flags().Changed("target") {
+			switch cmd.Flags().Changed(cmdFlagNameTarget) {
 			case true:
 				return provider.SchemaMigrate(ctx, true, target)
 			default:
 				return provider.SchemaMigrate(ctx, true, storage.SchemaLatest)
 			}
 		default:
-			if pre1, err = cmd.Flags().GetBool("pre1"); err != nil {
-				return err
-			}
-
-			if !cmd.Flags().Changed("target") && !pre1 {
-				return errors.New("must set target")
+			if !cmd.Flags().Changed(cmdFlagNameTarget) {
+				return errors.New("you must set a target version")
 			}
 
 			if err = storageMigrateDownConfirmDestroy(cmd); err != nil {
 				return err
 			}
 
-			switch {
-			case pre1:
-				return provider.SchemaMigrate(ctx, false, -1)
-			default:
-				return provider.SchemaMigrate(ctx, false, target)
-			}
+			return provider.SchemaMigrate(ctx, false, target)
 		}
 	}
 }
@@ -743,7 +767,7 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
 	var destroy bool
 
-	if destroy, err = cmd.Flags().GetBool("destroy-data"); err != nil {
+	if destroy, err = cmd.Flags().GetBool(cmdFlagNameDestroyData); err != nil {
 		return err
 	}
 
@@ -803,15 +827,21 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		upgradeStr = "no"
 	}
 
-	var encryption string
+	var (
+		encryption string
+		result     storage.EncryptionValidationResult
+	)
 
-	if err = provider.SchemaEncryptionCheckKey(ctx, false); err != nil {
+	switch result, err = provider.SchemaEncryptionCheckKey(ctx, false); {
+	case err != nil:
 		if errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported) {
 			encryption = "unsupported (schema version)"
 		} else {
-			encryption = "invalid"
+			encryption = invalid
 		}
-	} else {
+	case !result.Success():
+		encryption = invalid
+	default:
 		encryption = "valid"
 	}
 
@@ -847,7 +877,7 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 		file string
 	)
 
-	if file, err = cmd.Flags().GetString("file"); err != nil {
+	if file, err = cmd.Flags().GetString(cmdFlagNameFile); err != nil {
 		return err
 	}
 
@@ -899,7 +929,7 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 		stat os.FileInfo
 	)
 
-	if file, err = cmd.Flags().GetString("file"); err != nil {
+	if file, err = cmd.Flags().GetString(cmdFlagNameFile); err != nil {
 		return err
 	}
 
@@ -967,15 +997,15 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 		return fmt.Errorf("can't load the existing identifiers: %w", err)
 	}
 
-	if users, err = cmd.Flags().GetStringSlice("users"); err != nil {
+	if users, err = cmd.Flags().GetStringSlice(cmdFlagNameUsers); err != nil {
 		return err
 	}
 
-	if services, err = cmd.Flags().GetStringSlice("services"); err != nil {
+	if services, err = cmd.Flags().GetStringSlice(cmdFlagNameServices); err != nil {
 		return err
 	}
 
-	if sectors, err = cmd.Flags().GetStringSlice("sectors"); err != nil {
+	if sectors, err = cmd.Flags().GetStringSlice(cmdFlagNameSectors); err != nil {
 		return err
 	}
 
@@ -1036,7 +1066,7 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		service, sector string
 	)
 
-	if service, err = cmd.Flags().GetString("service"); err != nil {
+	if service, err = cmd.Flags().GetString(cmdFlagNameService); err != nil {
 		return err
 	}
 
@@ -1046,7 +1076,7 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("the service name '%s' is invalid, the valid values are: '%s'", service, strings.Join(validIdentifierServices, "', '"))
 	}
 
-	if sector, err = cmd.Flags().GetString("sector"); err != nil {
+	if sector, err = cmd.Flags().GetString(cmdFlagNameSector); err != nil {
 		return err
 	}
 
@@ -1056,10 +1086,10 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		SectorID: sector,
 	}
 
-	if cmd.Flags().Changed("identifier") {
+	if cmd.Flags().Changed(cmdFlagNameIdentifier) {
 		var identifierStr string
 
-		if identifierStr, err = cmd.Flags().GetString("identifier"); err != nil {
+		if identifierStr, err = cmd.Flags().GetString(cmdFlagNameIdentifier); err != nil {
 			return err
 		}
 

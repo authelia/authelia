@@ -1,7 +1,5 @@
 PRAGMA foreign_keys=off;
 
-BEGIN TRANSACTION;
-
 ALTER TABLE webauthn_devices
     RENAME TO _bkp_DOWN_V0007_webauthn_devices;
 
@@ -611,7 +609,5 @@ FROM _bkp_DOWN_V0007_oauth2_openid_connect_session
 ORDER BY id;
 
 DROP TABLE IF EXISTS _bkp_DOWN_V0007_oauth2_openid_connect_session;
-
-COMMIT;
 
 PRAGMA foreign_keys=on;

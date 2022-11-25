@@ -35,7 +35,7 @@ var (
 
 	// ErrSchemaEncryptionInvalidKey is returned when the schema is checked if the encryption key is valid for
 	// the database but the key doesn't appear to be valid.
-	ErrSchemaEncryptionInvalidKey = errors.New("the encryption key is not valid against the schema check value")
+	ErrSchemaEncryptionInvalidKey = errors.New("the configured encryption key does not appear to be valid for this database which may occur if the encryption key was changed in the configuration without using the cli to change it in the database")
 )
 
 // Error formats for the storage provider.
@@ -49,7 +49,6 @@ const (
 
 const (
 	errFmtFailedMigration                     = "schema migration %d (%s) failed: %w"
-	errFmtFailedMigrationPre1                 = "schema migration pre1 failed: %w"
 	errFmtSchemaCurrentGreaterThanLatestKnown = "current schema version is greater than the latest known schema " +
 		"version, you must downgrade to schema version %d before you can use this version of Authelia"
 )
@@ -58,4 +57,9 @@ const (
 	logFmtMigrationFromTo   = "Storage schema migration from %s to %s is being attempted"
 	logFmtMigrationComplete = "Storage schema migration from %s to %s is complete"
 	logFmtErrClosingConn    = "Error occurred closing SQL connection: %v"
+)
+
+const (
+	errFmtMigrationPre1                 = "schema migration %s pre1 is no longer supported: you must use an older version of authelia to perform this migration: %s"
+	errFmtMigrationPre1SuggestedVersion = "the suggested authelia version is 4.37.2"
 )

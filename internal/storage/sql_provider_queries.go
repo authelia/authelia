@@ -83,17 +83,15 @@ const (
 		LIMIT ?
 		OFFSET ?;`
 
+	queryFmtSelectTOTPConfigurationsEncryptedData = `
+		SELECT id, secret
+		FROM %s;`
+
 	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
 	queryFmtUpdateTOTPConfigurationSecret = `
 		UPDATE %s
 		SET secret = ?
 		WHERE id = ?;`
-
-	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
-	queryFmtUpdateTOTPConfigurationSecretByUsername = `
-		UPDATE %s
-		SET secret = ?
-		WHERE username = ?;`
 
 	queryFmtUpsertTOTPConfiguration = `
 		REPLACE INTO %s (created_at, last_used_at, username, issuer, algorithm, digits, period, secret)
@@ -127,6 +125,10 @@ const (
 		LIMIT ?
 		OFFSET ?;`
 
+	queryFmtSelectWebauthnDevicesEncryptedData = `
+		SELECT id, public_key
+		FROM %s;`
+
 	queryFmtSelectWebauthnDevicesByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
 		FROM %s
@@ -136,11 +138,6 @@ const (
 		UPDATE %s
 		SET public_key = ?
 		WHERE id = ?;`
-
-	queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername = `
-		UPDATE %s
-		SET public_key = ?
-		WHERE username = ? AND kid = ?;`
 
 	queryFmtUpdateWebauthnDeviceRecordSignIn = `
 		UPDATE %s
@@ -265,6 +262,11 @@ const (
 		SET subject = ?
 		WHERE id = ?;`
 
+	queryFmtUpdateOAuth2ConsentSessionSessionData = `
+		UPDATE %s
+		SET session_data = ?
+		WHERE id = ?;`
+
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
 		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, preconfiguration = ?
@@ -281,6 +283,10 @@ const (
 		active, revoked, form_data, session_data
 		FROM %s
 		WHERE signature = ? AND revoked = FALSE;`
+
+	queryFmtSelectOAuth2SessionEncryptedData = `
+		SELECT id, session_data
+		FROM %s;`
 
 	queryFmtInsertOAuth2Session = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,

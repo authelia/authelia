@@ -3,12 +3,10 @@ package commands
 import (
 	"fmt"
 	"strings"
-	"syscall"
 
 	"github.com/go-crypt/crypt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -433,7 +431,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		noConfirm bool
 	)
 
-	if data, err = hashReadPasswordWithPrompt("Enter Password: "); err != nil {
+	if data, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
 		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
 
 		return
@@ -448,8 +446,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
-		if data, err = hashReadPasswordWithPrompt("Confirm Password: "); err != nil {
-			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+		if data, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
 			return
 		}
 
@@ -465,22 +462,6 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	fmt.Println("")
 
 	return
-}
-
-func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
-	fmt.Print(prompt)
-
-	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil { //nolint:unconvert,nolintlint
-		if err.Error() == "inappropriate ioctl for device" {
-			return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use the '--password' flag or use an interactive terminal: %w", err)
-		}
-
-		return nil, err
-	}
-
-	fmt.Println("")
-
-	return data, nil
 }
 
 func cmdFlagConfig(cmd *cobra.Command) {
