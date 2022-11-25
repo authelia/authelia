@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { WebauthnDevice } from "@root/models/Webauthn";
+import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
     device: WebauthnDevice;

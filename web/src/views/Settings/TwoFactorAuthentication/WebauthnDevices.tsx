@@ -18,11 +18,11 @@ import { useNavigate } from "react-router-dom";
 
 import { RegisterWebauthnRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { WebauthnDevice } from "@root/models/Webauthn";
-import { initiateWebauthnRegistrationProcess } from "@root/services/RegisterDevice";
-import { AutheliaState, AuthenticationLevel } from "@root/services/State";
-import { getWebauthnDevices } from "@root/services/UserWebauthnDevices";
-import { deleteDevice, updateDevice } from "@root/services/Webauthn";
+import { WebauthnDevice } from "@models/Webauthn";
+import { initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
+import { AutheliaState, AuthenticationLevel } from "@services/State";
+import { getWebauthnDevices } from "@services/UserWebauthnDevices";
+import { deleteDevice, updateDevice } from "@services/Webauthn";
 
 import WebauthnDeviceDeleteDialog from "./WebauthnDeviceDeleteDialog";
 import WebauthnDeviceEditDialog from "./WebauthnDeviceEditDialog";
