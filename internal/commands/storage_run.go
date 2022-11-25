@@ -193,12 +193,8 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	if !useFlag || key == "" {
-		if key, err = termReadPasswordStrWithPrompt("Enter New Storage Encryption Key: "); err != nil {
-			if errors.Is(err, ErrStdinIsNotTerminal) {
-				return errors.New("you must either use an interactive terminal or use the --new-encryption-key flag")
-			} else {
-				return fmt.Errorf("failed to read the new encryption key from the terminal: %w", err)
-			}
+		if key, err = termReadPasswordStrWithPrompt("Enter New Storage Encryption Key: ", "new-encryption-key"); err != nil {
+			return err
 		}
 	}
 

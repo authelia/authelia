@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -432,12 +431,8 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		noConfirm bool
 	)
 
-	if data, err = termReadPasswordWithPrompt("Enter Password: "); err != nil {
-		if errors.Is(err, ErrStdinIsNotTerminal) {
-			err = fmt.Errorf("you must either use an interactive terminal or use the --password flag")
-		} else {
-			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
-		}
+	if data, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
+		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
 
 		return
 	}
@@ -451,9 +446,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
-		if data, err = termReadPasswordWithPrompt("Confirm Password: "); err != nil {
-			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
-
+		if data, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
 			return
 		}
 
