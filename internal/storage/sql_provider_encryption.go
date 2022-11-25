@@ -16,14 +16,14 @@ import (
 
 // SchemaEncryptionChangeKey uses the currently configured key to decrypt values in the database and the key provided
 // by this command to encrypt the values again and update them using a transaction.
-func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey string) (err error) {
-	key := sha256.Sum256([]byte(rawKey))
+func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, key string) (err error) {
+	skey := sha256.Sum256([]byte(key))
 
-	if bytes.Equal(key[:], p.key[:]) {
+	if bytes.Equal(skey[:], p.key[:]) {
 		return fmt.Errorf("error changing the storage encryption key: the old key and the new key are the same")
 	}
 
-	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil {
+	if _, err = p.SchemaEncryptionCheckKey(ctx, false); err != nil {
 		return fmt.Errorf("error changing the storage encryption key: %w", err)
 	}
 
@@ -48,7 +48,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 	}
 
 	for _, encChangeFunc := range encChangeFuncs {
-		if err = encChangeFunc(ctx, p, tx, key); err != nil {
+		if err = encChangeFunc(ctx, p, tx, skey); err != nil {
 			if rerr := tx.Rollback(); rerr != nil {
 				return fmt.Errorf("rollback error %v: rollback due to error: %w", rerr, err)
 			}
@@ -57,9 +57,9 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 		}
 	}
 
-	if err = p.setNewEncryptionCheckValue(ctx, tx, &key); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return fmt.Errorf("rollback error %v: rollback due to error: %w", rollbackErr, err)
+	if err = p.setNewEncryptionCheckValue(ctx, tx, &skey); err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			return fmt.Errorf("rollback error %v: rollback due to error: %w", rerr, err)
 		}
 
 		return fmt.Errorf("rollback due to error: %w", err)
@@ -69,20 +69,22 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 }
 
 // SchemaEncryptionCheckKey checks the encryption key configured is valid for the database.
-func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (err error) {
+func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (result EncryptionValidationResult, err error) {
 	version, err := p.SchemaVersion(ctx)
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	if version < 1 {
-		return ErrSchemaEncryptionVersionUnsupported
+		return result, ErrSchemaEncryptionVersionUnsupported
 	}
 
-	var errs []error
+	result = EncryptionValidationResult{
+		Tables: map[string]EncryptionValidationTableResult{},
+	}
 
 	if _, err = p.getEncryptionValue(ctx, encryptionNameCheck); err != nil {
-		errs = append(errs, ErrSchemaEncryptionInvalidKey)
+		result.InvalidCheckValue = true
 	}
 
 	if verbose {
@@ -102,27 +104,13 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 		}
 
 		for _, encCheckFunc := range encCheckFuncs {
-			if err = encCheckFunc(ctx, p); err != nil {
-				errs = append(errs, err)
-			}
+			table, tableResult := encCheckFunc(ctx, p)
+
+			result.Tables[table] = tableResult
 		}
 	}
 
-	if len(errs) != 0 {
-		for i, e := range errs {
-			if i == 0 {
-				err = e
-
-				continue
-			}
-
-			err = fmt.Errorf("%w, %v", err, e)
-		}
-
-		return err
-	}
-
-	return nil
+	return result, nil
 }
 
 func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
@@ -243,107 +231,98 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 	}
 }
 
-func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (err error) {
-	var rows *sqlx.Rows
+func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult) {
+	var (
+		rows *sqlx.Rows
+		err  error
+	)
 
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectTOTPConfigurationsEncryptedData, tableTOTPConfigurations)); err != nil {
-		return fmt.Errorf("error selecting TOTP configurations: %w", err)
+		return tableTOTPConfigurations, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting TOTP configurations: %w", err)}
 	}
-
-	var total, invalid int
 
 	var config encTOTPConfiguration
 
 	for rows.Next() {
-		total++
+		result.Total++
 
 		if err = rows.StructScan(&config); err != nil {
 			_ = rows.Close()
 
-			return fmt.Errorf("error scanning TOTP configuration to struct: %w", err)
+			return tableTOTPConfigurations, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning TOTP configuration to struct: %w", err)}
 		}
 
 		if _, err = provider.decrypt(config.Secret); err != nil {
-			invalid++
+			result.Invalid++
 		}
 	}
 
 	_ = rows.Close()
 
-	if invalid != 0 {
-		return fmt.Errorf("%d of %d total TOTP configurations were encrypted with another encryption key", invalid, total)
-	}
-
-	return nil
+	return tableTOTPConfigurations, result
 }
 
-func schemaEncryptionCheckKeyWebauthn(ctx context.Context, provider *SQLProvider) (err error) {
-	var rows *sqlx.Rows
+func schemaEncryptionCheckKeyWebauthn(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult) {
+	var (
+		rows *sqlx.Rows
+		err  error
+	)
 
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebauthnDevicesEncryptedData, tableWebauthnDevices)); err != nil {
-		return fmt.Errorf("error selecting Webauthn devices: %w", err)
+		return tableWebauthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting Webauthn devices: %w", err)}
 	}
-
-	var total, invalid int
 
 	var device encWebauthnDevice
 
 	for rows.Next() {
-		total++
+		result.Total++
 
 		if err = rows.StructScan(&device); err != nil {
 			_ = rows.Close()
 
-			return fmt.Errorf("error scanning Webauthn device to struct: %w", err)
+			return tableWebauthnDevices, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning Webauthn device to struct: %w", err)}
 		}
 
 		if _, err = provider.decrypt(device.PublicKey); err != nil {
-			invalid++
+			result.Invalid++
 		}
 	}
 
 	_ = rows.Close()
 
-	if invalid != 0 {
-		return fmt.Errorf("%d of %d total Webauthn devices were encrypted with another encryption key", invalid, total)
-	}
-
-	return nil
+	return tableWebauthnDevices, result
 }
 
 func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) EncryptionCheckKeyFunc {
-	return func(ctx context.Context, provider *SQLProvider) (err error) {
-		var rows *sqlx.Rows
-
-		var total, invalid int
+	return func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult) {
+		var (
+			rows *sqlx.Rows
+			err  error
+		)
 
 		if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOAuth2SessionEncryptedData, typeOAuth2Session.Table())); err != nil {
-			return fmt.Errorf("error selecting oauth2 %s sessions: %w", typeOAuth2Session.String(), err)
+			return typeOAuth2Session.Table(), EncryptionValidationTableResult{Error: fmt.Errorf("error selecting oauth2 %s sessions: %w", typeOAuth2Session.String(), err)}
 		}
 
 		var session encOAuth2Session
 
 		for rows.Next() {
-			total++
+			result.Total++
 
 			if err = rows.StructScan(&session); err != nil {
 				_ = rows.Close()
 
-				return fmt.Errorf("error scanning oauth2 %s session to struct: %w", typeOAuth2Session.String(), err)
+				return typeOAuth2Session.Table(), EncryptionValidationTableResult{Error: fmt.Errorf("error scanning oauth2 %s session to struct: %w", typeOAuth2Session.String(), err)}
 			}
 
 			if _, err = provider.decrypt(session.Session); err != nil {
-				invalid++
+				result.Invalid++
 			}
 		}
 
 		_ = rows.Close()
 
-		if invalid != 0 {
-			return fmt.Errorf("%d of %d total oauth2 %s session rows were encrypted with another encryption key", invalid, total, typeOAuth2Session.String())
-		}
-
-		return nil
+		return typeOAuth2Session.Table(), result
 	}
 }
 

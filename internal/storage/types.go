@@ -25,7 +25,7 @@ type SQLXConnection interface {
 type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error)
 
 // EncryptionCheckKeyFunc handles encryption key checking for a specific table or tables.
-type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (err error)
+type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult)
 
 type encOAuth2Session struct {
 	ID      int    `db:"id"`
@@ -40,4 +40,56 @@ type encWebauthnDevice struct {
 type encTOTPConfiguration struct {
 	ID     int    `db:"id" json:"-"`
 	Secret []byte `db:"secret" json:"-"`
+}
+
+// EncryptionValidationResult contains information about the success of a schema encryption validation.
+type EncryptionValidationResult struct {
+	InvalidCheckValue bool
+	Tables            map[string]EncryptionValidationTableResult
+}
+
+// Success returns true if no validation errors occurred.
+func (r EncryptionValidationResult) Success() bool {
+	if r.InvalidCheckValue {
+		return false
+	}
+
+	for _, table := range r.Tables {
+		if table.Invalid != 0 || table.Error != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Checked returns true the validation completed all phases even if there were errors.
+func (r EncryptionValidationResult) Checked() bool {
+	for _, table := range r.Tables {
+		if table.Error != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+// EncryptionValidationTableResult contains information about the success of a table schema encryption validation.
+type EncryptionValidationTableResult struct {
+	Error   error
+	Total   int
+	Invalid int
+}
+
+// ResultDescriptor returns a string representing the result.
+func (r EncryptionValidationTableResult) ResultDescriptor() string {
+	if r.Total == 0 {
+		return "N/A"
+	}
+
+	if r.Error != nil || r.Invalid != 0 {
+		return "FAILURE"
+	}
+
+	return "SUCCESS"
 }

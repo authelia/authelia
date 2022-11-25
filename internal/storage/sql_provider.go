@@ -284,8 +284,14 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
-	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
+	var result EncryptionValidationResult
+
+	if result, err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
 		return err
+	}
+
+	if !result.Success() {
+		return ErrSchemaEncryptionInvalidKey
 	}
 
 	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {

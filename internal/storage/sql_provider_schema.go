@@ -191,8 +191,8 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 
 	if tx != nil {
 		if err = tx.Commit(); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("failed to commit the transaction with: commit error: %w, rollback error: %+v", err, rollbackErr)
+			if rerr := tx.Rollback(); rerr != nil {
+				return fmt.Errorf("failed to commit the transaction with: commit error: %w, rollback error: %+v", err, rerr)
 			}
 
 			return fmt.Errorf("failed to commit the transaction but it has been rolled back: commit error: %w", err)

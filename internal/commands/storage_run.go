@@ -129,6 +129,7 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 	var (
 		provider storage.Provider
 		verbose  bool
+		result   storage.EncryptionValidationResult
 
 		ctx = context.Background()
 	)
@@ -143,17 +144,28 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 		return err
 	}
 
-	if err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
+	if result, err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
-			fmt.Printf("Could not check encryption key for validity. The schema version doesn't support encryption.\n")
-		case errors.Is(err, storage.ErrSchemaEncryptionInvalidKey):
-			fmt.Printf("Encryption key validation: failed.\n\nError: %v.\n", err)
+			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\nCause: The schema version doesn't support encryption.\n")
 		default:
-			fmt.Printf("Could not check encryption key for validity.\n\nError: %v.\n", err)
+			fmt.Printf("Storage Encryption Key Validation: UNKNOWN\n\nCause: %v.\n", err)
 		}
 	} else {
-		fmt.Println("Encryption key validation: success.")
+		if result.Success() {
+			fmt.Println("Storage Encryption Key Validation: SUCCESS")
+		} else {
+			fmt.Printf("%+v\n", result)
+			fmt.Println("Storage Encryption Key Validation: FAILURE")
+		}
+
+		if verbose {
+			fmt.Printf("\nTables:")
+
+			for name, table := range result.Tables {
+				fmt.Printf("\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
+			}
+		}
 	}
 
 	return nil
@@ -803,14 +815,19 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		upgradeStr = "no"
 	}
 
-	var encryption string
+	var (
+		encryption string
+		result     storage.EncryptionValidationResult
+	)
 
-	if err = provider.SchemaEncryptionCheckKey(ctx, false); err != nil {
+	if result, err = provider.SchemaEncryptionCheckKey(ctx, false); err != nil {
 		if errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported) {
 			encryption = "unsupported (schema version)"
 		} else {
 			encryption = "invalid"
 		}
+	} else if !result.Success() {
+		encryption = "invalid"
 	} else {
 		encryption = "valid"
 	}
