@@ -57,6 +57,24 @@ func (s OAuth2SessionType) String() string {
 	}
 }
 
+// Table returns the table name for this session type.
+func (s OAuth2SessionType) Table() string {
+	switch s {
+	case OAuth2SessionTypeAuthorizeCode:
+		return tableOAuth2AuthorizeCodeSession
+	case OAuth2SessionTypeAccessToken:
+		return tableOAuth2AccessTokenSession
+	case OAuth2SessionTypeRefreshToken:
+		return tableOAuth2RefreshTokenSession
+	case OAuth2SessionTypePKCEChallenge:
+		return tableOAuth2PKCERequestSession
+	case OAuth2SessionTypeOpenIDConnect:
+		return tableOAuth2OpenIDConnectSession
+	default:
+		return ""
+	}
+}
+
 const (
 	sqlNetworkTypeTCP        = "tcp"
 	sqlNetworkTypeUnixSocket = "unix"

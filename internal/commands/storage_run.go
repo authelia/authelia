@@ -11,11 +11,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v3"
+	"golang.org/x/term"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -185,13 +187,36 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return errors.New("schema version must be at least version 1 to change the encryption key")
 	}
 
-	key, err = cmd.Flags().GetString("new-encryption-key")
+	useFlag := cmd.Flags().Changed("new-encryption-key")
+	if useFlag {
+		if key, err = cmd.Flags().GetString("new-encryption-key"); err != nil {
+			return err
+		}
+	}
+
+	if !useFlag || key == "" {
+		fd := int(syscall.Stdin)
+
+		if isTerm := term.IsTerminal(fd); isTerm {
+			fmt.Print("Enter New Encryption Key: ")
+
+			var input []byte
+
+			if input, err = term.ReadPassword(fd); err != nil {
+				return fmt.Errorf("failed to read the new encryption key from the terminal: %w", err)
+			}
+
+			key = string(input)
+
+			fmt.Println("")
+		} else {
+			return errors.New("you must set the --new-encryption-key flag or use an interactive terminal")
+		}
+	}
 
 	switch {
-	case err != nil:
-		return err
 	case key == "":
-		return errors.New("you must set the --new-encryption-key flag")
+		return errors.New("the new encryption key must not be blank")
 	case len(key) < 20:
 		return errors.New("the new encryption key must be at least 20 characters")
 	}
