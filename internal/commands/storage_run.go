@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -195,7 +195,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	if !useFlag || key == "" {
-		fd := int(syscall.Stdin)
+		fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
 
 		if isTerm := term.IsTerminal(fd); isTerm {
 			fmt.Print("Enter New Encryption Key: ")

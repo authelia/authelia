@@ -470,13 +470,13 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 func termReadPasswordWithPrompt(prompt string) (data []byte, err error) {
 	fmt.Print(prompt)
 
-	fd := int(syscall.Stdin)
+	fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
 
 	if isTerm := term.IsTerminal(fd); !isTerm {
 		return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use a flag or use an interactive terminal: %w", err)
 	}
 
-	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil { //nolint:unconvert,nolintlint
+	if data, err = term.ReadPassword(fd); err != nil { //nolint:unconvert,nolintlint
 		return nil, err
 	}
 
