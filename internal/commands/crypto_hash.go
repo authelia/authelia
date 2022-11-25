@@ -4,12 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"syscall"
 
 	"github.com/go-crypt/crypt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -471,27 +469,6 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	fmt.Println("")
 
 	return
-}
-
-// ErrStdinIsNotTerminal is returned when Stdin is not an interactive terminal.
-var ErrStdinIsNotTerminal = errors.New("stdin is not a terminal")
-
-func termReadPasswordWithPrompt(prompt string) (data []byte, err error) {
-	fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
-
-	if isTerm := term.IsTerminal(fd); !isTerm {
-		return nil, ErrStdinIsNotTerminal
-	}
-
-	fmt.Print(prompt)
-
-	if data, err = term.ReadPassword(fd); err != nil {
-		return nil, err
-	}
-
-	fmt.Println("")
-
-	return data, nil
 }
 
 func cmdFlagConfig(cmd *cobra.Command) {

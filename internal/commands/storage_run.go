@@ -11,12 +11,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -195,22 +193,12 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	if !useFlag || key == "" {
-		fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
-
-		if isTerm := term.IsTerminal(fd); isTerm {
-			fmt.Print("Enter New Encryption Key: ")
-
-			var input []byte
-
-			if input, err = term.ReadPassword(fd); err != nil {
+		if key, err = termReadPasswordStrWithPrompt("Enter New Storage Encryption Key: "); err != nil {
+			if errors.Is(err, ErrStdinIsNotTerminal) {
+				return errors.New("you must either use an interactive terminal or use the --new-encryption-key flag")
+			} else {
 				return fmt.Errorf("failed to read the new encryption key from the terminal: %w", err)
 			}
-
-			key = string(input)
-
-			fmt.Println("")
-		} else {
-			return errors.New("you must either use an interactive terminal or use the --new-encryption-key flag")
 		}
 	}
 
