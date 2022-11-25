@@ -816,7 +816,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Could not check encryption key for validity. The schema version doesn't support encryption.")
+	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILURE\n\nCause: The schema version doesn't support encryption.")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target=0", "--destroy-data", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
