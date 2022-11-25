@@ -4,7 +4,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogContentText, Dialog
 import { useTranslation } from "react-i18next";
 
 import FixedTextField from "@components/FixedTextField";
-import { WebauthnDevice } from "@root/models/Webauthn";
+import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
     open: boolean;
