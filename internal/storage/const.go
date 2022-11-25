@@ -121,3 +121,8 @@ const (
 var (
 	reMigration = regexp.MustCompile(`^V(\d{4})\.([^.]+)\.(all|sqlite|postgres|mysql)\.(up|down)\.sql$`)
 )
+
+const (
+	na      = "N/A"
+	invalid = "invalid"
+)

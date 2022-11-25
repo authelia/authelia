@@ -10,6 +10,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -147,24 +148,35 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 	if result, err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
-			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\nCause: The schema version doesn't support encryption.\n")
+			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
 		default:
-			fmt.Printf("Storage Encryption Key Validation: UNKNOWN\n\nCause: %v.\n", err)
+			fmt.Printf("Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
 		}
 	} else {
 		if result.Success() {
 			fmt.Println("Storage Encryption Key Validation: SUCCESS")
 		} else {
-			fmt.Printf("%+v\n", result)
-			fmt.Println("Storage Encryption Key Validation: FAILURE")
+			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: %v.\n", storage.ErrSchemaEncryptionInvalidKey)
 		}
 
 		if verbose {
 			fmt.Printf("\nTables:")
 
-			for name, table := range result.Tables {
+			tables := make([]string, 0, len(result.Tables))
+
+			for name := range result.Tables {
+				tables = append(tables, name)
+			}
+
+			sort.Strings(tables)
+
+			for _, name := range tables {
+				table := result.Tables[name]
+
 				fmt.Printf("\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
 			}
+
+			fmt.Printf("\n")
 		}
 	}
 
@@ -820,15 +832,16 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		result     storage.EncryptionValidationResult
 	)
 
-	if result, err = provider.SchemaEncryptionCheckKey(ctx, false); err != nil {
+	switch result, err = provider.SchemaEncryptionCheckKey(ctx, false); {
+	case err != nil:
 		if errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported) {
 			encryption = "unsupported (schema version)"
 		} else {
-			encryption = "invalid"
+			encryption = invalid
 		}
-	} else if !result.Success() {
-		encryption = "invalid"
-	} else {
+	case !result.Success():
+		encryption = invalid
+	default:
 		encryption = "valid"
 	}
 

@@ -630,6 +630,7 @@ var (
 
 const (
 	identifierServiceOpenIDConnect = "openid"
+	invalid                        = "invalid"
 )
 
 var (

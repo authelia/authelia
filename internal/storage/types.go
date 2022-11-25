@@ -84,7 +84,7 @@ type EncryptionValidationTableResult struct {
 // ResultDescriptor returns a string representing the result.
 func (r EncryptionValidationTableResult) ResultDescriptor() string {
 	if r.Total == 0 {
-		return "N/A"
+		return na
 	}
 
 	if r.Error != nil || r.Invalid != 0 {

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -816,7 +816,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILURE\n\nCause: The schema version doesn't support encryption.")
+	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target=0", "--destroy-data", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
@@ -1136,12 +1136,12 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILED\n\nError: the configured encryption key does not appear to be valid for this database which may occur if the encryption key was changed in the configuration without using the cli to change it in the database.\n")
+	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILURE\n\n\tCause: the configured encryption key does not appear to be valid for this database which may occur if the encryption key was changed in the configuration without using the cli to change it in the database.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILED\n\nError: the encryption key is not valid against the schema check value, 4 of 4 total TOTP secrets were invalid.\n")
+	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILURE\n\n\tCause: the configured encryption key does not appear to be valid for this database which may occur if the encryption key was changed in the configuration without using the cli to change it in the database.\n\nTables:\n\n\tTable (oauth2_access_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_authorization_code_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_openid_connect_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_pkce_request_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_refresh_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (totp_configurations): FAILURE\n\t\tInvalid Rows: 4\n\t\tTotal Rows: 4\n\n\tTable (webauthn_devices): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
@@ -1151,7 +1151,7 @@ func (s *CLISuite) TestStorage05ShouldChangeEncryptionKey() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--verbose", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
-	s.Assert().Contains(output, "Encryption key validation: success.\n")
+	s.Assert().Contains(output, "Storage Encryption Key Validation: SUCCESS\n\nTables:\n\n\tTable (oauth2_access_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_authorization_code_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_openid_connect_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_pkce_request_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (oauth2_refresh_token_session): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n\n\tTable (totp_configurations): SUCCESS\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 4\n\n\tTable (webauthn_devices): N/A\n\t\tInvalid Rows: 0\n\t\tTotal Rows: 0\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "change-key", "--encryption-key=apple-apple-apple-apple", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")

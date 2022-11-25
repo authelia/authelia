@@ -372,7 +372,7 @@ func SchemaVersionToString(version int) (versionStr string) {
 	case -1:
 		return "pre1"
 	case 0:
-		return "N/A"
+		return na
 	default:
 		return strconv.Itoa(version)
 	}
