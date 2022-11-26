@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -20,49 +20,26 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
-import { WebauthnDevice } from "@root/models/Webauthn";
-import { deleteDevice } from "@root/services/Webauthn";
+import { WebauthnDevice } from "@models/Webauthn";
 
 interface Props {
     device: WebauthnDevice;
-    webauthnShowDetails: number;
-    idx: number;
-    handleWebAuthnDetailsChange: (idx: number) => void;
-    handleDeleteItem: (idx: number) => void;
+    deleting: boolean;
+    webauthnShowDetails: boolean;
+    handleWebAuthnDetailsChange: () => void;
+    handleDelete: () => void;
 }
 
 export default function WebauthnDeviceItem(props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createErrorNotification } = useNotifications();
-    const [deleting, setDeleting] = useState(false);
-
-    const handleDelete = async () => {
-        setDeleting(true);
-        const status = await deleteDevice(props.device.id);
-        setDeleting(false);
-        if (status !== 200) {
-            createErrorNotification(translate("There was a problem deleting the device"));
-            return;
-        }
-        props.handleDeleteItem(props.idx);
-    };
 
     return (
         <React.Fragment>
             <TableRow sx={{ "& > *": { borderBottom: "unset" } }} key={props.device.kid.toString()}>
                 <TableCell>
                     <Tooltip title={translate("Show Details")} placement="right">
-                        <IconButton
-                            aria-label="expand row"
-                            size="small"
-                            onClick={() => props.handleWebAuthnDetailsChange(props.idx)}
-                        >
-                            {props.webauthnShowDetails === props.idx ? (
-                                <KeyboardArrowUpIcon />
-                            ) : (
-                                <KeyboardArrowDownIcon />
-                            )}
+                        <IconButton aria-label="expand row" size="small" onClick={props.handleWebAuthnDetailsChange}>
+                            {props.webauthnShowDetails ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                         </IconButton>
                     </Tooltip>
                 </TableCell>
@@ -79,11 +56,11 @@ export default function WebauthnDeviceItem(props: Props) {
                                 <EditIcon />
                             </IconButton>
                         </Tooltip>
-                        {deleting ? (
+                        {props.deleting ? (
                             <CircularProgress color="inherit" size={24} />
                         ) : (
                             <Tooltip title={translate("Delete")} placement="bottom">
-                                <IconButton aria-label="delete" onClick={handleDelete}>
+                                <IconButton aria-label="delete" onClick={props.handleDelete}>
                                     <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
@@ -93,7 +70,7 @@ export default function WebauthnDeviceItem(props: Props) {
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                    <Collapse in={props.webauthnShowDetails === props.idx} timeout="auto" unmountOnExit>
+                    <Collapse in={props.webauthnShowDetails} timeout="auto" unmountOnExit>
                         <Grid container spacing={2} sx={{ mb: 3, margin: 1 }}>
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                                 <Box sx={{ margin: 1 }}>
