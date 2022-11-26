@@ -24,6 +24,8 @@ interface Props {
 interface WebauthnDeviceDisplay extends WebauthnDevice {
     deleting: boolean;
     editing: boolean;
+    enabling: boolean;
+    enabled: boolean;
 }
 
 export default function WebauthnDevices(props: Props) {
@@ -51,6 +53,8 @@ export default function WebauthnDevices(props: Props) {
                     ...x,
                     deleting: false,
                     editing: false,
+                    enabling: false,
+                    enabled: true,
                 } as WebauthnDeviceDisplay;
             });
             setWebauthnDevices(devicesDisplay);
@@ -92,6 +96,16 @@ export default function WebauthnDevices(props: Props) {
         let updatedDevices = [...webauthnDevices];
         updatedDevices.splice(idx, 1);
         setWebauthnDevices(updatedDevices);
+    };
+
+    const handleEnableItem = (idx: number) => {
+        webauthnDevices[idx].enabling = true;
+        setWebauthnDevices([...webauthnDevices]);
+        setTimeout(() => {
+            webauthnDevices[idx].enabled = !webauthnDevices[idx].enabled;
+            webauthnDevices[idx].enabling = false;
+            setWebauthnDevices([...webauthnDevices]);
+        }, 2000);
     };
 
     const handleEditItem = async (idx: number) => {
@@ -178,9 +192,14 @@ export default function WebauthnDevices(props: Props) {
                                               device={x}
                                               deleting={x.deleting}
                                               editing={x.editing}
+                                              enabled={x.enabled}
+                                              enabling={x.enabling}
                                               webauthnShowDetails={webauthnShowDetails === idx}
                                               handleWebAuthnDetailsChange={() => {
                                                   handleWebAuthnDetailsChange(idx);
+                                              }}
+                                              handleEnable={() => {
+                                                  handleEnableItem(idx);
                                               }}
                                               handleDetails={() => {
                                                   handleDetailsItem(idx);
