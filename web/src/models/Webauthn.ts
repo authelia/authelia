@@ -156,3 +156,7 @@ export enum WebauthnTouchState {
     InProgress = 2,
     Failure = 3,
 }
+
+export interface WebauthnDeviceUpdateRequest {
+    description: string;
+}

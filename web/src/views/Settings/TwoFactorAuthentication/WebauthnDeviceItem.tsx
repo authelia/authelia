@@ -25,9 +25,11 @@ import { WebauthnDevice } from "@models/Webauthn";
 interface Props {
     device: WebauthnDevice;
     deleting: boolean;
+    editing: boolean;
     webauthnShowDetails: boolean;
     handleWebAuthnDetailsChange: () => void;
     handleDelete: () => void;
+    handleEdit: () => void;
 }
 
 export default function WebauthnDeviceItem(props: Props) {
@@ -51,11 +53,15 @@ export default function WebauthnDeviceItem(props: Props) {
                 </TableCell>
                 <TableCell align="center">
                     <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                        <Tooltip title={translate("Edit")} placement="bottom">
-                            <IconButton aria-label="edit">
-                                <EditIcon />
-                            </IconButton>
-                        </Tooltip>
+                        {props.editing ? (
+                            <CircularProgress color="inherit" size={24} />
+                        ) : (
+                            <Tooltip title={translate("Edit")} placement="bottom">
+                                <IconButton aria-label="edit" onClick={props.handleEdit}>
+                                    <EditIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         {props.deleting ? (
                             <CircularProgress color="inherit" size={24} />
                         ) : (

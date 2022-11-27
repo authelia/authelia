@@ -181,7 +181,7 @@ const RegisterWebauthn = function (props: Props) {
                                     onChange={(v) => setName(v.target.value.substring(0, 30))}
                                     onFocus={() => setNameError(false)}
                                     autoCapitalize="none"
-                                    autoComplete="username"
+                                    autoComplete="webauthn-name"
                                     onKeyPress={(ev) => {
                                         if (ev.key === "Enter") {
                                             if (!deviceName.length) {
