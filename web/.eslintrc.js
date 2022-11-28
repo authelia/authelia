@@ -9,8 +9,10 @@ module.exports = {
             typescript: {},
         },
     },
+    plugins: ["@limegrass/import-alias"],
     extends: ["react-app", "plugin:import/errors", "plugin:import/warnings", "plugin:prettier/recommended", "prettier"],
     rules: {
+        "@limegrass/import-alias/import-alias": "error",
         "import/order": [
             "error",
             {

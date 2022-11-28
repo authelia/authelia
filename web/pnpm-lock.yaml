@@ -10,6 +10,7 @@ specifiers:
   '@fortawesome/free-regular-svg-icons': 6.2.1
   '@fortawesome/free-solid-svg-icons': 6.2.1
   '@fortawesome/react-fontawesome': 0.2.0
+  '@limegrass/eslint-plugin-import-alias': 1.0.6
   '@mui/icons-material': 5.10.15
   '@mui/material': 5.10.15
   '@mui/styles': 5.10.15
@@ -95,6 +96,7 @@ dependencies:
 devDependencies:
   '@commitlint/cli': 17.3.0
   '@commitlint/config-conventional': 17.3.0
+  '@limegrass/eslint-plugin-import-alias': 1.0.6_eslint@8.28.0
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0_biqbaboplfbrettd7655fr4n2y
   '@types/jest': 29.2.3
@@ -2851,6 +2853,19 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
+
+  /@limegrass/eslint-plugin-import-alias/1.0.6_eslint@8.28.0:
+    resolution: {integrity: sha512-BtPmdHbL4NmkVh2wMnOboyOCrdLOpBqwwtBIsB0/giTiALw/UTHD9TyH4vVnbDOuWPZQgE6kKloJ9G77FApt7w==}
+    peerDependencies:
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    dependencies:
+      eslint: 8.28.0
+      find-up: 5.0.0
+      fs-extra: 10.1.0
+      micromatch: 4.0.5
+      slash: 3.0.0
+      tsconfig-paths: 3.14.1
     dev: true
 
   /@mui/base/5.0.0-alpha.107_2zx2umvpluuhvlq44va5bta2da:
