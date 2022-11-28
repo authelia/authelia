@@ -1,18 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import {
-    Box,
-    Button,
-    Paper,
-    Skeleton,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Skeleton, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +13,7 @@ import { getWebauthnDevices } from "@services/UserWebauthnDevices";
 import { deleteDevice, updateDevice } from "@services/Webauthn";
 
 import WebauthnDeviceDeleteDialog from "./WebauthnDeviceDeleteDialog";
+import WebauthnDeviceDetailsDialog from "./WebauthnDeviceDetailsDialog";
 import WebauthnDeviceEditDialog from "./WebauthnDeviceEditDialog";
 import WebauthnDeviceItem from "./WebauthnDeviceItem";
 
@@ -43,12 +32,14 @@ export default function WebauthnDevices(props: Props) {
 
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const [webauthnShowDetails, setWebauthnShowDetails] = useState<number>(-1);
+    const [detailsIdx, setDetailsIdx] = useState<number>(-1);
     const [deletingIdx, setDeletingIdx] = useState<number>(-1);
     const [editingIdx, setEditingIdx] = useState<number>(-1);
     const [registrationInProgress, setRegistrationInProgress] = useState(false);
     const [ready, setReady] = useState(false);
 
     const [webauthnDevices, setWebauthnDevices] = useState<WebauthnDeviceDisplay[]>([]);
+    const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -56,7 +47,11 @@ export default function WebauthnDevices(props: Props) {
         (async function () {
             const devices = await getWebauthnDevices();
             const devicesDisplay = devices.map((x, idx) => {
-                return { ...x, deleting: false } as WebauthnDeviceDisplay;
+                return {
+                    ...x,
+                    deleting: false,
+                    editing: false,
+                } as WebauthnDeviceDisplay;
             });
             setWebauthnDevices(devicesDisplay);
             setReady(true);
@@ -69,6 +64,11 @@ export default function WebauthnDevices(props: Props) {
         } else {
             setWebauthnShowDetails(idx);
         }
+    };
+
+    const handleDetailsItem = async (idx: number) => {
+        setDetailsIdx(idx);
+        setDetailsDialogOpen(true);
     };
 
     const handleDeleteItem = async (idx: number) => {
@@ -142,6 +142,13 @@ export default function WebauthnDevices(props: Props) {
 
     return (
         <>
+            <WebauthnDeviceDetailsDialog
+                device={detailsIdx > -1 ? webauthnDevices[detailsIdx] : undefined}
+                open={detailsDialogOpen}
+                handleClose={() => {
+                    setDetailsDialogOpen(false);
+                }}
+            />
             <WebauthnDeviceEditDialog
                 device={editingIdx > -1 ? webauthnDevices[editingIdx] : undefined}
                 open={editDialogOpen}
@@ -163,51 +170,38 @@ export default function WebauthnDevices(props: Props) {
                                 {"Add new device"}
                             </Button>
                         </Box>
-                        <Box>
-                            {ready ? (
-                                <>
-                                    {webauthnDevices ? (
-                                        <Table>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell />
-                                                    <TableCell>{translate("Name")}</TableCell>
-                                                    <TableCell>{translate("Enabled")}</TableCell>
-                                                    <TableCell align="center">{translate("Actions")}</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {webauthnDevices.map((x, idx) => {
-                                                    return (
-                                                        <WebauthnDeviceItem
-                                                            device={x}
-                                                            deleting={x.deleting}
-                                                            editing={x.editing}
-                                                            webauthnShowDetails={webauthnShowDetails === idx}
-                                                            handleWebAuthnDetailsChange={() => {
-                                                                handleWebAuthnDetailsChange(idx);
-                                                            }}
-                                                            handleEdit={() => {
-                                                                handleEditItem(idx);
-                                                            }}
-                                                            handleDelete={() => {
-                                                                handleDeleteItem(idx);
-                                                            }}
-                                                            key={`webauthn-device-${idx}`}
-                                                        />
-                                                    );
-                                                })}
-                                            </TableBody>
-                                        </Table>
-                                    ) : null}
-                                </>
-                            ) : (
-                                <>
-                                    <Skeleton height={20} />
-                                    <Skeleton height={40} />
-                                </>
-                            )}
-                        </Box>
+                        {ready ? (
+                            <Stack spacing={3}>
+                                {webauthnDevices
+                                    ? webauthnDevices.map((x, idx) => (
+                                          <WebauthnDeviceItem
+                                              device={x}
+                                              deleting={x.deleting}
+                                              editing={x.editing}
+                                              webauthnShowDetails={webauthnShowDetails === idx}
+                                              handleWebAuthnDetailsChange={() => {
+                                                  handleWebAuthnDetailsChange(idx);
+                                              }}
+                                              handleDetails={() => {
+                                                  handleDetailsItem(idx);
+                                              }}
+                                              handleEdit={() => {
+                                                  handleEditItem(idx);
+                                              }}
+                                              handleDelete={() => {
+                                                  handleDeleteItem(idx);
+                                              }}
+                                              key={`webauthn-device-${idx}`}
+                                          />
+                                      ))
+                                    : null}
+                            </Stack>
+                        ) : (
+                            <>
+                                <Skeleton height={20} />
+                                <Skeleton height={40} />
+                            </>
+                        )}
                     </Stack>
                 </Box>
             </Paper>
