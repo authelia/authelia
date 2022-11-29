@@ -118,3 +118,20 @@ function ToggleButton(props: ToggleButtonProps) {
         </LoadingButton>
     );
 }
+
+interface LoadingButtonProps extends ButtonProps {
+    loading: boolean;
+}
+
+function LoadingButton(props: LoadingButtonProps) {
+    let { loading, ...childProps } = props;
+    if (loading) {
+        childProps = {
+            ...childProps,
+            startIcon: <CircularProgress color="inherit" size={20} />,
+            color: "inherit",
+            onClick: undefined,
+        };
+    }
+    return <Button {...childProps}></Button>;
+}
