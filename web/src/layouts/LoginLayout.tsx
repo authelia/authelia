@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import Brand from "@components/Brand";
 import TypographyWithTooltip from "@components/TypographyWithTootip";
-import { SettingsRoute } from "@root/constants/Routes";
+import { SettingsRoute } from "@constants/Routes";
 import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {

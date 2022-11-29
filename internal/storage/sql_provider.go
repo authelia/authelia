@@ -43,8 +43,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectTOTPConfig:  fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
 		sqlSelectTOTPConfigs: fmt.Sprintf(queryFmtSelectTOTPConfigurations, tableTOTPConfigurations),
 
-		sqlUpdateTOTPConfigSecret:                 fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
-		sqlUpdateTOTPConfigSecretByUsername:       fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
 
@@ -161,8 +159,6 @@ type SQLProvider struct {
 	sqlSelectTOTPConfig  string
 	sqlSelectTOTPConfigs string
 
-	sqlUpdateTOTPConfigSecret                 string
-	sqlUpdateTOTPConfigSecretByUsername       string
 	sqlUpdateTOTPConfigRecordSignIn           string
 	sqlUpdateTOTPConfigRecordSignInByUsername string
 
@@ -172,11 +168,10 @@ type SQLProvider struct {
 	sqlSelectWebauthnDevicesByUsername string
 
 	sqlUpdateWebauthnDeviceDescriptionByUsernameAndID string
-
-	sqlUpdateWebauthnDevicePublicKey              string
-	sqlUpdateWebauthnDevicePublicKeyByUsername    string
-	sqlUpdateWebauthnDeviceRecordSignIn           string
-	sqlUpdateWebauthnDeviceRecordSignInByUsername string
+	sqlUpdateWebauthnDevicePublicKey                  string
+	sqlUpdateWebauthnDevicePublicKeyByUsername        string
+	sqlUpdateWebauthnDeviceRecordSignIn               string
+	sqlUpdateWebauthnDeviceRecordSignInByUsername     string
 
 	sqlDeleteWebauthnDevice                         string
 	sqlDeleteWebauthnDeviceByUsername               string
@@ -295,13 +290,17 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
-	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
+	var result EncryptionValidationResult
+
+	if result, err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
 		return err
 	}
 
-	err = p.SchemaMigrate(ctx, true, SchemaLatest)
+	if !result.Success() {
+		return ErrSchemaEncryptionInvalidKey
+	}
 
-	switch err {
+	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
 	case ErrSchemaAlreadyUpToDate:
 		p.log.Infof("Storage schema is already up to date")
 		return nil
@@ -840,21 +839,6 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
-func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config model.TOTPConfiguration) (err error) {
-	switch config.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecret, config.Secret, config.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating TOTP configuration secret for user '%s': %w", config.Username, err)
-	}
-
-	return nil
-}
-
 // SaveWebauthnDevice saves a registered Webauthn device.
 func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
@@ -970,21 +954,6 @@ func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, usernam
 	}
 
 	return devices, nil
-}
-
-func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device model.WebauthnDevice) (err error) {
-	switch device.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKeyByUsername, device.PublicKey, device.Username, device.KID)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKey, device.PublicKey, device.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating Webauthn public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
-	}
-
-	return nil
 }
 
 // SavePreferredDuoDevice saves a Duo device.

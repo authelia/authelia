@@ -7,16 +7,16 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20221117185402-091daa09e19d
-	github.com/fasthttp/router v1.4.13
+	github.com/fasthttp/router v1.4.14
 	github.com/fasthttp/session/v2 v2.4.13
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
 	github.com/go-crypt/crypt v0.1.14
 	github.com/go-ldap/ldap/v3 v3.4.4
-	github.com/go-rod/rod v0.112.0
+	github.com/go-rod/rod v0.112.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.5.0
-	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
@@ -28,7 +28,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.43.0
 	github.com/ory/herodot v0.9.13
-	github.com/ory/x v0.0.514
+	github.com/ory/x v0.0.517
 	github.com/otiai10/copy v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
@@ -38,7 +38,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.41.0
+	github.com/valyala/fasthttp v1.43.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.2.0
 	golang.org/x/text v0.4.0
@@ -104,7 +104,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
-	github.com/ysmood/gson v0.7.1 // indirect
+	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect

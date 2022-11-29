@@ -3,8 +3,7 @@ import React from "react";
 import { Grid } from "@mui/material";
 
 import { AutheliaState } from "@services/State";
-
-import WebauthnDevices from "./WebauthnDevices";
+import WebauthnDevices from "@views/Settings/TwoFactorAuthentication/WebauthnDevices";
 
 interface Props {
     state: AutheliaState;

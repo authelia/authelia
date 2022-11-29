@@ -11,11 +11,10 @@ import { initiateWebauthnRegistrationProcess } from "@services/RegisterDevice";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
 import { getWebauthnDevices } from "@services/UserWebauthnDevices";
 import { deleteDevice, updateDevice } from "@services/Webauthn";
-
-import WebauthnDeviceDeleteDialog from "./WebauthnDeviceDeleteDialog";
-import WebauthnDeviceDetailsDialog from "./WebauthnDeviceDetailsDialog";
-import WebauthnDeviceEditDialog from "./WebauthnDeviceEditDialog";
-import WebauthnDeviceItem from "./WebauthnDeviceItem";
+import WebauthnDeviceDeleteDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceDeleteDialog";
+import WebauthnDeviceDetailsDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceDetailsDialog";
+import WebauthnDeviceEditDialog from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceEditDialog";
+import WebauthnDeviceItem from "@views/Settings/TwoFactorAuthentication/WebauthnDeviceItem";
 
 interface Props {
     state: AutheliaState;

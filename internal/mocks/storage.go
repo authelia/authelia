@@ -688,11 +688,12 @@ func (mr *MockStorageMockRecorder) SchemaEncryptionChangeKey(arg0, arg1 interfac
 }
 
 // SchemaEncryptionCheckKey mocks base method.
-func (m *MockStorage) SchemaEncryptionCheckKey(arg0 context.Context, arg1 bool) error {
+func (m *MockStorage) SchemaEncryptionCheckKey(arg0 context.Context, arg1 bool) (storage.EncryptionValidationResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SchemaEncryptionCheckKey", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(storage.EncryptionValidationResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SchemaEncryptionCheckKey indicates an expected call of SchemaEncryptionCheckKey.
