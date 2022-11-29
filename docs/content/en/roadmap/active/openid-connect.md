@@ -113,6 +113,13 @@ Feature List:
 
 ### Beta 6
 
+{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
+
+
+* [OAuth 2.0 Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126.html)
+
+### Beta 7
+
 {{< roadmap-status >}}
 
 Feature List:
@@ -122,7 +129,7 @@ Feature List:
 
 See [OpenID Connect Core (Mandatory to Implement Features for All OpenID Providers)].
 
-### Beta 7
+### Beta 8
 
 {{< roadmap-status >}}
 
