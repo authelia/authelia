@@ -16,7 +16,7 @@ require (
 	github.com/go-rod/rod v0.112.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-webauthn/webauthn v0.5.0
-	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
@@ -28,7 +28,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.43.0
 	github.com/ory/herodot v0.9.13
-	github.com/ory/x v0.0.516
+	github.com/ory/x v0.0.517
 	github.com/otiai10/copy v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
@@ -38,7 +38,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.42.0
+	github.com/valyala/fasthttp v1.43.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.2.0
 	golang.org/x/text v0.4.0
