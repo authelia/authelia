@@ -41,7 +41,7 @@
     "react-i18next": "12.0.0",
     "react-loading": "2.0.3",
     "react-otp-input": "2.4.0",
-    "react-router-dom": "6.4.3",
+    "react-router-dom": "6.4.4",
     "zxcvbn": "4.4.2"
   },
   "scripts": {
@@ -149,7 +149,7 @@
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@types/jest": "29.2.3",
-    "@types/node": "18.11.9",
+    "@types/node": "18.11.10",
     "@types/qrcode.react": "1.0.2",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.9",
