@@ -35,7 +35,7 @@
     "i18next-browser-languagedetector": "7.0.1",
     "i18next-http-backend": "2.0.2",
     "qrcode.react": "3.1.0",
-    "query-string": "7.1.1",
+    "query-string": "7.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-i18next": "12.0.0",
