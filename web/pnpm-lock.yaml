@@ -50,7 +50,7 @@ specifiers:
   jest-watch-typeahead: 2.2.1
   prettier: 2.8.0
   qrcode.react: 3.1.0
-  query-string: 7.1.1
+  query-string: 7.1.2
   react: 18.2.0
   react-dom: 18.2.0
   react-i18next: 12.0.0
@@ -84,7 +84,7 @@ dependencies:
   i18next-browser-languagedetector: 7.0.1
   i18next-http-backend: 2.0.2
   qrcode.react: 3.1.0_react@18.2.0
-  query-string: 7.1.1
+  query-string: 7.1.2
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-i18next: 12.0.0_nger6pvrp5hnzeykouhwqmsdti
@@ -4899,8 +4899,8 @@ packages:
     resolution: {integrity: sha512-V0pfhfr8suzyPGOx3nmq4aHqabehUZn6Ch9kyFpV79TGDTWFmHqUqXdabR7QHqxzrYolF4+tVmJhUG4OURg5dQ==}
     dev: true
 
-  /decode-uri-component/0.2.0:
-    resolution: {integrity: sha512-hjf+xovcEn31w/EUYdTXQh/8smFL/dzYjohQGEIgjyNavaJfBY2p5F527Bo1VPATxv0VYTUC2bOcXvqFwk78Og==}
+  /decode-uri-component/0.2.2:
+    resolution: {integrity: sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==}
     engines: {node: '>=0.10'}
 
   /dedent/0.7.0:
@@ -8236,11 +8236,11 @@ packages:
       react: 18.2.0
     dev: false
 
-  /query-string/7.1.1:
-    resolution: {integrity: sha512-MplouLRDHBZSG9z7fpuAAcI7aAYjDLhtsiVZsevsfaHWDS2IDdORKbSd1kWUA+V4zyva/HZoSfpwnYMMQDhb0w==}
+  /query-string/7.1.2:
+    resolution: {integrity: sha512-KPbFzz/8pmtYOMH6zlYZgqTYJKQ18FxwfW3RLHIBwHWQ0iQG18X16XtIOk68ddfaM6j3grjYSnMPMrqQEjwR4w==}
     engines: {node: '>=6'}
     dependencies:
-      decode-uri-component: 0.2.0
+      decode-uri-component: 0.2.2
       filter-obj: 1.1.0
       split-on-first: 1.1.0
       strict-uri-encode: 2.0.0
@@ -8801,7 +8801,7 @@ packages:
     deprecated: See https://github.com/lydell/source-map-resolve#deprecated
     dependencies:
       atob: 2.1.2
-      decode-uri-component: 0.2.0
+      decode-uri-component: 0.2.2
       resolve-url: 0.2.1
       source-map-url: 0.4.1
       urix: 0.1.0
