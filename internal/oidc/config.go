@@ -66,6 +66,7 @@ type Config struct {
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
 
+	Hasher               *AdaptiveHasher
 	Hash                 HashConfig
 	Strategy             StrategyConfig
 	PAR                  PARConfig
@@ -513,7 +514,7 @@ func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
 // GetSecretsHasher returns the client secrets hashing function.
 func (c *Config) GetSecretsHasher(ctx context.Context) (hasher fosite.Hasher) {
 	if c.Hash.ClientSecrets == nil {
-		c.Hash.ClientSecrets = &AdaptiveHasher{}
+		c.Hash.ClientSecrets, _ = NewAdaptiveHasher()
 	}
 
 	return c.Hash.ClientSecrets

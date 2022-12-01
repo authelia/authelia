@@ -8,7 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm"
+	"github.com/go-crypt/crypt/algorithm/argon2"
+	"github.com/go-crypt/crypt/algorithm/bcrypt"
+	"github.com/go-crypt/crypt/algorithm/pbkdf2"
+	"github.com/go-crypt/crypt/algorithm/scrypt"
+	"github.com/go-crypt/crypt/algorithm/sha2crypt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -17,7 +22,7 @@ import (
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
 	config        *schema.FileAuthenticationBackend
-	hash          crypt.Hash
+	hash          algorithm.Hash
 	database      *FileUserDatabase
 	mutex         *sync.Mutex
 	timeoutReload time.Time
@@ -145,37 +150,48 @@ func (p *FileUserProvider) setTimeoutReload(now time.Time) {
 }
 
 // NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
-func NewFileCryptoHashFromConfig(config schema.Password) (hash crypt.Hash, err error) {
+func NewFileCryptoHashFromConfig(config schema.Password) (hash algorithm.Hash, err error) {
 	switch config.Algorithm {
 	case hashArgon2, "":
-		hash = crypt.NewArgon2Hash().
-			WithVariant(crypt.NewArgon2Variant(config.Argon2.Variant)).
-			WithT(config.Argon2.Iterations).
-			WithM(config.Argon2.Memory).
-			WithP(config.Argon2.Parallelism).
-			WithK(config.Argon2.KeyLength).
-			WithS(config.Argon2.SaltLength)
+		hash, err = argon2.New(
+			argon2.WithVariantName(config.Argon2.Variant),
+			argon2.WithT(config.Argon2.Iterations),
+			argon2.WithM(config.Argon2.Memory),
+			argon2.WithP(config.Argon2.Parallelism),
+			argon2.WithK(config.Argon2.KeyLength),
+			argon2.WithS(config.Argon2.SaltLength),
+		)
 	case hashSHA2Crypt:
-		hash = crypt.NewSHA2CryptHash().
-			WithVariant(crypt.NewSHA2CryptVariant(config.SHA2Crypt.Variant)).
-			WithRounds(config.SHA2Crypt.Iterations).
-			WithSaltLength(config.SHA2Crypt.SaltLength)
+		hash, err = sha2crypt.New(
+			sha2crypt.WithVariantName(config.SHA2Crypt.Variant),
+			sha2crypt.WithRounds(config.SHA2Crypt.Iterations),
+			sha2crypt.WithSaltLength(config.SHA2Crypt.SaltLength),
+		)
 	case hashPBKDF2:
-		hash = crypt.NewPBKDF2Hash().
-			WithVariant(crypt.NewPBKDF2Variant(config.PBKDF2.Variant)).
-			WithIterations(config.PBKDF2.Iterations).
-			WithSaltLength(config.PBKDF2.SaltLength)
+		hash, err = pbkdf2.New(
+			pbkdf2.WithVariantName(config.PBKDF2.Variant),
+			pbkdf2.WithIterations(config.PBKDF2.Iterations),
+			pbkdf2.WithSaltLength(config.PBKDF2.SaltLength),
+		)
 	case hashSCrypt:
-		hash = crypt.NewScryptHash().
-			WithLN(config.SCrypt.Iterations).
-			WithP(config.SCrypt.Parallelism).
-			WithR(config.SCrypt.BlockSize)
+		hash, err = scrypt.New(
+			scrypt.WithLN(config.SCrypt.Iterations),
+			scrypt.WithP(config.SCrypt.Parallelism),
+			scrypt.WithR(config.SCrypt.BlockSize),
+			scrypt.WithKeySize(config.SCrypt.KeyLength),
+			scrypt.WithSaltSize(config.SCrypt.SaltLength),
+		)
 	case hashBCrypt:
-		hash = crypt.NewBcryptHash().
-			WithVariant(crypt.NewBcryptVariant(config.BCrypt.Variant)).
-			WithCost(config.BCrypt.Cost)
+		hash, err = bcrypt.New(
+			bcrypt.WithVariantName(config.BCrypt.Variant),
+			bcrypt.WithCost(config.BCrypt.Cost),
+		)
 	default:
 		return nil, fmt.Errorf("algorithm '%s' is unknown", config.Algorithm)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hash settings: %w", err)
 	}
 
 	if err = hash.Validate(); err != nil {

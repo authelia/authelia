@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -486,7 +486,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 }
 
 // StringToPasswordDigestHookFunc decodes a string into a crypt.Digest.
-func StringToPasswordDigestHookFunc(plaintext bool) mapstructure.DecodeHookFuncType {
+func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (value interface{}, err error) {
 		var ptr bool
 
@@ -514,11 +514,11 @@ func StringToPasswordDigestHookFunc(plaintext bool) mapstructure.DecodeHookFuncT
 		var result *schema.PasswordDigest
 
 		if !strings.HasPrefix(dataStr, "$") {
-			dataStr = fmt.Sprintf(crypt.StorageFormatSimple, crypt.AlgorithmPrefixPlainText, dataStr)
+			dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
 		}
 
 		if dataStr != "" {
-			if result, err = schema.NewPasswordDigest(dataStr, plaintext); err != nil {
+			if result, err = schema.DecodePasswordDigest(dataStr); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
 			}
 		}

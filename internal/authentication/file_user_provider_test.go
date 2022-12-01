@@ -252,7 +252,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': sha2crypt decode error: provided encoded hash has an invalid option: option 'rounds00000' is invalid")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': sha2crypt decode error: parameter pair 'rounds00000' is not properly encoded: does not contain kv separator '='")
 	})
 }
 
@@ -263,7 +263,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTim
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': argon2 decode error: provided encoded hash has an invalid option: option 'm65536' is invalid")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': argon2 decode error: parameter pair 'm65536' is not properly encoded: does not contain kv separator '='")
 	})
 }
 
