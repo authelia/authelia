@@ -28,9 +28,9 @@ export default function WebauthnDetailsDeleteDialog(props: Props) {
         <Dialog open={props.open} onClose={props.handleClose}>
             <DialogTitle>Security key details</DialogTitle>
             <DialogContent>
-                <DialogContentText sx={{ mb: 3 }}>{`Extended information for security key ${
+                <DialogContentText sx={{ mb: 3 }}>{`Extended information for security key "${
                     props.device ? props.device.description : "(unknown)"
-                }`}</DialogContentText>
+                }"`}</DialogContentText>
                 {props.device && (
                     <Stack spacing={0} sx={{ minWidth: 400 }}>
                         <PropertyText

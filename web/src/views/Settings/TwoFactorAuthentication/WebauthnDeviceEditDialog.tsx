@@ -34,9 +34,11 @@ export default function WebauthnDeviceEditDialog(props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{`Edit ${props.device ? props.device.description : "(unknown)"}`}</DialogTitle>
+            <DialogTitle>{`${translate("Rename security key")} "${
+                props.device ? props.device.description : "(unknown)"
+            }"`}</DialogTitle>
             <DialogContent>
-                <DialogContentText>Enter a new name for this device:</DialogContentText>
+                <DialogContentText>{translate("Enter a new name for this security key:")}</DialogContentText>
                 <FixedTextField
                     // TODO (PR: #806, Issue: #511) potentially refactor
                     autoFocus

@@ -20,7 +20,7 @@ import {
 } from "@services/Webauthn";
 import { extractIdentityToken } from "@utils/IdentityToken";
 
-const steps = ["Confirm device", "Choose name"];
+const steps = ["Confirm key", "Choose name"];
 
 interface Props {}
 
@@ -85,26 +85,24 @@ const RegisterWebauthn = function (props: Props) {
                     );
                     break;
                 case AttestationResult.FailureSupport:
-                    createErrorNotification("Your browser does not appear to support the configuration.");
+                    createErrorNotification("Your browser does not support security key usage.");
                     break;
                 case AttestationResult.FailureSyntax:
                     createErrorNotification(
-                        "The attestation challenge was rejected as malformed or incompatible by your browser.",
+                        "The registration challenge was rejected as malformed or incompatible by your browser.",
                     );
                     break;
                 case AttestationResult.FailureWebauthnNotSupported:
-                    createErrorNotification("Your browser does not support the WebAuthN protocol.");
+                    createErrorNotification("Your browser does not support the WebAuthn protocol.");
                     break;
                 case AttestationResult.FailureUserConsent:
-                    createErrorNotification("You cancelled the attestation request.");
+                    createErrorNotification("You cancelled the registration request.");
                     break;
                 case AttestationResult.FailureUserVerificationOrResidentKey:
-                    createErrorNotification(
-                        "Your device does not support user verification or resident keys but this was required.",
-                    );
+                    createErrorNotification("Your security key does not support user verification or resident keys.");
                     break;
                 case AttestationResult.FailureExcluded:
-                    createErrorNotification("You have registered this device already.");
+                    createErrorNotification("You have registered this security key already.");
                     break;
                 case AttestationResult.FailureUnknown:
                     createErrorNotification("An unknown error occurred.");
@@ -114,7 +112,7 @@ const RegisterWebauthn = function (props: Props) {
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                "Failed to register your device. The identity verification process might have timed out.",
+                "Failed to register your security key. The identity verification process might have timed out.",
             );
         }
     }, [creationOptions, createErrorNotification]);
@@ -146,7 +144,9 @@ const RegisterWebauthn = function (props: Props) {
                         <div className={styles.icon}>
                             <WebauthnTryIcon onRetryClick={startAttestation} webauthnTouchState={state} />
                         </div>
-                        <Typography className={styles.instruction}>Touch the token on your security key</Typography>
+                        <Typography className={styles.instruction}>
+                            {translate("Confirm with your security key")}
+                        </Typography>
                         <Grid container align="center" spacing={1}>
                             <Grid item xs={12}>
                                 <Stack direction="row" spacing={1} justifyContent="center">
@@ -164,7 +164,9 @@ const RegisterWebauthn = function (props: Props) {
                         <div className={styles.icon}>
                             <InformationIcon />
                         </div>
-                        <Typography className={styles.instruction}>Enter a name for this key</Typography>
+                        <Typography className={styles.instruction}>
+                            {translate("Enter a name for this security key:")}
+                        </Typography>
                         <Grid container spacing={1}>
                             <Grid item xs={12}>
                                 <FixedTextField

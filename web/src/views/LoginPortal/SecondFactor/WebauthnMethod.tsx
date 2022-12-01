@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import WebauthnTryIcon from "@components/WebauthnTryIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useRedirectionURL } from "@hooks/RedirectionURL";
@@ -24,6 +26,7 @@ export interface Props {
 }
 
 const WebauthnMethod = function (props: Props) {
+    const { t: translate } = useTranslation();
     const [state, setState] = useState(WebauthnTouchState.WaitTouch);
     const redirectionURL = useRedirectionURL();
     const [workflow, workflowID] = useWorkflow();
@@ -45,7 +48,7 @@ const WebauthnMethod = function (props: Props) {
 
             if (assertionRequestResponse.status !== 200 || assertionRequestResponse.options == null) {
                 setState(WebauthnTouchState.Failure);
-                onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
+                onSignInErrorCallback(new Error("Failed to initiate the security key sign in process"));
 
                 return;
             }
@@ -56,23 +59,25 @@ const WebauthnMethod = function (props: Props) {
                 if (!mounted.current) return;
                 switch (result.result) {
                     case AssertionResult.FailureUserConsent:
-                        onSignInErrorCallback(new Error("You cancelled the assertion request."));
+                        onSignInErrorCallback(new Error("You cancelled the sign in request."));
                         break;
                     case AssertionResult.FailureU2FFacetID:
-                        onSignInErrorCallback(new Error("The server responded with an invalid Facet ID for the URL."));
+                        onSignInErrorCallback(
+                            new Error("The server responded with an invalid ID for the current URL."),
+                        );
                         break;
                     case AssertionResult.FailureSyntax:
                         onSignInErrorCallback(
                             new Error(
-                                "The assertion challenge was rejected as malformed or incompatible by your browser.",
+                                "The sign in challenge was rejected as malformed or incompatible by your browser.",
                             ),
                         );
                         break;
                     case AssertionResult.FailureWebauthnNotSupported:
-                        onSignInErrorCallback(new Error("Your browser does not support the WebAuthN protocol."));
+                        onSignInErrorCallback(new Error("Your browser does not support the WebAuthn protocol."));
                         break;
                     case AssertionResult.FailureUnrecognized:
-                        onSignInErrorCallback(new Error("This device is not registered."));
+                        onSignInErrorCallback(new Error("This security key is not registered."));
                         break;
                     case AssertionResult.FailureUnknownSecurity:
                         onSignInErrorCallback(new Error("An unknown security error occurred."));
@@ -114,14 +119,14 @@ const WebauthnMethod = function (props: Props) {
 
             if (!mounted.current) return;
 
-            onSignInErrorCallback(new Error("The server rejected the security key."));
+            onSignInErrorCallback(new Error("The security key was rejected by the server."));
             setState(WebauthnTouchState.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
-            onSignInErrorCallback(new Error("Failed to initiate security key sign in process"));
+            onSignInErrorCallback(new Error("Failed to initiate security key sign in process."));
             setState(WebauthnTouchState.Failure);
         }
     }, [
@@ -150,7 +155,7 @@ const WebauthnMethod = function (props: Props) {
         <MethodContainer
             id={props.id}
             title="Security Key"
-            explanation="Touch the token of your security key"
+            explanation={translate("Confirm with your security key")}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}

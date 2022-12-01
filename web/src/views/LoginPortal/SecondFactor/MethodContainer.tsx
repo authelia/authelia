@@ -1,6 +1,6 @@
 import React, { Fragment, ReactNode } from "react";
 
-import { Box, Link, Theme, Typography } from "@mui/material";
+import { Box, Link, Stack, Theme, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -30,11 +30,12 @@ export interface Props {
 const DefaultMethodContainer = function (props: Props) {
     const styles = useStyles();
     const { t: translate } = useTranslation();
-    const registerMessage = props.registered
-        ? props.title === "Push Notification"
+    const registerMessage =
+        props.title === "Push Notification"
             ? ""
-            : translate("Manage devices")
-        : translate("Register device");
+            : props.registered
+            ? translate("Modify configuration")
+            : `${translate("Set up")} ${props.title}`;
     const selectMessage = translate("Select a Device");
 
     let container: ReactNode;
@@ -140,8 +141,10 @@ function MethodContainer(props: MethodContainerProps) {
 
     return (
         <Fragment>
-            <Box className={styles.containerMethod}>{props.children}</Box>
-            <Typography>{props.explanation}</Typography>
+            <Stack>
+                <Box className={styles.containerMethod}>{props.children}</Box>
+                <Typography>{props.explanation}</Typography>
+            </Stack>
         </Fragment>
     );
 }

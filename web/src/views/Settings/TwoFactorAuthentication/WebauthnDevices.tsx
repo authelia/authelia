@@ -85,7 +85,7 @@ export default function WebauthnDevices(props: Props) {
         const status = await deleteDevice(webauthnDevices[idx].id);
         if (status !== 200) {
             webauthnDevices[idx].deleting = false;
-            createErrorNotification(translate("There was a problem deleting the device"));
+            createErrorNotification(translate("There was a problem deleting the security key"));
             return;
         }
         let updatedDevices = [...webauthnDevices];
@@ -108,7 +108,7 @@ export default function WebauthnDevices(props: Props) {
         const status = await updateDevice(webauthnDevices[idx].id, name);
         webauthnDevices[idx].editing = false;
         if (status !== 200) {
-            createErrorNotification(translate("There was a problem updating the device"));
+            createErrorNotification(translate("There was a problem updating the security key"));
             return;
         }
         let updatedDevices = [...webauthnDevices];
@@ -126,7 +126,9 @@ export default function WebauthnDevices(props: Props) {
             setRegistrationInProgress(true);
             try {
                 await initiateRegistrationFunc();
-                createInfoNotification(translate("An email has been sent to your address to complete the process"));
+                createInfoNotification(
+                    translate("An email has been sent to your address to complete the registration process"),
+                );
             } catch (err) {
                 console.error(err);
                 createErrorNotification(translate("There was a problem initiating the registration process"));
@@ -162,11 +164,11 @@ export default function WebauthnDevices(props: Props) {
                 <Box sx={{ p: 3 }}>
                     <Stack spacing={2}>
                         <Box>
-                            <Typography variant="h5">Webauthn Devices</Typography>
+                            <Typography variant="h5">Security Keys (Webauthn)</Typography>
                         </Box>
                         <Box>
                             <Button variant="outlined" color="primary" onClick={handleAddKeyButtonClick}>
-                                {"Add new device"}
+                                {"Add security key"}
                             </Button>
                         </Box>
                         {ready ? (
@@ -190,7 +192,7 @@ export default function WebauthnDevices(props: Props) {
                                               handleDelete={() => {
                                                   handleDeleteItem(idx);
                                               }}
-                                              key={`webauthn-device-${idx}`}
+                                              key={`webauthn-security-key-${idx}`}
                                           />
                                       ))
                                     : null}
