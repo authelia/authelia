@@ -50,7 +50,7 @@ specifiers:
   jest-watch-typeahead: 2.2.1
   prettier: 2.8.0
   qrcode.react: 3.1.0
-  query-string: 7.1.2
+  query-string: 7.1.3
   react: 18.2.0
   react-dom: 18.2.0
   react-i18next: 12.0.0
@@ -84,7 +84,7 @@ dependencies:
   i18next-browser-languagedetector: 7.0.1
   i18next-http-backend: 2.0.2
   qrcode.react: 3.1.0_react@18.2.0
-  query-string: 7.1.2
+  query-string: 7.1.3
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-i18next: 12.0.0_nger6pvrp5hnzeykouhwqmsdti
@@ -8236,8 +8236,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /query-string/7.1.2:
-    resolution: {integrity: sha512-KPbFzz/8pmtYOMH6zlYZgqTYJKQ18FxwfW3RLHIBwHWQ0iQG18X16XtIOk68ddfaM6j3grjYSnMPMrqQEjwR4w==}
+  /query-string/7.1.3:
+    resolution: {integrity: sha512-hh2WYhq4fi8+b+/2Kg9CEge4fDPvHS534aOOvOZeQ3+Vf2mCFsaFBYj0i+iXcAq6I9Vzp5fjMFBlONvayDC1qg==}
     engines: {node: '>=6'}
     dependencies:
       decode-uri-component: 0.2.2
