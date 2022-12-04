@@ -115,8 +115,8 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 		config.Argon2.Memory = schema.DefaultPasswordConfig.Argon2.Memory
 	case config.Argon2.Memory < argon2.MemoryMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMin))
-	case uint32(config.Argon2.Memory) > argon2.MemoryMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMax))
+	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax):
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMax))
 	case config.Argon2.Memory < (config.Argon2.Parallelism * argon2.MemoryMinParallelismMultiplier):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2MemoryTooLow, config.Argon2.Memory, config.Argon2.Parallelism*argon2.MemoryMinParallelismMultiplier, config.Argon2.Parallelism, argon2.MemoryMinParallelismMultiplier))
 	}
@@ -224,6 +224,8 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
 	case config.SCrypt.Iterations < scrypt.IterationsMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "iterations", config.SCrypt.Iterations, scrypt.IterationsMin))
+	case config.SCrypt.Iterations > scrypt.IterationsMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "iterations", config.SCrypt.Iterations, scrypt.IterationsMax))
 	}
 
 	switch {
@@ -241,7 +243,7 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 	case config.SCrypt.Parallelism < scrypt.ParallelismMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "parallelism", config.SCrypt.Parallelism, scrypt.ParallelismMin))
 	case config.SCrypt.Parallelism > scrypt.ParallelismMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "parallelism", config.SCrypt.BlockSize, scrypt.ParallelismMax))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "parallelism", config.SCrypt.Parallelism, scrypt.ParallelismMax))
 	}
 
 	switch {

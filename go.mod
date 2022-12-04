@@ -11,7 +11,7 @@ require (
 	github.com/fasthttp/session/v2 v2.4.13
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.4
-	github.com/go-crypt/crypt v0.2.2-0.20221204120525-4373dc528789
+	github.com/go-crypt/crypt v0.2.2-0.20221204130046-b13cb0ef6218
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.112.2
 	github.com/go-sql-driver/mysql v1.7.0

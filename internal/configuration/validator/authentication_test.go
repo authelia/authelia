@@ -409,18 +409,22 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSCryptOptio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenSCryptOptionsTooHigh() {
+	suite.config.File.Password.SCrypt.Iterations = 59
 	suite.config.File.Password.SCrypt.BlockSize = 360287970189639672
+	suite.config.File.Password.SCrypt.Parallelism = 1073741825
 	suite.config.File.Password.SCrypt.KeyLength = 1374389534409
 	suite.config.File.Password.SCrypt.SaltLength = 2147483647
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 3)
+	suite.Require().Len(suite.validator.Errors(), 5)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: scrypt: option 'block_size' is configured as '360287970189639672' but must be less than or equal to '36028797018963967'")
-	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '137438953440'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: scrypt: option 'salt_length' is configured as '2147483647' but must be less than or equal to '1024'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: scrypt: option 'iterations' is configured as '59' but must be less than or equal to '58'")
+	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: scrypt: option 'block_size' is configured as '360287970189639672' but must be less than or equal to '36028797018963967'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: scrypt: option 'parallelism' is configured as '1073741825' but must be less than or equal to '1073741823'")
+	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '137438953440'")
+	suite.Assert().EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: scrypt: option 'salt_length' is configured as '2147483647' but must be less than or equal to '1024'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2OptionsTooLow() {
@@ -444,6 +448,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Optio
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2OptionsTooHigh() {
 	suite.config.File.Password.Argon2.Iterations = 9999999999
+	suite.config.File.Password.Argon2.Memory = 4294967296
 	suite.config.File.Password.Argon2.Parallelism = 16777216
 	suite.config.File.Password.Argon2.KeyLength = 9999999998
 	suite.config.File.Password.Argon2.SaltLength = 9999999997
@@ -455,6 +460,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Optio
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'iterations' is configured as '9999999999' but must be less than or equal to '2147483647'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: argon2: option 'parallelism' is configured as '16777216' but must be less than or equal to '16777215'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: argon2: option 'memory' is configured as '4294967296' but must be less than or equal to '4294967295'")
 	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: argon2: option 'key_length' is configured as '9999999998' but must be less than or equal to '2147483647'")
 	suite.Assert().EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: argon2: option 'salt_length' is configured as '9999999997' but must be less than or equal to '2147483647'")
 }
