@@ -437,7 +437,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Optio
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'iterations' is configured as '-1' but must be greater than or equal to '1'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: argon2: option 'parallelism' is configured as '-1' but must be greater than or equal to '1'")
-	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: argon2: option 'memory' is configured as '-1' but must be greater than or equal to '1'")
+	suite.Assert().EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: argon2: option 'memory' is configured as '-1' but must be greater than or equal to '8'")
 	suite.Assert().EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: argon2: option 'key_length' is configured as '1' but must be greater than or equal to '4'")
 	suite.Assert().EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: argon2: option 'salt_length' is configured as '-1' but must be greater than or equal to '1'")
 }
@@ -468,7 +468,19 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2Memor
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'memory' is configured as '4' but must be greater than or equal to '32' or '4' (the value of 'parallelism) multiplied by '8'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'memory' is configured as '4' but must be greater than or equal to '8'")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenArgon2MemoryTooLowMultiplier() {
+	suite.config.File.Password.Argon2.Memory = 8
+	suite.config.File.Password.Argon2.Parallelism = 4
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: argon2: option 'memory' is configured as '8' but must be greater than or equal to '32' or '4' (the value of 'parallelism) multiplied by '8'")
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenBadAlgorithmDefined() {
