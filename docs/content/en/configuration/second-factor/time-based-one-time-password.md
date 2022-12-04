@@ -170,19 +170,19 @@ at least a minimal configuration that has the storage backend connection details
 Export in [Key URI Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format):
 
 ```bash
-authelia storage totp export --format uri
+authelia storage user totp export --format uri
 ```
 
 Export as CSV:
 
 ```bash
-authelia storage totp export --format csv
+authelia storage user totp export --format csv
 ```
 
 Help:
 
 ```bash
-authelia storage totp export --help
+authelia storage user totp export --help
 ```
 
 [RFC4226]: https://www.rfc-editor.org/rfc/rfc4226.html
