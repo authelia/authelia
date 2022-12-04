@@ -252,7 +252,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': sha2crypt decode error: parameter pair 'rounds00000' is not properly encoded: does not contain kv separator '='")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': shacrypt decode error: parameter pair 'rounds00000' is not properly encoded: does not contain kv separator '='")
 	})
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
-	"github.com/go-crypt/crypt/algorithm/sha2crypt"
+	"github.com/go-crypt/crypt/algorithm/shacrypt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -95,10 +95,10 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	switch {
 	case config.Argon2.Iterations == 0:
 		config.Argon2.Iterations = schema.DefaultPasswordConfig.Argon2.Iterations
-	case config.Argon2.Iterations < argon2.PassesMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "iterations", config.Argon2.Iterations, argon2.PassesMin))
-	case config.Argon2.Iterations > argon2.PassesMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "iterations", config.Argon2.Iterations, argon2.PassesMax))
+	case config.Argon2.Iterations < argon2.IterationsMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "iterations", config.Argon2.Iterations, argon2.IterationsMin))
+	case config.Argon2.Iterations > argon2.IterationsMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "iterations", config.Argon2.Iterations, argon2.IterationsMax))
 	}
 
 	switch {
@@ -122,19 +122,19 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	switch {
 	case config.Argon2.KeyLength == 0:
 		config.Argon2.KeyLength = schema.DefaultPasswordConfig.Argon2.KeyLength
-	case config.Argon2.KeyLength < argon2.TagLengthMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "key_length", config.Argon2.KeyLength, argon2.TagLengthMin))
-	case config.Argon2.KeyLength > argon2.TagLengthMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "key_length", config.Argon2.KeyLength, argon2.TagLengthMax))
+	case config.Argon2.KeyLength < argon2.KeyLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "key_length", config.Argon2.KeyLength, argon2.KeyLengthMin))
+	case config.Argon2.KeyLength > argon2.KeyLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "key_length", config.Argon2.KeyLength, argon2.KeyLengthMax))
 	}
 
 	switch {
 	case config.Argon2.SaltLength == 0:
 		config.Argon2.SaltLength = schema.DefaultPasswordConfig.Argon2.SaltLength
-	case config.Argon2.SaltLength < argon2.SaltSizeMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "salt_length", config.Argon2.SaltLength, argon2.SaltSizeMin))
-	case config.Argon2.SaltLength > argon2.SaltSizeMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "salt_length", config.Argon2.SaltLength, argon2.SaltSizeMax))
+	case config.Argon2.SaltLength < argon2.SaltLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "salt_length", config.Argon2.SaltLength, argon2.SaltLengthMin))
+	case config.Argon2.SaltLength > argon2.SaltLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "salt_length", config.Argon2.SaltLength, argon2.SaltLengthMax))
 	}
 }
 
@@ -151,19 +151,19 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Pas
 	switch {
 	case config.SHA2Crypt.Iterations == 0:
 		config.SHA2Crypt.Iterations = schema.DefaultPasswordConfig.SHA2Crypt.Iterations
-	case config.SHA2Crypt.Iterations < sha2crypt.IterationsMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSHA2Crypt, "iterations", config.SHA2Crypt.Iterations, sha2crypt.IterationsMin))
-	case config.SHA2Crypt.Iterations > sha2crypt.IterationsMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSHA2Crypt, "iterations", config.SHA2Crypt.Iterations, sha2crypt.IterationsMax))
+	case config.SHA2Crypt.Iterations < shacrypt.IterationsMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSHA2Crypt, "iterations", config.SHA2Crypt.Iterations, shacrypt.IterationsMin))
+	case config.SHA2Crypt.Iterations > shacrypt.IterationsMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSHA2Crypt, "iterations", config.SHA2Crypt.Iterations, shacrypt.IterationsMax))
 	}
 
 	switch {
 	case config.SHA2Crypt.SaltLength == 0:
 		config.SHA2Crypt.SaltLength = schema.DefaultPasswordConfig.SHA2Crypt.SaltLength
-	case config.SHA2Crypt.SaltLength < sha2crypt.SaltSizeMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSHA2Crypt, "salt_length", config.SHA2Crypt.SaltLength, sha2crypt.SaltSizeMin))
-	case config.SHA2Crypt.SaltLength > sha2crypt.SaltSizeMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSHA2Crypt, "salt_length", config.SHA2Crypt.SaltLength, sha2crypt.SaltSizeMax))
+	case config.SHA2Crypt.SaltLength < shacrypt.SaltLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSHA2Crypt, "salt_length", config.SHA2Crypt.SaltLength, shacrypt.SaltLengthMin))
+	case config.SHA2Crypt.SaltLength > shacrypt.SaltLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSHA2Crypt, "salt_length", config.SHA2Crypt.SaltLength, shacrypt.SaltLengthMax))
 	}
 }
 
@@ -189,10 +189,10 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Passwo
 	switch {
 	case config.PBKDF2.SaltLength == 0:
 		config.PBKDF2.SaltLength = schema.DefaultPasswordConfig.PBKDF2.SaltLength
-	case config.PBKDF2.SaltLength < pbkdf2.SaltSizeMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashPBKDF2, "salt_length", config.PBKDF2.SaltLength, pbkdf2.SaltSizeMin))
-	case config.PBKDF2.SaltLength > pbkdf2.SaltSizeMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashPBKDF2, "salt_length", config.PBKDF2.SaltLength, pbkdf2.SaltSizeMax))
+	case config.PBKDF2.SaltLength < pbkdf2.SaltLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashPBKDF2, "salt_length", config.PBKDF2.SaltLength, pbkdf2.SaltLengthMin))
+	case config.PBKDF2.SaltLength > pbkdf2.SaltLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashPBKDF2, "salt_length", config.PBKDF2.SaltLength, pbkdf2.SaltLengthMax))
 	}
 }
 
@@ -209,10 +209,10 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 	switch {
 	case config.BCrypt.Cost == 0:
 		config.BCrypt.Cost = schema.DefaultPasswordConfig.BCrypt.Cost
-	case config.BCrypt.Cost < bcrypt.CostMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashBCrypt, "cost", config.BCrypt.Cost, bcrypt.CostMin))
-	case config.BCrypt.Cost > bcrypt.CostMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashBCrypt, "cost", config.BCrypt.Cost, bcrypt.CostMax))
+	case config.BCrypt.Cost < bcrypt.IterationsMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashBCrypt, "cost", config.BCrypt.Cost, bcrypt.IterationsMin))
+	case config.BCrypt.Cost > bcrypt.IterationsMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashBCrypt, "cost", config.BCrypt.Cost, bcrypt.IterationsMax))
 	}
 }
 
@@ -245,19 +245,19 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Passwo
 	switch {
 	case config.SCrypt.KeyLength == 0:
 		config.SCrypt.KeyLength = schema.DefaultPasswordConfig.SCrypt.KeyLength
-	case config.SCrypt.KeyLength < scrypt.KeySizeMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "key_length", config.SCrypt.KeyLength, scrypt.KeySizeMin))
-	case config.SCrypt.KeyLength > scrypt.KeySizeMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "key_length", config.SCrypt.KeyLength, scrypt.KeySizeMax))
+	case config.SCrypt.KeyLength < scrypt.KeyLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "key_length", config.SCrypt.KeyLength, scrypt.KeyLengthMin))
+	case config.SCrypt.KeyLength > scrypt.KeyLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "key_length", config.SCrypt.KeyLength, scrypt.KeyLengthMax))
 	}
 
 	switch {
 	case config.SCrypt.SaltLength == 0:
 		config.SCrypt.SaltLength = schema.DefaultPasswordConfig.SCrypt.SaltLength
-	case config.SCrypt.SaltLength < scrypt.SaltSizeMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "salt_length", config.SCrypt.SaltLength, scrypt.SaltSizeMin))
-	case config.SCrypt.SaltLength > scrypt.SaltSizeMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "salt_length", config.SCrypt.SaltLength, scrypt.SaltSizeMax))
+	case config.SCrypt.SaltLength < scrypt.SaltLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "salt_length", config.SCrypt.SaltLength, scrypt.SaltLengthMin))
+	case config.SCrypt.SaltLength > scrypt.SaltLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "salt_length", config.SCrypt.SaltLength, scrypt.SaltLengthMax))
 	}
 }
 

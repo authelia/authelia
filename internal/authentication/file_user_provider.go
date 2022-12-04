@@ -13,7 +13,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
-	"github.com/go-crypt/crypt/algorithm/sha2crypt"
+	"github.com/go-crypt/crypt/algorithm/shacrypt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -162,10 +162,10 @@ func NewFileCryptoHashFromConfig(config schema.Password) (hash algorithm.Hash, e
 			argon2.WithS(config.Argon2.SaltLength),
 		)
 	case hashSHA2Crypt:
-		hash, err = sha2crypt.New(
-			sha2crypt.WithVariantName(config.SHA2Crypt.Variant),
-			sha2crypt.WithRounds(config.SHA2Crypt.Iterations),
-			sha2crypt.WithSaltLength(config.SHA2Crypt.SaltLength),
+		hash, err = shacrypt.New(
+			shacrypt.WithVariantName(config.SHA2Crypt.Variant),
+			shacrypt.WithIterations(config.SHA2Crypt.Iterations),
+			shacrypt.WithSaltLength(config.SHA2Crypt.SaltLength),
 		)
 	case hashPBKDF2:
 		hash, err = pbkdf2.New(
@@ -178,13 +178,13 @@ func NewFileCryptoHashFromConfig(config schema.Password) (hash algorithm.Hash, e
 			scrypt.WithLN(config.SCrypt.Iterations),
 			scrypt.WithP(config.SCrypt.Parallelism),
 			scrypt.WithR(config.SCrypt.BlockSize),
-			scrypt.WithKeySize(config.SCrypt.KeyLength),
-			scrypt.WithSaltSize(config.SCrypt.SaltLength),
+			scrypt.WithKeyLength(config.SCrypt.KeyLength),
+			scrypt.WithSaltLength(config.SCrypt.SaltLength),
 		)
 	case hashBCrypt:
 		hash, err = bcrypt.New(
 			bcrypt.WithVariantName(config.BCrypt.Variant),
-			bcrypt.WithCost(config.BCrypt.Cost),
+			bcrypt.WithIterations(config.BCrypt.Cost),
 		)
 	default:
 		return nil, fmt.Errorf("algorithm '%s' is unknown", config.Algorithm)
