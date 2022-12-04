@@ -156,7 +156,7 @@ func NewFileCryptoHashFromConfig(config schema.Password) (hash algorithm.Hash, e
 		hash, err = argon2.New(
 			argon2.WithVariantName(config.Argon2.Variant),
 			argon2.WithT(config.Argon2.Iterations),
-			argon2.WithM(config.Argon2.Memory),
+			argon2.WithM(uint32(config.Argon2.Memory)),
 			argon2.WithP(config.Argon2.Parallelism),
 			argon2.WithK(config.Argon2.KeyLength),
 			argon2.WithS(config.Argon2.SaltLength),

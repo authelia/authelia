@@ -113,7 +113,9 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Passwo
 	switch {
 	case config.Argon2.Memory == 0:
 		config.Argon2.Memory = schema.DefaultPasswordConfig.Argon2.Memory
-	case config.Argon2.Memory < 0:
+	case config.Argon2.Memory < argon2.MemoryMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Parallelism, 1))
+	case uint32(config.Argon2.Memory) > argon2.MemoryMax:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Parallelism, 1))
 	case config.Argon2.Memory < (config.Argon2.Parallelism * argon2.MemoryMinParallelismMultiplier):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2MemoryTooLow, config.Argon2.Memory, config.Argon2.Parallelism*argon2.MemoryMinParallelismMultiplier, config.Argon2.Parallelism, argon2.MemoryMinParallelismMultiplier))
