@@ -14,7 +14,7 @@ require (
 	github.com/go-crypt/crypt v0.1.14
 	github.com/go-ldap/ldap/v3 v3.4.4
 	github.com/go-rod/rod v0.112.2
-	github.com/go-sql-driver/mysql v1.6.0
+	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-webauthn/webauthn v0.5.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/mock v1.6.0
@@ -28,7 +28,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.43.0
 	github.com/ory/herodot v0.9.13
-	github.com/ory/x v0.0.517
+	github.com/ory/x v0.0.519
 	github.com/otiai10/copy v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
