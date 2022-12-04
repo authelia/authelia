@@ -218,6 +218,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Passwo
 	}
 }
 
+//nolint:gocyclo
 func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Password, validator *schema.StructValidator) {
 	switch {
 	case config.SCrypt.Iterations == 0:
