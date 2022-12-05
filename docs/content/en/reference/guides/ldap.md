@@ -10,6 +10,8 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+aliases:
+  - /r/ldap
 ---
 
 ## Binding
@@ -46,10 +48,10 @@ Authelia primarily supports this method.
 
 ## Implementation Guide
 
-There are currently two implementations, `custom` and `activedirectory`. The `activedirectory` implementation
-must be used if you wish to allow users to change or reset their password as Active Directory
-uses a custom attribute for this, and an input format other implementations do not use. The long term
-intention of this is to have logical defaults for various RFC implementations of LDAP.
+There are currently two implementations, `custom`, `activedirectory`, and `freeipa`. The `activedirectory`
+implementation must be used if you wish to allow users to change or reset their password as Active Directory
+uses a custom attribute and mechanism for this. The long term intention of this is to have logical defaults for various
+RFC implementations of LDAP.
 
 ### Filter replacements
 
@@ -86,6 +88,7 @@ Username column.
 |:---------------:|:--------------:|:------------:|:----:|:----------:|
 |     custom      |      N/A       | displayName  | mail |     cn     |
 | activedirectory | sAMAccountName | displayName  | mail |     cn     |
+|     freeipa     |      uid       | displayName  | mail |     cn     |
 
 #### Filter defaults
 
@@ -98,6 +101,7 @@ value is not 0 which means the password requires changing at the next login.
 |:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
 |     custom      |                                                                               N/A                                                                               |                    N/A                     |
 | activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(sAMAccountType=268435456)) |
+|     freeipa     |                         (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE)))                          | (&(member={dn})(objectClass=groupOfNames)) |
 
 ##### Microsoft Active Directory sAMAccountType
 

@@ -328,8 +328,10 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom
 	case schema.LDAPImplementationActiveDirectory:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory
+	case schema.LDAPImplementationFreeIPA:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join([]string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory}, "', '")))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
 	}
 
 	configDefaultTLS := &schema.TLSConfig{}

@@ -609,7 +609,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementat
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'implementation' is configured as 'masd' but must be one of the following values: 'custom', 'activedirectory', 'freeipa'")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenURLNotProvided() {
@@ -875,7 +875,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowTLSVerMinGreaterT
 	suite.Assert().EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.2")
 }
 
-func TestLdapAuthenticationBackend(t *testing.T) {
+func TestLDAPAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(LDAPAuthenticationBackendSuite))
 }
 
@@ -894,7 +894,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) SetupTest() {
 	suite.config.LDAP.User = testLDAPUser
 	suite.config.LDAP.Password = testLDAPPassword
 	suite.config.LDAP.BaseDN = testLDAPBaseDN
-	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.TLS
 }
 
 func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirectoryDefaults() {
@@ -904,7 +904,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 	suite.Assert().Len(suite.validator.Errors(), 0)
 
 	suite.Assert().Equal(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Timeout,
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Timeout,
 		suite.config.LDAP.Timeout)
 	suite.Assert().Equal(
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
@@ -938,7 +938,7 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldOnlySetDefault
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
 
 	suite.Assert().NotEqual(
-		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Timeout,
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.Timeout,
 		suite.config.LDAP.Timeout)
 	suite.Assert().NotEqual(
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
@@ -980,4 +980,89 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldRaiseErrorOnIn
 
 func TestActiveDirectoryAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(ActiveDirectoryAuthenticationBackendSuite))
+}
+
+type FreeIPAAuthenticationBackendSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *FreeIPAAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.config = schema.AuthenticationBackend{}
+	suite.config.LDAP = &schema.LDAPAuthenticationBackend{}
+	suite.config.LDAP.Implementation = schema.LDAPImplementationFreeIPA
+	suite.config.LDAP.URL = testLDAPURL
+	suite.config.LDAP.User = testLDAPUser
+	suite.config.LDAP.Password = testLDAPPassword
+	suite.config.LDAP.BaseDN = testLDAPBaseDN
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.TLS
+}
+
+func (suite *FreeIPAAuthenticationBackendSuite) TestShouldSetDefaults() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func (suite *FreeIPAAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.config.LDAP.Timeout = time.Second * 2
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=person)(!(nsAccountLock=TRUE)))"
+	suite.config.LDAP.UsernameAttribute = "dn"
+	suite.config.LDAP.MailAttribute = "email"
+	suite.config.LDAP.DisplayNameAttribute = "gecos"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixgroup))"
+	suite.config.LDAP.GroupNameAttribute = "groupName"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func TestFreeIPAAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(FreeIPAAuthenticationBackendSuite))
 }
