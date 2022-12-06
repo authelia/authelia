@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -23,15 +24,19 @@ type LDAPUserProvider struct {
 	log       *logrus.Logger
 	factory   LDAPClientFactory
 
+	clock utils.Clock
+
 	disableResetPassword bool
 
 	// Automatically detected LDAP features.
 	features LDAPSupportedFeatures
 
 	// Dynamically generated users values.
-	usersBaseDN                 string
-	usersAttributes             []string
-	usersFilterReplacementInput bool
+	usersBaseDN                           string
+	usersAttributes                       []string
+	usersFilterReplacementInput           bool
+	usersFilterReplacementTimeGeneralized bool
+	usersFilterReplacementTimeNumericDate bool
 
 	// Dynamically generated groups values.
 	groupsBaseDN                    string
@@ -74,6 +79,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPa
 		log:                  logging.Logger(),
 		factory:              factory,
 		disableResetPassword: disableResetPassword,
+		clock:                &utils.RealClock{},
 	}
 
 	provider.parseDynamicUsersConfiguration()
@@ -400,6 +406,14 @@ func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(username))
+	}
+
+	if p.usersFilterReplacementTimeGeneralized {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
+	}
+
+	if p.usersFilterReplacementTimeNumericDate {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderTimeNumericDate, strconv.Itoa(int(ldapNumericDate(p.clock))))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)

@@ -73,6 +73,13 @@ const (
 	ldapPlaceholderInput             = "{input}"
 	ldapPlaceholderDistinguishedName = "{dn}"
 	ldapPlaceholderUsername          = "{username}"
+	ldapPlaceholderTimeGeneralized   = "{time:generalized}"
+	ldapPlaceholderTimeNumericDate   = "{time:numericdate}"
+)
+
+const (
+	ldapGeneralizedTimeDateTimeFormat        = "20060102150405.0Z"
+	subUnixEpochNanoToWindowsEpoch    uint64 = 6802270473709551616
 )
 
 const (

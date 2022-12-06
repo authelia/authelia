@@ -6,7 +6,13 @@ import (
 
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/go-ldap/ldap/v3"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+func ldapNumericDate(clock utils.Clock) uint64 {
+	return (uint64(clock.Now().UnixNano()) - subUnixEpochNanoToWindowsEpoch) / 100
+}
 
 func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
 	if needle == nil || len(haystack) == 0 {

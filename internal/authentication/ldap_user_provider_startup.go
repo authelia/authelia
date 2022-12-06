@@ -120,6 +120,14 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		p.usersFilterReplacementInput = true
 	}
 
+	if strings.Contains(p.config.UsersFilter, ldapPlaceholderTimeGeneralized) {
+		p.usersFilterReplacementTimeGeneralized = true
+	}
+
+	if strings.Contains(p.config.UsersFilter, ldapPlaceholderTimeNumericDate) {
+		p.usersFilterReplacementTimeNumericDate = true
+	}
+
 	p.log.Tracef("Detected user filter replacements that need to be resolved per lookup are: %s=%v",
 		ldapPlaceholderInput, p.usersFilterReplacementInput)
 }
