@@ -400,12 +400,12 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
+func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 	filter = p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(username))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
 	}
 
 	if p.usersFilterReplacementTimeGeneralized {
@@ -421,12 +421,12 @@ func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
 	return filter
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string) {
+func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserProfile) (filter string) {
 	filter = p.config.GroupsFilter
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(username))
+		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(input))
 	}
 
 	if profile != nil {

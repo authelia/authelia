@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -22,7 +23,7 @@ type RegulatorSuite struct {
 	ctrl        *gomock.Controller
 	storageMock *mocks.MockStorage
 	config      schema.RegulationConfiguration
-	clock       mocks.TestingClock
+	clock       utils.TestingClock
 }
 
 func (s *RegulatorSuite) SetupTest() {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/golang/mock/gomock"
@@ -3814,7 +3815,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 
 	mockFactory := NewMockLDAPClientFactory(ctrl)
 
-	ldapClient := newLDAPUserProvider(
+	provider := newLDAPUserProvider(
 		schema.LDAPAuthenticationBackend{
 			URL:                  "ldap://127.0.0.1:389",
 			User:                 "cn=admin,dc=example,dc=com",
@@ -3822,7 +3823,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 			UsernameAttribute:    "uid",
 			MailAttribute:        "mail",
 			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input})({display_name_attribute}={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))",
+			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={time:numericdate})(accountExpires>={time:generalized})))",
 			GroupsFilter:         "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))",
 			AdditionalUsersDN:    "ou=users",
 			AdditionalGroupsDN:   "ou=groups",
@@ -3833,16 +3834,27 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 		nil,
 		mockFactory)
 
-	assert.True(t, ldapClient.groupsFilterReplacementInput)
-	assert.True(t, ldapClient.groupsFilterReplacementUsername)
-	assert.True(t, ldapClient.groupsFilterReplacementDN)
+	clock := &utils.TestingClock{}
 
-	assert.True(t, ldapClient.usersFilterReplacementInput)
+	provider.clock = clock
 
-	assert.Equal(t, "(&(|(uid={input})(mail={input})(displayName={input}))(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2)(!pwdLastSet=0))", ldapClient.config.UsersFilter)
-	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", ldapClient.config.GroupsFilter)
-	assert.Equal(t, "ou=users,dc=example,dc=com", ldapClient.usersBaseDN)
-	assert.Equal(t, "ou=groups,dc=example,dc=com", ldapClient.groupsBaseDN)
+	clock.Set(time.Unix(1670250519, 0))
+
+	assert.True(t, provider.groupsFilterReplacementInput)
+	assert.True(t, provider.groupsFilterReplacementUsername)
+	assert.True(t, provider.groupsFilterReplacementDN)
+
+	assert.True(t, provider.usersFilterReplacementInput)
+	assert.True(t, provider.usersFilterReplacementTimeGeneralized)
+	assert.True(t, provider.usersFilterReplacementTimeNumericDate)
+
+	assert.Equal(t, "(&(|(uid={input})(mail={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={time:numericdate})(accountExpires>={time:generalized})))", provider.config.UsersFilter)
+	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", provider.config.GroupsFilter)
+	assert.Equal(t, "ou=users,dc=example,dc=com", provider.usersBaseDN)
+	assert.Equal(t, "ou=groups,dc=example,dc=com", provider.groupsBaseDN)
+
+	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>=133147241190000000)(accountExpires>=20221205142839.0Z)))", provider.resolveUsersFilter("test@example.com"))
+	assert.Equal(t, "(&(|(member=cn=admin,dc=example,dc=com)(member=test@example.com)(member=test))(objectClass=group))", provider.resolveGroupsFilter("test@example.com", &ldapUserProfile{Username: "test", DN: "cn=admin,dc=example,dc=com"}))
 }
 
 func TestShouldCallStartTLSWithInsecureSkipVerifyWhenSkipVerifyTrue(t *testing.T) {
