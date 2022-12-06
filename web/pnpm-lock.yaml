@@ -53,7 +53,7 @@ specifiers:
   query-string: 7.1.3
   react: 18.2.0
   react-dom: 18.2.0
-  react-i18next: 12.0.0
+  react-i18next: 12.1.0
   react-loading: 2.0.3
   react-otp-input: 2.4.0
   react-router-dom: 6.4.4
@@ -87,7 +87,7 @@ dependencies:
   query-string: 7.1.3
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 12.0.0_xp3tcnypqfah7nlbdog3oni4pe
+  react-i18next: 12.1.0_xp3tcnypqfah7nlbdog3oni4pe
   react-loading: 2.0.3_react@18.2.0
   react-otp-input: 2.4.0_biqbaboplfbrettd7655fr4n2y
   react-router-dom: 6.4.4_biqbaboplfbrettd7655fr4n2y
@@ -2046,6 +2046,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.11
+    dev: true
 
   /@babel/runtime/7.19.4:
     resolution: {integrity: sha512-EXpLCrk55f+cYqmHsSR+yD/0gAIMxxA9QK9lnQWzhMCvt+YmoBN7Zx94s++Kv0+unHk39vxNO8t+CMA2WSS3wA==}
@@ -8271,8 +8272,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/12.0.0_xp3tcnypqfah7nlbdog3oni4pe:
-    resolution: {integrity: sha512-/O7N6aIEAl1FaWZBNvhdIo9itvF/MO/nRKr9pYqRc9LhuC1u21SlfwpiYQqvaeNSEW3g3qUXLREOWMt+gxrWbg==}
+  /react-i18next/12.1.0_xp3tcnypqfah7nlbdog3oni4pe:
+    resolution: {integrity: sha512-zYSWNCKklqulvXQFAo1TTZxI+DOflD8QQaGUIn58/FDJGiczCVf0X3g5zjY6h86+MLS3fpD5Dwziyi2DWmUD7Q==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0 || 18'
@@ -8284,7 +8285,7 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@babel/runtime': 7.19.0
+      '@babel/runtime': 7.20.6
       html-parse-stringify: 3.0.1
       i18next: 22.0.8
       react: 18.2.0
@@ -9514,7 +9515,7 @@ packages:
     dev: true
 
   /void-elements/3.1.0:
-    resolution: {integrity: sha1-YU9/v42AHwu18GYfWy9XhXUOTwk=}
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
     engines: {node: '>=0.10.0'}
     dev: false
 
