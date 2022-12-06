@@ -46,14 +46,15 @@ type LDAPUserProvider struct {
 	groupsFilterReplacementDN       bool
 }
 
-// NewLDAPUserProvider creates a new instance of LDAPUserProvider.
+// NewLDAPUserProvider creates a new instance of LDAPUserProvider with the ProductionLDAPClientFactory.
 func NewLDAPUserProvider(config schema.AuthenticationBackend, certPool *x509.CertPool) (provider *LDAPUserProvider) {
-	provider = newLDAPUserProvider(*config.LDAP, config.PasswordReset.Disable, certPool, nil)
+	provider = NewLDAPUserProviderWithFactory(*config.LDAP, config.PasswordReset.Disable, certPool, NewProductionLDAPClientFactory())
 
 	return provider
 }
 
-func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+// NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with the specified LDAPClientFactory.
+func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
@@ -413,7 +414,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 	}
 
 	if p.usersFilterReplacementTimeNumericDate {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderTimeNumericDate, strconv.Itoa(int(ldapNumericDate(p.clock))))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderTimeNumericDate, strconv.Itoa(int(utils.UnixNanoTimeToWin32Epoch(p.clock.Now().UnixNano()))))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)
