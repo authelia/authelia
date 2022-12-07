@@ -26,7 +26,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
-	github.com/ory/fosite v0.43.0
+	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.9.13
 	github.com/ory/x v0.0.520
 	github.com/otiai10/copy v1.9.0
