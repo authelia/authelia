@@ -7,16 +7,16 @@
   NPM_VERSION = "8.19.2"
 
 [context.production]
-  command = "npm run build"
+  command = "pnpm run build"
 
 [context.deploy-preview]
-  command = "npm run build -- -b $DEPLOY_PRIME_URL"
+  command = "pnpm run build -- -b $DEPLOY_PRIME_URL"
 
 [context.branch-deploy]
-  command = "npm run build -- -b $DEPLOY_PRIME_URL"
+  command = "pnpm run build -- -b $DEPLOY_PRIME_URL"
 
 [context.next]
-  command = "npm run build"
+  command = "pnpm run build"
 
 [context.next.environment]
   HUGO_ENV = "next"
