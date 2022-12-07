@@ -53,7 +53,7 @@ specifiers:
   query-string: 7.1.3
   react: 18.2.0
   react-dom: 18.2.0
-  react-i18next: 12.1.0
+  react-i18next: 12.1.1
   react-loading: 2.0.3
   react-otp-input: 2.4.0
   react-router-dom: 6.4.4
@@ -87,7 +87,7 @@ dependencies:
   query-string: 7.1.3
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-i18next: 12.1.0_xp3tcnypqfah7nlbdog3oni4pe
+  react-i18next: 12.1.1_xp3tcnypqfah7nlbdog3oni4pe
   react-loading: 2.0.3_react@18.2.0
   react-otp-input: 2.4.0_biqbaboplfbrettd7655fr4n2y
   react-router-dom: 6.4.4_biqbaboplfbrettd7655fr4n2y
@@ -8264,8 +8264,8 @@ packages:
       react: 18.2.0
       scheduler: 0.23.0
 
-  /react-i18next/12.1.0_xp3tcnypqfah7nlbdog3oni4pe:
-    resolution: {integrity: sha512-zYSWNCKklqulvXQFAo1TTZxI+DOflD8QQaGUIn58/FDJGiczCVf0X3g5zjY6h86+MLS3fpD5Dwziyi2DWmUD7Q==}
+  /react-i18next/12.1.1_xp3tcnypqfah7nlbdog3oni4pe:
+    resolution: {integrity: sha512-mFdieOI0LDy84q3JuZU6Aou1DoWW2fhapcTGeBS8+vWSJuViuoCLQAMYSb0QoHhXS8B0WKUOPpx4cffAP7r/aA==}
     peerDependencies:
       i18next: '>= 19.0.0'
       react: '>= 16.8.0 || 18'
