@@ -286,6 +286,7 @@ authentication_backend:
     ## Acceptable options are as follows:
     ## - 'activedirectory' - for Microsoft Active Directory.
     ## - 'freeipa' - for FreeIPA.
+    ## - 'lldap' - for lldap.
     ## - 'custom' - for custom specifications of attributes and filters.
     ## This currently defaults to 'custom' to maintain existing behaviour.
     ##

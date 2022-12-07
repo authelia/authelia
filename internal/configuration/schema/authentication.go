@@ -212,3 +212,19 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAut
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
+
+// DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP represents the default LDAP config for the LDAPImplementationLLDAP Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = LDAPAuthenticationBackend{
+	AdditionalUsersDN:    "OU=people",
+	AdditionalGroupsDN:   "OU=groups",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+	UsernameAttribute:    ldapAttrUserID,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrCommonName,
+	GroupsFilter:         "(&(member={dn})(objectClass=groupOfUniqueNames))",
+	GroupNameAttribute:   ldapAttrCommonName,
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
