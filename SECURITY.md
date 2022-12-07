@@ -19,14 +19,14 @@ For more information about [security](https://www.authelia.com/information/secur
 
 ## Contact Options
 
-Several [contact options](./README.md#contact-options) exist, it's important to make sure you contact the maintainers
-privately which is described in each available contact method. The methods include our [security email](./README.md#security),
-[Matrix](./README.md#matrix), and [Discord](./README.md#discord).
+Several [contact options](README.md#contact-options) exist, it's important to make sure you contact the maintainers
+privately which is described in each available contact method. The methods include our [security email](README.md#security),
+[Matrix](README.md#matrix), and [Discord](README.md#discord).
 
 ## Credit
 
 Users who report bugs will optionally be credited for the discovery. Both in the [security advisory] and in our
-[all contributors](./README.md#contribute) configuration/documentation.
+[all contributors](README.md#contribute) configuration/documentation.
 
 ## Process
 

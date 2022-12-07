@@ -61,9 +61,11 @@ by Authelia from others.
 
 *__Important Note:__ Many TOTP applications do not support this option. It is strongly advised you find out which
 applications your users use and test them before changing this option. It is insufficient to test that the application
-can add the key, it must also authenticate with Authelia as some applications silently ignore these options. Bitwarden
+can add the key, it must also authenticate with Authelia as some applications silently ignore these options. [Bitwarden]
 is the only one that has been tested at this time. If you'd like to contribute to documenting support for this option
 please see [Issue 2650](https://github.com/authelia/authelia/issues/2650).*
+
+[Bitwarden]: https://bitwarden.com/
 
 The algorithm used for the TOTP key.
 
@@ -82,7 +84,7 @@ information.
 
 *__Important Note:__ Some TOTP applications do not support this option. It is strongly advised you find out which
 applications your users use and test them before changing this option. It is insufficient to test that the application
-can add the key, it must also authenticate with Authelia as some applications silently ignore these options. Bitwarden
+can add the key, it must also authenticate with Authelia as some applications silently ignore these options. [Bitwarden]
 is the only one that has been tested at this time. If you'd like to contribute to documenting support for this option
 please see [Issue 2650](https://github.com/authelia/authelia/issues/2650).*
 
@@ -160,7 +162,7 @@ check the clients.
 
 ## Encryption
 
-The TOTP secret is [encrypted](../storage/introduction.md#encryption_key) in the database in version 4.33.0 and above.
+The TOTP secret is [encrypted](../storage/introduction.md#encryptionkey) in the database in version 4.33.0 and above.
 This is so a user having access to only the database cannot easily compromise your two-factor authentication method.
 
 This may be inconvenient for some users who wish to export TOTP keys from Authelia to other services. As such there is
