@@ -2,7 +2,7 @@
 
 Anybody willing to contribute to the project either with code, documentation, security reviews or whatever, are very
 welcome to create or review pull requests and take part in discussions in any of our public
-[chat rooms](./README.md#contact-options).
+[chat rooms](README.md#contact-options).
 
 It's also possible to contribute financially in order to support the community.
 
@@ -42,4 +42,4 @@ Read more about this in the [GitHub docs, Re-requesting a review](https://docs.g
 Sometimes the codebase can be a challenge to navigate, especially for a first-time contributor. We don't want you
 spending an hour trying to work out something that would take us only a minute to explain.
 
-If you'd like some help getting started we have several [contact options](./README.md#contact-options) available.
+If you'd like some help getting started we have several [contact options](README.md#contact-options) available.

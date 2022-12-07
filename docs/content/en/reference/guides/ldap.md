@@ -22,7 +22,7 @@ The most insecure method is unauthenticated binds. They are generally considered
 at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
 Authelia does support unauthenticated binds but it is not by default, you must configure the
-[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permitunauthenticatedbind) configuration
 option.
 
 ### End-User Binding

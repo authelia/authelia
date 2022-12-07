@@ -68,4 +68,4 @@ Setting this to true will disable the startup check entirely.
 
 Setting this to true will allow Authelia to start and just log an error instead of exiting. The default is that if
 Authelia can contact the NTP server successfully, and the time reported by the server is greater than what is configured
-in [max_desync](#max_desync) that Authelia fails to start and logs a fatal error.
+in [max_desync](#maxdesync) that Authelia fails to start and logs a fatal error.
