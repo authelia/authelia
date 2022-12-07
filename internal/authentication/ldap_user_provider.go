@@ -32,11 +32,12 @@ type LDAPUserProvider struct {
 	features LDAPSupportedFeatures
 
 	// Dynamically generated users values.
-	usersBaseDN                           string
-	usersAttributes                       []string
-	usersFilterReplacementInput           bool
-	usersFilterReplacementTimeGeneralized bool
-	usersFilterReplacementTimeNumericDate bool
+	usersBaseDN                                        string
+	usersAttributes                                    []string
+	usersFilterReplacementInput                        bool
+	usersFilterReplacementDateTimeGeneralized          bool
+	usersFilterReplacementDateTimeUnixEpoch            bool
+	usersFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
 
 	// Dynamically generated groups values.
 	groupsBaseDN                    string
@@ -409,12 +410,16 @@ func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
 	}
 
-	if p.usersFilterReplacementTimeGeneralized {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
+	if p.usersFilterReplacementDateTimeGeneralized {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
 	}
 
-	if p.usersFilterReplacementTimeNumericDate {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderTimeNumericDate, strconv.Itoa(int(utils.UnixNanoTimeToWin32Epoch(p.clock.Now().UnixNano()))))
+	if p.usersFilterReplacementDateTimeUnixEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeUnixEpoch, strconv.Itoa(int(p.clock.Now().Unix())))
+	}
+
+	if p.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.Itoa(int(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()))))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)

@@ -127,6 +127,6 @@ func TestShouldConvertKnownUnixNanoTimeToKnownWin32Epoch(t *testing.T) {
 	exampleNanoTime := int64(1626234411 * 1000000000)
 	win32Epoch := uint64(132707080110000000)
 
-	assert.Equal(t, win32Epoch, UnixNanoTimeToWin32Epoch(exampleNanoTime))
-	assert.Equal(t, timeUnixEpochAsWin32Epoch, UnixNanoTimeToWin32Epoch(0))
+	assert.Equal(t, win32Epoch, UnixNanoTimeToMicrosoftNTEpoch(exampleNanoTime))
+	assert.Equal(t, timeUnixEpochAsMicrosoftNTEpoch, UnixNanoTimeToMicrosoftNTEpoch(0))
 }

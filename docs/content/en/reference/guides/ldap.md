@@ -60,14 +60,15 @@ search.
 
 #### Users filter replacements
 
-|       Placeholder        |  Phase  |                                                   Replacement                                                    |
-|:------------------------:|:-------:|:----------------------------------------------------------------------------------------------------------------:|
-|   {username_attribute}   | startup |                                        The configured username attribute                                         |
-|     {mail_attribute}     | startup |                                          The configured mail attribute                                           |
-| {display_name_attribute} | startup |                                      The configured display name attribute                                       |
-|         {input}          | search  |                                        The input into the username field                                         |
-|    {time:generalized}    | search  |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
-|    {time:numericdate}    | search  | The current UTC time formatted as a Microsoft Numeric Date format used by some Microsoft Active Directory fields |
+|        Placeholder        |  Phase  |                                                  Replacement                                                   |
+|:-------------------------:|:-------:|:--------------------------------------------------------------------------------------------------------------:|
+|   {username_attribute}    | startup |                                       The configured username attribute                                        |
+|     {mail_attribute}      | startup |                                         The configured mail attribute                                          |
+| {display_name_attribute}  | startup |                                     The configured display name attribute                                      |
+|          {input}          | search  |                                       The input into the username field                                        |
+|  {date-time:generalized}  | search  |         The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`         |
+|  {date-time:unix-epoch}   | search  |                                   The current time formatted as a Unix epoch                                   |
+| {date-time:msft-nt-epoch} | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft Active Directory attributes |
 
 #### Groups filter replacements
 
@@ -102,16 +103,16 @@ the following conditions:
   - The FreeIPA implementation achieves this via the `(!(nsAccountLock=TRUE))` filter.
 - Their password is expired:
   - The Active Directory implementation achieves this via the `(!(pwdLastSet=0))` filter.
-  - The FreeIPA implementation achieves this via the `(krbPasswordExpiration>={time:generalized})` filter.
+  - The FreeIPA implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
 - Their account is expired:
-  - The Active Directory implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={time:numericdate}))` filter.
-  - The FreeIPA implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration<={time:generalized}))` filter.
+  - The Active Directory implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))` filter.
+  - The FreeIPA implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
 
-| Implementation  |                                                                                                                    Users Filter                                                                                                                    |               Groups Filter                |
-|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
-|     custom      |                                                                                                                        N/A                                                                                                                         |                    N/A                     |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={time:numericdate}))) | (&(member={dn})(sAMAccountType=268435456)) |
-|     freeipa     |     (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration<={time:generalized})))     | (&(member={dn})(objectClass=groupOfNames)) |
+| Implementation  |                                                                                                                       Users Filter                                                                                                                        |               Groups Filter                |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
+|     custom      |                                                                                                                            N/A                                                                                                                            |                    N/A                     |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))) | (&(member={dn})(sAMAccountType=268435456)) |
+|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))    | (&(member={dn})(objectClass=groupOfNames)) |
 
 
 ##### Microsoft Active Directory sAMAccountType

@@ -92,9 +92,9 @@ const (
 )
 
 const (
-	// timeUnixEpochAsWin32Epoch represents the unix epoch as a win32 epoch.
-	// The win32 epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
-	timeUnixEpochAsWin32Epoch uint64 = 116444736000000000
+	// timeUnixEpochAsMicrosoftNTEpoch represents the unix epoch as a Microsoft NT Epoch.
+	// The Microsoft NT Epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
+	timeUnixEpochAsMicrosoftNTEpoch uint64 = 116444736000000000
 )
 
 const (

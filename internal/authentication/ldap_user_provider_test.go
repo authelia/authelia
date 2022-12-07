@@ -3823,7 +3823,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 			UsernameAttribute:    "uid",
 			MailAttribute:        "mail",
 			DisplayNameAttribute: "displayName",
-			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={time:numericdate})(accountExpires>={time:generalized})))",
+			UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch})(accountExpires>={date-time:generalized})))",
 			GroupsFilter:         "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))",
 			AdditionalUsersDN:    "ou=users",
 			AdditionalGroupsDN:   "ou=groups",
@@ -3845,10 +3845,10 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.True(t, provider.groupsFilterReplacementDN)
 
 	assert.True(t, provider.usersFilterReplacementInput)
-	assert.True(t, provider.usersFilterReplacementTimeGeneralized)
-	assert.True(t, provider.usersFilterReplacementTimeNumericDate)
+	assert.True(t, provider.usersFilterReplacementDateTimeGeneralized)
+	assert.True(t, provider.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch)
 
-	assert.Equal(t, "(&(|(uid={input})(mail={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={time:numericdate})(accountExpires>={time:generalized})))", provider.config.UsersFilter)
+	assert.Equal(t, "(&(|(uid={input})(mail={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch})(accountExpires>={date-time:generalized})))", provider.config.UsersFilter)
 	assert.Equal(t, "(&(|(member={dn})(member={input})(member={username}))(objectClass=group))", provider.config.GroupsFilter)
 	assert.Equal(t, "ou=users,dc=example,dc=com", provider.usersBaseDN)
 	assert.Equal(t, "ou=groups,dc=example,dc=com", provider.groupsBaseDN)
