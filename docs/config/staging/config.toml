@@ -1,1 +1,2 @@
 canonifyURLs = false
+baseurl = "https://authelia-staging.netlify.app/"

@@ -10,10 +10,10 @@
   command = "pnpm run build"
 
 [context.deploy-preview]
-  command = "pnpm run build -b $DEPLOY_URL"
+  command = "pnpm run build --baseURL $DEPLOY_URL"
 
 [context.branch-deploy]
-  command = "pnpm run build -b $DEPLOY_URL"
+  command = "pnpm run build --baseURL $DEPLOY_URL"
 
 [context.next]
   command = "pnpm run build"
