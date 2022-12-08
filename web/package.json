@@ -174,7 +174,7 @@
     "jest-environment-jsdom": "29.3.1",
     "jest-transform-stub": "2.0.0",
     "jest-watch-typeahead": "2.2.1",
-    "prettier": "2.8.0",
+    "prettier": "2.8.1",
     "react-test-renderer": "18.2.0",
     "typescript": "4.9.4",
     "vite": "3.2.5",
