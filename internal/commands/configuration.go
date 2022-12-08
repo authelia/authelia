@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -26,15 +27,24 @@ var config *schema.Configuration
 func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfiguration bool) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, _ []string) {
 		var (
-			logger  *logrus.Logger
-			configs []string
-			err     error
+			logger *logrus.Logger
+			err    error
+
+			configs, filters []string
 		)
 
 		logger = logging.Logger()
 
 		if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
 			logger.Fatalf("Error reading flags: %v", err)
+		}
+
+		if filters, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
+			logger.Fatalf("Error reading flags: %v", err)
+		}
+
+		if err = validateConfigFileFilters(filters); err != nil {
+			logger.Fatalf("Error occurred loading configuration: flag '--%s' is invalid: %v", cmdFlagNameConfigExpFilters, err)
 		}
 
 		if ensureConfigExists && len(configs) == 1 {
@@ -53,7 +63,7 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			val *schema.StructValidator
 		)
 
-		config, val, err = loadConfig(configs, validateKeys, validateConfiguration)
+		config, val, err = loadConfig(configs, validateKeys, validateConfiguration, filters...)
 		if err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
 		}
@@ -76,14 +86,40 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 	}
 }
 
-func loadConfig(configs []string, validateKeys, validateConfiguration bool) (c *schema.Configuration, val *schema.StructValidator, err error) {
+func validateConfigFileFilters(filters []string) (err error) {
+	var hasTemplate, hasExpandEnv bool
+
+	for _, filter := range filters {
+		switch filter {
+		case "template":
+			if hasTemplate {
+				return fmt.Errorf("duplicate '%s' entry", filter)
+			}
+
+			hasTemplate = true
+		case "expand-env":
+			if hasExpandEnv {
+				return fmt.Errorf("duplicate '%s' entry", filter)
+			}
+
+			hasExpandEnv = true
+		default:
+			return fmt.Errorf("invalid '%s' entry", filter)
+		}
+	}
+
+	return nil
+}
+
+func loadConfig(configs []string, validateKeys, validateConfiguration bool, filters ...string) (c *schema.Configuration, val *schema.StructValidator, err error) {
 	var keys []string
 
 	val = schema.NewStructValidator()
 
 	if keys, c, err = configuration.Load(val,
-		configuration.NewDefaultSources(
+		configuration.NewDefaultSourcesExperimental(
 			configs,
+			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter)...); err != nil {
 		return nil, nil, err
