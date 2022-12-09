@@ -15,15 +15,25 @@ toc: true
 We generally recommend using [PostgreSQL] for a database. If high availability is not a consideration we also support
 [SQLite3].
 
+It is also a general recommendation that if you're using [PostgreSQL], [MySQL], or [MariaDB]; that you do not
+automatically upgrade the major/minor version of these databases, and pin the image tag so at most the patch version
+is updated. For example for database version `x.y.z` only the `z` should change, `x` and `y` should remain the same.
+
+It is also generally recommended that you do not rely on automatic update tools to perform this action
+unless you are sure they shut down the container properly (i.e. with a graceful stop).
 
 ## PostgreSQL
 
 The only current support criteria for [PostgreSQL] at present is that the version you're using is supported by the
-[PostgreSQL] developers. See their [Versioning Policy](https://www.postgresql.org/support/versioning/) for more
-information.
+[PostgreSQL] developers. See [Vendor Supported Versions](#vendor-supported-versions) more information.
 
 We generally perform integration testing against the latest supported version of [PostgreSQL] and that is generally the
 recommended version for new installations.
+
+### Vendor Supported Versions
+
+See the [PostgreSQL Versioning Policy](https://www.postgresql.org/support/versioning/) for information on the versions
+and platforms that are currently supported by this vendor.
 
 ## MySQL
 
@@ -76,16 +86,27 @@ This is however not the default behaviour in
 explicit_defaults_for_timestamp = ON
 ```
 
+#### Upgrades
+
+[MySQL] and [MariaDB] have several standard databases named `mysql`, `sys`, and `performance_schema`. These databases
+are outside the scope for an application to manage. These engines may not prevent you using a version of [MySQL] or
+[MariaDB] with these databases which is incompatible.
+
+It is your responsibility to ensure these tables are upgraded as per the
+[mysql_upgrade documentation](https://dev.mysql.com/doc/refman/8.0/en/mysql-upgrade.html). Some containers or some
+versions of [MySQL] and [MariaDB] may do this for you, but this is out of scope for us to support.
+
 ### Vendor Supported Versions
 
 #### MariaDB Vendor Supported Versions
 
-See the [MariaDB Server Releases](https://mariadb.com/kb/en/mariadb-server-release-dates/) for more information.
+See the [MariaDB Server Releases](https://mariadb.com/kb/en/mariadb-server-release-dates/) for information on the
+versions and platforms that are currently supported by this vendor.
 
 #### MySQL Vendor Supported Versions
 
 See the [MySQL Supported Platforms](https://www.mysql.com/support/supportedplatforms/database.html) for information on
-which versions and platforms they support.
+the versions and platforms that are currently supported by this vendor.
 
 [PostgreSQL]: https://www.postgresql.org/
 [MySQL]: https://www.mysql.com/
