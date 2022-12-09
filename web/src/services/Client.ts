@@ -19,16 +19,19 @@ export async function Post<T>(path: string, body?: any) {
     return res;
 }
 
-export async function Get<T = undefined>(path: string): Promise<T> {
+export async function GetWithOptionalResponse<T = undefined>(path: string): Promise<T | undefined> {
     const res = await axios.get<ServiceResponse<T>>(path);
 
     if (res.status !== 200 || hasServiceError(res).errored) {
         throw new Error(`Failed GET from ${path}. Code: ${res.status}.`);
     }
+    return toData<T>(res);
+}
 
-    const d = toData<T>(res);
-    if (!d) {
+export async function Get<T = undefined>(path: string): Promise<T> {
+    const res = await GetWithOptionalResponse<T>(path);
+    if (!res) {
         throw new Error("unexpected type of response");
     }
-    return d;
+    return res;
 }
