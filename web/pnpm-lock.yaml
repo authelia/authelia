@@ -63,7 +63,7 @@ specifiers:
   vite-plugin-eslint: 1.8.1
   vite-plugin-istanbul: 3.0.4
   vite-plugin-svgr: 2.2.2
-  vite-tsconfig-paths: 4.0.1
+  vite-tsconfig-paths: 4.0.2
   zxcvbn: 4.4.2
 
 dependencies:
@@ -132,7 +132,7 @@ devDependencies:
   vite-plugin-eslint: 1.8.1_eslint@8.29.0+vite@3.2.5
   vite-plugin-istanbul: 3.0.4
   vite-plugin-svgr: 2.2.2_vite@3.2.5
-  vite-tsconfig-paths: 4.0.1_7g3uriyb4kqeq2yf2bucr7z2ea
+  vite-tsconfig-paths: 4.0.2_7g3uriyb4kqeq2yf2bucr7z2ea
 
 packages:
 
@@ -9682,8 +9682,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-tsconfig-paths/4.0.1_7g3uriyb4kqeq2yf2bucr7z2ea:
-    resolution: {integrity: sha512-CQpI+zxo8/CnqsAaM2+Kpsgaj7UEKlM1fMMcm7RZQlcxRd7JwGpsYhrHJo/dIA3lsd7HI4JtSflH4+Ip+Dymkw==}
+  /vite-tsconfig-paths/4.0.2_7g3uriyb4kqeq2yf2bucr7z2ea:
+    resolution: {integrity: sha512-UzU8zwbCQrdUkj/Z0tnh293n4ScRcjJLoS8nPme2iB2FHoU5q8rhilb7AbhLlUC1uv4t6jSzVWnENjPnyGseeQ==}
     peerDependencies:
       vite: '>2.0.0-0'
     dependencies:
