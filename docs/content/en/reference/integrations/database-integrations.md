@@ -50,8 +50,8 @@ party.
 4. Must support maximum index size of no less than 2048 bytes. The default maximum index size for the InnoDB engine is
    3072 bytes on:
     1. [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or later.
-    2. [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) provided
-         [innodb_large_prefix](#innodb-large-prefixes) or later.
+    2. [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) or later provided:
+       1. The [innodb_large_prefix](#innodb-large-prefixes) option is **_ON_**.
     3. [MariaDB] [10.3](https://mariadb.com/kb/en/innodb-system-variables/#innodb_large_prefix) or later.
 5. Must support ANSI standard time behaviours. See [ANSI standard time behaviours](#ansi-standard-time-behaviours).
 
@@ -62,8 +62,8 @@ supported version of [MariaDB] is generally the recommended version for new inst
 
 #### InnoDB Large Prefixes
 
-This can be configured in the [MySQL] configuration file by setting the `innodb_large_prefix` value to on.
-According to the Oracle documentation this is the default behaviour in
+This can be configured in the [MySQL] configuration file by setting the `innodb_large_prefix` option to on.
+According to the [Oracle] documentation this is the default behaviour in
 [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_large_prefix) and it can't be
 turned off in [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or in [MariaDB] 10.3 and later.
 
@@ -75,7 +75,7 @@ innodb_large_prefix = ON
 #### ANSI standard time behaviours
 
 This can be configured in the [MySQL] configuration file by setting the `explicit_defaults_for_timestamp` value to on.
-According to the Oracle documentation this is the default behaviour in
+According to the [Oracle] documentation this is the default behaviour in
 [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp)
 and [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp).
 This is however not the default behaviour in
@@ -88,14 +88,24 @@ explicit_defaults_for_timestamp = ON
 
 #### Upgrades
 
-[MySQL] and [MariaDB] have several standard databases named `mysql`, `sys`, and `performance_schema`. These databases
-are outside the scope for an application to manage. These engines may not prevent you using a version of [MySQL] or
-[MariaDB] with these databases which is incompatible.
+[MySQL] and [MariaDB] have several standard but important system databases named `mysql`, `sys`, and
+`performance_schema`. These databases are outside the scope and not intended for individual applications to manage as
+they are system databases used by [MySQL] and [MariaDB] internally.
 
-It is your responsibility to ensure these tables are upgraded as per the `mysql_upgrade`
-[documentation for MySQL](https://dev.mysql.com/doc/refman/8.0/en/mysql-upgrade.html) and
-[documentation for MariaDB](https://mariadb.com/kb/en/mysql_upgrade/). Some containers or some versions of [MySQL] and
-[MariaDB] may do this for you, but this is out of scope for us to support.
+These servers/engines may successfully start when these databases are incompatible with your particular [MySQL] or
+[MariaDB] version, but may raise errors when you attempt to use particular features of the database. This may lead a
+user to believe the server/engine is functioning correctly when it is in fact running with a potentially badly corrupted
+schema.
+
+The risk here is that the database may run for an extended period of time unnoticed and may be getting more and more
+corrupt with no visible signs until it's no longer recoverable. This makes it critically important users do not neglect
+this operation or ensure it's happening. While a good [MySQL] or [MariaDB] container will ensure this occurs, it is up
+to the individual to confirm these upgrades are occurring.
+
+It is your responsibility to ensure these tables are upgraded as per the
+[mysql_upgrade](https://dev.mysql.com/doc/refman/8.0/en/mysql-upgrade.html) and
+[mariadb_upgrade](https://mariadb.com/kb/en/mysql_upgrade/) documentation. Some containers or some versions of [MySQL]
+and [MariaDB] may do this for you, but this is out of scope for us to support.
 
 ### Vendor Supported Versions
 
@@ -113,4 +123,4 @@ the versions and platforms that are currently supported by this vendor.
 [MySQL]: https://www.mysql.com/
 [MariaDB]: https://mariadb.org/
 [SQLite3]: https://www.sqlite.org/index.html
-
+[Oracle]: https://www.oracle.com/
