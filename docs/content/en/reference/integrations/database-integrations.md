@@ -92,9 +92,10 @@ explicit_defaults_for_timestamp = ON
 are outside the scope for an application to manage. These engines may not prevent you using a version of [MySQL] or
 [MariaDB] with these databases which is incompatible.
 
-It is your responsibility to ensure these tables are upgraded as per the
-[mysql_upgrade documentation](https://dev.mysql.com/doc/refman/8.0/en/mysql-upgrade.html). Some containers or some
-versions of [MySQL] and [MariaDB] may do this for you, but this is out of scope for us to support.
+It is your responsibility to ensure these tables are upgraded as per the `mysql_upgrade`
+[documentation for MySQL](https://dev.mysql.com/doc/refman/8.0/en/mysql-upgrade.html) and
+[documentation for MariaDB](https://mariadb.com/kb/en/mysql_upgrade/). Some containers or some versions of [MySQL] and
+[MariaDB] may do this for you, but this is out of scope for us to support.
 
 ### Vendor Supported Versions
 
