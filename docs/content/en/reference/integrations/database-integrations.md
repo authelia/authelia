@@ -22,6 +22,9 @@ is updated. For example for database version `x.y.z` only the `z` should change,
 It is also generally recommended that you do not rely on automatic update tools to perform this action
 unless you are sure they shut down the container properly (i.e. with a graceful stop).
 
+While this guide exists and it contains some guidance on managing the database being used, it is by no means exhaustive
+or intended as such and users should refer to the database vendors documentation.
+
 ## PostgreSQL
 
 The only current support criteria for [PostgreSQL] at present is that the version you're using is supported by the
@@ -99,13 +102,15 @@ schema.
 
 The risk here is that the database may run for an extended period of time unnoticed and may be getting more and more
 corrupt with no visible signs until it's no longer recoverable. This makes it critically important users do not neglect
-this operation or ensure it's happening. While a good [MySQL] or [MariaDB] container will ensure this occurs, it is up
-to the individual to confirm these upgrades are occurring.
+this operation or ensure it's happening.
+
+While some [MySQL] or [MariaDB] containers will do this automatically  or give users an option to perform this
+automatically, it is strongly recommended that this process is manually done and only done **_after_** doing a backup of
+all databases on the server as is the recommendation from both [MySQL] and [MariaDB].
 
 It is your responsibility to ensure these tables are upgraded as per the
 [mysql_upgrade](https://dev.mysql.com/doc/refman/8.0/en/mysql-upgrade.html) and
-[mariadb_upgrade](https://mariadb.com/kb/en/mysql_upgrade/) documentation. Some containers or some versions of [MySQL]
-and [MariaDB] may do this for you, but this is out of scope for us to support.
+[mariadb_upgrade](https://mariadb.com/kb/en/mysql_upgrade/) documentation.
 
 ### Vendor Supported Versions
 
