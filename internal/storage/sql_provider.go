@@ -941,7 +941,7 @@ func (p *SQLProvider) LoadWebauthnDevices(ctx context.Context, limit, page int) 
 func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, username string) (devices []model.WebauthnDevice, err error) {
 	if err = p.db.SelectContext(ctx, &devices, p.sqlSelectWebauthnDevicesByUsername, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []model.WebauthnDevice{}, ErrNoWebauthnDevice
+			return devices, ErrNoWebauthnDevice
 		}
 
 		return nil, fmt.Errorf("error selecting Webauthn devices for user '%s': %w", username, err)
