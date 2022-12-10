@@ -105,6 +105,29 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 }
 
+func TestShouldValidateConfigurationWithFilters(t *testing.T) {
+	testReset()
+
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	_ = os.Setenv("SERVICES_SERVER", "10.10.10.10")
+	_ = os.Setenv("ROOT_DOMAIN", "example.org")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, "", NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	require.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
+	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
+	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+}
+
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testReset()
 
@@ -168,7 +191,7 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 	cfg := filepath.Join(dir, "myconf.yml")
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
@@ -394,7 +417,7 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	assert.NoError(t, testCreateFile(filepath.Join(dir, "config.yml"), "port: 9091\n", 0000))
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
@@ -408,7 +431,7 @@ func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	dir := t.TempDir()
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(dir))
+	_, _, err := Load(val, NewFileSource(dir))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)

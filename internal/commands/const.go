@@ -534,6 +534,7 @@ const (
 	cmdFlagNameProfile          = "profile"
 	cmdFlagNameConfig           = "config"
 	cmdFlagNameConfigDirectory  = "config.directory"
+	cmdFlagNameConfigExpFilters = "config.experimental.filters"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"

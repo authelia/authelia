@@ -50,6 +50,7 @@ authelia storage user identifiers generate --users john,mary --services openid -
 ```
   -c, --config strings                         configuration files to load (default [configuration.yml])
       --config.directory string                path to a directory with yml/yaml files to load as part of the configuration
+      --config.experimental.filters strings    Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

@@ -287,7 +287,10 @@ func (ctx *CmdCtx) ConfigEnsureExistsPreRunE(cmd *cobra.Command, _ []string) (er
 
 func (ctx *CmdCtx) ConfigLoadPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs  []string
+		configs, filterNames []string
+
+		filters []configuration.FileFilter
+
 		explicit bool
 
 		directory   string
@@ -300,6 +303,14 @@ func (ctx *CmdCtx) ConfigLoadPreRunE(cmd *cobra.Command, _ []string) (err error)
 
 	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, "X_AUTHELIA_CONFIG_DIRECTORY", cmdFlagNameConfigDirectory); err != nil {
 		return err
+	}
+
+	if filterNames, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
+		ctx.log.Fatalf("Error reading flags: %v", err)
+	}
+
+	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+		ctx.log.Fatalf("Error occurred loading configuration: flag '--%s' is invalid: %v", cmdFlagNameConfigExpFilters, err)
 	}
 
 	if !explicit {
@@ -340,6 +351,7 @@ func (ctx *CmdCtx) ConfigLoadPreRunE(cmd *cobra.Command, _ []string) (err error)
 		configuration.NewDefaultSourcesWithDefaults(
 			configs,
 			directory,
+			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,
 			ctx.cconfig.defaults,

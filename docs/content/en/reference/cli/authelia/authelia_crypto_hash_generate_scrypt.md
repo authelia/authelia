@@ -46,14 +46,15 @@ authelia crypto hash generate scrypt --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings             configuration files to load (default [configuration.yml])
-      --config.directory string    path to a directory with yml/yaml files to load as part of the configuration
-      --no-confirm                 skip the password confirmation prompt
-      --password string            manually supply the password rather than using the terminal prompt
-      --random                     uses a randomly generated password
-      --random.characters string   sets the explicit characters for the random string
-      --random.charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
-      --random.length int          sets the character length for the random string (default 72)
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.directory string               path to a directory with yml/yaml files to load as part of the configuration
+      --config.experimental.filters strings   Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'
+      --no-confirm                            skip the password confirmation prompt
+      --password string                       manually supply the password rather than using the terminal prompt
+      --random                                uses a randomly generated password
+      --random.characters string              sets the explicit characters for the random string
+      --random.charset string                 sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
+      --random.length int                     sets the character length for the random string (default 72)
 ```
 
 ### SEE ALSO
