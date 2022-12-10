@@ -136,6 +136,22 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 	return device
 }
 
+// WebauthnDeviceJSON represents a Webauthn Device in the JSON format.
+type WebauthnDeviceJSON struct {
+	ID              int        `json:"id"`
+	CreatedAt       time.Time  `json:"created_at"`
+	LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
+	RPID            string     `json:"rpid"`
+	Description     string     `json:"description"`
+	KID             []byte     `json:"kid"`
+	PublicKey       []byte     `json:"public_key"`
+	AttestationType string     `json:"attestation_type"`
+	Transports      []string   `json:"transports"`
+	AAGUID          string     `json:"aaguid,omitempty"`
+	SignCount       uint32     `json:"sign_count"`
+	CloneWarning    bool       `json:"clone_warning"`
+}
+
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
 	ID              int           `db:"id"`
@@ -155,20 +171,7 @@ type WebauthnDevice struct {
 
 // MarshalJSON returns the WebauthnDevice in a JSON friendly manner.
 func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
-	o := struct {
-		ID              int        `json:"id"`
-		CreatedAt       time.Time  `json:"created_at"`
-		LastUsedAt      *time.Time `json:"last_used_at,omitempty"`
-		RPID            string     `json:"rpid"`
-		Description     string     `json:"description"`
-		KID             []byte     `json:"kid"`
-		PublicKey       []byte     `json:"public_key"`
-		AttestationType string     `json:"attestation_type"`
-		Transports      []string   `json:"transports"`
-		AAGUID          string     `json:"aaguid,omitempty"`
-		SignCount       uint32     `json:"sign_count"`
-		CloneWarning    bool       `json:"clone_warning"`
-	}{
+	o := WebauthnDeviceJSON{
 		ID:              w.ID,
 		CreatedAt:       w.CreatedAt,
 		RPID:            w.RPID,

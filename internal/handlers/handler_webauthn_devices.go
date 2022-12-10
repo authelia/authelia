@@ -9,6 +9,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func getWebauthnDeviceIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
@@ -35,7 +36,7 @@ func WebauthnDevicesGet(ctx *middlewares.AutheliaCtx) {
 
 	devices, err := ctx.Providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, userSession.Username)
 
-	if err != nil {
+	if err != nil && err != storage.ErrNoWebauthnDevice {
 		ctx.Error(err, messageOperationFailed)
 		return
 	}
