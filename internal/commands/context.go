@@ -68,8 +68,7 @@ func NewCommandContextConfig() *CommandContextConfig {
 }
 
 type CommandContextConfig struct {
-	defaults  configuration.Source
-	sources   []configuration.Source
+	sources   configuration.Sources
 	keys      []string
 	validator *schema.StructValidator
 }
@@ -201,7 +200,7 @@ func (ctx *CmdCtx) ConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[stri
 		ctx.cconfig = NewCommandContextConfig()
 	}
 
-	ctx.cconfig.sources = append(ctx.cconfig.sources, configuration.NewCommandLineSourceWithMapping(flags, flagsMap, includeInvalidKeys, includeUnchangedKeys))
+	ctx.cconfig.sources.Post = append(ctx.cconfig.sources.Post, configuration.NewCommandLineSourceWithMapping(flags, flagsMap, includeInvalidKeys, includeUnchangedKeys))
 
 	return nil
 }
@@ -212,7 +211,7 @@ func (ctx *CmdCtx) ConfigSetMapDefaultsRunE(defaults map[string]any) CobraRunECm
 			ctx.cconfig = NewCommandContextConfig()
 		}
 
-		ctx.cconfig.defaults = configuration.NewMapSource(defaults)
+		ctx.cconfig.sources.Pre = append(ctx.cconfig.sources.Pre, configuration.NewMapSource(defaults))
 
 		return nil
 	}
@@ -348,14 +347,13 @@ func (ctx *CmdCtx) ConfigLoadPreRunE(cmd *cobra.Command, _ []string) (err error)
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
-		configuration.NewDefaultSourcesWithDefaults(
+		configuration.NewDefaultSourcesFiltered(
 			configs,
 			directory,
 			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,
-			ctx.cconfig.defaults,
-			ctx.cconfig.sources...)...); err != nil {
+			ctx.cconfig.sources)...); err != nil {
 		return err
 	}
 

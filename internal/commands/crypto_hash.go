@@ -246,7 +246,7 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []
 	}
 
 	if flagsMap != nil {
-		ctx.cconfig.sources = append(ctx.cconfig.sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), flagsMap, false, false))
+		ctx.cconfig.sources.Post = append(ctx.cconfig.sources.Post, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), flagsMap, false, false))
 	}
 
 	return nil

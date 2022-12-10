@@ -7,6 +7,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+type Sources struct {
+	Pre  []Source
+	Post []Source
+}
+
 // Source is an abstract representation of a configuration.Source implementation.
 type Source interface {
 	Name() (name string)

@@ -245,7 +245,11 @@ func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSources(filePaths []string, directory string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+func NewDefaultSources(filePaths []string, directory string, prefix, delimiter string, additional Sources) (sources []Source) {
+	if len(additional.Pre) != 0 {
+		copy(sources, additional.Pre)
+	}
+
 	fileSources := NewFileSources(filePaths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -258,15 +262,19 @@ func NewDefaultSources(filePaths []string, directory string, prefix, delimiter s
 	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
 	sources = append(sources, NewSecretsSource(prefix, delimiter))
 
-	if len(additionalSources) != 0 {
-		sources = append(sources, additionalSources...)
+	if len(additional.Post) != 0 {
+		sources = append(sources, additional.Post...)
 	}
 
 	return sources
 }
 
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSourcesFiltered(files []string, directory string, filters []FileFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+func NewDefaultSourcesFiltered(files []string, directory string, filters []FileFilter, prefix, delimiter string, additional Sources) (sources []Source) {
+	if len(additional.Pre) != 0 {
+		copy(sources, additional.Pre)
+	}
+
 	fileSources := NewFilteredFileSources(files, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -279,21 +287,8 @@ func NewDefaultSourcesFiltered(files []string, directory string, filters []FileF
 	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
 	sources = append(sources, NewSecretsSource(prefix, delimiter))
 
-	if len(additionalSources) != 0 {
-		sources = append(sources, additionalSources...)
-	}
-
-	return sources
-}
-
-// NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(files []string, directory string, filters []FileFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
-	sources = []Source{defaults}
-
-	if len(filters) == 0 {
-		sources = append(sources, NewDefaultSources(files, directory, prefix, delimiter, additionalSources...)...)
-	} else {
-		sources = append(sources, NewDefaultSourcesFiltered(files, directory, filters, prefix, delimiter, additionalSources...)...)
+	if len(additional.Post) != 0 {
+		sources = append(sources, additional.Post...)
 	}
 
 	return sources
