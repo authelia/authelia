@@ -150,9 +150,9 @@ The YAML file can either be automatically generated using the authelia storage u
 manually provided the file is in the same format.`
 
 	cmdAutheliaStorageUserIdentifiersImportExample = `authelia storage user identifiers import
-authelia storage user identifiers import --file export.yaml
-authelia storage user identifiers import --file export.yaml --config config.yml
-authelia storage user identifiers import --file export.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user identifiers import authelia.export.opaque-identifiers.yaml
+authelia storage user identifiers import --config config.yml export.yaml
+authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yaml`
 
 	cmdAutheliaStorageUserIdentifiersGenerateShort = "Generate opaque identifiers in bulk"
 
@@ -176,34 +176,56 @@ This subcommand allows manually adding an opaque identifier for a user to the da
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --config config.yml
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebAuthnShort = "Manage Webauthn devices"
+	cmdAutheliaStorageUserWebauthnShort = "Manage Webauthn devices"
 
-	cmdAutheliaStorageUserWebAuthnLong = `Manage Webauthn devices.
+	cmdAutheliaStorageUserWebauthnLong = `Manage Webauthn devices.
 
 This subcommand allows interacting with Webauthn devices.`
 
-	cmdAutheliaStorageUserWebAuthnExample = `authelia storage user webauthn --help`
+	cmdAutheliaStorageUserWebauthnExample = `authelia storage user webauthn --help`
 
-	cmdAutheliaStorageUserWebAuthnListShort = "List WebAuthn devices"
+	cmdAutheliaStorageUserWebauthnImportShort = "Perform imports of the Webauthn devices"
 
-	cmdAutheliaStorageUserWebAuthnListLong = `List WebAuthn devices.
+	cmdAutheliaStorageUserWebauthnImportLong = `Perform imports of the Webauthn devices.
+
+This subcommand allows importing Webauthn devices from various formats.`
+
+	cmdAutheliaStorageUserWebauthnImportExample = `authelia storage user webauthn export
+authelia storage user webauthn import --file authelia.export.webauthn.yaml
+authelia storage user webauthn import --file authelia.export.webauthn.yaml --config config.yml
+authelia storage user webauthn import --file authelia.export.webauthn.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserWebauthnExportShort = "Perform exports of the Webauthn devices"
+
+	cmdAutheliaStorageUserWebauthnExportLong = `Perform exports of the Webauthn devices.
+
+This subcommand allows exporting Webauthn devices to various formats.`
+
+	cmdAutheliaStorageUserWebauthnExportExample = `authelia storage user webauthn export
+authelia storage user webauthn export --file authelia.export.webauthn.yaml
+authelia storage user webauthn export --config config.yml
+authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserWebauthnListShort = "List WebAuthn devices"
+
+	cmdAutheliaStorageUserWebauthnListLong = `List WebAuthn devices.
 
 This subcommand allows listing WebAuthn devices.`
 
-	cmdAutheliaStorageUserWebAuthnListExample = `authelia storage user webauthn list
+	cmdAutheliaStorageUserWebauthnListExample = `authelia storage user webauthn list
 authelia storage user webauthn list john
 authelia storage user webauthn list --config config.yml
 authelia storage user webauthn list john --config config.yml
 authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebAuthnDeleteShort = "Delete a WebAuthn device"
+	cmdAutheliaStorageUserWebauthnDeleteShort = "Delete a WebAuthn device"
 
-	cmdAutheliaStorageUserWebAuthnDeleteLong = `Delete a WebAuthn device.
+	cmdAutheliaStorageUserWebauthnDeleteLong = `Delete a WebAuthn device.
 
 This subcommand allows deleting a WebAuthn device directly from the database.`
 
-	cmdAutheliaStorageUserWebAuthnDeleteExample = `authelia storage user webauthn delete john --all
+	cmdAutheliaStorageUserWebauthnDeleteExample = `authelia storage user webauthn delete john --all
 authelia storage user webauthn delete john --all --config config.yml
 authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn delete john --description Primary
@@ -245,16 +267,56 @@ This subcommand allows deleting a TOTP configuration directly from the database 
 authelia storage user totp delete john --config config.yml
 authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
+	cmdAutheliaStorageUserTOTPImportShort = "Perform imports of the TOTP configurations"
+
+	cmdAutheliaStorageUserTOTPImportLong = `Perform imports of the TOTP configurations.
+
+This subcommand allows importing TOTP configurations from various formats.`
+
+	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yaml
+authelia storage user totp import --config config.yml authelia.export.totp.yaml
+authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw authelia.export.totp.yaml`
+
 	cmdAutheliaStorageUserTOTPExportShort = "Perform exports of the TOTP configurations"
 
 	cmdAutheliaStorageUserTOTPExportLong = `Perform exports of the TOTP configurations.
 
-This subcommand allows exporting TOTP configurations to various formats.`
+This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.`
 
-	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --format csv
-authelia storage user totp export --format png --dir ./totp-qr
-authelia storage user totp export --format png --dir ./totp-qr --config config.yml
-authelia storage user totp export --format png --dir ./totp-qr --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --file example.yaml
+authelia storage user totp export --config config.yml
+authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserTOTPExportCSVShort = "Perform exports of the TOTP configurations to a CSV"
+
+	cmdAutheliaStorageUserTOTPExportCSVLong = `Perform exports of the TOTP configurations to a CSV.
+
+This subcommand allows exporting TOTP configurations to a CSV.`
+
+	cmdAutheliaStorageUserTOTPExportCSVExample = `authelia storage user totp export csv --file users.csv
+authelia storage user totp export csv --config config.yml
+authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserTOTPExportURIShort = "Perform exports of the TOTP configurations to URIs"
+
+	cmdAutheliaStorageUserTOTPExportURILong = `Perform exports of the TOTP configurations to URIs.
+
+This subcommand allows exporting TOTP configurations to TOTP URIs.`
+
+	cmdAutheliaStorageUserTOTPExportURIExample = `authelia storage user totp export uri
+authelia storage user totp export uri --config config.yml
+authelia storage user totp export uri --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserTOTPExportPNGShort = "Perform exports of the TOTP configurations to QR code PNG images"
+
+	cmdAutheliaStorageUserTOTPExportPNGLong = `Perform exports of the TOTP configurations to QR code PNG images.
+
+This subcommand allows exporting TOTP configurations to PNG images with QR codes which represent the appropriate URI so they can be scanned.`
+
+	cmdAutheliaStorageUserTOTPExportPNGExample = `authelia storage user totp export png
+authelia storage user totp export png --directory example/dir
+authelia storage user totp export png --config config.yml
+authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
 	cmdAutheliaStorageSchemaInfoShort = "Show the storage information"
 
@@ -468,16 +530,6 @@ This subcommand allows generating an %s key pair.`
 const (
 	storageMigrateDirectionUp   = "up"
 	storageMigrateDirectionDown = "down"
-)
-
-const (
-	storageTOTPExportFormatCSV = "csv"
-	storageTOTPExportFormatURI = "uri"
-	storageTOTPExportFormatPNG = "png"
-)
-
-var (
-	validStorageTOTPExportFormats = []string{storageTOTPExportFormatCSV, storageTOTPExportFormatURI, storageTOTPExportFormatPNG}
 )
 
 const (

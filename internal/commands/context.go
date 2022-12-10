@@ -25,6 +25,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -121,6 +122,16 @@ func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	case version < latest:
 		return fmt.Errorf("%w: version %d is outdated please migrate to version %d in order to use this command or use an older binary", errStorageSchemaOutdated, version, latest)
 	default:
+		var result storage.EncryptionValidationResult
+
+		if result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, false); !result.Checked() || !result.Success() {
+			if err != nil {
+				return fmt.Errorf("failed to check the schema encryption key: %w", err)
+			}
+
+			return fmt.Errorf("failed to check the schema encryption key: the key is not valid for the schema")
+		}
+
 		return nil
 	}
 }

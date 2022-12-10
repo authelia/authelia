@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"syscall"
 
 	"github.com/spf13/pflag"
@@ -22,18 +21,6 @@ func recoverErr(i any) error {
 	default:
 		return fmt.Errorf("recovered panic with unknown type: %v", v)
 	}
-}
-
-func configFilterExisting(configs []string) (finalConfigs []string) {
-	var err error
-
-	for _, c := range configs {
-		if _, err = os.Stat(c); err == nil || !os.IsNotExist(err) {
-			finalConfigs = append(finalConfigs, c)
-		}
-	}
-
-	return finalConfigs
 }
 
 //nolint:gocyclo
