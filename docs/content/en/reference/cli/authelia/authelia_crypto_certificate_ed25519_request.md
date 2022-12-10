@@ -35,7 +35,7 @@ authelia crypto certificate ed25519 request --help
 ### Options
 
 ```
-  -c, --common-name string            certificate common name
+  -n, --common-name string            certificate common name
       --country strings               certificate country
   -d, --directory string              directory where the generated keys, certificates, etc will be stored
       --duration duration             duration of time the certificate is valid for (default 8760h0m0s)
@@ -51,6 +51,13 @@ authelia crypto certificate ed25519 request --help
       --sans strings                  subject alternative names
       --signature string              signature algorithm for the certificate (default "SHA256")
   -s, --street-address strings        certificate street address
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings            configuration files to load (default [configuration.yml])
+      --config.directory string   path to a directory with yml/yaml files to load as part of the configuration
 ```
 
 ### SEE ALSO

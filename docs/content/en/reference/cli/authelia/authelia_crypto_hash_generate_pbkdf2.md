@@ -45,6 +45,7 @@ authelia crypto hash generate pbkdf2 --help
 
 ```
   -c, --config strings             configuration files to load (default [configuration.yml])
+      --config.directory string    path to a directory with yml/yaml files to load as part of the configuration
       --no-confirm                 skip the password confirmation prompt
       --password string            manually supply the password rather than using the terminal prompt
       --random                     uses a randomly generated password

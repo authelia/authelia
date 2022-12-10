@@ -58,7 +58,8 @@ EXPOSE 9091
 
 VOLUME /config
 
-ENV PATH="/app:${PATH}"
+ENV PATH="/app:${PATH}" \
+    X_AUTHELIA_CONFIG=/config/configuration.yml
 
-CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE", "--config", "/config/configuration.yml"]
+CMD ["authelia", "-test.coverprofile=/authelia/coverage.txt", "COVERAGE"]
 HEALTHCHECK --interval=30s --timeout=3s CMD /app/healthcheck.sh

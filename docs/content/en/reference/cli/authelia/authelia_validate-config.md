@@ -37,8 +37,14 @@ authelia validate-config --config config.yml
 ### Options
 
 ```
-  -c, --config strings   configuration files to load (default [configuration.yml])
-  -h, --help             help for validate-config
+  -h, --help   help for validate-config
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings            configuration files to load (default [configuration.yml])
+      --config.directory string   path to a directory with yml/yaml files to load as part of the configuration
 ```
 
 ### SEE ALSO

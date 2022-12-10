@@ -43,6 +43,13 @@ authelia crypto pair rsa generate --help
       --pkcs8                     force PKCS #8 ASN.1 format
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings            configuration files to load (default [configuration.yml])
+      --config.directory string   path to a directory with yml/yaml files to load as part of the configuration
+```
+
 ### SEE ALSO
 
 * [authelia crypto pair rsa](authelia_crypto_pair_rsa.md)	 - Perform RSA key pair cryptographic operations

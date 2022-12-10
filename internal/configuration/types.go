@@ -14,34 +14,40 @@ type Source interface {
 	Load(val *schema.StructValidator) (err error)
 }
 
-// YAMLFileSource is a configuration Source with a YAML File.
+// YAMLFileSource is a configuration configuration.Source with a YAML File.
 type YAMLFileSource struct {
 	koanf *koanf.Koanf
 	path  string
 }
 
-// EnvironmentSource is a configuration Source which loads values from the environment.
+// DirectorySource is a configuration configuration.Source which loads files from a directory.
+type DirectorySource struct {
+	koanf *koanf.Koanf
+	path  string
+}
+
+// EnvironmentSource is a configuration configuration.Source which loads values from the environment.
 type EnvironmentSource struct {
 	koanf     *koanf.Koanf
 	prefix    string
 	delimiter string
 }
 
-// SecretsSource loads environment variables that have a value pointing to a file.
+// SecretsSource is a configuration.Source which loads environment variables that have a value pointing to a file.
 type SecretsSource struct {
 	koanf     *koanf.Koanf
 	prefix    string
 	delimiter string
 }
 
-// CommandLineSource loads configuration from the command line flags.
+// CommandLineSource is a configuration.Source which loads configuration from the command line flags.
 type CommandLineSource struct {
 	koanf    *koanf.Koanf
 	flags    *pflag.FlagSet
 	callback func(flag *pflag.Flag) (string, any)
 }
 
-// MapSource loads configuration from the command line flags.
+// MapSource is a configuration.Source which loads configuration from the command line flags.
 type MapSource struct {
 	m     map[string]any
 	koanf *koanf.Koanf

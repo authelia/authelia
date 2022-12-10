@@ -38,6 +38,13 @@ authelia crypto pair ecdsa --help
   -h, --help   help for ecdsa
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings            configuration files to load (default [configuration.yml])
+      --config.directory string   path to a directory with yml/yaml files to load as part of the configuration
+```
+
 ### SEE ALSO
 
 * [authelia crypto pair](authelia_crypto_pair.md)	 - Perform key pair cryptographic operations

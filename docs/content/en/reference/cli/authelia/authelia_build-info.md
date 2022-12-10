@@ -45,6 +45,13 @@ authelia build-info
   -h, --help   help for build-info
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings            configuration files to load (default [configuration.yml])
+      --config.directory string   path to a directory with yml/yaml files to load as part of the configuration
+```
+
 ### SEE ALSO
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)

@@ -45,6 +45,7 @@ authelia storage migrate list-down --encryption-key b3453fde-ecc2-4a1f-9422-2707
 
 ```
   -c, --config strings                         configuration files to load (default [configuration.yml])
+      --config.directory string                path to a directory with yml/yaml files to load as part of the configuration
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

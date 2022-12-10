@@ -81,7 +81,7 @@ func TestShouldHaveNotifier(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
@@ -98,7 +98,7 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	_, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
@@ -116,7 +116,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password")
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -139,7 +139,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	testSetEnv(t, "STORAGE_ENCRYPTION_KEY", "a_very_bad_encryption_key")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
@@ -186,7 +186,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	testSetEnv(t, "STORAGE_ENCRYPTION_KEY_FILE", "./test_resources/example_secret")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
@@ -203,7 +203,7 @@ func TestShouldLoadURLList(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -221,7 +221,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -243,7 +243,7 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -262,7 +262,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -278,7 +278,7 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -302,7 +302,7 @@ func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -319,7 +319,7 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -337,7 +337,7 @@ func TestShouldParseRegex(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_regex.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_regex.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -369,7 +369,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_bad_regex.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_bad_regex.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 

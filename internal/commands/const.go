@@ -463,18 +463,6 @@ This subcommand allows generating an %s key pair.`
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
 
 	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
-
-	cmdAutheliaHashPasswordShort = "Hash a password to be used in file-based users database"
-
-	cmdAutheliaHashPasswordLong = `Hash a password to be used in file-based users database.`
-
-	//nolint:gosec // This is an example.
-	cmdAutheliaHashPasswordExample = `authelia hash-password -- 'mypass'
-authelia hash-password --sha512 -- 'mypass'
-authelia hash-password --iterations=4 -- 'mypass'
-authelia hash-password --memory=128 -- 'mypass'
-authelia hash-password --parallelism=1 -- 'mypass'
-authelia hash-password --key-length=64 -- 'mypass'`
 )
 
 const (
@@ -544,8 +532,8 @@ const (
 	cmdFlagNameKeySize          = "key-size"
 	cmdFlagNameSaltSize         = "salt-size"
 	cmdFlagNameProfile          = "profile"
-	cmdFlagNameSHA512           = "sha512"
 	cmdFlagNameConfig           = "config"
+	cmdFlagNameConfigDirectory  = "config.directory"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -596,7 +584,6 @@ const (
 )
 
 const (
-	cmdUseHashPassword  = "hash-password [flags] -- [password]"
 	cmdUseHash          = "hash"
 	cmdUseHashArgon2    = "argon2"
 	cmdUseHashSHA2Crypt = "sha2crypt"
@@ -625,7 +612,8 @@ const (
 )
 
 var (
-	errNoStorageProvider = errors.New("no storage provider configured")
+	errStorageSchemaOutdated     = errors.New("storage schema outdated")
+	errStorageSchemaIncompatible = errors.New("storage schema incompatible")
 )
 
 const (
