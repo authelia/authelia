@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -30,7 +29,9 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			logger *logrus.Logger
 			err    error
 
-			configs, filters []string
+			configs, filterNames []string
+
+			filters []configuration.FileFilter
 		)
 
 		logger = logging.Logger()
@@ -39,11 +40,11 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			logger.Fatalf("Error reading flags: %v", err)
 		}
 
-		if filters, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
+		if filterNames, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
 			logger.Fatalf("Error reading flags: %v", err)
 		}
 
-		if err = validateConfigFileFilters(filters); err != nil {
+		if filters, err = configuration.NewFileFilters(filterNames); err != nil {
 			logger.Fatalf("Error occurred loading configuration: flag '--%s' is invalid: %v", cmdFlagNameConfigExpFilters, err)
 		}
 
@@ -86,38 +87,13 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 	}
 }
 
-func validateConfigFileFilters(filters []string) (err error) {
-	var hasTemplate, hasExpandEnv bool
-
-	for _, filter := range filters {
-		switch filter {
-		case "template":
-			if hasTemplate {
-				return fmt.Errorf("duplicate '%s' entry", filter)
-			}
-
-			hasTemplate = true
-		case "expand-env":
-			if hasExpandEnv {
-				return fmt.Errorf("duplicate '%s' entry", filter)
-			}
-
-			hasExpandEnv = true
-		default:
-			return fmt.Errorf("invalid '%s' entry", filter)
-		}
-	}
-
-	return nil
-}
-
-func loadConfig(configs []string, validateKeys, validateConfiguration bool, filters ...string) (c *schema.Configuration, val *schema.StructValidator, err error) {
+func loadConfig(configs []string, validateKeys, validateConfiguration bool, filters ...configuration.FileFilter) (c *schema.Configuration, val *schema.StructValidator, err error) {
 	var keys []string
 
 	val = schema.NewStructValidator()
 
 	if keys, c, err = configuration.Load(val,
-		configuration.NewDefaultSourcesExperimental(
+		configuration.NewDefaultSourcesFiltered(
 			configs,
 			filters,
 			configuration.DefaultEnvPrefix,

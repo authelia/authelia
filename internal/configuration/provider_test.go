@@ -117,7 +117,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	_ = os.Setenv("ROOT_DOMAIN", "example.org")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSourcesExperimental([]string{"./test_resources/config.templated.yml"}, []string{"template", "expand-env"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	_, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 0)

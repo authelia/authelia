@@ -367,7 +367,9 @@ func cmdCryptoHashGetConfig(algorithm string, configs []string, flags *pflag.Fla
 		prefixFilePassword + ".scrypt.salt_length":    schema.DefaultPasswordConfig.SCrypt.SaltLength,
 	}
 
-	sources := configuration.NewDefaultSourcesWithDefaults(configs,
+	sources := configuration.NewDefaultSourcesWithDefaults(
+		configs,
+		nil,
 		configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter,
 		configuration.NewMapSource(mapDefaults),
 		configuration.NewCommandLineSourceWithMapping(flags, flagsMap, false, false),

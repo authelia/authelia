@@ -13,11 +13,11 @@ import (
 // FilteredFile implements a koanf.Provider.
 type FilteredFile struct {
 	path    string
-	filters []FileFilterFunc
+	filters []FileFilter
 }
 
 // FilteredFileProvider returns a koanf.Provider which provides filtered file output.
-func FilteredFileProvider(path string, filters ...FileFilterFunc) *FilteredFile {
+func FilteredFileProvider(path string, filters ...FileFilter) *FilteredFile {
 	return &FilteredFile{
 		path:    filepath.Clean(path),
 		filters: filters,
@@ -48,18 +48,58 @@ func (f *FilteredFile) Read() (map[string]interface{}, error) {
 	return nil, errors.New("filtered file provider does not support this method")
 }
 
-// FileFilterFunc describes a func used to filter files.
-type FileFilterFunc func(in []byte) (out []byte, err error)
+// FileFilter describes a func used to filter files.
+type FileFilter func(in []byte) (out []byte, err error)
 
-// NewExpandEnvFileFilter is a FileFilterFunc which passes the bytes through os.ExpandEnv.
-func NewExpandEnvFileFilter() FileFilterFunc {
+// NewFileFiltersDefault returns the default list of FileFilter.
+func NewFileFiltersDefault() []FileFilter {
+	return []FileFilter{
+		NewTemplateFileFilter(),
+		NewExpandEnvFileFilter(),
+	}
+}
+
+// NewFileFilters returns a list of FileFilter provided they are valid.
+func NewFileFilters(names []string) (filters []FileFilter, err error) {
+	filters = make([]FileFilter, len(names))
+
+	var hasTemplate, hasExpandEnv bool
+
+	for i, name := range names {
+		switch name {
+		case "template":
+			if hasTemplate {
+				return nil, fmt.Errorf("duplicate filter named '%s'", name)
+			}
+
+			hasTemplate = true
+
+			filters[i] = NewTemplateFileFilter()
+		case "expand-env":
+			if hasExpandEnv {
+				return nil, fmt.Errorf("duplicate filter named '%s'", name)
+			}
+
+			hasExpandEnv = true
+
+			filters[i] = NewExpandEnvFileFilter()
+		default:
+			return nil, fmt.Errorf("invalid filter named '%s'", name)
+		}
+	}
+
+	return filters, nil
+}
+
+// NewExpandEnvFileFilter is a FileFilter which passes the bytes through os.ExpandEnv.
+func NewExpandEnvFileFilter() FileFilter {
 	return func(in []byte) (out []byte, err error) {
 		return []byte(os.ExpandEnv(string(in))), nil
 	}
 }
 
-// NewTemplateFileFilter is a FileFilterFunc which passes the bytes through text/template.
-func NewTemplateFileFilter() FileFilterFunc {
+// NewTemplateFileFilter is a FileFilter which passes the bytes through text/template.
+func NewTemplateFileFilter() FileFilter {
 	data := &templated{
 		Env: map[string]string{},
 	}

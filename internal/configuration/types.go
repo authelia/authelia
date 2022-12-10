@@ -18,7 +18,7 @@ type Source interface {
 type YAMLFileSource struct {
 	koanf   *koanf.Koanf
 	path    string
-	filters []FileFilterFunc
+	filters []FileFilter
 }
 
 // EnvironmentSource is a configuration Source which loads values from the environment.

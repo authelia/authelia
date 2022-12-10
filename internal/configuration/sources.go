@@ -25,7 +25,7 @@ func NewYAMLFileSource(path string) (source *YAMLFileSource) {
 
 // NewYAMLFileTemplatedSource returns a configuration.Source configured to load from a specified YAML path. If there is
 // an issue accessing this path it also returns an error.
-func NewYAMLFileTemplatedSource(path string, filters ...FileFilterFunc) (source *YAMLFileSource) {
+func NewYAMLFileTemplatedSource(path string, filters ...FileFilter) (source *YAMLFileSource) {
 	return &YAMLFileSource{
 		koanf:   koanf.New(constDelimiter),
 		path:    path,
@@ -44,21 +44,10 @@ func NewYAMLFileSources(paths []string) (sources []*YAMLFileSource) {
 	return sources
 }
 
-// NewYAMLFileTemplatedSources returns a slice of configuration.Source configured to load from specified YAML files.
-func NewYAMLFileTemplatedSources(paths, filters []string) (sources []*YAMLFileSource) {
-	filterFuncs := make([]FileFilterFunc, len(filters))
-
-	for i, filter := range filters {
-		switch filter {
-		case "template":
-			filterFuncs[i] = NewTemplateFileFilter()
-		case "expand-env":
-			filterFuncs[i] = NewExpandEnvFileFilter()
-		}
-	}
-
+// NewYAMLFilteredFileSources returns a slice of configuration.Source configured to load from specified YAML files.
+func NewYAMLFilteredFileSources(paths []string, filters []FileFilter) (sources []*YAMLFileSource) {
 	for _, path := range paths {
-		source := NewYAMLFileTemplatedSource(path, filterFuncs...)
+		source := NewYAMLFileTemplatedSource(path, filters...)
 
 		sources = append(sources, source)
 	}
@@ -216,9 +205,9 @@ func NewDefaultSources(filePaths []string, prefix, delimiter string, additionalS
 	return sources
 }
 
-// NewDefaultSourcesExperimental returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSourcesExperimental(filePaths, filters []string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
-	fileSources := NewYAMLFileTemplatedSources(filePaths, filters)
+// NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
+func NewDefaultSourcesFiltered(files []string, filters []FileFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	fileSources := NewYAMLFilteredFileSources(files, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
 	}
@@ -234,10 +223,14 @@ func NewDefaultSourcesExperimental(filePaths, filters []string, prefix, delimite
 }
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(filePaths []string, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
+func NewDefaultSourcesWithDefaults(files []string, filters []FileFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
 	sources = []Source{defaults}
 
-	sources = append(sources, NewDefaultSources(filePaths, prefix, delimiter, additionalSources...)...)
+	if len(filters) == 0 {
+		sources = append(sources, NewDefaultSources(files, prefix, delimiter, additionalSources...)...)
+	} else {
+		sources = append(sources, NewDefaultSourcesFiltered(files, filters, prefix, delimiter, additionalSources...)...)
+	}
 
 	return sources
 }
