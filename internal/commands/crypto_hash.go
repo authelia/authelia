@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
@@ -246,7 +245,7 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []
 	}
 
 	if flagsMap != nil {
-		ctx.cconfig.sources.Post = append(ctx.cconfig.sources.Post, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), flagsMap, false, false))
+		return ctx.ConfigSetFlagsMapRunE(cmd.Flags(), flagsMap, false, false)
 	}
 
 	return nil

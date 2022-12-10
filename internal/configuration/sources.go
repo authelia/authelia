@@ -247,7 +247,7 @@ func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSources(filePaths []string, directory string, prefix, delimiter string, additional Sources) (sources []Source) {
 	if len(additional.Pre) != 0 {
-		copy(sources, additional.Pre)
+		sources = additional.Pre
 	}
 
 	fileSources := NewFileSources(filePaths)
@@ -272,7 +272,7 @@ func NewDefaultSources(filePaths []string, directory string, prefix, delimiter s
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSourcesFiltered(files []string, directory string, filters []FileFilter, prefix, delimiter string, additional Sources) (sources []Source) {
 	if len(additional.Pre) != 0 {
-		copy(sources, additional.Pre)
+		sources = additional.Pre
 	}
 
 	fileSources := NewFilteredFileSources(files, filters)
