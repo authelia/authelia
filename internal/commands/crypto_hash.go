@@ -10,6 +10,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
 func newCryptoHashCmd(ctx *CmdCtx) (cmd *cobra.Command) {
@@ -64,6 +65,7 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 			ctx.ConfigSetMapDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
 			ctx.ConfigLoadPreRunE,
+			ctx.ConfigValidatePreRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -258,6 +260,21 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 		password string
 		random   bool
 	)
+
+	validator.ValidatePasswordConfiguration(&ctx.config.AuthenticationBackend.File.Password, ctx.cconfig.validator)
+
+	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
+		for i, e := range errs {
+			if i == 0 {
+				err = e
+				continue
+			}
+
+			err = fmt.Errorf("%v, %w", err, e)
+		}
+
+		return fmt.Errorf("errors occurred validating the password configuration: %w", err)
+	}
 
 	if password, random, err = cmdCryptoHashGetPassword(cmd, args, false, true); err != nil {
 		return err

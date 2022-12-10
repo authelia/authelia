@@ -260,11 +260,11 @@ func (ctx *CmdCtx) ConfigEnsureExistsPreRunE(cmd *cobra.Command, _ []string) (er
 		created   bool
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "X_AUTHELIA_CONFIG", cmdFlagNameConfig); err != nil {
+	if configs, _, err = loadEnvCLIStringSliceValue(cmd, cmdEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if directory, _, err = loadEnvCLIStringValue(cmd, "X_AUTHELIA_CONFIG_DIRECTORY", cmdFlagNameConfigDirectory); err != nil {
+	if directory, _, err = loadEnvCLIStringValue(cmd, cmdEnvNameConfigDirectory, cmdFlagNameConfigDirectory); err != nil {
 		return err
 	}
 
@@ -296,11 +296,11 @@ func (ctx *CmdCtx) ConfigLoadPreRunE(cmd *cobra.Command, _ []string) (err error)
 		explicitDir bool
 	)
 
-	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, "X_AUTHELIA_CONFIG", cmdFlagNameConfig); err != nil {
+	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, cmdEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, "X_AUTHELIA_CONFIG_DIRECTORY", cmdFlagNameConfigDirectory); err != nil {
+	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, cmdEnvNameConfigDirectory, cmdFlagNameConfigDirectory); err != nil {
 		return err
 	}
 

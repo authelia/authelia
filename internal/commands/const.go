@@ -535,6 +535,8 @@ const (
 	cmdFlagNameConfig           = "config"
 	cmdFlagNameConfigDirectory  = "config.directory"
 	cmdFlagNameConfigExpFilters = "config.experimental.filters"
+	cmdEnvNameConfig            = "X_AUTHELIA_CONFIG"
+	cmdEnvNameConfigDirectory   = "X_AUTHELIA_CONFIG_DIRECTORY"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
