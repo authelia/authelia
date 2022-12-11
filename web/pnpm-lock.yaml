@@ -57,7 +57,7 @@ specifiers:
   react-loading: 2.0.3
   react-router-dom: 6.4.5
   react-test-renderer: 18.2.0
-  react18-input-otp: ^1.1.1
+  react18-input-otp: 1.1.1
   typescript: 4.9.4
   vite: 3.2.5
   vite-plugin-eslint: 1.8.1
