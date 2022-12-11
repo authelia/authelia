@@ -2216,12 +2216,12 @@ components:
           items:
             $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         token_endpoint_auth_signing_alg_values_supported:
-          type: array
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for
             the signature on the JWT [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt
             and client_secret_jwt authentication methods. Servers SHOULD support RS256. The value none MUST NOT be used.
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          type: array
           items:
             $ref: '#/components/schemas/jose.spec.jwa'
         ui_locales_supported:
@@ -3024,12 +3024,10 @@ components:
       type: string
       example: "RS256"
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.jws'
+        - $ref: '#/components/schemas/jose.spec.jws.base'
         - $ref: '#/components/schemas/jose.spec.jws.none'
-    jose.spec.jws:
-      description: The JSON Web Signature Algorithm
+    jose.spec.jws.base:
       type: string
-      example: "RS256"
       enum:
         - "HS256"
         - "HS384"
@@ -3043,10 +3041,14 @@ components:
         - "PS256"
         - "PS384"
         - "PS512"
-    jose.spec.jwe.alg:
-      description: The JSON Web Encryption Algorithm (CEK)
+    jose.spec.jws:
+      description: The JSON Web Signature Algorithm
       type: string
-      example: "A256KW"
+      example: "RS256"
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.jws'
+    jose.spec.jwe.alg.base:
+      type: string
       enum:
         - "RSA1_5"
         - "RSA-OAEP"
@@ -3065,10 +3067,14 @@ components:
         - "PBES2-HS256+A128KW"
         - "PBES2-HS384+A192KW"
         - "PBES2-HS512+A256KW"
-    jose.spec.jwe.enc:
-      description: The JSON Web Encryption Algorithm (Claims)
+    jose.spec.jwe.alg:
+      description: The JSON Web Encryption Algorithm (CEK)
       type: string
-      example: "A256GCM"
+      example: "A256KW"
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.jwe.alg.base'
+    jose.spec.jwe.enc.base:
+      type: string
       enum:
         - "A128CBC-HS256"
         - "A192CBC-HS384"
@@ -3077,6 +3083,12 @@ components:
         - "A256CBC"
         - "A128GCM"
         - "A256GCM"
+    jose.spec.jwe.enc:
+      description: The JSON Web Encryption Algorithm (Claims)
+      type: string
+      example: "A256GCM"
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.jwe.enc.base'
     jose.spec.jwa:
       description: >
         The "alg" (algorithm) parameter identifies the algorithm intended for
@@ -3088,8 +3100,8 @@ components:
       type: string
       example: "RS256"
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.alg'
-        - $ref: '#/components/schemas/jose.spec.jws'
+        - $ref: '#/components/schemas/jose.spec.jwe.alg.base'
+        - $ref: '#/components/schemas/jose.spec.jws.base'
     jose.spec.jwa.none:
       description: >
         The "alg" (algorithm) parameter identifies the algorithm intended for
@@ -3101,7 +3113,8 @@ components:
       type: string
       example: "RS256"
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.jwa'
+        - $ref: '#/components/schemas/jose.spec.jwe.alg.base'
+        - $ref: '#/components/schemas/jose.spec.jws.base'
         - $ref: '#/components/schemas/jose.spec.jws.none'
   securitySchemes:
     authelia_auth:
