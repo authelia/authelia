@@ -3,7 +3,7 @@ import React, { Fragment } from "react";
 import { Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
-import OtpInput from "react-otp-input";
+import OtpInput from "react18-input-otp";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";

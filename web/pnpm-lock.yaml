@@ -55,9 +55,9 @@ specifiers:
   react-dom: 18.2.0
   react-i18next: 12.1.1
   react-loading: 2.0.3
-  react-otp-input: 2.4.0
   react-router-dom: 6.4.5
   react-test-renderer: 18.2.0
+  react18-input-otp: ^1.1.1
   typescript: 4.9.4
   vite: 3.2.5
   vite-plugin-eslint: 1.8.1
@@ -89,8 +89,8 @@ dependencies:
   react-dom: 18.2.0_react@18.2.0
   react-i18next: 12.1.1_jwe7z4xlygtvpa5yjysgtpzr34
   react-loading: 2.0.3_react@18.2.0
-  react-otp-input: 2.4.0_biqbaboplfbrettd7655fr4n2y
   react-router-dom: 6.4.5_biqbaboplfbrettd7655fr4n2y
+  react18-input-otp: 1.1.1_biqbaboplfbrettd7655fr4n2y
   zxcvbn: 4.4.2
 
 devDependencies:
@@ -8440,16 +8440,6 @@ packages:
       react: 18.2.0
     dev: false
 
-  /react-otp-input/2.4.0_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-AIgl7u4sS9BTNCxX1xlaS5fPWay/Zml8Ho5LszXZKXrH1C/TiFsTQGmtl13UecQYO3mSF3HUzG2rrDf0sjEFmg==}
-    peerDependencies:
-      react: ^16.2.0 || 18
-      react-dom: ^16.2.0 || 18
-    dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    dev: false
-
   /react-refresh/0.14.0:
     resolution: {integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==}
     engines: {node: '>=0.10.0'}
@@ -8518,6 +8508,16 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
+
+  /react18-input-otp/1.1.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-rbqYoLFB3Lp+rJvHv+Ro3E65gberxTBTKdZV8LU/wKo60w6j8lNBmwrtzhH30wS00MhxVkwjUlLYVtzK16ynjQ==}
+    peerDependencies:
+      react: 16.2.0 - 18 || 18
+      react-dom: 16.2.0 - 18 || 18
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
 
   /read-pkg-up/7.0.1:
     resolution: {integrity: sha512-zK0TB7Xd6JpCLmlLmufqykGE+/TlOePD6qKClNW7hHDKFh/J7/7gCWGR7joEQEW1bKq3a3yUZSObOoWLFQ4ohg==}
