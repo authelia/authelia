@@ -598,7 +598,7 @@ paths:
       tags:
         - Second Factor
       summary: Second Factor Authentication - Duo Mobile Push
-      description: This endpoint retreives a users available devices and capabilities from Duo.
+      description: This endpoint retrieves a users available devices and capabilities from Duo.
       responses:
         "200":
           description: Successful Operation
@@ -1132,7 +1132,7 @@ paths:
                     description: >
                       The access token type provides the client with the information
                       required to successfully utilize the access token to make a protected
-                      resource request (along with type-specific attributes).  The client
+                      resource request (along with type-specific attributes). The client
                       MUST NOT use an access token if it does not understand the token
                       type.
                     enum:
@@ -1140,7 +1140,7 @@ paths:
                   expires_in:
                     type: integer
                     description: >
-                      The lifetime in seconds of the access token.  For
+                      The lifetime in seconds of the access token. For
                       example, the value "3600" denotes that the access token will
                       expire in one hour from the time the response was generated.
                       If omitted, the authorization server SHOULD provide the
@@ -2027,7 +2027,7 @@ components:
       properties:
         authorization_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/authorization"
+          example: "{{ .BaseURL }}api/oidc/authorization"
           description: >
             URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
@@ -2058,7 +2058,7 @@ components:
             $ref: '#/components/schemas/openid.spec.grantTypes'
         introspection_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/introspection"
+          example: "{{ .BaseURL }}api/oidc/introspection"
           description: >
             URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token
             Introspection: https://datatracker.ietf.org/doc/html/rfc7662
@@ -2077,7 +2077,7 @@ components:
             $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         introspection_endpoint_auth_signing_alg_values_supported:
           type: array
-          description:  >
+          description: >
             JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection
             endpoint for the signature on the JWT [JWT] used to authenticate the client at the introspection endpoint
             for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be
@@ -2095,7 +2095,7 @@ components:
             by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
         jwks_uri:
           type: string
-          example: "{{ .BaseURL }}/jwks.json"
+          example: "{{ .BaseURL }}jwks.json"
           description: >
             URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
             signatures from the OP. The JWK Set MAY also contain the Server's encryption key(s), which are used by RPs
@@ -2118,13 +2118,13 @@ components:
             it is given.
         pushed_authorization_request_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/par"
+          example: "{{ .BaseURL }}api/oidc/par"
           description: >
             The URL of the pushed authorization request endpoint at which a client can post an authorization request to
             exchange for a "request_uri" value usable at the authorization server.
         registration_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/registration"
+          example: "{{ .BaseURL }}api/oidc/registration"
           description: >
             URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
             OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
@@ -2150,7 +2150,7 @@ components:
             $ref: '#/components/schemas/openid.spec.responseTypes'
         revocation_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/revocation"
+          example: "{{ .BaseURL }}api/oidc/revocation"
           description: >
             URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009].
             See Also: OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
@@ -2200,7 +2200,7 @@ components:
             $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
         token_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/token"
+          example: "{{ .BaseURL }}api/oidc/token"
           description: >
             URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
             used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
@@ -2255,7 +2255,7 @@ components:
             type: string
         authorization_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/authorization"
+          example: "{{ .BaseURL }}api/oidc/authorization"
           description: >
             URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
@@ -2365,7 +2365,7 @@ components:
             $ref: '#/components/schemas/jose.spec.jws.none'
         introspection_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/introspection"
+          example: "{{ .BaseURL }}api/oidc/introspection"
           description: >
             URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0
             Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662'
@@ -2402,7 +2402,7 @@ components:
             by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
         jwks_uri:
           type: string
-          example: "{{ .BaseURL }}/jwks.json"
+          example: "{{ .BaseURL }}jwks.json"
           description: >
             URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
             signatures from the OP. The JWK Set MAY also contain the Server's encryption key(s), which are used by RPs
@@ -2425,13 +2425,13 @@ components:
             if it is given.
         pushed_authorization_request_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/par"
+          example: "{{ .BaseURL }}api/oidc/par"
           description: >
             The URL of the pushed authorization request endpoint at which a client can post an authorization request to
             exchange for a "request_uri" value usable at the authorization server.
         registration_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/registration"
+          example: "{{ .BaseURL }}api/oidc/registration"
           description: >
             URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
             OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
@@ -2494,7 +2494,7 @@ components:
             $ref: '#/components/schemas/openid.spec.responseTypes'
         revocation_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/revocation"
+          example: "{{ .BaseURL }}api/oidc/revocation"
           description: >
             URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also:
             OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
@@ -2545,7 +2545,7 @@ components:
             $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
         token_endpoint:
           type: string
-          example: "{{ .BaseURL }}/api/oidc/token"
+          example: "{{ .BaseURL }}api/oidc/token"
           description: >
             URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
             used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
@@ -2577,42 +2577,43 @@ components:
           items:
             type: string
         userinfo_encryption_alg_values_supported:
-          type: array
           description: >
             JSON array containing a list of the JWE [JWE] encryption algorithms (alg values) [JWA] supported by the
             UserInfo Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE:
             https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518
-            JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+            JWT: https://datatracker.ietf.org/doc/html/rfc7519
+          type: array
           items:
             $ref: '#/components/schemas/jose.spec.jwe.alg'
         userinfo_encryption_enc_values_supported:
-          type: array
           description: >
             JSON array containing a list of the JWE encryption algorithms (enc values) [JWA] supported by the UserInfo
             Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519
+          type: array
           items:
             $ref: '#/components/schemas/jose.spec.jwe.enc'
         userinfo_endpoint:
-          type: string
-          example: "{{ .BaseURL }}/api/oidc/userinfo"
           description: >
             URL of the OP''s UserInfo Endpoint [OpenID.Core]. This URL MUST use the https scheme and MAY contain port,
             path, and query parameter components.
-            See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+            See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
+          type: string
+          example: "{{ .BaseURL }}api/oidc/userinfo"
         userinfo_signing_alg_values_supported:
-          type: array
           description: >
             JSON array containing a list of the JWS [JWS] signing algorithms (alg values) [JWA] supported by the
             UserInfo Endpoint to encode the Claims in a JWT [JWT]. The value none MAY be included. See Also:
             JWS: https://datatracker.ietf.org/doc/html/rfc7515 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT:
             https://datatracker.ietf.org/doc/html/rfc7519
+          type: array
           items:
             $ref: '#/components/schemas/jose.spec.jws.none'
     openid.request.jwks:
       type: object
       properties:
         keys:
+          description: List of JSON Wek Key's in the JSON Web Key Set format.
           type: array
           items:
             type: object
@@ -2622,22 +2623,24 @@ components:
               kty:
                 $ref: '#/components/schemas/oauth2.spec.kty'
               use:
-                type: string
                 description: >
                   The "use" (public key use) parameter identifies the intended use of
-                  the public key.  The "use" parameter is employed to indicate whether
+                  the public key. The "use" parameter is employed to indicate whether
                   a public key is used for encrypting data or verifying the signature
                   on data.
+                type: string
+                example: "sig"
                 enum:
                   - "sig"
                   - "enc"
               key_ops:
-                type: array
                 description: >
                   The "key_ops" (key operations) parameter identifies the operation(s)
                   for which the key is intended to be used. The "key_ops" parameter is
                   intended for use cases in which public, private, or symmetric keys
                   may be present.
+                type: array
+                example: ["sign"]
                 items:
                   type: string
                   enum:
@@ -2652,135 +2655,137 @@ components:
               alg:
                 $ref: '#/components/schemas/jose.spec.jwa'
               kid:
-                type: string
                 description: >
-                  The "kid" (key ID) parameter is used to match a specific key.  This
+                  The "kid" (key ID) parameter is used to match a specific key. This
                   is used, for instance, to choose among a set of keys within a JWK Set
-                  during key rollover.  The structure of the "kid" value is
-                  unspecified.  When "kid" values are used within a JWK Set, different
-                  keys within the JWK Set SHOULD use distinct "kid" values.  (One
+                  during key rollover. The structure of the "kid" value is
+                  unspecified. When "kid" values are used within a JWK Set, different
+                  keys within the JWK Set SHOULD use distinct "kid" values. (One
                   example in which different keys might use the same "kid" value is if
                   they have different "kty" (key type) values but are considered to be
-                  equivalent alternatives by the application using them.)  The "kid"
-                  value is a case-sensitive string.  Use of this member is OPTIONAL.
+                  equivalent alternatives by the application using them.) The "kid"
+                  value is a case-sensitive string. Use of this member is OPTIONAL.
                   When used with JWS or JWE, the "kid" value is used to match a JWS or
                   JWE "kid" Header Parameter value.
-              x5u:
                 type: string
+              x5u:
                 description: >
                   The "x5u" (X.509 URL) parameter is a URI [RFC3986] that refers to a
                   resource for an X.509 public key certificate or certificate chain
-                  [RFC5280].  The identified resource MUST provide a representation of
+                  [RFC5280]. The identified resource MUST provide a representation of
                   the certificate or certificate chain that conforms to RFC 5280
                   [RFC5280] in PEM-encoded form, with each certificate delimited as
-                  specified in Section 6.1 of RFC 4945 [RFC4945].  The key in the first
+                  specified in Section 6.1 of RFC 4945 [RFC4945]. The key in the first
                   certificate MUST match the public key represented by other members of
-                  the JWK.  The protocol used to acquire the resource MUST provide
+                  the JWK. The protocol used to acquire the resource MUST provide
                   integrity protection; an HTTP GET request to retrieve the certificate
                   MUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be
-                  validated, as per Section 6 of RFC 6125 [RFC6125].  Use of this
+                  validated, as per Section 6 of RFC 6125 [RFC6125]. Use of this
                   member is OPTIONAL.
+                type: string
               x5c:
-                type: array
                 description: >
                   The "x5c" (X.509 certificate chain) parameter contains a chain of one
-                  or more PKIX certificates [RFC5280].  The certificate chain is
-                  represented as a JSON array of certificate value strings.  Each
-                  string in the array is a base64-encoded (Section 4 of [RFC4648] --
+                  or more PKIX certificates [RFC5280]. The certificate chain is
+                  represented as a JSON array of certificate value strings. Each
+                  string in the array is a base64-encoded (Section 4 of [RFC4648] --
                   not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.
                   The PKIX certificate containing the key value MUST be the first
-                  certificate.  This MAY be followed by additional certificates, with
+                  certificate. This MAY be followed by additional certificates, with
                   each subsequent certificate being the one used to certify the
-                  previous one.  The key in the first certificate MUST match the public
-                  key represented by other members of the JWK.  Use of this member is
+                  previous one. The key in the first certificate MUST match the public
+                  key represented by other members of the JWK. Use of this member is
                   OPTIONAL.
+                type: array
                 items:
                   type: string
               x5t:
-                type: string
                 description: >
                   The "x5t" (X.509 certificate SHA-1 thumbprint) parameter is a
                   base64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER
-                  encoding of an X.509 certificate [RFC5280].  Note that certificate
+                  encoding of an X.509 certificate [RFC5280]. Note that certificate
                   thumbprints are also sometimes known as certificate fingerprints.
                   The key in the certificate MUST match the public key represented by
-                  other members of the JWK.  Use of this member is OPTIONAL.
-              x5t#S256:
+                  other members of the JWK. Use of this member is OPTIONAL.
                 type: string
+              x5t#S256:
                 description: >
                   The "x5t#S256" (X.509 certificate SHA-256 thumbprint) parameter is a
                   base64url-encoded SHA-256 thumbprint (a.k.a. digest) of the DER
-                  encoding of an X.509 certificate [RFC5280].  Note that certificate
+                  encoding of an X.509 certificate [RFC5280]. Note that certificate
                   thumbprints are also sometimes known as certificate fingerprints.
                   The key in the certificate MUST match the public key represented by
-                  other members of the JWK.  Use of this member is OPTIONAL.
-              k:
+                  other members of the JWK. Use of this member is OPTIONAL.
                 type: string
+              k:
                 description: >
                   The "k" (key value) parameter contains the value of the symmetric (or
                   other single-valued) key. It is represented as the base64url
                   encoding of the octet sequence containing the key value.
-              x:
                 type: string
+              x:
                 description: >
                   EC Public Key: The x coordinate parameter contains the x coordinate for the Elliptic Curve point.
                   It is represented as the base64url encoding of the octet string representation of the coordinate, as
                   defined in Section 2.3.5 of SEC1 [SEC1].
-              y:
                 type: string
+              y:
                 description: >
                   EC Public Key: The y coordinate parameter contains the y coordinate for the Elliptic Curve point.
                   It is represented as the base64url encoding of the octet string representation of the coordinate, as
                   defined in Section 2.3.5 of SEC1 [SEC1].
+                type: string
               crv:
                 $ref: '#/components/schemas/oauth2.spec.crv'
               n:
-                type: string
                 description: >
                   RSA Public Key: The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
                   represented as a Base64urlUInt-encoded value.
-              e:
                 type: string
+              e:
                 description: >
                   RSA Public Key: The "e" (exponent) parameter contains the exponent value for the RSA public key.
                   It is represented as a Base64urlUInt-encoded value.
-              d:
                 type: string
+              d:
                 description: >
                   RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
                   private key. It is represented as a Base64urlUInt-encoded value.
                   ECC Private Key: The "d" (ECC private key) parameter contains the Elliptic Curve private key value. It
                   is represented as the base64url encoding of the octet string representation of the private key value,
-                  as defined in Section 2.3.7 of SEC1 [SEC1].  The length of this octet string MUST be
+                  as defined in Section 2.3.7 of SEC1 [SEC1]. The length of this octet string MUST be
                   ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
-              p:
                 type: string
+              p:
                 description: >
                   RSA Private Key: The "p" (first prime factor) parameter contains the first prime factor.
                   It is represented as a Base64urlUInt-encoded value.
-              q:
                 type: string
+              q:
                 description: >
                   RSA Private Key: The "q" (second prime factor) parameter contains the second prime factor. It is
                   represented as a Base64urlUInt-encoded value.
-              dp:
                 type: string
+              dp:
                 description: >
                   RSA Private Key: The "dp" (first factor CRT exponent) parameter contains the Chinese Remainder Theorem
                   (CRT) exponent of the first factor. It is represented as a Base64urlUInt-encoded value.
-              dq:
                 type: string
+              dq:
                 description: >
                   RSA Private Key: The "dq" (second factor CRT exponent) parameter contains the CRT exponent of the
                   second factor. It is represented as a Base64urlUInt-encoded value.
-              qi:
                 type: string
+              qi:
                 description: >
                   RSA Private Key: The "qi" (first CRT coefficient) parameter contains the CRT coefficient of the second
                   factor. It is represented as a Base64urlUInt-encoded value.
+                type: string
               oth:
-                type: array
                 description: >
+                  The "oth" (other primes info) parameter contains an array of
+                  information about any third and subsequent primes, should they exist.
+                type: array
                 items:
                   type: object
                   required:
@@ -2792,20 +2797,20 @@ components:
                       type: string
                       description: >
                         The "r" (prime factor) parameter within an "oth" array member
-                        represents the value of a subsequent prime factor.  It is represented
+                        represents the value of a subsequent prime factor. It is represented
                         as a Base64urlUInt-encoded value.
                     d:
                       type: string
                       description: >
                         The "d" (factor CRT exponent) parameter within an "oth" array member
-                        represents the CRT exponent of the corresponding prime factor.  It is
+                        represents the CRT exponent of the corresponding prime factor. It is
                         represented as a Base64urlUInt-encoded value.
                     t:
                       type: string
                       description: >
                         The "t" (factor CRT coefficient) parameter within an "oth" array
                         member represents the CRT coefficient of the corresponding prime
-                        factor.  It is represented as a Base64urlUInt-encoded value.
+                        factor. It is represented as a Base64urlUInt-encoded value.
     openid.misc.claims.user:
       description: OpenID Connect 1.0 User Claims.
       type: object
@@ -2875,39 +2880,44 @@ components:
         - "token"
       properties:
         token:
-          type: string
           description: >
-            The string value of the token.  For access tokens, this
+            The string value of the token. For access tokens, this
             is the "access_token" value returned from the token endpoint
-            defined in OAuth 2.0 [RFC6749], Section 5.1.  For refresh tokens,
+            defined in OAuth 2.0 [RFC6749], Section 5.1. For refresh tokens,
             this is the "refresh_token" value returned from the token endpoint
-            as defined in OAuth 2.0 [RFC6749], Section 5.1.  Other token types
+            as defined in OAuth 2.0 [RFC6749], Section 5.1. Other token types
             are outside the scope of this specification.
-        token_type_hint:
           type: string
+          example: "authela_at_3X5WZHUqRf3Ku8tsZ9by5KSYqESQnn"
+        token_type_hint:
           description: >
             A hint about the type of the token submitted for
-            introspection.  The protected resource MAY pass this parameter to
-            help the authorization server optimize the token lookup.  If the
+            introspection. The protected resource MAY pass this parameter to
+            help the authorization server optimize the token lookup. If the
             server is unable to locate the token using the given hint, it MUST
-            extend its search across all of its supported token types.  An
+            extend its search across all of its supported token types. An
             authorization server MAY ignore this parameter, particularly if it
-            is able to detect the token type automatically.  Values for this
+            is able to detect the token type automatically. Values for this
             field are defined in the "OAuth Token Type Hints" registry defined
             in OAuth Token Revocation [RFC7009].
+          type: string
+          example: "access_token"
           enum:
             - "access_token"
             - "refresh_token"
     openid.spec.subjectIdentifierTypes:
-      type: string
       description: >
         A Subject Identifier is a locally unique and never reassigned identifier within the Issuer for the
         End-User, which is intended to be consumed by the Client.
+      type: string
+      example: "public"
       enum:
         - "public"
         - "pairwise"
     openid.spec.clientAuthMethods:
+      description: The OAuth 2.0 / OpenID Connect 1.0 Client Authentication Method.
       type: string
+      example: "client_secret_post"
       enum:
         - "client_secret_basic"
         - "client_secret_post"
@@ -2915,18 +2925,20 @@ components:
         - "private_key_jwt"
         - "none"
     openid.spec.displayTypes:
-      type: string
       description: >
         ASCII string value that specifies how the Authorization Server displays the authentication and consent user
         interface pages to the End-User.
+      type: string
+      example: "page"
       enum:
         - "page"
         - "popup"
         - "touch"
         - "wap"
     openid.spec.responseTypes:
+      description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
       type: string
-      description: The OpenID Connect 1.0 / OAuth 2.0 Response Type.
+      example: "code"
       enum:
         - "code"
         - "id_token"
@@ -2937,17 +2949,20 @@ components:
         - "code id_token token"
         - "none"
     openid.spec.responseModes:
-      type: string
       description: >
         Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
         Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
         the default mode specified for the Response Type.
+      type: string
+      example: "query"
       enum:
         - "query"
         - "fragment"
         - "form_post"
     openid.spec.grantTypes:
+      description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
       type: string
+      example: "authorization_code"
       enum:
         - "authorization_code"
         - "refresh_token"
@@ -2955,29 +2970,33 @@ components:
         - "password"
         - "client_credentials"
     openid.spec.codeChallengeMethods:
+      description: The RFC7636 Code Challenge Verifier Method.
       type: string
+      example: "S256"
       enum:
         - "plain"
         - "S256"
     oauth2.spec.kty:
-      type: string
       description: >
         The "kty" (key type) parameter identifies the cryptographic algorithm
         family used with the key, such as "RSA" or "EC". "kty" values should
         either be registered in the IANA "JSON Web Key Types" registry
         established by [JWA] or be a value that contains a Collision-
-        Resistant Name.  The "kty" value is a case-sensitive string.  This
+        Resistant Name. The "kty" value is a case-sensitive string. This
         member MUST be present in a JWK.
+      type: string
+      example: "RSA"
       enum:
         - "EC"
         - "RSA"
         - "oct"
         - "OKP"
     oauth2.spec.crv:
-      type: string
       description: >
         The curve parameter identifies the cryptographic curve used with the key. Curve
         values from [DSS] used by this specification.
+      type: string
+      example: "P-512"
       enum:
         - "P-256"
         - "P-384"
@@ -2988,8 +3007,9 @@ components:
         - "X448"
         - "secp256k1"
     oauth2.implementation.scopes:
-      type: string
       description: The scope.
+      type: string
+      example: "profile"
       enum:
         - "openid"
         - "offline_access"
@@ -3001,11 +3021,15 @@ components:
       enum:
         - "none"
     jose.spec.jws.none:
+      type: string
+      example: "RS256"
       oneOf:
         - $ref: '#/components/schemas/jose.spec.jws'
         - $ref: '#/components/schemas/jose.spec.jws.none'
     jose.spec.jws:
+      description: The JSON Web Signature Algorithm
       type: string
+      example: "RS256"
       enum:
         - "HS256"
         - "HS384"
@@ -3020,7 +3044,9 @@ components:
         - "PS384"
         - "PS512"
     jose.spec.jwe.alg:
+      description: The JSON Web Encryption Algorithm (CEK)
       type: string
+      example: "A256KW"
       enum:
         - "RSA1_5"
         - "RSA-OAEP"
@@ -3040,7 +3066,9 @@ components:
         - "PBES2-HS384+A192KW"
         - "PBES2-HS512+A256KW"
     jose.spec.jwe.enc:
+      description: The JSON Web Encryption Algorithm (Claims)
       type: string
+      example: "A256GCM"
       enum:
         - "A128CBC-HS256"
         - "A192CBC-HS384"
@@ -3050,18 +3078,28 @@ components:
         - "A128GCM"
         - "A256GCM"
     jose.spec.jwa:
-      type: string
       description: >
         The "alg" (algorithm) parameter identifies the algorithm intended for
-        use with the key.  The values used should either be registered in the
+        use with the key. The values used should either be registered in the
         IANA "JSON Web Signature and Encryption Algorithms" registry
         established by [JWA] or be a value that contains a Collision-
-        Resistant Name.  The "alg" value is a case-sensitive ASCII string.
+        Resistant Name. The "alg" value is a case-sensitive ASCII string.
         Use of this member is OPTIONAL.
+      type: string
+      example: "RS256"
       oneOf:
         - $ref: '#/components/schemas/jose.spec.jwe.alg'
         - $ref: '#/components/schemas/jose.spec.jws'
     jose.spec.jwa.none:
+      description: >
+        The "alg" (algorithm) parameter identifies the algorithm intended for
+        use with the key. The values used should either be registered in the
+        IANA "JSON Web Signature and Encryption Algorithms" registry
+        established by [JWA] or be a value that contains a Collision-
+        Resistant Name. The "alg" value is a case-sensitive ASCII string.
+        Use of this member is OPTIONAL.
+      type: string
+      example: "RS256"
       oneOf:
         - $ref: '#/components/schemas/jose.spec.jwa'
         - $ref: '#/components/schemas/jose.spec.jws.none'
@@ -3072,5 +3110,5 @@ components:
       in: cookie
     openid:
       type: openIdConnect
-      openIdConnectUrl: "{{ .BaseURL }}/.well-known/openid-configuration"
+      openIdConnectUrl: "{{ .BaseURL }}.well-known/openid-configuration"
 ...
