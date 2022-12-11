@@ -189,12 +189,30 @@ func (ctx *AutheliaCtx) BasePath() (base string) {
 	return base
 }
 
+// BasePathSlash is the same as BasePath but returns a final slash as well.
+func (ctx *AutheliaCtx) BasePathSlash() (base string) {
+	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
+		return baseURL.(string) + "/"
+	}
+
+	return "/"
+}
+
 // RootURL returns the Root URL.
 func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
 		Host:   string(ctx.XForwardedHost()),
 		Path:   ctx.BasePath(),
+	}
+}
+
+// RootURLSlash is the same as RootURL but includes a final slash as well.
+func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
+	return &url.URL{
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.XForwardedHost()),
+		Path:   ctx.BasePathSlash(),
 	}
 }
 
