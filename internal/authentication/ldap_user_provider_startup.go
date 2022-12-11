@@ -130,7 +130,7 @@ func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
 	}
 
 	if p.config.AdditionalGroupsDN != "" {
-		p.groupsBaseDN = ldap.EscapeFilter(p.config.AdditionalGroupsDN + "," + p.config.BaseDN)
+		p.groupsBaseDN = p.config.AdditionalGroupsDN + "," + p.config.BaseDN
 	} else {
 		p.groupsBaseDN = p.config.BaseDN
 	}

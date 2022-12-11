@@ -97,12 +97,12 @@ authentication_backend:
         DO NOT USE==
         -----END RSA PRIVATE KEY-----
     base_dn: DC=example,DC=com
-    additional_users_dn: ou=users
+    additional_users_dn: OU=users
     users_filter: (&({username_attribute}={input})(objectClass=person))
     username_attribute: uid
     mail_attribute: mail
     display_name_attribute: displayName
-    additional_groups_dn: ou=groups
+    additional_groups_dn: OU=groups
     groups_filter: (&(member={dn})(objectClass=groupOfNames))
     group_name_attribute: cn
     permit_referrals: false
@@ -167,14 +167,14 @@ section [here](../prologue/common.md#tls-configuration).
 
 Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
 `DC=example,DC=com`, however you can fine tune this to be more specific for example to only include objects inside the
-authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
-user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
+authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additionalusersdn) for
+user searches and [additional_groups_dn](#additionalgroupsdn) for groups searches.
 
 ### additional_users_dn
 
 {{< confkey type="string" required="no" >}}
 
-Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
+Additional LDAP path to append to the [base_dn](#basedn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
 `OU=users,OU=people` with a base_dn set to `DC=example,DC=com` will mean user searches will occur in
 `OU=users,OU=people,DC=example,DC=com`.
@@ -184,28 +184,31 @@ exactly which OU to get users from for either security or performance reasons. F
 {{< confkey type="string" required="situational" >}}
 
 *__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [filter defaults](#filter-defaults) for more information.*
+default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
+more information.*
 
 The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
 The default value is dependent on the [implementation](#implementation), refer to the
-[attribute defaults](#attribute-defaults) for more information.
+[attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 
 ### username_attribute
 
 {{< confkey type="string" required="situational" >}}
 
 *__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information.*
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults)
+for more information.*
 
 The LDAP attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}`
-[placeholder](#users-filter-replacements).
+[placeholder](../../reference/guides/ldap.md#users-filter-replacements).
 
 ### mail_attribute
 
 {{< confkey type="string" required="situational" >}}
 
 *__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](#attribute-defaults) for more information.*
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults)
+for more information.*
 
 The attribute to retrieve which contains the users email addresses. This is important for the device registration and
 password reset processes. The user must have an email address in order for Authelia to perform identity verification
@@ -294,7 +297,7 @@ characters and the user password is changed to this value.
 
 ## Refresh Interval
 
-It's recommended you either use the default [refresh interval](./introduction.md#refresh_interval) or configure this to
+It's recommended you either use the default [refresh interval](introduction.md#refreshinterval) or configure this to
 a value low enough to refresh the user groups and status (deleted, disabled, etc) to adequately secure your environment.
 
 ## Important notes
@@ -311,6 +314,6 @@ for your users.
 
 - [LDAP Reference Guide](../../reference/guides/ldap.md)
 
-[username attribute]: #username_attribute
+[username attribute]: #usernameattribute
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
 [RFC2307]: https://www.rfc-editor.org/rfc/rfc2307.html

@@ -90,9 +90,7 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 	for i, rule := range config.AccessControl.Rules {
 		rulePosition := i + 1
 
-		if len(rule.Domains)+len(rule.DomainsRegex) == 0 {
-			validator.Push(fmt.Errorf(errFmtAccessControlRuleNoDomains, ruleDescriptor(rulePosition, rule)))
-		}
+		validateDomains(rulePosition, rule, validator)
 
 		if !IsPolicyValid(rule.Policy) {
 			validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), rule.Policy))
@@ -121,6 +119,18 @@ func validateBypass(rulePosition int, rule schema.ACLRule, validator *schema.Str
 		if utils.IsStringSliceContainsAny(authorization.IdentitySubexpNames, pattern.SubexpNames()) {
 			validator.Push(fmt.Errorf(errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex, ruleDescriptor(rulePosition, rule)))
 			return
+		}
+	}
+}
+
+func validateDomains(rulePosition int, rule schema.ACLRule, validator *schema.StructValidator) {
+	if len(rule.Domains)+len(rule.DomainsRegex) == 0 {
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleNoDomains, ruleDescriptor(rulePosition, rule)))
+	}
+
+	for i, domain := range rule.Domains {
+		if len(domain) > 1 && domain[0] == '*' && domain[1] != '.' {
+			validator.PushWarning(fmt.Errorf("access control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
 		}
 	}
 }

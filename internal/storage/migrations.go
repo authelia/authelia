@@ -46,42 +46,6 @@ func latestMigrationVersion(providerName string) (version int, err error) {
 	return version, nil
 }
 
-func loadMigration(providerName string, version int, up bool) (migration *model.SchemaMigration, err error) {
-	entries, err := migrationsFS.ReadDir("migrations")
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		m, err := scanMigration(entry.Name())
-		if err != nil {
-			return nil, err
-		}
-
-		migration = &m
-
-		if up != migration.Up {
-			continue
-		}
-
-		if migration.Provider != providerAll && migration.Provider != providerName {
-			continue
-		}
-
-		if version != migration.Version {
-			continue
-		}
-
-		return migration, nil
-	}
-
-	return nil, errors.New("migration not found")
-}
-
 // loadMigrations scans the migrations fs and loads the appropriate migrations for a given providerName, prior and
 // target versions. If the target version is -1 this indicates the latest version. If the target version is 0
 // this indicates the database zero state.

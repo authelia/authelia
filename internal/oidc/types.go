@@ -183,9 +183,6 @@ type KeyManager struct {
 	jwks *jose.JSONWebKeySet
 }
 
-// AdaptiveHasher implements the fosite.Hasher interface without an actual hashing algo.
-type AdaptiveHasher struct{}
-
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
 	ClientID          string   `json:"client_id"`

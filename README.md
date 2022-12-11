@@ -184,7 +184,7 @@ Internet (your reverse proxies are) however, it's still the control plane for yo
 
 ## Contribute
 
-If you want to contribute to Authelia, please read our [contribution guidelines](./CONTRIBUTING.md).
+If you want to contribute to Authelia, please read our [contribution guidelines](CONTRIBUTING.md).
 
 Authelia exists thanks to all the people who contribute so don't be shy, come chat with us on either [Matrix](#matrix)
 or [Discord](#discord) and start contributing too.
@@ -306,6 +306,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center"><a href="https://github.com/paul-ohl"><img src="https://avatars.githubusercontent.com/u/37795294?v=4?s=100" width="100px;" alt="Paul Ohl"/><br /><sub><b>Paul Ohl</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=paul-ohl" title="Documentation">📖</a></td>
+      <td align="center"><a href="https://github.com/smkent"><img src="https://avatars.githubusercontent.com/u/2831985?v=4?s=100" width="100px;" alt="Stephen Kent"/><br /><sub><b>Stephen Kent</b></sub></a><br /><a href="#ideas-smkent" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/authelia/authelia/commits?author=smkent" title="Code">💻</a> <a href="#design-smkent" title="Design">🎨</a></td>
     </tr>
   </tbody>
 </table>
@@ -378,7 +379,7 @@ Companies contributing to Authelia via Open Collective will have a special menti
 ## License
 
 **Authelia** is **licensed** under the **[Apache 2.0]** license. The terms of the license are detailed in
-[LICENSE](./LICENSE).
+[LICENSE](LICENSE).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauthelia%2Fauthelia?ref=badge_large)
 

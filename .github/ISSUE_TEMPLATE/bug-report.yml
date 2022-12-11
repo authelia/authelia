@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
+        Thanks for taking the time to fill out this bug report. If you are unsure if this is actually a bug and you still need some form of support we generally recommend creating a [Question and Answer Discussion](https://github.com/authelia/authelia/discussions/new?category=q-a) first.
 
         Please review the following requirements before submitting this issue type:
 
@@ -17,7 +17,7 @@ body:
         2. Please try to give as much information as possible for us to be able to reproduce the issue and provide a quick fix.
         3. Please ensure an issue does not already exist for this potential bug.
         4. Please only provide specific versions. Latest is not a version.
-        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on removing or adjusting any values for the logs or configuration files.
+        5. Please read the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide if you plan on sanitizing, removing, or adjusting any values for the logs or configuration files.
         6. Please consider including a [HTTP Archive File](https://www.authelia.com/r/har) if you're having redirection issues.
   - type: dropdown
     id: version
@@ -26,6 +26,9 @@ body:
       description: What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - v4.37.3
+        - v4.37.2
+        - v4.37.1
         - v4.37.0
         - v4.36.9
         - v4.36.8
@@ -117,19 +120,27 @@ body:
     validations:
       required: false
   - type: textarea
-    id: logs
+    id: configuration
     attributes:
-      label: Logs
-      description: Provide the logs (the template will automatically put this content in a code block)
-      render: shell
+      label: Configuration (Authelia)
+      description: Provide a complete configuration file (the template will automatically put this content in a code block)
+      render: yaml
     validations:
       required: false
   - type: textarea
-    id: configuration
+    id: logs
     attributes:
-      label: Configuration
-      description: Provide the Authelia configuration file (the template will automatically put this content in a code block)
-      render: yaml
+      label: Logs (Authelia)
+      description: Provide complete debug logs (the template will automatically put this content in a code block)
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: logs-other
+    attributes:
+      label: Logs (Proxy / Application)
+      description: Provide complete debug logs for the affected proxy and/or application if available and relevant (the template will automatically put this content in a code block)
+      render: shell
     validations:
       required: false
   - type: textarea
@@ -139,4 +150,24 @@ body:
       description: Provide any relevant specification or other documentation if applicable
     validations:
       required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-Submission Checklist
+      description: By submitting this issue confirm all of the following
+      options:
+        - label: I agree to follow the [Code of Conduct](http://www.authelia.com/code-of-conduct)
+          required: true
+        - label: This is a bug report and not a support request
+          required: true
+        - label: I have read the security policy and this bug report is not a security issue or security related issue
+          required: true
+        - label: I have either included the complete configuration file or I am sure it's unrelated to the configuration
+          required: true
+        - label: I have provided all of the required information in full with the only alteration being reasonable sanitization in accordance with the [Troubleshooting Sanitization](https://www.authelia.com/r/sanitize) reference guide
+          required: true
+        - label: I have checked for related proxy or application logs and included them if available
+          required: true
+        - label: I have checked for related issues and checked the documentation
+          required: true
 ...

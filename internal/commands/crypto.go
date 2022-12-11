@@ -60,9 +60,9 @@ func newCryptoRandCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameCharSet, "c", "alphanumeric", "Sets the charset for the random string, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', and 'numeric-hex'")
-	cmd.Flags().String(cmdFlagNameCharacters, "", "Sets the explicit characters for the random string")
-	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, "Sets the length of the random output")
+	cmd.Flags().StringP(cmdFlagNameCharSet, "c", cmdFlagValueCharSet, cmdFlagUsageCharset)
+	cmd.Flags().String(cmdFlagNameCharacters, "", cmdFlagUsageCharacters)
+	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, cmdFlagUsageLength)
 
 	return cmd
 }

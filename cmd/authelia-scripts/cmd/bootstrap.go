@@ -53,8 +53,11 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 	}
 
 	createTemporaryDirectory()
-	createPNPMDirectory()
-	pnpmInstall()
+
+	if os.Getenv("CI") != "true" {
+		createPNPMDirectory()
+		pnpmInstall()
+	}
 
 	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
 	prepareHostsFile()
@@ -148,8 +151,8 @@ func createTemporaryDirectory() {
 func createPNPMDirectory() {
 	home := os.Getenv("HOME")
 	if home != "" {
-		bootstrapPrintln("Creating ", home+"/.pnpm-store")
-		err := os.MkdirAll(home+"/.pnpm-store", 0755)
+		bootstrapPrintln("Creating ", home+"/.local/share/pnpm/store")
+		err := os.MkdirAll(home+"/.local/share/pnpm/store", 0755)
 
 		if err != nil {
 			panic(err)
@@ -158,7 +161,7 @@ func createPNPMDirectory() {
 }
 
 func pnpmInstall() {
-	bootstrapPrintln("Installing web dependences ")
+	bootstrapPrintln("Installing web dependencies ")
 
 	cwd, err := os.Getwd()
 	if err != nil {

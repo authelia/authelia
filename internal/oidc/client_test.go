@@ -227,7 +227,7 @@ func TestClient_IsPublic(t *testing.T) {
 }
 
 func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.NewPasswordDigest(value, true); err != nil {
+	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)
 	} else {
 		return secret

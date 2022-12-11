@@ -8,7 +8,7 @@ images: []
 menu:
   reference:
     parent: "cli-authelia"
-weight: 330
+weight: 905
 toc: true
 ---
 
@@ -41,15 +41,15 @@ authelia storage user totp generate john --algorithm SHA512 --config config.yml 
 ### Options
 
 ```
-      --algorithm string   set the TOTP algorithm (default "SHA1")
-      --digits uint        set the TOTP digits (default 6)
-  -f, --force              forces the TOTP configuration to be generated regardless if it exists or not
+      --algorithm string   set the algorithm to either SHA1 (supported by most applications), SHA256, or SHA512 (default "SHA1")
+      --digits uint        set the number of digits (default 6)
+  -f, --force              forces the configuration to be generated regardless if it exists or not
   -h, --help               help for generate
-      --issuer string      set the TOTP issuer (default "Authelia")
+      --issuer string      set the issuer description (default "Authelia")
   -p, --path string        path to a file to create a PNG file with the QR code (optional)
-      --period uint        set the TOTP period (default 30)
-      --secret string      Optionally set the TOTP shared secret as base32 encoded bytes (no padding), it's recommended to not set this option unless you're restoring an TOTP config
-      --secret-size uint   set the TOTP secret size (default 32)
+      --period uint        set the period between rotations (default 30)
+      --secret string      set the shared secret as base32 encoded bytes (no padding), it's recommended that you do not use this option unless you're restoring a configuration
+      --secret-size uint   set the secret size (default 32)
 ```
 
 ### Options inherited from parent commands

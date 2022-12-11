@@ -23,22 +23,22 @@ func newStorageCmd() (cmd *cobra.Command) {
 
 	cmdWithConfigFlags(cmd, true, []string{"configuration.yml"})
 
-	cmd.PersistentFlags().String("encryption-key", "", "the storage encryption key to use")
+	cmd.PersistentFlags().String(cmdFlagNameEncryptionKey, "", "the storage encryption key to use")
 
-	cmd.PersistentFlags().String("sqlite.path", "", "the SQLite database path")
+	cmd.PersistentFlags().String(cmdFlagNameSQLite3Path, "", "the SQLite database path")
 
-	cmd.PersistentFlags().String("mysql.host", "", "the MySQL hostname")
-	cmd.PersistentFlags().Int("mysql.port", 3306, "the MySQL port")
-	cmd.PersistentFlags().String("mysql.database", "authelia", "the MySQL database name")
-	cmd.PersistentFlags().String("mysql.username", "authelia", "the MySQL username")
-	cmd.PersistentFlags().String("mysql.password", "", "the MySQL password")
+	cmd.PersistentFlags().String(cmdFlagNameMySQLHost, "", "the MySQL hostname")
+	cmd.PersistentFlags().Int(cmdFlagNameMySQLPort, 3306, "the MySQL port")
+	cmd.PersistentFlags().String(cmdFlagNameMySQLDatabase, "authelia", "the MySQL database name")
+	cmd.PersistentFlags().String(cmdFlagNameMySQLUsername, "authelia", "the MySQL username")
+	cmd.PersistentFlags().String(cmdFlagNameMySQLPassword, "", "the MySQL password")
 
-	cmd.PersistentFlags().String("postgres.host", "", "the PostgreSQL hostname")
-	cmd.PersistentFlags().Int("postgres.port", 5432, "the PostgreSQL port")
-	cmd.PersistentFlags().String("postgres.database", "authelia", "the PostgreSQL database name")
-	cmd.PersistentFlags().String("postgres.schema", "public", "the PostgreSQL schema name")
-	cmd.PersistentFlags().String("postgres.username", "authelia", "the PostgreSQL username")
-	cmd.PersistentFlags().String("postgres.password", "", "the PostgreSQL password")
+	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLHost, "", "the PostgreSQL hostname")
+	cmd.PersistentFlags().Int(cmdFlagNamePostgreSQLPort, 5432, "the PostgreSQL port")
+	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLDatabase, "authelia", "the PostgreSQL database name")
+	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLSchema, "public", "the PostgreSQL schema name")
+	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLUsername, "authelia", "the PostgreSQL username")
+	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLPassword, "", "the PostgreSQL password")
 	cmd.PersistentFlags().String("postgres.ssl.mode", "disable", "the PostgreSQL ssl mode")
 	cmd.PersistentFlags().String("postgres.ssl.root_certificate", "", "the PostgreSQL ssl root certificate file location")
 	cmd.PersistentFlags().String("postgres.ssl.certificate", "", "the PostgreSQL ssl certificate file location")
@@ -83,7 +83,7 @@ func newStorageEncryptionCheckCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().Bool("verbose", false, "enables verbose checking of every row of encrypted data")
+	cmd.Flags().Bool(cmdFlagNameVerbose, false, "enables verbose checking of every row of encrypted data")
 
 	return cmd
 }
@@ -99,7 +99,7 @@ func newStorageEncryptionChangeKeyCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().String("new-encryption-key", "", "the new key to encrypt the data with")
+	cmd.Flags().String(cmdFlagNameNewEncryptionKey, "", "the new key to encrypt the data with")
 
 	return cmd
 }
@@ -154,7 +154,7 @@ func newStorageUserIdentifiersExportCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "user-opaque-identifiers.yml", "The file name for the YAML export")
 
 	return cmd
 }
@@ -170,7 +170,7 @@ func newStorageUserIdentifiersImportCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP("file", "f", "user-opaque-identifiers.yml", "The file name for the YAML import")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "user-opaque-identifiers.yml", "The file name for the YAML import")
 
 	return cmd
 }
@@ -186,9 +186,9 @@ func newStorageUserIdentifiersGenerateCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringSlice("users", nil, "The list of users to generate the opaque identifiers for")
-	cmd.Flags().StringSlice("services", []string{identifierServiceOpenIDConnect}, fmt.Sprintf("The list of services to generate the opaque identifiers for, valid values are: %s", strings.Join(validIdentifierServices, ", ")))
-	cmd.Flags().StringSlice("sectors", []string{""}, "The list of sectors to generate identifiers for")
+	cmd.Flags().StringSlice(cmdFlagNameUsers, nil, "The list of users to generate the opaque identifiers for")
+	cmd.Flags().StringSlice(cmdFlagNameServices, []string{identifierServiceOpenIDConnect}, fmt.Sprintf("The list of services to generate the opaque identifiers for, valid values are: %s", strings.Join(validIdentifierServices, ", ")))
+	cmd.Flags().StringSlice(cmdFlagNameSectors, []string{""}, "The list of sectors to generate identifiers for")
 
 	return cmd
 }
@@ -205,9 +205,9 @@ func newStorageUserIdentifiersAddCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().String("identifier", "", "The optional version 4 UUID to use, if not set a random one will be used")
-	cmd.Flags().String("service", identifierServiceOpenIDConnect, fmt.Sprintf("The service to add the identifier for, valid values are: %s", strings.Join(validIdentifierServices, ", ")))
-	cmd.Flags().String("sector", "", "The sector identifier to use (should usually be blank)")
+	cmd.Flags().String(cmdFlagNameIdentifier, "", "The optional version 4 UUID to use, if not set a random one will be used")
+	cmd.Flags().String(cmdFlagNameService, identifierServiceOpenIDConnect, fmt.Sprintf("The service to add the identifier for, valid values are: %s", strings.Join(validIdentifierServices, ", ")))
+	cmd.Flags().String(cmdFlagNameSector, "", "The sector identifier to use (should usually be blank)")
 
 	return cmd
 }
@@ -257,9 +257,9 @@ func newStorageUserWebAuthnDeleteCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().Bool("all", false, "delete all of the users webauthn devices")
-	cmd.Flags().String("description", "", "delete a users webauthn device by description")
-	cmd.Flags().String("kid", "", "delete a users webauthn device by key id")
+	cmd.Flags().Bool(cmdFlagNameAll, false, "delete all of the users webauthn devices")
+	cmd.Flags().String(cmdFlagNameDescription, "", "delete a users webauthn device by description")
+	cmd.Flags().String(cmdFlagNameKeyID, "", "delete a users webauthn device by key id")
 
 	return cmd
 }
@@ -295,14 +295,14 @@ func newStorageUserTOTPGenerateCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().String("secret", "", "Optionally set the TOTP shared secret as base32 encoded bytes (no padding), it's recommended to not set this option unless you're restoring an TOTP config")
-	cmd.Flags().Uint("secret-size", schema.TOTPSecretSizeDefault, "set the TOTP secret size")
-	cmd.Flags().Uint("period", 30, "set the TOTP period")
-	cmd.Flags().Uint("digits", 6, "set the TOTP digits")
-	cmd.Flags().String("algorithm", "SHA1", "set the TOTP algorithm")
-	cmd.Flags().String("issuer", "Authelia", "set the TOTP issuer")
-	cmd.Flags().BoolP("force", "f", false, "forces the TOTP configuration to be generated regardless if it exists or not")
-	cmd.Flags().StringP("path", "p", "", "path to a file to create a PNG file with the QR code (optional)")
+	cmd.Flags().String(cmdFlagNameSecret, "", "set the shared secret as base32 encoded bytes (no padding), it's recommended that you do not use this option unless you're restoring a configuration")
+	cmd.Flags().Uint(cmdFlagNameSecretSize, schema.TOTPSecretSizeDefault, "set the secret size")
+	cmd.Flags().Uint(cmdFlagNamePeriod, 30, "set the period between rotations")
+	cmd.Flags().Uint(cmdFlagNameDigits, 6, "set the number of digits")
+	cmd.Flags().String(cmdFlagNameAlgorithm, "SHA1", "set the algorithm to either SHA1 (supported by most applications), SHA256, or SHA512")
+	cmd.Flags().String(cmdFlagNameIssuer, "Authelia", "set the issuer description")
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "forces the configuration to be generated regardless if it exists or not")
+	cmd.Flags().StringP(cmdFlagNamePath, "p", "", "path to a file to create a PNG file with the QR code (optional)")
 
 	return cmd
 }
@@ -333,7 +333,7 @@ func newStorageUserTOTPExportCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().String("format", storageTOTPExportFormatURI, fmt.Sprintf("sets the output format, valid values are: %s", strings.Join(validStorageTOTPExportFormats, ", ")))
+	cmd.Flags().String(cmdFlagNameFormat, storageTOTPExportFormatURI, fmt.Sprintf("sets the output format, valid values are: %s", strings.Join(validStorageTOTPExportFormats, ", ")))
 	cmd.Flags().String("dir", "", "used with the png output format to specify which new directory to save the files in")
 
 	return cmd
@@ -431,7 +431,7 @@ func newStorageMigrateUpCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to, by default this is the latest version")
+	cmd.Flags().IntP(cmdFlagNameTarget, "t", 0, "sets the version to migrate to, by default this is the latest version")
 
 	return cmd
 }
@@ -448,9 +448,8 @@ func newStorageMigrateDownCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().IntP("target", "t", 0, "sets the version to migrate to")
-	cmd.Flags().Bool("pre1", false, "sets pre1 as the version to migrate to")
-	cmd.Flags().Bool("destroy-data", false, "confirms you want to destroy data with this migration")
+	cmd.Flags().IntP(cmdFlagNameTarget, "t", 0, "sets the version to migrate to")
+	cmd.Flags().Bool(cmdFlagNameDestroyData, false, "confirms you want to destroy data with this migration")
 
 	return cmd
 }

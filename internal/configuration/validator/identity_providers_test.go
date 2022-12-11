@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -124,13 +125,12 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 
 	ValidateIdentityProviders(config, validator)
 
-	require.Len(t, validator.Errors(), 6)
+	require.Len(t, validator.Errors(), 5)
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://example.com/' as it has a path: origins must only be scheme, hostname, and an optional port")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://site.example.com/subpath' as it has a path: origins must only be scheme, hostname, and an optional port")
 	assert.EqualError(t, validator.Errors()[2], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://site.example.com?example=true' as it has a query string: origins must only be scheme, hostname, and an optional port")
 	assert.EqualError(t, validator.Errors()[3], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself")
 	assert.EqualError(t, validator.Errors()[4], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled")
-	assert.EqualError(t, validator.Errors()[5], "identity_providers: oidc: client 'myclient': option 'redirect_uris' has an invalid value: redirect uri 'file://a/file' must have a scheme of 'http' or 'https' but 'file' is configured")
 
 	require.Len(t, config.OIDC.CORS.AllowedOrigins, 6)
 	assert.Equal(t, "*", config.OIDC.CORS.AllowedOrigins[3].String())
@@ -312,6 +312,23 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			Errors: []string{
 				fmt.Sprintf(errFmtOIDCClientInvalidSectorIdentifierHost, "client-invalid-sector", "example.com/path?query=abc#fragment"),
+			},
+		},
+		{
+			Name: "InvalidConsentMode",
+			Clients: []schema.OpenIDConnectClientConfiguration{
+				{
+					ID:     "client-bad-consent-mode",
+					Secret: MustDecodeSecret("$plaintext$a-secret"),
+					Policy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "cap",
+				},
+			},
+			Errors: []string{
+				fmt.Sprintf(errFmtOIDCClientInvalidConsentMode, "client-bad-consent-mode", strings.Join(append(validOIDCClientConsentModes, "auto"), "', '"), "cap"),
 			},
 		},
 	}
@@ -634,6 +651,8 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidPublicClients(t *te
 }
 
 func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
+	timeDay := time.Hour * 24
+
 	validator := schema.NewStructValidator()
 	config := &schema.IdentityProvidersConfiguration{
 		OIDC: &schema.OpenIDConnectConfiguration{
@@ -646,6 +665,7 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 					RedirectURIs: []string{
 						"https://google.com",
 					},
+					ConsentPreConfiguredDuration: &timeDay,
 				},
 				{
 					ID:                       "b-client",
@@ -670,6 +690,30 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 						"form_post",
 						"fragment",
 					},
+				},
+				{
+					ID:     "c-client",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "implicit",
+				},
+				{
+					ID:     "d-client",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "explicit",
+				},
+				{
+					ID:     "e-client",
+					Secret: MustDecodeSecret("$plaintext$a-client-secret"),
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					ConsentMode: "pre-configured",
 				},
 			},
 		},
@@ -702,6 +746,15 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	require.Len(t, config.OIDC.Clients[1].Scopes, 2)
 	assert.Equal(t, "groups", config.OIDC.Clients[1].Scopes[0])
 	assert.Equal(t, "openid", config.OIDC.Clients[1].Scopes[1])
+
+	// Assert Clients[0] ends up configured with the correct consent mode.
+	require.NotNil(t, config.OIDC.Clients[0].ConsentPreConfiguredDuration)
+	assert.Equal(t, time.Hour*24, *config.OIDC.Clients[0].ConsentPreConfiguredDuration)
+	assert.Equal(t, "pre-configured", config.OIDC.Clients[0].ConsentMode)
+
+	// Assert Clients[1] ends up configured with the correct consent mode.
+	assert.Nil(t, config.OIDC.Clients[1].ConsentPreConfiguredDuration)
+	assert.Equal(t, "explicit", config.OIDC.Clients[1].ConsentMode)
 
 	// Assert Clients[0] ends up configured with the default GrantTypes.
 	require.Len(t, config.OIDC.Clients[0].GrantTypes, 2)
@@ -737,6 +790,15 @@ func TestValidateIdentityProvidersShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, time.Minute, config.OIDC.AuthorizeCodeLifespan)
 	assert.Equal(t, time.Hour, config.OIDC.IDTokenLifespan)
 	assert.Equal(t, time.Minute*90, config.OIDC.RefreshTokenLifespan)
+
+	assert.Equal(t, "implicit", config.OIDC.Clients[2].ConsentMode)
+	assert.Nil(t, config.OIDC.Clients[2].ConsentPreConfiguredDuration)
+
+	assert.Equal(t, "explicit", config.OIDC.Clients[3].ConsentMode)
+	assert.Nil(t, config.OIDC.Clients[3].ConsentPreConfiguredDuration)
+
+	assert.Equal(t, "pre-configured", config.OIDC.Clients[4].ConsentMode)
+	assert.Equal(t, schema.DefaultOpenIDConnectClientConfiguration.ConsentPreConfiguredDuration, config.OIDC.Clients[4].ConsentPreConfiguredDuration)
 }
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
@@ -749,6 +811,7 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 			"oc://ios.owncloud.com",
 			// example given in the RFC https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
 			"com.example.app:/oauth2redirect/example-provider",
+			oauth2InstalledApp,
 		},
 	}
 
@@ -767,16 +830,15 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 		validateOIDCClientRedirectURIs(conf, validator)
 
 		assert.Len(t, validator.Warnings(), 0)
-		assert.Len(t, validator.Errors(), 2)
+		assert.Len(t, validator.Errors(), 1)
 		assert.ElementsMatch(t, validator.Errors(), []error{
-			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has an invalid value: redirect uri 'oc://ios.owncloud.com' must have a scheme of 'http' or 'https' but 'oc' is configured"),
-			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has an invalid value: redirect uri 'com.example.app:/oauth2redirect/example-provider' must have a scheme of 'http' or 'https' but 'com.example.app' is configured"),
+			errors.New("identity_providers: oidc: client 'owncloud': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type"),
 		})
 	})
 }
 
 func MustDecodeSecret(value string) *schema.PasswordDigest {
-	if secret, err := schema.NewPasswordDigest(value, true); err != nil {
+	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)
 	} else {
 		return secret

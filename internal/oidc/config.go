@@ -40,9 +40,11 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
 		},
 	}
 
-	c.Strategy.Core = &oauth2.HMACSHAStrategy{
+	prefix := "authelia_%s_"
+	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
+		prefix: &prefix,
 	}
 
 	return c
@@ -64,6 +66,7 @@ type Config struct {
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
 
+	Hasher               *Hasher
 	Hash                 HashConfig
 	Strategy             StrategyConfig
 	PAR                  PARConfig
@@ -253,31 +256,31 @@ func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 		},
 	}
 
-	config := HandlersConfig{}
+	x := HandlersConfig{}
 
 	for _, handler := range handlers {
 		if h, ok := handler.(fosite.AuthorizeEndpointHandler); ok {
-			config.AuthorizeEndpoint.Append(h)
+			x.AuthorizeEndpoint.Append(h)
 		}
 
 		if h, ok := handler.(fosite.TokenEndpointHandler); ok {
-			config.TokenEndpoint.Append(h)
+			x.TokenEndpoint.Append(h)
 		}
 
 		if h, ok := handler.(fosite.TokenIntrospector); ok {
-			config.TokenIntrospection.Append(h)
+			x.TokenIntrospection.Append(h)
 		}
 
 		if h, ok := handler.(fosite.RevocationHandler); ok {
-			config.Revocation.Append(h)
+			x.Revocation.Append(h)
 		}
 
 		if h, ok := handler.(fosite.PushedAuthorizeEndpointHandler); ok {
-			config.PushedAuthorizeEndpoint.Append(h)
+			x.PushedAuthorizeEndpoint.Append(h)
 		}
 	}
 
-	c.Handlers = config
+	c.Handlers = x
 }
 
 // GetAllowedPrompts returns the allowed prompts.
@@ -415,13 +418,13 @@ func (c *Config) GetTokenEntropy(ctx context.Context) (entropy int) {
 }
 
 // GetGlobalSecret returns the global secret.
-func (c *Config) GetGlobalSecret(ctx context.Context) (secret []byte) {
-	return c.GlobalSecret
+func (c *Config) GetGlobalSecret(ctx context.Context) (secret []byte, err error) {
+	return c.GlobalSecret, nil
 }
 
 // GetRotatedGlobalSecrets returns the rotated global secrets.
-func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte) {
-	return c.RotatedGlobalSecrets
+func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte, err error) {
+	return c.RotatedGlobalSecrets, nil
 }
 
 // GetHTTPClient returns the HTTP client provider.
@@ -515,7 +518,7 @@ func (c *Config) GetTokenURL(ctx context.Context) (tokenURL string) {
 // GetSecretsHasher returns the client secrets hashing function.
 func (c *Config) GetSecretsHasher(ctx context.Context) (hasher fosite.Hasher) {
 	if c.Hash.ClientSecrets == nil {
-		c.Hash.ClientSecrets = &AdaptiveHasher{}
+		c.Hash.ClientSecrets, _ = NewHasher()
 	}
 
 	return c.Hash.ClientSecrets

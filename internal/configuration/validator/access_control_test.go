@@ -88,6 +88,22 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "access control: networks: network group 'internal' is invalid: the network 'abc.def.ghi.jkl' is not a valid IP or CIDR notation")
 }
 
+func (suite *AccessControl) TestShouldRaiseWarningOnBadDomain() {
+	suite.config.AccessControl.Rules = []schema.ACLRule{
+		{
+			Domains: []string{"*example.com"},
+			Policy:  "one_factor",
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 1)
+	suite.Require().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "access control: rule #1: domain #1: domain '*example.com' is ineffective and should probably be '*.example.com' instead")
+}
+
 func (suite *AccessControl) TestShouldRaiseErrorWithNoRulesDefined() {
 	suite.config.AccessControl.Rules = []schema.ACLRule{}
 

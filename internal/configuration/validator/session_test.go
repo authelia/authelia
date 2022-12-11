@@ -49,6 +49,20 @@ func TestShouldSetDefaultSessionValuesWhenNegative(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.RememberMeDuration, config.RememberMeDuration)
 }
 
+func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Domain = ".example.com"
+
+	ValidateSession(&config, validator)
+
+	require.Len(t, validator.Warnings(), 1)
+	assert.Len(t, validator.Errors(), 0)
+
+	assert.EqualError(t, validator.Warnings()[0], "session: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it")
+}
+
 func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()

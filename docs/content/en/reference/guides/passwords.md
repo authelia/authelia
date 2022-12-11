@@ -156,7 +156,7 @@ See the [Crypt (C) Wiki page](https://en.wikipedia.org/wiki/Crypt_(C)) for more 
 #### Tuning
 
 The configuration variables are unique to the file authentication provider, thus they all exist in a key under the file
-authentication configuration key called [password](../../configuration/first-factor/file.md#password). The defaults are
+authentication configuration key called [password](../../configuration/first-factor/file.md#password-options). The defaults are
 considered as sane for a reasonable system however we still recommend taking time to figure out the best values to
 adequately determine the [cost](#cost).
 
