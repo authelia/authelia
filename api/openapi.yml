@@ -24,8 +24,12 @@ tags:
     description: User configuration endpoints
   - name: Second Factor
     description: TOTP, Webauthn and Duo endpoints
+    externalDocs:
+      url: https://www.authelia.com/configuration/second-factor/introduction/
   - name: OpenID Connect 1.0
     description: OpenID Connect 1.0 and OAuth 2.0 Endpoints
+    externalDocs:
+      url: https://www.authelia.com/integration/openid-connect/introduction/
 paths:
   /api/configuration:
     get:
@@ -633,58 +637,6 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
-  /api/oidc/consent:
-    get:
-      tags:
-        - OpenID Connect 1.0
-      summary: OpenID Connect 1.0 Consent Information
-      description: >
-        This endpoint retrieves the consent information about a specific consent ID during the consent workflow.
-      parameters:
-        - $ref: '#/components/parameters/idRequiredParam'
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/openid.request.consent'
-        "403":
-          description: Forbidden
-      security:
-        - authelia_auth: []
-    post:
-      tags:
-        - OpenID Connect 1.0
-      summary: OpenID Connect 1.0 Consent Response
-      description: >
-        This endpoint retrieves the consent response for a specific consent ID during the consent workflow.
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/openid.response.consent'
-        "403":
-          description: Forbidden
-      security:
-        - authelia_auth: []
-  /jwks.json:
-    get:
-      tags:
-        - OpenID Connect 1.0
-      summary: OpenID Connect 1.0 JSON Web Key Set Document
-      description: >
-        This endpoint retrieves the OpenID Connect 1.0 JSON Web Key Set Document (JWKS) used by clients to validate
-        information from this OpenID Connect 1.0 Provider.
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/openid.request.jwks'
   /.well-known/openid-configuration:
     get:
       tags:
@@ -723,6 +675,21 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
+  /jwks.json:
+    get:
+      tags:
+        - OpenID Connect 1.0
+      summary: OpenID Connect 1.0 JSON Web Key Set Document
+      description: >
+        This endpoint retrieves the OpenID Connect 1.0 JSON Web Key Set Document (JWKS) used by clients to validate
+        information from this OpenID Connect 1.0 Provider.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.request.jwks'
   /api/oidc/authorization:
     get:
       tags:
@@ -1104,6 +1071,8 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
+      security:
+        - authelia_auth: []
   /api/oidc/token:
     post:
       tags:
@@ -1278,6 +1247,43 @@ paths:
           description: Internal Server Error
       security:
         - openid: []
+  /api/oidc/consent:
+    get:
+      tags:
+        - OpenID Connect 1.0
+      summary: OpenID Connect 1.0 Consent Information
+      description: >
+        This endpoint retrieves the consent information about a specific consent ID during the consent workflow.
+      parameters:
+        - $ref: '#/components/parameters/idRequiredParam'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.request.consent'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - OpenID Connect 1.0
+      summary: OpenID Connect 1.0 Consent Response
+      description: >
+        This endpoint retrieves the consent response for a specific consent ID during the consent workflow.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/openid.response.consent'
+        "403":
+          description: Forbidden
+      security:
+        - authelia_auth: []
 components:
   parameters:
     originalURLParam:
