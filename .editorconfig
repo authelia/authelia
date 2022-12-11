@@ -7,12 +7,16 @@ trim_trailing_whitespace = true
 end_of_line = lf
 insert_final_newline = true
 
-[{.buildkite/hooks/**,*.sh,*.yml,*.yaml}]
+[{*.sh,*.yml,*.yaml}]
+indent_style = space
+indent_size = 2
+
+[.buildkite/hooks/**]
 indent_style = space
 indent_size = 2
 
 [{web/**,*.sql}]
 indent_style = space
 
-[{web/package.json,web/pnpm-lock.yaml}]
+[web/package.json]
 indent_size = 2
