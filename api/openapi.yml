@@ -699,6 +699,10 @@ paths:
         This endpoint performs OpenID Connect 1.0 Authorization.
       parameters:
         - in: query
+          name: id
+          required: false
+          description: The OpenID Connect 1.0 consent workflow ID.
+        - in: query
           name: scope
           required: true
           description: The requested scope.
