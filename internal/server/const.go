@@ -47,6 +47,7 @@ var (
 )
 
 const (
+	environment = "ENVIRONMENT"
 	dev         = "dev"
 	f           = "false"
 	t           = "true"

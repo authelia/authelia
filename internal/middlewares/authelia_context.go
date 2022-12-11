@@ -81,7 +81,7 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 		ctx.Logger.Error(marshalErr)
 	}
 
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(b)
 	ctx.Logger.Debug(err)
 }
@@ -90,7 +90,7 @@ func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 func (ctx *AutheliaCtx) ReplyStatusCode(statusCode int) {
 	ctx.Response.Reset()
 	ctx.SetStatusCode(statusCode)
-	ctx.SetContentTypeBytes(contentTypeTextPlain)
+	ctx.SetContentTypeTextPlain()
 	ctx.SetBodyString(fmt.Sprintf("%d %s", statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
@@ -108,7 +108,7 @@ func (ctx *AutheliaCtx) ReplyJSON(data any, statusCode int) (err error) {
 		ctx.SetStatusCode(statusCode)
 	}
 
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(body)
 
 	return nil
@@ -190,6 +190,14 @@ func (ctx *AutheliaCtx) BasePath() (base string) {
 	return base
 }
 
+func (ctx *AutheliaCtx) ExternalRootURI() *url.URL {
+	return &url.URL{
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.XForwardedHost()),
+		Path:   ctx.BasePath() + "/",
+	}
+}
+
 // ExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
 func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
 	protocol := ctx.XForwardedProto()
@@ -264,7 +272,7 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 
 // ReplyOK is a helper method to reply ok.
 func (ctx *AutheliaCtx) ReplyOK() {
-	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
+	ctx.SetContentTypeApplicationJSON()
 	ctx.SetBody(okMessageBytes)
 }
 
@@ -377,7 +385,7 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 		statusCode = fasthttp.StatusFound
 	}
 
-	ctx.SetContentTypeBytes(contentTypeTextHTML)
+	ctx.SetContentTypeTextHTML()
 	ctx.SetStatusCode(statusCode)
 
 	u := fasthttp.AcquireURI()
@@ -399,4 +407,16 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 	}
 
 	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
+}
+
+func (ctx *AutheliaCtx) SetContentTypeTextPlain() {
+	ctx.SetContentTypeBytes(contentTypeTextPlain)
+}
+
+func (ctx *AutheliaCtx) SetContentTypeTextHTML() {
+	ctx.SetContentTypeBytes(contentTypeTextHTML)
+}
+
+func (ctx *AutheliaCtx) SetContentTypeApplicationJSON() {
+	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
 }
