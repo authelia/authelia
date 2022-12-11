@@ -2702,5 +2702,5 @@ components:
       in: cookie
     openid:
       type: openIdConnect
-      openIdConnectUrl: "{{ .RootURL }}/.well-known/openid-configuration"
+      openIdConnectUrl: "{{ .BaseURL }}/.well-known/openid-configuration"
 ...
