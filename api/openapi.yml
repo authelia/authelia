@@ -24,8 +24,8 @@ tags:
     description: User configuration endpoints
   - name: Second Factor
     description: TOTP, Webauthn and Duo endpoints
-  - name: OpenID Connect
-    description: OpenID Connect endpoints
+  - name: OpenID Connect 1.0
+    description: OpenID Connect 1.0 and OAuth 2.0 Endpoints
 paths:
   /api/configuration:
     get:
@@ -636,7 +636,7 @@ paths:
   /api/oidc/consent:
     get:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Consent Information
       description: >
         This endpoint retrieves the consent information about a specific consent ID during the consent workflow.
@@ -655,7 +655,7 @@ paths:
         - authelia_auth: []
     post:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Consent Response
       description: >
         This endpoint retrieves the consent response for a specific consent ID during the consent workflow.
@@ -673,7 +673,7 @@ paths:
   /jwks.json:
     get:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 JSON Web Key Set Document
       description: >
         This endpoint retrieves the OpenID Connect 1.0 JSON Web Key Set Document (JWKS) used by clients to validate
@@ -688,7 +688,7 @@ paths:
   /.well-known/openid-configuration:
     get:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect Discovery 1.0 Document
       description: >
         This endpoint retrieves the OpenID Connect Discovery 1.0 document used by clients to perform discovery for
@@ -707,7 +707,7 @@ paths:
   /.well-known/oauth-authorization-server:
     get:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OAuth 2.0 Authorization Server Metadata
       description: >
         This endpoint retrieves the OAuth 2.0 Authorization Server Metadata document (RFC8414) used by clients to
@@ -726,7 +726,7 @@ paths:
   /api/oidc/authorization:
     get:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Authorization Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 Authorization.
@@ -942,7 +942,7 @@ paths:
           description: Internal Server Error
     post:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Authorization Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 Authorization.
@@ -1107,7 +1107,7 @@ paths:
   /api/oidc/token:
     post:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Token Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 Token Access Requests.
@@ -1163,7 +1163,7 @@ paths:
   /api/oidc/revocation:
     post:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OAuth 2.0 Token Revocation Endpoint
       description: >
         This endpoint performs OAuth 2.0 Token Revocation Requests.
@@ -1188,7 +1188,7 @@ paths:
   /api/oidc/introspection:
     post:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OAuth 2.0 Token Introspection Endpoint
       description: >
         This endpoint performs OAuth 2.0 Token Introspection Requests.
@@ -1217,7 +1217,7 @@ paths:
   /api/oidc/userinfo:
     get:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 UserInfo Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 UserInfo Access Requests.
@@ -1243,7 +1243,7 @@ paths:
         - openid: []
     post:
       tags:
-        - OpenID Connect
+        - OpenID Connect 1.0
       summary: OpenID Connect 1.0 UserInfo Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 UserInfo Access Requests.
