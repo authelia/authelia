@@ -2112,6 +2112,7 @@ components:
             "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is
             omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws'
         issuer:
@@ -2206,6 +2207,7 @@ components:
             entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used.
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws'
         scopes_supported:
@@ -2291,9 +2293,9 @@ components:
         - "backchannel_logout_session_supported"
       properties:
         acr_values_supported:
-          type: array
           description:
             JSON array containing a list of the Authentication Context Class References that this OP supports.
+          type: array
           items:
             type: string
         authorization_endpoint:
@@ -2322,6 +2324,7 @@ components:
             normal, aggregated, and distributed. If omitted, the implementation supports only normal Claims. See Also:
             OpenID.Core Section 5.6: https://openid.net/specs/openid-connect-core-1_0.html#ClaimTypes
           type: array
+          example: ["normal"]
           items:
             $ref: '#/components/schemas/openid.spec.claimTypes'
         claims_locales_supported:
@@ -2330,7 +2333,7 @@ components:
             [RFC5646] language tag values. Not all languages and scripts are necessarily supported for all Claim values.
             See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
           type: array
-          example: "en-US"
+          example: ["en-US"]
           items:
             type: string
         claims_parameter_supported:
@@ -2383,6 +2386,7 @@ components:
             are described in Section 3.1.2.1 of OpenID Connect Core 1.0 [OpenID.Core]. See Also: OpenID.Core Section
             3.1.2.1: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
           type: array
+          example: ["page"]
           items:
             $ref: '#/components/schemas/openid.spec.displayTypes'
         frontchannel_logout_session_supported:
@@ -2413,6 +2417,7 @@ components:
             Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWT:
             https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["A256GCMKW"]
           items:
             $ref: '#/components/schemas/jose.spec.jwe.alg'
         id_token_encryption_enc_values_supported:
@@ -2421,6 +2426,7 @@ components:
             Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["A256GCM"]
           items:
             $ref: '#/components/schemas/jose.spec.jwe.enc'
         id_token_signing_alg_values_supported:
@@ -2431,6 +2437,7 @@ components:
             (such as when using the Authorization Code Flow).
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws.none'
         introspection_endpoint:
@@ -2462,6 +2469,7 @@ components:
             "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is
             omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws'
         issuer:
@@ -2512,6 +2520,7 @@ components:
             Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by
             reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
           type: array
+          example: ["A256GCMKW"]
           items:
             $ref: '#/components/schemas/jose.spec.jwe.alg'
         request_object_encryption_enc_values_supported:
@@ -2521,6 +2530,7 @@ components:
             reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["A256GCM"]
           items:
             $ref: '#/components/schemas/jose.spec.jwe.enc'
         request_object_signing_alg_values_supported:
@@ -2530,6 +2540,7 @@ components:
             used both when the Request Object is passed by value (using the request parameter) and when it is passed by
             reference (using the request_uri parameter). Servers SHOULD support none and RS256.
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws.none'
         request_uri_parameter_supported:
@@ -2557,6 +2568,7 @@ components:
             OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic
             OpenID Providers is ["query", "fragment"].
           type: array
+          example: ["query", "fragment"]
           items:
             $ref: '#/components/schemas/openid.spec.responseModes'
         response_types_supported:
@@ -2564,6 +2576,7 @@ components:
             JSON array containing a list of the OAuth 2.0 response_type values that this OP supports. Dynamic OpenID
             Providers MUST support the code, id_token, and the token id_token Response Type values.
           type: array
+          example: ["code", "id_token", "token id_token"]
           items:
             $ref: '#/components/schemas/openid.spec.responseTypes'
         revocation_endpoint:
@@ -2581,6 +2594,7 @@ components:
             See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
             OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1
           type: array
+          example: ["client_secret_basic"]
           items:
             $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         revocation_endpoint_auth_signing_alg_values_supported:
@@ -2592,6 +2606,7 @@ components:
             entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used.
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws'
         scopes_supported:
@@ -2622,6 +2637,7 @@ components:
             JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include
             pairwise and public.
           type: array
+          example: ["public", "pairwise"]
           items:
             $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
         token_endpoint:
@@ -2639,6 +2655,7 @@ components:
             2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749
             OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
           type: array
+          example: ["client_secret_post"]
           items:
             $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         token_endpoint_auth_signing_alg_values_supported:
@@ -2648,6 +2665,7 @@ components:
             private_key_jwt and client_secret_jwt authentication methods. Servers SHOULD support RS256.
             The value none MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws'
         ui_locales_supported:
@@ -2665,6 +2683,7 @@ components:
             https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["A256GCMKW"]
           items:
             $ref: '#/components/schemas/jose.spec.jwe.alg'
         userinfo_encryption_enc_values_supported:
@@ -2673,6 +2692,7 @@ components:
             Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["A256GCM"]
           items:
             $ref: '#/components/schemas/jose.spec.jwe.enc'
         userinfo_endpoint:
@@ -2689,6 +2709,7 @@ components:
             JWS: https://datatracker.ietf.org/doc/html/rfc7515 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT:
             https://datatracker.ietf.org/doc/html/rfc7519
           type: array
+          example: ["none", "RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws.none'
     openid.request.jwks:
@@ -3015,14 +3036,12 @@ components:
         A Subject Identifier is a locally unique and never reassigned identifier within the Issuer for the
         End-User, which is intended to be consumed by the Client.
       type: string
-      example: "public"
       enum:
         - "public"
         - "pairwise"
     openid.spec.clientAuthMethods:
       description: The OAuth 2.0 / OpenID Connect 1.0 Client Authentication Method.
       type: string
-      example: "client_secret_post"
       enum:
         - "client_secret_basic"
         - "client_secret_post"
@@ -3034,7 +3053,6 @@ components:
         ASCII string value that specifies how the Authorization Server displays the authentication and consent user
         interface pages to the End-User.
       type: string
-      example: "page"
       enum:
         - "page"
         - "popup"
@@ -3043,7 +3061,6 @@ components:
     openid.spec.responseTypes:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
       type: string
-      example: "code"
       enum:
         - "code"
         - "id_token"
@@ -3059,7 +3076,6 @@ components:
         Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
         the default mode specified for the Response Type.
       type: string
-      example: "query"
       enum:
         - "query"
         - "fragment"
@@ -3067,7 +3083,6 @@ components:
     openid.spec.grantTypes:
       description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
       type: string
-      example: "authorization_code"
       enum:
         - "authorization_code"
         - "refresh_token"
@@ -3077,14 +3092,12 @@ components:
     openid.spec.codeChallengeMethods:
       description: The RFC7636 Code Challenge Verifier Method.
       type: string
-      example: "S256"
       enum:
         - "plain"
         - "S256"
     openid.spec.claimTypes:
       description: The representation of claims.
       type: string
-      example: "normal"
       enum:
         - "normal"
         - "aggregated"
@@ -3098,7 +3111,6 @@ components:
         Resistant Name. The "kty" value is a case-sensitive string. This
         member MUST be present in a JWK.
       type: string
-      example: "RSA"
       enum:
         - "EC"
         - "RSA"
@@ -3109,7 +3121,6 @@ components:
         The curve parameter identifies the cryptographic curve used with the key. Curve
         values from [DSS] used by this specification.
       type: string
-      example: "P-512"
       enum:
         - "P-256"
         - "P-384"
@@ -3122,7 +3133,6 @@ components:
     oauth2.implementation.scopes:
       description: The scope.
       type: string
-      example: "profile"
       enum:
         - "openid"
         - "offline_access"
@@ -3135,11 +3145,11 @@ components:
         - "none"
     jose.spec.jws.none:
       type: string
-      example: "RS256"
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.jws.base'
+        - $ref: '#/components/schemas/jose.spec.jws'
         - $ref: '#/components/schemas/jose.spec.jws.none'
-    jose.spec.jws.base:
+    jose.spec.jws:
+      description: The JSON Web Signature Algorithm
       type: string
       enum:
         - "HS256"
@@ -3154,13 +3164,8 @@ components:
         - "PS256"
         - "PS384"
         - "PS512"
-    jose.spec.jws:
-      description: The JSON Web Signature Algorithm
-      type: string
-      example: "RS256"
-      oneOf:
-        - $ref: '#/components/schemas/jose.spec.jws'
-    jose.spec.jwe.alg.base:
+    jose.spec.jwe.alg:
+      description: The JSON Web Encryption Algorithm (CEK)
       type: string
       enum:
         - "RSA1_5"
@@ -3180,13 +3185,8 @@ components:
         - "PBES2-HS256+A128KW"
         - "PBES2-HS384+A192KW"
         - "PBES2-HS512+A256KW"
-    jose.spec.jwe.alg:
-      description: The JSON Web Encryption Algorithm (CEK)
-      type: string
-      example: "A256KW"
-      oneOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.alg.base'
-    jose.spec.jwe.enc.base:
+    jose.spec.jwe.enc:
+      description: The JSON Web Encryption Algorithm (Claims)
       type: string
       enum:
         - "A128CBC-HS256"
@@ -3196,12 +3196,6 @@ components:
         - "A256CBC"
         - "A128GCM"
         - "A256GCM"
-    jose.spec.jwe.enc:
-      description: The JSON Web Encryption Algorithm (Claims)
-      type: string
-      example: "A256GCM"
-      oneOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.enc.base'
     jose.spec.jwa:
       description: >
         The "alg" (algorithm) parameter identifies the algorithm intended for
@@ -3211,10 +3205,9 @@ components:
         Resistant Name. The "alg" value is a case-sensitive ASCII string.
         Use of this member is OPTIONAL.
       type: string
-      example: "RS256"
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.alg.base'
-        - $ref: '#/components/schemas/jose.spec.jws.base'
+        - $ref: '#/components/schemas/jose.spec.jwe.alg'
+        - $ref: '#/components/schemas/jose.spec.jws'
     jose.spec.jwa.none:
       description: >
         The "alg" (algorithm) parameter identifies the algorithm intended for
@@ -3224,10 +3217,9 @@ components:
         Resistant Name. The "alg" value is a case-sensitive ASCII string.
         Use of this member is OPTIONAL.
       type: string
-      example: "RS256"
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.alg.base'
-        - $ref: '#/components/schemas/jose.spec.jws.base'
+        - $ref: '#/components/schemas/jose.spec.jwe.alg'
+        - $ref: '#/components/schemas/jose.spec.jws'
         - $ref: '#/components/schemas/jose.spec.jws.none'
   securitySchemes:
     authelia_auth:
