@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -178,7 +177,7 @@ func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
 
 // QueryArgRedirect return the content of the rd query argument.
 func (ctx *AutheliaCtx) QueryArgRedirect() (val []byte) {
-	return ctx.RequestCtx.QueryArgs().PeekBytes(queryArgRedirect)
+	return ctx.RequestCtx.QueryArgs().PeekBytes(qryArgRedirect)
 }
 
 // BasePath returns the base_url as per the path visited by the client.
@@ -190,63 +189,13 @@ func (ctx *AutheliaCtx) BasePath() (base string) {
 	return base
 }
 
-func (ctx *AutheliaCtx) ExternalRootURI() *url.URL {
+// RootURL returns the Root URL.
+func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
 		Host:   string(ctx.XForwardedHost()),
-		Path:   ctx.BasePath() + "/",
+		Path:   ctx.BasePath(),
 	}
-}
-
-// ExternalRootURL gets the X-Forwarded-Proto, X-Forwarded-Host headers and the BasePath and forms them into a URL.
-func (ctx *AutheliaCtx) ExternalRootURL() (string, error) {
-	protocol := ctx.XForwardedProto()
-	if protocol == nil {
-		return "", errMissingXForwardedProto
-	}
-
-	host := ctx.XForwardedHost()
-	if host == nil {
-		return "", errMissingXForwardedHost
-	}
-
-	externalRootURL := fmt.Sprintf("%s://%s", protocol, host)
-
-	if base := ctx.BasePath(); base != "" {
-		externalBaseURL, err := url.ParseRequestURI(externalRootURL)
-		if err != nil {
-			return "", err
-		}
-
-		externalBaseURL.Path = path.Join(externalBaseURL.Path, base)
-
-		return externalBaseURL.String(), nil
-	}
-
-	return externalRootURL, nil
-}
-
-// IssuerURL returns the expected Issuer.
-func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
-	issuerURL = &url.URL{
-		Scheme: "https",
-	}
-
-	if scheme := ctx.XForwardedProto(); scheme != nil {
-		issuerURL.Scheme = string(scheme)
-	}
-
-	if host := ctx.XForwardedHost(); len(host) != 0 {
-		issuerURL.Host = string(host)
-	} else {
-		return nil, errMissingXForwardedHost
-	}
-
-	if base := ctx.BasePath(); base != "" {
-		issuerURL.Path = path.Join(issuerURL.Path, base)
-	}
-
-	return issuerURL, nil
 }
 
 // XOriginalURL return the content of the X-Original-URL header.

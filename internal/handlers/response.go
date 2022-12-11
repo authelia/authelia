@@ -144,11 +144,7 @@ func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, targe
 		return
 	}
 
-	if issuerURL, err = ctx.IssuerURL(); err != nil {
-		ctx.Error(fmt.Errorf("unable to get issuer for redirection: %w", err), messageAuthenticationFailed)
-
-		return
-	}
+	issuerURL = ctx.RootURL()
 
 	if targetURL.Host != issuerURL.Host {
 		ctx.Error(fmt.Errorf("unable to redirect to '%s': target host '%s' does not match expected issuer host '%s'", targetURL, targetURL.Host, issuerURL.Host), messageAuthenticationFailed)
@@ -221,11 +217,7 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, id string) {
 		form      url.Values
 	)
 
-	if targetURL, err = ctx.IssuerURL(); err != nil {
-		ctx.Error(fmt.Errorf("unable to get issuer for redirection: %w", err), messageAuthenticationFailed)
-
-		return
-	}
+	targetURL = ctx.RootURL()
 
 	if form, err = consent.GetForm(); err != nil {
 		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)

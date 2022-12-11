@@ -73,7 +73,7 @@ func ServeTemplatedFile(publicDir, file, assetPath, duoSelfEnrollment, rememberM
 		if err = tmpl.Execute(ctx.Response.BodyWriter(),
 			TemplatedFileCommonData{
 				Base:                   ctx.BasePath(),
-				BaseURL:                ctx.ExternalRootURI().String(),
+				BaseURL:                ctx.RootURL().String(),
 				CSPNonce:               nonce,
 				DuoSelfEnrollment:      duoSelfEnrollment,
 				LogoOverride:           logoOverride,
