@@ -742,16 +742,9 @@ paths:
           required: true
           description: The OAuth 2.0 response type.
           schema:
-            type: string
-            enum:
-              - "code"
-              - "id_token"
-              - "token"
-              - "code token"
-              - "code id_token"
-              - "token id_token"
-              - "code id_token token"
-              - "none"
+            required: true
+            oneOf:
+              - $ref: '#/components/schemas/openid.spec.responseTypes'
         - in: query
           name: client_id
           required: true
@@ -788,11 +781,7 @@ paths:
             Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
             the default mode specified for the Response Type.
           schema:
-            type: string
-            enum:
-              - "query"
-              - "fragment"
-              - "form_post"
+            $ref: '#/components/schemas/openid.spec.responseModes'
         - in: query
           name: nonce
           required: false
@@ -810,12 +799,7 @@ paths:
             Not Supported: ASCII string value that specifies how the Authorization Server displays the authentication
             and consent user interface pages to the End-User.
           schema:
-            type: string
-            enum:
-              - "page"
-              - "popup"
-              - "touch"
-              - "wap"
+            $ref: '#/components/schemas/openid.spec.displayTypes'
         - in: query
           name: prompt
           required: false
@@ -920,6 +904,21 @@ paths:
             supported when the OP's JWK key type is RSA and the encryption algorithm used is RSA1_5.
           schema:
             type: string
+        - in: query
+          name: code_challenge
+          required: false
+          description: >
+            RFC7636 Code Challenge.
+          schema:
+            type: string
+        - in: query
+          name: code_challenge_method
+          required: false
+          description: >
+            RFC7636 Code Challenge Method. defaults to "plain" if not present in the request.
+            Code verifier transformation method is "S256" or "plain".
+          schema:
+            $ref: '#/components/schemas/openid.spec.codeChallengeMethods'
       responses:
         "200":
           description: OK
@@ -961,17 +960,8 @@ paths:
                   type: string
                 response_type:
                   required: true
-                  description: The OAuth 2.0 response type.
-                  type: string
-                  enum:
-                    - "code"
-                    - "id_token"
-                    - "token"
-                    - "code token"
-                    - "code id_token"
-                    - "token id_token"
-                    - "code id_token token"
-                    - "none"
+                  oneOf:
+                    - $ref: '#/components/schemas/openid.spec.responseTypes'
                 client_id:
                   required: true
                   description: The OAuth 2.0 client identifier.
@@ -995,16 +985,7 @@ paths:
                     browser cookie.
                   type: string
                 response_mode:
-                  required: false
-                  description: >
-                    Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
-                    Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
-                    the default mode specified for the Response Type.
-                  type: string
-                  enum:
-                    - "query"
-                    - "fragment"
-                    - "form_post"
+                  $ref: '#/components/schemas/openid.spec.responseModes'
                 nonce:
                   required: false
                   description: >
@@ -1014,16 +995,7 @@ paths:
                     Section 15.5.2.
                   type: string
                 display:
-                  required: false
-                  description: >
-                    Not Supported: ASCII string value that specifies how the Authorization Server displays the authentication
-                    and consent user interface pages to the End-User.
-                  type: string
-                  enum:
-                    - "page"
-                    - "popup"
-                    - "touch"
-                    - "wap"
+                  $ref: '#/components/schemas/openid.spec.displayTypes'
                 prompt:
                   required: false
                   description: >
@@ -2052,108 +2024,210 @@ components:
       properties:
         authorization_endpoint:
           type: string
-          description: 'REQUIRED. URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core]. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          example: "{{ .BaseURL }}/api/oidc/authorization"
+          description: >
+            URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
+            See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
         claims_supported:
           type: array
-          description: RECOMMENDED. JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply values for. Note that for privacy or other reasons, this might not be an exhaustive list.
+          description: >
+            JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply
+            values for. Note that for privacy or other reasons, this might not be an exhaustive list.
           items:
             type: string
         code_challenge_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization server. Code challenge method values are used in the "code_challenge_method" parameter defined in Section 4.3 of [RFC7636]. The valid code challenge method values are those registered in the IANA "PKCE Code Challenge Methods" registry [IANA.OAuth.Parameters]. If omitted, the authorization server does not support PKCE. See Also: PKCE: https://datatracker.ietf.org/doc/html/rfc7636 IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml'
+          description: >
+            JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization
+            server. Code challenge method values are used in the "code_challenge_method" parameter defined in Section
+            4.3 of [RFC7636]. The valid code challenge method values are those registered in the IANA "PKCE Code
+            Challenge Methods" registry [IANA.OAuth.Parameters]. If omitted, the authorization server does not support
+            PKCE. See Also:
+            PKCE: https://datatracker.ietf.org/doc/html/rfc7636 IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.codeChallengeMethods'
         grant_types_supported:
           type: array
-          description: OPTIONAL. JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports. Dynamic OpenID Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant Types. If omitted, the default value is ["authorization_code", "implicit"].
+          description: >
+            JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports. Dynamic OpenID
+            Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant
+            Types. If omitted, the default value is ["authorization_code", "implicit"].
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.grantTypes'
         introspection_endpoint:
           type: string
-          description: 'OPTIONAL. URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662'
+          example: "{{ .BaseURL }}/api/oidc/introspection"
+          description: >
+            URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token
+            Introspection: https://datatracker.ietf.org/doc/html/rfc7662
         introspection_endpoint_auth_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of client authentication methods supported by this introspection endpoint. The valid client authentication method values are those registered in the IANA "OAuth Token Endpoint Authentication Methods" registry [IANA.OAuth.Parameters] or those registered in the IANA "OAuth Access Token Types" registry [IANA.OAuth.Parameters]. (These values are and will remain distinct, due to Section 7.2.) If omitted, the set of supported authentication methods MUST be determined by other means. See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml OAuth 2.0 Authorization Server Metadata - Updated Registration Instructions: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-7.2'
+          description: >
+            JSON array containing a list of client authentication methods supported by this introspection endpoint. The
+            valid client authentication method values are those registered in the IANA "OAuth Token Endpoint
+            Authentication Methods" registry [IANA.OAuth.Parameters] or those registered in the IANA "OAuth Access Token
+            Types" registry [IANA.OAuth.Parameters]. (These values are and will remain distinct, due to Section 7.2.) If
+            omitted, the set of supported authentication methods MUST be determined by other means. See Also:
+            IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
+            OAuth 2.0 Authorization Server Metadata - Updated Registration Instructions:
+            https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-7.2
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         introspection_endpoint_auth_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection endpoint for the signature on the JWT [JWT] used to authenticate the client at the introspection endpoint for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be present if either of these authentication methods are specified in the "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description:  >
+            JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection
+            endpoint for the signature on the JWT [JWT] used to authenticate the client at the introspection endpoint
+            for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be
+            present if either of these authentication methods are specified in the
+            "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is
+            omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws'
         issuer:
           type: string
-          description: REQUIRED. URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier. If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
+          example: "{{ .BaseURL }}"
+          description:
+            URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier.
+            If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned
+            by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
         jwks_uri:
           type: string
-          description: REQUIRED. URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate signatures from the OP. The JWK Set MAY also contain the Server's encryption key(s), which are used by RPs to encrypt requests to the Server. When both signing and encryption keys are made available, a use (Key Use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage. Although some algorithms allow the same key to be used for both signatures and encryption, doing so is NOT RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
+          example: "{{ .BaseURL }}/jwks.json"
+          description: >
+            URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
+            signatures from the OP. The JWK Set MAY also contain the Server's encryption key(s), which are used by RPs
+            to encrypt requests to the Server. When both signing and encryption keys are made available, a use (Key Use)
+            parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage.
+            Although some algorithms allow the same key to be used for both signatures and encryption, doing so is NOT
+            RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of
+            keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
         op_policy_uri:
           type: string
-          description: OPTIONAL. URL that the OpenID Provider provides to the person registering the Client to read about the OP's requirements on how the Relying Party can use the data provided by the OP. The registration process SHOULD display this URL to the person registering the Client if it is given.
+          description:
+            URL that the OpenID Provider provides to the person registering the Client to read about the OP's
+            requirements on how the Relying Party can use the data provided by the OP. The registration process SHOULD
+            display this URL to the person registering the Client if it is given.
         op_tos_uri:
           type: string
-          description: OPTIONAL. URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's terms of service. The registration process SHOULD display this URL to the person registering the Client if it is given.
+          description: >
+            URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's
+            terms of service. The registration process SHOULD display this URL to the person registering the Client if
+            it is given.
         pushed_authorization_request_endpoint:
           type: string
-          description: The URL of the pushed authorization request endpoint at which a client can post an authorization request to exchange for a "request_uri" value usable at the authorization server.
+          example: "{{ .BaseURL }}/api/oidc/par"
+          description: >
+            The URL of the pushed authorization request endpoint at which a client can post an authorization request to
+            exchange for a "request_uri" value usable at the authorization server.
         registration_endpoint:
           type: string
-          description: 'OPTIONAL. URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also: OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591'
+          example: "{{ .BaseURL }}/api/oidc/registration"
+          description: >
+            URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
+            OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
         require_pushed_authorization_requests:
           type: boolean
-          description: Boolean parameter indicating whether the authorization server accepts authorization request data only via PAR. If omitted, the default value is "false".
+          description: >
+            Boolean parameter indicating whether the authorization server accepts authorization request data only via
+            PAR. If omitted, the default value is "false".
         response_modes_supported:
           type: array
-          description: OPTIONAL. JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic OpenID Providers is ["query", "fragment"].
+          description: >
+            JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
+            OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic
+            OpenID Providers is ["query", "fragment"].
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.responseModes'
         response_types_supported:
           type: array
-          description: REQUIRED. JSON array containing a list of the OAuth 2.0 response_type values that this OP supports. Dynamic OpenID Providers MUST support the code, id_token, and the token id_token Response Type values.
+          description: >
+            JSON array containing a list of the OAuth 2.0 response_type values that this OP supports.
+            Dynamic OpenID Providers MUST support the code, id_token, and the token id_token Response Type values.
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.responseTypes'
         revocation_endpoint:
           type: string
-          description: 'OPTIONAL. URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also: OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009'
+          example: "{{ .BaseURL }}/api/oidc/revocation"
+          description: >
+            URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009].
+            See Also: OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
         revocation_endpoint_auth_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of client authentication methods supported by this revocation endpoint. The valid client authentication method values are those registered in the IANA "OAuth Token Endpoint Authentication Methods" registry [IANA.OAuth.Parameters]. If omitted, the default is "client_secret_basic" -- the HTTP Basic Authentication Scheme specified in Section 2.3.1 of OAuth 2.0 [RFC6749]. See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1'
+          description: >
+            JSON array containing a list of client authentication methods supported by this revocation endpoint. The
+            valid client authentication method values are those registered in the IANA "OAuth Token Endpoint
+            Authentication Methods" registry [IANA.OAuth.Parameters]. If omitted, the default is "client_secret_basic"
+            -- the HTTP Basic Authentication Scheme specified in Section 2.3.1 of OAuth 2.0 [RFC6749]. See Also:
+            IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
+            OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         revocation_endpoint_auth_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the revocation endpoint for the signature on the JWT [JWT] used to authenticate the client at the revocation endpoint for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be present if either of these authentication methods are specified in the "revocation_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the revocation
+            endpoint for the signature on the JWT [JWT] used to authenticate the client at the revocation endpoint for
+            the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be present if
+            either of these authentication methods are specified in the "revocation_endpoint_auth_methods_supported"
+            entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used.
+            See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws'
         scopes_supported:
           type: array
-          description: 'RECOMMENDED. JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports. The server MUST support the openid scope value. Servers MAY choose not to advertise some supported scope values even when this parameter is used, although those defined in [OpenID.Core] SHOULD be listed, if supported. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          description: >
+            JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports. The server
+            MUST support the openid scope value. Servers MAY choose not to advertise some supported scope values even
+            when this parameter is used, although those defined in [OpenID.Core] SHOULD be listed, if supported.
+            See Also:
+            OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           items:
-            type: string
+            $ref: '#/components/schemas/oauth2.implementation.scopes'
         service_documentation:
           type: string
-          description: OPTIONAL. URL of a page containing human-readable information that developers might want or need to know when using the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration, then information on how to register Clients needs to be provided in this documentation.
+          description: >
+            URL of a page containing human-readable information that developers might want or need to know when using
+            the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration,
+            then information on how to register Clients needs to be provided in this documentation.
         subject_types_supported:
           type: array
-          description: REQUIRED. JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include pairwise and public.
+          description: >
+            JSON array containing a list of the Subject Identifier types that this OP supports.
+            Valid types include pairwise and public.
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
         token_endpoint:
           type: string
-          description: 'URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          example: "{{ .BaseURL }}/api/oidc/token"
+          description: >
+            URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
+            used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
         token_endpoint_auth_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options are client_secret_post, client_secret_basic, client_secret_jwt, and private_key_jwt, as described in Section 9 of OpenID Connect Core 1.0 [OpenID.Core]. Other authentication methods MAY be defined by extensions. If omitted, the default is client_secret_basic -- the HTTP Basic Authentication Scheme specified in Section 2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication'
+          description: >
+            JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options
+            are client_secret_post, client_secret_basic, client_secret_jwt, and private_key_jwt, as described in Section
+            9 of OpenID Connect Core 1.0 [OpenID.Core]. Other authentication methods MAY be defined by extensions. If
+            omitted, the default is client_secret_basic -- the HTTP Basic Authentication Scheme specified in Section
+            2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749
+            OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         token_endpoint_auth_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for the signature on the JWT [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt authentication methods. Servers SHOULD support RS256. The value none MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for
+            the signature on the JWT [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt
+            and client_secret_jwt authentication methods. Servers SHOULD support RS256. The value none MUST NOT be used.
+            See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwa'
         ui_locales_supported:
           type: array
-          description: 'OPTIONAL. Languages and scripts supported for the user interface, represented as a JSON array of BCP47 [RFC5646] language tag values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646'
+          description: >
+            Languages and scripts supported for the user interface, represented as a JSON array of BCP47 [RFC5646]
+            language tag values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
           items:
             type: string
     openid.request.openid-configuration:
@@ -2174,199 +2248,366 @@ components:
       properties:
         acr_values_supported:
           type: array
-          description: OPTIONAL. JSON array containing a list of the Authentication Context Class References that this OP supports.
+          description:
+            JSON array containing a list of the Authentication Context Class References that this OP supports.
           items:
             type: string
         authorization_endpoint:
           type: string
-          description: 'REQUIRED. URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core]. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          example: "{{ .BaseURL }}/api/oidc/authorization"
+          description: >
+            URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
+            See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
         backchannel_logout_session_supported:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP can pass a sid (session ID) Claim in the Logout Token to identify the RP session with the OP. If supported, the sid Claim is also included in ID Tokens issued by the OP. If omitted, the default value is false.
+          description: >
+            Boolean value specifying whether the OP can pass a sid (session ID) Claim in the Logout Token to identify
+            the RP session with the OP. If supported, the sid Claim is also included in ID Tokens issued by the OP.
+            If omitted, the default value is false.
         backchannel_logout_supported:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP supports back-channel logout, with true indicating support. If omitted, the default value is false.
+          description: >
+            Boolean value specifying whether the OP supports back-channel logout, with true indicating support. If
+            omitted, the default value is false.
         claim_types_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the Claim Types that the OpenID Provider supports. These Claim Types are described in Section 5.6 of OpenID Connect Core 1.0 [OpenID.Core]. Values defined by this specification are normal, aggregated, and distributed. If omitted, the implementation supports only normal Claims. See Also: OpenID.Core Section 5.6: https://openid.net/specs/openid-connect-core-1_0.html#ClaimTypes'
+          description: >
+            JSON array containing a list of the Claim Types that the OpenID Provider supports. These Claim Types are
+            described in Section 5.6 of OpenID Connect Core 1.0 [OpenID.Core]. Values defined by this specification are
+            normal, aggregated, and distributed. If omitted, the implementation supports only normal Claims. See Also:
+            OpenID.Core Section 5.6: https://openid.net/specs/openid-connect-core-1_0.html#ClaimTypes
           items:
             type: string
         claims_locales_supported:
           type: array
-          description: 'OPTIONAL. Languages and scripts supported for values in Claims being returned, represented as a JSON array of BCP47 [RFC5646] language tag values. Not all languages and scripts are necessarily supported for all Claim values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646'
+          description: >
+            Languages and scripts supported for values in Claims being returned, represented as a JSON array of BCP47
+            [RFC5646] language tag values. Not all languages and scripts are necessarily supported for all Claim values.
+            See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
           items:
             type: string
         claims_parameter_supported:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP supports use of the claims parameter, with true indicating support. If omitted, the default value is false.
+          description: >
+            Boolean value specifying whether the OP supports use of the claims parameter, with true indicating support.
+            If omitted, the default value is false.
         claims_supported:
           type: array
-          description: RECOMMENDED. JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply values for. Note that for privacy or other reasons, this might not be an exhaustive list.
+          description: >
+            JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply
+            values for. Note that for privacy or other reasons, this might not be an exhaustive list.
           items:
             type: string
         code_challenge_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization server. Code challenge method values are used in the "code_challenge_method" parameter defined in Section 4.3 of [RFC7636]. The valid code challenge method values are those registered in the IANA "PKCE Code Challenge Methods" registry [IANA.OAuth.Parameters]. If omitted, the authorization server does not support PKCE. See Also: PKCE: https://datatracker.ietf.org/doc/html/rfc7636 IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml'
+          description: >
+            JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization
+            server. Code challenge method values are used in the "code_challenge_method" parameter defined in Section
+            4.3 of [RFC7636]. The valid code challenge method values are those registered in the IANA "PKCE Code
+            Challenge Methods" registry [IANA.OAuth.Parameters]. If omitted, the authorization server does not support
+            PKCE. See Also: PKCE: https://datatracker.ietf.org/doc/html/rfc7636 IANA.OAuth.Parameters:
+            https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml'
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.codeChallengeMethods'
         display_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the display parameter values that the OpenID Provider supports. These values are described in Section 3.1.2.1 of OpenID Connect Core 1.0 [OpenID.Core]. See Also: OpenID.Core Section 3.1.2.1: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest'
+          description: >
+            JSON array containing a list of the display parameter values that the OpenID Provider supports. These values
+            are described in Section 3.1.2.1 of OpenID Connect Core 1.0 [OpenID.Core]. See Also: OpenID.Core Section
+            3.1.2.1: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.displayTypes'
         frontchannel_logout_session_supported:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP can pass iss (issuer) and sid (session ID) query parameters to identify the RP session with the OP when the frontchannel_logout_uri is used. If supported, the sid Claim is also included in ID Tokens issued by the OP. If omitted, the default value is false.
+          description: >
+            Boolean value specifying whether the OP can pass iss (issuer) and sid (session ID) query parameters to
+            identify the RP session with the OP when the frontchannel_logout_uri is used. If supported, the sid Claim is
+            also included in ID Tokens issued by the OP. If omitted, the default value is false.
         frontchannel_logout_supported:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP supports HTTP-based logout, with true indicating support. If omitted, the default value is false.
+          description: >
+            Boolean value specifying whether the OP supports HTTP-based logout, with true indicating support. If
+            omitted, the default value is false.
         grant_types_supported:
           type: array
-          description: OPTIONAL. JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports. Dynamic OpenID Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant Types. If omitted, the default value is ["authorization_code", "implicit"].
+          description: >
+            JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports. Dynamic OpenID
+            Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant
+            Types. If omitted, the default value is ["authorization_code", "implicit"].
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.grantTypes'
         id_token_encryption_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for the ID Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for the ID
+            Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWT:
+            https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwe.alg'
         id_token_encryption_enc_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for the ID Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for the ID
+            Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
+            JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwe.enc'
         id_token_signing_alg_values_supported:
           type: array
-          description: 'REQUIRED. JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for the ID Token to encode the Claims in a JWT [JWT]. The algorithm RS256 MUST be included. The value none MAY be supported, but MUST NOT be used unless the Response Type used returns no ID Token from the Authorization Endpoint (such as when using the Authorization Code Flow). See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for the ID Token
+            to encode the Claims in a JWT [JWT]. The algorithm RS256 MUST be included. The value none MAY be supported,
+            but MUST NOT be used unless the Response Type used returns no ID Token from the Authorization Endpoint
+            (such as when using the Authorization Code Flow).
+            See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws.none'
         introspection_endpoint:
           type: string
-          description: 'OPTIONAL. URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662'
+          example: "{{ .BaseURL }}/api/oidc/introspection"
+          description: >
+            URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0
+            Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662'
         introspection_endpoint_auth_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of client authentication methods supported by this introspection endpoint. The valid client authentication method values are those registered in the IANA "OAuth Token Endpoint Authentication Methods" registry [IANA.OAuth.Parameters] or those registered in the IANA "OAuth Access Token Types" registry [IANA.OAuth.Parameters]. (These values are and will remain distinct, due to Section 7.2.) If omitted, the set of supported authentication methods MUST be determined by other means. See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml OAuth 2.0 Authorization Server Metadata - Updated Registration Instructions: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-7.2'
+          description: >
+            JSON array containing a list of client authentication methods supported by this introspection endpoint. The
+            valid client authentication method values are those registered in the IANA "OAuth Token Endpoint
+            Authentication Methods" registry [IANA.OAuth.Parameters] or those registered in the IANA "OAuth Access
+            Token Types" registry [IANA.OAuth.Parameters]. (These values are and will remain distinct, due to Section
+            7.2.) If omitted, the set of supported authentication methods MUST be determined by other means. See Also:
+            IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
+            OAuth 2.0 Authorization Server Metadata - Updated Registration Instructions:
+            https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-7.2
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         introspection_endpoint_auth_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection endpoint for the signature on the JWT [JWT] used to authenticate the client at the introspection endpoint for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be present if either of these authentication methods are specified in the "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection
+            endpoint for the signature on the JWT [JWT] used to authenticate the client at the introspection endpoint
+            for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be
+            present if either of these authentication methods are specified in the
+            "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is
+            omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws'
         issuer:
           type: string
-          description: REQUIRED. URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier. If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
+          example: "{{ .BaseURL }}"
+          description: >
+            URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier.
+            If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned
+            by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
         jwks_uri:
           type: string
-          description: REQUIRED. URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate signatures from the OP. The JWK Set MAY also contain the Server's encryption key(s), which are used by RPs to encrypt requests to the Server. When both signing and encryption keys are made available, a use (Key Use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage. Although some algorithms allow the same key to be used for both signatures and encryption, doing so is NOT RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
+          example: "{{ .BaseURL }}/jwks.json"
+          description: >
+            URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
+            signatures from the OP. The JWK Set MAY also contain the Server's encryption key(s), which are used by RPs
+            to encrypt requests to the Server. When both signing and encryption keys are made available, a use (Key Use)
+            parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage.
+            Although some algorithms allow the same key to be used for both signatures and encryption, doing so is NOT
+            RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of
+            keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
         op_policy_uri:
           type: string
-          description: OPTIONAL. URL that the OpenID Provider provides to the person registering the Client to read about the OP's requirements on how the Relying Party can use the data provided by the OP. The registration process SHOULD display this URL to the person registering the Client if it is given.
+          description: >
+            URL that the OpenID Provider provides to the person registering the Client to read about the OP's
+            requirements on how the Relying Party can use the data provided by the OP. The registration process SHOULD
+            display this URL to the person registering the Client if it is given.
         op_tos_uri:
           type: string
-          description: OPTIONAL. URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's terms of service. The registration process SHOULD display this URL to the person registering the Client if it is given.
+          description: >
+            URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's
+            terms of service. The registration process SHOULD display this URL to the person registering the Client
+            if it is given.
         pushed_authorization_request_endpoint:
           type: string
-          description: The URL of the pushed authorization request endpoint at which a client can post an authorization request to exchange for a "request_uri" value usable at the authorization server.
+          example: "{{ .BaseURL }}/api/oidc/par"
+          description: >
+            The URL of the pushed authorization request endpoint at which a client can post an authorization request to
+            exchange for a "request_uri" value usable at the authorization server.
         registration_endpoint:
           type: string
-          description: 'OPTIONAL. URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also: OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591'
+          example: "{{ .BaseURL }}/api/oidc/registration"
+          description: >
+            URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
+            OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
         request_object_encryption_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for Request Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516'
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for Request
+            Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by
+            reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwe.alg'
         request_object_encryption_enc_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for Request Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for Request
+            Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by
+            reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
+            JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwe.enc'
         request_object_signing_alg_values_supported:
           type: array
-          description: OPTIONAL. JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request Objects, which are described in Section 6.1 of OpenID Connect Core 1.0 [OpenID.Core]. These algorithms are used both when the Request Object is passed by value (using the request parameter) and when it is passed by reference (using the request_uri parameter). Servers SHOULD support none and RS256.
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request
+            Objects, which are described in Section 6.1 of OpenID Connect Core 1.0 [OpenID.Core]. These algorithms are
+            used both when the Request Object is passed by value (using the request parameter) and when it is passed by
+            reference (using the request_uri parameter). Servers SHOULD support none and RS256.
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws.none'
         request_uri_parameter_supported:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP supports use of the request_uri parameter, with true indicating support. If omitted, the default value is true.
+          description: >
+            Boolean value specifying whether the OP supports use of the request_uri parameter, with true indicating
+            support. If omitted, the default value is true.
         require_pushed_authorization_requests:
           type: boolean
-          description: Boolean parameter indicating whether the authorization server accepts authorization request data only via PAR. If omitted, the default value is "false".
+          description: >
+            Boolean parameter indicating whether the authorization server accepts authorization request data only via
+            PAR. If omitted, the default value is "false".
         require_request_uri_registration:
           type: boolean
-          description: OPTIONAL. Boolean value specifying whether the OP requires any request_uri values used to be pre-registered using the request_uris registration parameter. Pre-registration is REQUIRED when the value is true. If omitted, the default value is false.
+          description: >
+            Boolean value specifying whether the OP requires any request_uri values used to be pre-registered using the
+            request_uris registration parameter. Pre-registration is REQUIRED when the value is true. If omitted, the
+            default value is false.
         response_modes_supported:
           type: array
-          description: OPTIONAL. JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic OpenID Providers is ["query", "fragment"].
+          description: >
+            JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
+            OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic
+            OpenID Providers is ["query", "fragment"].
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.responseModes'
         response_types_supported:
           type: array
-          description: REQUIRED. JSON array containing a list of the OAuth 2.0 response_type values that this OP supports. Dynamic OpenID Providers MUST support the code, id_token, and the token id_token Response Type values.
+          description: >
+            JSON array containing a list of the OAuth 2.0 response_type values that this OP supports. Dynamic OpenID
+            Providers MUST support the code, id_token, and the token id_token Response Type values.
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.responseTypes'
         revocation_endpoint:
           type: string
-          description: 'OPTIONAL. URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also: OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009'
+          example: "{{ .BaseURL }}/api/oidc/revocation"
+          description: >
+            URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also:
+            OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
         revocation_endpoint_auth_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of client authentication methods supported by this revocation endpoint. The valid client authentication method values are those registered in the IANA "OAuth Token Endpoint Authentication Methods" registry [IANA.OAuth.Parameters]. If omitted, the default is "client_secret_basic" -- the HTTP Basic Authentication Scheme specified in Section 2.3.1 of OAuth 2.0 [RFC6749]. See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1'
+          description: >
+            JSON array containing a list of client authentication methods supported by this revocation endpoint. The
+            valid client authentication method values are those registered in the IANA "OAuth Token Endpoint
+            Authentication Methods" registry [IANA.OAuth.Parameters]. If omitted, the default is "client_secret_basic"
+            -- the HTTP Basic Authentication Scheme specified in Section 2.3.1 of OAuth 2.0 [RFC6749].
+            See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
+            OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         revocation_endpoint_auth_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the revocation endpoint for the signature on the JWT [JWT] used to authenticate the client at the revocation endpoint for the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be present if either of these authentication methods are specified in the "revocation_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the revocation
+            endpoint for the signature on the JWT [JWT] used to authenticate the client at the revocation endpoint for
+            the "private_key_jwt" and "client_secret_jwt" authentication methods. This metadata entry MUST be present if
+            either of these authentication methods are specified in the "revocation_endpoint_auth_methods_supported"
+            entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used.
+            See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws'
         scopes_supported:
           type: array
-          description: 'RECOMMENDED. JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports. The server MUST support the openid scope value. Servers MAY choose not to advertise some supported scope values even when this parameter is used, although those defined in [OpenID.Core] SHOULD be listed, if supported. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          description: >
+            JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports.
+            The server MUST support the openid scope value. Servers MAY choose not to advertise some supported scope
+            values even when this parameter is used, although those defined in [OpenID.Core] SHOULD be listed, if
+            supported. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core:
+            https://openid.net/specs/openid-connect-core-1_0.html'
           items:
-            type: string
+            $ref: '#/components/schemas/oauth2.implementation.scopes'
         service_documentation:
           type: string
-          description: OPTIONAL. URL of a page containing human-readable information that developers might want or need to know when using the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration, then information on how to register Clients needs to be provided in this documentation.
+          description: >
+            URL of a page containing human-readable information that developers might want or need to know when using
+            the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration,
+            then information on how to register Clients needs to be provided in this documentation.
         subject_types_supported:
           type: array
-          description: REQUIRED. JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include pairwise and public.
+          description: >
+            JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include
+            pairwise and public.
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
         token_endpoint:
           type: string
-          description: 'URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          example: "{{ .BaseURL }}/api/oidc/token"
+          description: >
+            URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
+            used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
         token_endpoint_auth_methods_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options are client_secret_post, client_secret_basic, client_secret_jwt, and private_key_jwt, as described in Section 9 of OpenID Connect Core 1.0 [OpenID.Core]. Other authentication methods MAY be defined by extensions. If omitted, the default is client_secret_basic -- the HTTP Basic Authentication Scheme specified in Section 2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication'
+          description: >
+            JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options
+            are client_secret_post, client_secret_basic, client_secret_jwt, and private_key_jwt, as described in Section
+            9 of OpenID Connect Core 1.0 [OpenID.Core]. Other authentication methods MAY be defined by extensions. If
+            omitted, the default is client_secret_basic -- the HTTP Basic Authentication Scheme specified in Section
+            2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749
+            OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication'
           items:
-            type: string
+            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
         token_endpoint_auth_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for the signature on the JWT [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt authentication methods. Servers SHOULD support RS256. The value none MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint
+            for the signature on the JWT [JWT] used to authenticate the Client at the Token Endpoint for the
+            private_key_jwt and client_secret_jwt authentication methods. Servers SHOULD support RS256.
+            The value none MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws'
         ui_locales_supported:
           type: array
-          description: 'OPTIONAL. Languages and scripts supported for the user interface, represented as a JSON array of BCP47 [RFC5646] language tag values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646'
+          description: >
+            Languages and scripts supported for the user interface, represented as a JSON array of BCP47
+            [RFC5646] language tag values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
           items:
             type: string
         userinfo_encryption_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWE [JWE] encryption algorithms (alg values) [JWA] supported by the UserInfo Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWE [JWE] encryption algorithms (alg values) [JWA] supported by the
+            UserInfo Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE:
+            https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518
+            JWT: https://datatracker.ietf.org/doc/html/rfc7519'
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwe.alg'
         userinfo_encryption_enc_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWE encryption algorithms (enc values) [JWA] supported by the UserInfo Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWE encryption algorithms (enc values) [JWA] supported by the UserInfo
+            Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
+            JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jwe.enc'
         userinfo_endpoint:
           type: string
-          description: 'RECOMMENDED. URL of the OP''s UserInfo Endpoint [OpenID.Core]. This URL MUST use the https scheme and MAY contain port, path, and query parameter components. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
+          example: "{{ .BaseURL }}/api/oidc/userinfo"
+          description: >
+            URL of the OP''s UserInfo Endpoint [OpenID.Core]. This URL MUST use the https scheme and MAY contain port,
+            path, and query parameter components.
+            See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html'
         userinfo_signing_alg_values_supported:
           type: array
-          description: 'OPTIONAL. JSON array containing a list of the JWS [JWS] signing algorithms (alg values) [JWA] supported by the UserInfo Endpoint to encode the Claims in a JWT [JWT]. The value none MAY be included. See Also: JWS: https://datatracker.ietf.org/doc/html/rfc7515 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+          description: >
+            JSON array containing a list of the JWS [JWS] signing algorithms (alg values) [JWA] supported by the
+            UserInfo Endpoint to encode the Claims in a JWT [JWT]. The value none MAY be included. See Also:
+            JWS: https://datatracker.ietf.org/doc/html/rfc7515 JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT:
+            https://datatracker.ietf.org/doc/html/rfc7519
           items:
-            type: string
+            $ref: '#/components/schemas/jose.spec.jws.none'
     openid.request.jwks:
       type: object
       properties:
@@ -2378,18 +2619,7 @@ components:
               - "kty"
             properties:
               kty:
-                type: string
-                description: >
-                  The "kty" (key type) parameter identifies the cryptographic algorithm
-                  family used with the key, such as "RSA" or "EC". "kty" values should
-                  either be registered in the IANA "JSON Web Key Types" registry
-                  established by [JWA] or be a value that contains a Collision-
-                  Resistant Name.  The "kty" value is a case-sensitive string.  This
-                  member MUST be present in a JWK.
-                enum:
-                  - "RSA"
-                  - "EC"
-                  - "oct"
+                $ref: '#/components/schemas/oauth2.spec.kty'
               use:
                 type: string
                 description: >
@@ -2419,28 +2649,7 @@ components:
                     - "deriveKey"
                     - "deriveBits"
               alg:
-                type: string
-                description: >
-                  The "alg" (algorithm) parameter identifies the algorithm intended for
-                  use with the key.  The values used should either be registered in the
-                  IANA "JSON Web Signature and Encryption Algorithms" registry
-                  established by [JWA] or be a value that contains a Collision-
-                  Resistant Name.  The "alg" value is a case-sensitive ASCII string.
-                  Use of this member is OPTIONAL.
-                enum:
-                  - "HS256"
-                  - "HS384"
-                  - "HS512"
-                  - "RS256"
-                  - "RS384"
-                  - "RS512"
-                  - "ES256"
-                  - "ES384"
-                  - "ES512"
-                  - "PS256"
-                  - "PS384"
-                  - "PS512"
-                  - "none"
+                $ref: '#/components/schemas/jose.spec.jwa'
               kid:
                 type: string
                 description: >
@@ -2513,24 +2722,17 @@ components:
               x:
                 type: string
                 description: >
-                  EC Public Key: The "x" (x coordinate) parameter contains the x coordinate for the Elliptic Curve point.
+                  EC Public Key: The x coordinate parameter contains the x coordinate for the Elliptic Curve point.
                   It is represented as the base64url encoding of the octet string representation of the coordinate, as
                   defined in Section 2.3.5 of SEC1 [SEC1].
               y:
                 type: string
                 description: >
-                  EC Public Key: The "y" (y coordinate) parameter contains the y coordinate for the Elliptic Curve point.
+                  EC Public Key: The y coordinate parameter contains the y coordinate for the Elliptic Curve point.
                   It is represented as the base64url encoding of the octet string representation of the coordinate, as
                   defined in Section 2.3.5 of SEC1 [SEC1].
               crv:
-                type: string
-                description: >
-                  EC Public Key: The "crv" (curve) parameter identifies the cryptographic curve used with the key. Curve
-                  values from [DSS] used by this specification.
-                enum:
-                  - "P-256"
-                  - "P-384"
-                  - "P-521"
+                $ref: '#/components/schemas/oauth2.spec.crv'
               n:
                 type: string
                 description: >
@@ -2695,6 +2897,173 @@ components:
           enum:
             - "access_token"
             - "refresh_token"
+    openid.spec.subjectIdentifierTypes:
+      type: string
+      description: >
+        A Subject Identifier is a locally unique and never reassigned identifier within the Issuer for the
+        End-User, which is intended to be consumed by the Client.
+      enum:
+        - "public"
+        - "pairwise"
+    openid.spec.clientAuthMethods:
+      type: string
+      enum:
+        - "client_secret_basic"
+        - "client_secret_post"
+        - "client_secret_jwt"
+        - "private_key_jwt"
+        - "none"
+    openid.spec.displayTypes:
+      type: string
+      description: >
+        ASCII string value that specifies how the Authorization Server displays the authentication and consent user
+        interface pages to the End-User.
+      enum:
+        - "page"
+        - "popup"
+        - "touch"
+        - "wap"
+    openid.spec.responseTypes:
+      type: string
+      description: The OpenID Connect 1.0 / OAuth 2.0 Response Type.
+      enum:
+        - "code"
+        - "id_token"
+        - "token"
+        - "code token"
+        - "code id_token"
+        - "token id_token"
+        - "code id_token token"
+        - "none"
+    openid.spec.responseModes:
+          type: string
+          description: >
+            Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
+            Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
+            the default mode specified for the Response Type.
+          enum:
+            - "query"
+            - "fragment"
+            - "form_post"
+    openid.spec.grantTypes:
+      type: string
+      enum:
+        - "authorization_code"
+        - "refresh_token"
+        - "implicit"
+        - "password"
+        - "client_credentials"
+    openid.spec.codeChallengeMethods:
+      type: string
+      enum:
+        - "plain"
+        - "S256"
+    oauth2.spec.kty:
+      type: string
+      description: >
+        The "kty" (key type) parameter identifies the cryptographic algorithm
+        family used with the key, such as "RSA" or "EC". "kty" values should
+        either be registered in the IANA "JSON Web Key Types" registry
+        established by [JWA] or be a value that contains a Collision-
+        Resistant Name.  The "kty" value is a case-sensitive string.  This
+        member MUST be present in a JWK.
+      enum:
+        - "EC"
+        - "RSA"
+        - "oct"
+        - "OKP"
+    oauth2.spec.crv:
+      type: string
+      description: >
+        The curve parameter identifies the cryptographic curve used with the key. Curve
+        values from [DSS] used by this specification.
+      enum:
+        - "P-256"
+        - "P-384"
+        - "P-521"
+        - "Ed25519"
+        - "Ed448"
+        - "X25519"
+        - "X448"
+        - "secp256k1"
+    oauth2.implementation.scopes:
+      type: string
+      description: The scope.
+      enum:
+        - "openid"
+        - "offline_access"
+        - "profile"
+        - "email"
+        - "groups"
+    jose.spec.none:
+      type: string
+      enum:
+        - "none"
+    jose.spec.jws.none:
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.jws'
+        - $ref: '#/components/schemas/jose.spec.jws.none'
+    jose.spec.jws:
+      type: string
+      enum:
+        - "HS256"
+        - "HS384"
+        - "HS512"
+        - "RS256"
+        - "RS384"
+        - "RS512"
+        - "ES256"
+        - "ES384"
+        - "ES512"
+        - "PS256"
+        - "PS384"
+        - "PS512"
+    jose.spec.jwe.alg:
+      type: string
+      enum:
+        - "RSA1_5"
+        - "RSA-OAEP"
+        - "RSA-OAEP-256"
+        - "A128KW"
+        - "A192KW"
+        - "A256KW"
+        - "dir"
+        - "ECDH-ES"
+        - "ECDH-ES+A128KW"
+        - "ECDH-ES+A192KW"
+        - "ECDH-ES+A256KW"
+        - "A128GCMKW"
+        - "A192GCMKW"
+        - "A256GCMKW"
+        - "PBES2-HS256+A128KW"
+        - "PBES2-HS384+A192KW"
+        - "PBES2-HS512+A256KW"
+    jose.spec.jwe.enc:
+      type: string
+      enum:
+        - "A128CBC-HS256"
+        - "A192CBC-HS384"
+        - "A256CBC-HS512"
+        - "A128CBC"
+        - "A256CBC"
+        - "A128GCM"
+        - "A256GCM"
+    jose.spec.jwa:
+      type: string
+      description: >
+        The "alg" (algorithm) parameter identifies the algorithm intended for
+        use with the key.  The values used should either be registered in the
+        IANA "JSON Web Signature and Encryption Algorithms" registry
+        established by [JWA] or be a value that contains a Collision-
+        Resistant Name.  The "alg" value is a case-sensitive ASCII string.
+        Use of this member is OPTIONAL.
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.jwe.alg'
+        - $ref: '#/components/schemas/jose.spec.jws'
+    jose.spec.jwa.none:
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.jwa'
+        - $ref: '#/components/schemas/jose.spec.jws.none'
   securitySchemes:
     authelia_auth:
       type: apiKey
