@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     otpDigitInput: {
         boxSizing: "content-box",
-        padding: theme.spacing(),
+        padding: theme.spacing() + " !important",
         marginLeft: theme.spacing(0.5),
         marginRight: theme.spacing(0.5),
         fontSize: "1rem",
