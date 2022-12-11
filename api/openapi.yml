@@ -2936,15 +2936,15 @@ components:
         - "code id_token token"
         - "none"
     openid.spec.responseModes:
-          type: string
-          description: >
-            Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
-            Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
-            the default mode specified for the Response Type.
-          enum:
-            - "query"
-            - "fragment"
-            - "form_post"
+      type: string
+      description: >
+        Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
+        Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
+        the default mode specified for the Response Type.
+      enum:
+        - "query"
+        - "fragment"
+        - "form_post"
     openid.spec.grantTypes:
       type: string
       enum:
