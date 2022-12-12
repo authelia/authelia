@@ -704,24 +704,26 @@ paths:
           description: The OpenID Connect 1.0 consent workflow ID.
           schema:
             type: string
+            format: uuid
+            pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
             example: "713ef767-81bc-4a27-9b83-5fe2e101b2b4"
         - in: query
           name: scope
-          required: true
           description: The requested scope.
+          required: true
           schema:
             type: string
             example: "openid profile groups"
         - in: query
           name: response_type
-          required: true
           description: The OAuth 2.0 response type.
+          required: true
           schema:
             $ref: '#/components/schemas/openid.spec.responseTypes'
         - in: query
           name: client_id
-          required: true
           description: The OAuth 2.0 client identifier.
+          required: true
           schema:
             type: string
             example: "app"
@@ -1477,6 +1479,8 @@ components:
           example: openid_connect
         workflowID:
           type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
         requestMethod:
           type: string
@@ -1543,6 +1547,8 @@ components:
           example: openid_connect
         workflowID:
           type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
     handlers.bodySignTOTPRequest:
       type: object
@@ -1558,6 +1564,8 @@ components:
           example: openid_connect
         workflowID:
           type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
     handlers.StateResponse:
       type: object
@@ -1744,6 +1752,8 @@ components:
                       example: openid_connect
                     workflowID:
                       type: string
+                      format: uuid
+                      pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
                       example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
@@ -1986,12 +1996,12 @@ components:
               description: The identifier of the client for the user to provide consent for.
               example: "app"
             client_description:
-              type: string
               description: The descriptive name of the client for the user to provide consent for.
+              type: string
               example: "App Platform"
             scopes:
-              type: array
               description: The list of the requested scopes for the user to provide consent for.
+              type: array
               items:
                 type: string
                 enum:
@@ -2001,13 +2011,13 @@ components:
                   - "email"
                   - "profile"
             audience:
-              type: array
               description: The list of the requested audiences for the user to provide consent for.
+              type: array
               items:
                 type: string
             pre_configuration:
-              type: boolean
               description: Indicates if this client supports pre-configuration.
+              type: boolean
               example: true
     openid.response.consent:
       type: object
@@ -2019,20 +2029,22 @@ components:
           type: object
           properties:
             id:
-              type: string
               description: The identifier of the consent session.
+              type: string
+              format: uuid
+              pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
               example: "713ef767-81bc-4a27-9b83-5fe2e101b2b4"
             client_id:
-              type: string
               description: The identifier of the client for the user to provide consent for.
-              example: "nextcloud"
+              type: string
+              example: "app"
             consent:
-              type: boolean
               description: Indicates if the user consented to the consent request.
+              type: boolean
               example: true
             pre_configure:
-              type: boolean
               description: Indicates if the user consented to pre-configuration.
+              type: boolean
               example: true
     openid.request.oauth-authorization-server:
       type: object
@@ -2279,7 +2291,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwa'
+            $ref: '#/components/schemas/jose.spec.jws'
         ui_locales_supported:
           type: array
           description: >
@@ -2928,14 +2940,16 @@ components:
         - "email"
         - "groups"
     jose.spec.none:
+      description: The JSON Web Signature Algorithm
       type: string
       enum:
         - "none"
     jose.spec.jws.none:
+      description: The JSON Web Signature Algorithm
       type: string
-      allOf:
+      oneOf:
+        - $ref: '#/components/schemas/jose.spec.none'
         - $ref: '#/components/schemas/jose.spec.jws'
-        - $ref: '#/components/schemas/jose.spec.jws.none'
     jose.spec.jws:
       description: The JSON Web Signature Algorithm
       type: string
@@ -2984,61 +2998,6 @@ components:
         - "A256CBC"
         - "A128GCM"
         - "A256GCM"
-    jose.spec.jwa:
-      description: >
-        The "alg" (algorithm) parameter identifies the algorithm intended for
-        use with the key. The values used should either be registered in the
-        IANA "JSON Web Signature and Encryption Algorithms" registry
-        established by [JWA] or be a value that contains a Collision-
-        Resistant Name. The "alg" value is a case-sensitive ASCII string.
-        Use of this member is OPTIONAL.
-      type: string
-      allOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.alg'
-        - $ref: '#/components/schemas/jose.spec.jws'
-    jose.spec.jwa.none:
-      description: >
-        The "alg" (algorithm) parameter identifies the algorithm intended for
-        use with the key. The values used should either be registered in the
-        IANA "JSON Web Signature and Encryption Algorithms" registry
-        established by [JWA] or be a value that contains a Collision-
-        Resistant Name. The "alg" value is a case-sensitive ASCII string.
-        Use of this member is OPTIONAL.
-      type: string
-      allOf:
-        - $ref: '#/components/schemas/jose.spec.jwe.alg'
-        - $ref: '#/components/schemas/jose.spec.jws'
-        - $ref: '#/components/schemas/jose.spec.jws.none'
-    jose.spec.kty:
-      description: >
-        The "kty" (key type) parameter identifies the cryptographic algorithm
-        family used with the key, such as "RSA" or "EC". "kty" values should
-        either be registered in the IANA "JSON Web Key Types" registry
-        established by [JWA] or be a value that contains a Collision-
-        Resistant Name. The "kty" value is a case-sensitive string. This
-        member MUST be present in a JWK.
-      type: string
-      example: "RSA"
-      enum:
-        - "EC"
-        - "RSA"
-        - "oct"
-        - "OKP"
-    jose.spec.crv:
-      description: >
-        The curve parameter identifies the cryptographic curve used with the key. Curve
-        values from [DSS] used by this specification.
-      type: string
-      example: "P-521"
-      enum:
-        - "P-256"
-        - "P-384"
-        - "P-521"
-        - "Ed25519"
-        - "Ed448"
-        - "X25519"
-        - "X448"
-        - "secp256k1"
     jose.spec.jwk.base:
       type: object
       properties:
@@ -3117,6 +3076,7 @@ components:
           type: array
           items:
             type: string
+            format: byte
         x5t:
           description: >
             The "x5t" (X.509 certificate SHA-1 thumbprint) parameter is a
@@ -3126,6 +3086,7 @@ components:
             The key in the certificate MUST match the public key represented by
             other members of the JWK. Use of this member is OPTIONAL.
           type: string
+          format: byte
         x5t#S256:
           description: >
             The "x5t#S256" (X.509 certificate SHA-256 thumbprint) parameter is a
@@ -3135,6 +3096,7 @@ components:
             The key in the certificate MUST match the public key represented by
             other members of the JWK. Use of this member is OPTIONAL.
           type: string
+          format: byte
     jose.spec.jwk.rsa:
       description: RSA Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -3169,11 +3131,13 @@ components:
                 RSA Public Key: The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
                 represented as a Base64urlUInt-encoded value.
               type: string
+              format: byte
             e:
               description: >
                 RSA Public Key: The "e" (exponent) parameter contains the exponent value for the RSA public key.
                 It is represented as a Base64urlUInt-encoded value.
               type: string
+              format: byte
     jose.spec.jwk.rsa.private:
       description: RSA Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -3188,16 +3152,19 @@ components:
                 RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
                 private key. It is represented as a Base64urlUInt-encoded value.
               type: string
+              format: byte
             p:
               description: >
                 RSA Private Key: The "p" (first prime factor) parameter contains the first prime factor.
                 It is represented as a Base64urlUInt-encoded value.
               type: string
+              format: byte
             q:
               description: >
                 RSA Private Key: The "q" (second prime factor) parameter contains the second prime factor. It is
                 represented as a Base64urlUInt-encoded value.
               type: string
+              format: byte
             dp:
               description: >
                 RSA Private Key: The "dp" (first factor CRT exponent) parameter contains the Chinese Remainder Theorem
@@ -3213,6 +3180,7 @@ components:
                 RSA Private Key: The "qi" (first CRT coefficient) parameter contains the CRT coefficient of the second
                 factor. It is represented as a Base64urlUInt-encoded value.
               type: string
+              format: byte
             oth:
               description: >
                 The "oth" (other primes info) parameter contains an array of
@@ -3226,23 +3194,26 @@ components:
                   - "t"
                 properties:
                   r:
-                    type: string
                     description: >
                       The "r" (prime factor) parameter within an "oth" array member
                       represents the value of a subsequent prime factor. It is represented
                       as a Base64urlUInt-encoded value.
-                  d:
                     type: string
+                    format: byte
+                  d:
                     description: >
                       The "d" (factor CRT exponent) parameter within an "oth" array member
                       represents the CRT exponent of the corresponding prime factor. It is
                       represented as a Base64urlUInt-encoded value.
-                  t:
                     type: string
+                    format: byte
+                  t:
                     description: >
                       The "t" (factor CRT coefficient) parameter within an "oth" array
                       member represents the CRT coefficient of the corresponding prime
                       factor. It is represented as a Base64urlUInt-encoded value.
+                    type: string
+                    format: byte
     jose.spec.jwk.ec:
       description: Elliptic Curve Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -3275,14 +3246,29 @@ components:
                 It is represented as the base64url encoding of the octet string representation of the coordinate, as
                 defined in Section 2.3.5 of SEC1 [SEC1].
               type: string
+              format: byte
             y:
               description: >
                 EC Public Key: The y coordinate parameter contains the y coordinate for the Elliptic Curve point.
                 It is represented as the base64url encoding of the octet string representation of the coordinate, as
                 defined in Section 2.3.5 of SEC1 [SEC1].
               type: string
+              format: byte
             crv:
-              $ref: '#/components/schemas/jose.spec.crv'
+              description: >
+                The curve parameter identifies the cryptographic curve used with the key. Curve
+                values from [DSS] used by this specification.
+              type: string
+              example: "P-521"
+              enum:
+                - "P-256"
+                - "P-384"
+                - "P-521"
+                - "Ed25519"
+                - "Ed448"
+                - "X25519"
+                - "X448"
+                - "secp256k1"
     jose.spec.jwk.ec.private:
       description: Elliptic Curve Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -3299,6 +3285,7 @@ components:
                 as defined in Section 2.3.7 of SEC1 [SEC1]. The length of this octet string MUST be
                 ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
               type: string
+              format: byte
     jose.spec.jwk.symmetric:
       description: Symmetric Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -3321,6 +3308,7 @@ components:
                 other single-valued) key. It is represented as the base64url
                 encoding of the octet sequence containing the key value.
               type: string
+              format: byte
     jose.spec.jwk:
       anyOf:
         - $ref: '#/components/schemas/jose.spec.jwk.rsa'
