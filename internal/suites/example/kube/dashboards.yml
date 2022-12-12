@@ -96,7 +96,7 @@ rules:
     verbs: ["proxy"]
   - apiGroups: [""]
     resources: ["services/proxy"]
-    resourceNames: ["heapster", "http:heapster:", "https:heapster:", "dashboard-metrics-scraper", "http:dashboard-metrics-scraper"]
+    resourceNames: ["heapster", "http:heapster:", "https:heapster:", "dashboard-metrics-scraper", "http:dashboard-metrics-scraper"]  # yamllint disable-line rule:line-length
     verbs: ["get"]
 ...
 ---
@@ -311,10 +311,10 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: HostSNI(`kubernetes.example.com`)
-    services:
-    - name: kubernetes-dashboard
-      port: 443
+    - match: HostSNI(`kubernetes.example.com`)
+      services:
+        - name: kubernetes-dashboard
+          port: 443
   tls:
     passthrough: true
 ...

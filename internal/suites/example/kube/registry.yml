@@ -1,4 +1,6 @@
+---
 mirrors:
-    "docker.io":
-        endpoint:
-            - http://registrycache.internal:5000
+  "docker.io":
+    endpoint:
+      - http://registrycache.internal:5000
+...
