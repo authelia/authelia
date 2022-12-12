@@ -62,7 +62,7 @@ specifiers:
   vite: 3.2.5
   vite-plugin-eslint: 1.8.1
   vite-plugin-istanbul: 3.0.4
-  vite-plugin-svgr: 2.3.0
+  vite-plugin-svgr: 2.4.0
   vite-tsconfig-paths: 4.0.2
   zxcvbn: 4.4.2
 
@@ -131,7 +131,7 @@ devDependencies:
   vite: 3.2.5_@types+node@18.11.13
   vite-plugin-eslint: 1.8.1_eslint@8.29.0+vite@3.2.5
   vite-plugin-istanbul: 3.0.4
-  vite-plugin-svgr: 2.3.0_vite@3.2.5
+  vite-plugin-svgr: 2.4.0_vite@3.2.5
   vite-tsconfig-paths: 4.0.2_7g3uriyb4kqeq2yf2bucr7z2ea
 
 packages:
@@ -386,7 +386,7 @@ packages:
     resolution: {integrity: sha512-0NFvs3VkuSYbFi1x2Vd6tKrywq+z/cLeYC/RJNFrIX/30Bf5aiGYbtvGXolEktzJH8o5E5KJ3tT+nkxuuZFVlA==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.19.0
+      '@babel/types': 7.20.5
 
   /@babel/helper-module-transforms/7.18.9:
     resolution: {integrity: sha512-KYNqY0ICwfv19b31XzvmI/mfcylOzbLtowkw+mfvGPAQ3kfCnMLYbED3YecL5tPd8nAYFQFAd6JHp2LxZk/J1g==}
@@ -2113,14 +2113,6 @@ packages:
       to-fast-properties: 2.0.0
     dev: true
 
-  /@babel/types/7.19.0:
-    resolution: {integrity: sha512-YuGopBq3ke25BVSiS6fgF49Ul9gH1x70Bcr6bqRLjWCkcX8Hre1/5+z+IiWOIerRMSSEfGZVB9z9kyq7wVs9YA==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      '@babel/helper-string-parser': 7.19.4
-      '@babel/helper-validator-identifier': 7.19.1
-      to-fast-properties: 2.0.0
-
   /@babel/types/7.19.4:
     resolution: {integrity: sha512-M5LK7nAeS6+9j7hAq+b3fQs+pNfUtTGq+yFFfHnauFA8zQtLRfmuipmsKDKKLuyG+wC8ABW43A153YNawNTEtw==}
     engines: {node: '>=6.9.0'}
@@ -2137,7 +2129,6 @@ packages:
       '@babel/helper-string-parser': 7.19.4
       '@babel/helper-validator-identifier': 7.19.1
       to-fast-properties: 2.0.0
-    dev: true
 
   /@bcoe/v8-coverage/0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
@@ -5156,11 +5147,6 @@ packages:
     dependencies:
       graceful-fs: 4.2.10
       tapable: 2.2.1
-    dev: true
-
-  /entities/4.3.1:
-    resolution: {integrity: sha512-o4q/dYJlmyjP2zfnaWDUC6A3BQFmVTX+tZPezK7k0GLSU9QYCauscf5Y+qcEPzKL+EixVouYDgLQK5H9GrLpkg==}
-    engines: {node: '>=0.12'}
     dev: true
 
   /entities/4.4.0:
@@ -8207,7 +8193,7 @@ packages:
   /parse5/7.0.0:
     resolution: {integrity: sha512-y/t8IXSPWTuRZqXc0ajH/UwDj4mnqLEbSttNbThcFhGrZuOyoyvNBO85PBp2jQa55wY9d07PBNjsK8ZP3K5U6g==}
     dependencies:
-      entities: 4.3.1
+      entities: 4.4.0
     dev: true
 
   /pascalcase/0.1.1:
@@ -9574,8 +9560,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-plugin-svgr/2.3.0_vite@3.2.5:
-    resolution: {integrity: sha512-R26NgElnVKl+tRydkr7w397XbOirSOS3R4xxCnhb8DRr/j1Eh56Qsv+i1lzmq/GWk4/YrDJ2UJskkVLUUo9pAw==}
+  /vite-plugin-svgr/2.4.0_vite@3.2.5:
+    resolution: {integrity: sha512-q+mJJol6ThvqkkJvvVFEndI4EaKIjSI0I3jNFgSoC9fXAz1M7kYTVUin8fhUsFojFDKZ9VHKtX6NXNaOLpbsHA==}
     peerDependencies:
       vite: ^2.6.0 || 3 || 4
     dependencies:
