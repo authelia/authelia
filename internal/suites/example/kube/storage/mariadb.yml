@@ -21,9 +21,11 @@ spec:
           image: mariadb:10.4.10
           ports:
             - containerPort: 3306
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: 1
           env:
-            - name: SLAPD_ORGANISATION
-              value: MyCompany
             - name: MYSQL_ROOT_PASSWORD
               value: rootpassword
             - name: MYSQL_USER
@@ -32,13 +34,6 @@ spec:
               value: password
             - name: MYSQL_DATABASE
               value: authelia
-          volumeMounts:
-            - name: data-volume
-              mountPath: /var/lib/mysql
-      volumes:
-        - name: data-volume
-          hostPath:
-            path: /data/storage/mysql
 ...
 ---
 apiVersion: v1

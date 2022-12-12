@@ -41,19 +41,24 @@ spec:
             - name: LDAP_TLS_VERIFY_CLIENT
               value: try
           volumeMounts:
-            - name: config-volume
-              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/base.ldif
-              subPath: base.ldif
-            - name: config-volume
-              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/access.rules
-              subPath: access.rules
+            - name: ldap-config
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
       volumes:
-        - name: config-volume
-          configMap:
-            name: ldap-config
-            items:
-              - key: base.ldif
-                path: base.ldif
-              - key: access.rules
-                path: access.rules
+        - name: ldap-config
+          hostPath:
+            path: /configmaps/ldap
+            type: Directory
+...
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ldap-service
+  namespace: authelia
+spec:
+  selector:
+    app: ldap
+  ports:
+    - protocol: TCP
+      port: 636
 ...
