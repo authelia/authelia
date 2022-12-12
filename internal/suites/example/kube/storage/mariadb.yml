@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: mariadb
-          image: mariadb:10.4.10
+          image: mariadb:10.4.27
           ports:
             - containerPort: 3306
           readinessProbe:
