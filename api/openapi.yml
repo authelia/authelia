@@ -13,6 +13,9 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
   version: 1.0.0
+servers:
+  - url: {{ .BaseURL }}api/
+    description: Autheia API
 tags:
   - name: State
     description: Configuration, health and state endpoints
