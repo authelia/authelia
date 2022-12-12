@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Authelia API
   description: >
@@ -970,7 +970,6 @@ paths:
                 response_mode:
                   $ref: '#/components/schemas/openid.spec.responseModes'
                 nonce:
-                  required: false
                   description: >
                     String value used to associate a Client session with an ID Token, and to mitigate replay attacks.
                     The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient
@@ -981,13 +980,11 @@ paths:
                 display:
                   $ref: '#/components/schemas/openid.spec.displayTypes'
                 prompt:
-                  required: false
                   description: >
                     Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether
                     the Authorization Server prompts the End-User for reauthentication and consent.
                   type: string
                 max_age:
-                  required: false
                   description: >
                     Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the
                     End-User was actively authenticated by the OP. If the elapsed time is greater than this value, the
@@ -996,7 +993,6 @@ paths:
                     Token returned MUST include an auth_time Claim Value.
                   type: integer
                 ui_locales:
-                  required: false
                   description: >
                     Not Supported: End-User's preferred languages and scripts for the user interface, represented as a
                     space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. For instance,
@@ -1005,14 +1001,12 @@ paths:
                     result if some or all of the requested locales are not supported by the OpenID Provider.
                   type: string
                 claims_locales:
-                  required: false
                   description: >
                     Not Supported: End-User's preferred languages and scripts for Claims being returned, represented as
                     a space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. An error
                     SHOULD NOT result if some or all of the requested locales are not supported by the OpenID Provider.
                   type: string
                 id_token_hint:
-                  required: false
                   description: >
                     Not Supported: ID Token previously issued by the Authorization Server being passed as a hint about
                     the End-User's current or past authenticated session with the Client. If the End-User identified by
@@ -1028,7 +1022,6 @@ paths:
                     id_token_hint value.
                   type: string
                 login_hint:
-                  required: false
                   description: >
                     Not Supported: Hint to the Authorization Server about the login identifier the End-User might use to
                     log in (if necessary). This hint can be used by an RP if it first asks the End-User for their e-mail
@@ -1038,7 +1031,6 @@ paths:
                     of this parameter is left to the OP's discretion.
                   type: string
                 acr_values:
-                  required: false
                   description: >
                     Not Supported: Requested Authentication Context Class Reference values. Space-separated string that
                     specifies the acr values that the Authorization Server is being requested to use for processing this
@@ -1047,19 +1039,16 @@ paths:
                     Section 2. The acr Claim is requested as a Voluntary Claim by this parameter.
                   type: string
                 claims:
-                  required: false
                   description: >
                     Not Supported: The claims parameter value, as specified in Section 5.5.
                   type: string
                 registration:
-                  required: false
                   description: >
                     Not Supported: This parameter is used by the Client to provide information about itself to a
                     Self-Issued OP that would normally be provided to an OP during Dynamic Client Registration, as
                     specified in Section 7.2.1.
                   type: string
                 request:
-                  required: false
                   description: >
                     Not Supported: Request Object value, as specified in Section 6.1. The Request Object MAY be
                     encrypted to the Self-Issued OP by the Client. In this case, the sub (subject) of a previously
@@ -2015,7 +2004,7 @@ components:
               type: array
               description: The list of the requested audiences for the user to provide consent for.
               items:
-                  type: string
+                type: string
             pre_configuration:
               type: boolean
               description: Indicates if this client supports pre-configuration.
@@ -2742,201 +2731,7 @@ components:
           description: List of JSON Wek Key's in the JSON Web Key Set format.
           type: array
           items:
-            type: object
-            required:
-              - "kty"
-            properties:
-              kty:
-                $ref: '#/components/schemas/oauth2.spec.kty'
-              use:
-                description: >
-                  The "use" (public key use) parameter identifies the intended use of
-                  the public key. The "use" parameter is employed to indicate whether
-                  a public key is used for encrypting data or verifying the signature
-                  on data.
-                type: string
-                example: "sig"
-                enum:
-                  - "sig"
-                  - "enc"
-              key_ops:
-                description: >
-                  The "key_ops" (key operations) parameter identifies the operation(s)
-                  for which the key is intended to be used. The "key_ops" parameter is
-                  intended for use cases in which public, private, or symmetric keys
-                  may be present.
-                type: array
-                example: ["sign"]
-                items:
-                  type: string
-                  enum:
-                    - "sign"
-                    - "verify"
-                    - "encrypt"
-                    - "decrypt"
-                    - "wrapKey"
-                    - "unwrapKey"
-                    - "deriveKey"
-                    - "deriveBits"
-              alg:
-                $ref: '#/components/schemas/jose.spec.jwa'
-              kid:
-                description: >
-                  The "kid" (key ID) parameter is used to match a specific key. This
-                  is used, for instance, to choose among a set of keys within a JWK Set
-                  during key rollover. The structure of the "kid" value is
-                  unspecified. When "kid" values are used within a JWK Set, different
-                  keys within the JWK Set SHOULD use distinct "kid" values. (One
-                  example in which different keys might use the same "kid" value is if
-                  they have different "kty" (key type) values but are considered to be
-                  equivalent alternatives by the application using them.) The "kid"
-                  value is a case-sensitive string. Use of this member is OPTIONAL.
-                  When used with JWS or JWE, the "kid" value is used to match a JWS or
-                  JWE "kid" Header Parameter value.
-                type: string
-              x5u:
-                description: >
-                  The "x5u" (X.509 URL) parameter is a URI [RFC3986] that refers to a
-                  resource for an X.509 public key certificate or certificate chain
-                  [RFC5280]. The identified resource MUST provide a representation of
-                  the certificate or certificate chain that conforms to RFC 5280
-                  [RFC5280] in PEM-encoded form, with each certificate delimited as
-                  specified in Section 6.1 of RFC 4945 [RFC4945]. The key in the first
-                  certificate MUST match the public key represented by other members of
-                  the JWK. The protocol used to acquire the resource MUST provide
-                  integrity protection; an HTTP GET request to retrieve the certificate
-                  MUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be
-                  validated, as per Section 6 of RFC 6125 [RFC6125]. Use of this
-                  member is OPTIONAL.
-                type: string
-              x5c:
-                description: >
-                  The "x5c" (X.509 certificate chain) parameter contains a chain of one
-                  or more PKIX certificates [RFC5280]. The certificate chain is
-                  represented as a JSON array of certificate value strings. Each
-                  string in the array is a base64-encoded (Section 4 of [RFC4648] --
-                  not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.
-                  The PKIX certificate containing the key value MUST be the first
-                  certificate. This MAY be followed by additional certificates, with
-                  each subsequent certificate being the one used to certify the
-                  previous one. The key in the first certificate MUST match the public
-                  key represented by other members of the JWK. Use of this member is
-                  OPTIONAL.
-                type: array
-                items:
-                  type: string
-              x5t:
-                description: >
-                  The "x5t" (X.509 certificate SHA-1 thumbprint) parameter is a
-                  base64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER
-                  encoding of an X.509 certificate [RFC5280]. Note that certificate
-                  thumbprints are also sometimes known as certificate fingerprints.
-                  The key in the certificate MUST match the public key represented by
-                  other members of the JWK. Use of this member is OPTIONAL.
-                type: string
-              x5t#S256:
-                description: >
-                  The "x5t#S256" (X.509 certificate SHA-256 thumbprint) parameter is a
-                  base64url-encoded SHA-256 thumbprint (a.k.a. digest) of the DER
-                  encoding of an X.509 certificate [RFC5280]. Note that certificate
-                  thumbprints are also sometimes known as certificate fingerprints.
-                  The key in the certificate MUST match the public key represented by
-                  other members of the JWK. Use of this member is OPTIONAL.
-                type: string
-              k:
-                description: >
-                  The "k" (key value) parameter contains the value of the symmetric (or
-                  other single-valued) key. It is represented as the base64url
-                  encoding of the octet sequence containing the key value.
-                type: string
-              x:
-                description: >
-                  EC Public Key: The x coordinate parameter contains the x coordinate for the Elliptic Curve point.
-                  It is represented as the base64url encoding of the octet string representation of the coordinate, as
-                  defined in Section 2.3.5 of SEC1 [SEC1].
-                type: string
-              y:
-                description: >
-                  EC Public Key: The y coordinate parameter contains the y coordinate for the Elliptic Curve point.
-                  It is represented as the base64url encoding of the octet string representation of the coordinate, as
-                  defined in Section 2.3.5 of SEC1 [SEC1].
-                type: string
-              crv:
-                $ref: '#/components/schemas/oauth2.spec.crv'
-              n:
-                description: >
-                  RSA Public Key: The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
-                  represented as a Base64urlUInt-encoded value.
-                type: string
-              e:
-                description: >
-                  RSA Public Key: The "e" (exponent) parameter contains the exponent value for the RSA public key.
-                  It is represented as a Base64urlUInt-encoded value.
-                type: string
-              d:
-                description: >
-                  RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
-                  private key. It is represented as a Base64urlUInt-encoded value.
-                  ECC Private Key: The "d" (ECC private key) parameter contains the Elliptic Curve private key value. It
-                  is represented as the base64url encoding of the octet string representation of the private key value,
-                  as defined in Section 2.3.7 of SEC1 [SEC1]. The length of this octet string MUST be
-                  ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
-                type: string
-              p:
-                description: >
-                  RSA Private Key: The "p" (first prime factor) parameter contains the first prime factor.
-                  It is represented as a Base64urlUInt-encoded value.
-                type: string
-              q:
-                description: >
-                  RSA Private Key: The "q" (second prime factor) parameter contains the second prime factor. It is
-                  represented as a Base64urlUInt-encoded value.
-                type: string
-              dp:
-                description: >
-                  RSA Private Key: The "dp" (first factor CRT exponent) parameter contains the Chinese Remainder Theorem
-                  (CRT) exponent of the first factor. It is represented as a Base64urlUInt-encoded value.
-                type: string
-              dq:
-                description: >
-                  RSA Private Key: The "dq" (second factor CRT exponent) parameter contains the CRT exponent of the
-                  second factor. It is represented as a Base64urlUInt-encoded value.
-                type: string
-              qi:
-                description: >
-                  RSA Private Key: The "qi" (first CRT coefficient) parameter contains the CRT coefficient of the second
-                  factor. It is represented as a Base64urlUInt-encoded value.
-                type: string
-              oth:
-                description: >
-                  The "oth" (other primes info) parameter contains an array of
-                  information about any third and subsequent primes, should they exist.
-                type: array
-                items:
-                  type: object
-                  required:
-                    - "r"
-                    - "d"
-                    - "t"
-                  properties:
-                    r:
-                      type: string
-                      description: >
-                        The "r" (prime factor) parameter within an "oth" array member
-                        represents the value of a subsequent prime factor. It is represented
-                        as a Base64urlUInt-encoded value.
-                    d:
-                      type: string
-                      description: >
-                        The "d" (factor CRT exponent) parameter within an "oth" array member
-                        represents the CRT exponent of the corresponding prime factor. It is
-                        represented as a Base64urlUInt-encoded value.
-                    t:
-                      type: string
-                      description: >
-                        The "t" (factor CRT coefficient) parameter within an "oth" array
-                        member represents the CRT coefficient of the corresponding prime
-                        factor. It is represented as a Base64urlUInt-encoded value.
+            $ref: '#/components/schemas/jose.spec.jwk'
     openid.misc.claims.array:
       type: array
       items:
@@ -3131,36 +2926,6 @@ components:
         - "normal"
         - "aggregated"
         - "distributed"
-    oauth2.spec.kty:
-      description: >
-        The "kty" (key type) parameter identifies the cryptographic algorithm
-        family used with the key, such as "RSA" or "EC". "kty" values should
-        either be registered in the IANA "JSON Web Key Types" registry
-        established by [JWA] or be a value that contains a Collision-
-        Resistant Name. The "kty" value is a case-sensitive string. This
-        member MUST be present in a JWK.
-      type: string
-      example: "RSA"
-      enum:
-        - "EC"
-        - "RSA"
-        - "oct"
-        - "OKP"
-    oauth2.spec.crv:
-      description: >
-        The curve parameter identifies the cryptographic curve used with the key. Curve
-        values from [DSS] used by this specification.
-      type: string
-      example: "P-521"
-      enum:
-        - "P-256"
-        - "P-384"
-        - "P-521"
-        - "Ed25519"
-        - "Ed448"
-        - "X25519"
-        - "X448"
-        - "secp256k1"
     oauth2.implementation.scopes:
       description: The scope.
       type: string
@@ -3176,7 +2941,7 @@ components:
         - "none"
     jose.spec.jws.none:
       type: string
-      oneOf:
+      allOf:
         - $ref: '#/components/schemas/jose.spec.jws'
         - $ref: '#/components/schemas/jose.spec.jws.none'
     jose.spec.jws:
@@ -3236,7 +3001,7 @@ components:
         Resistant Name. The "alg" value is a case-sensitive ASCII string.
         Use of this member is OPTIONAL.
       type: string
-      oneOf:
+      allOf:
         - $ref: '#/components/schemas/jose.spec.jwe.alg'
         - $ref: '#/components/schemas/jose.spec.jws'
     jose.spec.jwa.none:
@@ -3248,10 +3013,317 @@ components:
         Resistant Name. The "alg" value is a case-sensitive ASCII string.
         Use of this member is OPTIONAL.
       type: string
-      oneOf:
+      allOf:
         - $ref: '#/components/schemas/jose.spec.jwe.alg'
         - $ref: '#/components/schemas/jose.spec.jws'
         - $ref: '#/components/schemas/jose.spec.jws.none'
+    jose.spec.kty:
+      description: >
+        The "kty" (key type) parameter identifies the cryptographic algorithm
+        family used with the key, such as "RSA" or "EC". "kty" values should
+        either be registered in the IANA "JSON Web Key Types" registry
+        established by [JWA] or be a value that contains a Collision-
+        Resistant Name. The "kty" value is a case-sensitive string. This
+        member MUST be present in a JWK.
+      type: string
+      example: "RSA"
+      enum:
+        - "EC"
+        - "RSA"
+        - "oct"
+        - "OKP"
+    jose.spec.crv:
+      description: >
+        The curve parameter identifies the cryptographic curve used with the key. Curve
+        values from [DSS] used by this specification.
+      type: string
+      example: "P-521"
+      enum:
+        - "P-256"
+        - "P-384"
+        - "P-521"
+        - "Ed25519"
+        - "Ed448"
+        - "X25519"
+        - "X448"
+        - "secp256k1"
+    jose.spec.jwk.base:
+      type: object
+      properties:
+        use:
+          description: >
+            The "use" (public key use) parameter identifies the intended use of
+            the public key. The "use" parameter is employed to indicate whether
+            a public key is used for encrypting data or verifying the signature
+            on data.
+          type: string
+          example: "sig"
+          enum:
+            - "sig"
+            - "enc"
+        key_ops:
+          description: >
+            The "key_ops" (key operations) parameter identifies the operation(s)
+            for which the key is intended to be used. The "key_ops" parameter is
+            intended for use cases in which public, private, or symmetric keys
+            may be present.
+          type: array
+          example: ["sign"]
+          items:
+            type: string
+            enum:
+              - "sign"
+              - "verify"
+              - "encrypt"
+              - "decrypt"
+              - "wrapKey"
+              - "unwrapKey"
+              - "deriveKey"
+              - "deriveBits"
+        kid:
+          description: >
+            The "kid" (key ID) parameter is used to match a specific key. This
+            is used, for instance, to choose among a set of keys within a JWK Set
+            during key rollover. The structure of the "kid" value is
+            unspecified. When "kid" values are used within a JWK Set, different
+            keys within the JWK Set SHOULD use distinct "kid" values. (One
+            example in which different keys might use the same "kid" value is if
+            they have different "kty" (key type) values but are considered to be
+            equivalent alternatives by the application using them.) The "kid"
+            value is a case-sensitive string. Use of this member is OPTIONAL.
+            When used with JWS or JWE, the "kid" value is used to match a JWS or
+            JWE "kid" Header Parameter value.
+          type: string
+        x5u:
+          description: >
+            The "x5u" (X.509 URL) parameter is a URI [RFC3986] that refers to a
+            resource for an X.509 public key certificate or certificate chain
+            [RFC5280]. The identified resource MUST provide a representation of
+            the certificate or certificate chain that conforms to RFC 5280
+            [RFC5280] in PEM-encoded form, with each certificate delimited as
+            specified in Section 6.1 of RFC 4945 [RFC4945]. The key in the first
+            certificate MUST match the public key represented by other members of
+            the JWK. The protocol used to acquire the resource MUST provide
+            integrity protection; an HTTP GET request to retrieve the certificate
+            MUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be
+            validated, as per Section 6 of RFC 6125 [RFC6125]. Use of this
+            member is OPTIONAL.
+          type: string
+        x5c:
+          description: >
+            The "x5c" (X.509 certificate chain) parameter contains a chain of one
+            or more PKIX certificates [RFC5280]. The certificate chain is
+            represented as a JSON array of certificate value strings. Each
+            string in the array is a base64-encoded (Section 4 of [RFC4648] --
+            not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.
+            The PKIX certificate containing the key value MUST be the first
+            certificate. This MAY be followed by additional certificates, with
+            each subsequent certificate being the one used to certify the
+            previous one. The key in the first certificate MUST match the public
+            key represented by other members of the JWK. Use of this member is
+            OPTIONAL.
+          type: array
+          items:
+            type: string
+        x5t:
+          description: >
+            The "x5t" (X.509 certificate SHA-1 thumbprint) parameter is a
+            base64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER
+            encoding of an X.509 certificate [RFC5280]. Note that certificate
+            thumbprints are also sometimes known as certificate fingerprints.
+            The key in the certificate MUST match the public key represented by
+            other members of the JWK. Use of this member is OPTIONAL.
+          type: string
+        x5t#S256:
+          description: >
+            The "x5t#S256" (X.509 certificate SHA-256 thumbprint) parameter is a
+            base64url-encoded SHA-256 thumbprint (a.k.a. digest) of the DER
+            encoding of an X.509 certificate [RFC5280]. Note that certificate
+            thumbprints are also sometimes known as certificate fingerprints.
+            The key in the certificate MUST match the public key represented by
+            other members of the JWK. Use of this member is OPTIONAL.
+          type: string
+    jose.spec.jwk.rsa:
+      allOf:
+        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - type: object
+          required:
+            - "kty"
+            - "n"
+            - "e"
+          properties:
+            kty:
+              description: >
+                abc
+              type: string
+              example: "RSA"
+              enum:
+                - "RSA"
+            alg:
+              description: The JSON Web Signature Algorithm
+              type: string
+              example: "RS256"
+              enum:
+                - "RS256"
+                - "RS384"
+                - "RS512"
+                - "PS256"
+                - "PS384"
+                - "PS512"
+            n:
+              description: >
+                RSA Public Key: The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
+                represented as a Base64urlUInt-encoded value.
+              type: string
+            e:
+              description: >
+                RSA Public Key: The "e" (exponent) parameter contains the exponent value for the RSA public key.
+                It is represented as a Base64urlUInt-encoded value.
+              type: string
+    jose.spec.jwk.rsa.private:
+      allOf:
+        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - $ref: '#/components/schemas/jose.spec.jwk.rsa'
+        - type: object
+          required:
+            - "d"
+          properties:
+            d:
+              description: >
+                RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
+                private key. It is represented as a Base64urlUInt-encoded value.
+              type: string
+            p:
+              description: >
+                RSA Private Key: The "p" (first prime factor) parameter contains the first prime factor.
+                It is represented as a Base64urlUInt-encoded value.
+              type: string
+            q:
+              description: >
+                RSA Private Key: The "q" (second prime factor) parameter contains the second prime factor. It is
+                represented as a Base64urlUInt-encoded value.
+              type: string
+            dp:
+              description: >
+                RSA Private Key: The "dp" (first factor CRT exponent) parameter contains the Chinese Remainder Theorem
+                (CRT) exponent of the first factor. It is represented as a Base64urlUInt-encoded value.
+              type: string
+            dq:
+              description: >
+                RSA Private Key: The "dq" (second factor CRT exponent) parameter contains the CRT exponent of the
+                second factor. It is represented as a Base64urlUInt-encoded value.
+              type: string
+            qi:
+              description: >
+                RSA Private Key: The "qi" (first CRT coefficient) parameter contains the CRT coefficient of the second
+                factor. It is represented as a Base64urlUInt-encoded value.
+              type: string
+            oth:
+              description: >
+                The "oth" (other primes info) parameter contains an array of
+                information about any third and subsequent primes, should they exist.
+              type: array
+              items:
+                type: object
+                required:
+                  - "r"
+                  - "d"
+                  - "t"
+                properties:
+                  r:
+                    type: string
+                    description: >
+                      The "r" (prime factor) parameter within an "oth" array member
+                      represents the value of a subsequent prime factor. It is represented
+                      as a Base64urlUInt-encoded value.
+                  d:
+                    type: string
+                    description: >
+                      The "d" (factor CRT exponent) parameter within an "oth" array member
+                      represents the CRT exponent of the corresponding prime factor. It is
+                      represented as a Base64urlUInt-encoded value.
+                  t:
+                    type: string
+                    description: >
+                      The "t" (factor CRT coefficient) parameter within an "oth" array
+                      member represents the CRT coefficient of the corresponding prime
+                      factor. It is represented as a Base64urlUInt-encoded value.
+    jose.spec.jwk.ec:
+      allOf:
+        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - type: object
+          required:
+            - "kty"
+            - "crv"
+            - "x"
+          properties:
+            kty:
+              description: >
+                abc
+              type: string
+              example: "EC"
+              enum:
+                - "EC"
+            alg:
+              description: The JSON Web Signature Algorithm
+              type: string
+              example: "ES256"
+              enum:
+                - "ES256"
+                - "ES384"
+                - "ES512"
+            x:
+              description: >
+                EC Public Key: The x coordinate parameter contains the x coordinate for the Elliptic Curve point.
+                It is represented as the base64url encoding of the octet string representation of the coordinate, as
+                defined in Section 2.3.5 of SEC1 [SEC1].
+              type: string
+            y:
+              description: >
+                EC Public Key: The y coordinate parameter contains the y coordinate for the Elliptic Curve point.
+                It is represented as the base64url encoding of the octet string representation of the coordinate, as
+                defined in Section 2.3.5 of SEC1 [SEC1].
+              type: string
+            crv:
+              $ref: '#/components/schemas/jose.spec.crv'
+    jose.spec.jwk.ec.private:
+      allOf:
+        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - $ref: '#/components/schemas/jose.spec.jwk.ec'
+        - type: object
+          required:
+            - "d"
+          properties:
+            d:
+              description: >
+                RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
+                private key. It is represented as a Base64urlUInt-encoded value.
+                ECC Private Key: The "d" (ECC private key) parameter contains the Elliptic Curve private key value. It
+                is represented as the base64url encoding of the octet string representation of the private key value,
+                as defined in Section 2.3.7 of SEC1 [SEC1]. The length of this octet string MUST be
+                ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
+              type: string
+    jose.spec.jwk.symmetric:
+      allOf:
+        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - type: object
+          required:
+            - "k"
+          properties:
+            k:
+              description: >
+                The "k" (key value) parameter contains the value of the symmetric (or
+                other single-valued) key. It is represented as the base64url
+                encoding of the octet sequence containing the key value.
+              type: string
+    jose.spec.jwk:
+      anyOf:
+        - $ref: '#/components/schemas/jose.spec.jwk.rsa'
+        - $ref: '#/components/schemas/jose.spec.jwk.rsa.private'
+        - $ref: '#/components/schemas/jose.spec.jwk.ec'
+        - $ref: '#/components/schemas/jose.spec.jwk.ec.private'
+        - $ref: '#/components/schemas/jose.spec.jwk.symmetric'
+
   securitySchemes:
     authelia_auth:
       type: apiKey
