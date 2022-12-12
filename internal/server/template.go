@@ -123,6 +123,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		RememberMe:             strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled),
 		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		Theme:                  config.Theme,
 	}
 
 	if !config.DuoAPI.Disable {
@@ -151,7 +152,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 		CSPNonce:               nonce,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
-		RememberMe:             options.DuoSelfEnrollment,
+		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		Session:                options.Session,
