@@ -14,12 +14,17 @@
     "workarounds:all"
   ],
   "enabledManagers": [
-    "bundler",
     "docker-compose",
     "dockerfile",
     "gomod",
+    "kubernetes",
     "npm"
   ],
+  {
+    "kubernetes": {
+      "fileMatch": ["kube/.+\\.yml$"]
+    }
+  }
   "labels": [
     "dependencies"
   ],
@@ -45,6 +50,14 @@
       ],
       "addLabels": [
         "go"
+      ]
+    },
+    {
+      "datasources": [
+        "kubernetes"
+      ],
+      "addLabels": [
+        "kubernetes"
       ]
     },
     {
