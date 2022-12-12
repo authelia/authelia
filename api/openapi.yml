@@ -702,29 +702,31 @@ paths:
           name: id
           required: false
           description: The OpenID Connect 1.0 consent workflow ID.
+          schema:
+            type: string
+            example: "713ef767-81bc-4a27-9b83-5fe2e101b2b4"
         - in: query
           name: scope
           required: true
           description: The requested scope.
           schema:
             type: string
+            example: "openid profile groups"
         - in: query
           name: response_type
           required: true
           description: The OAuth 2.0 response type.
           schema:
-            required: true
-            oneOf:
-              - $ref: '#/components/schemas/openid.spec.responseTypes'
+            $ref: '#/components/schemas/openid.spec.responseTypes'
         - in: query
           name: client_id
           required: true
           description: The OAuth 2.0 client identifier.
           schema:
             type: string
+            example: "app"
         - in: query
           name: redirect_uri
-          required: true
           description: >
             Redirection URI to which the response will be sent. This URI MUST exactly match one of the Redirection URI
             values for the Client pre-registered at the OpenID Provider, with the matching performed as described in
@@ -733,83 +735,90 @@ paths:
             defined in Section 2.1 of OAuth 2.0, and provided the OP allows the use of http Redirection URIs in this
             case. The Redirection URI MAY use an alternate scheme, such as one that is intended to identify a callback
             into a native application.
+          required: true
           schema:
             type: string
+            example: "https://app.example.com"
         - in: query
           name: state
-          required: false
           description: >
             Opaque value used to maintain state between the request and the callback. Typically, Cross-Site Request
             Forgery (CSRF, XSRF) mitigation is done by cryptographically binding the value of this parameter with a
             browser cookie.
+          required: false
           schema:
             type: string
+            example: "oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f"
         - in: query
           name: response_mode
-          required: false
           description: >
             Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
             Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
             the default mode specified for the Response Type.
+          required: false
           schema:
             $ref: '#/components/schemas/openid.spec.responseModes'
         - in: query
           name: nonce
-          required: false
           description: >
             String value used to associate a Client session with an ID Token, and to mitigate replay attacks. The value
             is passed through unmodified from the Authentication Request to the ID Token. Sufficient entropy MUST be
             present in the nonce values used to prevent attackers from guessing values. For implementation notes, see
             Section 15.5.2.
+          required: false
           schema:
             type: string
+            example: "TRMLqchoKGQNcooXvBvUy9PtmLdJGf"
         - in: query
           name: display
-          required: false
           description: >
             Not Supported: ASCII string value that specifies how the Authorization Server displays the authentication
             and consent user interface pages to the End-User.
+          required: false
           schema:
             $ref: '#/components/schemas/openid.spec.displayTypes'
         - in: query
           name: prompt
-          required: false
           description: >
             Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether the
             Authorization Server prompts the End-User for reauthentication and consent.
+          required: false
           schema:
             type: string
         - in: query
           name: max_age
-          required: false
           description: >
             Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the End-User
             was actively authenticated by the OP. If the elapsed time is greater than this value, the OP MUST attempt to
             actively re-authenticate the End-User. (The max_age request parameter corresponds to the OpenID 2.0 PAPE
             [OpenID.PAPE] max_auth_age request parameter.) When max_age is used, the ID Token returned MUST include an
             auth_time Claim Value.
+          required: false
           schema:
             type: integer
+            example: 3600
         - in: query
           name: ui_locales
-          required: false
           description: >
             Not Supported: End-User's preferred languages and scripts for the user interface, represented as a
             space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. For instance, the value
             "fr-CA fr en" represents a preference for French as spoken in Canada, then French (without a region
             designation), followed by English (without a region designation). An error SHOULD NOT result if some or all
             of the requested locales are not supported by the OpenID Provider.
+          required: false
           schema:
             type: string
+            example: "en-US"
         - in: query
           name: claims_locales
-          required: false
           description: >
             Not Supported: End-User's preferred languages and scripts for Claims being returned, represented as a
             space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. An error SHOULD NOT
             result if some or all of the requested locales are not supported by the OpenID Provider.
+          required: false
           schema:
             type: string
+            example: "en-US"
         - in: query
           name: id_token_hint
           required: false
@@ -829,7 +838,6 @@ paths:
             type: string
         - in: query
           name: login_hint
-          required: false
           description: >
             Not Supported: Hint to the Authorization Server about the login identifier the End-User might use to log in
             (if necessary). This hint can be used by an RP if it first asks the End-User for their e-mail address
@@ -837,49 +845,50 @@ paths:
             It is RECOMMENDED that the hint value match the value used for discovery. This value MAY also be a phone
             number in the format specified for the phone_number Claim. The use of this parameter is left to the OP's
             discretion.
+          required: false
           schema:
             type: string
         - in: query
           name: acr_values
-          required: false
           description: >
             Not Supported: Requested Authentication Context Class Reference values. Space-separated string that
             specifies the acr values that the Authorization Server is being requested to use for processing this
             Authentication Request, with the values appearing in order of preference. The Authentication Context Class
             satisfied by the authentication performed is returned as the acr Claim Value, as specified in Section 2.
             The acr Claim is requested as a Voluntary Claim by this parameter.
+          required: false
           schema:
             type: string
         - in: query
           name: claims
-          required: false
           description: >
             Not Supported: The claims parameter value, as specified in Section 5.5.
+          required: false
           schema:
             type: string
         - in: query
           name: registration
-          required: false
           description: >
             Not Supported: This parameter is used by the Client to provide information about itself to a Self-Issued OP
             that would normally be provided to an OP during Dynamic Client Registration, as specified in Section 7.2.1.
+          required: false
           schema:
             type: string
         - in: query
           name: request
-          required: false
           description: >
             Not Supported: Request Object value, as specified in Section 6.1. The Request Object MAY be encrypted to
             the Self-Issued OP by the Client. In this case, the sub (subject) of a previously issued ID Token for this
             Client MUST be sent as the kid (Key ID) of the JWE. Encrypting content to Self-Issued OPs is currently only
             supported when the OP's JWK key type is RSA and the encryption algorithm used is RSA1_5.
+          required: false
           schema:
             type: string
         - in: query
           name: code_challenge
-          required: false
           description: >
             RFC7636 Code Challenge.
+          required: false
           schema:
             type: string
         - in: query
@@ -924,21 +933,23 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - "scope"
+                - "response_type"
+                - "client_id"
+                - "redirect_uri"
               properties:
                 scope:
-                  required: true
                   description: The requested scope.
                   type: string
+                  example: "openid profile groups"
                 response_type:
-                  required: true
-                  oneOf:
-                    - $ref: '#/components/schemas/openid.spec.responseTypes'
+                  $ref: '#/components/schemas/openid.spec.responseTypes'
                 client_id:
-                  required: true
                   description: The OAuth 2.0 client identifier.
                   type: string
+                  example: "app"
                 redirect_uri:
-                  required: true
                   description: >
                     Redirection URI to which the response will be sent. This URI MUST exactly match one of the
                     Redirection URI values for the Client pre-registered at the OpenID Provider, with the matching
@@ -948,13 +959,14 @@ paths:
                     allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate
                     scheme, such as one that is intended to identify a callback into a native application.
                   type: string
+                  example: "https://app.example.com"
                 state:
-                  required: false
                   description: >
                     Opaque value used to maintain state between the request and the callback. Typically, Cross-Site
                     Request Forgery (CSRF, XSRF) mitigation is done by cryptographically binding the value of this
                     parameter with a browser cookie.
                   type: string
+                  example: "oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f"
                 response_mode:
                   $ref: '#/components/schemas/openid.spec.responseModes'
                 nonce:
@@ -965,6 +977,7 @@ paths:
                     entropy MUST be present in the nonce values used to prevent attackers from guessing values. For
                     implementation notes, see Section 15.5.2.
                   type: string
+                  example: "TRMLqchoKGQNcooXvBvUy9PtmLdJGf"
                 display:
                   $ref: '#/components/schemas/openid.spec.displayTypes'
                 prompt:
@@ -1093,8 +1106,9 @@ paths:
                 type: object
                 properties:
                   access_token:
-                    type: string
                     description: The access token issued by the authorization server.
+                    type: string
+                    example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
                   refresh_token:
                     type: string
                     description: >
@@ -1198,6 +1212,9 @@ paths:
         - in: query
           name: access_token
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
+          schema:
+            type: string
+            example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
       responses:
         "200":
           description: OK
@@ -1226,6 +1243,7 @@ paths:
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
           schema:
             type: string
+            example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -1235,6 +1253,7 @@ paths:
                 access_token:
                   description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
                   type: string
+                  example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
       responses:
         "200":
           description: OK
@@ -1469,7 +1488,7 @@ components:
           example: openid_connect
         workflowID:
           type: string
-          example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
+          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
         requestMethod:
           type: string
           example: GET
@@ -1535,7 +1554,7 @@ components:
           example: openid_connect
         workflowID:
           type: string
-          example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
+          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
     handlers.bodySignTOTPRequest:
       type: object
       properties:
@@ -1550,7 +1569,7 @@ components:
           example: openid_connect
         workflowID:
           type: string
-          example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
+          example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
     handlers.StateResponse:
       type: object
       properties:
@@ -1736,7 +1755,7 @@ components:
                       example: openid_connect
                     workflowID:
                       type: string
-                      example: 3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c
+                      example: "3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c"
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
@@ -1976,11 +1995,11 @@ components:
             client_id:
               type: string
               description: The identifier of the client for the user to provide consent for.
-              example: "nextcloud"
+              example: "app"
             client_description:
               type: string
               description: The descriptive name of the client for the user to provide consent for.
-              example: "Nextcloud Platform"
+              example: "App Platform"
             scopes:
               type: array
               description: The list of the requested scopes for the user to provide consent for.
@@ -3018,7 +3037,7 @@ components:
             as defined in OAuth 2.0 [RFC6749], Section 5.1. Other token types
             are outside the scope of this specification.
           type: string
-          example: "authela_at_3X5WZHUqRf3Ku8tsZ9by5KSYqESQnn"
+          example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
         token_type_hint:
           description: >
             A hint about the type of the token submitted for
@@ -3057,6 +3076,7 @@ components:
         ASCII string value that specifies how the Authorization Server displays the authentication and consent user
         interface pages to the End-User.
       type: string
+      example: "page"
       enum:
         - "page"
         - "popup"
@@ -3065,6 +3085,7 @@ components:
     openid.spec.responseTypes:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
       type: string
+      example: "code"
       enum:
         - "code"
         - "id_token"
@@ -3080,6 +3101,7 @@ components:
         Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
         the default mode specified for the Response Type.
       type: string
+      example: "query"
       enum:
         - "query"
         - "fragment"
@@ -3087,6 +3109,7 @@ components:
     openid.spec.grantTypes:
       description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
       type: string
+      example: "authorization_code"
       enum:
         - "authorization_code"
         - "refresh_token"
@@ -3096,12 +3119,14 @@ components:
     openid.spec.codeChallengeMethods:
       description: The RFC7636 Code Challenge Verifier Method.
       type: string
+      example: "S256"
       enum:
         - "plain"
         - "S256"
     openid.spec.claimTypes:
       description: The representation of claims.
       type: string
+      example: "normal"
       enum:
         - "normal"
         - "aggregated"
@@ -3115,6 +3140,7 @@ components:
         Resistant Name. The "kty" value is a case-sensitive string. This
         member MUST be present in a JWK.
       type: string
+      example: "RSA"
       enum:
         - "EC"
         - "RSA"
@@ -3125,6 +3151,7 @@ components:
         The curve parameter identifies the cryptographic curve used with the key. Curve
         values from [DSS] used by this specification.
       type: string
+      example: "P-521"
       enum:
         - "P-256"
         - "P-384"
