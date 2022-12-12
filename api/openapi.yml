@@ -929,7 +929,7 @@ paths:
       description: >
         This endpoint performs OpenID Connect 1.0 Authorization.
       requestBody:
-        description: Required OAuth 2.0 authorization parameters.
+        description: Authorize Request Parameters.
         required: true
         content:
           application/x-www-form-urlencoded:
@@ -965,48 +965,24 @@ paths:
       summary: OpenID Connect 1.0 Token Endpoint
       description: >
         This endpoint performs OpenID Connect 1.0 Token Access Requests.
+      requestBody:
+        description: Access Request Parameters.
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.AuthorizationCodeFlow'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.RefreshTokenFlow'
+                - $ref: '#/components/schemas/openid.spec.AccessRequest.DeviceCodeFlow'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  access_token:
-                    description: The access token issued by the authorization server.
-                    type: string
-                    example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
-                  refresh_token:
-                    type: string
-                    description: >
-                      The refresh token, which can be used to obtain new access tokens using the
-                      same authorization grant as described in Section 6.
-                  token_type:
-                    type: string
-                    description: >
-                      The access token type provides the client with the information
-                      required to successfully utilize the access token to make a protected
-                      resource request (along with type-specific attributes). The client
-                      MUST NOT use an access token if it does not understand the token
-                      type.
-                    enum:
-                      - "bearer"
-                  expires_in:
-                    type: integer
-                    description: >
-                      The lifetime in seconds of the access token. For
-                      example, the value "3600" denotes that the access token will
-                      expire in one hour from the time the response was generated.
-                      If omitted, the authorization server SHOULD provide the
-                      expiration time via other means or document the default value.
-                  state:
-                    type: string
-                    description: Exactly the state value passed in the authorization request if present.
-                  scope:
-                    type: string
-                    description: >
-                      The scope of the access token as described by Section 3.3 if it differs from the requested scope.
+                oneOf:
+                  - $ref: '#/components/schemas/openid.spec.AccessResponse'
         "401":
           description: Forbidden
         "403":
@@ -2747,6 +2723,124 @@ components:
           enum:
             - "access_token"
             - "refresh_token"
+    openid.spec.AccessRequest.ClientAuth:
+      type: object
+      properties:
+        client_id:
+          description: >
+            REQUIRED if the client is not authenticating with the
+            authorization server as described in Section 3.2.1. of [RFC6749].
+            The client identifier as described in Section 2.2 of [RFC6749].
+          type: string
+          example: "authelia_dc_mn123kjn12kj3123njk"
+        client_secret:
+          description: >
+            REQUIRED. The client secret. The client MAY omit the
+            parameter if the client secret is an empty string.
+          type: string
+          format: password
+    openid.spec.AccessRequest.AuthorizationCodeFlow:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+        - type: object
+          required:
+            - "code"
+            - "grant_type"
+          properties:
+            grant_type:
+              description: Value MUST be set to "urn:ietf:params:oauth:grant-type:device_code".
+              type: string
+              enum:
+                - "authorization_code"
+            code:
+              description: The Authorization Code.
+              type: string
+              example: "authelia_ac_1j2kn3knj12n3kj12n"
+            code_verifier:
+              description: The Authorization Code Verifier (PKCE).
+              type: string
+              example: "88a25754f7c0b3b3b88cf6cd4e29e8356b160524fdc1cb329a94471825628fd3"
+            redirect_uri:
+              description: The original Redirect URI used in the Authorization Request.
+              type: string
+              example: "https://app.example.com/oidc/callback"
+    openid.spec.AccessRequest.DeviceCodeFlow:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+        - type: object
+          required:
+            - "grant_type"
+            - "device_code"
+          properties:
+            grant_type:
+              description: Value MUST be set to "urn:ietf:params:oauth:grant-type:device_code".
+              type: string
+              enum:
+                - "urn:ietf:params:oauth:grant-type:device_code"
+            device_code:
+              description: The Device Authorization Code.
+              type: string
+              example: "authelia_dc_mn123kjn12kj3123njk"
+    openid.spec.AccessRequest.RefreshTokenFlow:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+        - type: object
+          required:
+            - "grant_type"
+            - "device_code"
+          properties:
+            grant_type:
+              description: Value MUST be set to "refresh_token".
+              type: string
+              enum:
+                - "refresh_token"
+            refresh_token:
+              description: The Refresh Token.
+              example: "authelia_rt_1n2j3kihn12kj3n12k"
+            scope:
+              description: >
+                The scope of the access request as described by
+                Section 3.3. The requested scope MUST NOT include any scope
+                not originally granted by the resource owner, and if omitted is
+                treated as equal to the scope originally granted by the
+                resource owner.
+    openid.spec.AccessResponse:
+      type: object
+      properties:
+        access_token:
+          description: The access token issued by the authorization server.
+          type: string
+          example: "authelia_at_cr4i4EtTn2F4k6mX4XzxbsBewkxCGn"
+        refresh_token:
+          type: string
+          description: >
+            The refresh token, which can be used to obtain new access tokens using the
+            same authorization grant as described in Section 6.
+        token_type:
+          type: string
+          description: >
+            The access token type provides the client with the information
+            required to successfully utilize the access token to make a protected
+            resource request (along with type-specific attributes). The client
+            MUST NOT use an access token if it does not understand the token
+            type.
+          enum:
+            - "bearer"
+        expires_in:
+          type: integer
+          description: >
+            The lifetime in seconds of the access token. For
+            example, the value "3600" denotes that the access token will
+            expire in one hour from the time the response was generated.
+            If omitted, the authorization server SHOULD provide the
+            expiration time via other means or document the default value.
+        state:
+          type: string
+          description: Exactly the state value passed in the authorization request if present.
+        scope:
+          type: string
+          description: >
+            The scope of the access token as described by Section 3.3 if it differs from the requested scope.
     openid.spec.AuthorizeRequest:
       type: object
       required:
@@ -2934,6 +3028,7 @@ components:
         - "implicit"
         - "password"
         - "client_credentials"
+        - "urn:ietf:params:oauth:grant-type:device_code"
     openid.spec.CodeChallengeMethod:
       description: The RFC7636 Code Challenge Verifier Method.
       type: string
