@@ -3154,7 +3154,8 @@ components:
           properties:
             kty:
               description: >
-                abc
+                The "kty" (key type) parameter identifies the cryptographic algorithm
+                family used with the key.
               type: string
               example: "RSA"
               enum:
@@ -3259,7 +3260,8 @@ components:
           properties:
             kty:
               description: >
-                abc
+                The "kty" (key type) parameter identifies the cryptographic algorithm
+                family used with the key.
               type: string
               example: "EC"
               enum:
@@ -3287,6 +3289,7 @@ components:
             crv:
               $ref: '#/components/schemas/jose.spec.crv'
     jose.spec.jwk.ec.private:
+      description: Elliptical Curve JSON Web Key (Private)
       allOf:
         - $ref: '#/components/schemas/jose.spec.jwk.base'
         - $ref: '#/components/schemas/jose.spec.jwk.ec'
@@ -3296,8 +3299,6 @@ components:
           properties:
             d:
               description: >
-                RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
-                private key. It is represented as a Base64urlUInt-encoded value.
                 ECC Private Key: The "d" (ECC private key) parameter contains the Elliptic Curve private key value. It
                 is represented as the base64url encoding of the octet string representation of the private key value,
                 as defined in Section 2.3.7 of SEC1 [SEC1]. The length of this octet string MUST be
@@ -3310,6 +3311,14 @@ components:
           required:
             - "k"
           properties:
+            kty:
+              description: >
+                The "kty" (key type) parameter identifies the cryptographic algorithm
+                family used with the key.
+              type: string
+              example: "oct"
+              enum:
+                - "oct"
             k:
               description: >
                 The "k" (key value) parameter contains the value of the symmetric (or
@@ -3323,7 +3332,6 @@ components:
         - $ref: '#/components/schemas/jose.spec.jwk.ec'
         - $ref: '#/components/schemas/jose.spec.jwk.ec.private'
         - $ref: '#/components/schemas/jose.spec.jwk.symmetric'
-
   securitySchemes:
     authelia_auth:
       type: apiKey
