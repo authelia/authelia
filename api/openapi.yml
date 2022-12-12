@@ -3136,6 +3136,7 @@ components:
             other members of the JWK. Use of this member is OPTIONAL.
           type: string
     jose.spec.jwk.rsa:
+      description: RSA Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
         - $ref: '#/components/schemas/jose.spec.jwk.base'
         - type: object
@@ -3174,6 +3175,7 @@ components:
                 It is represented as a Base64urlUInt-encoded value.
               type: string
     jose.spec.jwk.rsa.private:
+      description: RSA Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
         - $ref: '#/components/schemas/jose.spec.jwk.base'
         - $ref: '#/components/schemas/jose.spec.jwk.rsa'
@@ -3242,6 +3244,7 @@ components:
                       member represents the CRT coefficient of the corresponding prime
                       factor. It is represented as a Base64urlUInt-encoded value.
     jose.spec.jwk.ec:
+      description: Elliptic Curve Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
         - $ref: '#/components/schemas/jose.spec.jwk.base'
         - type: object
@@ -3281,7 +3284,7 @@ components:
             crv:
               $ref: '#/components/schemas/jose.spec.crv'
     jose.spec.jwk.ec.private:
-      description: Elliptical Curve JSON Web Key (Private)
+      description: Elliptic Curve Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
         - $ref: '#/components/schemas/jose.spec.jwk.base'
         - $ref: '#/components/schemas/jose.spec.jwk.ec'
@@ -3297,6 +3300,7 @@ components:
                 ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
               type: string
     jose.spec.jwk.symmetric:
+      description: Symmetric Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
         - $ref: '#/components/schemas/jose.spec.jwk.base'
         - type: object
@@ -3326,10 +3330,10 @@ components:
         - $ref: '#/components/schemas/jose.spec.jwk.symmetric'
     jose.spec.jwks:
       type: object
-      description: The JSON Web Key Sets Document.
+      description: The JSON Web Key Sets Document as defined by RFC7517.
       properties:
         keys:
-          description: List of JSON Wek Key's in the JSON Web Key Set format.
+          description: List of JSON Wek Key's in the JSON Web Key format as defined by RFC7517.
           type: array
           items:
             $ref: '#/components/schemas/jose.spec.jwk'
