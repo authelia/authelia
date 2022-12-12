@@ -7,7 +7,7 @@ info:
     sign-on (SSO) for your applications via a web portal.
   contact:
     name: Authelia Support
-    url: https://github.com/authelia/authelia#contact-options
+    url: https://www.authelia.com/contact/
     email: team@authelia.com
   license:
     name: Apache 2.0
@@ -689,7 +689,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.request.jwks'
+                $ref: '#/components/schemas/jose.spec.jwks'
   /api/oidc/authorization:
     get:
       tags:
@@ -2724,14 +2724,6 @@ components:
           example: ["none", "RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.jws.none'
-    openid.request.jwks:
-      type: object
-      properties:
-        keys:
-          description: List of JSON Wek Key's in the JSON Web Key Set format.
-          type: array
-          items:
-            $ref: '#/components/schemas/jose.spec.jwk'
     openid.misc.claims.array:
       type: array
       items:
@@ -3332,6 +3324,15 @@ components:
         - $ref: '#/components/schemas/jose.spec.jwk.ec'
         - $ref: '#/components/schemas/jose.spec.jwk.ec.private'
         - $ref: '#/components/schemas/jose.spec.jwk.symmetric'
+    jose.spec.jwks:
+      type: object
+      description: The JSON Web Key Sets Document.
+      properties:
+        keys:
+          description: List of JSON Wek Key's in the JSON Web Key Set format.
+          type: array
+          items:
+            $ref: '#/components/schemas/jose.spec.jwk'
   securitySchemes:
     authelia_auth:
       type: apiKey
