@@ -87,11 +87,18 @@ var hostEntries = []HostEntry{
 	{Domain: "mail.example.com", IP: "192.168.240.100"},
 	{Domain: "duo.example.com", IP: "192.168.240.100"},
 
-	// For Traefik suite.
-	{Domain: "traefik.example.com", IP: "192.168.240.100"},
-
 	// For HAProxy suite.
 	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+
+	// Kubernetes dashboard.
+	{Domain: "kubernetes.example.com", IP: "192.168.240.100"},
+
+	// OIDC tester app.
+	{Domain: "oidc.example.com", IP: "192.168.240.100"},
+	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
+
+	// For Traefik suite.
+	{Domain: "traefik.example.com", IP: "192.168.240.100"},
 
 	// For testing network ACLs.
 	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
@@ -107,12 +114,6 @@ var hostEntries = []HostEntry{
 	{Domain: "redis-sentinel-0.example.com", IP: "192.168.240.120"},
 	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
 	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
-
-	// Kubernetes dashboard.
-	{Domain: "kubernetes.example.com", IP: "192.168.240.110"},
-	// OIDC tester app.
-	{Domain: "oidc.example.com", IP: "192.168.240.100"},
-	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
 }
 
 func runCommand(cmd string, args ...string) {
