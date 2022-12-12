@@ -651,7 +651,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.request.openid-configuration'
+                $ref: '#/components/schemas/openid.spec.Metadata.OpenIDConfiguration'
         "400":
           description: Bad Request
         "500":
@@ -670,7 +670,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.request.openid-configuration'
+                $ref: '#/components/schemas/openid.spec.Metadata.OAuth2AuthorizationServer'
         "400":
           description: Bad Request
         "500":
@@ -689,7 +689,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/jose.spec.jwks'
+                $ref: '#/components/schemas/jose.spec.JWKs'
   /api/oidc/authorization:
     get:
       tags:
@@ -719,7 +719,7 @@ paths:
           description: The OAuth 2.0 response type.
           required: true
           schema:
-            $ref: '#/components/schemas/openid.spec.responseTypes'
+            $ref: '#/components/schemas/openid.spec.ResponseType'
         - in: query
           name: client_id
           description: The OAuth 2.0 client identifier.
@@ -759,7 +759,7 @@ paths:
             the default mode specified for the Response Type.
           required: false
           schema:
-            $ref: '#/components/schemas/openid.spec.responseModes'
+            $ref: '#/components/schemas/openid.spec.ResponseMode'
         - in: query
           name: nonce
           description: >
@@ -778,7 +778,7 @@ paths:
             and consent user interface pages to the End-User.
           required: false
           schema:
-            $ref: '#/components/schemas/openid.spec.displayTypes'
+            $ref: '#/components/schemas/openid.spec.DisplayType'
         - in: query
           name: prompt
           description: >
@@ -900,7 +900,7 @@ paths:
             RFC7636 Code Challenge Method. defaults to "plain" if not present in the request.
             Code verifier transformation method is "S256" or "plain".
           schema:
-            $ref: '#/components/schemas/openid.spec.codeChallengeMethods'
+            $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
       responses:
         "200":
           description: OK
@@ -934,130 +934,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              type: object
-              required:
-                - "scope"
-                - "response_type"
-                - "client_id"
-                - "redirect_uri"
-              properties:
-                scope:
-                  description: The requested scope.
-                  type: string
-                  example: "openid profile groups"
-                response_type:
-                  $ref: '#/components/schemas/openid.spec.responseTypes'
-                client_id:
-                  description: The OAuth 2.0 client identifier.
-                  type: string
-                  example: "app"
-                redirect_uri:
-                  description: >
-                    Redirection URI to which the response will be sent. This URI MUST exactly match one of the
-                    Redirection URI values for the Client pre-registered at the OpenID Provider, with the matching
-                    performed as described in Section 6.2.1 of [RFC3986] (Simple String Comparison). When using this
-                    flow, the Redirection URI SHOULD use the https scheme; however, it MAY use the http scheme, provided
-                    that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and provided the OP
-                    allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate
-                    scheme, such as one that is intended to identify a callback into a native application.
-                  type: string
-                  example: "https://app.example.com"
-                state:
-                  description: >
-                    Opaque value used to maintain state between the request and the callback. Typically, Cross-Site
-                    Request Forgery (CSRF, XSRF) mitigation is done by cryptographically binding the value of this
-                    parameter with a browser cookie.
-                  type: string
-                  example: "oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f"
-                response_mode:
-                  $ref: '#/components/schemas/openid.spec.responseModes'
-                nonce:
-                  description: >
-                    String value used to associate a Client session with an ID Token, and to mitigate replay attacks.
-                    The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient
-                    entropy MUST be present in the nonce values used to prevent attackers from guessing values. For
-                    implementation notes, see Section 15.5.2.
-                  type: string
-                  example: "TRMLqchoKGQNcooXvBvUy9PtmLdJGf"
-                display:
-                  $ref: '#/components/schemas/openid.spec.displayTypes'
-                prompt:
-                  description: >
-                    Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether
-                    the Authorization Server prompts the End-User for reauthentication and consent.
-                  type: string
-                max_age:
-                  description: >
-                    Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the
-                    End-User was actively authenticated by the OP. If the elapsed time is greater than this value, the
-                    OP MUST attempt to actively re-authenticate the End-User. (The max_age request parameter corresponds
-                    to the OpenID 2.0 PAPE [OpenID.PAPE] max_auth_age request parameter.) When max_age is used, the ID
-                    Token returned MUST include an auth_time Claim Value.
-                  type: integer
-                ui_locales:
-                  description: >
-                    Not Supported: End-User's preferred languages and scripts for the user interface, represented as a
-                    space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. For instance,
-                    the value "fr-CA fr en" represents a preference for French as spoken in Canada, then French (without
-                    a region designation), followed by English (without a region designation). An error SHOULD NOT
-                    result if some or all of the requested locales are not supported by the OpenID Provider.
-                  type: string
-                claims_locales:
-                  description: >
-                    Not Supported: End-User's preferred languages and scripts for Claims being returned, represented as
-                    a space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. An error
-                    SHOULD NOT result if some or all of the requested locales are not supported by the OpenID Provider.
-                  type: string
-                id_token_hint:
-                  description: >
-                    Not Supported: ID Token previously issued by the Authorization Server being passed as a hint about
-                    the End-User's current or past authenticated session with the Client. If the End-User identified by
-                    the ID Token is logged in or is logged in by the request, then the Authorization Server returns a
-                    positive response; otherwise, it SHOULD return an error, such as login_required. When possible, an
-                    id_token_hint SHOULD be present when prompt=none is used and an invalid_request error MAY be
-                    returned if it is not; however, the server SHOULD respond successfully when possible, even if it is
-                    not present. The Authorization Server need not be listed as an audience of the ID Token when it is
-                    used as an id_token_hint value. If the ID Token received by the RP from the OP is encrypted, to use
-                    it as an id_token_hint, the Client MUST decrypt the signed ID Token contained within the encrypted
-                    ID Token. The Client MAY re-encrypt the signed ID token to the Authentication Server using a key
-                    that enables the server to decrypt the ID Token, and use the re-encrypted ID token as the
-                    id_token_hint value.
-                  type: string
-                login_hint:
-                  description: >
-                    Not Supported: Hint to the Authorization Server about the login identifier the End-User might use to
-                    log in (if necessary). This hint can be used by an RP if it first asks the End-User for their e-mail
-                    address (or other identifier) and then wants to pass that value as a hint to the discovered
-                    authorization service. It is RECOMMENDED that the hint value match the value used for discovery.
-                    This value MAY also be a phone number in the format specified for the phone_number Claim. The use
-                    of this parameter is left to the OP's discretion.
-                  type: string
-                acr_values:
-                  description: >
-                    Not Supported: Requested Authentication Context Class Reference values. Space-separated string that
-                    specifies the acr values that the Authorization Server is being requested to use for processing this
-                    Authentication Request, with the values appearing in order of preference. The Authentication Context
-                    Class satisfied by the authentication performed is returned as the acr Claim Value, as specified in
-                    Section 2. The acr Claim is requested as a Voluntary Claim by this parameter.
-                  type: string
-                claims:
-                  description: >
-                    Not Supported: The claims parameter value, as specified in Section 5.5.
-                  type: string
-                registration:
-                  description: >
-                    Not Supported: This parameter is used by the Client to provide information about itself to a
-                    Self-Issued OP that would normally be provided to an OP during Dynamic Client Registration, as
-                    specified in Section 7.2.1.
-                  type: string
-                request:
-                  description: >
-                    Not Supported: Request Object value, as specified in Section 6.1. The Request Object MAY be
-                    encrypted to the Self-Issued OP by the Client. In this case, the sub (subject) of a previously
-                    issued ID Token for this Client MUST be sent as the kid (Key ID) of the JWE. Encrypting content to
-                    Self-Issued OPs is currently only supported when the OP's JWK key type is RSA and the encryption
-                    algorithm used is RSA1_5.
-                  type: string
+              $ref: '#/components/schemas/openid.spec.AuthorizeRequest'
       responses:
         "200":
           description: OK
@@ -1151,7 +1028,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/openid.requestBody.introspect'
+              $ref: '#/components/schemas/openid.spec.IntrospectionRequest'
       responses:
         "200":
           description: OK
@@ -1176,14 +1053,14 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/openid.requestBody.introspect'
+              $ref: '#/components/schemas/openid.spec.IntrospectionRequest'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.misc.claims.user'
+                $ref: '#/components/schemas/openid.implementation.Claims.Object'
         "401":
           description: Forbidden
         "403":
@@ -1213,7 +1090,7 @@ paths:
             application/jwt: {}
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.misc.claims.user'
+                $ref: '#/components/schemas/openid.implementation.Claims.Object'
         "401":
           description: Forbidden
         "403":
@@ -1252,7 +1129,7 @@ paths:
             application/jwt: {}
             application/json:
               schema:
-                $ref: '#/components/schemas/openid.misc.claims.user'
+                $ref: '#/components/schemas/openid.implementation.Claims.Object'
         "401":
           description: Forbidden
         "403":
@@ -2046,7 +1923,7 @@ components:
               description: Indicates if the user consented to pre-configuration.
               type: boolean
               example: true
-    openid.request.oauth-authorization-server:
+    openid.spec.Metadata.OAuth2AuthorizationServer:
       type: object
       required:
         - issuer
@@ -2086,7 +1963,7 @@ components:
             - "preferred_username"
             - "name"
           items:
-            $ref: '#/components/schemas/openid.misc.claims.array'
+            $ref: '#/components/schemas/openid.implementation.Claims.Array'
         code_challenge_methods_supported:
           description: >
             JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization
@@ -2097,7 +1974,7 @@ components:
           type: array
           example: ["S256", "none"]
           items:
-            $ref: '#/components/schemas/openid.spec.codeChallengeMethods'
+            $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
         grant_types_supported:
           type: array
           description: >
@@ -2106,7 +1983,7 @@ components:
             Types. If omitted, the default value is ["authorization_code", "implicit"].
           example: ["authorization_code", "implicit"]
           items:
-            $ref: '#/components/schemas/openid.spec.grantTypes'
+            $ref: '#/components/schemas/openid.spec.GrantType'
         introspection_endpoint:
           description: >
             URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token
@@ -2126,7 +2003,7 @@ components:
           type: array
           example: ["client_secret_post"]
           items:
-            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
+            $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         introspection_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection
@@ -2195,7 +2072,7 @@ components:
           type: array
           example: ["query", "fragment"]
           items:
-            $ref: '#/components/schemas/openid.spec.responseModes'
+            $ref: '#/components/schemas/openid.spec.ResponseMode'
         response_types_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_type values that this OP supports.
@@ -2203,7 +2080,7 @@ components:
           type: array
           example: ["code", "id_token", "token id_token"]
           items:
-            $ref: '#/components/schemas/openid.spec.responseTypes'
+            $ref: '#/components/schemas/openid.spec.ResponseType'
         revocation_endpoint:
           description: >
             URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009].
@@ -2221,7 +2098,7 @@ components:
           type: array
           example: ["client_secret_post"]
           items:
-            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
+            $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         revocation_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the revocation
@@ -2248,7 +2125,7 @@ components:
             - "email"
             - "groups"
           items:
-            $ref: '#/components/schemas/oauth2.implementation.scopes'
+            $ref: '#/components/schemas/openid.implementation.Scopes.Object'
         service_documentation:
           description: >
             URL of a page containing human-readable information that developers might want or need to know when using
@@ -2263,7 +2140,7 @@ components:
           type: array
           example: ["public", "pairwise"]
           items:
-            $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
+            $ref: '#/components/schemas/openid.spec.SubjectIdentifier'
         token_endpoint:
           description: >
             URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
@@ -2281,7 +2158,7 @@ components:
           type: array
           example: ["client_secret_post"]
           items:
-            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
+            $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         token_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for
@@ -2300,7 +2177,7 @@ components:
           example: ["en-US"]
           items:
             type: string
-    openid.request.openid-configuration:
+    openid.spec.Metadata.OpenIDConfiguration:
       type: object
       required:
         - "issuer"
@@ -2350,7 +2227,7 @@ components:
           type: array
           example: ["normal"]
           items:
-            $ref: '#/components/schemas/openid.spec.claimTypes'
+            $ref: '#/components/schemas/openid.spec.ClaimType'
         claims_locales_supported:
           description: >
             Languages and scripts supported for values in Claims being returned, represented as a JSON array of BCP47
@@ -2391,7 +2268,7 @@ components:
             - "preferred_username"
             - "name"
           items:
-            $ref: '#/components/schemas/openid.misc.claims.array'
+            $ref: '#/components/schemas/openid.implementation.Claims.Array'
         code_challenge_methods_supported:
           description: >
             JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization
@@ -2403,7 +2280,7 @@ components:
           type: array
           example: ["S256", "plain"]
           items:
-            $ref: '#/components/schemas/openid.spec.codeChallengeMethods'
+            $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
         display_values_supported:
           description: >
             JSON array containing a list of the display parameter values that the OpenID Provider supports. These values
@@ -2412,7 +2289,7 @@ components:
           type: array
           example: ["page"]
           items:
-            $ref: '#/components/schemas/openid.spec.displayTypes'
+            $ref: '#/components/schemas/openid.spec.DisplayType'
         frontchannel_logout_session_supported:
           description: >
             Boolean value specifying whether the OP can pass iss (issuer) and sid (session ID) query parameters to
@@ -2434,7 +2311,7 @@ components:
           type: array
           example: ["authorization_code", "implicit"]
           items:
-            $ref: '#/components/schemas/openid.spec.grantTypes'
+            $ref: '#/components/schemas/openid.spec.GrantType'
         id_token_encryption_alg_values_supported:
           description: >
             JSON array containing a list of the JWE encryption algorithms (alg values) supported by the OP for the ID
@@ -2443,7 +2320,7 @@ components:
           type: array
           example: ["A256GCMKW"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwe.alg'
+            $ref: '#/components/schemas/jose.spec.JWE.alg'
         id_token_encryption_enc_values_supported:
           description: >
             JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for the ID
@@ -2452,7 +2329,7 @@ components:
           type: array
           example: ["A256GCM"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwe.enc'
+            $ref: '#/components/schemas/jose.spec.JWE.enc'
         id_token_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for the ID Token
@@ -2463,7 +2340,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws.none'
+            $ref: '#/components/schemas/jose.spec.JWS.None'
         introspection_endpoint:
           description: >
             URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0
@@ -2483,7 +2360,7 @@ components:
           type: array
           example: ["client_secret_post"]
           items:
-            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
+            $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         introspection_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the introspection
@@ -2546,7 +2423,7 @@ components:
           type: array
           example: ["A256GCMKW"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwe.alg'
+            $ref: '#/components/schemas/jose.spec.JWE.alg'
         request_object_encryption_enc_values_supported:
           description: >
             JSON array containing a list of the JWE encryption algorithms (enc values) supported by the OP for Request
@@ -2556,7 +2433,7 @@ components:
           type: array
           example: ["A256GCM"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwe.enc'
+            $ref: '#/components/schemas/jose.spec.JWE.enc'
         request_object_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request
@@ -2566,7 +2443,7 @@ components:
           type: array
           example: ["RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws.none'
+            $ref: '#/components/schemas/jose.spec.JWS.None'
         request_uri_parameter_supported:
           description: >
             Boolean value specifying whether the OP supports use of the request_uri parameter, with true indicating
@@ -2594,7 +2471,7 @@ components:
           type: array
           example: ["query", "fragment"]
           items:
-            $ref: '#/components/schemas/openid.spec.responseModes'
+            $ref: '#/components/schemas/openid.spec.ResponseMode'
         response_types_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_type values that this OP supports. Dynamic OpenID
@@ -2602,7 +2479,7 @@ components:
           type: array
           example: ["code", "id_token", "token id_token"]
           items:
-            $ref: '#/components/schemas/openid.spec.responseTypes'
+            $ref: '#/components/schemas/openid.spec.ResponseType'
         revocation_endpoint:
           description: >
             URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also:
@@ -2620,7 +2497,7 @@ components:
           type: array
           example: ["client_secret_basic"]
           items:
-            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
+            $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         revocation_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms ("alg" values) supported by the revocation
@@ -2648,7 +2525,7 @@ components:
             - "email"
             - "groups"
           items:
-            $ref: '#/components/schemas/oauth2.implementation.scopes'
+            $ref: '#/components/schemas/openid.implementation.Scopes.Object'
         service_documentation:
           description: >
             URL of a page containing human-readable information that developers might want or need to know when using
@@ -2663,7 +2540,7 @@ components:
           type: array
           example: ["public", "pairwise"]
           items:
-            $ref: '#/components/schemas/openid.spec.subjectIdentifierTypes'
+            $ref: '#/components/schemas/openid.spec.SubjectIdentifier'
         token_endpoint:
           description: >
             URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
@@ -2681,7 +2558,7 @@ components:
           type: array
           example: ["client_secret_post"]
           items:
-            $ref: '#/components/schemas/openid.spec.clientAuthMethods'
+            $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         token_endpoint_auth_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint
@@ -2709,7 +2586,7 @@ components:
           type: array
           example: ["A256GCMKW"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwe.alg'
+            $ref: '#/components/schemas/jose.spec.JWE.alg'
         userinfo_encryption_enc_values_supported:
           description: >
             JSON array containing a list of the JWE encryption algorithms (enc values) [JWA] supported by the UserInfo
@@ -2718,7 +2595,7 @@ components:
           type: array
           example: ["A256GCM"]
           items:
-            $ref: '#/components/schemas/jose.spec.jwe.enc'
+            $ref: '#/components/schemas/jose.spec.JWE.enc'
         userinfo_endpoint:
           description: >
             URL of the OP''s UserInfo Endpoint [OpenID.Core]. This URL MUST use the https scheme and MAY contain port,
@@ -2735,8 +2612,8 @@ components:
           type: array
           example: ["none", "RS256"]
           items:
-            $ref: '#/components/schemas/jose.spec.jws.none'
-    openid.misc.claims.array:
+            $ref: '#/components/schemas/jose.spec.JWS.None'
+    openid.implementation.Claims.Array:
       type: array
       items:
         type: string
@@ -2759,7 +2636,7 @@ components:
           - "groups"
           - "preferred_username"
           - "name"
-    openid.misc.claims.user:
+    openid.implementation.Claims.Object:
       description: OpenID Connect 1.0 User Claims.
       type: object
       properties:
@@ -2822,7 +2699,24 @@ components:
           type: string
         name:
           type: string
-    openid.requestBody.introspect:
+    openid.implementation.Scopes.Object:
+      description: The scope.
+      type: string
+      oneOf:
+        - $ref: '#/components/schemas/openid.spec.Scopes'
+        - type: string
+          enum:
+            - "groups"
+    openid.spec.Scopes:
+      type: string
+      enum:
+        - "openid"
+        - "offline_access"
+        - "profile"
+        - "email"
+        - "address"
+        - "phone"
+    openid.spec.IntrospectionRequest:
       type: object
       required:
         - "token"
@@ -2853,7 +2747,132 @@ components:
           enum:
             - "access_token"
             - "refresh_token"
-    openid.spec.subjectIdentifierTypes:
+    openid.spec.AuthorizeRequest:
+      type: object
+      required:
+        - "scope"
+        - "response_type"
+        - "client_id"
+        - "redirect_uri"
+      properties:
+        scope:
+          description: The requested scope.
+          type: string
+          example: "openid profile groups"
+        response_type:
+          $ref: '#/components/schemas/openid.spec.ResponseType'
+        client_id:
+          description: The OAuth 2.0 client identifier.
+          type: string
+          example: "app"
+        redirect_uri:
+          description: >
+            Redirection URI to which the response will be sent. This URI MUST exactly match one of the
+            Redirection URI values for the Client pre-registered at the OpenID Provider, with the matching
+            performed as described in Section 6.2.1 of [RFC3986] (Simple String Comparison). When using this
+            flow, the Redirection URI SHOULD use the https scheme; however, it MAY use the http scheme, provided
+            that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and provided the OP
+            allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate
+            scheme, such as one that is intended to identify a callback into a native application.
+          type: string
+          example: "https://app.example.com"
+        state:
+          description: >
+            Opaque value used to maintain state between the request and the callback. Typically, Cross-Site
+            Request Forgery (CSRF, XSRF) mitigation is done by cryptographically binding the value of this
+            parameter with a browser cookie.
+          type: string
+          example: "oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f"
+        response_mode:
+          $ref: '#/components/schemas/openid.spec.ResponseMode'
+        nonce:
+          description: >
+            String value used to associate a Client session with an ID Token, and to mitigate replay attacks.
+            The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient
+            entropy MUST be present in the nonce values used to prevent attackers from guessing values. For
+            implementation notes, see Section 15.5.2.
+          type: string
+          example: "TRMLqchoKGQNcooXvBvUy9PtmLdJGf"
+        display:
+          $ref: '#/components/schemas/openid.spec.DisplayType'
+        prompt:
+          description: >
+            Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether
+            the Authorization Server prompts the End-User for reauthentication and consent.
+          type: string
+        max_age:
+          description: >
+            Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the
+            End-User was actively authenticated by the OP. If the elapsed time is greater than this value, the
+            OP MUST attempt to actively re-authenticate the End-User. (The max_age request parameter corresponds
+            to the OpenID 2.0 PAPE [OpenID.PAPE] max_auth_age request parameter.) When max_age is used, the ID
+            Token returned MUST include an auth_time Claim Value.
+          type: integer
+        ui_locales:
+          description: >
+            Not Supported: End-User's preferred languages and scripts for the user interface, represented as a
+            space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. For instance,
+            the value "fr-CA fr en" represents a preference for French as spoken in Canada, then French (without
+            a region designation), followed by English (without a region designation). An error SHOULD NOT
+            result if some or all of the requested locales are not supported by the OpenID Provider.
+          type: string
+        claims_locales:
+          description: >
+            Not Supported: End-User's preferred languages and scripts for Claims being returned, represented as
+            a space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. An error
+            SHOULD NOT result if some or all of the requested locales are not supported by the OpenID Provider.
+          type: string
+        id_token_hint:
+          description: >
+            Not Supported: ID Token previously issued by the Authorization Server being passed as a hint about
+            the End-User's current or past authenticated session with the Client. If the End-User identified by
+            the ID Token is logged in or is logged in by the request, then the Authorization Server returns a
+            positive response; otherwise, it SHOULD return an error, such as login_required. When possible, an
+            id_token_hint SHOULD be present when prompt=none is used and an invalid_request error MAY be
+            returned if it is not; however, the server SHOULD respond successfully when possible, even if it is
+            not present. The Authorization Server need not be listed as an audience of the ID Token when it is
+            used as an id_token_hint value. If the ID Token received by the RP from the OP is encrypted, to use
+            it as an id_token_hint, the Client MUST decrypt the signed ID Token contained within the encrypted
+            ID Token. The Client MAY re-encrypt the signed ID token to the Authentication Server using a key
+            that enables the server to decrypt the ID Token, and use the re-encrypted ID token as the
+            id_token_hint value.
+          type: string
+        login_hint:
+          description: >
+            Not Supported: Hint to the Authorization Server about the login identifier the End-User might use to
+            log in (if necessary). This hint can be used by an RP if it first asks the End-User for their e-mail
+            address (or other identifier) and then wants to pass that value as a hint to the discovered
+            authorization service. It is RECOMMENDED that the hint value match the value used for discovery.
+            This value MAY also be a phone number in the format specified for the phone_number Claim. The use
+            of this parameter is left to the OP's discretion.
+          type: string
+        acr_values:
+          description: >
+            Not Supported: Requested Authentication Context Class Reference values. Space-separated string that
+            specifies the acr values that the Authorization Server is being requested to use for processing this
+            Authentication Request, with the values appearing in order of preference. The Authentication Context
+            Class satisfied by the authentication performed is returned as the acr Claim Value, as specified in
+            Section 2. The acr Claim is requested as a Voluntary Claim by this parameter.
+          type: string
+        claims:
+          description: >
+            Not Supported: The claims parameter value, as specified in Section 5.5.
+          type: string
+        registration:
+          description: >
+            Not Supported: This parameter is used by the Client to provide information about itself to a
+            Self-Issued OP that would normally be provided to an OP during Dynamic Client Registration, as
+            specified in Section 7.2.1.
+          type: string
+        request:
+          description: >
+            Not Supported: Request Object value, as specified in Section 6.1. The Request Object MAY be
+            encrypted to the Self-Issued OP by the Client. In this case, the sub (subject) of a previously
+            issued ID Token for this Client MUST be sent as the kid (Key ID) of the JWE. Encrypting content to
+            Self-Issued OPs is currently only supported when the OP's JWK key type is RSA and the encryption
+            algorithm used is RSA1_5.
+          type: string
+    openid.spec.SubjectIdentifier:
       description: >
         A Subject Identifier is a locally unique and never reassigned identifier within the Issuer for the
         End-User, which is intended to be consumed by the Client.
@@ -2861,7 +2880,7 @@ components:
       enum:
         - "public"
         - "pairwise"
-    openid.spec.clientAuthMethods:
+    openid.spec.ClientAuthMethod:
       description: The OAuth 2.0 / OpenID Connect 1.0 Client Authentication Method.
       type: string
       enum:
@@ -2870,7 +2889,7 @@ components:
         - "client_secret_jwt"
         - "private_key_jwt"
         - "none"
-    openid.spec.displayTypes:
+    openid.spec.DisplayType:
       description: >
         ASCII string value that specifies how the Authorization Server displays the authentication and consent user
         interface pages to the End-User.
@@ -2881,7 +2900,7 @@ components:
         - "popup"
         - "touch"
         - "wap"
-    openid.spec.responseTypes:
+    openid.spec.ResponseType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
       type: string
       example: "code"
@@ -2894,7 +2913,7 @@ components:
         - "token id_token"
         - "code id_token token"
         - "none"
-    openid.spec.responseModes:
+    openid.spec.ResponseMode:
       description: >
         Informs the Authorization Server of the mechanism to be used for returning parameters from the Authorization
         Endpoint. This use of this parameter is NOT RECOMMENDED when the Response Mode that would be requested is
@@ -2905,7 +2924,7 @@ components:
         - "query"
         - "fragment"
         - "form_post"
-    openid.spec.grantTypes:
+    openid.spec.GrantType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
       type: string
       example: "authorization_code"
@@ -2915,14 +2934,14 @@ components:
         - "implicit"
         - "password"
         - "client_credentials"
-    openid.spec.codeChallengeMethods:
+    openid.spec.CodeChallengeMethod:
       description: The RFC7636 Code Challenge Verifier Method.
       type: string
       example: "S256"
       enum:
         - "plain"
         - "S256"
-    openid.spec.claimTypes:
+    openid.spec.ClaimType:
       description: The representation of claims.
       type: string
       example: "normal"
@@ -2930,25 +2949,16 @@ components:
         - "normal"
         - "aggregated"
         - "distributed"
-    oauth2.implementation.scopes:
-      description: The scope.
-      type: string
-      enum:
-        - "openid"
-        - "offline_access"
-        - "profile"
-        - "email"
-        - "groups"
-    jose.spec.none:
+    jose.spec.None:
       description: The JSON Web Signature Algorithm
       type: string
       enum:
         - "none"
-    jose.spec.jws.none:
+    jose.spec.JWS.None:
       description: The JSON Web Signature Algorithm
       type: string
       oneOf:
-        - $ref: '#/components/schemas/jose.spec.none'
+        - $ref: '#/components/schemas/jose.spec.None'
         - $ref: '#/components/schemas/jose.spec.jws'
     jose.spec.jws:
       description: The JSON Web Signature Algorithm
@@ -2966,7 +2976,7 @@ components:
         - "PS256"
         - "PS384"
         - "PS512"
-    jose.spec.jwe.alg:
+    jose.spec.JWE.alg:
       description: The JSON Web Encryption Algorithm (CEK)
       type: string
       enum:
@@ -2987,7 +2997,7 @@ components:
         - "PBES2-HS256+A128KW"
         - "PBES2-HS384+A192KW"
         - "PBES2-HS512+A256KW"
-    jose.spec.jwe.enc:
+    jose.spec.JWE.enc:
       description: The JSON Web Encryption Algorithm (Claims)
       type: string
       enum:
@@ -2998,7 +3008,7 @@ components:
         - "A256CBC"
         - "A128GCM"
         - "A256GCM"
-    jose.spec.jwk.base:
+    jose.spec.JWK.base:
       type: object
       properties:
         use:
@@ -3097,10 +3107,10 @@ components:
             other members of the JWK. Use of this member is OPTIONAL.
           type: string
           format: byte
-    jose.spec.jwk.rsa:
+    jose.spec.JWK.RSA:
       description: RSA Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
-        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - $ref: '#/components/schemas/jose.spec.JWK.base'
         - type: object
           required:
             - "kty"
@@ -3138,11 +3148,11 @@ components:
                 It is represented as a Base64urlUInt-encoded value.
               type: string
               format: byte
-    jose.spec.jwk.rsa.private:
+    jose.spec.JWK.RSA.Private:
       description: RSA Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
-        - $ref: '#/components/schemas/jose.spec.jwk.base'
-        - $ref: '#/components/schemas/jose.spec.jwk.rsa'
+        - $ref: '#/components/schemas/jose.spec.JWK.base'
+        - $ref: '#/components/schemas/jose.spec.JWK.RSA'
         - type: object
           required:
             - "d"
@@ -3214,10 +3224,10 @@ components:
                       factor. It is represented as a Base64urlUInt-encoded value.
                     type: string
                     format: byte
-    jose.spec.jwk.ec:
+    jose.spec.JWK.EC:
       description: Elliptic Curve Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
-        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - $ref: '#/components/schemas/jose.spec.JWK.base'
         - type: object
           required:
             - "kty"
@@ -3269,11 +3279,11 @@ components:
                 - "X25519"
                 - "X448"
                 - "secp256k1"
-    jose.spec.jwk.ec.private:
+    jose.spec.JWK.EC.Private:
       description: Elliptic Curve Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
-        - $ref: '#/components/schemas/jose.spec.jwk.base'
-        - $ref: '#/components/schemas/jose.spec.jwk.ec'
+        - $ref: '#/components/schemas/jose.spec.JWK.base'
+        - $ref: '#/components/schemas/jose.spec.JWK.EC'
         - type: object
           required:
             - "d"
@@ -3286,10 +3296,10 @@ components:
                 ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
               type: string
               format: byte
-    jose.spec.jwk.symmetric:
+    jose.spec.JWK.Symmetric:
       description: Symmetric Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
-        - $ref: '#/components/schemas/jose.spec.jwk.base'
+        - $ref: '#/components/schemas/jose.spec.JWK.base'
         - type: object
           required:
             - "k"
@@ -3309,14 +3319,15 @@ components:
                 encoding of the octet sequence containing the key value.
               type: string
               format: byte
-    jose.spec.jwk:
+    jose.spec.JWK:
+      type: string
       anyOf:
-        - $ref: '#/components/schemas/jose.spec.jwk.rsa'
-        - $ref: '#/components/schemas/jose.spec.jwk.rsa.private'
-        - $ref: '#/components/schemas/jose.spec.jwk.ec'
-        - $ref: '#/components/schemas/jose.spec.jwk.ec.private'
-        - $ref: '#/components/schemas/jose.spec.jwk.symmetric'
-    jose.spec.jwks:
+        - $ref: '#/components/schemas/jose.spec.JWK.RSA'
+        - $ref: '#/components/schemas/jose.spec.JWK.RSA.Private'
+        - $ref: '#/components/schemas/jose.spec.JWK.EC'
+        - $ref: '#/components/schemas/jose.spec.JWK.EC.Private'
+        - $ref: '#/components/schemas/jose.spec.JWK.Symmetric'
+    jose.spec.JWKs:
       type: object
       description: The JSON Web Key Sets Document as defined by RFC7517.
       properties:
@@ -3324,7 +3335,7 @@ components:
           description: List of JSON Wek Key's in the JSON Web Key format as defined by RFC7517.
           type: array
           items:
-            $ref: '#/components/schemas/jose.spec.jwk'
+            $ref: '#/components/schemas/jose.spec.JWK'
   securitySchemes:
     authelia_auth:
       type: apiKey
