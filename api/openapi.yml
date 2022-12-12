@@ -14,7 +14,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
   version: 1.0.0
 servers:
-  - url: {{ .BaseURL }}api/
+  - url: {{ .BaseURL }}
     description: Autheia API
 tags:
   - name: State
