@@ -146,15 +146,15 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 These endpoints implement OpenID Connect elements.
 
-|            Endpoint             |                      Path                       |          Discovery Attribute          |
-|:-------------------------------:|:-----------------------------------------------:|:-------------------------------------:|
-|       [JSON Web Key Set]        |       https://auth.example.com/jwks.json        |               jwks_uri                |
-|         [Authorization]         | https://auth.example.com/api/oidc/authorization |        authorization_endpoint         |
-| [Pushed Authorization Requests] |      https://auth.example.com/api/oidc/par      | pushed_authorization_request_endpoint |
-|             [Token]             |     https://auth.example.com/api/oidc/token     |            token_endpoint             |
-|           [UserInfo]            |   https://auth.example.com/api/oidc/userinfo    |           userinfo_endpoint           |
-|         [Introspection]         | https://auth.example.com/api/oidc/introspection |        introspection_endpoint         |
-|          [Revocation]           |  https://auth.example.com/api/oidc/revocation   |          revocation_endpoint          |
+|            Endpoint             |                         Path                         |          Discovery Attribute          |
+|:-------------------------------:|:----------------------------------------------------:|:-------------------------------------:|
+|       [JSON Web Key Set]        |          https://auth.example.com/jwks.json          |               jwks_uri                |
+|         [Authorization]         |   https://auth.example.com/api/oidc/authorization    |        authorization_endpoint         |
+| [Pushed Authorization Requests] | https://auth.example.com/api/oidc/authorization/push | pushed_authorization_request_endpoint |
+|             [Token]             |       https://auth.example.com/api/oidc/token        |            token_endpoint             |
+|           [UserInfo]            |      https://auth.example.com/api/oidc/userinfo      |           userinfo_endpoint           |
+|         [Introspection]         |   https://auth.example.com/api/oidc/introspection    |        introspection_endpoint         |
+|          [Revocation]           |     https://auth.example.com/api/oidc/revocation     |          revocation_endpoint          |
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4

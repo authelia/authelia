@@ -31,6 +31,8 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []fosite.ResponseModeType{fosite.ResponseModeDefault},
 
+		EnforcePAR: config.EnforcePAR,
+
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 
 		Policy: authorization.StringToLevel(config.Policy),

@@ -38,6 +38,11 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
 			EnforcePublicClients:      config.EnforcePKCE != "never",
 			AllowPlainChallengeMethod: config.EnablePKCEPlainChallenge,
 		},
+		PAR: PARConfig{
+			Enforced:        config.PAR.Enforce,
+			ContextLifespan: config.PAR.ContextLifespan,
+			URIPrefix:       urnPARPrefix,
+		},
 	}
 
 	prefix := "authelia_%s_"
@@ -580,7 +585,7 @@ func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
 
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.
 func (c *Config) GetPushedAuthorizeContextLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.PAR.ContextLifespan == 0 {
+	if c.PAR.ContextLifespan.Seconds() == 0 {
 		c.PAR.ContextLifespan = lifespanPARContextDefault
 	}
 

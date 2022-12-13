@@ -4,9 +4,11 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/ory/fosite"
+	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -50,6 +52,22 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
+	}
+
+	if client.EnforcePAR {
+		par := requester.GetRequestForm().Get(oidc.FormParameterRequestURI)
+
+		if !strings.HasPrefix(requester.GetRequestForm().Get(oidc.FormParameterRequestURI), ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
+			if par == "" {
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but a standard Authorization Request was recieved", requester.GetID(), clientID)
+			} else {
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but the '%s' paramter with value '%s' is malformed or does not appear to be intended as a Pushed Authorization Request", requester.GetID(), clientID, oidc.FormParameterRequestURI, par)
+			}
+
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, errorsx.WithStack(oidc.ErrPAREnforcedClientMissingPAR))
+
+			return
+		}
 	}
 
 	if issuer, err = ctx.IssuerURL(); err != nil {

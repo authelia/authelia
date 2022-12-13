@@ -29,8 +29,15 @@ type OpenIDConnectConfiguration struct {
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge"`
 
 	CORS OpenIDConnectCORSConfiguration `koanf:"cors"`
+	PAR  OpenIDConnectPARConfiguration  `koanf:"pushed_authorizations"`
 
 	Clients []OpenIDConnectClientConfiguration `koanf:"clients"`
+}
+
+// OpenIDConnectPARConfiguration represents an OpenID Connect PAR config.
+type OpenIDConnectPARConfiguration struct {
+	Enforce         bool          `koanf:"enforce"`
+	ContextLifespan time.Duration `koanf:"context_lifespan"`
 }
 
 // OpenIDConnectCORSConfiguration represents an OpenID Connect CORS config.
@@ -60,6 +67,8 @@ type OpenIDConnectClientConfiguration struct {
 	UserinfoSigningAlgorithm string `koanf:"userinfo_signing_algorithm"`
 
 	Policy string `koanf:"authorization_policy"`
+
+	EnforcePAR bool `koanf:"enforce_par"`
 
 	ConsentMode                  string         `koanf:"consent_mode"`
 	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration"`

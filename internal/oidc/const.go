@@ -91,6 +91,10 @@ const (
 	PKCEChallengeMethodSHA256 = "S256"
 )
 
+const (
+	FormParameterRequestURI = "request_uri"
+)
+
 // Endpoints.
 const (
 	EndpointAuthorization = "authorization"
@@ -99,7 +103,7 @@ const (
 	EndpointIntrospection = "introspection"
 	EndpointRevocation    = "revocation"
 
-	EndpointPushedAuthorizationRequest = "par"
+	EndpointPushedAuthorizationRequest = EndpointAuthorization + "/push"
 )
 
 // JWT Headers.

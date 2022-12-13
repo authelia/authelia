@@ -271,6 +271,23 @@ Allows [PKCE] `plain` challenges when set to `true`.
 *__Security Notice:__* Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
 method instead.
 
+### pushed_authorizations
+
+Controls the behaviour of [Pushed Authorization Requests].
+
+#### enforce
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+When enabled all authorization requests must use the [Pushed Authorization Requests] flow.
+
+#### context_lifespan
+
+{{< confkey type="duration" default="5m" required="no" >}}
+
+The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
+`request_uri` being utilized by a client.
+
 ### cors
 
 Some [OpenID Connect] Endpoints need to allow cross-origin resource sharing, however some are optional. This section allows
@@ -496,6 +513,12 @@ know what you're doing*. Valid options are: `code`, `code id_token`, `id_token`,
 A list of response modes this client can return. It is recommended that this isn't configured at this time unless you
 know what you're doing. Potential values are `form_post`, `query`, and `fragment`.
 
+#### enforce_par
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the use of a [Pushed Authorization Requests] flow for this client.
+
 #### userinfo_signing_algorithm
 
 {{< confkey type="string" default="none" required="no" >}}
@@ -521,3 +544,4 @@ To integrate Authelia's [OpenID Connect] implementation with a relying party ple
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
+[Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
