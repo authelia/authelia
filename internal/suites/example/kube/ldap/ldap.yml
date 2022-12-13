@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: ldap
-          image: osixia/openldap:1.3.0
+          image: osixia/openldap:1.5.0
           ports:
             - containerPort: 389
             - containerPort: 636
