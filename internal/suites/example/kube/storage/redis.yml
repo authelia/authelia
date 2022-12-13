@@ -21,6 +21,10 @@ spec:
           image: redis:3.2.11-alpine
           ports:
             - containerPort: 6379
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 1
 ...
 ---
 apiVersion: v1
