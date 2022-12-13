@@ -17,7 +17,7 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  cp -R /buildkite/.pnpm-store .
+  cp -R /buildkite/.local .
 fi
 
 if [[ "${BUILDKITE_STEP_KEY}" =~ build-deb-package-(arm64|armhf) && "${BUILDKITE_AGENT_NAME}" =~ sauron* ]]; then
