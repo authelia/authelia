@@ -59,9 +59,9 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		if !strings.HasPrefix(requester.GetRequestForm().Get(oidc.FormParameterRequestURI), ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
 			if par == "" {
-				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but a standard Authorization Request was recieved", requester.GetID(), clientID)
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but a standard Authorization Request was received", requester.GetID(), clientID)
 			} else {
-				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but the '%s' paramter with value '%s' is malformed or does not appear to be intended as a Pushed Authorization Request", requester.GetID(), clientID, oidc.FormParameterRequestURI, par)
+				ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client is configured to enforce Pushed Authorization Requests but the '%s' parameter with value '%s' is malformed or does not appear to be intended as a Pushed Authorization Request", requester.GetID(), clientID, oidc.FormParameterRequestURI, par)
 			}
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, errorsx.WithStack(oidc.ErrPAREnforcedClientMissingPAR))
