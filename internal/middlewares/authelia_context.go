@@ -181,16 +181,16 @@ func (ctx *AutheliaCtx) QueryArgRedirect() (val []byte) {
 }
 
 // BasePath returns the base_url as per the path visited by the client.
-func (ctx *AutheliaCtx) BasePath() (base string) {
+func (ctx *AutheliaCtx) BasePath() string {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
 		return baseURL.(string)
 	}
 
-	return base
+	return ""
 }
 
 // BasePathSlash is the same as BasePath but returns a final slash as well.
-func (ctx *AutheliaCtx) BasePathSlash() (base string) {
+func (ctx *AutheliaCtx) BasePathSlash() string {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
 		return baseURL.(string) + "/"
 	}
@@ -376,14 +376,17 @@ func (ctx *AutheliaCtx) RecordAuthentication(success, regulated bool, method str
 	ctx.Providers.Metrics.RecordAuthentication(success, regulated, method)
 }
 
+// SetContentTypeTextPlain efficiently sets the Content-Type header to 'text/plain; charset=utf-8'.
 func (ctx *AutheliaCtx) SetContentTypeTextPlain() {
 	ctx.SetContentTypeBytes(contentTypeTextPlain)
 }
 
+// SetContentTypeTextHTML efficiently sets the Content-Type header to 'text/html; charset=utf-8'.
 func (ctx *AutheliaCtx) SetContentTypeTextHTML() {
 	ctx.SetContentTypeBytes(contentTypeTextHTML)
 }
 
+// SetContentTypeApplicationJSON efficiently sets the Content-Type header to 'application/json; charset=utf-8'.
 func (ctx *AutheliaCtx) SetContentTypeApplicationJSON() {
 	ctx.SetContentTypeBytes(contentTypeApplicationJSON)
 }

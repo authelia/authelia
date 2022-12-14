@@ -72,7 +72,11 @@ func ServeTemplatedFile(publicDir, file string, opts *TemplatedFileOptions) midd
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
 		}
 
-		if err = tmpl.Execute(ctx.Response.BodyWriter(), opts.CommonData(ctx.BasePathSlash(), ctx.RootURLSlash().String(), nonce, logoOverride)); err != nil {
+		common := opts.CommonData(ctx.BasePath(), ctx.RootURLSlash().String(), nonce, logoOverride)
+
+		ctx.Logger.WithField("base", common.Base).WithField("baseURL", common.BaseURL).Debugf("serving templated file")
+
+		if err = tmpl.Execute(ctx.Response.BodyWriter(), common); err != nil {
 			ctx.RequestCtx.Error("an error occurred", 503)
 			logger.Errorf("Unable to execute template: %v", err)
 
