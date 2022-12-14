@@ -22,6 +22,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// NewConfig creates a new Config.
 func NewConfig(config *schema.OpenIDConnectConfiguration) (c *Config) {
 	c = &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
@@ -53,6 +54,7 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) (c *Config) {
 	return c
 }
 
+// Config is an implementation of the fosite.Configurator.
 type Config struct {
 	// GlobalSecret is the global secret used to sign and verify signatures.
 	GlobalSecret []byte
@@ -91,11 +93,13 @@ type Config struct {
 	MessageCatalog       i18n.MessageCatalog
 }
 
+// HashConfig holds specific fosite.Configurator information for hashing.
 type HashConfig struct {
 	ClientSecrets fosite.Hasher
 	HMAC          func() (h hash.Hash)
 }
 
+// StrategyConfig holds specific fosite.Configurator information for various strategies.
 type StrategyConfig struct {
 	Core                 oauth2.CoreStrategy
 	OpenID               openid.OpenIDConnectTokenStrategy
@@ -105,17 +109,20 @@ type StrategyConfig struct {
 	ClientAuthentication fosite.ClientAuthenticationStrategy
 }
 
+// PARConfig holds specific fosite.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
 	Enforced        bool
 	URIPrefix       string
 	ContextLifespan time.Duration
 }
 
+// IssuersConfig holds specific fosite.Configurator information for the issuer.
 type IssuersConfig struct {
 	IDToken     string
 	AccessToken string
 }
 
+// HandlersConfig holds specific fosite.Configurator handlers configuration information.
 type HandlersConfig struct {
 	// ResponseMode provides an extension handler for custom response modes.
 	ResponseMode fosite.ResponseModeHandler
@@ -136,18 +143,21 @@ type HandlersConfig struct {
 	PushedAuthorizeEndpoint fosite.PushedAuthorizeEndpointHandlers
 }
 
+// GrantTypeJWTBearerConfig holds specific fosite.Configurator information for the JWT Bearer Grant Type.
 type GrantTypeJWTBearerConfig struct {
 	OptionalClientAuth bool
 	OptionalJTIClaim   bool
 	OptionalIssuedDate bool
 }
 
+// ProofKeyCodeExchangeConfig holds specific fosite.Configurator information for PKCE.
 type ProofKeyCodeExchangeConfig struct {
 	Enforce                   bool
 	EnforcePublicClients      bool
 	AllowPlainChallengeMethod bool
 }
 
+// LifespanConfig holds specific fosite.Configurator information for various lifespans.
 type LifespanConfig struct {
 	AccessToken   time.Duration
 	AuthorizeCode time.Duration
@@ -161,6 +171,7 @@ const (
 	PromptConsent = "consent"
 )
 
+// LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store, strategy jwt.Signer) {
 	validator := openid.NewOpenIDConnectRequestValidator(strategy, c)
 
