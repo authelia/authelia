@@ -3,7 +3,7 @@ import React, { Fragment } from "react";
 import { Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
-import OtpInput from "react-otp-input";
+import OtpInput from "react18-input-otp";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     otpDigitInput: {
         boxSizing: "content-box",
-        padding: theme.spacing(),
+        padding: theme.spacing() + " !important",
         marginLeft: theme.spacing(0.5),
         marginRight: theme.spacing(0.5),
         fontSize: "1rem",
