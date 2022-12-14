@@ -19,7 +19,6 @@ type HMACCoreStrategy struct {
 		fosite.RefreshTokenLifespanProvider
 		fosite.AuthorizeCodeLifespanProvider
 	}
-	prefix *string
 }
 
 // AccessTokenSignature implements oauth2.AccessTokenStrategy.
@@ -34,7 +33,7 @@ func (h *HMACCoreStrategy) GenerateAccessToken(ctx context.Context, _ fosite.Req
 		return "", "", err
 	}
 
-	return h.setPrefix(token, "at"), sig, nil
+	return h.setPrefix(token, tokenPartAccessToken), sig, nil
 }
 
 // ValidateAccessToken implements oauth2.AccessTokenStrategy.
@@ -48,7 +47,7 @@ func (h *HMACCoreStrategy) ValidateAccessToken(ctx context.Context, r fosite.Req
 		return errorsx.WithStack(fosite.ErrTokenExpired.WithHintf("Access token expired at '%s'.", exp))
 	}
 
-	return h.Enigma.Validate(ctx, h.trimPrefix(token, "at"))
+	return h.Enigma.Validate(ctx, h.trimPrefix(token, tokenPartAccessToken))
 }
 
 // RefreshTokenSignature implements oauth2.RefreshTokenStrategy.
@@ -63,7 +62,7 @@ func (h *HMACCoreStrategy) GenerateRefreshToken(ctx context.Context, _ fosite.Re
 		return "", "", err
 	}
 
-	return h.setPrefix(token, "rt"), sig, nil
+	return h.setPrefix(token, tokenPartRefreshToken), sig, nil
 }
 
 // ValidateRefreshToken implements oauth2.RefreshTokenStrategy.
@@ -77,7 +76,7 @@ func (h *HMACCoreStrategy) ValidateRefreshToken(ctx context.Context, r fosite.Re
 		return errorsx.WithStack(fosite.ErrTokenExpired.WithHintf("Refresh token expired at '%s'.", exp))
 	}
 
-	return h.Enigma.Validate(ctx, h.trimPrefix(token, "rt"))
+	return h.Enigma.Validate(ctx, h.trimPrefix(token, tokenPartRefreshToken))
 }
 
 // AuthorizeCodeSignature implements oauth2.AuthorizeCodeStrategy.
@@ -92,7 +91,7 @@ func (h *HMACCoreStrategy) GenerateAuthorizeCode(ctx context.Context, _ fosite.R
 		return "", "", err
 	}
 
-	return h.setPrefix(token, "ac"), sig, nil
+	return h.setPrefix(token, tokenPartAuthorizeCode), sig, nil
 }
 
 // ValidateAuthorizeCode implements oauth2.AuthorizeCodeStrategy.
@@ -106,22 +105,15 @@ func (h *HMACCoreStrategy) ValidateAuthorizeCode(ctx context.Context, r fosite.R
 		return errorsx.WithStack(fosite.ErrTokenExpired.WithHintf("Authorize code expired at '%s'.", exp))
 	}
 
-	return h.Enigma.Validate(ctx, h.trimPrefix(token, "ac"))
+	return h.Enigma.Validate(ctx, h.trimPrefix(token, tokenPartAuthorizeCode))
 }
 
 func (h *HMACCoreStrategy) getPrefix(part string) string {
-	if h.prefix == nil {
-		prefix := "ory_%s_"
-		h.prefix = &prefix
-	} else if len(*h.prefix) == 0 {
-		return ""
-	}
-
-	return fmt.Sprintf(*h.prefix, part)
+	return fmt.Sprintf(tokenPrefixFormat, authelia, part)
 }
 
 func (h *HMACCoreStrategy) trimPrefix(token, part string) string {
-	return strings.TrimPrefix(token, h.getPrefix(part))
+	return strings.TrimPrefix(strings.TrimPrefix(token, h.getPrefix(part)), fmt.Sprintf(tokenPrefixFormat, ory, part))
 }
 
 func (h *HMACCoreStrategy) setPrefix(token, part string) string {

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
@@ -22,8 +22,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
-	c := &Config{
+func NewConfig(config *schema.OpenIDConnectConfiguration) (c *Config) {
+	c = &Config{
 		GlobalSecret:               []byte(utils.HashSHA256FromString(config.HMACSecret)),
 		SendDebugMessagesToClients: config.EnableClientDebugMessages,
 		MinParameterEntropy:        config.MinimumParameterEntropy,
@@ -45,11 +45,9 @@ func NewConfig(config *schema.OpenIDConnectConfiguration) *Config {
 		},
 	}
 
-	prefix := "authelia_%s_"
 	c.Strategy.Core = &HMACCoreStrategy{
 		Enigma: &hmac.HMACStrategy{Config: c},
 		Config: c,
-		prefix: &prefix,
 	}
 
 	return c

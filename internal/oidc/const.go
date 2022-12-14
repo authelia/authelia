@@ -230,3 +230,14 @@ const (
 	preconfigured = "pre-configured"
 	none          = "none"
 )
+
+// HMACCoreStrategy constants.
+const (
+	ory      = "ory"
+	authelia = "authelia"
+
+	tokenPrefixFormat      = "%s_%s_"
+	tokenPartAccessToken   = "at"
+	tokenPartRefreshToken  = "rt"
+	tokenPartAuthorizeCode = "ac"
+)
