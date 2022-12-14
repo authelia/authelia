@@ -1,3 +1,4 @@
+# yamllint disable-file rule:line-length
 ---
 openapi: 3.0.3
 info:
@@ -1455,7 +1456,7 @@ components:
               example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
             otpauth_url:
               type: string
-              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q  # yamllint disable-line rule:line-length
+              example: otpauth://totp/auth.example.com:john?algorithm=SHA1&digits=6&issuer=auth.example.com&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
     handlers.UserInfo:
       type: object
       properties:
@@ -1531,7 +1532,7 @@ components:
       properties:
         token:
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY  # yamllint disable-line rule:line-length
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
     middlewares.OkResponse:
       type: object
       properties:
