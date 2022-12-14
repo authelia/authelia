@@ -63,7 +63,12 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		linkURL := ctx.RootURLSlash()
+		disableHTML := false
+		if ctx.Configuration.Notifier.SMTP != nil {
+			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
+		}
+
+		linkURL := ctx.RootURL()
 
 		query := linkURL.Query()
 
@@ -71,11 +76,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
 		linkURL.RawQuery = query.Encode()
-
-		disableHTML := false
-		if ctx.Configuration.Notifier.SMTP != nil {
-			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
-		}
 
 		values := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
