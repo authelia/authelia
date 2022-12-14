@@ -69,7 +69,7 @@ func (h *HMACCoreStrategy) GenerateRefreshToken(ctx context.Context, _ fosite.Re
 func (h *HMACCoreStrategy) ValidateRefreshToken(ctx context.Context, r fosite.Requester, token string) (err error) {
 	var exp = r.GetSession().GetExpiresAt(fosite.RefreshToken)
 	if exp.IsZero() {
-		return h.Enigma.Validate(ctx, h.trimPrefix(token, "rt"))
+		return h.Enigma.Validate(ctx, h.trimPrefix(token, tokenPartRefreshToken))
 	}
 
 	if !exp.IsZero() && exp.Before(time.Now().UTC()) {
