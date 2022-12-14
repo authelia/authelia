@@ -15,7 +15,7 @@ info:
   version: 1.0.0
 servers:
   - url: {{ .BaseURL }}
-    description: Autheia API
+    description: Authelia API
 tags:
   - name: State
     description: Configuration, health and state endpoints
