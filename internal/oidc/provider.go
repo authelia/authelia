@@ -36,7 +36,7 @@ func NewOpenIDConnectProvider(config *schema.OpenIDConnectConfiguration, store s
 
 	provider.Config.LoadHandlers(provider.Store, provider.KeyManager.Strategy())
 
-	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.EnablePKCEPlainChallenge, provider.Store.clients)
+	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config, provider.Store.clients)
 
 	return provider, nil
 }
