@@ -40,8 +40,8 @@
     "react-dom": "18.2.0",
     "react-i18next": "12.1.1",
     "react-loading": "2.0.3",
-    "react-otp-input": "2.4.0",
     "react-router-dom": "6.4.5",
+    "react18-input-otp": "1.1.1",
     "zxcvbn": "4.4.2"
   },
   "scripts": {
