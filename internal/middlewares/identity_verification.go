@@ -63,7 +63,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		linkURL := ctx.RootURL()
+		linkURL := ctx.RootURLSlash()
 
 		query := linkURL.Query()
 
