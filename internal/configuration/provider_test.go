@@ -19,8 +19,7 @@ import (
 func TestShouldErrorSecretNotExist(t *testing.T) {
 	testReset()
 
-	dir, err := os.MkdirTemp("", "authelia-test-secret-not-exist")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
 	testSetEnv(t, "JWT_SECRET_FILE", filepath.Join(dir, "jwt"))
 	testSetEnv(t, "DUO_API_SECRET_KEY_FILE", filepath.Join(dir, "duo"))
@@ -36,7 +35,7 @@ func TestShouldErrorSecretNotExist(t *testing.T) {
 	testSetEnv(t, "IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE", filepath.Join(dir, "oidc-hmac"))
 
 	val := schema.NewStructValidator()
-	_, _, err = Load(val, NewEnvironmentSource(DefaultEnvPrefix, DefaultEnvDelimiter), NewSecretsSource(DefaultEnvPrefix, DefaultEnvDelimiter))
+	_, _, err := Load(val, NewEnvironmentSource(DefaultEnvPrefix, DefaultEnvDelimiter), NewSecretsSource(DefaultEnvPrefix, DefaultEnvDelimiter))
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Warnings(), 0)
@@ -162,15 +161,14 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 
 	testReset()
 
-	dir, err := os.MkdirTemp("", "authelia-conf")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "myconf.yml"), []byte("server:\n  port: 9091\n"), 0000))
 
 	cfg := filepath.Join(dir, "myconf.yml")
 
 	val := schema.NewStructValidator()
-	_, _, err = Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewYAMLFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
@@ -390,14 +388,13 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 
 	testReset()
 
-	dir, err := os.MkdirTemp("", "authelia-config")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
 	cfg := filepath.Join(dir, "config.yml")
 	assert.NoError(t, testCreateFile(filepath.Join(dir, "config.yml"), "port: 9091\n", 0000))
 
 	val := schema.NewStructValidator()
-	_, _, err = Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewYAMLFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
@@ -408,11 +405,10 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	testReset()
 
-	dir, err := os.MkdirTemp("", "authelia-config")
-	assert.NoError(t, err)
+	dir := t.TempDir()
 
 	val := schema.NewStructValidator()
-	_, _, err = Load(val, NewYAMLFileSource(dir))
+	_, _, err := Load(val, NewYAMLFileSource(dir))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -272,8 +273,8 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 
 func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map[string]string) (err error) {
 	var (
-		algorithm string
-		configs   []string
+		algName string
+		configs []string
 
 		c schema.Password
 	)
@@ -294,25 +295,25 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		break
 	case legacy:
 		if sha512, _ := cmd.Flags().GetBool(cmdFlagNameSHA512); sha512 {
-			algorithm = cmdUseHashSHA2Crypt
+			algName = cmdUseHashSHA2Crypt
 		} else {
-			algorithm = cmdUseHashArgon2
+			algName = cmdUseHashArgon2
 		}
 	default:
-		algorithm = cmd.Use
+		algName = cmd.Use
 	}
 
-	if c, err = cmdCryptoHashGetConfig(algorithm, configs, cmd.Flags(), flagsMap); err != nil {
+	if c, err = cmdCryptoHashGetConfig(algName, configs, cmd.Flags(), flagsMap); err != nil {
 		return err
 	}
 
-	if legacy && algorithm == cmdUseHashArgon2 && cmd.Flags().Changed(cmdFlagNameMemory) {
+	if legacy && algName == cmdUseHashArgon2 && cmd.Flags().Changed(cmdFlagNameMemory) {
 		c.Argon2.Memory *= 1024
 	}
 
 	var (
-		hash     crypt.Hash
-		digest   crypt.Digest
+		hash     algorithm.Hash
+		digest   algorithm.Digest
 		password string
 		random   bool
 	)

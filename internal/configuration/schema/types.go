@@ -16,6 +16,8 @@ import (
 	"time"
 
 	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm"
+	"github.com/go-crypt/crypt/algorithm/plaintext"
 )
 
 // NewAddressFromString returns an *Address and error depending on the ability to parse the string as an Address.
@@ -110,27 +112,32 @@ func (a Address) Listener() (net.Listener, error) {
 	return net.Listen(a.Scheme, a.HostPort())
 }
 
-// NewPasswordDigest returns a new PasswordDigest.
-func NewPasswordDigest(value string, plaintext bool) (digest *PasswordDigest, err error) {
-	var d crypt.Digest
+var cdecoder algorithm.DecoderRegister
 
-	switch {
-	case plaintext:
-		d, err = crypt.DecodeWithPlainText(value)
-	default:
-		d, err = crypt.Decode(value)
+// DecodePasswordDigest returns a new PasswordDigest if it can be decoded.
+func DecodePasswordDigest(encodedDigest string) (digest *PasswordDigest, err error) {
+	if cdecoder == nil {
+		if cdecoder, err = crypt.NewDefaultDecoder(); err != nil {
+			return nil, fmt.Errorf("failed to initialize decoder: %w", err)
+		}
+
+		if err = plaintext.RegisterDecoderPlainText(cdecoder); err != nil {
+			return nil, fmt.Errorf("failed to initialize decoder: could not register the plaintext decoder: %w", err)
+		}
 	}
 
-	if err != nil {
+	var d algorithm.Digest
+
+	if d, err = cdecoder.Decode(encodedDigest); err != nil {
 		return nil, err
 	}
 
-	return &PasswordDigest{d}, err
+	return &PasswordDigest{Digest: d}, nil
 }
 
 // PasswordDigest is a configuration type for the crypt.Digest.
 type PasswordDigest struct {
-	crypt.Digest
+	algorithm.Digest
 }
 
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.

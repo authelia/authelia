@@ -16,6 +16,7 @@ import (
 
 type OIDCScenario struct {
 	*RodSuite
+
 	secret string
 }
 

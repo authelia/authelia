@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailcatcher
+  namespace: authelia
+  labels:
+    app: mailcatcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailcatcher
+  template:
+    metadata:
+      labels:
+        app: mailcatcher
+    spec:
+      containers:
+        - name: mailcatcher
+          image: schickling/mailcatcher
+          ports:
+            - containerPort: 1025
+            - containerPort: 1080
+...
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailcatcher-service
+  namespace: authelia
+spec:
+  selector:
+    app: mailcatcher
+  ports:
+    - protocol: TCP
+      port: 1080
+      name: ui
+    - protocol: TCP
+      port: 1025
+      name: smtp
+...
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mailcatcher-ingress
+  namespace: authelia
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  rules:
+    - host: mail.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mailcatcher-service
+                port:
+                  number: 1080
+...

@@ -8,6 +8,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm"
 	"gopkg.in/yaml.v3"
 )
 
@@ -203,7 +204,7 @@ func (m *FileUserDatabase) ToDatabaseModel() (model *DatabaseModel) {
 // DatabaseUserDetails is the model of user details in the file database.
 type DatabaseUserDetails struct {
 	Username    string
-	Digest      crypt.Digest
+	Digest      algorithm.Digest
 	Disabled    bool
 	DisplayName string
 	Email       string
@@ -308,7 +309,7 @@ type UserDetailsModel struct {
 
 // ToDatabaseUserDetailsModel converts a UserDetailsModel into a *DatabaseUserDetails.
 func (m UserDetailsModel) ToDatabaseUserDetailsModel(username string) (model *DatabaseUserDetails, err error) {
-	var d crypt.Digest
+	var d algorithm.Digest
 
 	if d, err = crypt.Decode(m.HashedPassword); err != nil {
 		return nil, err

@@ -73,7 +73,7 @@ default_2fa_method: totp
 especially for containerized deployments.*
 
 Defines the secret used to craft JWT tokens leveraged by the identity verification process. This can a random string.
-It's strongly recommended this is a [Random Alphanumeric String](../../reference/guides/generating-secure-values.md/#generating-a-random-alphanumeric-string) with
+It's strongly recommended this is a [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with
 64 or more characters.
 
 ### theme
