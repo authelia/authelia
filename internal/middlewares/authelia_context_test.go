@@ -21,7 +21,6 @@ func TestIssuerURL(t *testing.T) {
 		name              string
 		proto, host, base string
 		expected          string
-		err               string
 	}{
 		{
 			name:  "Standard",
@@ -36,7 +35,7 @@ func TestIssuerURL(t *testing.T) {
 		{
 			name:  "NoHost",
 			proto: "https", host: "", base: "",
-			err: "Missing header X-Forwarded-Host",
+			expected: "https:",
 		},
 	}
 
@@ -52,21 +51,14 @@ func TestIssuerURL(t *testing.T) {
 				mock.Ctx.SetUserValue("base_url", tc.base)
 			}
 
-			actual, err := mock.Ctx.IssuerURL()
+			actual := mock.Ctx.RootURL()
 
-			switch tc.err {
-			case "":
-				assert.NoError(t, err)
-				require.NotNil(t, actual)
+			require.NotNil(t, actual)
 
-				assert.Equal(t, tc.expected, actual.String())
-				assert.Equal(t, tc.proto, actual.Scheme)
-				assert.Equal(t, tc.host, actual.Host)
-				assert.Equal(t, tc.base, actual.Path)
-			default:
-				assert.EqualError(t, err, tc.err)
-				assert.Nil(t, actual)
-			}
+			assert.Equal(t, tc.expected, actual.String())
+			assert.Equal(t, tc.proto, actual.Scheme)
+			assert.Equal(t, tc.host, actual.Host)
+			assert.Equal(t, tc.base, actual.Path)
 		})
 	}
 }

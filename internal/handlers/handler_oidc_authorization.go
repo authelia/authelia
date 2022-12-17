@@ -70,13 +70,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		}
 	}
 
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred determining issuer: %+v", requester.GetID(), clientID, err)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrIssuerCouldNotDerive)
-
-		return
-	}
+	issuer = ctx.RootURL()
 
 	userSession := ctx.GetSession()
 
