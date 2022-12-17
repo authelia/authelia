@@ -114,7 +114,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -136,7 +136,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
