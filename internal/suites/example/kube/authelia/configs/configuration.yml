@@ -35,6 +35,8 @@ access_control:
 
   rules:
     # Rules applied to everyone
+    - domain: home.example.com
+      policy: bypass
     - domain: public.example.com
       policy: bypass
     - domain: secure.example.com

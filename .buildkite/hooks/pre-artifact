@@ -3,7 +3,7 @@
 set +u
 
 declare -A BUILDS=(["linux"]="amd64 arm arm64 amd64-musl arm-musl arm64-musl" ["freebsd"]="amd64")
-DOCKER_IMAGE=authelia/authelia
+DOCKER_IMAGE=authelia:dist
 
 if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
   if [[ ! "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then

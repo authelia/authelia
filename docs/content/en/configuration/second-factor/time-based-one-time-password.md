@@ -139,7 +139,7 @@ validations.
 This means if the configuration options are changed, users will not need to regenerate their keys. This functionality
 takes effect from 4.33.0 onwards, previously the effect was the keys would just fail to validate. If you'd like to force
 users to register a new device, you can delete the old device for a particular user by using the
-`authelia storage totp delete <username>` command regardless of if you change the settings or not.
+`authelia storage user totp delete <username>` command regardless of if you change the settings or not.
 
 ## Input Validation
 
