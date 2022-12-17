@@ -20,13 +20,7 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 	)
 
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
-
-		ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
-
-		return
-	}
+	issuer = ctx.RootURL()
 
 	wellKnown := ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String())
 
@@ -52,13 +46,7 @@ func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 	)
 
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.Errorf("Error occurred determining OpenID Connect issuer details: %+v", err)
-
-		ctx.ReplyStatusCode(fasthttp.StatusBadRequest)
-
-		return
-	}
+	issuer = ctx.RootURL()
 
 	wellKnown := ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String())
 
