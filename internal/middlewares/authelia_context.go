@@ -170,7 +170,18 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return uri
 }
 
-// XAutheliaURL return the content of the X-Authelia-URL header.
+// XOriginalURL returns the content of the X-Original-URL header.
+func (ctx *AutheliaCtx) XOriginalURL() []byte {
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
+}
+
+// XOriginalMethod return the content of the X-Original-Method header.
+func (ctx *AutheliaCtx) XOriginalMethod() []byte {
+	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalMethod)
+}
+
+// XAutheliaURL return the content of the X-Authelia-URL header which is used to communicate the location of the
+// portal when using proxies like Envoy.
 func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXAutheliaURL)
 }
@@ -192,10 +203,10 @@ func (ctx *AutheliaCtx) BasePath() string {
 // BasePathSlash is the same as BasePath but returns a final slash as well.
 func (ctx *AutheliaCtx) BasePathSlash() string {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
-		return baseURL.(string) + "/"
+		return baseURL.(string) + strSlash
 	}
 
-	return "/"
+	return strSlash
 }
 
 // RootURL returns the Root URL.
@@ -214,11 +225,6 @@ func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
 		Host:   string(ctx.XForwardedHost()),
 		Path:   ctx.BasePathSlash(),
 	}
-}
-
-// XOriginalURL return the content of the X-Original-URL header.
-func (ctx *AutheliaCtx) XOriginalURL() []byte {
-	return ctx.RequestCtx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
 // GetSession return the user session. Any update will be saved in cache.

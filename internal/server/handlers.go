@@ -104,7 +104,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
-		WithAllowedMethods("OPTIONS", "GET").
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
 		WithAllowedOrigins("*").
 		Build()
 

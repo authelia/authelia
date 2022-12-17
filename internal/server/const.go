@@ -11,6 +11,9 @@ const (
 	fileOpenAPI   = "openapi.yml"
 	fileIndexHTML = "index.html"
 	fileLogo      = "logo.png"
+
+	extHTML = ".html"
+	extJSON = ".json"
 )
 
 var (

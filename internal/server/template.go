@@ -51,9 +51,9 @@ func ServeTemplatedFile(publicDir, file string, opts *TemplatedFileOptions) midd
 		}
 
 		switch extension := filepath.Ext(file); extension {
-		case ".html", ".htm":
+		case extHTML:
 			ctx.SetContentTypeTextHTML()
-		case ".json":
+		case extJSON:
 			ctx.SetContentTypeApplicationJSON()
 		default:
 			ctx.SetContentTypeTextPlain()
@@ -116,6 +116,7 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (er
 	return err
 }
 
+// NewTemplatedFileOptions returns a new *TemplatedFileOptions.
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
 		AssetPath:              config.Server.AssetPath,
