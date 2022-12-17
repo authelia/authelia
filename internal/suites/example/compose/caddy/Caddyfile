@@ -8,6 +8,7 @@
 :8085 {
 	log
 	reverse_proxy authelia-backend:9091 {
+		header_up X-Forwarded-Proto https
 		import tls-transport
 	}
 }

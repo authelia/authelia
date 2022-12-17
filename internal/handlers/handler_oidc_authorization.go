@@ -31,7 +31,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		ctx.Logger.Errorf("Authorization Request failed with error: %s", rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
@@ -47,18 +47,12 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %+v", requester.GetID(), clientID, err)
 		}
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
 
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred determining issuer: %+v", requester.GetID(), clientID, err)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrIssuerCouldNotDerive)
-
-		return
-	}
+	issuer = ctx.RootURL()
 
 	userSession := ctx.GetSession()
 
@@ -76,7 +70,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	if authTime, err = userSession.AuthenticatedTime(client.Policy); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not obtain the authentication time."))
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrServerError.WithHint("Could not obtain the authentication time."))
 
 		return
 	}
@@ -94,7 +88,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %s", requester.GetID(), clientID, rfc.WithExposeDebug(true).GetDescription())
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, err)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
 		return
 	}
@@ -102,10 +96,10 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionGranted(ctx, consent.ID); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred saving consent session: %+v", requester.GetID(), client.GetID(), err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotSave)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return
 	}
 
-	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(rw, requester, responder)
+	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
 }

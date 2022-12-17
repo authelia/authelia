@@ -37,11 +37,11 @@ This is the preferred method of reporting.
 
 ### Chat
 
-If you wish to chat directly instead of sending an email please use one of the [chat options](../information/contact.md#chat) but it
-is vital that when you do that you only do so privately with one of the maintainers. In order to start a private
-discussion you should ask to have a private discussion with a team member without mentioning the reason why you wish to
-have a private discussion so that provided the bug is confirmed we can coordinate the release of fixes and information
-responsibly.
+If you wish to chat directly instead of sending an email please use one of the
+[chat options](../information/contact.md#chat) but it is vital that when you do that you only do so privately with one
+of the maintainers. In order to start a private discussion you should ask to have a private discussion with a team
+member without mentioning the reason why you wish to have a private discussion so that provided the bug is confirmed we
+can coordinate the release of fixes and information responsibly.
 
 ## Credit
 

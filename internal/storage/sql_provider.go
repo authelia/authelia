@@ -43,8 +43,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectTOTPConfig:  fmt.Sprintf(queryFmtSelectTOTPConfiguration, tableTOTPConfigurations),
 		sqlSelectTOTPConfigs: fmt.Sprintf(queryFmtSelectTOTPConfigurations, tableTOTPConfigurations),
 
-		sqlUpdateTOTPConfigSecret:                 fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecret, tableTOTPConfigurations),
-		sqlUpdateTOTPConfigSecretByUsername:       fmt.Sprintf(queryFmtUpdateTOTPConfigurationSecretByUsername, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignIn:           fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignIn, tableTOTPConfigurations),
 		sqlUpdateTOTPConfigRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateTOTPConfigRecordSignInByUsername, tableTOTPConfigurations),
 
@@ -52,8 +50,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectWebauthnDevices:           fmt.Sprintf(queryFmtSelectWebauthnDevices, tableWebauthnDevices),
 		sqlSelectWebauthnDevicesByUsername: fmt.Sprintf(queryFmtSelectWebauthnDevicesByUsername, tableWebauthnDevices),
 
-		sqlUpdateWebauthnDevicePublicKey:              fmt.Sprintf(queryFmtUpdateWebauthnDevicePublicKey, tableWebauthnDevices),
-		sqlUpdateWebauthnDevicePublicKeyByUsername:    fmt.Sprintf(queryFmtUpdateUpdateWebauthnDevicePublicKeyByUsername, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignIn:           fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignIn, tableWebauthnDevices),
 		sqlUpdateWebauthnDeviceRecordSignInByUsername: fmt.Sprintf(queryFmtUpdateWebauthnDeviceRecordSignInByUsername, tableWebauthnDevices),
 
@@ -161,8 +157,6 @@ type SQLProvider struct {
 	sqlSelectTOTPConfig  string
 	sqlSelectTOTPConfigs string
 
-	sqlUpdateTOTPConfigSecret                 string
-	sqlUpdateTOTPConfigSecretByUsername       string
 	sqlUpdateTOTPConfigRecordSignIn           string
 	sqlUpdateTOTPConfigRecordSignInByUsername string
 
@@ -171,8 +165,6 @@ type SQLProvider struct {
 	sqlSelectWebauthnDevices           string
 	sqlSelectWebauthnDevicesByUsername string
 
-	sqlUpdateWebauthnDevicePublicKey              string
-	sqlUpdateWebauthnDevicePublicKeyByUsername    string
 	sqlUpdateWebauthnDeviceRecordSignIn           string
 	sqlUpdateWebauthnDeviceRecordSignInByUsername string
 
@@ -292,13 +284,17 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	ctx := context.Background()
 
-	if err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
+	var result EncryptionValidationResult
+
+	if result, err = p.SchemaEncryptionCheckKey(ctx, false); err != nil && !errors.Is(err, ErrSchemaEncryptionVersionUnsupported) {
 		return err
 	}
 
-	err = p.SchemaMigrate(ctx, true, SchemaLatest)
+	if !result.Success() {
+		return ErrSchemaEncryptionInvalidKey
+	}
 
-	switch err {
+	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
 	case ErrSchemaAlreadyUpToDate:
 		p.log.Infof("Storage schema is already up to date")
 		return nil
@@ -547,11 +543,11 @@ func (p *SQLProvider) RevokeOAuth2Session(ctx context.Context, sessionType OAuth
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlRevokeOAuth2OpenIDConnectSession
 	default:
-		return fmt.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
+		return fmt.Errorf("error revoking oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
-		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		return fmt.Errorf("error revoking oauth2 %s session with signature '%s': %w", sessionType.String(), signature, err)
 	}
 
 	return nil
@@ -573,11 +569,11 @@ func (p *SQLProvider) RevokeOAuth2SessionByRequestID(ctx context.Context, sessio
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlRevokeOAuth2OpenIDConnectSessionByRequestID
 	default:
-		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
+		return fmt.Errorf("error revoking oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
-		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType, requestID, err)
+		return fmt.Errorf("error revoking oauth2 %s session with request id '%s': %w", sessionType.String(), requestID, err)
 	}
 
 	return nil
@@ -599,11 +595,11 @@ func (p *SQLProvider) DeactivateOAuth2Session(ctx context.Context, sessionType O
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlDeactivateOAuth2OpenIDConnectSession
 	default:
-		return fmt.Errorf("error deactivating oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType)
+		return fmt.Errorf("error deactivating oauth2 session with signature '%s': unknown oauth2 session type '%s'", signature, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, signature); err != nil {
-		return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		return fmt.Errorf("error deactivating oauth2 %s session with signature '%s': %w", sessionType.String(), signature, err)
 	}
 
 	return nil
@@ -625,7 +621,7 @@ func (p *SQLProvider) DeactivateOAuth2SessionByRequestID(ctx context.Context, se
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlDeactivateOAuth2OpenIDConnectSessionByRequestID
 	default:
-		return fmt.Errorf("error deactivating oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType)
+		return fmt.Errorf("error deactivating oauth2 session with request id '%s': unknown oauth2 session type '%s'", requestID, sessionType.String())
 	}
 
 	if _, err = p.db.ExecContext(ctx, query, requestID); err != nil {
@@ -651,17 +647,17 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlSelectOAuth2OpenIDConnectSession
 	default:
-		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType)
+		return nil, fmt.Errorf("error selecting oauth2 session: unknown oauth2 session type '%s'", sessionType.String())
 	}
 
 	session = &model.OAuth2Session{}
 
 	if err = p.db.GetContext(ctx, session, query, signature); err != nil {
-		return nil, fmt.Errorf("error selecting oauth2 %s session with signature '%s': %w", sessionType, signature, err)
+		return nil, fmt.Errorf("error selecting oauth2 %s session with signature '%s': %w", sessionType.String(), signature, err)
 	}
 
 	if session.Session, err = p.decrypt(session.Session); err != nil {
-		return nil, fmt.Errorf("error decrypting the oauth2 %s session data with signature '%s' for subject '%s' and request id '%s': %w", sessionType, signature, session.Subject, session.RequestID, err)
+		return nil, fmt.Errorf("error decrypting the oauth2 %s session data with signature '%s' for subject '%s' and request id '%s': %w", sessionType.String(), signature, session.Subject, session.RequestID, err)
 	}
 
 	return session, nil
@@ -837,21 +833,6 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	return configs, nil
 }
 
-func (p *SQLProvider) updateTOTPConfigurationSecret(ctx context.Context, config model.TOTPConfiguration) (err error) {
-	switch config.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecretByUsername, config.Secret, config.Username)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateTOTPConfigSecret, config.Secret, config.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating TOTP configuration secret for user '%s': %w", config.Username, err)
-	}
-
-	return nil
-}
-
 // SaveWebauthnDevice saves a registered Webauthn device.
 func (p *SQLProvider) SaveWebauthnDevice(ctx context.Context, device model.WebauthnDevice) (err error) {
 	if device.PublicKey, err = p.encrypt(device.PublicKey); err != nil {
@@ -945,21 +926,6 @@ func (p *SQLProvider) LoadWebauthnDevicesByUsername(ctx context.Context, usernam
 	}
 
 	return devices, nil
-}
-
-func (p *SQLProvider) updateWebauthnDevicePublicKey(ctx context.Context, device model.WebauthnDevice) (err error) {
-	switch device.ID {
-	case 0:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKeyByUsername, device.PublicKey, device.Username, device.KID)
-	default:
-		_, err = p.db.ExecContext(ctx, p.sqlUpdateWebauthnDevicePublicKey, device.PublicKey, device.ID)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error updating Webauthn public key for user '%s' kid '%x': %w", device.Username, device.KID, err)
-	}
-
-	return nil
 }
 
 // SavePreferredDuoDevice saves a Duo device.

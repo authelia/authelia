@@ -58,6 +58,12 @@ const (
 	testPassword = "password"
 )
 
+const (
+	namespaceAuthelia  = "authelia"
+	namespaceDashboard = "kubernetes-dashboard"
+	namespaceKube      = "kube-system"
+)
+
 var (
 	storageLocalTmpConfig = schema.Configuration{
 		TOTP: schema.TOTPConfiguration{

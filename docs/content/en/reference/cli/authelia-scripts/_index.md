@@ -9,6 +9,6 @@ menu:
   reference:
     parent: "cli"
     identifier: "cli-authelia-scripts"
-weight: 900
+weight: 920
 toc: true
 ---

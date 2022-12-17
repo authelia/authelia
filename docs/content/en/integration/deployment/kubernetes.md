@@ -15,4 +15,4 @@ search:
   index: false
 ---
 
-Please see the dedicated [Kubernetes Documentation](../kubernetes/introduction/index.md).
+Please see the dedicated [Kubernetes Documentation](../kubernetes/introduction.md).

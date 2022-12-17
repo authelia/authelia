@@ -88,7 +88,7 @@ metadata:
   name: app
   namespace: default
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.entryPoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: default-forwardauth-authelia@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:

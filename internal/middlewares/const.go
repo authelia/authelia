@@ -68,13 +68,17 @@ var (
 const (
 	strProtoHTTPS = "https"
 	strProtoHTTP  = "http"
+	strSlash      = "/"
+
+	queryArgRedirect = "rd"
+	queryArgToken    = "token"
 )
 
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)
 
-	queryArgRedirect = []byte("rd")
+	qryArgRedirect = []byte(queryArgRedirect)
 
 	// UserValueKeyBaseURL is the User Value key where we store the Base URL.
 	UserValueKeyBaseURL = []byte("base_url")

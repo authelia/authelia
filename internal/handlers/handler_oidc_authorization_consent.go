@@ -35,7 +35,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.Consent, userSession.Username, client.GetSectorIdentifier(), err)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrSubjectCouldNotLookup)
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
 
 			return nil, true
 		}
@@ -50,7 +50,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 		default:
 			ctx.Logger.Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, fosite.ErrServerError.WithHint("Could not determine the client consent mode."))
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, fosite.ErrServerError.WithHint("Could not determine the client consent mode."))
 
 			return nil, true
 		}
@@ -58,7 +58,7 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifier(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.Consent, userSession.Username, client.GetSectorIdentifier(), err)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrSubjectCouldNotLookup)
+			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
 
 			return nil, true
 		}
@@ -91,7 +91,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 	if len(ctx.QueryArgs().PeekBytes(qryArgConsentID)) != 0 {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.Consent, "generating", errors.New("consent id value was present when it should be absent"))
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotGenerate)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
 
 		return nil, true
 	}
@@ -99,7 +99,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 	if consent, err = model.NewOAuth2ConsentSession(subject, requester); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.Consent, "generating", err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotGenerate)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
 
 		return nil, true
 	}
@@ -107,7 +107,7 @@ func handleOIDCAuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.Consent, "saving", err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(rw, requester, oidc.ErrConsentCouldNotSave)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return nil, true
 	}

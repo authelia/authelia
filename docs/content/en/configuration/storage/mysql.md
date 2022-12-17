@@ -17,19 +17,8 @@ aliases:
 
 ## Version support
 
-When using [MySQL] or [MariaDB] we recommend using the latest version that is officially supported by the [MySQL] or
-[MariaDB] developers. We also suggest checking out [PostgreSQL](postgres.md) as an alternative.
-
-The oldest versions that have been tested are [MySQL] 5.7 and [MariaDB] 10.6.
-
-If using [MySQL] 5.7 or [MariaDB] 10.6 you may be required to adjust the `explicit_defaults_for_timestamp` setting. This
-will be evident when the container starts with an error similar to `Error 1067: Invalid default value for 'exp'`. You
-can adjust this setting in the mysql.cnf file like so:
-
-```cnf
-[mysqld]
-explicit_defaults_for_timestamp = 1
-```
+See the [MySQL Database Integration](../../reference/integrations/database-integrations.md#mysql) reference
+guide for supported version information.
 
 ## Configuration
 

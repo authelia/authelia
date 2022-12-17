@@ -35,17 +35,17 @@ bootstrapping *Authelia*.
 
 ### Standalone Example
 
-The following is an examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
+The following examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
 proxies.
 
 It expects the following:
 
 * The file `data/authelia/config/configuration.yml` is present and the configuration file.
 * The directory `data/authelia/secrets/` exists and contain the relevant [secret](../../configuration/methods/secrets.md) files:
-  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/miscellaneous/introduction.md#jwt_secret)
+  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/miscellaneous/introduction.md#jwtsecret)
   * A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
   * A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
-  * A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryption_key)
+  * A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryptionkey)
 * You're using PostgreSQL.
 * You have an external network named `net` which is in bridge mode.
 

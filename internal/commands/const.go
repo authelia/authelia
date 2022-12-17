@@ -554,6 +554,45 @@ const (
 	cmdFlagUsageCharacters = "sets the explicit characters for the random string"
 	cmdFlagNameLength      = "length"
 	cmdFlagUsageLength     = "sets the character length for the random string"
+
+	cmdFlagNameNewEncryptionKey = "new-encryption-key"
+
+	cmdFlagNameFile        = "file"
+	cmdFlagNameUsers       = "users"
+	cmdFlagNameServices    = "services"
+	cmdFlagNameSectors     = "sectors"
+	cmdFlagNameIdentifier  = "identifier"
+	cmdFlagNameService     = "service"
+	cmdFlagNameSector      = "sector"
+	cmdFlagNameDescription = "description"
+	cmdFlagNameAll         = "all"
+	cmdFlagNameKeyID       = "kid"
+	cmdFlagNameVerbose     = "verbose"
+	cmdFlagNameSecret      = "secret"
+	cmdFlagNameSecretSize  = "secret-size"
+	cmdFlagNamePeriod      = "period"
+	cmdFlagNameDigits      = "digits"
+	cmdFlagNameAlgorithm   = "algorithm"
+	cmdFlagNameIssuer      = "issuer"
+	cmdFlagNameForce       = "force"
+	cmdFlagNameFormat      = "format"
+	cmdFlagNamePath        = "path"
+	cmdFlagNameTarget      = "target"
+	cmdFlagNameDestroyData = "destroy-data"
+
+	cmdFlagNameEncryptionKey      = "encryption-key"
+	cmdFlagNameSQLite3Path        = "sqlite.path"
+	cmdFlagNameMySQLHost          = "mysql.host"
+	cmdFlagNameMySQLPort          = "mysql.port"
+	cmdFlagNameMySQLDatabase      = "mysql.database"
+	cmdFlagNameMySQLUsername      = "mysql.username"
+	cmdFlagNameMySQLPassword      = "mysql.password"
+	cmdFlagNamePostgreSQLHost     = "postgres.host"
+	cmdFlagNamePostgreSQLPort     = "postgres.port"
+	cmdFlagNamePostgreSQLDatabase = "postgres.database"
+	cmdFlagNamePostgreSQLSchema   = "postgres.schema"
+	cmdFlagNamePostgreSQLUsername = "postgres.username"
+	cmdFlagNamePostgreSQLPassword = "postgres.password"
 )
 
 const (
@@ -591,6 +630,7 @@ var (
 
 const (
 	identifierServiceOpenIDConnect = "openid"
+	invalid                        = "invalid"
 )
 
 var (

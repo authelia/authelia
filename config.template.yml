@@ -881,7 +881,8 @@ regulation:
 ## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
 # storage:
   ## The encryption key that is used to encrypt sensitive information in the database. Must be a string with a minimum
-  ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it.
+  ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it, you MUST use
+  ## the CLI to change this in the database if you want to change it from a previously configured value.
   # encryption_key: you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this
 
   ##

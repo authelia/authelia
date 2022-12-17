@@ -127,26 +127,29 @@ func NewWebauthnDeviceFromCredential(rpid, username, description string, credent
 		Transport:       strings.Join(transport, ","),
 	}
 
-	device.AAGUID, _ = uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
+	aaguid, err := uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
+	if err == nil && aaguid.ID() != 0 {
+		device.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
+	}
 
 	return device
 }
 
 // WebauthnDevice represents a Webauthn Device in the database storage.
 type WebauthnDevice struct {
-	ID              int          `db:"id"`
-	CreatedAt       time.Time    `db:"created_at"`
-	LastUsedAt      sql.NullTime `db:"last_used_at"`
-	RPID            string       `db:"rpid"`
-	Username        string       `db:"username"`
-	Description     string       `db:"description"`
-	KID             Base64       `db:"kid"`
-	PublicKey       []byte       `db:"public_key"`
-	AttestationType string       `db:"attestation_type"`
-	Transport       string       `db:"transport"`
-	AAGUID          uuid.UUID    `db:"aaguid"`
-	SignCount       uint32       `db:"sign_count"`
-	CloneWarning    bool         `db:"clone_warning"`
+	ID              int           `db:"id"`
+	CreatedAt       time.Time     `db:"created_at"`
+	LastUsedAt      sql.NullTime  `db:"last_used_at"`
+	RPID            string        `db:"rpid"`
+	Username        string        `db:"username"`
+	Description     string        `db:"description"`
+	KID             Base64        `db:"kid"`
+	PublicKey       []byte        `db:"public_key"`
+	AttestationType string        `db:"attestation_type"`
+	Transport       string        `db:"transport"`
+	AAGUID          uuid.NullUUID `db:"aaguid"`
+	SignCount       uint32        `db:"sign_count"`
+	CloneWarning    bool          `db:"clone_warning"`
 }
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.

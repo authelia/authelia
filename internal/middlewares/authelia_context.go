@@ -173,32 +173,60 @@ func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 }
 
 // XOriginalMethod return the content of the X-Original-Method header.
-func (ctx *AutheliaCtx) XOriginalMethod() (method []byte) {
+func (ctx *AutheliaCtx) XOriginalMethod() []byte {
 	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
 }
 
-// XOriginalURL return the content of the X-Original-URL header.
-func (ctx *AutheliaCtx) XOriginalURL() (originalURL []byte) {
+// XOriginalURL returns the content of the X-Original-URL header.
+func (ctx *AutheliaCtx) XOriginalURL() []byte {
 	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
-// XAutheliaURL return the content of the X-Authelia-URL header.
-func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
+// XAutheliaURL return the content of the X-Authelia-URL header which is used to communicate the location of the
+// portal when using proxies like Envoy.
+func (ctx *AutheliaCtx) XAutheliaURL() []byte {
 	return ctx.Request.Header.PeekBytes(headerXAutheliaURL)
 }
 
 // QueryArgRedirect return the content of the rd query argument.
-func (ctx *AutheliaCtx) QueryArgRedirect() (val []byte) {
-	return ctx.QueryArgs().PeekBytes(queryArgRedirect)
+func (ctx *AutheliaCtx) QueryArgRedirect() []byte {
+	return ctx.QueryArgs().PeekBytes(qryArgRedirect)
 }
 
 // BasePath returns the base_url as per the path visited by the client.
-func (ctx *AutheliaCtx) BasePath() (base string) {
+func (ctx *AutheliaCtx) BasePath() string {
 	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
 		return baseURL.(string)
 	}
 
-	return base
+	return ""
+}
+
+// BasePathSlash is the same as BasePath but returns a final slash as well.
+func (ctx *AutheliaCtx) BasePathSlash() string {
+	if baseURL := ctx.UserValueBytes(UserValueKeyBaseURL); baseURL != nil {
+		return baseURL.(string) + strSlash
+	}
+
+	return strSlash
+}
+
+// RootURL returns the Root URL.
+func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
+	return &url.URL{
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.XForwardedHost()),
+		Path:   ctx.BasePath(),
+	}
+}
+
+// RootURLSlash is the same as RootURL but includes a final slash as well.
+func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
+	return &url.URL{
+		Scheme: string(ctx.XForwardedProto()),
+		Host:   string(ctx.XForwardedHost()),
+		Path:   ctx.BasePathSlash(),
+	}
 }
 
 // GetSession return the user session. Any update will be saved in cache.
