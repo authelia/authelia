@@ -1,0 +1,9 @@
+{{- $class := "icon-support-none" }}{{ $title := "Not Supported" }}
+{{- with .Get "support" }}
+{{- if (eq . "full") }}{{ $class = "icon-support-full" }}{{ $title = "Fully Supported" }}
+{{- else if (eq . "partial") }}{{ $class = "icon-support-partial" }}{{ $title = "Partially Supported" }}
+{{- else if (eq . "unknown") }}{{ $class = "icon-support-unknown" }}{{ $title = "Unknown" }}
+{{- end }}{{ end }}
+{{- with .Get "title" }}{{ $title = . }}{{ end }}
+{{- with .Get "link" }}[<i class="{{ $class }}" data-toggle="tooltip" data-placement="top" title="{{ $title }}"></i>]({{ . }})
+{{- else }}<i class="{{ $class }}" data-toggle="tooltip" data-placement="top" title="{{ $title }}"></i>{{ end }}

@@ -3,12 +3,11 @@ package commands
 import (
 	"fmt"
 	"strings"
-	"syscall"
 
 	"github.com/go-crypt/crypt"
+	"github.com/go-crypt/crypt/algorithm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -274,8 +273,8 @@ func newCryptoHashValidateCmd() (cmd *cobra.Command) {
 
 func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map[string]string) (err error) {
 	var (
-		algorithm string
-		configs   []string
+		algName string
+		configs []string
 
 		c schema.Password
 	)
@@ -296,25 +295,25 @@ func cmdCryptoHashGenerateFinish(cmd *cobra.Command, args []string, flagsMap map
 		break
 	case legacy:
 		if sha512, _ := cmd.Flags().GetBool(cmdFlagNameSHA512); sha512 {
-			algorithm = cmdUseHashSHA2Crypt
+			algName = cmdUseHashSHA2Crypt
 		} else {
-			algorithm = cmdUseHashArgon2
+			algName = cmdUseHashArgon2
 		}
 	default:
-		algorithm = cmd.Use
+		algName = cmd.Use
 	}
 
-	if c, err = cmdCryptoHashGetConfig(algorithm, configs, cmd.Flags(), flagsMap); err != nil {
+	if c, err = cmdCryptoHashGetConfig(algName, configs, cmd.Flags(), flagsMap); err != nil {
 		return err
 	}
 
-	if legacy && algorithm == cmdUseHashArgon2 && cmd.Flags().Changed(cmdFlagNameMemory) {
+	if legacy && algName == cmdUseHashArgon2 && cmd.Flags().Changed(cmdFlagNameMemory) {
 		c.Argon2.Memory *= 1024
 	}
 
 	var (
-		hash     crypt.Hash
-		digest   crypt.Digest
+		hash     algorithm.Hash
+		digest   algorithm.Digest
 		password string
 		random   bool
 	)
@@ -433,7 +432,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		noConfirm bool
 	)
 
-	if data, err = hashReadPasswordWithPrompt("Enter Password: "); err != nil {
+	if data, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
 		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
 
 		return
@@ -448,8 +447,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
-		if data, err = hashReadPasswordWithPrompt("Confirm Password: "); err != nil {
-			err = fmt.Errorf("failed to read the password from the terminal: %w", err)
+		if data, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
 			return
 		}
 
@@ -465,22 +463,6 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	fmt.Println("")
 
 	return
-}
-
-func hashReadPasswordWithPrompt(prompt string) (data []byte, err error) {
-	fmt.Print(prompt)
-
-	if data, err = term.ReadPassword(int(syscall.Stdin)); err != nil { //nolint:unconvert,nolintlint
-		if err.Error() == "inappropriate ioctl for device" {
-			return nil, fmt.Errorf("the terminal doesn't appear to be interactive either use the '--password' flag or use an interactive terminal: %w", err)
-		}
-
-		return nil, err
-	}
-
-	fmt.Println("")
-
-	return data, nil
 }
 
 func cmdFlagConfig(cmd *cobra.Command) {

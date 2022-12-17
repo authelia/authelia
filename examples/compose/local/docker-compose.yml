@@ -32,7 +32,7 @@ services:
       - TZ=Australia/Melbourne
 
   traefik:
-    image: traefik:v2.9.5
+    image: traefik:v2.9.6
     container_name: traefik
     volumes:
       - ./traefik:/etc/traefik

@@ -40,7 +40,7 @@ There are currently two providers for session storage (three if you count Redis 
 
 * Memory (default, stateful, no additional configuration)
 * [Redis](redis.md) (stateless).
-* [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+* [Redis Sentinel](redis.md#highavailability) (stateless, highly available).
 
 ### Kubernetes or High Availability
 
@@ -99,7 +99,7 @@ characters.
 the [common options](../prologue/common.md#duration-notation-format) documentation for information on this format.*
 
 The period of time before the cookie expires and the session is destroyed. This is overriden by
-[remember_me_duration](#remember_me_duration) when the remember me box is checked.
+[remember_me_duration](#remembermeduration) when the remember me box is checked.
 
 ### inactivity
 

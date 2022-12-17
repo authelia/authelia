@@ -55,15 +55,15 @@ other configuration using the environment but instead of loading a file the valu
 {{% table-config-keys secrets="true" %}}
 
 [server.tls.key]: ../miscellaneous/server.md#key
-[jwt_secret]: ../miscellaneous/introduction.md#jwt_secret
-[duo_api.integration_key]: ../second-factor/duo.md#integration_key
-[duo_api.secret_key]: ../second-factor/duo.md#secret_key
+[jwt_secret]: ../miscellaneous/introduction.md#jwtsecret
+[duo_api.integration_key]: ../second-factor/duo.md#integrationkey
+[duo_api.secret_key]: ../second-factor/duo.md#secretkey
 [session.secret]: ../session/introduction.md#secret
 [session.redis.password]: ../session/redis.md#password
 [session.redis.tls.certificate_chain]: ../session/redis.md#tls
 [session.redis.tls.private_key]: ../session/redis.md#tls
-[session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinel_password
-[storage.encryption_key]: ../storage/introduction.md#encryption_key
+[session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinelpassword
+[storage.encryption_key]: ../storage/introduction.md#encryptionkey
 [storage.mysql.password]: ../storage/mysql.md#password
 [storage.mysql.tls.certificate_chain]: ../storage/mysql.md#tls
 [storage.mysql.tls.private_key]: ../storage/mysql.md#tls
@@ -77,9 +77,9 @@ other configuration using the environment but instead of loading a file the valu
 [authentication_backend.ldap.password]: ../first-factor/ldap.md#password
 [authentication_backend.ldap.tls.certificate_chain]: ../first-factor/ldap.md#tls
 [authentication_backend.ldap.tls.private_key]: ../first-factor/ldap.md#tls
-[identity_providers.oidc.issuer_certificate_chain]: ../identity-providers/open-id-connect.md#issuer_certificate_chain
-[identity_providers.oidc.issuer_private_key]: ../identity-providers/open-id-connect.md#issuer_private_key
-[identity_providers.oidc.hmac_secret]: ../identity-providers/open-id-connect.md#hmac_secret
+[identity_providers.oidc.issuer_certificate_chain]: ../identity-providers/open-id-connect.md#issuercertificatechain
+[identity_providers.oidc.issuer_private_key]: ../identity-providers/open-id-connect.md#issuerprivatekey
+[identity_providers.oidc.hmac_secret]: ../identity-providers/open-id-connect.md#hmacsecret
 
 
 ## Secrets in configuration file

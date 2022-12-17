@@ -3,8 +3,10 @@ package commands
 import (
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/spf13/pflag"
+	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -98,4 +100,39 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	}
 
 	return utils.RandomString(n, charset, true), nil
+}
+
+func termReadPasswordStrWithPrompt(prompt, flag string) (data string, err error) {
+	var d []byte
+
+	if d, err = termReadPasswordWithPrompt(prompt, flag); err != nil {
+		return "", err
+	}
+
+	return string(d), nil
+}
+
+func termReadPasswordWithPrompt(prompt, flag string) (data []byte, err error) {
+	fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
+
+	if isTerm := term.IsTerminal(fd); !isTerm {
+		switch len(flag) {
+		case 0:
+			return nil, ErrStdinIsNotTerminal
+		case 1:
+			return nil, fmt.Errorf("you must either use an interactive terminal or use the -%s flag", flag)
+		default:
+			return nil, fmt.Errorf("you must either use an interactive terminal or use the --%s flag", flag)
+		}
+	}
+
+	fmt.Print(prompt)
+
+	if data, err = term.ReadPassword(fd); err != nil {
+		return nil, fmt.Errorf("failed to read the input from the terminal: %w", err)
+	}
+
+	fmt.Println("")
+
+	return data, nil
 }

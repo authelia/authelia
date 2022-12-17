@@ -14,7 +14,7 @@ services:
     volumes:
       - './example/compose/authelia/resources/:/resources'
       - '../../web:/app'
-      - '~/.pnpm-store:/tmp/.pnpm-store'
+      - '~/.local/share/pnpm/store:/tmp/.pnpm-store'
     labels:
       # Traefik 1.x
       - 'traefik.frontend.rule=Host:login.example.com'

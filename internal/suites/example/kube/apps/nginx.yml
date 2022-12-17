@@ -1,0 +1,138 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-backend
+  namespace: authelia
+  labels:
+    app: nginx-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-backend
+  template:
+    metadata:
+      labels:
+        app: nginx-backend
+    spec:
+      containers:
+        - name: nginx-backend
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+            - name: nginx-html
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: nginx-config
+          hostPath:
+            path: /configmaps/nginx-backend/nginx.conf
+            type: File
+        - name: nginx-html
+          hostPath:
+            path: /configmaps/nginx-backend/html
+            type: Directory
+...
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-backend-service
+  namespace: authelia
+  labels:
+    app: nginx-backend
+spec:
+  selector:
+    app: nginx-backend
+  ports:
+    - port: 80
+      name: http
+    - port: 443
+      name: https
+...
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-backend-ingress
+  namespace: authelia
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: authelia-forwardauth-authelia@kubernetescrd
+spec:
+  rules:
+    - host: home.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+    - host: public.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+    - host: admin.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+    - host: dev.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+    - host: mx1.mail.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+    - host: mx2.mail.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+    - host: singlefactor.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-backend-service
+                port:
+                  number: 80
+...

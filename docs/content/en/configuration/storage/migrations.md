@@ -28,7 +28,7 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 
 | Schema Version | Authelia Version |                                               Notes                                                |
 |:--------------:|:----------------:|:--------------------------------------------------------------------------------------------------:|
-|      pre1      |      4.0.0       |                    Downgrading to this version requires you use the --pre1 flag                    |
+|      pre1      |      4.0.0       |          Downgrading to this version requires you use the --pre1 flag on Authelia 4.37.2           |
 |       1        |      4.33.0      |                                 Initial migration managed version                                  |
 |       2        |      4.34.0      | WebAuthn - added webauthn_devices table, altered totp_config to include device created/used dates  |
 |       3        |      4.34.2      |     WebAuthn - fix V2 migration kid column length and provide migration path for anyone on V2      |

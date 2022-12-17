@@ -62,7 +62,7 @@ required modules including the `http_set_misc` module.
 It also includes the [nginx-proxy-confs](https://github.com/linuxserver/docker-mods/tree/nginx-proxy-confs) mod where
 they have several configuration examples in the `/config/nginx/proxy-confs` directory. This can be omitted if desired.
 
-If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](./swag.md)
+If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
 which includes ACME and various other useful utilities.
 
 {{< details "docker-compose.yaml" >}}
@@ -387,6 +387,7 @@ location /authelia {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $http_host;
@@ -470,6 +471,7 @@ location /authelia-basic {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $http_host;

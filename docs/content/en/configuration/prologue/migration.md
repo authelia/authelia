@@ -73,7 +73,7 @@ environment variable or other environment variables set. This also applies to ot
 
 *__Please Note:__ if you're using Authelia with Kubernetes and are not using the provided
 [helm chart](https://charts.authelia.com) you will be required to
-[configure the enableServiceLinks](../../integration/kubernetes/introduction/index.md#enable-service-links) option.*
+[configure the enableServiceLinks](../../integration/kubernetes/introduction.md#enable-service-links) option.*
 
 ### 4.25.0
 
@@ -99,7 +99,7 @@ The following changes occurred in 4.7.0:
 |  logs_level  | log_level |
 |  logs_file   | log_file  |
 
-*__Please Note:__ The new keys also changed in [4.30.0](#4.30.0) so you will need to update them to the new values if you
-are using [4.30.0](#4.30.0) or newer instead of the new keys listed here.*
+*__Please Note:__ The new keys also changed in [4.30.0](#4300) so you will need to update them to the new values if you
+are using [4.30.0](#4300) or newer instead of the new keys listed here.*
 
 [YAML]: https://yaml.org/

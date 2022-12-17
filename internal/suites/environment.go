@@ -58,6 +58,15 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 		[]string{"dev server running at", "ready in"})
 }
 
+func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
+	return waitUntilServiceLogDetected(
+		5*time.Second,
+		90*time.Second,
+		dockerEnvironment,
+		"k3d",
+		[]string{"API listen on [::]:2376"})
+}
+
 func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,

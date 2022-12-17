@@ -26,10 +26,10 @@ This guide effectively documents the usage of the
 
 ## Assets
 
-|        Asset        |  File Name  | Directory |     Notes     |
-|:-------------------:|:-----------:|:---------:|:-------------:|
-|       Favicon       | favicon.ico |    No     |      N/A      |
-|        Logo         |  logo.png   |    No     |      N/A      |
+|        Asset        |  File Name  | Directory |          Notes          |
+|:-------------------:|:-----------:|:---------:|:-----------------------:|
+|       Favicon       | favicon.ico |    No     |           N/A           |
+|        Logo         |  logo.png   |    No     |           N/A           |
 | Translation Locales |   locales   |    Yes    | see [locales](#locales) |
 
 ## locales
