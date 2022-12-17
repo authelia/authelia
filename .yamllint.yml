@@ -1,6 +1,13 @@
 ---
 extends: default
 
+locale: en_US.UTF-8
+
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '.yamllint'
+
 ignore: |
   docs/pnpm-lock.yaml
   internal/configuration/test_resources/config_bad_quoting.yml
