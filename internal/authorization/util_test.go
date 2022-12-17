@@ -25,7 +25,7 @@ func TestLevelToString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run("Expected_"+tc.expected, func(t *testing.T) {
-			assert.Equal(t, tc.expected, LevelToString(tc.have))
+			assert.Equal(t, tc.expected, tc.have.String())
 		})
 	}
 }
