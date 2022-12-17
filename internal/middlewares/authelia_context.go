@@ -144,7 +144,7 @@ func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
 }
 
 // XForwardedMethod return the content of the X-Forwarded-Method header.
-func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
+func (ctx *AutheliaCtx) XForwardedMethod() []byte {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXForwardedMethod)
 }
 
@@ -182,12 +182,12 @@ func (ctx *AutheliaCtx) XOriginalMethod() []byte {
 
 // XAutheliaURL return the content of the X-Authelia-URL header which is used to communicate the location of the
 // portal when using proxies like Envoy.
-func (ctx *AutheliaCtx) XAutheliaURL() (autheliaURL []byte) {
+func (ctx *AutheliaCtx) XAutheliaURL() []byte {
 	return ctx.RequestCtx.Request.Header.PeekBytes(headerXAutheliaURL)
 }
 
 // QueryArgRedirect return the content of the rd query argument.
-func (ctx *AutheliaCtx) QueryArgRedirect() (val []byte) {
+func (ctx *AutheliaCtx) QueryArgRedirect() []byte {
 	return ctx.RequestCtx.QueryArgs().PeekBytes(qryArgRedirect)
 }
 
