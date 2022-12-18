@@ -14,18 +14,6 @@ const (
 	// RFC3339Zero is the default value for time.Time.Unix().
 	RFC3339Zero = int64(-62135596800)
 
-	// TLS13 is the textual representation of TLS 1.3.
-	TLS13 = "1.3"
-
-	// TLS12 is the textual representation of TLS 1.2.
-	TLS12 = "1.2"
-
-	// TLS11 is the textual representation of TLS 1.1.
-	TLS11 = "1.1"
-
-	// TLS10 is the textual representation of TLS 1.0.
-	TLS10 = "1.0"
-
 	clean   = "clean"
 	tagged  = "tagged"
 	unknown = "unknown"
@@ -142,6 +130,13 @@ const (
 	// CharSetRFC3986Unreserved are RFC3986 unreserved characters.
 	// See https://www.rfc-editor.org/rfc/rfc3986#section-2.3.
 	CharSetRFC3986Unreserved = CharSetAlphabetic + CharSetNumeric + CharSetSymbolicRFC3986Unreserved
+
+	// CharSetUnambiguousUpper  are a set of unambiguous uppercase characters.
+	CharSetUnambiguousUpper = "ABCDEFGHJKLMNOPQRTUVWYXZ2346789"
+)
+
+var (
+	regexCharSetUnambiguousUpper = regexp.MustCompile(`[^` + CharSetUnambiguousUpper + `]+`)
 )
 
 var htmlEscaper = strings.NewReplacer(
@@ -154,6 +149,3 @@ var htmlEscaper = strings.NewReplacer(
 
 // ErrTimeoutReached error thrown when a timeout is reached.
 var ErrTimeoutReached = errors.New("timeout reached")
-
-// ErrTLSVersionNotSupported returned when an unknown TLS version supplied.
-var ErrTLSVersionNotSupported = errors.New("supplied tls version isn't supported")

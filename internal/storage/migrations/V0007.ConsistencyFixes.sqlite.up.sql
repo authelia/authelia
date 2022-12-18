@@ -419,7 +419,7 @@ CREATE TABLE IF NOT EXISTS oauth2_consent_preconfiguration (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     scopes TEXT NOT NULL,
     audience TEXT NULL,
-    CONSTRAINT "oauth2_consent_preconfiguration_subject_fkey"
+    CONSTRAINT oauth2_consent_preconfiguration_subject_fkey
         FOREIGN KEY (subject)
             REFERENCES user_opaque_identifier (identifier) ON UPDATE CASCADE ON DELETE RESTRICT
 );

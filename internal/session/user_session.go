@@ -2,6 +2,8 @@ package session
 
 import (
 	"errors"
+	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -75,4 +77,24 @@ func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticate
 	default:
 		return time.Unix(0, 0), errors.New("invalid authorization level")
 	}
+}
+
+func (s *UserSession) Identity() (identity *Identity, err error) {
+	if len(s.Emails) == 0 {
+		return nil, fmt.Errorf("user '%s' does not have any email address", s.Username)
+	}
+
+	return &Identity{
+		Username:    s.Username,
+		DisplayName: s.DisplayName,
+		Email:       s.Emails[0],
+	}, nil
+}
+
+func (i *Identity) Address() mail.Address {
+	if i.DisplayName != "" {
+		return mail.Address{Name: i.DisplayName, Address: i.Email}
+	}
+
+	return mail.Address{Name: i.Username, Address: i.Email}
 }

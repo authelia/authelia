@@ -185,6 +185,10 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
+	// User Session Elevation.
+	r.GET("/api/user/session/elevate", middleware1FA(handlers.UserSessionElevationGET))
+	r.POST("/api/user/session/elevate", middleware1FA(handlers.UserSessionElevationPOST))
+
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.
 		r.GET("/api/user/info/totp", middleware1FA(handlers.UserTOTPInfoGET))

@@ -110,6 +110,20 @@ func (mr *MockStorageMockRecorder) ConsumeIdentityVerification(arg0, arg1, arg2 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).ConsumeIdentityVerification), arg0, arg1, arg2)
 }
 
+// ConsumeOneTimePassword mocks base method.
+func (m *MockStorage) ConsumeOneTimePassword(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeOneTimePassword", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeOneTimePassword indicates an expected call of ConsumeOneTimePassword.
+func (mr *MockStorageMockRecorder) ConsumeOneTimePassword(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimePassword", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimePassword), arg0, arg1, arg2)
+}
+
 // DeactivateOAuth2Session mocks base method.
 func (m *MockStorage) DeactivateOAuth2Session(arg0 context.Context, arg1 storage.OAuth2SessionType, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -296,6 +310,21 @@ func (m *MockStorage) LoadOAuth2Session(arg0 context.Context, arg1 storage.OAuth
 func (mr *MockStorageMockRecorder) LoadOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2Session", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2Session), arg0, arg1, arg2)
+}
+
+// LoadOneTimePassword mocks base method.
+func (m *MockStorage) LoadOneTimePassword(arg0 context.Context, arg1, arg2, arg3 string) (*model.OneTimePassword, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOneTimePassword", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.OneTimePassword)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOneTimePassword indicates an expected call of LoadOneTimePassword.
+func (mr *MockStorageMockRecorder) LoadOneTimePassword(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimePassword", reflect.TypeOf((*MockStorage)(nil).LoadOneTimePassword), arg0, arg1, arg2, arg3)
 }
 
 // LoadPreferred2FAMethod mocks base method.
@@ -601,6 +630,21 @@ func (m *MockStorage) SaveOAuth2Session(arg0 context.Context, arg1 storage.OAuth
 func (mr *MockStorageMockRecorder) SaveOAuth2Session(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2Session", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2Session), arg0, arg1, arg2)
+}
+
+// SaveOneTimePassword mocks base method.
+func (m *MockStorage) SaveOneTimePassword(arg0 context.Context, arg1 model.OneTimePassword) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOneTimePassword", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveOneTimePassword indicates an expected call of SaveOneTimePassword.
+func (mr *MockStorageMockRecorder) SaveOneTimePassword(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOneTimePassword", reflect.TypeOf((*MockStorage)(nil).SaveOneTimePassword), arg0, arg1)
 }
 
 // SavePreferred2FAMethod mocks base method.

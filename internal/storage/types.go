@@ -38,8 +38,18 @@ type encWebauthnDevice struct {
 }
 
 type encTOTPConfiguration struct {
-	ID     int    `db:"id" json:"-"`
-	Secret []byte `db:"secret" json:"-"`
+	ID     int    `db:"id"`
+	Secret []byte `db:"secret"`
+}
+
+type encOneTimePassword struct {
+	ID  int    `db:"id"`
+	OTP []byte `db:"otp"`
+}
+
+type encEncryption struct {
+	ID    int    `db:"id"`
+	Value []byte `db:"value"`
 }
 
 // EncryptionValidationResult contains information about the success of a schema encryption validation.

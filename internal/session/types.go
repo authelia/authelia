@@ -1,9 +1,10 @@
 package session
 
 import (
+	"net"
 	"time"
 
-	session "github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/go-webauthn/webauthn/webauthn"
 
@@ -44,6 +45,18 @@ type UserSession struct {
 	PasswordResetUsername *string
 
 	RefreshTTL time.Time
+
+	Elevations Elevations
+}
+
+type Elevations struct {
+	User *Elevation
+}
+
+type Elevation struct {
+	ID       int
+	RemoteIP net.IP
+	Expires  time.Time
 }
 
 // Identity identity of the user who is being verified.

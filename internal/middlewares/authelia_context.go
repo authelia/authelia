@@ -67,8 +67,8 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
-	if replyErr := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); replyErr != nil {
-		ctx.Logger.Error(replyErr)
+	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+		ctx.Logger.Error(err)
 	}
 }
 
@@ -277,9 +277,9 @@ func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
 func (ctx *AutheliaCtx) RemoteIP() net.IP {
-	XForwardedFor := ctx.Request.Header.PeekBytes(headerXForwardedFor)
-	if XForwardedFor != nil {
-		ips := strings.Split(string(XForwardedFor), ",")
+	xff := ctx.Request.Header.PeekBytes(headerXForwardedFor)
+	if xff != nil {
+		ips := strings.Split(string(xff), ",")
 
 		if len(ips) > 0 {
 			return net.ParseIP(strings.Trim(ips[0], " "))

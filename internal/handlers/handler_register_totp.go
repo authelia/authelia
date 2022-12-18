@@ -12,14 +12,7 @@ import (
 func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
 	userSession := ctx.GetSession()
 
-	if len(userSession.Emails) == 0 {
-		return nil, fmt.Errorf("user %s does not have any email address", userSession.Username)
-	}
-
-	return &session.Identity{
-		Username: userSession.Username,
-		Email:    userSession.Emails[0],
-	}, nil
+	return userSession.Identity()
 }
 
 func isTokenUserValidFor2FARegistration(ctx *middlewares.AutheliaCtx, username string) bool {

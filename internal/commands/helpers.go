@@ -10,6 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -111,5 +112,6 @@ func getProviders() (providers middlewares.Providers, warnings []error, errors [
 		Templates:       templatesProvider,
 		TOTP:            totpProvider,
 		PasswordPolicy:  ppolicyProvider,
+		Random:          &random.Cryptographical{},
 	}, warnings, errors
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -36,38 +35,6 @@ func defaultRetriever(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
 		Username: "john",
 		Email:    "john@example.com",
 	}, nil
-}
-
-func TestShouldSkipStartIdentityVerificationIf2FASkipEnabled(t *testing.T) {
-	testCases := []bool{true, false}
-	for _, testCaseSkipEnabled := range testCases {
-		t.Run(fmt.Sprintf("SkipIfAuthLevelTwoFactor=%t", testCaseSkipEnabled), func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
-			defer mock.Close()
-
-			mock.Ctx.Request.Header.Add("X-Forwarded-Proto", "http")
-			mock.Ctx.Request.Header.Add("X-Forwarded-Host", "host")
-
-			if testCaseSkipEnabled == false {
-				mock.StorageMock.EXPECT().
-					SaveIdentityVerification(mock.Ctx, gomock.Any()).
-					Return(nil)
-				mock.NotifierMock.EXPECT().
-					Send(gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
-					Return(nil)
-			}
-
-			userSession := mock.Ctx.GetSession()
-			userSession.AuthenticationLevel = authentication.TwoFactor
-			assert.NoError(t, mock.Ctx.SaveSession(userSession))
-
-			args := newArgs(defaultRetriever)
-			args.IdentityVerificationCommonArgs.SkipIfAuthLevelTwoFactor = testCaseSkipEnabled
-			middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
-
-			assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
-		})
-	}
 }
 
 func TestShouldFailStartingProcessIfUserHasNoEmailAddress(t *testing.T) {
@@ -114,7 +81,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Name: "john", Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(fmt.Errorf("no notif"))
 
 	args := newArgs(defaultRetriever)
@@ -136,7 +103,7 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 		Return(nil)
 
 	mock.NotifierMock.EXPECT().
-		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Name: "john", Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	args := newArgs(defaultRetriever)
@@ -305,36 +272,6 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-}
-
-func (s *IdentityVerificationFinishProcess) TestShouldSkipIf2FASkipEnabled() {
-	testCases := []bool{true, false}
-	for _, testCaseSkipEnabled := range testCases {
-		s.Run(fmt.Sprintf("SkipIfAuthLevelTwoFactor=%t", testCaseSkipEnabled), func() {
-			token, verification := createToken(s.mock, "john", "EXP_ACTION",
-				time.Now().Add(1*time.Minute))
-			s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
-
-			if testCaseSkipEnabled == false {
-				s.mock.StorageMock.EXPECT().
-					FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
-					Return(true, nil)
-				s.mock.StorageMock.EXPECT().
-					ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
-					Return(nil)
-			}
-
-			userSession := s.mock.Ctx.GetSession()
-			userSession.AuthenticationLevel = authentication.TwoFactor
-			assert.NoError(s.T(), s.mock.Ctx.SaveSession(userSession))
-
-			args := newFinishArgs()
-			args.IdentityVerificationCommonArgs.SkipIfAuthLevelTwoFactor = testCaseSkipEnabled
-			middlewares.IdentityVerificationFinish(args, next)(s.mock.Ctx)
-
-			assert.Equal(s.T(), 200, s.mock.Ctx.Response.StatusCode())
-		})
-	}
 }
 
 func TestRunIdentityVerificationFinish(t *testing.T) {

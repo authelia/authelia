@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -72,6 +73,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	providers := middlewares.Providers{
 		UserProvider:    userProvider,
 		SessionProvider: sessionProvider,
+		Random:          &random.Mathematical{},
 	}
 	nextCalled := false
 

@@ -15,6 +15,7 @@ type Templates struct {
 type NotificationTemplates struct {
 	passwordReset        *EmailTemplate
 	identityVerification *EmailTemplate
+	otp                  *EmailTemplate
 }
 
 // Template covers shared implementations between the text and html template.Template.
@@ -36,20 +37,26 @@ type EmailTemplate struct {
 	Text *tt.Template
 }
 
-// EmailPasswordResetValues are the values used for password reset templates.
-type EmailPasswordResetValues struct {
-	UUID        string
+// EmailPasswordResetData are the values used for the password reset template.
+type EmailPasswordResetData struct {
 	Title       string
 	DisplayName string
 	RemoteIP    string
 }
 
-// EmailIdentityVerificationValues are the values used for the identity verification templates.
-type EmailIdentityVerificationValues struct {
-	UUID        string
+// EmailIdentityVerificationData are the values used for the identity verification template.
+type EmailIdentityVerificationData struct {
 	Title       string
 	DisplayName string
 	RemoteIP    string
 	LinkURL     string
 	LinkText    string
+}
+
+// EmailOneTimePasswordData are the values used for the one time password template.
+type EmailOneTimePasswordData struct {
+	Title           string
+	DisplayName     string
+	RemoteIP        string
+	OneTimePassword string
 }

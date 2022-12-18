@@ -17,9 +17,6 @@ import (
 // WebauthnIdentityStart the handler for initiating the identity validation.
 var WebauthnIdentityStart = middlewares.IdentityVerificationStart(
 	middlewares.IdentityVerificationStartArgs{
-		IdentityVerificationCommonArgs: middlewares.IdentityVerificationCommonArgs{
-			SkipIfAuthLevelTwoFactor: true,
-		},
 		MailTitle:             "Register your key",
 		MailButtonContent:     "Register",
 		TargetEndpoint:        "/webauthn/register",
@@ -30,9 +27,6 @@ var WebauthnIdentityStart = middlewares.IdentityVerificationStart(
 // WebauthnIdentityFinish the handler for finishing the identity validation.
 var WebauthnIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{
-		IdentityVerificationCommonArgs: middlewares.IdentityVerificationCommonArgs{
-			SkipIfAuthLevelTwoFactor: true,
-		},
 		ActionClaim:          ActionWebauthnRegistration,
 		IsTokenUserValidFunc: isTokenUserValidFor2FARegistration,
 	}, SecondFactorWebauthnAttestationGET)

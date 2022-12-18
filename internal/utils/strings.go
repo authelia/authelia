@@ -1,16 +1,15 @@
 package utils
 
 import (
-	crand "crypto/rand"
 	"fmt"
-	"math/rand"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 // IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
@@ -222,19 +221,15 @@ func RandomString(n int, characters string, crypto bool) (randomString string) {
 // to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
 // excluding when the task is time sensitive and would not benefit from extra randomness.
 func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
-	bytes = make([]byte, n)
+	var r random.Provider
 
 	if crypto {
-		_, _ = crand.Read(bytes)
+		r = &random.Cryptographical{}
 	} else {
-		_, _ = rand.Read(bytes) //nolint:gosec // As this is an option when using this function it's not necessary to be concerned about this.
+		r = &random.Mathematical{}
 	}
 
-	for i, b := range bytes {
-		bytes[i] = characters[b%byte(len(characters))]
-	}
-
-	return bytes
+	return r.GenerateCustom(n, []byte(characters))
 }
 
 // StringHTMLEscape escapes chars for a HTML body.
@@ -308,6 +303,8 @@ func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
 	return false
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
+// StringStripCharSetUnambiguousUpper replaces any character not in CharSetUnambiguousUpper with an empty value after
+// forcing all characters to be uppercase.
+func StringStripCharSetUnambiguousUpper(input string) string {
+	return regexCharSetUnambiguousUpper.ReplaceAllString(strings.ToUpper(input), "")
 }

@@ -23,8 +23,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
-		db:         db,
-		key:        sha256.Sum256([]byte(config.Storage.EncryptionKey)),
+		db: db,
+		keys: SQLProviderKeys{
+			encryption: sha256.Sum256([]byte(config.Storage.EncryptionKey)),
+		},
+
 		name:       name,
 		driverName: driverName,
 		config:     config,
@@ -37,6 +40,10 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlSelectIdentityVerification:  fmt.Sprintf(queryFmtSelectIdentityVerification, tableIdentityVerification),
+
+		sqlInsertOneTimePassword:  fmt.Sprintf(queryFmtInsertOneTimePassword, tableOneTimePassword),
+		sqlConsumeOneTimePassword: fmt.Sprintf(queryFmtConsumeOneTimePassword, tableOneTimePassword),
+		sqlSelectOneTimePassword:  fmt.Sprintf(queryFmtSelectOneTimePassword, tableOneTimePassword),
 
 		sqlUpsertTOTPConfig:  fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
 		sqlDeleteTOTPConfig:  fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
@@ -132,15 +139,22 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 	return provider
 }
 
+// SQLProviderKeys are the cryptography keys used by a SQLProvider.
+type SQLProviderKeys struct {
+	encryption [32]byte
+	signature  []byte
+}
+
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
 	db         *sqlx.DB
-	key        [32]byte
 	name       string
 	driverName string
 	schema     string
 	config     *schema.Configuration
 	errOpen    error
+
+	keys SQLProviderKeys
 
 	log *logrus.Logger
 
@@ -152,6 +166,11 @@ type SQLProvider struct {
 	sqlInsertIdentityVerification  string
 	sqlConsumeIdentityVerification string
 	sqlSelectIdentityVerification  string
+
+	// Table: one_time_password.
+	sqlInsertOneTimePassword  string
+	sqlConsumeOneTimePassword string
+	sqlSelectOneTimePassword  string
 
 	// Table: totp_configurations.
 	sqlUpsertTOTPConfig  string
@@ -298,6 +317,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	if !result.Success() {
 		return ErrSchemaEncryptionInvalidKey
+	}
+
+	if p.keys.signature, err = p.getKeySigHMAC(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac signature key during startup: %w", err)
 	}
 
 	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
@@ -763,6 +786,53 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 	default:
 		return true, nil
 	}
+}
+
+// SaveOneTimePassword saves a one time password to the database after generating the signature.
+func (p *SQLProvider) SaveOneTimePassword(ctx context.Context, otp model.OneTimePassword) (signature string, err error) {
+	signature = p.hmacSignature(ctx, []byte(otp.Username), []byte(otp.Intent), otp.Password)
+
+	if otp.Password, err = p.encrypt(otp.Password); err != nil {
+		return "", fmt.Errorf("error encrypting the one time password value for user '%s' with signature '%s': %w", otp.Username, otp.Signature, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertOneTimePassword,
+		signature, otp.IssuedAt, otp.IssuedIP, otp.ExpiresAt,
+		otp.Username, otp.Intent, otp.Password); err != nil {
+		return "", fmt.Errorf("error inserting one time password for user '%s' with signature '%s': %w", otp.Username, otp.Signature, err)
+	}
+
+	return signature, nil
+}
+
+// ConsumeOneTimePassword consumes a one time password using the signature.
+func (p *SQLProvider) ConsumeOneTimePassword(ctx context.Context, signature string, ip model.NullIP) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimePassword, ip, signature); err != nil {
+		return fmt.Errorf("error updating one time password: %w", err)
+	}
+
+	return nil
+}
+
+// LoadOneTimePassword loads a one time password from the database given a username, intent, and password.
+func (p *SQLProvider) LoadOneTimePassword(ctx context.Context, username, intent, password string) (otp *model.OneTimePassword, err error) {
+	otp = &model.OneTimePassword{}
+
+	signature := p.hmacSignature(ctx, []byte(username), []byte(intent), []byte(password))
+
+	if err = p.db.GetContext(ctx, otp, p.sqlSelectOneTimePassword, signature, username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("error selecting one time password: %w", err)
+	}
+
+	if otp.Password, err = p.decrypt(otp.Password); err != nil {
+		return nil, fmt.Errorf("error decrypting the one time password value for user '%s' with signature '%s': %w", otp.Username, otp.Signature, err)
+	}
+
+	return otp, nil
 }
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the database.

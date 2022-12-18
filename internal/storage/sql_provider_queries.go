@@ -72,6 +72,31 @@ const (
 )
 
 const (
+	queryFmtSelectOneTimePassword = `
+		SELECT id, signature, iat, issued_ip, exp, username intent, consumed, consumed_ip, password
+		FROM %s
+		WHERE signature = ? AND username = ?;`
+
+	queryFmtInsertOneTimePassword = `
+		INSERT INTO %s (signature, iat, issued_ip, exp, username, intent, password)
+		VALUES (?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtConsumeOneTimePassword = `
+		UPDATE %s
+		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
+		WHERE signature = ?;`
+
+	queryFmtSelectOneTimePasswordEncryptedData = `
+		SELECT id, password
+		FROM %s;`
+
+	queryFmtUpdateOneTimePasswordEncryptedData = `
+		UPDATE %s
+		SET password = ?
+		WHERE id = ?;`
+)
+
+const (
 	queryFmtSelectTOTPConfiguration = `
 		SELECT id, username, issuer, algorithm, digits, period, secret
 		FROM %s
@@ -87,8 +112,7 @@ const (
 		SELECT id, secret
 		FROM %s;`
 
-	//nolint:gosec // These are not hardcoded credentials it's a query to obtain credentials.
-	queryFmtUpdateTOTPConfigurationSecret = `
+	queryFmtUpdateTOTPConfigurationEncryptedData = `
 		UPDATE %s
 		SET secret = ?
 		WHERE id = ?;`
@@ -242,6 +266,15 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (name)
 			DO UPDATE SET value = $2;`
+
+	queryFmtSelectEncryptionEncryptedData = `
+		SELECT id, value
+		FROM %s;`
+
+	queryFmtUpdateEncryptionEncryptedData = `
+		UPDATE %s
+		SET value = ?
+		WHERE id = ?;`
 )
 
 const (

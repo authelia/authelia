@@ -312,3 +312,20 @@ func TestIsURLHostComponent(t *testing.T) {
 		})
 	}
 }
+
+func TestStringStripCharSetUnambiguousUpper(t *testing.T) {
+	testCases := []struct {
+		name, have, expected string
+	}{
+		{"ShouldRemoveNumber1", "ABC123", "ABC23"},
+		{"ShouldConvertUpper", "abc1", "ABC"},
+		{"ShouldStripSpecialChars", "ABC2@", "ABC2"},
+		{"ShouldStripWhitespace", "ABC 3", "ABC3"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, StringStripCharSetUnambiguousUpper(tc.have))
+		})
+	}
+}

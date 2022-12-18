@@ -73,7 +73,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	data := templates.EmailPasswordResetValues{
+	data := templates.EmailPasswordResetData{
 		Title:       "Password changed successfully",
 		DisplayName: userInfo.DisplayName,
 		RemoteIP:    ctx.RemoteIP().String(),

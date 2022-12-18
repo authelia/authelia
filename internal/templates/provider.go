@@ -33,6 +33,11 @@ func (p *Provider) GetIdentityVerificationEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.identityVerification
 }
 
+// GetOneTimePasswordEmailTemplate returns the EmailTemplate for One Time Password notifications.
+func (p *Provider) GetOneTimePasswordEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.otp
+}
+
 func (p *Provider) load() (err error) {
 	var errs []error
 
@@ -41,6 +46,10 @@ func (p *Provider) load() (err error) {
 	}
 
 	if p.templates.notification.passwordReset, err = loadEmailTemplate(TemplateNameEmailPasswordReset, p.config.EmailTemplatesPath); err != nil {
+		errs = append(errs, err)
+	}
+
+	if p.templates.notification.otp, err = loadEmailTemplate(TemplateNameEmailOneTimePassword, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 

@@ -23,4 +23,5 @@ type Configuration struct {
 	Telemetry             TelemetryConfig                `koanf:"telemetry"`
 	Webauthn              WebauthnConfiguration          `koanf:"webauthn"`
 	PasswordPolicy        PasswordPolicyConfiguration    `koanf:"password_policy"`
+	IdentityValidation    IdentityValidation             `koanf:"identity_validation"`
 }

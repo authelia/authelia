@@ -9,6 +9,7 @@ const (
 const (
 	TemplateNameEmailIdentityVerification = "IdentityVerification"
 	TemplateNameEmailPasswordReset        = "PasswordReset"
+	TemplateNameEmailOneTimePassword      = "OneTimePassword"
 )
 
 // Template Category Names.
