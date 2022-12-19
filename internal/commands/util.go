@@ -226,7 +226,5 @@ func termReadPasswordWithPrompt(prompt, flag string) (password string, err error
 		return "", fmt.Errorf("failed to read the input from the terminal: %w", err)
 	}
 
-	fmt.Println("")
-
 	return password, nil
 }
