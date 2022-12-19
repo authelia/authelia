@@ -792,8 +792,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	s.Assert().Regexp(pattern, output)
 
-	patternOutdated := regexp.MustCompile(`Error: schema is version \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
-
+	patternOutdated := regexp.MustCompile(`Error: command requires the use of a up to date schema version: storage schema outdated: version \d+ is outdated please migrate to version \d+ in order to use this command or use an older binary`)
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
