@@ -209,8 +209,9 @@ Some SMTP servers ignore SMTP specifications and claim to support STARTTLS when 
 For security reasons Authelia refuses to send messages to these servers.
 This option disables this measure and is enabled  *__AT YOUR OWN RISK__*. It's *__strongly recommended__*
 that instead of enabling this option you either fix the issue with the SMTP server's configuration or
-have the administrators of the server fix it. If the issue can't be fixed by configuration we recommend
+have the administrators of the server fix it. If the issue can't be fixed via the SMTP server configuration we recommend
 lodging an issue with the authors of the SMTP server.
+
 See [security] for more information.
 
 ### disable_html_emails
