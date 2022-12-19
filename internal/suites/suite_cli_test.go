@@ -770,18 +770,6 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 	s.Assert().Contains(output, "Error: could not parse certificate from file '/tmp/ca.public.bad.crt': failed to parse PEM block containing the key\n")
 }
 
-func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info"})
-	s.Assert().EqualError(err, "exit status 1")
-
-	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: option 'encryption_key' is required\n")
-
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "history"})
-	s.Assert().EqualError(err, "exit status 1")
-
-	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: option 'encryption_key' is required\n")
-}
-
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	_ = os.Remove("/tmp/db.sqlite3")
 
