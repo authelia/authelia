@@ -65,6 +65,7 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
 			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateSectionPasswordRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -117,6 +118,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
 			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateSectionPasswordRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -176,6 +178,7 @@ func newCryptoHashValidateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// CryptoHashValidateRunE is the RunE for the authelia crypto hash validate command.
 func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		password string
@@ -204,6 +207,8 @@ func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (er
 	return nil
 }
 
+// CryptoHashGenerateMapFlagsPreRunE is the RunE which configures the flags map configuration source for the
+// authelia crypto hash generate commands.
 func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []string) (err error) {
 	var flagsMap map[string]string
 
@@ -252,6 +257,7 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []
 	return nil
 }
 
+// CryptoHashGenerateRunE is the RunE for the authelia crypto hash generate commands.
 func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		hash     algorithm.Hash

@@ -242,6 +242,34 @@ func (ctx *CmdCtx) ConfigValidateLogRunE(_ *cobra.Command, _ []string) (err erro
 	return nil
 }
 
+// ConfigValidateSectionPasswordRunE validates the configuration (structure, password section).
+func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []string) (err error) {
+	if ctx.config.AuthenticationBackend.File == nil {
+		return fmt.Errorf("password configuration was not initialized")
+	}
+
+	val := &schema.StructValidator{}
+
+	validator.ValidatePasswordConfiguration(&ctx.config.AuthenticationBackend.File.Password, val)
+
+	errs := val.Errors()
+
+	if len(errs) == 0 {
+		return nil
+	}
+
+	for i, e := range errs {
+		if i == 0 {
+			err = e
+			continue
+		}
+
+		err = fmt.Errorf("%v, %w", err, e)
+	}
+
+	return fmt.Errorf("errors occurred validating the password configuration: %w", err)
+}
+
 // ConfigEnsureExistsRunE logs the warnings and errors detected during the validations that have ran.
 func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
