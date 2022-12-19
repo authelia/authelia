@@ -25,7 +25,7 @@ func NewLevel(policy string) Level {
 	return Denied
 }
 
-// String representation of a Level.
+// String returns a policy string representation of an authorization.Level.
 func (l Level) String() string {
 	switch l {
 	case Bypass:

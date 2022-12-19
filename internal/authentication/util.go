@@ -1,6 +1,6 @@
 package authentication
 
-// String representation of a Level.
+// String returns a string representation of an authentication.Level.
 func (l Level) String() string {
 	switch l {
 	case NotAuthenticated:

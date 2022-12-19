@@ -130,11 +130,11 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 
 		location.RawQuery = query.Encode()
 
-		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, userSession.AuthenticationLevel.String(), "sufficient", client.Policy.String())
+		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, userSession.AuthenticationLevel.String(), "sufficient", client.Policy)
 	} else {
 		location = handleOIDCAuthorizationConsentGetRedirectionURL(issuer, consent, requester)
 
-		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, userSession.AuthenticationLevel.String(), "insufficient", client.Policy.String())
+		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, userSession.AuthenticationLevel.String(), "insufficient", client.Policy)
 	}
 
 	ctx.Logger.Debugf(logFmtDbgConsentRedirect, requester.GetID(), client.GetID(), client.Consent, location)

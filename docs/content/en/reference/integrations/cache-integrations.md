@@ -2,7 +2,7 @@
 title: "Cache Integrations"
 description: "A cache integration reference guide"
 lead: "This section contains a cache integration reference guide for Authelia."
-date: 2022-11-19T16:47:09+11:00
+date: 2022-12-09T18:24:02+11:00
 draft: false
 images: []
 menu:
