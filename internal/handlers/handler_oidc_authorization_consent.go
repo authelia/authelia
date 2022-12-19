@@ -11,8 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -132,11 +130,11 @@ func handleOIDCAuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer
 
 		location.RawQuery = query.Encode()
 
-		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, authentication.LevelToString(userSession.AuthenticationLevel), "sufficient", authorization.LevelToString(client.Policy))
+		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, userSession.AuthenticationLevel.String(), "sufficient", client.Policy)
 	} else {
 		location = handleOIDCAuthorizationConsentGetRedirectionURL(issuer, consent, requester)
 
-		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, authentication.LevelToString(userSession.AuthenticationLevel), "insufficient", authorization.LevelToString(client.Policy))
+		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.Consent, userSession.AuthenticationLevel.String(), "insufficient", client.Policy)
 	}
 
 	ctx.Logger.Debugf(logFmtDbgConsentRedirect, requester.GetID(), client.GetID(), client.Consent, location)
