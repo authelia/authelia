@@ -16,11 +16,11 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Long:    cmdAutheliaStorageLong,
 		Example: cmdAutheliaStorageExample,
 		Args:    cobra.NoArgs,
-		PersistentPreRunE: ctx.ChainPreRunE(
+		PersistentPreRunE: ctx.ChainRunE(
 			ctx.ConfigStorageCommandLineConfigPersistentPreRunE,
-			ctx.ConfigLoadPreRunE,
+			ctx.ConfigLoadRunE,
 			ctx.ConfigValidateStoragePersistentPreRunE,
-			ctx.ProvidersLoadStoragePreRunE,
+			ctx.LoadProvidersStorageRunE,
 		),
 
 		DisableAutoGenTag: true,
@@ -239,7 +239,7 @@ func newStorageUserWebAuthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebAuthnListShort,
 		Long:    cmdAutheliaStorageUserWebAuthnListLong,
 		Example: cmdAutheliaStorageUserWebAuthnListExample,
-		RunE:    ctx.StorageWebAuthnListRunE,
+		RunE:    ctx.StorageWebauthnListRunE,
 		Args:    cobra.MaximumNArgs(1),
 
 		DisableAutoGenTag: true,
@@ -254,7 +254,7 @@ func newStorageUserWebAuthnDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebAuthnDeleteShort,
 		Long:    cmdAutheliaStorageUserWebAuthnDeleteLong,
 		Example: cmdAutheliaStorageUserWebAuthnDeleteExample,
-		RunE:    ctx.StorageWebAuthnDeleteRunE,
+		RunE:    ctx.StorageWebauthnDeleteRunE,
 		Args:    cobra.MaximumNArgs(1),
 
 		DisableAutoGenTag: true,

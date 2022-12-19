@@ -61,10 +61,10 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaCryptoHashGenerateShort,
 		Long:    cmdAutheliaCryptoHashGenerateLong,
 		Example: cmdAutheliaCryptoHashGenerateExample,
-		PreRunE: ctx.ChainPreRunE(
-			ctx.ConfigSetMapDefaultsRunE(defaults),
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
-			ctx.ConfigLoadPreRunE,
+			ctx.ConfigLoadRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -113,10 +113,10 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubLong, useFmt, useFmt),
 		Example: fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubExample, use),
 		Args:    cobra.NoArgs,
-		PersistentPreRunE: ctx.ChainPreRunE(
-			ctx.ConfigSetMapDefaultsRunE(defaults),
+		PersistentPreRunE: ctx.ChainRunE(
+			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
-			ctx.ConfigLoadPreRunE,
+			ctx.ConfigLoadRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -138,7 +138,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.SHA2Crypt.SaltLength)
 
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.SHA2Crypt.Variant, "variant, options are sha256 and sha512")
-		cmd.PreRunE = ctx.ChainPreRunE()
+		cmd.PreRunE = ctx.ChainRunE()
 	case cmdUseHashPBKDF2:
 		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.PBKDF2.Iterations)
 		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.PBKDF2.SaltLength)
@@ -315,17 +315,14 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	var (
-		data      []byte
 		noConfirm bool
 	)
 
-	if data, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
+	if password, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
 		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
 
 		return
 	}
-
-	password = string(data)
 
 	if cmd.Use == fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate) {
 		fmt.Println("")
@@ -334,11 +331,13 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
-		if data, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
+		var confirm string
+
+		if confirm, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
 			return
 		}
 
-		if password != string(data) {
+		if password != confirm {
 			fmt.Println("")
 
 			err = fmt.Errorf("the password did not match the confirmation password")

@@ -22,7 +22,7 @@ import (
 
 // NewRootCmd returns a new Root Cmd.
 func NewRootCmd() (cmd *cobra.Command) {
-	ctx := NewCommandContext()
+	ctx := NewCmdCtx()
 
 	version := utils.Version()
 
@@ -33,12 +33,12 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaExample,
 		Version: version,
 		Args:    cobra.NoArgs,
-		PreRunE: ctx.ChainPreRunE(
-			ctx.ConfigEnsureExistsPreRunE,
-			ctx.ConfigLoadPreRunE,
-			ctx.ConfigValidateKeysPreRunE,
-			ctx.ConfigValidatePreRunE,
-			ctx.ConfigValidateLogPreRunE,
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigEnsureExistsRunE,
+			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateKeysRunE,
+			ctx.ConfigValidateRunE,
+			ctx.ConfigValidateLogRunE,
 		),
 		RunE: ctx.RootRunE,
 
@@ -70,7 +70,7 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx.log.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	warns, errs := ctx.ProvidersLoad()
+	warns, errs := ctx.LoadProviders()
 
 	if len(warns) != 0 {
 		for _, err = range warns {

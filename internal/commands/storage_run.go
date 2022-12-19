@@ -22,6 +22,33 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// LoadProvidersStorageRunE is a special PreRunE that loads the storage provider into the CmdCtx.
+func (ctx *CmdCtx) LoadProvidersStorageRunE(cmd *cobra.Command, args []string) (err error) {
+	switch warns, errs := ctx.LoadTrustedCertificates(); {
+	case len(errs) != 0:
+		err = fmt.Errorf("had the following errors loading the trusted certificates")
+
+		for _, e := range errs {
+			err = fmt.Errorf("%+v: %w", err, e)
+		}
+
+		return err
+	case len(warns) != 0:
+		err = fmt.Errorf("had the following warnings loading the trusted certificates")
+
+		for _, e := range errs {
+			err = fmt.Errorf("%+v: %w", err, e)
+		}
+
+		return err
+	default:
+		ctx.providers.StorageProvider = getStorageProvider(ctx)
+
+		return nil
+	}
+}
+
+// ConfigStorageCommandLineConfigPersistentPreRunE configures the storage command mapping.
 func (ctx *CmdCtx) ConfigStorageCommandLineConfigPersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 	flagsMap := map[string]string{
 		cmdFlagNameEncryptionKey: "storage.encryption_key",
@@ -55,6 +82,7 @@ func (ctx *CmdCtx) ConfigStorageCommandLineConfigPersistentPreRunE(cmd *cobra.Co
 	return ctx.ConfigSetFlagsMapRunE(cmd.Flags(), flagsMap, true, false)
 }
 
+// ConfigValidateStoragePersistentPreRunE validates the storage config before running commands using it.
 func (ctx *CmdCtx) ConfigValidateStoragePersistentPreRunE(_ *cobra.Command, _ []string) (err error) {
 	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
 		var (
@@ -98,108 +126,6 @@ func (ctx *CmdCtx) ConfigValidateStoragePersistentPreRunE(_ *cobra.Command, _ []
 
 	return nil
 }
-
-/*
-func (ctx *CmdCtx) StoragePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
-	var configs []string
-
-	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
-		return err
-	}
-
-	sources := make([]configuration.Source, 0, len(configs)+3)
-
-	if cmd.Flags().Changed(cmdFlagNameConfig) {
-		for _, configFile := range configs {
-			if _, err := os.Stat(configFile); os.IsNotExist(err) {
-				return fmt.Errorf("could not load the provided configuration file %s: %w", configFile, err)
-			}
-
-			sources = append(sources, configuration.NewYAMLFileSource(configFile))
-		}
-	} else if _, err := os.Stat(configs[0]); err == nil {
-		sources = append(sources, configuration.NewYAMLFileSource(configs[0]))
-	}
-
-	mapping := map[string]string{
-		cmdFlagNameEncryptionKey: "storage.encryption_key",
-
-		cmdFlagNameSQLite3Path: "storage.local.path",
-
-		cmdFlagNameMySQLHost:     "storage.mysql.host",
-		cmdFlagNameMySQLPort:     "storage.mysql.port",
-		cmdFlagNameMySQLDatabase: "storage.mysql.database",
-		cmdFlagNameMySQLUsername: "storage.mysql.username",
-		cmdFlagNameMySQLPassword: "storage.mysql.password",
-
-		cmdFlagNamePostgreSQLHost:       "storage.postgres.host",
-		cmdFlagNamePostgreSQLPort:       "storage.postgres.port",
-		cmdFlagNamePostgreSQLDatabase:   "storage.postgres.database",
-		cmdFlagNamePostgreSQLSchema:     "storage.postgres.schema",
-		cmdFlagNamePostgreSQLUsername:   "storage.postgres.username",
-		cmdFlagNamePostgreSQLPassword:   "storage.postgres.password",
-		"postgres.ssl.mode":             "storage.postgres.ssl.mode",
-		"postgres.ssl.root_certificate": "storage.postgres.ssl.root_certificate",
-		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
-		"postgres.ssl.key":              "storage.postgres.ssl.key",
-
-		cmdFlagNamePeriod:     "totp.period",
-		cmdFlagNameDigits:     "totp.digits",
-		cmdFlagNameAlgorithm:  "totp.algorithm",
-		cmdFlagNameIssuer:     "totp.issuer",
-		cmdFlagNameSecretSize: "totp.secret_size",
-	}
-
-	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
-	sources = append(sources, configuration.NewSecretsSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
-	sources = append(sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapping, true, false))
-
-	val := schema.NewStructValidator()
-
-	config = &schema.Configuration{}
-
-	if _, err = configuration.LoadAdvanced(val, "", &config, sources...); err != nil {
-		return err
-	}
-
-	if val.HasErrors() {
-		var finalErr error
-
-		for i, err := range val.Errors() {
-			if i == 0 {
-				finalErr = err
-				continue
-			}
-
-			finalErr = fmt.Errorf("%w, %v", finalErr, err)
-		}
-
-		return finalErr
-	}
-
-	validator.ValidateStorage(config.Storage, val)
-
-	validator.ValidateTOTP(config, val)
-
-	if val.HasErrors() {
-		var finalErr error
-
-		for i, err := range val.Errors() {
-			if i == 0 {
-				finalErr = err
-				continue
-			}
-
-			finalErr = fmt.Errorf("%w, %v", finalErr, err)
-		}
-
-		return finalErr
-	}
-
-	return nil
-}.
-
-*/
 
 func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
@@ -257,6 +183,7 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 	return nil
 }
 
+// StorageSchemaEncryptionChangeKeyRunE is the RunE for the authelia storage encryption change-key command.
 func (ctx *CmdCtx) StorageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		key     string
@@ -287,7 +214,7 @@ func (ctx *CmdCtx) StorageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args
 	}
 
 	if !useFlag || key == "" {
-		if key, err = termReadPasswordStrWithPrompt("Enter New Storage Encryption Key: ", cmdFlagNameNewEncryptionKey); err != nil {
+		if key, err = termReadPasswordWithPrompt("Enter New Storage Encryption Key: ", cmdFlagNameNewEncryptionKey); err != nil {
 			return err
 		}
 	}
@@ -308,9 +235,10 @@ func (ctx *CmdCtx) StorageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args
 	return nil
 }
 
-func (ctx *CmdCtx) StorageWebAuthnListRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageWebauthnListRunE is the RunE for the authelia storage user webauthn list command.
+func (ctx *CmdCtx) StorageWebauthnListRunE(cmd *cobra.Command, args []string) (err error) {
 	if len(args) == 0 || args[0] == "" {
-		return ctx.StorageWebAuthnListAllRunE(cmd, args)
+		return ctx.StorageWebauthnListAllRunE(cmd, args)
 	}
 
 	defer func() {
@@ -344,7 +272,8 @@ func (ctx *CmdCtx) StorageWebAuthnListRunE(cmd *cobra.Command, args []string) (e
 	return nil
 }
 
-func (ctx *CmdCtx) StorageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
+// StorageWebauthnListAllRunE is the RunE for the authelia storage user webauthn list command when no args are specified.
+func (ctx *CmdCtx) StorageWebauthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -383,7 +312,8 @@ func (ctx *CmdCtx) StorageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err
 	return nil
 }
 
-func (ctx *CmdCtx) StorageWebAuthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageWebauthnDeleteRunE is the RunE for the authelia storage user webauthn delete command.
+func (ctx *CmdCtx) StorageWebauthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -428,6 +358,7 @@ func (ctx *CmdCtx) StorageWebAuthnDeleteRunE(cmd *cobra.Command, args []string) 
 	return nil
 }
 
+// StorageTOTPGenerateRunE is the RunE for the authelia storage user totp generate command.
 func (ctx *CmdCtx) StorageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		c                *model.TOTPConfiguration
@@ -494,6 +425,7 @@ func (ctx *CmdCtx) StorageTOTPGenerateRunE(cmd *cobra.Command, args []string) (e
 	return nil
 }
 
+// StorageTOTPDeleteRunE is the RunE for the authelia storage user totp delete command.
 func (ctx *CmdCtx) StorageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	user := args[0]
 
@@ -518,6 +450,7 @@ func (ctx *CmdCtx) StorageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err
 	return nil
 }
 
+// StorageTOTPExportRunE is the RunE for the authelia storage user totp export command.
 func (ctx *CmdCtx) StorageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		format, dir    string
@@ -533,7 +466,7 @@ func (ctx *CmdCtx) StorageTOTPExportRunE(cmd *cobra.Command, args []string) (err
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	if format, dir, err = ctx.StorageTOTPExportGetConfigFromFlags(cmd); err != nil {
+	if format, dir, err = flagsGetTOTPExportOptions(cmd.Flags()); err != nil {
 		return err
 	}
 
@@ -585,37 +518,7 @@ func (ctx *CmdCtx) StorageTOTPExportRunE(cmd *cobra.Command, args []string) (err
 	return nil
 }
 
-func (ctx *CmdCtx) StorageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string, err error) {
-	if format, err = cmd.Flags().GetString(cmdFlagNameFormat); err != nil {
-		return "", "", err
-	}
-
-	if dir, err = cmd.Flags().GetString("dir"); err != nil {
-		return "", "", err
-	}
-
-	switch format {
-	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
-		break
-	case storageTOTPExportFormatPNG:
-		if dir == "" {
-			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
-		}
-
-		if _, err = os.Stat(dir); !os.IsNotExist(err) {
-			return "", "", errors.New("output directory must not exist")
-		}
-
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return "", "", err
-		}
-	default:
-		return "", "", errors.New("format must be csv, uri, or png")
-	}
-
-	return format, dir, nil
-}
-
+// StorageMigrateHistoryRunE is the RunE for the authelia storage migrate history command.
 func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		version    int
@@ -652,6 +555,7 @@ func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err 
 	return nil
 }
 
+// NewStorageMigrateListRunE creates the RunE for the authelia storage migrate list command.
 func (ctx *CmdCtx) NewStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var (
@@ -689,6 +593,7 @@ func (ctx *CmdCtx) NewStorageMigrateListRunE(up bool) func(cmd *cobra.Command, a
 	}
 }
 
+// NewStorageMigrationRunE creates the RunE for the authelia storage migrate command.
 func (ctx *CmdCtx) NewStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var (
@@ -716,8 +621,14 @@ func (ctx *CmdCtx) NewStorageMigrationRunE(up bool) func(cmd *cobra.Command, arg
 				return errors.New("you must set a target version")
 			}
 
-			if err = ctx.StorageMigrateDownConfirmDestroy(cmd); err != nil {
+			var confirmed bool
+
+			if confirmed, err = termReadConfirmation(cmd.Flags(), cmdFlagNameDestroyData, "Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ", "DESTROY"); err != nil {
 				return err
+			}
+
+			if !confirmed {
+				return errors.New("cancelling down migration due to user not accepting data destruction")
 			}
 
 			return ctx.providers.StorageProvider.SchemaMigrate(ctx, false, target)
@@ -725,28 +636,7 @@ func (ctx *CmdCtx) NewStorageMigrationRunE(up bool) func(cmd *cobra.Command, arg
 	}
 }
 
-func (ctx *CmdCtx) StorageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
-	var destroy bool
-
-	if destroy, err = cmd.Flags().GetBool(cmdFlagNameDestroyData); err != nil {
-		return err
-	}
-
-	if !destroy {
-		fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
-
-		var text string
-
-		_, _ = fmt.Scanln(&text)
-
-		if text != "DESTROY" {
-			return errors.New("cancelling down migration due to user not accepting data destruction")
-		}
-	}
-
-	return nil
-}
-
+// StorageSchemaInfoRunE is the RunE for the authelia storage schema info command.
 func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		upgradeStr, tablesStr string
@@ -806,6 +696,7 @@ func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err erro
 	return nil
 }
 
+// StorageUserIdentifiersExportRunE is the RunE for the authelia storage user identifiers export command.
 func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		file string
@@ -859,6 +750,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []stri
 	return nil
 }
 
+// StorageUserIdentifiersImportRunE is the RunE for the authelia storage user identifiers import command.
 func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		file string
@@ -913,6 +805,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, _ []stri
 	return nil
 }
 
+// StorageUserIdentifiersGenerateRunE is the RunE for the authelia storage user identifiers generate command.
 func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		users, services, sectors []string
@@ -931,15 +824,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 		return fmt.Errorf("can't load the existing identifiers: %w", err)
 	}
 
-	if users, err = cmd.Flags().GetStringSlice(cmdFlagNameUsers); err != nil {
-		return err
-	}
-
-	if services, err = cmd.Flags().GetStringSlice(cmdFlagNameServices); err != nil {
-		return err
-	}
-
-	if sectors, err = cmd.Flags().GetStringSlice(cmdFlagNameSectors); err != nil {
+	if users, services, sectors, err = flagsGetUserIdentifiersGenerateOptions(cmd.Flags()); err != nil {
 		return err
 	}
 
@@ -991,6 +876,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 	return nil
 }
 
+// StorageUserIdentifiersAddRunE is the RunE for the authelia storage user identifiers add command.
 func (ctx *CmdCtx) StorageUserIdentifiersAddRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		service, sector string

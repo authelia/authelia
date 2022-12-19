@@ -13,10 +13,10 @@ func newValidateConfigCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Long:    cmdAutheliaValidateConfigLong,
 		Example: cmdAutheliaValidateConfigExample,
 		Args:    cobra.NoArgs,
-		PreRunE: ctx.ChainPreRunE(
-			ctx.ConfigLoadPreRunE,
-			ctx.ConfigValidateKeysPreRunE,
-			ctx.ConfigValidatePreRunE,
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateKeysRunE,
+			ctx.ConfigValidateRunE,
 		),
 		RunE: ctx.ValidateConfigRunE,
 
@@ -26,6 +26,7 @@ func newValidateConfigCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// ValidateConfigRunE is the RunE for the authelia validate-config command.
 func (ctx *CmdCtx) ValidateConfigRunE(_ *cobra.Command, _ []string) (err error) {
 	switch {
 	case ctx.cconfig.validator.HasErrors():

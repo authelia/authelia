@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"syscall"
 
@@ -24,16 +26,51 @@ func recoverErr(i any) error {
 	}
 }
 
-func configFilterExisting(configs []string) (finalConfigs []string) {
-	var err error
-
-	for _, c := range configs {
-		if _, err = os.Stat(c); err == nil || !os.IsNotExist(err) {
-			finalConfigs = append(finalConfigs, c)
-		}
+func flagsGetUserIdentifiersGenerateOptions(flags *pflag.FlagSet) (users, services, sectors []string, err error) {
+	if users, err = flags.GetStringSlice(cmdFlagNameUsers); err != nil {
+		return nil, nil, nil, err
 	}
 
-	return finalConfigs
+	if services, err = flags.GetStringSlice(cmdFlagNameServices); err != nil {
+		return nil, nil, nil, err
+	}
+
+	if sectors, err = flags.GetStringSlice(cmdFlagNameSectors); err != nil {
+		return nil, nil, nil, err
+	}
+
+	return users, services, sectors, nil
+}
+
+func flagsGetTOTPExportOptions(flags *pflag.FlagSet) (format, dir string, err error) {
+	if format, err = flags.GetString(cmdFlagNameFormat); err != nil {
+		return "", "", err
+	}
+
+	if dir, err = flags.GetString("dir"); err != nil {
+		return "", "", err
+	}
+
+	switch format {
+	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
+		break
+	case storageTOTPExportFormatPNG:
+		if dir == "" {
+			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
+		}
+
+		if _, err = os.Stat(dir); !os.IsNotExist(err) {
+			return "", "", errors.New("output directory must not exist")
+		}
+
+		if err = os.MkdirAll(dir, 0700); err != nil {
+			return "", "", err
+		}
+	default:
+		return "", "", errors.New("format must be csv, uri, or png")
+	}
+
+	return format, dir, nil
 }
 
 //nolint:gocyclo
@@ -102,37 +139,94 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	return utils.RandomString(n, charset, true), nil
 }
 
-func termReadPasswordStrWithPrompt(prompt, flag string) (data string, err error) {
-	var d []byte
+func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {
+	if confirmed, _ = flags.GetBool(name); confirmed {
+		return confirmed, nil
+	}
 
-	if d, err = termReadPasswordWithPrompt(prompt, flag); err != nil {
+	terminal, fd, state, err := getTerminal(prompt)
+	if err != nil {
+		return false, err
+	}
+
+	defer func(fd int, oldState *term.State) {
+		_ = term.Restore(fd, oldState)
+	}(fd, state)
+
+	var input string
+
+	if input, err = terminal.ReadLine(); err != nil {
+		return false, fmt.Errorf("failed to read from the terminal: %w", err)
+	}
+
+	if input != confirmation {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func getTerminal(prompt string) (terminal *term.Terminal, fd int, state *term.State, err error) {
+	fd = int(syscall.Stdin) //nolint:unconvert,nolintlint
+
+	if !term.IsTerminal(fd) {
+		return nil, -1, nil, ErrStdinIsNotTerminal
+	}
+
+	var width, height int
+
+	if width, height, err = term.GetSize(int(syscall.Stdout)); err != nil { //nolint:unconvert,nolintlint
+		return nil, -1, nil, fmt.Errorf("failed to get terminal size: %w", err)
+	}
+
+	state, err = term.MakeRaw(fd)
+	if err != nil {
+		return nil, -1, nil, fmt.Errorf("failed to get terminal state: %w", err)
+	}
+
+	c := struct {
+		io.Reader
+		io.Writer
+	}{
+		os.Stdin,
+		os.Stdout,
+	}
+
+	terminal = term.NewTerminal(c, prompt)
+
+	if err = terminal.SetSize(width, height); err != nil {
+		return nil, -1, nil, fmt.Errorf("failed to set terminal size: %w", err)
+	}
+
+	return terminal, fd, state, nil
+}
+
+func termReadPasswordWithPrompt(prompt, flag string) (password string, err error) {
+	terminal, fd, state, err := getTerminal("")
+	if err != nil {
+		if errors.Is(err, ErrStdinIsNotTerminal) {
+			switch len(flag) {
+			case 0:
+				return "", err
+			case 1:
+				return "", fmt.Errorf("you must either use an interactive terminal or use the -%s flag", flag)
+			default:
+				return "", fmt.Errorf("you must either use an interactive terminal or use the --%s flag", flag)
+			}
+		}
+
 		return "", err
 	}
 
-	return string(d), nil
-}
+	defer func(fd int, oldState *term.State) {
+		_ = term.Restore(fd, oldState)
+	}(fd, state)
 
-func termReadPasswordWithPrompt(prompt, flag string) (data []byte, err error) {
-	fd := int(syscall.Stdin) //nolint:unconvert,nolintlint
-
-	if isTerm := term.IsTerminal(fd); !isTerm {
-		switch len(flag) {
-		case 0:
-			return nil, ErrStdinIsNotTerminal
-		case 1:
-			return nil, fmt.Errorf("you must either use an interactive terminal or use the -%s flag", flag)
-		default:
-			return nil, fmt.Errorf("you must either use an interactive terminal or use the --%s flag", flag)
-		}
-	}
-
-	fmt.Print(prompt)
-
-	if data, err = term.ReadPassword(fd); err != nil {
-		return nil, fmt.Errorf("failed to read the input from the terminal: %w", err)
+	if password, err = terminal.ReadPassword(prompt); err != nil {
+		return "", fmt.Errorf("failed to read the input from the terminal: %w", err)
 	}
 
 	fmt.Println("")
 
-	return data, nil
+	return password, nil
 }
