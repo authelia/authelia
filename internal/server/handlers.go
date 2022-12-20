@@ -161,20 +161,21 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 		authz := handlers.NewAuthzBuilder().WithConfig(&config).WithEndpointConfig(endpoint).Build()
 
-		r.GET(path, middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
-		r.HEAD(path, middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+		handler := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
 
 		switch endpoint.Implementation {
-		case "Legacy", "ExtAuthz":
-			r.GET(path+"/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
-			r.HEAD(path+"/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
-		}
-
-		if name == "legacy" {
-			r.GET("/api/verify", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
-			r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
-			r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
-			r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, bridge(authz.Handler)))
+		case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
+			switch name {
+			case "legacy":
+				r.ANY("/api/verify", handler)
+				r.ANY("/api/verify/{path:*}", handler)
+			default:
+				r.ANY(path, handler)
+				r.ANY(path+"/{path:*}", handler)
+			}
+		default:
+			r.GET(path, handler)
+			r.HEAD(path, handler)
 		}
 	}
 

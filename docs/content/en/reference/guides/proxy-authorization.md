@@ -55,10 +55,10 @@ particular resource.
 
 |    Name    |                   Description                   |
 |:----------:|:-----------------------------------------------:|
+|   Method   |         The Method Verb of the Request          |
 |   Scheme   |          The URI Scheme of the Request          |
 |  Hostname  |         The URI Hostname of the Request         |
 |    Path    |           The URI Path of the Request           |
-|   Method   |         The Method Verb of the Request          |
 |     IP     | The IP address of the client making the Request |
 | Portal URL |         The URL of the Authelia Portal          |
 
@@ -74,11 +74,11 @@ This is the implementation which supports Traefik's
 
 |  Metadata  |     Source     |         Key          |
 |:----------:|:--------------:|:--------------------:|
-|   Scheme   |     Header     | `X-Forwarded-Proto`  |
-|  Hostname  |     Header     |  `X-Forwarded-Host`  |
-|    Path    |     Header     |  `X-Forwarded-URI`   |
-|   Method   |     Header     | `X-Forwarded-Method` |
-|     IP     |     Header     |  `X-Forwarded-For`   |
+|   Method   |    [Header]    | `X-Forwarded-Method` |
+|   Scheme   |    [Header]    | [X-Forwarded-Proto]  |
+|  Hostname  |    [Header]    |  [X-Forwarded-Host]  |
+|    Path    |    [Header]    |  `X-Forwarded-URI`   |
+|     IP     |    [Header]    |  [X-Forwarded-For]   |
 | Portal URL | Query Argument |         `rd`         |
 
 ### ExtAuthz
@@ -89,28 +89,28 @@ This is the implementation which supports Envoy's [ExtAuthz Protocol].
 
 #### ExtAuthz Metadata
 
-|  Metadata  | Source |         Key          |
-|:----------:|:------:|:--------------------:|
-|   Scheme   | Header | `X-Forwarded-Proto`  |
-|  Hostname  | Header |  `X-Forwarded-Host`  |
-|    Path    | Header |  `X-Forwarded-URI`   |
-|   Method   | Header | `X-Forwarded-Method` |
-|     IP     | Header |  `X-Forwarded-For`   |
-| Portal URL | Header |   `X-Authelia-URL`   |
+|  Metadata  |     Source     |         Key         |
+|:----------:|:--------------:|:-------------------:|
+|   Method   | _[Start Line]_ |    [HTTP Method]    |
+|   Scheme   |    [Header]    | [X-Forwarded-Proto] |
+|  Hostname  |    [Header]    | [X-Forwarded-Host]  |
+|    Path    |    [Header]    |  `X-Forwarded-URI`  |
+|     IP     |    [Header]    |  [X-Forwarded-For]  |
+| Portal URL |    [Header]    |  `X-Authelia-URL`   |
 
 ### AuthRequest
 
 This is the implementation which supports NGINX's
 [auth_request HTTP module](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
 
-|  Metadata  | Source |       Header        |
-|:----------:|:------:|:-------------------:|
-|   Scheme   | Header |  `X-Original-URL`   |
-|  Hostname  | Header |  `X-Original-URL`   |
-|    Path    | Header |  `X-Original-URL`   |
-|   Method   | Header | `X-Original-Method` |
-|     IP     | Header |  `X-Forwarded-For`  |
-| Portal URL |  N/A   |         N/A         |
+|  Metadata  |  Source  |         Key         |
+|:----------:|:--------:|:-------------------:|
+|   Method   | [Header] | `X-Original-Method` |
+|   Scheme   | [Header] |  `X-Original-URL`   |
+|  Hostname  | [Header] |  `X-Original-URL`   |
+|    Path    | [Header] |  `X-Original-URL`   |
+|     IP     | [Header] |  [X-Forwarded-For]  |
+| Portal URL |   N/A    |         N/A         |
 
 ### Legacy
 
@@ -121,17 +121,17 @@ This is the legacy implementation which used to operate similar to both the [For
 cater for the AuthRequest and ForwardAuth implementations. The table is in order of precedence where if a header higher
 in the list exists it is used over those lower in the list.*
 
-|  Metadata  |     Source     |        Header        |
+|  Metadata  |     Source     |         Key          |
 |:----------:|:--------------:|:--------------------:|
-|   Scheme   |     Header     |   `X-Original-URL`   |
-|  Hostname  |     Header     |   `X-Original-URL`   |
-|    Path    |     Header     |   `X-Original-URL`   |
-|   Scheme   |     Header     | `X-Forwarded-Proto`  |
-|  Hostname  |     Header     |  `X-Forwarded-Host`  |
-|    Path    |     Header     |  `X-Forwarded-URI`   |
-|   Method   |     Header     | `X-Original-Method`  |
-|   Method   |     Header     | `X-Forwarded-Method` |
-|     IP     |     Header     |  `X-Forwarded-For`   |
+|   Method   |    [Header]    | `X-Original-Method`  |
+|   Scheme   |    [Header]    |   `X-Original-URL`   |
+|  Hostname  |    [Header]    |   `X-Original-URL`   |
+|    Path    |    [Header]    |   `X-Original-URL`   |
+|   Method   |    [Header]    | `X-Forwarded-Method` |
+|   Scheme   |    [Header]    | [X-Forwarded-Proto]  |
+|  Hostname  |    [Header]    |  [X-Forwarded-Host]  |
+|    Path    |    [Header]    |  `X-Forwarded-URI`   |
+|     IP     |    [Header]    |  [X-Forwarded-For]   |
 | Portal URL | Query Argument |         `rd`         |
 
 ## Authn Strategies
@@ -163,15 +163,13 @@ errors.
 
 ### HeaderAuthorization
 
-This strategy uses the [Authorization header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization)
-to determine the users' identity. If the user credentials are wrong, or the header is malformed it will respond with
-the [WWW-Authenticate header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate).
+This strategy uses the [Authorization] header to determine the users' identity. If the user credentials are wrong, or
+the header is malformed it will respond with the [WWW-Authenticate] header.
 
 ### HeaderProxyAuthorization
 
-This strategy uses the [Proxy-Authorization header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization)
-to determine the users' identity. If the user credentials are wrong, or the header is malformed it will respond with
-the [Proxy-Authenticate header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authenticate).
+This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
+or the header is malformed it will respond with the [Proxy-Authenticate] header.
 
 ### HeaderAuthRequestProxyAuthorization
 
@@ -179,6 +177,18 @@ TODO:
 
 ### HeaderLegacy
 
-This strategy uses the [Proxy-Authorization header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization)
-to determine the users' identity. If the user credentials are wrong, or the header is malformed it will respond with
-the [WWW-Authenticate header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate).
+This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
+or the header is malformed it will respond with the [WWW-Authenticate] header.
+
+[Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+[WWW-Authenticate]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
+[Proxy-Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization
+[Proxy-Authenticate]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authenticate
+
+[X-Forwarded-Proto]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
+[X-Forwarded-Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
+[X-Forwarded-For]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+[HTTP Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+[HTTP Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+[Start Line]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#start_line
+[Header]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers

@@ -17,7 +17,7 @@ func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authoriz
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
-	return authorization.NewObjectRaw(targetURL, ctx.XForwardedMethod()), nil
+	return authorization.NewObjectRaw(targetURL, ctx.Method()), nil
 }
 
 func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
