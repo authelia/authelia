@@ -26,7 +26,7 @@ func NewAccessControlRule(pos int, rule schema.ACLRule, networksMap map[string][
 		Methods:  schemaMethodsToACL(rule.Methods),
 		Networks: schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
 		Subjects: schemaSubjectsToACL(rule.Subjects),
-		Policy:   StringToLevel(rule.Policy),
+		Policy:   NewLevel(rule.Policy),
 	}
 
 	if len(r.Subjects) != 0 {
