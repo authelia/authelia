@@ -46,7 +46,7 @@ func IterateFunc(count *uint) (out []uint) {
 }
 
 // StringsSplitFunc is a template function which takes sep and value, splitting the value by the sep into a slice.
-func StringsSplitFunc(sep, value string) []string {
+func StringsSplitFunc(value, sep string) []string {
 	return strings.Split(value, sep)
 }
 

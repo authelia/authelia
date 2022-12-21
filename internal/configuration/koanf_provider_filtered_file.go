@@ -128,11 +128,15 @@ func NewTemplateFileFilter() FileFilter {
 
 	t := template.New("config.template").
 		Funcs(template.FuncMap{
-			"env":      templates.StringMapLookupDefaultEmptyFunc(data.Env),
-			"split":    templates.StringsSplitFunc,
-			"iterate":  templates.IterateFunc,
-			"join":     strings.Join,
-			"contains": strings.Contains,
+			"env":       templates.StringMapLookupDefaultEmptyFunc(data.Env),
+			"split":     templates.StringsSplitFunc,
+			"iterate":   templates.IterateFunc,
+			"join":      strings.Join,
+			"contains":  strings.Contains,
+			"hasPrefix": strings.HasPrefix,
+			"hasSuffix": strings.HasSuffix,
+			"lower":     strings.ToLower,
+			"upper":     strings.ToUpper,
 		})
 
 	log := logging.Logger()
