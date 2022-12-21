@@ -69,28 +69,24 @@ func NewFileFiltersDefault() []FileFilter {
 func NewFileFilters(names []string) (filters []FileFilter, err error) {
 	filters = make([]FileFilter, len(names))
 
-	var hasTemplate, hasExpandEnv bool
+	filterMap := map[string]int{}
 
 	for i, name := range names {
+		name = strings.ToLower(name)
+
 		switch name {
 		case "template":
-			if hasTemplate {
-				return nil, fmt.Errorf("duplicate filter named '%s'", name)
-			}
-
-			hasTemplate = true
-
 			filters[i] = NewTemplateFileFilter()
 		case "expand-env":
-			if hasExpandEnv {
-				return nil, fmt.Errorf("duplicate filter named '%s'", name)
-			}
-
-			hasExpandEnv = true
-
 			filters[i] = NewExpandEnvFileFilter()
 		default:
 			return nil, fmt.Errorf("invalid filter named '%s'", name)
+		}
+
+		if _, ok := filterMap[name]; ok {
+			return nil, fmt.Errorf("duplicate filter named '%s'", name)
+		} else {
+			filterMap[name] = 1
 		}
 	}
 
