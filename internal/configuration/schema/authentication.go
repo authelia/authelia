@@ -187,7 +187,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuth
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the LDAPImplementationActiveDirectory Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch})))",
 	UsernameAttribute:    "sAMAccountName",
 	MailAttribute:        ldapAttrMail,
 	DisplayNameAttribute: ldapAttrDisplayName,
@@ -201,7 +201,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA represents the default LDAP config for the LDAPImplementationFreeIPA Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE)))",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
 	UsernameAttribute:    ldapAttrUserID,
 	MailAttribute:        ldapAttrMail,
 	DisplayNameAttribute: ldapAttrDisplayName,

@@ -60,12 +60,15 @@ search.
 
 #### Users filter replacements
 
-|       Placeholder        |  Phase  |              Replacement              |
-|:------------------------:|:-------:|:-------------------------------------:|
-|   {username_attribute}   | startup |   The configured username attribute   |
-|     {mail_attribute}     | startup |     The configured mail attribute     |
-| {display_name_attribute} | startup | The configured display name attribute |
-|         {input}          | search  |   The input into the username field   |
+|        Placeholder        |  Phase  |                                                  Replacement                                                   |
+|:-------------------------:|:-------:|:--------------------------------------------------------------------------------------------------------------:|
+|   {username_attribute}    | startup |                                       The configured username attribute                                        |
+|     {mail_attribute}      | startup |                                         The configured mail attribute                                          |
+| {display_name_attribute}  | startup |                                     The configured display name attribute                                      |
+|          {input}          | search  |                                       The input into the username field                                        |
+|  {date-time:generalized}  | search  |         The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`         |
+|  {date-time:unix-epoch}   | search  |                                   The current time formatted as a Unix epoch                                   |
+| {date-time:msft-nt-epoch} | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft Active Directory attributes |
 
 #### Groups filter replacements
 
@@ -92,16 +95,24 @@ Username column.
 
 #### Filter defaults
 
-The filters are probably the most important part to get correct when setting up LDAP. You want to exclude disabled
-accounts. The active directory example has two attribute filters that accomplish this as an example (more examples would
-be appreciated). The userAccountControl filter checks that the account is not disabled and the pwdLastSet makes sure that
-value is not 0 which means the password requires changing at the next login.
+The filters are probably the most important part to get correct when setting up LDAP. You want to exclude accounts under
+the following conditions:
 
-| Implementation  |                                                                          Users Filter                                                                           |                                Groups Filter                                 |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
-|     custom      |                                                                               N/A                                                                               |                                     N/A                                      |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))) | (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912))) |
-|     freeipa     |                         (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE)))                          |                  (&(member={dn})(objectClass=groupOfNames))                  |
+- The account is disabled or locked:
+  - The Active Directory implementation achieves this via the `(!(userAccountControl:1.2.840.113556.1.4.803:=2))` filter.
+  - The FreeIPA implementation achieves this via the `(!(nsAccountLock=TRUE))` filter.
+- Their password is expired:
+  - The Active Directory implementation achieves this via the `(!(pwdLastSet=0))` filter.
+  - The FreeIPA implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
+- Their account is expired:
+  - The Active Directory implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))` filter.
+  - The FreeIPA implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
+
+| Implementation  |                                                                                                                       Users Filter                                                                                                                        |                                Groups Filter                                 |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
+|     custom      |                                                                                                                            N/A                                                                                                                            |                                     N/A                                      |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))) | (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912))) |
+|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))    |                  (&(member={dn})(objectClass=groupOfNames))                  |
 
 ##### Microsoft Active Directory sAMAccountType
 

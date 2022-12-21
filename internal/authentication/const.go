@@ -70,9 +70,16 @@ const (
 )
 
 const (
-	ldapPlaceholderInput             = "{input}"
-	ldapPlaceholderDistinguishedName = "{dn}"
-	ldapPlaceholderUsername          = "{username}"
+	ldapPlaceholderInput                        = "{input}"
+	ldapPlaceholderDistinguishedName            = "{dn}"
+	ldapPlaceholderUsername                     = "{username}"
+	ldapPlaceholderDateTimeGeneralized          = "{date-time:generalized}"
+	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch = "{date-time:msft-nt-epoch}"
+	ldapPlaceholderDateTimeUnixEpoch            = "{date-time:unix-epoch}"
+)
+
+const (
+	ldapGeneralizedTimeDateTimeFormat = "20060102150405.0Z"
 )
 
 const (
