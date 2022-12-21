@@ -17,8 +17,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// NewYAMLFileSource returns a Source configured to load from a specified YAML path. If there is an issue accessing this
-// path it also returns an error.
+// NewYAMLFileSource returns a configuration.Source configured to load from a specified YAML path. If there is an issue
+// accessing this path it also returns an error.
 func NewYAMLFileSource(path string) (source *YAMLFileSource) {
 	return &YAMLFileSource{
 		koanf: koanf.New(constDelimiter),
@@ -26,10 +26,31 @@ func NewYAMLFileSource(path string) (source *YAMLFileSource) {
 	}
 }
 
-// NewYAMLFileSources returns a slice of Source configured to load from specified YAML files.
+// NewYAMLFileTemplatedSource returns a configuration.Source configured to load from a specified YAML path. If there is
+// an issue accessing this path it also returns an error.
+func NewYAMLFileTemplatedSource(path string, filters ...FileFilter) (source *YAMLFileSource) {
+	return &YAMLFileSource{
+		koanf:   koanf.New(constDelimiter),
+		path:    path,
+		filters: filters,
+	}
+}
+
+// NewYAMLFileSources returns a slice of configuration.Source configured to load from specified YAML files.
 func NewYAMLFileSources(paths []string) (sources []*YAMLFileSource) {
 	for _, path := range paths {
 		source := NewYAMLFileSource(path)
+
+		sources = append(sources, source)
+	}
+
+	return sources
+}
+
+// NewYAMLFilteredFileSources returns a slice of configuration.Source configured to load from specified YAML files.
+func NewYAMLFilteredFileSources(paths []string, filters []FileFilter) (sources []*YAMLFileSource) {
+	for _, path := range paths {
+		source := NewYAMLFileTemplatedSource(path, filters...)
 
 		sources = append(sources, source)
 	}
@@ -53,7 +74,7 @@ func (s *YAMLFileSource) Load(_ *schema.StructValidator) (err error) {
 		return errors.New("invalid yaml path source configuration")
 	}
 
-	return s.koanf.Load(file.Provider(s.path), yaml.Parser())
+	return s.koanf.Load(FilteredFileProvider(s.path, s.filters...), yaml.Parser())
 }
 
 // NewDirectorySource returns a Source configured to load from a specified YAML path. If there is an issue accessing this
@@ -240,13 +261,36 @@ func NewDefaultSources(filePaths []string, directory string, prefix, delimiter s
 	return sources
 }
 
-// NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(filePaths []string, directory string, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
-	if defaults != nil {
-		sources = []Source{defaults}
+// NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
+func NewDefaultSourcesFiltered(files []string, directory string, filters []FileFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	fileSources := NewYAMLFilteredFileSources(files, filters)
+	for _, source := range fileSources {
+		sources = append(sources, source)
 	}
 
-	sources = append(sources, NewDefaultSources(filePaths, directory, prefix, delimiter, additionalSources...)...)
+	if directory != "" {
+		sources = append(sources, NewDirectorySource(directory))
+	}
+
+	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
+	sources = append(sources, NewSecretsSource(prefix, delimiter))
+
+	if len(additionalSources) != 0 {
+		sources = append(sources, additionalSources...)
+	}
+
+	return sources
+}
+
+// NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
+func NewDefaultSourcesWithDefaults(files []string, directory string, filters []FileFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
+	sources = []Source{defaults}
+
+	if len(filters) == 0 {
+		sources = append(sources, NewDefaultSources(files, directory, prefix, delimiter, additionalSources...)...)
+	} else {
+		sources = append(sources, NewDefaultSourcesFiltered(files, directory, filters, prefix, delimiter, additionalSources...)...)
+	}
 
 	return sources
 }

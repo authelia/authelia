@@ -175,24 +175,68 @@ var DefaultCIPasswordConfig = Password{
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationCustom represents the default LDAP config.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuthenticationBackend{
-	UsernameAttribute:    "uid",
-	MailAttribute:        "mail",
-	DisplayNameAttribute: "displayName",
-	GroupNameAttribute:   "cn",
+	UsernameAttribute:    ldapAttrUserID,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrDisplayName,
+	GroupNameAttribute:   ldapAttrCommonName,
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
 
-// DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the MSAD Implementation.
+// DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the LDAPImplementationActiveDirectory Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0)))",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch})))",
 	UsernameAttribute:    "sAMAccountName",
-	MailAttribute:        "mail",
-	DisplayNameAttribute: "displayName",
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrDisplayName,
 	GroupsFilter:         "(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))",
-	GroupNameAttribute:   "cn",
+	GroupNameAttribute:   ldapAttrCommonName,
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
+
+// DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA represents the default LDAP config for the LDAPImplementationFreeIPA Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = LDAPAuthenticationBackend{
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
+	UsernameAttribute:    ldapAttrUserID,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrDisplayName,
+	GroupsFilter:         "(&(member={dn})(objectClass=groupOfNames))",
+	GroupNameAttribute:   ldapAttrCommonName,
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
+
+// DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP represents the default LDAP config for the LDAPImplementationLLDAP Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = LDAPAuthenticationBackend{
+	AdditionalUsersDN:    "OU=people",
+	AdditionalGroupsDN:   "OU=groups",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+	UsernameAttribute:    ldapAttrUserID,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrCommonName,
+	GroupsFilter:         "(&(member={dn})(objectClass=groupOfUniqueNames))",
+	GroupNameAttribute:   ldapAttrCommonName,
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}
+
+// DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth represents the default LDAP config for the LDAPImplementationGLAuth Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = LDAPAuthenticationBackend{
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))",
+	UsernameAttribute:    ldapAttrCommonName,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrDescription,
+	GroupsFilter:         "(&(uniqueMember={dn})(objectClass=posixGroup))",
+	GroupNameAttribute:   ldapAttrCommonName,
 	Timeout:              time.Second * 5,
 	TLS: &TLSConfig{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},

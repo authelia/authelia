@@ -305,19 +305,28 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // ConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs  []string
-		explicit bool
+		configs, filterNames []string
+		explicit             bool
 
 		directory   string
 		explicitDir bool
+		filters     []configuration.FileFilter
 	)
 
-	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, "X_AUTHELIA_CONFIG", cmdFlagNameConfig); err != nil {
+	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, "X_AUTHELIA_CONFIG_DIRECTORY", cmdFlagNameConfigDirectory); err != nil {
+	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, cmdFlagEnvNameConfigDirectory, cmdFlagNameConfigDirectory); err != nil {
 		return err
+	}
+
+	if filterNames, _, err = loadEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigExpFilters, cmdFlagNameConfigExpFilters); err != nil {
+		return err
+	}
+
+	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+		return fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 
 	if !explicit {
@@ -358,6 +367,7 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		configuration.NewDefaultSourcesWithDefaults(
 			configs,
 			directory,
+			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,
 			ctx.cconfig.defaults,

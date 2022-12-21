@@ -284,8 +284,10 @@ authentication_backend:
   # ldap:
     ## The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
     ## Acceptable options are as follows:
-    ## - 'activedirectory' - For Microsoft Active Directory.
-    ## - 'custom' - For custom specifications of attributes and filters.
+    ## - 'activedirectory' - for Microsoft Active Directory.
+    ## - 'freeipa' - for FreeIPA.
+    ## - 'lldap' - for lldap.
+    ## - 'custom' - for custom specifications of attributes and filters.
     ## This currently defaults to 'custom' to maintain existing behaviour.
     ##
     ## Depending on the option here certain other values in this section have a default value, notably all of the

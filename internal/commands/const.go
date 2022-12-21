@@ -532,8 +532,15 @@ const (
 	cmdFlagNameKeySize          = "key-size"
 	cmdFlagNameSaltSize         = "salt-size"
 	cmdFlagNameProfile          = "profile"
-	cmdFlagNameConfig           = "config"
-	cmdFlagNameConfigDirectory  = "config.directory"
+
+	cmdFlagNameConfig    = "config"
+	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
+
+	cmdFlagNameConfigDirectory    = "config.directory"
+	cmdFlagEnvNameConfigDirectory = "X_AUTHELIA_CONFIG_DIRECTORY"
+
+	cmdFlagNameConfigExpFilters    = "config.experimental.filters"
+	cmdFlagEnvNameConfigExpFilters = "X_AUTHELIA_CONFIG_EXP_FILTERS"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"

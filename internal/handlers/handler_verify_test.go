@@ -702,7 +702,7 @@ func TestShouldDestroySessionWhenInactiveForTooLong(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 
@@ -736,7 +736,7 @@ func TestShouldDestroySessionWhenInactiveForTooLongUsingDurationNotation(t *test
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = time.Second * 10
@@ -833,7 +833,7 @@ func TestShouldRedirectWhenSessionInactiveForTooLongAndRDParamProvided(t *testin
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
 	mock.Ctx.Configuration.Session.Inactivity = testInactivity
@@ -1055,7 +1055,7 @@ func TestShouldNotRefreshUserGroupsFromBackend(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
 	userSession := mock.Ctx.GetSession()
@@ -1115,7 +1115,7 @@ func TestShouldNotRefreshUserGroupsFromBackendWhenDisabled(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
 	userSession := mock.Ctx.GetSession()
@@ -1161,7 +1161,7 @@ func TestShouldDestroySessionWhenUserNotExist(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1)
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
 	userSession := mock.Ctx.GetSession()
@@ -1222,7 +1222,7 @@ func TestShouldGetRemovedUserGroupsFromBackend(t *testing.T) {
 
 	mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(2)
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 
 	userSession := mock.Ctx.GetSession()
@@ -1431,7 +1431,7 @@ func TestShouldNotRedirectRequestsForBypassACLWhenInactiveForTooLong(t *testing.
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
 
-	clock := mocks.TestingClock{}
+	clock := utils.TestingClock{}
 	clock.Set(time.Now())
 	past := clock.Now().Add(-1 * time.Hour)
 

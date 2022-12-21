@@ -7,17 +7,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// Source is an abstract representation of a configuration Source implementation.
+// Source is an abstract representation of a configuration configuration.Source implementation.
 type Source interface {
 	Name() (name string)
 	Merge(ko *koanf.Koanf, val *schema.StructValidator) (err error)
 	Load(val *schema.StructValidator) (err error)
 }
 
-// YAMLFileSource is a configuration configuration.Source with a YAML File.
+// YAMLFileSource is a YAML file configuration.Source.
 type YAMLFileSource struct {
-	koanf *koanf.Koanf
-	path  string
+	koanf   *koanf.Koanf
+	path    string
+	filters []FileFilter
 }
 
 // DirectorySource is a configuration configuration.Source which loads files from a directory.
