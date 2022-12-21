@@ -11,8 +11,7 @@ WORKDIR /app
 # Set environment variables
 ENV PATH="/app:${PATH}" \
     PUID=0 \
-    PGID=0 \
-    X_AUTHELIA_CONFIG=/config/configuration.yml
+    PGID=0
 
 RUN \
 apk --no-cache add ca-certificates su-exec tzdata
@@ -29,4 +28,5 @@ EXPOSE 9091
 VOLUME /config
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["--config", "/config/configuration.yml"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh

@@ -277,7 +277,7 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 		created bool
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "X_AUTHELIA_CONFIG", cmdFlagNameConfig); err != nil {
+	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
@@ -306,11 +306,11 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		filters []configuration.FileFilter
 	)
 
-	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
+	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if filterNames, _, err = loadEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigExpFilters, cmdFlagNameConfigExpFilters); err != nil {
+	if filterNames, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
 		return err
 	}
 
@@ -355,13 +355,22 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 }
 
 func loadEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, explicit bool, err error) {
-	env, ok := os.LookupEnv(envKey)
-
-	switch {
-	case cmd.Flags().Changed(flagName):
+	if cmd.Flags().Changed(flagName) {
 		value, err = cmd.Flags().GetString(flagName)
 
 		return value, true, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
 	case ok && env != "":
 		return env, true, nil
 	default:
@@ -372,13 +381,22 @@ func loadEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value s
 }
 
 func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) {
-	env, ok := os.LookupEnv(envKey)
-
-	switch {
-	case cmd.Flags().Changed(flagName):
+	if cmd.Flags().Changed(flagName) {
 		value, err = cmd.Flags().GetStringSlice(flagName)
 
 		return value, true, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
 	case ok && env != "":
 		return strings.Split(env, ","), true, nil
 	default:
