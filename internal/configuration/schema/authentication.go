@@ -228,3 +228,17 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = LDAPAuthe
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
+
+// DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth represents the default LDAP config for the LDAPImplementationGLAuth Implementation.
+var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = LDAPAuthenticationBackend{
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))",
+	UsernameAttribute:    ldapAttrCommonName,
+	MailAttribute:        ldapAttrMail,
+	DisplayNameAttribute: ldapAttrDescription,
+	GroupsFilter:         "(&(uniqueMember={dn})(objectClass=posixGroup))",
+	GroupNameAttribute:   ldapAttrCommonName,
+	Timeout:              time.Second * 5,
+	TLS: &TLSConfig{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+}

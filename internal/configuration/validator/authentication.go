@@ -332,6 +332,8 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA
 	case schema.LDAPImplementationLLDAP:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP
+	case schema.LDAPImplementationGLAuth:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
 	}

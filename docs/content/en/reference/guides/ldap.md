@@ -62,10 +62,14 @@ The following implementations exist:
 - `lldap`:
   - Specific configuration defaults for [lldap]
   - No special implementation details
+- `glauth`:
+  - Specific configuration defaults for [GLAuth]
+  - No special implementation details
 
 [Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services
 [FreeIPA]: https://www.freeipa.org/
 [lldap]: https://github.com/nitnelave/lldap
+[GLAuth]: https://glauth.github.io/
 
 ### Filter replacements
 
@@ -115,6 +119,7 @@ Username column.
 | activedirectory | sAMAccountName | displayName  | mail |     cn     |
 |     freeipa     |      uid       | displayName  | mail |     cn     |
 |      lldap      |      uid       |      cn      | mail |     cn     |
+|     glauth      |       cn       | description  | mail |     cn     |
 
 #### Filter defaults
 
@@ -122,21 +127,23 @@ The filters are probably the most important part to get correct when setting up 
 the following conditions:
 
 - The account is disabled or locked:
-  - The Active Directory implementation achieves this via the `(!(userAccountControl:1.2.840.113556.1.4.803:=2))` filter.
-  - The FreeIPA implementation achieves this via the `(!(nsAccountLock=TRUE))` filter.
+  - The [Active Directory] implementation achieves this via the `(!(userAccountControl:1.2.840.113556.1.4.803:=2))` filter.
+  - The [FreeIPA] implementation achieves this via the `(!(nsAccountLock=TRUE))` filter.
+  - The [GLAuth] implementation achieves this via the `(!(accountStatus=inactive))` filter.
 - Their password is expired:
-  - The Active Directory implementation achieves this via the `(!(pwdLastSet=0))` filter.
-  - The FreeIPA implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
+  - The [Active Directory] implementation achieves this via the `(!(pwdLastSet=0))` filter.
+  - The [FreeIPA] implementation achieves this via the `(krbPasswordExpiration>={date-time:generalized})` filter.
 - Their account is expired:
-  - The Active Directory implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))` filter.
-  - The FreeIPA implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
+  - The [Active Directory] implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))` filter.
+  - The [FreeIPA] implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
 
-| Implementation  |                                                                                                                       Users Filter                                                                                                                        |                                Groups Filter                                 |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
-|     custom      |                                                                                                                            N/A                                                                                                                            |                                     N/A                                      |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))) | (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912))) |
-|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))    |                  (&(member={dn})(objectClass=groupOfNames))                  |
-|      lldap      |                                                                                  (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                  (&(member={dn})(objectClass=groupOfNames))                  |
+| Implementation  |                                                                                                                       Users Filter                                                                                                                        |                 Groups Filter                  |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------:|
+|     custom      |                                                                                                                            N/A                                                                                                                            |                      N/A                       |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))) |   (&(member={dn})(sAMAccountType=268435456))   |
+|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))    |   (&(member={dn})(objectClass=groupOfNames))   |
+|      lldap      |                                                                                  (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |   (&(member={dn})(objectClass=groupOfNames))   |
+|     glauth      |                                                                 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))                                                                  | (&(uniqueMember={dn})(objectClass=posixGroup)) |
 
 ##### Microsoft Active Directory sAMAccountType
 

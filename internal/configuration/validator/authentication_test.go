@@ -913,6 +913,12 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
 		suite.config.LDAP.AdditionalGroupsDN)
 	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
 		suite.config.LDAP.UsersFilter)
 	suite.Assert().Equal(
@@ -1153,9 +1159,9 @@ func (suite *LLDAPAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManu
 	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=Person)(!(nsAccountLock=TRUE)))"
 	suite.config.LDAP.UsernameAttribute = "username"
 	suite.config.LDAP.MailAttribute = "m"
-	suite.config.LDAP.DisplayNameAttribute = "given"
-	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixGroup))"
-	suite.config.LDAP.GroupNameAttribute = "grp"
+	suite.config.LDAP.DisplayNameAttribute = "fn"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(!(objectClass=posixGroup)))"
+	suite.config.LDAP.GroupNameAttribute = "grpz"
 	suite.config.LDAP.AdditionalUsersDN = "OU=no"
 	suite.config.LDAP.AdditionalGroupsDN = "OU=yes"
 
@@ -1195,4 +1201,106 @@ func (suite *LLDAPAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManu
 
 func TestLLDAPAuthenticationBackend(t *testing.T) {
 	suite.Run(t, new(LLDAPAuthenticationBackendSuite))
+}
+
+type GLAuthAuthenticationBackendSuite struct {
+	suite.Suite
+	config    schema.AuthenticationBackend
+	validator *schema.StructValidator
+}
+
+func (suite *GLAuthAuthenticationBackendSuite) SetupTest() {
+	suite.validator = schema.NewStructValidator()
+	suite.config = schema.AuthenticationBackend{}
+	suite.config.LDAP = &schema.LDAPAuthenticationBackend{}
+	suite.config.LDAP.Implementation = schema.LDAPImplementationGLAuth
+	suite.config.LDAP.URL = testLDAPURL
+	suite.config.LDAP.User = testLDAPUser
+	suite.config.LDAP.Password = testLDAPPassword
+	suite.config.LDAP.BaseDN = testLDAPBaseDN
+	suite.config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.TLS
+}
+
+func (suite *GLAuthAuthenticationBackendSuite) TestShouldSetDefaults() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func (suite *GLAuthAuthenticationBackendSuite) TestShouldOnlySetDefaultsIfNotManuallyConfigured() {
+	suite.config.LDAP.Timeout = time.Second * 2
+	suite.config.LDAP.UsersFilter = "(&({username_attribute}={input})(objectClass=Person)(!(accountStatus=inactive)))"
+	suite.config.LDAP.UsernameAttribute = "description"
+	suite.config.LDAP.MailAttribute = "sender"
+	suite.config.LDAP.DisplayNameAttribute = "given"
+	suite.config.LDAP.GroupsFilter = "(&(member={dn})(objectClass=posixGroup))"
+	suite.config.LDAP.GroupNameAttribute = "grp"
+	suite.config.LDAP.AdditionalUsersDN = "OU=users,OU=GlAuth"
+	suite.config.LDAP.AdditionalGroupsDN = "OU=groups,OU=GLAuth"
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.Timeout,
+		suite.config.LDAP.Timeout)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsersFilter,
+		suite.config.LDAP.UsersFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.UsernameAttribute,
+		suite.config.LDAP.UsernameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.DisplayNameAttribute,
+		suite.config.LDAP.DisplayNameAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.MailAttribute,
+		suite.config.LDAP.MailAttribute)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupsFilter,
+		suite.config.LDAP.GroupsFilter)
+	suite.Assert().NotEqual(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth.GroupNameAttribute,
+		suite.config.LDAP.GroupNameAttribute)
+}
+
+func TestGLAuthAuthenticationBackend(t *testing.T) {
+	suite.Run(t, new(GLAuthAuthenticationBackendSuite))
 }
