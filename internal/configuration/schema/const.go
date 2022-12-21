@@ -64,6 +64,9 @@ const (
 
 	// LDAPImplementationActiveDirectory is the string for the Active Directory LDAP implementation.
 	LDAPImplementationActiveDirectory = "activedirectory"
+
+	// LDAPImplementationFreeIPA is the string for the FreeIPA LDAP implementation.
+	LDAPImplementationFreeIPA = "freeipa"
 )
 
 // TOTP Algorithm.
@@ -98,4 +101,11 @@ var regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]+://`)
 const (
 	blockCERTIFICATE   = "CERTIFICATE"
 	blockRSAPRIVATEKEY = "RSA PRIVATE KEY"
+)
+
+const (
+	ldapAttrMail        = "mail"
+	ldapAttrUserID      = "uid"
+	ldapAttrDisplayName = "displayName"
+	ldapAttrCommonName  = "cn"
 )
