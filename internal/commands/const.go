@@ -533,11 +533,9 @@ const (
 	cmdFlagNameSaltSize         = "salt-size"
 	cmdFlagNameProfile          = "profile"
 
-	cmdFlagNameConfig    = "config"
-	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
+	cmdFlagNameConfig = "config"
 
-	cmdFlagNameConfigExpFilters    = "config.experimental.filters"
-	cmdFlagEnvNameConfigExpFilters = "X_AUTHELIA_CONFIG_EXP_FILTERS"
+	cmdFlagNameConfigExpFilters = "config.experimental.filters"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
