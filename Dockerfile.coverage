@@ -5,7 +5,7 @@ FROM node:19-alpine AS builder-frontend
 
 WORKDIR /node/src/app
 
-COPY .pnpm-store /root/.pnpm-store
+COPY .local /root/.local
 COPY web ./
 
 # Install the dependencies and build
@@ -15,7 +15,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.19.3-alpine AS builder-backend
+FROM golang:1.19.4-alpine AS builder-backend
 
 WORKDIR /go/src/app
 

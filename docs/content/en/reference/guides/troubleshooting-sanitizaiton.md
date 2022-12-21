@@ -12,7 +12,6 @@ weight: 220
 toc: true
 aliases:
   - /r/sanitize
-  - /reference/guides/domain-sanitizaiton
 ---
 
 Some users may wish to hide their domain in files provided during troubleshooting. While this is discouraged, if a user

@@ -35,7 +35,7 @@ storage:
 
 ### encryption_key
 
-See the [encryption_key docs](introduction.md#encryption_key).
+See the [encryption_key docs](introduction.md#encryptionkey).
 
 ### path
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
@@ -35,7 +36,7 @@ func cmdValidateConfigRunE(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	config, val, err = loadConfig(configs, true, true)
+	config, val, err = loadConfig(configs, true, true, configuration.NewFileFiltersDefault()...)
 	if err != nil {
 		return fmt.Errorf("error occurred loading configuration: %v", err)
 	}

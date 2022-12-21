@@ -28,14 +28,7 @@ the user must match the name of the user in Authelia, or must have an alias that
 
 Then, in Duo interface, click on *Applications* and *Protect an Application*. Select the option *Partner Auth API*. This
 will generate an integration key, a secret key and a hostname. You can set the name of the application to __Authelia__
-and then you must add the generated information to Authelia [configuration](../../deployment/index.md) as shown below:
-
-```yaml
-duo_api:
-  hostname: api-123456789.example.com
-  integration_key: ABCDEF
-  secret_key: 1234567890abcdefghifjkl
-```
+and then you must add the generated information to Authelia [configuration](../../../configuration/second-factor/duo.md).
 
 See the [configuration documentation](../../../configuration/second-factor/duo.md) for more details.
 

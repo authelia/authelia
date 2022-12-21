@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/input"
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +32,8 @@ func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, code string) {
 	inputs := rs.WaitElementsLocatedByID(t, page, "otp-input input")
 
 	for i := 0; i < len(code); i++ {
-		inputs[i].MustInput(string(code[i]))
+		err := inputs[i].Type(input.Key(code[i]))
+		require.NoError(t, err)
 	}
 }
 

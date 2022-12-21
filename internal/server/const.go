@@ -11,6 +11,9 @@ const (
 	fileOpenAPI   = "openapi.yml"
 	fileIndexHTML = "index.html"
 	fileLogo      = "logo.png"
+
+	extHTML = ".html"
+	extJSON = ".json"
 )
 
 var (
@@ -47,6 +50,7 @@ var (
 )
 
 const (
+	environment = "ENVIRONMENT"
 	dev         = "dev"
 	f           = "false"
 	t           = "true"

@@ -76,7 +76,7 @@ For example the nginx ngx_http_auth_request_module does not seem to support this
 
 Authelia detects the upstream request method using the X-Forwarded-Method header. Some proxies set this out of the box,
 some require you to configure this manually. At the present time all proxies that have
-[Standard Support](#standard-support) do support this.
+[Standard Support](#standard) do support this.
 
 ## Specific proxy notes
 

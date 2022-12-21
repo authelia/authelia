@@ -27,7 +27,7 @@ likely result in an error or even worse misconfiguration.
 ### Kubernetes
 
 Please see the
-[Kubernetes Integration: Enable Service Links](../../integration/kubernetes/introduction/index.md#enable-service-links)
+[Kubernetes Integration: Enable Service Links](../../integration/kubernetes/introduction.md#enable-service-links)
 documentation for specific requirements for using *Authelia* with Kubernetes.
 
 ## Mapping

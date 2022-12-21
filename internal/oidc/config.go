@@ -414,13 +414,13 @@ func (c *Config) GetTokenEntropy(ctx context.Context) (entropy int) {
 }
 
 // GetGlobalSecret returns the global secret.
-func (c *Config) GetGlobalSecret(ctx context.Context) (secret []byte) {
-	return c.GlobalSecret
+func (c *Config) GetGlobalSecret(ctx context.Context) (secret []byte, err error) {
+	return c.GlobalSecret, nil
 }
 
 // GetRotatedGlobalSecrets returns the rotated global secrets.
-func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte) {
-	return c.RotatedGlobalSecrets
+func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte, err error) {
+	return c.RotatedGlobalSecrets, nil
 }
 
 // GetHTTPClient returns the HTTP client provider.
