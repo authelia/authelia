@@ -26,15 +26,26 @@ var config *schema.Configuration
 func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfiguration bool) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, _ []string) {
 		var (
-			logger  *logrus.Logger
-			configs []string
-			err     error
+			logger *logrus.Logger
+			err    error
+
+			configs, filterNames []string
+
+			filters []configuration.FileFilter
 		)
 
 		logger = logging.Logger()
 
 		if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
 			logger.Fatalf("Error reading flags: %v", err)
+		}
+
+		if filterNames, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
+			logger.Fatalf("Error reading flags: %v", err)
+		}
+
+		if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+			logger.Fatalf("Error occurred loading configuration: flag '--%s' is invalid: %v", cmdFlagNameConfigExpFilters, err)
 		}
 
 		if ensureConfigExists && len(configs) == 1 {
@@ -53,7 +64,7 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 			val *schema.StructValidator
 		)
 
-		config, val, err = loadConfig(configs, validateKeys, validateConfiguration)
+		config, val, err = loadConfig(configs, validateKeys, validateConfiguration, filters...)
 		if err != nil {
 			logger.Fatalf("Error occurred loading configuration: %v", err)
 		}
@@ -76,14 +87,15 @@ func newCmdWithConfigPreRun(ensureConfigExists, validateKeys, validateConfigurat
 	}
 }
 
-func loadConfig(configs []string, validateKeys, validateConfiguration bool) (c *schema.Configuration, val *schema.StructValidator, err error) {
+func loadConfig(configs []string, validateKeys, validateConfiguration bool, filters ...configuration.FileFilter) (c *schema.Configuration, val *schema.StructValidator, err error) {
 	var keys []string
 
 	val = schema.NewStructValidator()
 
 	if keys, c, err = configuration.Load(val,
-		configuration.NewDefaultSources(
+		configuration.NewDefaultSourcesFiltered(
 			configs,
+			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter)...); err != nil {
 		return nil, nil, err
