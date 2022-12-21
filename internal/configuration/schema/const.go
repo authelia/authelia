@@ -67,6 +67,9 @@ const (
 
 	// LDAPImplementationFreeIPA is the string for the FreeIPA LDAP implementation.
 	LDAPImplementationFreeIPA = "freeipa"
+
+	// LDAPImplementationLLDAP is the string for the lldap LDAP implementation.
+	LDAPImplementationLLDAP = "lldap"
 )
 
 // TOTP Algorithm.
