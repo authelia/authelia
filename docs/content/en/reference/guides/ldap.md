@@ -24,7 +24,7 @@ The most insecure method is unauthenticated binds. They are generally considered
 at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
 Authelia does support unauthenticated binds but it is not by default, you must configure the
-[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permitunauthenticatedbind) configuration
 option.
 
 ### End-User Binding
@@ -131,20 +131,20 @@ the following conditions:
   - The Active Directory implementation achieves this via the `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))` filter.
   - The FreeIPA implementation achieves this via the `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))` filter.
 
-| Implementation  |                                                                                                                       Users Filter                                                                                                                        |               Groups Filter                |
-|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
-|     custom      |                                                                                                                            N/A                                                                                                                            |                    N/A                     |
-| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))) | (&(member={dn})(sAMAccountType=268435456)) |
-|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))    | (&(member={dn})(objectClass=groupOfNames)) |
-|      lldap      |                                                                                  (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  | (&(member={dn})(objectClass=groupOfNames)) |
-
+| Implementation  |                                                                                                                       Users Filter                                                                                                                        |                                Groups Filter                                 |
+|:---------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
+|     custom      |                                                                                                                            N/A                                                                                                                            |                                     N/A                                      |
+| activedirectory | (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch}))) | (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912))) |
+|     freeipa     |   (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))    |                  (&(member={dn})(objectClass=groupOfNames))                  |
+|      lldap      |                                                                                  (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))                                                                                  |                  (&(member={dn})(objectClass=groupOfNames))                  |
 
 ##### Microsoft Active Directory sAMAccountType
 
-| Account Type Value |        Description         |               Equivalent Filter                |
-|:------------------:|:--------------------------:|:----------------------------------------------:|
-|     268435456      |    Normal Group Objects    |                      N/A                       |
-|     805306368      |    Normal User Accounts    | `(&(objectCategory=person)(objectClass=user))` |
+| Account Type Value |               Description               |               Equivalent Filter                |
+|:------------------:|:---------------------------------------:|:----------------------------------------------:|
+|     268435456      | Global/Universal Security Group Objects |                      N/A                       |
+|     536870912      |   Domain Local Security Group Objects   |                      N/A                       |
+|     805306368      |          Normal User Accounts           | `(&(objectCategory=person)(objectClass=user))` |
 
 *__References:__*
 - Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe).

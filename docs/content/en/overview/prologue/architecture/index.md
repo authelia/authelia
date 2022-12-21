@@ -53,6 +53,6 @@ Authelia only works for websites served over HTTPS because the session cookie ca
 connections. Please note that it has been decided that we won't support websites served over HTTP in order to avoid any
 risk due to misconfiguration (see [#590](https://github.com/authelia/authelia/issues/590)).
 
-If a self-signed certificate is required, the
-[Generating an RSA Self-Signed Certificate](../../../reference/guides/generating-secure-values.md#generating-an-rsa-self-signed-certificate)
-guide should be followed.
+If a self-signed certificate is required, the [Generating an RSA Self-Signed Certificate] guide should be followed.
+
+[Generating an RSA Self-Signed Certificate]: ../../../reference/guides/generating-secure-values.md#generating-an-rsa-self-signed-certificate

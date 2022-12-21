@@ -17,7 +17,7 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  cp -R /buildkite/.pnpm-store .
+  cp -R /buildkite/.local .
 fi
 
 if [[ "${BUILDKITE_STEP_KEY}" =~ build-deb-package-(arm64|armhf) && "${BUILDKITE_AGENT_NAME}" =~ sauron* ]]; then
@@ -30,10 +30,13 @@ fi
 
 if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   DEFAULT_ARCH=coverage
-  echo "--- :docker: Extract, load and tag build container"
+  echo "--- :docker: Extract and load build container"
   buildkite-agent artifact download "authelia-image-${DEFAULT_ARCH}*" .
-  zstdcat "authelia-image-${DEFAULT_ARCH}.tar.zst" | docker load
-  docker tag authelia/authelia authelia:dist
+  if [[ "${SUITE}" == "Kubernetes" ]]; then
+    zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-${DEFAULT_ARCH}.tar
+  else
+    zstdcat "authelia-image-${DEFAULT_ARCH}.tar.zst" | docker load
+  fi
 
   if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
     CONTAINER="integration-duo"

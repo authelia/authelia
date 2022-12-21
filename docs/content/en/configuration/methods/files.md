@@ -124,3 +124,163 @@ spec:
 See the Kubernetes [workloads documentation](https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates) or the
 [Container API docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core) for more
 information.
+
+## File Filters
+
+Experimental file filters exist which allow modification of all configuration files after reading them from the
+filesystem but before parsing their content. These filters are _**NOT**_ covered by our
+[Standard Versioning Policy](../../policies/versioning.md). There __*WILL*__ be a point where the name of the CLI
+argument or environment variable will change and usage of these will either break or just not work.
+
+The filters are configured as a list of filter names by the `--config.experimental.filters` CLI argument and
+`X_AUTHELIA_CONFIG_EXPERIMENTAL_FILTERS` environment variable. We recommend using the environment variable as it ensures
+commands executed from the container use the same filters. If both the CLI argument and environment variable are used
+the environment variable is completely ignored.
+
+Filters can either be used on their own, in combination, or not at all. The filters are processed in order as they are
+defined.
+
+Examples:
+
+```bash
+authelia --config config.yml --config.experimental.filters expand-env,template
+```
+
+```text
+X_AUTHELIA_CONFIG_EXPERIMENTAL_FILTERS=expand-env,template
+```
+
+### Expand Environment Variable Filter
+
+The name used to enable this filter is `expand-env`.
+
+This filter is the most common filter type used by many other applications. It is similar to using `envsubst` where it
+replaces a string like `$EXAMPLE` or `${EXAMPLE}` with the value of the `EXAMPLE` environment variable.
+
+### Go Template Filter
+
+The name used to enable this filter is `template`.
+
+This filter uses the [Go template engine](https://pkg.go.dev/text/template) to render the configuration files. It uses
+similar syntax to Jinja2 templates with different function names.
+
+#### Functions
+
+In addition to the standard builtin functions we support several other functions.
+
+##### iterate
+
+The `iterate` function generates a list of numbers from 0 to the input provided. Useful for ranging over a list of
+numbers.
+
+Example:
+
+```yaml
+numbers:
+{{- range $i := iterate 5 }}
+  -  {{ $i }}
+{{- end }}
+```
+
+##### env
+
+The `env` function returns the value of an environment variable or a blank string.
+
+Example:
+
+```yaml
+default_redirection_url: 'https://{{ env "DOMAIN" }}'
+```
+
+##### split
+
+The `split` function splits a string by the separator.
+
+Example:
+
+```yaml
+access_control:
+  rules:
+    - domain: 'app.{{ env "DOMAIN" }}'
+      policy: bypass
+      methods:
+      {{ range _, $method := split "GET,POST" "," }}
+        - {{ $method }}
+      {{ end }}
+```
+
+##### join
+
+The `join` function is similar to [split](#split) but does the complete oppiste, joining an array of strings with a
+separator.
+
+Example:
+
+```yaml
+access_control:
+  rules:
+    - domain: ['app.{{ join (split (env "DOMAINS") ",") "', 'app." }}']
+      policy: bypass
+```
+
+##### contains
+
+The `contains` function is a test function which checks if one string contains another string.
+
+Example:
+
+```yaml
+{{ if contains (env "DOMAIN") "https://" }}
+default_redirection_url: '{{ env "DOMAIN" }}'
+{{ else}}
+default_redirection_url: 'https://{{ env "DOMAIN" }}'
+  {{ end }}
+```
+
+##### hasPrefix
+
+The `hasPrefix` function is a test function which checks if one string is prefixed with another string.
+
+Example:
+
+```yaml
+{{ if hasPrefix (env "DOMAIN") "https://" }}
+default_redirection_url: '{{ env "DOMAIN" }}'
+{{ else}}
+default_redirection_url: 'https://{{ env "DOMAIN" }}'
+{{ end }}
+```
+
+##### hasSuffix
+
+The `hasSuffix` function is a test function which checks if one string is suffixed with another string.
+
+Example:
+
+```yaml
+{{ if hasSuffix (env "DOMAIN") "/" }}
+default_redirection_url: 'https://{{ env "DOMAIN" }}'
+{{ else}}
+default_redirection_url: 'https://{{ env "DOMAIN" }}/'
+{{ end }}
+```
+
+##### lower
+
+The `lower` function is a conversion function which converts a string to all lowercase.
+
+Example:
+
+```yaml
+default_redirection_url: 'https://{{ env "DOMAIN" | lower }}'
+```
+
+##### upper
+
+The `upper` function is a conversion function which converts a string to all uppercase.
+
+Example:
+
+```yaml
+default_redirection_url: 'https://{{ env "DOMAIN" | upper }}'
+```

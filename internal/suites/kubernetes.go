@@ -3,53 +3,41 @@ package suites
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var kindImageName = "authelia-kind-proxy"
-var dockerCmdLine = fmt.Sprintf("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml run -T --rm %s", kindImageName)
+var k3dImageName = "k3d"
+var dockerCmdLine = fmt.Sprintf("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/k3d/docker-compose.yml exec -T %s", k3dImageName)
 
-// Kind used for running kind commands.
-type Kind struct{}
+// K3D used for running kind commands.
+type K3D struct{}
 
-func kindCommand(cmdline string) *exec.Cmd {
+func k3dCommand(cmdline string) *exec.Cmd {
 	cmd := fmt.Sprintf("%s %s", dockerCmdLine, cmdline)
 	return utils.Shell(cmd)
 }
 
 // CreateCluster create a new Kubernetes cluster.
-func (k Kind) CreateCluster() error {
-	cmd := kindCommand("kind create cluster --config /etc/kind/config.yml")
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	cmd = kindCommand("patch-kubeconfig.sh")
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	// This command is necessary to fix the coredns loop detected when using user-defined docker network.
-	// In that case /etc/resolv.conf use 127.0.0.11 as DNS and CoreDNS thinks it is talking to itself which is wrong.
-	// This IP is the docker internal DNS so it is safe to disable the loop check.
-	cmd = kindCommand("sh -c 'kubectl -n kube-system get configmap/coredns -o yaml | grep -v loop | kubectl replace -f -'")
+func (k K3D) CreateCluster() error {
+	cmd := k3dCommand("k3d cluster create --registry-config /authelia/registry.yml -v /authelia:/var/lib/rancher/k3s/server/manifests/custom -v /configmaps:/configmaps -p 8080:443")
 	err := cmd.Run()
 
 	return err
 }
 
 // DeleteCluster delete a Kubernetes cluster.
-func (k Kind) DeleteCluster() error {
-	cmd := kindCommand("kind delete cluster")
+func (k K3D) DeleteCluster() error {
+	cmd := k3dCommand("k3d cluster delete")
 	return cmd.Run()
 }
 
 // ClusterExists check whether a cluster exists.
-func (k Kind) ClusterExists() (bool, error) {
-	cmd := kindCommand("kind get clusters")
+func (k K3D) ClusterExists() (bool, error) {
+	cmd := k3dCommand("k3d cluster list")
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	output, err := cmd.Output()
@@ -58,63 +46,27 @@ func (k Kind) ClusterExists() (bool, error) {
 		return false, err
 	}
 
-	return strings.Contains(string(output), "kind"), nil
+	return strings.Contains(string(output), "k3s-default"), nil
 }
 
 // LoadImage load an image in the Kubernetes container.
-func (k Kind) LoadImage(imageName string) error {
-	cmd := kindCommand(fmt.Sprintf("kind load docker-image %s", imageName))
+func (k K3D) LoadImage(imageName string) error {
+	cmd := k3dCommand(fmt.Sprintf("k3d image import %s", imageName))
 	return cmd.Run()
 }
 
 // Kubectl used for running kubectl commands.
 type Kubectl struct{}
 
-// StartProxy start a proxy.
-func (k Kubectl) StartProxy() error {
-	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d authelia-kind-proxy")
-	return cmd.Run()
-}
-
-// StopProxy stop a proxy.
-func (k Kubectl) StopProxy() error {
-	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml rm -s -f authelia-kind-proxy")
-	return cmd.Run()
-}
-
-// StartDashboard start Kube dashboard.
-func (k Kubectl) StartDashboard() error {
-	if err := kindCommand("sh -c 'cd /authelia && ./bootstrap-dashboard.sh'").Run(); err != nil {
-		return err
-	}
-
-	err := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml up -d kube-dashboard").Run()
-
-	return err
-}
-
-// StopDashboard stop kube dashboard.
-func (k Kubectl) StopDashboard() error {
-	cmd := utils.Shell("docker-compose -p authelia -f internal/suites/docker-compose.yml -f internal/suites/example/compose/kind/docker-compose.yml rm -s -f kube-dashboard")
-	return cmd.Run()
-}
-
-// DeployThirdparties deploy thirdparty services (ldap, db, ingress controllers, etc...).
-func (k Kubectl) DeployThirdparties() error {
-	cmd := kindCommand("sh -c 'cd /authelia && ./bootstrap.sh'")
-	return cmd.Run()
-}
-
-// DeployAuthelia deploy Authelia application.
-func (k Kubectl) DeployAuthelia() error {
-	cmd := kindCommand("sh -c 'cd /authelia && ./bootstrap-authelia.sh'")
-	return cmd.Run()
+// GetDashboardToken generates bearer token for Kube Dashboard.
+func (k Kubectl) GetDashboardToken() error {
+	return k3dCommand("kubectl -n kubernetes-dashboard create token admin-user;echo ''").Run()
 }
 
 // WaitPodsReady wait for all pods to be ready.
-func (k Kubectl) WaitPodsReady(timeout time.Duration) error {
+func (k Kubectl) WaitPodsReady(namespace string, timeout time.Duration) error {
 	return utils.CheckUntil(5*time.Second, timeout, func() (bool, error) {
-		cmd := kindCommand("kubectl get -n authelia pods --no-headers")
+		cmd := k3dCommand(fmt.Sprintf("kubectl get -n %s pods --no-headers --field-selector=status.phase!=Succeeded", namespace))
 		cmd.Stdout = nil
 		cmd.Stderr = nil
 		output, _ := cmd.Output()
@@ -129,10 +81,12 @@ func (k Kubectl) WaitPodsReady(timeout time.Duration) error {
 		}
 
 		for _, line := range nonEmptyLines {
-			if !strings.Contains(line, "1/1") {
+			re := regexp.MustCompile(`1/1|2/2`)
+			if !re.MatchString(line) {
 				return false, nil
 			}
 		}
+
 		return true, nil
 	})
 }
