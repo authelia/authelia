@@ -1,7 +1,7 @@
 ---
 title: "Versioning Policy"
 description: "The Authelia Versioning Policy which is important reading for administrators"
-date: 2022-06-15T17:51:47+10:00
+date: 2022-12-21T16:46:42+11:00
 draft: false
 images: []
 aliases:
