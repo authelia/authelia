@@ -2,12 +2,17 @@ package configuration
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 // FilteredFile implements a koanf.Provider.
@@ -93,8 +98,18 @@ func NewFileFilters(names []string) (filters []FileFilter, err error) {
 
 // NewExpandEnvFileFilter is a FileFilter which passes the bytes through os.ExpandEnv.
 func NewExpandEnvFileFilter() FileFilter {
+	log := logging.Logger()
+
 	return func(in []byte) (out []byte, err error) {
-		return []byte(os.ExpandEnv(string(in))), nil
+		out = []byte(os.ExpandEnv(string(in)))
+
+		if log.Level >= logrus.TraceLevel {
+			log.
+				WithField("content", base64.RawStdEncoding.EncodeToString(out)).
+				Trace("Expanded Env File Filter completed successfully")
+		}
+
+		return out, nil
 	}
 }
 
@@ -117,8 +132,12 @@ func NewTemplateFileFilter() FileFilter {
 	var t *template.Template
 
 	t = template.New("config.template").Funcs(map[string]any{
-		"env": newTemplatedEnvFunc(data),
+		"env":     newTemplateFuncEnv(data),
+		"split":   templateFuncStringsSplit,
+		"iterate": templateFuncIterate,
 	})
+
+	log := logging.Logger()
 
 	return func(in []byte) (out []byte, err error) {
 		if t, err = t.Parse(string(in)); err != nil {
@@ -131,7 +150,15 @@ func NewTemplateFileFilter() FileFilter {
 			return nil, err
 		}
 
-		return buf.Bytes(), nil
+		out = buf.Bytes()
+
+		if log.Level >= logrus.TraceLevel {
+			log.
+				WithField("content", base64.RawStdEncoding.EncodeToString(out)).
+				Trace("Templated File Filter completed successfully")
+		}
+
+		return out, nil
 	}
 }
 
@@ -139,7 +166,21 @@ type templated struct {
 	Env map[string]string
 }
 
-func newTemplatedEnvFunc(data *templated) func(key string) (value string, err error) {
+func templateFuncIterate(count *uint) (out []uint) {
+	var i uint
+
+	for i = 0; i < (*count); i++ {
+		out = append(out, i)
+	}
+
+	return
+}
+
+func templateFuncStringsSplit(sep, value string) []string {
+	return strings.Split(value, sep)
+}
+
+func newTemplateFuncEnv(data *templated) func(key string) (value string, err error) {
 	return func(key string) (value string, err error) {
 		var ok bool
 
