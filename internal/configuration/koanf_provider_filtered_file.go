@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // FilteredFile implements a koanf.Provider.
@@ -115,7 +116,7 @@ func NewExpandEnvFileFilter() FileFilter {
 
 // NewTemplateFileFilter is a FileFilter which passes the bytes through text/template.
 func NewTemplateFileFilter() FileFilter {
-	data := &templated{
+	data := &TemplateFileFilterData{
 		Env: map[string]string{},
 	}
 
@@ -129,13 +130,14 @@ func NewTemplateFileFilter() FileFilter {
 		data.Env[kv[0]] = kv[1]
 	}
 
-	var t *template.Template
-
-	t = template.New("config.template").Funcs(map[string]any{
-		"env":     newTemplateFuncEnv(data),
-		"split":   templateFuncStringsSplit,
-		"iterate": templateFuncIterate,
-	})
+	t := template.New("config.template").
+		Funcs(template.FuncMap{
+			"env":      templates.StringMapLookupDefaultEmptyFunc(data.Env),
+			"split":    templates.StringsSplitFunc,
+			"iterate":  templates.IterateFunc,
+			"join":     strings.Join,
+			"contains": strings.Contains,
+		})
 
 	log := logging.Logger()
 
@@ -162,32 +164,7 @@ func NewTemplateFileFilter() FileFilter {
 	}
 }
 
-type templated struct {
+// TemplateFileFilterData is the data available to the Go Template FileFilter.
+type TemplateFileFilterData struct {
 	Env map[string]string
-}
-
-func templateFuncIterate(count *uint) (out []uint) {
-	var i uint
-
-	for i = 0; i < (*count); i++ {
-		out = append(out, i)
-	}
-
-	return
-}
-
-func templateFuncStringsSplit(sep, value string) []string {
-	return strings.Split(value, sep)
-}
-
-func newTemplateFuncEnv(data *templated) func(key string) (value string, err error) {
-	return func(key string) (value string, err error) {
-		var ok bool
-
-		if value, ok = data.Env[key]; !ok {
-			return "", fmt.Errorf("environment variable %s does not exist", key)
-		}
-
-		return value, nil
-	}
 }
