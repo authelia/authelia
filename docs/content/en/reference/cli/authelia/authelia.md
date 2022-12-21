@@ -42,8 +42,7 @@ authelia --config /etc/authelia/config/
 
 ```
   -c, --config strings                        configuration files to load (default [configuration.yml])
-      --config.directory string               path to a directory with yml/yaml files to load as part of the configuration
-      --config.experimental.filters strings   Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
   -h, --help                                  help for authelia
 ```
 

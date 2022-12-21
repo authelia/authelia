@@ -273,20 +273,15 @@ func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []str
 // ConfigEnsureExistsRunE logs the warnings and errors detected during the validations that have ran.
 func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs   []string
-		directory string
-		created   bool
+		configs []string
+		created bool
 	)
 
 	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "X_AUTHELIA_CONFIG", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if directory, _, err = loadEnvCLIStringValue(cmd, "X_AUTHELIA_CONFIG_DIRECTORY", cmdFlagNameConfigDirectory); err != nil {
-		return err
-	}
-
-	if len(configs) != 1 || directory != "" {
+	if len(configs) != 1 {
 		return nil
 	}
 
@@ -308,16 +303,10 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		configs, filterNames []string
 		explicit             bool
 
-		directory   string
-		explicitDir bool
-		filters     []configuration.FileFilter
+		filters []configuration.FileFilter
 	)
 
 	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
-		return err
-	}
-
-	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, cmdFlagEnvNameConfigDirectory, cmdFlagNameConfigDirectory); err != nil {
 		return err
 	}
 
@@ -336,23 +325,11 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		)
 
 		for _, c := range configs {
-			if _, err = os.Stat(directory); err != nil && os.IsNotExist(err) {
-				changed = true
-
-				continue
-			}
-
 			final = append(final, c)
 		}
 
 		if changed {
 			configs = final
-		}
-	}
-
-	if !explicitDir {
-		if _, err = os.Stat(directory); err != nil && os.IsNotExist(err) {
-			directory = ""
 		}
 	}
 
@@ -366,7 +343,6 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		ctx.config,
 		configuration.NewDefaultSourcesWithDefaults(
 			configs,
-			directory,
 			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,

@@ -21,12 +21,6 @@ type YAMLFileSource struct {
 	filters []FileFilter
 }
 
-// DirectorySource is a configuration configuration.Source which loads files from a directory.
-type DirectorySource struct {
-	koanf *koanf.Koanf
-	path  string
-}
-
 // EnvironmentSource is a configuration configuration.Source which loads values from the environment.
 type EnvironmentSource struct {
 	koanf     *koanf.Koanf
