@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect 1.0"
 description: "OpenID Connect 1.0 is a authorization identity framework supported by Authelia."
-date: 2022-06-15T17:51:47+10:00
+date: 2022-11-27T16:07:08+11:00
 draft: false
 images: []
 menu:

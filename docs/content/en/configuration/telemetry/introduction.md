@@ -13,7 +13,7 @@ toc: true
 ---
 
 *Authelia* allows collecting telemetry for the purpose of monitoring it. At the present time we only allow collecting
-[metrics](./metrics.md). These [metrics](./metrics.md) are stored in memory and must be scraped manually by the
+[metrics](metrics.md). These [metrics](metrics.md) are stored in memory and must be scraped manually by the
 administrator.
 
 No metrics or telemetry are reported from an *Authelia* binary to any location the administrator doesn't explicitly

@@ -25,8 +25,8 @@ unreliable and simple usernames and passwords are not sufficient for security.
 
 __Authelia__ enables primarily two-factor authentication. These methods offered come in two forms:
 
-* 1FA or first-factor authentication which is handled by a username and password. This falls into the *something you know*
-  categorization.
+* 1FA or first-factor authentication which is handled by a username and password. This falls into the
+  *something you know* categorization.
 * 2FA or second-factor authentication which is handled by several methods including one-time passwords, authentication
   keys, etc. This falls into the *something you have* categorization.
 

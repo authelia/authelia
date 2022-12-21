@@ -10,12 +10,24 @@ import (
 
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
-	err := usernameElement.Input(username)
+	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
+	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
+
+username:
+	err := usernameElement.MustSelectAllText().Input(username)
 	require.NoError(t, err)
 
-	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	err = passwordElement.Input(password)
+	if usernameElement.MustText() != username {
+		goto username
+	}
+
+password:
+	err = passwordElement.MustSelectAllText().Input(password)
 	require.NoError(t, err)
+
+	if passwordElement.MustText() != password {
+		goto password
+	}
 
 	if keepMeLoggedIn {
 		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
@@ -23,9 +35,13 @@ func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, user
 		require.NoError(t, err)
 	}
 
-	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
+click:
 	err = buttonElement.Click("left", 1)
 	require.NoError(t, err)
+
+	if buttonElement.MustInteractable() {
+		goto click
+	}
 }
 
 // Login 1FA.

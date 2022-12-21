@@ -44,6 +44,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmdWithConfigFlags(cmd, false, []string{})
 
+	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'")
+
 	cmd.AddCommand(
 		newAccessControlCommand(),
 		newBuildInfoCmd(),

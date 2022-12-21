@@ -12,6 +12,7 @@ import (
 
 type InactivityScenario struct {
 	*RodSuite
+
 	secret string
 }
 
