@@ -354,32 +354,6 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func loadEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, explicit bool, err error) {
-	if cmd.Flags().Changed(flagName) {
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, true, err
-	}
-
-	var (
-		env string
-		ok  bool
-	)
-
-	if envKey != "" {
-		env, ok = os.LookupEnv(envKey)
-	}
-
-	switch {
-	case ok && env != "":
-		return env, true, nil
-	default:
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, false, err
-	}
-}
-
 func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) {
 	if cmd.Flags().Changed(flagName) {
 		value, err = cmd.Flags().GetStringSlice(flagName)
