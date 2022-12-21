@@ -251,9 +251,9 @@ default_redirection_url: 'https://{{ env "DOMAIN" }}'
 {{ end }}
 ```
 
-##### hasPrefix
+##### hasSuffix
 
-The `hasPrefix` function is a test function which checks if one string is prefixed with another string.
+The `hasSuffix` function is a test function which checks if one string is suffixed with another string.
 
 Example:
 
