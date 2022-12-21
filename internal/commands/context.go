@@ -301,12 +301,11 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		configs, filterNames []string
-		explicit             bool
 
 		filters []configuration.FileFilter
 	)
 
-	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
@@ -316,21 +315,6 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
 		return fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
-	}
-
-	if !explicit {
-		var (
-			final   []string
-			changed bool
-		)
-
-		for _, c := range configs {
-			final = append(final, c)
-		}
-
-		if changed {
-			configs = final
-		}
 	}
 
 	if ctx.cconfig == nil {
@@ -354,7 +338,7 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) {
+func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) { //nolint:unparam
 	if cmd.Flags().Changed(flagName) {
 		value, err = cmd.Flags().GetStringSlice(flagName)
 
