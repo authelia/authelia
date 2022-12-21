@@ -24,7 +24,7 @@ The most insecure method is unauthenticated binds. They are generally considered
 at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
 Authelia does support unauthenticated binds but it is not by default, you must configure the
-[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permitunauthenticatedbind) configuration
 option.
 
 ### End-User Binding
@@ -147,10 +147,11 @@ the following conditions:
 
 ##### Microsoft Active Directory sAMAccountType
 
-| Account Type Value |        Description         |               Equivalent Filter                |
-|:------------------:|:--------------------------:|:----------------------------------------------:|
-|     268435456      |    Normal Group Objects    |                      N/A                       |
-|     805306368      |    Normal User Accounts    | `(&(objectCategory=person)(objectClass=user))` |
+| Account Type Value |               Description               |               Equivalent Filter                |
+|:------------------:|:---------------------------------------:|:----------------------------------------------:|
+|     268435456      | Global/Universal Security Group Objects |                      N/A                       |
+|     536870912      |   Domain Local Security Group Objects   |                      N/A                       |
+|     805306368      |          Normal User Accounts           | `(&(objectCategory=person)(objectClass=user))` |
 
 *__References:__*
 - Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe).

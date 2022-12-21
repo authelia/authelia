@@ -24,12 +24,12 @@ throughout this documentation and in the [See Also](#see-also) section.*
 ## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get Started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Requirements
 
-[NGINX Proxy Manager] supports the required [NGINX](nginx.md#requirements) requirements for __Authelia__ out-of-the-box.
+[NGINX Proxy Manager] supports the required [NGINX](../nginx.md#requirements) requirements for __Authelia__ out-of-the-box.
 
 ## Trusted Proxies
 
@@ -37,7 +37,7 @@ bootstrapping *Authelia*.
 Especially if you have never read it before.*
 
 To configure trusted proxies for [NGINX Proxy Manager] see the [NGINX] section on
-[Trusted Proxies](nginx.md#trusted-proxies). Adapting this to [NGINX Proxy Manager] is beyond the scope of
+[Trusted Proxies](../nginx.md#trusted-proxies). Adapting this to [NGINX Proxy Manager] is beyond the scope of
 this documentation.
 
 ## Docker Compose
@@ -137,9 +137,9 @@ either most likely require an adjustment, or may require an adjustment if you're
 ### Snippets
 
 The examples assume you've mounted a volume containing the relevant
-[NGINX Snippets](nginx.md#supporting-configuration-snippets) from the [NGINX Integration Guide](nginx.md). The suggested
-snippets are the `proxy.conf`, `authelia-location.conf`, and `authelia-authrequest.conf`. It may be fine to substitute
-the standard variant of the `proxy.conf` for the headers only variant but this is untested.
+[NGINX Snippets](../nginx.md#supporting-configuration-snippets) from the [NGINX Integration Guide](../nginx.md). The
+suggested snippets are the `proxy.conf`, `authelia-location.conf`, and `authelia-authrequest.conf`. It may be fine to
+substitute the standard variant of the `proxy.conf` for the headers only variant but this is untested.
 
 These snippets make the addition of a protected proxy host substantially easier.
 

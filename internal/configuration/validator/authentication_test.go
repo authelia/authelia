@@ -913,6 +913,12 @@ func (suite *ActiveDirectoryAuthenticationBackendSuite) TestShouldSetActiveDirec
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
 		suite.config.LDAP.AdditionalGroupsDN)
 	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalUsersDN,
+		suite.config.LDAP.AdditionalUsersDN)
+	suite.Assert().Equal(
+		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.AdditionalGroupsDN,
+		suite.config.LDAP.AdditionalGroupsDN)
+	suite.Assert().Equal(
 		schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UsersFilter,
 		suite.config.LDAP.UsersFilter)
 	suite.Assert().Equal(

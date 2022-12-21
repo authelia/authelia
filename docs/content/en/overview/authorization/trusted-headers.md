@@ -2,7 +2,7 @@
 title: "Trusted Headers SSO"
 description: "Trusted Headers SSO is a simple header authorization framework supported by Authelia."
 lead: "Trusted Headers is a simple header authorization framework supported by Authelia."
-date: 2022-06-15T17:51:47+10:00
+date: 2022-11-27T16:07:08+11:00
 draft: false
 images: []
 menu:

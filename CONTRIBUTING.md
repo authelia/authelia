@@ -2,7 +2,7 @@
 
 Anybody willing to contribute to the project either with code, documentation, security reviews or whatever, are very
 welcome to create or review pull requests and take part in discussions in any of our public
-[chat rooms](./README.md#contact-options).
+[chat rooms](README.md#contact-options).
 
 It's also possible to contribute financially in order to support the community.
 
@@ -10,7 +10,9 @@ Don't hesitate to come help us improve Authelia! See you soon!
 
 ## Bug Reports and Feature Requests
 
-If you've found a **bug** or have a **feature request** then please create an issue in this repository (but search first in case a similar issue already exists).
+If you've found a **bug** or have a **feature request** then please create a
+[bug report](https://www.authelia.com/l/bug) or [feature request](https://www.authelia.com/l/fr) respectively in this
+repository (but search first in case a similar issue already exists).
 
 ## Code
 
@@ -23,13 +25,14 @@ about requirement or implementation. That way you can be sure that the maintaine
 and you can hopefully get a quick merge afterwards. Also, let the maintainers know that you plan to work on a particular
 issue so that no one else starts any duplicate work.
 
-Pull Requests can only be merged once all status checks are green, which means `authelia-scripts --log-level debug ci` passes, and coverage does not regress.
+Pull Requests can only be merged once all status checks are green, which means `authelia-scripts --log-level debug ci`
+passes, and coverage does not regress.
 
 ## Do not force push to your pull request branch
 
-Please do not force push to your PR's branch after you have created your PR, as doing so makes it harder for us to review your work.
-PRs will always be squashed by us when we merge your work.
-Commit as many times as you need in your pull request branch.
+Please do not force push to your PR's branch after you have created your PR, as doing so makes it harder for us to
+review your work. PRs will always be squashed by us when we merge your work. Commit as many times as you need in your
+pull request branch.
 
 ## Re-requesting a review
 
@@ -42,4 +45,4 @@ Read more about this in the [GitHub docs, Re-requesting a review](https://docs.g
 Sometimes the codebase can be a challenge to navigate, especially for a first-time contributor. We don't want you
 spending an hour trying to work out something that would take us only a minute to explain.
 
-If you'd like some help getting started we have several [contact options](./README.md#contact-options) available.
+If you'd like some help getting started we have several [contact options](README.md#contact-options) available.

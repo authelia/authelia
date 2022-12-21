@@ -3,7 +3,6 @@ package server
 import (
 	"net"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -92,21 +91,11 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 }
 
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	rememberMe := strconv.FormatBool(config.Session.RememberMeDuration != schema.RememberMeDisabled)
-	resetPassword := strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable)
+	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
-	resetPasswordCustomURL := config.AuthenticationBackend.PasswordReset.CustomURL.String()
-
-	duoSelfEnrollment := f
-	if !config.DuoAPI.Disable {
-		duoSelfEnrollment = strconv.FormatBool(config.DuoAPI.EnableSelfEnrollment)
-	}
-
-	https := config.Server.TLS.Key != "" && config.Server.TLS.Certificate != ""
-
-	serveIndexHandler := ServeTemplatedFile(assetsRoot, fileIndexHTML, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
-	serveSwaggerHandler := ServeTemplatedFile(assetsSwagger, fileIndexHTML, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
-	serveSwaggerAPIHandler := ServeTemplatedFile(assetsSwagger, fileOpenAPI, config.Server.AssetPath, duoSelfEnrollment, rememberMe, resetPassword, resetPasswordCustomURL, config.Session.Name, config.Theme, https)
+	serveIndexHandler := ServeTemplatedFile(assetsRoot, fileIndexHTML, optsTemplatedFile)
+	serveSwaggerHandler := ServeTemplatedFile(assetsSwagger, fileIndexHTML, optsTemplatedFile)
+	serveSwaggerAPIHandler := ServeTemplatedFile(assetsSwagger, fileOpenAPI, optsTemplatedFile)
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
@@ -115,7 +104,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
-		WithAllowedMethods("OPTIONS", "GET").
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
 		WithAllowedOrigins("*").
 		Build()
 
@@ -164,11 +153,8 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-
-	r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.ANY("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.ANY("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
