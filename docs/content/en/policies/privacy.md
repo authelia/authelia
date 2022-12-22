@@ -35,7 +35,10 @@ __TLDR__: We do not use cookies and we do not collect any personal data.
 ## Application
 
 This section applies to the _Authelia_ application itself and does not apply to the public website
-at https://www.authelia.com.
+at https://www.authelia.com. It's important for users of _Authelia_ to note that this policy only applies to what the
+_Authelia_ application itself does automatically. Individual installations of _Authelia_ may differ from this policy
+depending on the administrator who deploys the application. It is beyond our ability to include this in our policy and
+you should refer to their privacy policy.
 
 __TLDR__: We collect only information necessary to operate the application and properly perform security audits.
 
