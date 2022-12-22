@@ -33,6 +33,15 @@ This currently affects both the SMTP notifier and the LDAP authentication backen
 PEM format and end with the extension `.pem`, `.crt`, or `.cer`. You can either add the individual certificates public
 key or the CA public key which signed them (don't add the private key).
 
+### privacy_policy_url
+
+{{< confkey type="string" required="no" >}}
+
+The privacy policy URL is a URL which optionally is displayed in the frontend linking users to the administrators
+privacy policy. This is useful for users who wish to abide by laws such as the [GDPR](https://gdpr-info.eu/).
+Administrators can view the particulars of what _Authelia_ collects out of the box with our
+[Privacy Policy](https://www.authelia.com/privacy/#application).
+
 ### default_redirection_url
 
 {{< confkey type="string" required="no" >}}
