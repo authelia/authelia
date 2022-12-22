@@ -59,7 +59,7 @@ func NewFilteredFileSources(paths []string, filters []FileFilter) (sources []*Fi
 
 // Name of the Source.
 func (s *FileSource) Name() (name string) {
-	return fmt.Sprintf("yaml file(%s)", s.path)
+	return fmt.Sprintf("file path(%s)", s.path)
 }
 
 // Merge the FileSource koanf.Koanf into the provided one.
@@ -76,7 +76,7 @@ func (s *FileSource) Load(val *schema.StructValidator) (err error) {
 	var info os.FileInfo
 
 	if info, err = os.Stat(s.path); err != nil {
-		return fmt.Errorf("invalid file path source configuration: failed to stat '%s': %w", s.path, err)
+		return err
 	}
 
 	if info.IsDir() {

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -81,7 +81,7 @@ func (s *CLISuite) TestShouldValidateConfig() {
 func (s *CLISuite) TestShouldFailValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config=/config/invalid.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "failed to load configuration from yaml file(/config/invalid.yml) source: open /config/invalid.yml: no such file or directory")
+	s.Assert().Contains(output, "failed to load configuration from file path(/config/invalid.yml) source: stat /config/invalid.yml: no such file or directory\n")
 }
 
 func (s *CLISuite) TestShouldHashPasswordArgon2() {

@@ -196,7 +196,7 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
@@ -422,7 +422,7 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldLoadDirectoryConfiguration(t *testing.T) {
