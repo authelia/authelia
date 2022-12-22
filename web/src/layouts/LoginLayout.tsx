@@ -1,6 +1,6 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 
-import { Container, Grid, Link, Theme } from "@mui/material";
+import { Container, Divider, Grid, Link, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -71,9 +71,12 @@ const LoginLayout = function (props: Props) {
                                 </Link>
                             </Grid>
                             {privacyEnabled ? (
-                                <Grid item xs={4}>
-                                    <PrivacyPolicyLink className={styles.footerLinks} showDivider={true} />
-                                </Grid>
+                                <Fragment>
+                                    <Divider orientation="vertical" flexItem variant="middle" />
+                                    <Grid item xs={4}>
+                                        <PrivacyPolicyLink className={styles.footerLinks} />
+                                    </Grid>
+                                </Fragment>
                             ) : null}
                         </Grid>
                     ) : null}
