@@ -34,6 +34,13 @@ authelia crypto certificate ed25519 --help
   -h, --help   help for ed25519
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
+```
+
 ### SEE ALSO
 
 * [authelia crypto certificate](authelia_crypto_certificate.md)	 - Perform certificate cryptographic operations

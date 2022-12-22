@@ -74,8 +74,8 @@ const (
 	ldapPlaceholderDistinguishedName            = "{dn}"
 	ldapPlaceholderUsername                     = "{username}"
 	ldapPlaceholderDateTimeGeneralized          = "{date-time:generalized}"
-	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch = "{date-time:msft-nt-epoch}"
-	ldapPlaceholderDateTimeUnixEpoch            = "{date-time:unix-epoch}"
+	ldapPlaceholderDateTimeMicrosoftNTTimeEpoch = "{date-time:microsoft-nt}"
+	ldapPlaceholderDateTimeUnixEpoch            = "{date-time:unix}"
 )
 
 const (

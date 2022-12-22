@@ -34,6 +34,13 @@ authelia crypto --help
   -h, --help   help for crypto
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
+```
+
 ### SEE ALSO
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)

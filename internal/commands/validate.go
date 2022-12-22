@@ -4,64 +4,51 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-
-	"github.com/authelia/authelia/v4/internal/configuration"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func newValidateConfigCmd() (cmd *cobra.Command) {
+func newValidateConfigCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "validate-config",
 		Short:   cmdAutheliaValidateConfigShort,
 		Long:    cmdAutheliaValidateConfigLong,
 		Example: cmdAutheliaValidateConfigExample,
 		Args:    cobra.NoArgs,
-		RunE:    cmdValidateConfigRunE,
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateKeysRunE,
+			ctx.ConfigValidateRunE,
+		),
+		RunE: ctx.ValidateConfigRunE,
 
 		DisableAutoGenTag: true,
 	}
 
-	cmdWithConfigFlags(cmd, false, []string{"configuration.yml"})
-
 	return cmd
 }
 
-func cmdValidateConfigRunE(cmd *cobra.Command, _ []string) (err error) {
-	var (
-		configs []string
-		val     *schema.StructValidator
-	)
-
-	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
-		return err
-	}
-
-	config, val, err = loadConfig(configs, true, true, configuration.NewFileFiltersDefault()...)
-	if err != nil {
-		return fmt.Errorf("error occurred loading configuration: %v", err)
-	}
-
+// ValidateConfigRunE is the RunE for the authelia validate-config command.
+func (ctx *CmdCtx) ValidateConfigRunE(_ *cobra.Command, _ []string) (err error) {
 	switch {
-	case val.HasErrors():
+	case ctx.cconfig.validator.HasErrors():
 		fmt.Println("Configuration parsed and loaded with errors:")
 		fmt.Println("")
 
-		for _, err = range val.Errors() {
+		for _, err = range ctx.cconfig.validator.Errors() {
 			fmt.Printf("\t - %v\n", err)
 		}
 
 		fmt.Println("")
 
-		if !val.HasWarnings() {
+		if !ctx.cconfig.validator.HasWarnings() {
 			break
 		}
 
 		fallthrough
-	case val.HasWarnings():
+	case ctx.cconfig.validator.HasWarnings():
 		fmt.Println("Configuration parsed and loaded with warnings:")
 		fmt.Println("")
 
-		for _, err = range val.Warnings() {
+		for _, err = range ctx.cconfig.validator.Warnings() {
 			fmt.Printf("\t - %v\n", err)
 		}
 

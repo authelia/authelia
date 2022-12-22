@@ -26,6 +26,7 @@ body:
       description: What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - v4.37.5
         - v4.37.4
         - v4.37.3
         - v4.37.2

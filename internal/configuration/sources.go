@@ -224,7 +224,9 @@ func NewDefaultSourcesFiltered(files []string, filters []FileFilter, prefix, del
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
 func NewDefaultSourcesWithDefaults(files []string, filters []FileFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
-	sources = []Source{defaults}
+	if defaults != nil {
+		sources = []Source{defaults}
+	}
 
 	if len(filters) == 0 {
 		sources = append(sources, NewDefaultSources(files, prefix, delimiter, additionalSources...)...)

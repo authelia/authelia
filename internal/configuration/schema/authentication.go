@@ -187,7 +187,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = LDAPAuth
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the LDAPImplementationActiveDirectory Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = LDAPAuthenticationBackend{
-	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:msft-nt-epoch})))",
+	UsersFilter:          "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
 	UsernameAttribute:    "sAMAccountName",
 	MailAttribute:        ldapAttrMail,
 	DisplayNameAttribute: ldapAttrDisplayName,

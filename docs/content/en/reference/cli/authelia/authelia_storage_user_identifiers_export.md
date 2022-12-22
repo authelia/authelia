@@ -46,6 +46,7 @@ authelia storage user identifiers export --file export.yaml --encryption-key b34
 
 ```
   -c, --config strings                         configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings    applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
