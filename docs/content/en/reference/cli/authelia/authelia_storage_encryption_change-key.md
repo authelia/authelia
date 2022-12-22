@@ -43,9 +43,8 @@ authelia storage encryption change-key --encryption-key b3453fde-ecc2-4a1f-9422-
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files to load (default [configuration.yml])
-      --config.directory string                configuration directory to load configuration files from
-      --config.experimental.filters strings    list of filters to apply to all configuration files between loading them from disk and parsing their content, options are 'template', 'expand-env'
+  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, the filters are applied after loading them from disk and before parsing their content, options are 'template', 'expand-env'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
