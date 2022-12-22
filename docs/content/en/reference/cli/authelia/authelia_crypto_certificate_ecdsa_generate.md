@@ -36,7 +36,7 @@ authelia crypto certificate ecdsa generate --help
 
 ```
       --ca                            create the certificate as a certificate authority certificate
-  -c, --common-name string            certificate common name
+  -n, --common-name string            certificate common name
       --country strings               certificate country
   -b, --curve string                  Sets the elliptic curve which can be P224, P256, P384, or P521 (default "P256")
   -d, --directory string              directory where the generated keys, certificates, etc will be stored
@@ -57,6 +57,13 @@ authelia crypto certificate ecdsa generate --help
       --sans strings                  subject alternative names
       --signature string              signature algorithm for the certificate (default "SHA256")
   -s, --street-address strings        certificate street address
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
 ```
 
 ### SEE ALSO

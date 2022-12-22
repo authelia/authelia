@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"context"
 	"database/sql"
-	"encoding/base32"
 	"errors"
 	"fmt"
 	"image"
@@ -15,11 +13,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
 
-	"github.com/authelia/authelia/v4/internal/configuration"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -27,28 +22,35 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
-	var configs []string
+// LoadProvidersStorageRunE is a special PreRunE that loads the storage provider into the CmdCtx.
+func (ctx *CmdCtx) LoadProvidersStorageRunE(cmd *cobra.Command, args []string) (err error) {
+	switch warns, errs := ctx.LoadTrustedCertificates(); {
+	case len(errs) != 0:
+		err = fmt.Errorf("had the following errors loading the trusted certificates")
 
-	if configs, err = cmd.Flags().GetStringSlice(cmdFlagNameConfig); err != nil {
-		return err
-	}
-
-	sources := make([]configuration.Source, 0, len(configs)+3)
-
-	if cmd.Flags().Changed(cmdFlagNameConfig) {
-		for _, configFile := range configs {
-			if _, err := os.Stat(configFile); os.IsNotExist(err) {
-				return fmt.Errorf("could not load the provided configuration file %s: %w", configFile, err)
-			}
-
-			sources = append(sources, configuration.NewYAMLFileSource(configFile))
+		for _, e := range errs {
+			err = fmt.Errorf("%+v: %w", err, e)
 		}
-	} else if _, err := os.Stat(configs[0]); err == nil {
-		sources = append(sources, configuration.NewYAMLFileSource(configs[0]))
-	}
 
-	mapping := map[string]string{
+		return err
+	case len(warns) != 0:
+		err = fmt.Errorf("had the following warnings loading the trusted certificates")
+
+		for _, e := range errs {
+			err = fmt.Errorf("%+v: %w", err, e)
+		}
+
+		return err
+	default:
+		ctx.providers.StorageProvider = getStorageProvider(ctx)
+
+		return nil
+	}
+}
+
+// ConfigStorageCommandLineConfigPersistentPreRunE configures the storage command mapping.
+func (ctx *CmdCtx) ConfigStorageCommandLineConfigPersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
+	flagsMap := map[string]string{
 		cmdFlagNameEncryptionKey: "storage.encryption_key",
 
 		cmdFlagNameSQLite3Path: "storage.local.path",
@@ -77,75 +79,73 @@ func storagePersistentPreRunE(cmd *cobra.Command, _ []string) (err error) {
 		cmdFlagNameSecretSize: "totp.secret_size",
 	}
 
-	sources = append(sources, configuration.NewEnvironmentSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
-	sources = append(sources, configuration.NewSecretsSource(configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter))
-	sources = append(sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), mapping, true, false))
+	return ctx.ConfigSetFlagsMapRunE(cmd.Flags(), flagsMap, true, false)
+}
 
-	val := schema.NewStructValidator()
+// ConfigValidateStoragePersistentPreRunE validates the storage config before running commands using it.
+func (ctx *CmdCtx) ConfigValidateStoragePersistentPreRunE(_ *cobra.Command, _ []string) (err error) {
+	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
+		var (
+			i int
+			e error
+		)
 
-	config = &schema.Configuration{}
+		for i, e = range errs {
+			if i == 0 {
+				err = e
+				continue
+			}
 
-	if _, err = configuration.LoadAdvanced(val, "", &config, sources...); err != nil {
+			err = fmt.Errorf("%w, %v", err, e)
+		}
+
 		return err
 	}
 
-	if val.HasErrors() {
-		var finalErr error
+	validator.ValidateStorage(ctx.config.Storage, ctx.cconfig.validator)
 
-		for i, err := range val.Errors() {
+	validator.ValidateTOTP(ctx.config, ctx.cconfig.validator)
+
+	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
+		var (
+			i int
+			e error
+		)
+
+		for i, e = range errs {
 			if i == 0 {
-				finalErr = err
+				err = e
 				continue
 			}
 
-			finalErr = fmt.Errorf("%w, %v", finalErr, err)
+			err = fmt.Errorf("%w, %v", err, e)
 		}
 
-		return finalErr
-	}
-
-	validator.ValidateStorage(config.Storage, val)
-
-	validator.ValidateTOTP(config, val)
-
-	if val.HasErrors() {
-		var finalErr error
-
-		for i, err := range val.Errors() {
-			if i == 0 {
-				finalErr = err
-				continue
-			}
-
-			finalErr = fmt.Errorf("%w, %v", finalErr, err)
-		}
-
-		return finalErr
+		return err
 	}
 
 	return nil
 }
 
-func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
+func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider storage.Provider
-		verbose  bool
-		result   storage.EncryptionValidationResult
-
-		ctx = context.Background()
+		verbose bool
+		result  storage.EncryptionValidationResult
 	)
 
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	if verbose, err = cmd.Flags().GetBool(cmdFlagNameVerbose); err != nil {
 		return err
 	}
 
-	if result, err = provider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
+	if result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
 			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
@@ -183,26 +183,22 @@ func storageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err er
 	return nil
 }
 
-func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageSchemaEncryptionChangeKeyRunE is the RunE for the authelia storage encryption change-key command.
+func (ctx *CmdCtx) StorageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider storage.Provider
-		key      string
-		version  int
-
-		ctx = context.Background()
+		key     string
+		version int
 	)
 
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
-		return err
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
 	}
 
-	if version, err = provider.SchemaVersion(ctx); err != nil {
+	if version, err = ctx.providers.StorageProvider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
@@ -218,7 +214,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	if !useFlag || key == "" {
-		if key, err = termReadPasswordStrWithPrompt("Enter New Storage Encryption Key: ", cmdFlagNameNewEncryptionKey); err != nil {
+		if key, err = termReadPasswordWithPrompt("Enter New Storage Encryption Key: ", cmdFlagNameNewEncryptionKey); err != nil {
 			return err
 		}
 	}
@@ -230,7 +226,7 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 		return errors.New("the new encryption key must be at least 20 characters")
 	}
 
-	if err = provider.SchemaEncryptionChangeKey(ctx, key); err != nil {
+	if err = ctx.providers.StorageProvider.SchemaEncryptionChangeKey(ctx, key); err != nil {
 		return err
 	}
 
@@ -239,27 +235,25 @@ func storageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args []string) (er
 	return nil
 }
 
-func storageWebAuthnListRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageWebauthnListRunE is the RunE for the authelia storage user webauthn list command.
+func (ctx *CmdCtx) StorageWebauthnListRunE(cmd *cobra.Command, args []string) (err error) {
 	if len(args) == 0 || args[0] == "" {
-		return storageWebAuthnListAllRunE(cmd, args)
+		return ctx.StorageWebauthnListAllRunE(cmd, args)
 	}
 
-	var (
-		provider storage.Provider
-		ctx      = context.Background()
-	)
-
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	var devices []model.WebauthnDevice
 
 	user := args[0]
 
-	devices, err = provider.LoadWebauthnDevicesByUsername(ctx, user)
+	devices, err = ctx.providers.StorageProvider.LoadWebauthnDevicesByUsername(ctx, user)
 
 	switch {
 	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebauthnDevice)):
@@ -278,17 +272,15 @@ func storageWebAuthnListRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
-	var (
-		provider storage.Provider
-		ctx      = context.Background()
-	)
-
-	provider = getStorageProvider()
-
+// StorageWebauthnListAllRunE is the RunE for the authelia storage user webauthn list command when no args are specified.
+func (ctx *CmdCtx) StorageWebauthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	var devices []model.WebauthnDevice
 
@@ -297,7 +289,7 @@ func storageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
 	output := strings.Builder{}
 
 	for page := 0; true; page++ {
-		if devices, err = provider.LoadWebauthnDevices(ctx, limit, page); err != nil {
+		if devices, err = ctx.providers.StorageProvider.LoadWebauthnDevices(ctx, limit, page); err != nil {
 			return fmt.Errorf("failed to list devices: %w", err)
 		}
 
@@ -320,35 +312,33 @@ func storageWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func storageWebAuthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
-	var (
-		provider storage.Provider
-		ctx      = context.Background()
-	)
-
-	provider = getStorageProvider()
-
+// StorageWebauthnDeleteRunE is the RunE for the authelia storage user webauthn delete command.
+func (ctx *CmdCtx) StorageWebauthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	var (
 		all, byKID             bool
 		description, kid, user string
 	)
 
-	if all, byKID, description, kid, user, err = storageWebAuthnDeleteGetAndValidateConfig(cmd, args); err != nil {
+	if all, byKID, description, kid, user, err = storageWebauthnDeleteRunEOptsFromFlags(cmd.Flags(), args); err != nil {
 		return err
 	}
 
 	if byKID {
-		if err = provider.DeleteWebauthnDevice(ctx, kid); err != nil {
+		if err = ctx.providers.StorageProvider.DeleteWebauthnDevice(ctx, kid); err != nil {
 			return fmt.Errorf("failed to delete WebAuthn device with kid '%s': %w", kid, err)
 		}
 
 		fmt.Printf("Deleted WebAuthn device with kid '%s'", kid)
 	} else {
-		err = provider.DeleteWebauthnDeviceByUsername(ctx, user, description)
+		err = ctx.providers.StorageProvider.DeleteWebauthnDeviceByUsername(ctx, user, description)
 
 		if all {
 			if err != nil {
@@ -368,62 +358,9 @@ func storageWebAuthnDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageWebAuthnDeleteGetAndValidateConfig(cmd *cobra.Command, args []string) (all, byKID bool, description, kid, user string, err error) {
-	if len(args) != 0 {
-		user = args[0]
-	}
-
-	flags := 0
-
-	if cmd.Flags().Changed(cmdFlagNameAll) {
-		if all, err = cmd.Flags().GetBool(cmdFlagNameAll); err != nil {
-			return
-		}
-
-		flags++
-	}
-
-	if cmd.Flags().Changed(cmdFlagNameDescription) {
-		if description, err = cmd.Flags().GetString(cmdFlagNameDescription); err != nil {
-			return
-		}
-
-		flags++
-	}
-
-	if byKID = cmd.Flags().Changed(cmdFlagNameKeyID); byKID {
-		if kid, err = cmd.Flags().GetString(cmdFlagNameKeyID); err != nil {
-			return
-		}
-
-		flags++
-	}
-
-	if flags > 1 {
-		err = fmt.Errorf("must only supply one of the flags --all, --description, and --kid but %d were specified", flags)
-
-		return
-	}
-
-	if flags == 0 {
-		err = fmt.Errorf("must supply one of the flags --all, --description, or --kid")
-
-		return
-	}
-
-	if !byKID && len(user) == 0 {
-		err = fmt.Errorf("must supply the username or the --kid flag")
-
-		return
-	}
-
-	return
-}
-
-func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageTOTPGenerateRunE is the RunE for the authelia storage user totp generate command.
+func (ctx *CmdCtx) StorageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider         storage.Provider
-		ctx              = context.Background()
 		c                *model.TOTPConfiguration
 		force            bool
 		filename, secret string
@@ -431,25 +368,27 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		img              image.Image
 	)
 
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	if force, filename, secret, err = storageTOTPGenerateRunEOptsFromFlags(cmd.Flags()); err != nil {
 		return err
 	}
 
-	if _, err = provider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
+	if _, err = ctx.providers.StorageProvider.LoadTOTPConfiguration(ctx, args[0]); err == nil && !force {
 		return fmt.Errorf("%s already has a TOTP configuration, use --force to overwrite", args[0])
 	} else if err != nil && !errors.Is(err, storage.ErrNoTOTPConfiguration) {
 		return err
 	}
 
-	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
+	totpProvider := totp.NewTimeBasedProvider(ctx.config.TOTP)
 
-	if c, err = totpProvider.GenerateCustom(args[0], config.TOTP.Algorithm, secret, config.TOTP.Digits, config.TOTP.Period, config.TOTP.SecretSize); err != nil {
+	if c, err = totpProvider.GenerateCustom(args[0], ctx.config.TOTP.Algorithm, secret, ctx.config.TOTP.Digits, ctx.config.TOTP.Period, ctx.config.TOTP.SecretSize); err != nil {
 		return err
 	}
 
@@ -477,7 +416,7 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 		extraInfo = fmt.Sprintf(" and saved it as a PNG image at the path '%s'", filename)
 	}
 
-	if err = provider.SaveTOTPConfiguration(ctx, *c); err != nil {
+	if err = ctx.providers.StorageProvider.SaveTOTPConfiguration(ctx, *c); err != nil {
 		return err
 	}
 
@@ -486,47 +425,23 @@ func storageTOTPGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageTOTPGenerateRunEOptsFromFlags(flags *pflag.FlagSet) (force bool, filename, secret string, err error) {
-	if force, err = flags.GetBool("force"); err != nil {
-		return force, filename, secret, err
-	}
-
-	if filename, err = flags.GetString("path"); err != nil {
-		return force, filename, secret, err
-	}
-
-	if secret, err = flags.GetString("secret"); err != nil {
-		return force, filename, secret, err
-	}
-
-	secretLength := base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(secret))
-	if secret != "" && secretLength < schema.TOTPSecretSizeMinimum {
-		return force, filename, secret, fmt.Errorf("decoded length of the base32 secret must have "+
-			"a length of more than %d but '%s' has a decoded length of %d", schema.TOTPSecretSizeMinimum, secret, secretLength)
-	}
-
-	return force, filename, secret, nil
-}
-
-func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
-	var (
-		provider storage.Provider
-		ctx      = context.Background()
-	)
-
+// StorageTOTPDeleteRunE is the RunE for the authelia storage user totp delete command.
+func (ctx *CmdCtx) StorageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	user := args[0]
 
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if _, err = provider.LoadTOTPConfiguration(ctx, user); err != nil {
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	if _, err = ctx.providers.StorageProvider.LoadTOTPConfiguration(ctx, user); err != nil {
 		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
 	}
 
-	if err = provider.DeleteTOTPConfiguration(ctx, user); err != nil {
+	if err = ctx.providers.StorageProvider.DeleteTOTPConfiguration(ctx, user); err != nil {
 		return fmt.Errorf("can't delete configuration for user '%s': %+v", user, err)
 	}
 
@@ -535,34 +450,30 @@ func storageTOTPDeleteRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
+// StorageTOTPExportRunE is the RunE for the authelia storage user totp export command.
+func (ctx *CmdCtx) StorageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider       storage.Provider
 		format, dir    string
 		configurations []model.TOTPConfiguration
 		img            image.Image
-
-		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = checkStorageSchemaUpToDate(ctx, provider); err != nil {
-		return err
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
 	}
 
-	if format, dir, err = storageTOTPExportGetConfigFromFlags(cmd); err != nil {
+	if format, dir, err = flagsGetTOTPExportOptions(cmd.Flags()); err != nil {
 		return err
 	}
 
 	limit := 10
 
 	for page := 0; true; page++ {
-		if configurations, err = provider.LoadTOTPConfigurations(ctx, limit, page); err != nil {
+		if configurations, err = ctx.providers.StorageProvider.LoadTOTPConfigurations(ctx, limit, page); err != nil {
 			return err
 		}
 
@@ -607,56 +518,18 @@ func storageTOTPExportRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func storageTOTPExportGetConfigFromFlags(cmd *cobra.Command) (format, dir string, err error) {
-	if format, err = cmd.Flags().GetString(cmdFlagNameFormat); err != nil {
-		return "", "", err
-	}
-
-	if dir, err = cmd.Flags().GetString("dir"); err != nil {
-		return "", "", err
-	}
-
-	switch format {
-	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
-		break
-	case storageTOTPExportFormatPNG:
-		if dir == "" {
-			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
-		}
-
-		if _, err = os.Stat(dir); !os.IsNotExist(err) {
-			return "", "", errors.New("output directory must not exist")
-		}
-
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return "", "", err
-		}
-	default:
-		return "", "", errors.New("format must be csv, uri, or png")
-	}
-
-	return format, dir, nil
-}
-
-func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
+// StorageMigrateHistoryRunE is the RunE for the authelia storage migrate history command.
+func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
-		provider   storage.Provider
 		version    int
 		migrations []model.Migration
-
-		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
-	if provider == nil {
-		return errNoStorageProvider
-	}
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if version, err = provider.SchemaVersion(ctx); err != nil {
+	if version, err = ctx.providers.StorageProvider.SchemaVersion(ctx); err != nil {
 		return err
 	}
 
@@ -665,7 +538,7 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 		return
 	}
 
-	if migrations, err = provider.SchemaMigrationHistory(ctx); err != nil {
+	if migrations, err = ctx.providers.StorageProvider.SchemaMigrationHistory(ctx); err != nil {
 		return err
 	}
 
@@ -682,26 +555,23 @@ func storageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
+// NewStorageMigrateListRunE creates the RunE for the authelia storage migrate list command.
+func (ctx *CmdCtx) NewStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var (
-			provider     storage.Provider
-			ctx          = context.Background()
 			migrations   []model.SchemaMigration
 			directionStr string
 		)
 
-		provider = getStorageProvider()
-
 		defer func() {
-			_ = provider.Close()
+			_ = ctx.providers.StorageProvider.Close()
 		}()
 
 		if up {
-			migrations, err = provider.SchemaMigrationsUp(ctx, 0)
+			migrations, err = ctx.providers.StorageProvider.SchemaMigrationsUp(ctx, 0)
 			directionStr = "Up"
 		} else {
-			migrations, err = provider.SchemaMigrationsDown(ctx, 0)
+			migrations, err = ctx.providers.StorageProvider.SchemaMigrationsDown(ctx, 0)
 			directionStr = "Down"
 		}
 
@@ -723,19 +593,15 @@ func newStorageMigrateListRunE(up bool) func(cmd *cobra.Command, args []string) 
 	}
 }
 
-func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
+// NewStorageMigrationRunE creates the RunE for the authelia storage migrate command.
+func (ctx *CmdCtx) NewStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		var (
-			provider storage.Provider
-			target   int
-
-			ctx = context.Background()
+			target int
 		)
 
-		provider = getStorageProvider()
-
 		defer func() {
-			_ = provider.Close()
+			_ = ctx.providers.StorageProvider.Close()
 		}()
 
 		if target, err = cmd.Flags().GetInt(cmdFlagNameTarget); err != nil {
@@ -746,68 +612,48 @@ func newStorageMigrationRunE(up bool) func(cmd *cobra.Command, args []string) (e
 		case up:
 			switch cmd.Flags().Changed(cmdFlagNameTarget) {
 			case true:
-				return provider.SchemaMigrate(ctx, true, target)
+				return ctx.providers.StorageProvider.SchemaMigrate(ctx, true, target)
 			default:
-				return provider.SchemaMigrate(ctx, true, storage.SchemaLatest)
+				return ctx.providers.StorageProvider.SchemaMigrate(ctx, true, storage.SchemaLatest)
 			}
 		default:
 			if !cmd.Flags().Changed(cmdFlagNameTarget) {
 				return errors.New("you must set a target version")
 			}
 
-			if err = storageMigrateDownConfirmDestroy(cmd); err != nil {
+			var confirmed bool
+
+			if confirmed, err = termReadConfirmation(cmd.Flags(), cmdFlagNameDestroyData, "Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ", "DESTROY"); err != nil {
 				return err
 			}
 
-			return provider.SchemaMigrate(ctx, false, target)
+			if !confirmed {
+				return errors.New("cancelling down migration due to user not accepting data destruction")
+			}
+
+			return ctx.providers.StorageProvider.SchemaMigrate(ctx, false, target)
 		}
 	}
 }
 
-func storageMigrateDownConfirmDestroy(cmd *cobra.Command) (err error) {
-	var destroy bool
-
-	if destroy, err = cmd.Flags().GetBool(cmdFlagNameDestroyData); err != nil {
-		return err
-	}
-
-	if !destroy {
-		fmt.Printf("Schema Down Migrations may DESTROY data, type 'DESTROY' and press return to continue: ")
-
-		var text string
-
-		_, _ = fmt.Scanln(&text)
-
-		if text != "DESTROY" {
-			return errors.New("cancelling down migration due to user not accepting data destruction")
-		}
-	}
-
-	return nil
-}
-
-func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
+// StorageSchemaInfoRunE is the RunE for the authelia storage schema info command.
+func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	var (
 		upgradeStr, tablesStr string
 
-		provider        storage.Provider
 		tables          []string
 		version, latest int
-
-		ctx = context.Background()
 	)
 
-	provider = getStorageProvider()
-
 	defer func() {
-		_ = provider.Close()
+		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if version, err = provider.SchemaVersion(ctx); err != nil && err.Error() != "unknown schema state" {
+	if version, err = ctx.providers.StorageProvider.SchemaVersion(ctx); err != nil && err.Error() != "unknown schema state" {
 		return err
 	}
 
-	if tables, err = provider.SchemaTables(ctx); err != nil {
+	if tables, err = ctx.providers.StorageProvider.SchemaTables(ctx); err != nil {
 		return err
 	}
 
@@ -817,7 +663,7 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		tablesStr = strings.Join(tables, ", ")
 	}
 
-	if latest, err = provider.SchemaLatestVersion(); err != nil {
+	if latest, err = ctx.providers.StorageProvider.SchemaLatestVersion(); err != nil {
 		return err
 	}
 
@@ -832,7 +678,7 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 		result     storage.EncryptionValidationResult
 	)
 
-	switch result, err = provider.SchemaEncryptionCheckKey(ctx, false); {
+	switch result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, false); {
 	case err != nil:
 		if errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported) {
 			encryption = "unsupported (schema version)"
@@ -850,30 +696,9 @@ func storageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func checkStorageSchemaUpToDate(ctx context.Context, provider storage.Provider) (err error) {
-	var version, latest int
-
-	if version, err = provider.SchemaVersion(ctx); err != nil {
-		return err
-	}
-
-	if latest, err = provider.SchemaLatestVersion(); err != nil {
-		return err
-	}
-
-	if version != latest {
-		return fmt.Errorf("schema is version %d which is outdated please migrate to version %d in order to use this command or use an older binary", version, latest)
-	}
-
-	return nil
-}
-
-func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
+// StorageUserIdentifiersExportRunE is the RunE for the authelia storage user identifiers export command.
+func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		provider storage.Provider
-
-		ctx = context.Background()
-
 		file string
 	)
 
@@ -890,7 +715,13 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("error occurred opening '%s': %w", file, err)
 	}
 
-	provider = getStorageProvider()
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	var (
 		export model.UserOpaqueIdentifiersExport
@@ -898,7 +729,7 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 		data []byte
 	)
 
-	if export.Identifiers, err = provider.LoadUserOpaqueIdentifiers(ctx); err != nil {
+	if export.Identifiers, err = ctx.providers.StorageProvider.LoadUserOpaqueIdentifiers(ctx); err != nil {
 		return err
 	}
 
@@ -919,12 +750,9 @@ func storageUserIdentifiersExport(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
+// StorageUserIdentifiersImportRunE is the RunE for the authelia storage user identifiers import command.
+func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		provider storage.Provider
-
-		ctx = context.Background()
-
 		file string
 		stat os.FileInfo
 	)
@@ -958,10 +786,16 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("can't import a file with no data")
 	}
 
-	provider = getStorageProvider()
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
 
 	for _, opaqueID := range export.Identifiers {
-		if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
+		if err = ctx.providers.StorageProvider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
 			return err
 		}
 	}
@@ -971,41 +805,26 @@ func storageUserIdentifiersImport(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []model.UserOpaqueIdentifier) bool {
-	for i := 0; i < len(identifiers); i++ {
-		if identifier.Service == identifiers[i].Service && identifier.SectorID == identifiers[i].SectorID && identifier.Username == identifiers[i].Username {
-			return true
-		}
-	}
-
-	return false
-}
-
-func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) {
+// StorageUserIdentifiersGenerateRunE is the RunE for the authelia storage user identifiers generate command.
+func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		provider storage.Provider
-
-		ctx = context.Background()
-
 		users, services, sectors []string
 	)
 
-	provider = getStorageProvider()
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
 
-	identifiers, err := provider.LoadUserOpaqueIdentifiers(ctx)
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	identifiers, err := ctx.providers.StorageProvider.LoadUserOpaqueIdentifiers(ctx)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("can't load the existing identifiers: %w", err)
 	}
 
-	if users, err = cmd.Flags().GetStringSlice(cmdFlagNameUsers); err != nil {
-		return err
-	}
-
-	if services, err = cmd.Flags().GetStringSlice(cmdFlagNameServices); err != nil {
-		return err
-	}
-
-	if sectors, err = cmd.Flags().GetStringSlice(cmdFlagNameSectors); err != nil {
+	if users, services, sectors, err = flagsGetUserIdentifiersGenerateOptions(cmd.Flags()); err != nil {
 		return err
 	}
 
@@ -1043,7 +862,7 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 					return fmt.Errorf("failed to generate a uuid: %w", err)
 				}
 
-				if err = provider.SaveUserOpaqueIdentifier(ctx, identifier); err != nil {
+				if err = ctx.providers.StorageProvider.SaveUserOpaqueIdentifier(ctx, identifier); err != nil {
 					return fmt.Errorf("failed to save identifier: %w", err)
 				}
 
@@ -1057,12 +876,9 @@ func storageUserIdentifiersGenerate(cmd *cobra.Command, _ []string) (err error) 
 	return nil
 }
 
-func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
+// StorageUserIdentifiersAddRunE is the RunE for the authelia storage user identifiers add command.
+func (ctx *CmdCtx) StorageUserIdentifiersAddRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		provider storage.Provider
-
-		ctx = context.Background()
-
 		service, sector string
 	)
 
@@ -1106,9 +922,15 @@ func storageUserIdentifiersAdd(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	provider = getStorageProvider()
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
 
-	if err = provider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	if err = ctx.providers.StorageProvider.SaveUserOpaqueIdentifier(ctx, opaqueID); err != nil {
 		return err
 	}
 

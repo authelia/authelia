@@ -232,9 +232,9 @@ Example:
 ```yaml
 {{ if contains (env "DOMAIN") "https://" }}
 default_redirection_url: '{{ env "DOMAIN" }}'
-{{ else}}
+{{ else }}
 default_redirection_url: 'https://{{ env "DOMAIN" }}'
-  {{ end }}
+{{ end }}
 ```
 
 ##### hasPrefix
@@ -246,7 +246,7 @@ Example:
 ```yaml
 {{ if hasPrefix (env "DOMAIN") "https://" }}
 default_redirection_url: '{{ env "DOMAIN" }}'
-{{ else}}
+{{ else }}
 default_redirection_url: 'https://{{ env "DOMAIN" }}'
 {{ end }}
 ```
@@ -260,7 +260,7 @@ Example:
 ```yaml
 {{ if hasSuffix (env "DOMAIN") "/" }}
 default_redirection_url: 'https://{{ env "DOMAIN" }}'
-{{ else}}
+{{ else }}
 default_redirection_url: 'https://{{ env "DOMAIN" }}/'
 {{ end }}
 ```
