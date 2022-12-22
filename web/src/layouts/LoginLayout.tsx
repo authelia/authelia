@@ -65,13 +65,13 @@ const LoginLayout = function (props: Props) {
                     </Grid>
                     {props.showBrand ? (
                         <Grid item container xs={12} alignItems="center" justifyContent="center">
-                            <Grid item xs={3}>
+                            <Grid item xs={4}>
                                 <Link href={url} target="_blank" underline="hover" className={styles.footerLinks}>
                                     {translate("Powered by")} Authelia
                                 </Link>
                             </Grid>
                             {privacyEnabled ? (
-                                <Grid item xs={3}>
+                                <Grid item xs={4}>
                                     <PrivacyPolicyLink className={styles.footerLinks} showDivider={true} />
                                 </Grid>
                             ) : null}

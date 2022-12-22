@@ -1,5 +1,5 @@
 import { Button, Drawer, DrawerProps, Grid, Typography } from "@mui/material";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
 import { usePersistentStorageValue } from "@hooks/PersistentStorage";
@@ -30,13 +30,14 @@ const PrivacyPolicyDrawer = function (props: DrawerProps) {
                 </Grid>
                 <Grid item xs={12}>
                     <Typography id="privacy-policy-drawer-description">
-                        {translate("You must view and accept the Privacy Policy before using")} Authelia.
+                        <Trans
+                            i18nKey="You must view and accept the Privacy Policy before using"
+                            components={[<PrivacyPolicyLink />]}
+                        />{" "}
+                        Authelia.
                     </Typography>
                 </Grid>
                 <Grid item xs={12} paddingY={2}>
-                    <PrivacyPolicyLink />
-                </Grid>
-                <Grid item xs={12} paddingBottom={2}>
                     <Button
                         onClick={() => {
                             setAccepted(true);
