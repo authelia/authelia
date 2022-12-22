@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 
 import { Container, Divider, Grid, Link, Stack, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
@@ -58,28 +58,28 @@ const LoginLayout = function (props: Props) {
                         {props.children}
                     </Grid>
                     {props.showBrand ? (
-                        <Grid item xs={12} alignItems="center">
-                            <Stack
-                                direction="row"
-                                divider={<Divider orientation="vertical" flexItem />}
-                                spacing={2}
-                                alignItems="center"
-                            >
+                        <Grid item container xs={12} alignItems="center" justifyContent="center">
+                            <Grid item xs={3}>
                                 <Link href={url} target="_blank" underline="hover" className={styles.footer}>
                                     {translate("Powered by")} Authelia
                                 </Link>
-                                {hrefPrivacyPolicy !== "" ? (
-                                    <Link
-                                        href={hrefPrivacyPolicy}
-                                        target="_blank"
-                                        rel="noopener"
-                                        underline="hover"
-                                        className={styles.footer}
-                                    >
-                                        {translate("Privacy Policy")}
-                                    </Link>
-                                ) : null}
-                            </Stack>
+                            </Grid>
+                            {hrefPrivacyPolicy !== "" ? (
+                                <Fragment>
+                                    <Divider orientation="vertical" flexItem variant="middle" />
+                                    <Grid item xs={3}>
+                                        <Link
+                                            href={hrefPrivacyPolicy}
+                                            target="_blank"
+                                            rel="noopener"
+                                            underline="hover"
+                                            className={styles.footer}
+                                        >
+                                            {translate("Privacy Policy")}
+                                        </Link>
+                                    </Grid>
+                                </Fragment>
+                            ) : null}
                         </Grid>
                     ) : null}
                 </Grid>
