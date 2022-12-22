@@ -40,7 +40,7 @@
     "react-dom": "18.2.0",
     "react-i18next": "12.1.1",
     "react-loading": "2.0.3",
-    "react-router-dom": "6.5.0",
+    "react-router-dom": "6.6.0",
     "react18-input-otp": "1.1.1",
     "zxcvbn": "4.4.2"
   },
@@ -157,7 +157,7 @@
     "@typescript-eslint/eslint-plugin": "5.47.0",
     "@typescript-eslint/parser": "5.47.0",
     "@vitejs/plugin-react": "3.0.0",
-    "esbuild": "0.16.7",
+    "esbuild": "0.16.10",
     "esbuild-jest": "0.5.0",
     "eslint": "8.30.0",
     "eslint-config-prettier": "8.5.0",
