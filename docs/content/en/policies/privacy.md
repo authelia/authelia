@@ -16,12 +16,38 @@ aliases:
   - /privacy.html
 ---
 
+## Website
+
+This section applies to the public website at https://www.authelia.com and does not apply to the _Authelia_ application
+itself.
+
 __TLDR__: We do not use cookies and we do not collect any personal data.
 
-## Website visitors
+### Website visitors
 
 * No personal information is collected.
 * No information is stored in the browser.
+* No information is shared with, sent to or sold to third-parties.
+* No information is shared with advertising companies.
+* No information is mined and harvested for personal and behavioral trends.
+* No information is monetized.
+
+## Application
+
+This section applies to the _Authelia_ application itself and does not apply to the public website
+at https://www.authelia.com.
+
+__TLDR__: We collect only information necessary to operate the application and properly perform security audits.
+
+### Application visitors
+
+* No personal information is collected other than:
+  * Username and IP address are recorded and logged for security related events for auditing purposes.
+* The information stored in the browser is:
+  * Cookies:
+    * A session cookie necessary for the application to operate.
+  * Local Storage:
+    * A language preference necessary for the application to operate.
 * No information is shared with, sent to or sold to third-parties.
 * No information is shared with advertising companies.
 * No information is mined and harvested for personal and behavioral trends.
