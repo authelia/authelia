@@ -537,9 +537,11 @@ const (
 	cmdConfigDefaultContainer = "/config/configuration.yml"
 	cmdConfigDefaultDaemon    = "/etc/authelia/configuration.yml"
 
-	cmdFlagNameConfig = "config"
+	cmdFlagNameConfig    = "config"
+	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
 
 	cmdFlagNameConfigExpFilters = "config.experimental.filters"
+	cmdFlagEnvNameConfigFilters = "X_AUTHELIA_CONFIG_FILTERS"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -655,4 +657,42 @@ The following filters are available:
 		'expand-env' filter for example.
 
 		For a full list of functions see: https://www.authelia.com/configuration/methods/files/#functions`
+
+	helpTopicConfig = `Configuration can be specified in multiple layers where each layer is a different source from
+the last. The layers are loaded in the order below where each layer potentially overrides the individual settings from
+previous layers with the individual settings it provides (i.e. if the same setting is specified twice).
+
+Layers:
+  - File/Directory Paths
+  - Environment Variables
+  - Secrets
+
+File/Directory Paths:
+
+	File/Directory Paths can be specified either via the '--config' CLI argument or the 'X_AUTHELIA_CONFIG' environment
+	variable. If both the environment variable AND the CLI argument are specified the environment variable is completely
+	ignored. These values both take lists separated by commas.
+
+	Directories that are loaded via this method load all files with relevant extensions from the directory, this is not
+    recursive. This means all files with these extensions must be Authelia configuration files with valid syntax.
+
+	The paths specified are loaded in order, where individual settings specified by later files potentially overrides
+	individual settings by later files (i.e. if the same setting is specified twice). Files specified Files in
+	directories are loaded in lexicographic order.
+
+	The files loaded via this method can be interpolated or templated via the configuration filters. Read more about
+	this topic by running: authelia -h authelia filters
+
+Environment Variables:
+
+	Most configuration options in Authelia can be specified via an environment variable. The available options and the
+	specific environment variable mapping can be found here: https://www.authelia.com/configuration/methods/environment/
+
+Secrets:
+
+	Some configuration options in Authelia can be specified via an environment variable which refers to the location of
+	a file; also known as a secret. Every configuration key that ends with the following strings can be loaded in this
+	way: 'key', 'secret', 'password', 'token'.
+
+	The available options and the specific secret mapping can be found here: https://www.authelia.com/configuration/methods/secrets/`
 )
