@@ -275,7 +275,7 @@ func loadXNormalizedPaths(originalConfigs []string, originalDirectory string) ([
 		err       error
 	)
 
-	if strings.HasSuffix(originalDirectory, "/") || strings.HasSuffix(originalDirectory, "/") {
+	if strings.HasSuffix(originalDirectory, "/") {
 		directory = filepath.Dir(originalDirectory)
 	} else {
 		directory = originalDirectory
