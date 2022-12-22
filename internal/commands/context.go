@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -314,26 +313,14 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // ConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs, filterNames []string
-		directory            string
+		configs   []string
+		directory string
 
 		filters []configuration.FileFilter
 	)
 
-	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, directory, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
 		return err
-	}
-
-	if directory, _, err = loadXEnvCLIStringValue(cmd, "", cmdFlagNameConfigDirectory); err != nil {
-		return err
-	}
-
-	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
-		return err
-	}
-
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
-		return fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 
 	if ctx.cconfig == nil {
@@ -356,64 +343,4 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	return nil
-}
-
-type XEnvCLIResult int
-
-const (
-	XEnvCLIResultCLIExplicit XEnvCLIResult = iota
-	XEnvCLIResultCLIImplicit
-	XEnvCLIResultEnvironment
-)
-
-func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
-	if cmd.Flags().Changed(flagName) {
-		value, err = cmd.Flags().GetStringSlice(flagName)
-
-		return value, XEnvCLIResultCLIExplicit, err
-	}
-
-	var (
-		env string
-		ok  bool
-	)
-
-	if envKey != "" {
-		env, ok = os.LookupEnv(envKey)
-	}
-
-	switch {
-	case ok && env != "":
-		return strings.Split(env, ","), XEnvCLIResultEnvironment, nil
-	default:
-		value, err = cmd.Flags().GetStringSlice(flagName)
-
-		return value, XEnvCLIResultCLIImplicit, err
-	}
-}
-
-func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) { //nolint:unparam
-	if cmd.Flags().Changed(flagName) {
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, XEnvCLIResultCLIExplicit, err
-	}
-
-	var (
-		env string
-		ok  bool
-	)
-
-	if envKey != "" {
-		env, ok = os.LookupEnv(envKey)
-	}
-
-	switch {
-	case ok && env != "":
-		return env, XEnvCLIResultEnvironment, nil
-	default:
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, XEnvCLIResultCLIImplicit, err
-	}
 }

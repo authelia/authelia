@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"syscall"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
 
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -227,4 +231,125 @@ func termReadPasswordWithPrompt(prompt, flag string) (password string, err error
 	}
 
 	return password, nil
+}
+
+type XEnvCLIResult int
+
+const (
+	XEnvCLIResultCLIExplicit XEnvCLIResult = iota
+	XEnvCLIResultCLIImplicit
+	XEnvCLIResultEnvironment
+)
+
+func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, directory string, filters []configuration.FileFilter, err error) {
+	var (
+		filterNames []string
+	)
+
+	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+		return nil, "", nil, err
+	}
+
+	if directory, _, err = loadXEnvCLIStringValue(cmd, "", cmdFlagNameConfigDirectory); err != nil {
+		return nil, "", nil, err
+	}
+
+	if configs, directory, err = loadXNormalizedPaths(configs, directory); err != nil {
+		return nil, "", nil, err
+	}
+
+	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
+		return nil, "", nil, err
+	}
+
+	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+		return nil, "", nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
+	}
+
+	return
+}
+
+func loadXNormalizedPaths(originalConfigs []string, originalDirectory string) ([]string, string, error) {
+	var (
+		directory string
+		err       error
+	)
+
+	if strings.HasSuffix(originalDirectory, "/") || strings.HasSuffix(originalDirectory, "/") {
+		directory = filepath.Dir(originalDirectory)
+	} else {
+		directory = originalDirectory
+	}
+
+	configs := make([]string, len(originalConfigs))
+
+	for i, config := range originalConfigs {
+		if config, err = filepath.Abs(config); err != nil {
+			return nil, "", fmt.Errorf("failed to determine absolute path for '%s': %w", configs[i], err)
+		}
+
+		if directory != "" {
+			d := filepath.Dir(config)
+
+			if directory == d {
+				return nil, "", fmt.Errorf("failed to load config directory '%s': the file '%s' is in that directory which is not supported", directory, config)
+			}
+		}
+
+		configs[i] = config
+	}
+
+	return configs, directory, nil
+}
+
+func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetStringSlice(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return strings.Split(env, ","), XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetStringSlice(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
+	}
+}
+
+func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) { //nolint:unparam
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return env, XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
+	}
 }
