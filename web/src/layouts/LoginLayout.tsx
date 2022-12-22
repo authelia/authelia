@@ -59,7 +59,12 @@ const LoginLayout = function (props: Props) {
                     </Grid>
                     {props.showBrand ? (
                         <Grid item xs={12}>
-                            <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={2}>
+                            <Stack
+                                direction="row"
+                                divider={<Divider orientation="vertical" flexItem />}
+                                spacing={2}
+                                textAlign="center"
+                            >
                                 <Link href={url} target="_blank" underline="hover" className={styles.footer}>
                                     {translate("Powered by")} Authelia
                                 </Link>
