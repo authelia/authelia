@@ -127,8 +127,9 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		Theme:                  config.Theme,
 	}
 
-	if config.PrivacyPolicyURL != nil {
-		opts.PrivacyPolicyURL = config.PrivacyPolicyURL.String()
+	if config.PrivacyPolicy.Enable {
+		opts.PrivacyPolicyURL = config.PrivacyPolicy.PolicyURL.String()
+		opts.PrivacyPolicyAccept = strconv.FormatBool(config.PrivacyPolicy.RequireUserAcceptance)
 	}
 
 	if !config.DuoAPI.Disable {
@@ -146,6 +147,7 @@ type TemplatedFileOptions struct {
 	ResetPassword          string
 	ResetPasswordCustomURL string
 	PrivacyPolicyURL       string
+	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
 }
@@ -162,6 +164,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, nonce, logoOverri
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
 		PrivacyPolicyURL:       options.PrivacyPolicyURL,
+		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
 		Theme:                  options.Theme,
 	}
@@ -178,6 +181,7 @@ type TemplatedFileCommonData struct {
 	ResetPassword          string
 	ResetPasswordCustomURL string
 	PrivacyPolicyURL       string
+	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
 }

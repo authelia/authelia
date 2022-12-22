@@ -27,8 +27,16 @@ export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }
 
+export function getPrivacyPolicyEnabled() {
+    return getEmbeddedVariable("privacypolicyurl") !== "";
+}
+
 export function getPrivacyPolicyURL() {
     return getEmbeddedVariable("privacypolicyurl");
+}
+
+export function getPrivacyPolicyRequireAccept() {
+    return getEmbeddedVariable("privacypolicyaccept") === "true";
 }
 
 export function getTheme() {

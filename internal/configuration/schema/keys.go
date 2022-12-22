@@ -12,7 +12,6 @@ var Keys = []string{
 	"certificates_directory",
 	"jwt_secret",
 	"default_redirection_url",
-	"privacy_policy_url",
 	"default_2fa_method",
 	"log.level",
 	"log.format",
@@ -257,4 +256,7 @@ var Keys = []string{
 	"password_policy.standard.require_special",
 	"password_policy.zxcvbn.enabled",
 	"password_policy.zxcvbn.min_score",
+	"privacy_policy.enable",
+	"privacy_policy.require_user_acceptance",
+	"privacy_policy.policy_url",
 }

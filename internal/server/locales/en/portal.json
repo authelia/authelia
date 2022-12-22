@@ -68,6 +68,7 @@
 	"Use OpenID to verify your identity": "Use OpenID to verify your identity",
 	"Username": "Username",
 	"You must open the link from the same device and browser that initiated the registration process": "You must open the link from the same device and browser that initiated the registration process",
+	"You must view and accept the Privacy Policy before using": "You must view and accept the Privacy Policy before using",
 	"You're being signed out and redirected": "You're being signed out and redirected",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements."
 }
