@@ -71,7 +71,9 @@ const LoginLayout = function (props: Props) {
                                 </Link>
                             </Grid>
                             {privacyEnabled ? (
-                                <PrivacyPolicyLink className={styles.footerLinks} showDivider={true} />
+                                <Grid item xs={3}>
+                                    <PrivacyPolicyLink className={styles.footerLinks} showDivider={true} />
+                                </Grid>
                             ) : null}
                         </Grid>
                     ) : null}

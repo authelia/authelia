@@ -33,19 +33,10 @@ const PrivacyPolicyDrawer = function (props: DrawerProps) {
                         {translate("You must view and accept the Privacy Policy before using")} Authelia.
                     </Typography>
                 </Grid>
-                <Grid item xs={12}>
-                    <Typography>
-                        <PrivacyPolicyLink />.
-                    </Typography>
-                </Grid>
                 <Grid item xs={12} paddingY={2}>
-                    <Button
-                        onClick={() => {
-                            setAccepted(true);
-                        }}
-                    >
-                        {translate("Accept")}
-                    </Button>
+                    <PrivacyPolicyLink />
+                </Grid>
+                <Grid item xs={12} paddingBottom={2}>
                     <Button
                         onClick={() => {
                             setAccepted(true);
