@@ -2,9 +2,13 @@ package configuration
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/parsers/yaml"
 )
 
 func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string]string, ignoredKeys []string) {
@@ -64,4 +68,15 @@ func loadSecret(path string) (value string, err error) {
 	}
 
 	return strings.TrimRight(string(content), "\n"), err
+}
+
+func pathToParser(path string) (parser koanf.Parser, explicit bool) {
+	switch filepath.Ext(path) {
+	case ".yml", ".yaml":
+		return yaml.Parser(), true
+	case ".tml", ".toml":
+		return toml.Parser(), true
+	default:
+		return yaml.Parser(), false
+	}
 }

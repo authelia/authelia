@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/posflag"
@@ -83,7 +82,9 @@ func (s *FileSource) Load(val *schema.StructValidator) (err error) {
 		return s.loadDir(val)
 	}
 
-	return s.koanf.Load(FilteredFileProvider(s.path, s.filters...), yaml.Parser())
+	parser, _ := pathToParser(s.path)
+
+	return s.koanf.Load(FilteredFileProvider(s.path, s.filters...), parser)
 }
 
 func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
@@ -100,9 +101,10 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 
 		name := entry.Name()
 
-		switch ext := filepath.Ext(name); ext {
-		case ".yml", ".yaml":
-			if err = s.koanf.Load(FilteredFileProvider(filepath.Join(s.path, name), s.filters...), yaml.Parser()); err != nil {
+		parser, explicit := pathToParser(name)
+
+		if explicit {
+			if err = s.koanf.Load(FilteredFileProvider(filepath.Join(s.path, name), s.filters...), parser); err != nil {
 				return err
 			}
 		}

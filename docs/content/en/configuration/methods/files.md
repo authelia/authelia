@@ -24,12 +24,23 @@ There are several options which affect the loading of files:
 __*Note:* when specifying directories and files, the individual files specified must not be within any of the
 directories specified.__
 
+__*Note:* when specifying directories, all files from the directory (non-recursive) that have the extensions of known
+formats will be loaded. As such all of these files must be valid Authelia configuration files.__
+
 ## Formats
 
-The only supported configuration file format is [YAML](#yaml).
+The only supported configuration file format is [YAML](#yaml), though an experimental implementation of [TOML](#toml)
+exists, it's not expressly supported as it is [experimental](../../policies/versioning.md#exceptions).
 
 It's important that you sufficiently validate your configuration file. While we produce console errors for users in many
 misconfiguration scenarios it's not perfect. Each file type has recommended methods for validation.
+
+When a directory is specified the following extensions are loaded:
+
+|    Format     |   Extensions    |
+|:-------------:|:---------------:|
+| [YAML](#yaml) | `.yml`, `.yaml` |
+| [TOML](#toml) | `.tml`, `.toml` |
 
 ### YAML
 
@@ -136,6 +147,11 @@ spec:
 See the Kubernetes [workloads documentation](https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates) or the
 [Container API docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core) for more
 information.
+
+### TOML
+
+[TOML](https://toml.io/) is experimentally supported. No documentation currently exists so users will have to adapt the
+other examples to this format.
 
 ## File Filters
 
