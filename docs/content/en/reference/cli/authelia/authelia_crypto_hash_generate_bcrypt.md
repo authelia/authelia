@@ -44,7 +44,7 @@ authelia crypto hash generate bcrypt --help
 
 ```
   -c, --config strings                        configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, the filters are applied after loading them from disk and before parsing their content, options are 'template', 'expand-env'
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information: authelia --help authelia filters
       --no-confirm                            skip the password confirmation prompt
       --password string                       manually supply the password rather than using the terminal prompt
       --random                                uses a randomly generated password

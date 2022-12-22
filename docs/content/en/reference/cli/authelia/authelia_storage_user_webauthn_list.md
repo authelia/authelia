@@ -47,7 +47,7 @@ authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-942
 
 ```
   -c, --config strings                         configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings    list of filters to apply to all configuration files, the filters are applied after loading them from disk and before parsing their content, options are 'template', 'expand-env'
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

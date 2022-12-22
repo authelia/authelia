@@ -340,28 +340,20 @@ func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (v
 	}
 }
 
-func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) { //nolint:unparam
-	if cmd.Flags().Changed(flagName) {
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, XEnvCLIResultCLIExplicit, err
+func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   topic,
+		Short: short,
 	}
 
-	var (
-		env string
-		ok  bool
-	)
+	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		_ = cmd.Parent().Help()
 
-	if envKey != "" {
-		env, ok = os.LookupEnv(envKey)
-	}
+		fmt.Println()
+		fmt.Printf("Help Topic: %s\n\n", topic)
+		fmt.Print(body)
+		fmt.Print("\n\n")
+	})
 
-	switch {
-	case ok && env != "":
-		return env, XEnvCLIResultEnvironment, nil
-	default:
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, XEnvCLIResultCLIImplicit, err
-	}
+	return cmd
 }

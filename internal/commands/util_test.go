@@ -6,9 +6,81 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
+	testCases := []struct {
+		name                        string
+		envKey, envValue, flagValue string
+		flagDefault                 []string
+		flag                        *pflag.Flag
+		expected                    []string
+		expectedResult              XEnvCLIResult
+		expectedErr                 string
+	}{
+		{
+			"ShouldParseFromEnv",
+			"EXAMPLE_ONE", "abc",
+			"example-one", []string{"flagdef"}, &pflag.Flag{Name: "example-one", Changed: false},
+			[]string{"abc"}, XEnvCLIResultEnvironment, "",
+		},
+		{
+			"ShouldParseMultipleFromEnv",
+			"EXAMPLE_ONE", "abc,123",
+			"example-one", []string{"flagdef"}, &pflag.Flag{Name: "example-one", Changed: false},
+			[]string{"abc", "123"}, XEnvCLIResultEnvironment, "",
+		},
+		{
+			"ShouldParseCLIExplicit",
+			"EXAMPLE_ONE", "abc,123",
+			"example-from-flag,123", []string{"flagdef"}, &pflag.Flag{Name: "example-one", Changed: true},
+			[]string{"example-from-flag", "123"}, XEnvCLIResultCLIExplicit, "",
+		},
+		{
+			"ShouldParseCLIImplicit",
+			"EXAMPLE_ONE", "",
+			"example-one", []string{"example-from-flag-default", "123"}, &pflag.Flag{Name: "example-one", Changed: false},
+			[]string{"example-from-flag-default", "123"}, XEnvCLIResultCLIImplicit, "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := &cobra.Command{}
+
+			if tc.flag != nil {
+				cmd.Flags().StringSlice(tc.flag.Name, tc.flagDefault, "")
+
+				if tc.flag.Changed {
+					require.NoError(t, cmd.Flags().Set(tc.flag.Name, tc.flagValue))
+				}
+			}
+
+			if tc.envValue != "" {
+				require.NoError(t, os.Setenv(tc.envKey, tc.envValue))
+			}
+
+			actual, actualResult, actualErr := loadXEnvCLIStringSliceValue(cmd, tc.envKey, tc.flag.Name)
+
+			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expectedResult, actualResult)
+
+			if tc.expectedErr == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, tc.expectedErr)
+			}
+
+			if tc.envValue != "" {
+				require.NoError(t, os.Unsetenv(tc.envKey))
+			}
+		})
+	}
+}
 
 func TestLoadXNormalizedPaths(t *testing.T) {
 	root := t.TempDir()

@@ -24,7 +24,8 @@ An open-source authentication and authorization server providing
 two-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
 
-Documentation is available at: https://www.authelia.com/
+General documentation is available at: https://www.authelia.com/
+CLI documentation is available at: https://www.authelia.com/reference/cli/authelia/authelia/
 
 ```
 authelia [flags]
@@ -42,7 +43,7 @@ authelia --config /etc/authelia/config/
 
 ```
   -c, --config strings                        configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, the filters are applied after loading them from disk and before parsing their content, options are 'template', 'expand-env'
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information: authelia --help authelia filters
   -h, --help                                  help for authelia
 ```
 

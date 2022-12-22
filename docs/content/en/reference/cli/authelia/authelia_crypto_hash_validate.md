@@ -44,7 +44,7 @@ authelia crypto hash validate '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8C
 
 ```
   -c, --config strings                        configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, the filters are applied after loading them from disk and before parsing their content, options are 'template', 'expand-env'
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information: authelia --help authelia filters
 ```
 
 ### SEE ALSO
