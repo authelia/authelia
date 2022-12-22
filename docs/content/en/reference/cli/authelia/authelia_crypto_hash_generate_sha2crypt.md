@@ -44,13 +44,14 @@ authelia crypto hash generate sha2crypt --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings             configuration files to load (default [configuration.yml])
-      --no-confirm                 skip the password confirmation prompt
-      --password string            manually supply the password rather than using the terminal prompt
-      --random                     uses a randomly generated password
-      --random.characters string   sets the explicit characters for the random string
-      --random.charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
-      --random.length int          sets the character length for the random string (default 72)
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
+      --no-confirm                            skip the password confirmation prompt
+      --password string                       manually supply the password rather than using the terminal prompt
+      --random                                uses a randomly generated password
+      --random.characters string              sets the explicit characters for the random string
+      --random.charset string                 sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
+      --random.length int                     sets the character length for the random string (default 72)
 ```
 
 ### SEE ALSO

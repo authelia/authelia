@@ -37,7 +37,6 @@ authelia crypto hash generate --help
 ### Options
 
 ```
-  -c, --config strings             configuration files to load (default [configuration.yml])
   -h, --help                       help for generate
       --no-confirm                 skip the password confirmation prompt
       --password string            manually supply the password rather than using the terminal prompt
@@ -45,6 +44,13 @@ authelia crypto hash generate --help
       --random.characters string   sets the explicit characters for the random string
       --random.charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
       --random.length int          sets the character length for the random string (default 72)
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
 ```
 
 ### SEE ALSO

@@ -33,7 +33,6 @@ authelia storage --help
 ### Options
 
 ```
-  -c, --config strings                         configuration files to load (default [configuration.yml])
       --encryption-key string                  the storage encryption key to use
   -h, --help                                   help for storage
       --mysql.database string                  the MySQL database name (default "authelia")
@@ -52,6 +51,13 @@ authelia storage --help
       --postgres.ssl.root_certificate string   the PostgreSQL ssl root certificate file location
       --postgres.username string               the PostgreSQL username (default "authelia")
       --sqlite.path string                     the SQLite database path
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
 ```
 
 ### SEE ALSO

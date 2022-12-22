@@ -41,8 +41,8 @@ authelia --config /etc/authelia/config/
 ### Options
 
 ```
-  -c, --config strings                        configuration files to load
-      --config.experimental.filters strings   Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'
+  -c, --config strings                        configuration files to load (default [configuration.yml])
+      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
   -h, --help                                  help for authelia
 ```
 
@@ -51,7 +51,6 @@ authelia --config /etc/authelia/config/
 * [authelia access-control](authelia_access-control.md)	 - Helpers for the access control system
 * [authelia build-info](authelia_build-info.md)	 - Show the build information of Authelia
 * [authelia crypto](authelia_crypto.md)	 - Perform cryptographic operations
-* [authelia hash-password](authelia_hash-password.md)	 - Hash a password to be used in file-based users database
 * [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
 * [authelia validate-config](authelia_validate-config.md)	 - Check a configuration against the internal configuration validation mechanisms
 
