@@ -14,8 +14,8 @@ type Source interface {
 	Load(val *schema.StructValidator) (err error)
 }
 
-// YAMLFileSource is a YAML file configuration.Source.
-type YAMLFileSource struct {
+// FileSource is a file configuration.Source.
+type FileSource struct {
 	koanf   *koanf.Koanf
 	path    string
 	filters []FileFilter

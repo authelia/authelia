@@ -191,12 +191,12 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 	cfg := filepath.Join(dir, "myconf.yml")
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
@@ -417,28 +417,25 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	assert.NoError(t, testCreateFile(filepath.Join(dir, "config.yml"), "port: 9091\n", 0000))
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
-func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
+func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	testReset()
 
 	dir := t.TempDir()
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(dir))
+	_, _, err := Load(val, NewFileSource(dir))
 
 	assert.NoError(t, err)
-	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
-
-	expectedErr := fmt.Sprintf(utils.GetExpectedErrTxt("yamlisdir"), dir)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: %s", dir, expectedErr))
 }
 
 func testSetEnv(t *testing.T, key, value string) {

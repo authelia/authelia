@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"syscall"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
 
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -227,4 +231,131 @@ func termReadPasswordWithPrompt(prompt, flag string) (password string, err error
 	}
 
 	return password, nil
+}
+
+type XEnvCLIResult int
+
+const (
+	XEnvCLIResultCLIExplicit XEnvCLIResult = iota
+	XEnvCLIResultCLIImplicit
+	XEnvCLIResultEnvironment
+)
+
+func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.FileFilter, err error) {
+	var (
+		filterNames []string
+	)
+
+	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+		return nil, nil, err
+	}
+
+	if configs, err = loadXNormalizedPaths(configs); err != nil {
+		return nil, nil, err
+	}
+
+	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
+		return nil, nil, err
+	}
+
+	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
+	}
+
+	return
+}
+
+func loadXNormalizedPaths(paths []string) ([]string, error) {
+	var (
+		configs, files, dirs []string
+		err                  error
+	)
+
+	var stat os.FileInfo
+
+	for _, path := range paths {
+		if path, err = filepath.Abs(path); err != nil {
+			return nil, fmt.Errorf("failed to determine absolute path for '%s': %w", path, err)
+		}
+
+		switch stat, err = os.Stat(path); {
+		case err == nil && stat.IsDir():
+			configs = append(configs, path)
+			dirs = append(dirs, path)
+		case err == nil:
+			configs = append(configs, path)
+			files = append(files, path)
+		default:
+			if os.IsNotExist(err) {
+				configs = append(configs, path)
+				files = append(files, path)
+
+				continue
+			}
+
+			return nil, fmt.Errorf("error occurred stating file at path '%s': %w", path, err)
+		}
+	}
+
+	for i, file := range files {
+		if file, err = filepath.Abs(file); err != nil {
+			return nil, fmt.Errorf("failed to determine absolute path for '%s': %w", files[i], err)
+		}
+
+		if len(dirs) != 0 {
+			filedir := filepath.Dir(file)
+
+			for _, dir := range dirs {
+				if filedir == dir {
+					return nil, fmt.Errorf("failed to load config directory '%s': the config file '%s' is in that directory which is not supported", dir, file)
+				}
+			}
+		}
+	}
+
+	return configs, nil
+}
+
+func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetStringSlice(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return strings.Split(env, ","), XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetStringSlice(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
+	}
+}
+
+func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   topic,
+		Short: short,
+	}
+
+	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		_ = cmd.Parent().Help()
+
+		fmt.Println()
+		fmt.Printf("Help Topic: %s\n\n", topic)
+		fmt.Print(body)
+		fmt.Print("\n\n")
+	})
+
+	return cmd
 }

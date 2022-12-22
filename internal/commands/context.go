@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -275,14 +274,23 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 	var (
 		configs []string
 		created bool
+		result  XEnvCLIResult
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if len(configs) != 1 {
+	switch {
+	case result == XEnvCLIResultCLIExplicit:
 		return nil
+	case result == XEnvCLIResultEnvironment && len(configs) == 1:
+		switch configs[0] {
+		case cmdConfigDefaultContainer, cmdConfigDefaultDaemon:
+			break
+		default:
+			return nil
+		}
 	}
 
 	if created, err = configuration.EnsureConfigurationExists(configs[0]); err != nil {
@@ -300,21 +308,13 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // ConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs, filterNames []string
+		configs []string
 
 		filters []configuration.FileFilter
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
 		return err
-	}
-
-	if filterNames, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
-		return err
-	}
-
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
-		return fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 
 	if ctx.cconfig == nil {
@@ -336,30 +336,4 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	return nil
-}
-
-func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) { //nolint:unparam
-	if cmd.Flags().Changed(flagName) {
-		value, err = cmd.Flags().GetStringSlice(flagName)
-
-		return value, true, err
-	}
-
-	var (
-		env string
-		ok  bool
-	)
-
-	if envKey != "" {
-		env, ok = os.LookupEnv(envKey)
-	}
-
-	switch {
-	case ok && env != "":
-		return strings.Split(env, ","), true, nil
-	default:
-		value, err = cmd.Flags().GetStringSlice(flagName)
-
-		return value, false, err
-	}
 }

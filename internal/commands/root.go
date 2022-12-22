@@ -45,9 +45,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
+	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load")
 
-	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'")
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information: authelia --help authelia filters")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),
@@ -55,6 +55,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newCryptoCmd(ctx),
 		newStorageCmd(ctx),
 		newValidateConfigCmd(ctx),
+
+		newHelpTopic("filters", "Help for the config filters", helpTopicConfigFilters),
 	)
 
 	return cmd
@@ -88,6 +90,8 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	doStartupChecks(ctx)
+
+	ctx.cconfig = nil
 
 	runServices(ctx)
 

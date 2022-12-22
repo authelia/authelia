@@ -12,6 +12,18 @@ weight: 101200
 toc: true
 ---
 
+## Loading Behaviour
+
+There are several options which affect the loading of files:
+
+|       Name        |            Argument             |                                    Description                                     |
+|:-----------------:|:-------------------------------:|:----------------------------------------------------------------------------------:|
+| Files/Directories |        `--config`, `-c`         | A list of file or directory (non-recursive) paths to load configuration files from |
+|      Filters      | `--config.experimental.filters` |   A list of filters applied to every file from the Files or Directories options    |
+
+__*Note:* when specifying directories and files, the individual files specified must not be within any of the
+directories specified.__
+
 ## Formats
 
 The only supported configuration file format is [YAML](#yaml).
@@ -163,6 +175,10 @@ The name used to enable this filter is `template`.
 
 This filter uses the [Go template engine](https://pkg.go.dev/text/template) to render the configuration files. It uses
 similar syntax to Jinja2 templates with different function names.
+
+Comprehensive examples are beyond what we support and people wishing to use this should consult the official
+[Go template engine](https://pkg.go.dev/text/template) documentation for syntax instructions. We also log the generated
+output at each filter stage as a base64 string when trace logging is enabled.
 
 #### Functions
 

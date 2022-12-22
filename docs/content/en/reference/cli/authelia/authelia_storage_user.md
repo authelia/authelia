@@ -37,8 +37,8 @@ authelia storage user --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files to load (default [configuration.yml])
-      --config.experimental.filters strings    applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
+  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
