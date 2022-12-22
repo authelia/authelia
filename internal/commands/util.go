@@ -284,11 +284,13 @@ func loadXNormalizedPaths(paths []string) ([]string, error) {
 			dirs = append(dirs, path)
 		case err == nil:
 			configs = append(configs, path)
-			files = append(dirs, path)
+			files = append(files, path)
 		default:
 			if os.IsNotExist(err) {
 				configs = append(configs, path)
 				files = append(files, path)
+
+				continue
 			}
 
 			return nil, fmt.Errorf("error occurred stating file at path '%s': %w", path, err)
