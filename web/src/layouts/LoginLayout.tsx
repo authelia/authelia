@@ -1,13 +1,13 @@
 import React, { ReactNode, useEffect } from "react";
 
-import { Container, Grid, Link, Theme } from "@mui/material";
+import { Container, Divider, Grid, Link, Stack, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import { ReactComponent as UserSvg } from "@assets/images/user.svg";
 import TypographyWithTooltip from "@components/TypographyWithTootip";
-import { getLogoOverride } from "@utils/Configuration";
+import { getLogoOverride, getPrivacyPolicyURL } from "@utils/Configuration";
 
 export interface Props {
     id?: string;
@@ -28,6 +28,7 @@ const LoginLayout = function (props: Props) {
     ) : (
         <UserSvg className={styles.icon} />
     );
+    const hrefPrivacyPolicy = getPrivacyPolicyURL();
     const { t: translate } = useTranslation();
     useEffect(() => {
         document.title = `${translate("Login")} - Authelia`;
@@ -58,9 +59,22 @@ const LoginLayout = function (props: Props) {
                     </Grid>
                     {props.showBrand ? (
                         <Grid item xs={12}>
-                            <Link href={url} target="_blank" underline="hover" className={styles.poweredBy}>
-                                {translate("Powered by")} Authelia
-                            </Link>
+                            <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={2}>
+                                <Link href={url} target="_blank" underline="hover" className={styles.footer}>
+                                    {translate("Powered by")} Authelia
+                                </Link>
+                                {hrefPrivacyPolicy !== "" ? (
+                                    <Link
+                                        href={hrefPrivacyPolicy}
+                                        target="_blank"
+                                        rel="noopener"
+                                        underline="hover"
+                                        className={styles.footer}
+                                    >
+                                        {translate("Privacy Policy")}
+                                    </Link>
+                                ) : null}
+                            </Stack>
                         </Grid>
                     ) : null}
                 </Grid>
@@ -92,7 +106,7 @@ const useStyles = makeStyles((theme: Theme) => ({
         paddingTop: theme.spacing(),
         paddingBottom: theme.spacing(),
     },
-    poweredBy: {
+    footer: {
         fontSize: "0.7em",
         color: grey[500],
     },

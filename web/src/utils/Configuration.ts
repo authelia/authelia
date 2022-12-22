@@ -27,6 +27,10 @@ export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }
 
+export function getPrivacyPolicyURL() {
+    return getEmbeddedVariable("privacypolicyurl");
+}
+
 export function getTheme() {
     return getEmbeddedVariable("theme");
 }
