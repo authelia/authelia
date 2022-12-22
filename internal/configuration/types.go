@@ -16,10 +16,9 @@ type Source interface {
 
 // FileSource is a file configuration.Source.
 type FileSource struct {
-	koanf     *koanf.Koanf
-	path      string
-	directory bool
-	filters   []FileFilter
+	koanf   *koanf.Koanf
+	path    string
+	filters []FileFilter
 }
 
 // EnvironmentSource is a configuration configuration.Source which loads values from the environment.

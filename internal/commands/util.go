@@ -241,65 +241,77 @@ const (
 	XEnvCLIResultEnvironment
 )
 
-func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, directory string, filters []configuration.FileFilter, err error) {
+func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.FileFilter, err error) {
 	var (
 		filterNames []string
 	)
 
 	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
-	if directory, _, err = loadXEnvCLIStringValue(cmd, "", cmdFlagNameConfigDirectory); err != nil {
-		return nil, "", nil, err
-	}
-
-	if configs, directory, err = loadXNormalizedPaths(configs, directory); err != nil {
-		return nil, "", nil, err
+	if configs, err = loadXNormalizedPaths(configs); err != nil {
+		return nil, nil, err
 	}
 
 	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
 	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
-		return nil, "", nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
+		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 
 	return
 }
 
-func loadXNormalizedPaths(originalConfigs []string, originalDirectory string) ([]string, string, error) {
+func loadXNormalizedPaths(paths []string) ([]string, error) {
 	var (
-		directory string
-		err       error
+		configs, files, dirs []string
+		err                  error
 	)
 
-	if strings.HasSuffix(originalDirectory, "/") {
-		directory = filepath.Dir(originalDirectory)
-	} else {
-		directory = originalDirectory
-	}
+	var stat os.FileInfo
 
-	configs := make([]string, len(originalConfigs))
-
-	for i, config := range originalConfigs {
-		if config, err = filepath.Abs(config); err != nil {
-			return nil, "", fmt.Errorf("failed to determine absolute path for '%s': %w", configs[i], err)
+	for _, path := range paths {
+		if path, err = filepath.Abs(path); err != nil {
+			return nil, fmt.Errorf("failed to determine absolute path for '%s': %w", path, err)
 		}
 
-		if directory != "" {
-			d := filepath.Dir(config)
+		switch stat, err = os.Stat(path); {
+		case err == nil && stat.IsDir():
+			configs = append(configs, path)
+			dirs = append(dirs, path)
+		case err == nil:
+			configs = append(configs, path)
+			files = append(dirs, path)
+		default:
+			if os.IsNotExist(err) {
+				configs = append(configs, path)
+				files = append(files, path)
+			}
 
-			if directory == d {
-				return nil, "", fmt.Errorf("failed to load config directory '%s': the file '%s' is in that directory which is not supported", directory, config)
+			return nil, fmt.Errorf("error occurred stating file at path '%s': %w", path, err)
+		}
+	}
+
+	for i, file := range files {
+		if file, err = filepath.Abs(file); err != nil {
+			return nil, fmt.Errorf("failed to determine absolute path for '%s': %w", files[i], err)
+		}
+
+		if len(dirs) != 0 {
+			filedir := filepath.Dir(file)
+
+			for _, dir := range dirs {
+				if filedir == dir {
+					return nil, fmt.Errorf("failed to load config directory '%s': the config file '%s' is in that directory which is not supported", dir, file)
+				}
 			}
 		}
-
-		configs[i] = config
 	}
 
-	return configs, directory, nil
+	return configs, nil
 }
 
 func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {

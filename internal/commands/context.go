@@ -272,22 +272,17 @@ func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []str
 // ConfigEnsureExistsRunE logs the warnings and errors detected during the validations that have ran.
 func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs   []string
-		directory string
-		created   bool
-		result    XEnvCLIResult
+		configs []string
+		created bool
+		result  XEnvCLIResult
 	)
 
 	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if directory, _, err = loadXEnvCLIStringValue(cmd, "", cmdFlagNameConfigDirectory); err != nil {
-		return err
-	}
-
 	switch {
-	case result == XEnvCLIResultCLIExplicit, directory != "":
+	case result == XEnvCLIResultCLIExplicit:
 		return nil
 	case result == XEnvCLIResultEnvironment && len(configs) == 1:
 		switch configs[0] {
@@ -313,13 +308,12 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // ConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs   []string
-		directory string
+		configs []string
 
 		filters []configuration.FileFilter
 	)
 
-	if configs, directory, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
+	if configs, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
 		return err
 	}
 
@@ -333,7 +327,6 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		ctx.config,
 		configuration.NewDefaultSourcesWithDefaults(
 			configs,
-			directory,
 			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,

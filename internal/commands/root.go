@@ -45,10 +45,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
-	cmd.PersistentFlags().String(cmdFlagNameConfigDirectory, "", "configuration directory to load configuration files from")
+	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load")
 
-	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files between loading them from disk and parsing their content, options are 'template', 'expand-env'")
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, the filters are applied after loading them from disk and before parsing their content, options are 'template', 'expand-env'")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),

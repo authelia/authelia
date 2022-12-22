@@ -538,8 +538,6 @@ const (
 
 	cmdFlagNameConfig = "config"
 
-	cmdFlagNameConfigDirectory = "config.directory"
-
 	cmdFlagNameConfigExpFilters = "config.experimental.filters"
 
 	cmdFlagNameCharSet     = "charset"

@@ -16,15 +16,13 @@ toc: true
 
 There are several options which affect the loading of files:
 
-|   Name    |            Argument             |                                  Description                                  |
-|:---------:|:-------------------------------:|:-----------------------------------------------------------------------------:|
-|   Files   |        `--config`, `-c`         |                  A list of configuration file paths to load                   |
-| Directory |      `--config.directory`       | The path of a directory path where all files with known extensions are loaded |
-|  Filters  | `--config.experimental.filters` |  A list of filters applied to every file from the Files or Directory options  |
+|       Name        |            Argument             |                                    Description                                     |
+|:-----------------:|:-------------------------------:|:----------------------------------------------------------------------------------:|
+| Files/Directories |        `--config`, `-c`         | A list of file or directory (non-recursive) paths to load configuration files from |
+|      Filters      | `--config.experimental.filters` |   A list of filters applied to every file from the Files or Directories options    |
 
-All of these options can be used in combination. For example you can run
-`authelia --config /opt/authelia/example.yml --config.directory /etc/authelia` which will load
-`/opt/authelia/example.yml` and `/etc/authelia/*.yml`/`/etc/authelia/*.yaml`.
+__*Note:* when specifying directories and files, the individual files specified must not be within any of the
+directories specified.__
 
 ## Formats
 
