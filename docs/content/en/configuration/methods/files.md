@@ -12,6 +12,20 @@ weight: 101200
 toc: true
 ---
 
+## Loading Behaviour
+
+There are several options which affect the loading of files:
+
+|   Name    |            Argument             |                                  Description                                  |
+|:---------:|:-------------------------------:|:-----------------------------------------------------------------------------:|
+|   Files   |        `--config`, `-c`         |                  A list of configuration file paths to load                   |
+| Directory |      `--config.directory`       | The path of a directory path where all files with known extensions are loaded |
+|  Filters  | `--config.experimental.filters` |  A list of filters applied to every file from the Files or Directory options  |
+
+All of these options can be used in combination. For example you can run
+`authelia --config /opt/authelia/example.yml --config.directory /etc/authelia` which will load
+`/opt/authelia/example.yml` and `/etc/authelia/*.yml`/`/etc/authelia/*.yaml`.
+
 ## Formats
 
 The only supported configuration file format is [YAML](#yaml).
@@ -163,6 +177,10 @@ The name used to enable this filter is `template`.
 
 This filter uses the [Go template engine](https://pkg.go.dev/text/template) to render the configuration files. It uses
 similar syntax to Jinja2 templates with different function names.
+
+Comprehensive examples are beyond what we support and people wishing to use this should consult the official
+[Go template engine](https://pkg.go.dev/text/template) documentation for syntax instructions. We also log the generated
+output at each filter stage as a base64 string when trace logging is enabled.
 
 #### Functions
 

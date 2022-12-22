@@ -533,7 +533,12 @@ const (
 	cmdFlagNameSaltSize         = "salt-size"
 	cmdFlagNameProfile          = "profile"
 
+	cmdConfigDefaultContainer = "/config/configuration.yml"
+	cmdConfigDefaultDaemon    = "/etc/authelia/configuration.yml"
+
 	cmdFlagNameConfig = "config"
+
+	cmdFlagNameConfigDirectory = "config.directory"
 
 	cmdFlagNameConfigExpFilters = "config.experimental.filters"
 

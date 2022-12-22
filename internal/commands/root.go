@@ -46,8 +46,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 	}
 
 	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
+	cmd.PersistentFlags().String(cmdFlagNameConfigDirectory, "", "configuration directory to load configuration files from")
 
-	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'")
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files between loading them from disk and parsing their content, options are 'template', 'expand-env'")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),

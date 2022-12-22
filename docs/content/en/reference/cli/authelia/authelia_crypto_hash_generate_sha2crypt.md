@@ -45,7 +45,8 @@ authelia crypto hash generate sha2crypt --help
 
 ```
   -c, --config strings                        configuration files to load (default [configuration.yml])
-      --config.experimental.filters strings   applies filters in order to the configuration file before the YAML parser, options are 'template', 'expand-env'
+      --config.directory string               configuration directory to load configuration files from
+      --config.experimental.filters strings   list of filters to apply to all configuration files between loading them from disk and parsing their content, options are 'template', 'expand-env'
       --no-confirm                            skip the password confirmation prompt
       --password string                       manually supply the password rather than using the terminal prompt
       --random                                uses a randomly generated password

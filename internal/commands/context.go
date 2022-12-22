@@ -273,16 +273,30 @@ func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []str
 // ConfigEnsureExistsRunE logs the warnings and errors detected during the validations that have ran.
 func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs []string
-		created bool
+		configs   []string
+		directory string
+		created   bool
+		result    XEnvCLIResult
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if len(configs) != 1 {
+	if directory, _, err = loadXEnvCLIStringValue(cmd, "", cmdFlagNameConfigDirectory); err != nil {
+		return err
+	}
+
+	switch {
+	case result == XEnvCLIResultCLIExplicit, directory != "":
 		return nil
+	case result == XEnvCLIResultEnvironment && len(configs) == 1:
+		switch configs[0] {
+		case cmdConfigDefaultContainer, cmdConfigDefaultDaemon:
+			break
+		default:
+			return nil
+		}
 	}
 
 	if created, err = configuration.EnsureConfigurationExists(configs[0]); err != nil {
@@ -301,15 +315,20 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		configs, filterNames []string
+		directory            string
 
 		filters []configuration.FileFilter
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if filterNames, _, err = loadEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
+	if directory, _, err = loadXEnvCLIStringValue(cmd, "", cmdFlagNameConfigDirectory); err != nil {
+		return err
+	}
+
+	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfigExpFilters); err != nil {
 		return err
 	}
 
@@ -327,6 +346,7 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 		ctx.config,
 		configuration.NewDefaultSourcesWithDefaults(
 			configs,
+			directory,
 			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,
@@ -338,11 +358,19 @@ func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
-func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) { //nolint:unparam
+type XEnvCLIResult int
+
+const (
+	XEnvCLIResultCLIExplicit XEnvCLIResult = iota
+	XEnvCLIResultCLIImplicit
+	XEnvCLIResultEnvironment
+)
+
+func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
 	if cmd.Flags().Changed(flagName) {
 		value, err = cmd.Flags().GetStringSlice(flagName)
 
-		return value, true, err
+		return value, XEnvCLIResultCLIExplicit, err
 	}
 
 	var (
@@ -356,10 +384,36 @@ func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (va
 
 	switch {
 	case ok && env != "":
-		return strings.Split(env, ","), true, nil
+		return strings.Split(env, ","), XEnvCLIResultEnvironment, nil
 	default:
 		value, err = cmd.Flags().GetStringSlice(flagName)
 
-		return value, false, err
+		return value, XEnvCLIResultCLIImplicit, err
+	}
+}
+
+func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) { //nolint:unparam
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return env, XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
 	}
 }
