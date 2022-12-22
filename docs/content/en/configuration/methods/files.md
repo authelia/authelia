@@ -56,6 +56,11 @@ authelia --config config.custom.yml
 We recommend utilizing [VSCodium](https://vscodium.com/) or [VSCode](https://code.visualstudio.com/), both with the
 [YAML Extension](https://open-vsx.org/extension/redhat/vscode-yaml) by RedHat to validate this file type.
 
+### TOML
+
+[TOML](https://toml.io/) is experimentally supported. No documentation currently exists so users will have to adapt the
+other examples to this format.
+
 ## Multiple Configuration Files
 
 You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified
@@ -147,11 +152,6 @@ spec:
 See the Kubernetes [workloads documentation](https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates) or the
 [Container API docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core) for more
 information.
-
-### TOML
-
-[TOML](https://toml.io/) is experimentally supported. No documentation currently exists so users will have to adapt the
-other examples to this format.
 
 ## File Filters
 
