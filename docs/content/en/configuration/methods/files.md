@@ -40,7 +40,7 @@ When a directory is specified the following extensions are loaded:
 |    Format     |   Extensions    |
 |:-------------:|:---------------:|
 | [YAML](#yaml) | `.yml`, `.yaml` |
-| [TOML](#toml) | `.tml`, `.toml` |
+| [TOML](#toml) |     `.toml`     |
 
 ### YAML
 

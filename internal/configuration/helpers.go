@@ -5,10 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/utils"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func getEnvConfigMap(keys []string, prefix, delimiter string) (keyMap map[string]string, ignoredKeys []string) {
@@ -74,7 +75,7 @@ func pathToParser(path string) (parser koanf.Parser, explicit bool) {
 	switch filepath.Ext(path) {
 	case ".yml", ".yaml":
 		return yaml.Parser(), true
-	case ".tml", ".toml":
+	case ".toml":
 		return toml.Parser(), true
 	default:
 		return yaml.Parser(), false
