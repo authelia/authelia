@@ -16,7 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// NewFileSource returns a configuration.Source configured to load from a specified YAML path. If there is an issue
+// NewFileSource returns a configuration.Source configured to load from a specified path. If there is an issue
 // accessing this path it also returns an error.
 func NewFileSource(path string) (source *FileSource) {
 	return &FileSource{
@@ -25,7 +25,7 @@ func NewFileSource(path string) (source *FileSource) {
 	}
 }
 
-// NewFilteredFileSource returns a configuration.Source configured to load from a specified YAML path. If there is
+// NewFilteredFileSource returns a configuration.Source configured to load from a specified path. If there is
 // an issue accessing this path it also returns an error.
 func NewFilteredFileSource(path string, filters ...FileFilter) (source *FileSource) {
 	return &FileSource{
@@ -35,28 +35,7 @@ func NewFilteredFileSource(path string, filters ...FileFilter) (source *FileSour
 	}
 }
 
-// NewDirectorySource returns a configuration.Source configured to load from a specified directory. If there is an issue
-// accessing this path it also returns an error.
-func NewDirectorySource(path string) (source *FileSource) {
-	return &FileSource{
-		koanf:     koanf.New(constDelimiter),
-		directory: true,
-		path:      path,
-	}
-}
-
-// NewFilteredDirectorySource returns a configuration.Source configured to load from a specified directory path. If
-// there is an issue accessing this path it also returns an error.
-func NewFilteredDirectorySource(path string, filters ...FileFilter) (source *FileSource) {
-	return &FileSource{
-		koanf:     koanf.New(constDelimiter),
-		path:      path,
-		directory: true,
-		filters:   filters,
-	}
-}
-
-// NewFileSources returns a slice of configuration.Source configured to load from specified YAML files.
+// NewFileSources returns a slice of configuration.Source configured to load from specified files.
 func NewFileSources(paths []string) (sources []*FileSource) {
 	for _, path := range paths {
 		source := NewFileSource(path)
@@ -67,7 +46,7 @@ func NewFileSources(paths []string) (sources []*FileSource) {
 	return sources
 }
 
-// NewFilteredFileSources returns a slice of configuration.Source configured to load from specified YAML files.
+// NewFilteredFileSources returns a slice of configuration.Source configured to load from specified files.
 func NewFilteredFileSources(paths []string, filters []FileFilter) (sources []*FileSource) {
 	for _, path := range paths {
 		source := NewFilteredFileSource(path, filters...)
@@ -80,7 +59,7 @@ func NewFilteredFileSources(paths []string, filters []FileFilter) (sources []*Fi
 
 // Name of the Source.
 func (s *FileSource) Name() (name string) {
-	return fmt.Sprintf("yaml file(%s)", s.path)
+	return fmt.Sprintf("file path(%s)", s.path)
 }
 
 // Merge the FileSource koanf.Koanf into the provided one.
@@ -94,14 +73,16 @@ func (s *FileSource) Load(val *schema.StructValidator) (err error) {
 		return errors.New("invalid file path source configuration")
 	}
 
-	if s.directory {
+	var info os.FileInfo
+
+	if info, err = os.Stat(s.path); err != nil {
+		return err
+	}
+
+	if info.IsDir() {
 		return s.loadDir(val)
 	}
 
-	return s.load(val)
-}
-
-func (s *FileSource) load(_ *schema.StructValidator) (err error) {
 	return s.koanf.Load(FilteredFileProvider(s.path, s.filters...), yaml.Parser())
 }
 
@@ -245,50 +226,49 @@ func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
 }
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSources(filePaths []string, directory string, prefix, delimiter string, additional Sources) (sources []Source) {
-	if len(additional.Pre) != 0 {
-		sources = additional.Pre
-	}
-
-	fileSources := NewFileSources(filePaths)
+func NewDefaultSources(paths []string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	fileSources := NewFileSources(paths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
-	}
-
-	if directory != "" {
-		sources = append(sources, NewDirectorySource(directory))
 	}
 
 	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
 	sources = append(sources, NewSecretsSource(prefix, delimiter))
 
-	if len(additional.Post) != 0 {
-		sources = append(sources, additional.Post...)
+	if len(additionalSources) != 0 {
+		sources = append(sources, additionalSources...)
 	}
 
 	return sources
 }
 
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
-func NewDefaultSourcesFiltered(files []string, directory string, filters []FileFilter, prefix, delimiter string, additional Sources) (sources []Source) {
-	if len(additional.Pre) != 0 {
-		sources = additional.Pre
-	}
-
-	fileSources := NewFilteredFileSources(files, filters)
+func NewDefaultSourcesFiltered(paths []string, filters []FileFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	fileSources := NewFilteredFileSources(paths, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
-	}
-
-	if directory != "" {
-		sources = append(sources, NewFilteredDirectorySource(directory, filters...))
 	}
 
 	sources = append(sources, NewEnvironmentSource(prefix, delimiter))
 	sources = append(sources, NewSecretsSource(prefix, delimiter))
 
-	if len(additional.Post) != 0 {
-		sources = append(sources, additional.Post...)
+	if len(additionalSources) != 0 {
+		sources = append(sources, additionalSources...)
+	}
+
+	return sources
+}
+
+// NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
+func NewDefaultSourcesWithDefaults(paths []string, filters []FileFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
+	if defaults != nil {
+		sources = []Source{defaults}
+	}
+
+	if len(filters) == 0 {
+		sources = append(sources, NewDefaultSources(paths, prefix, delimiter, additionalSources...)...)
+	} else {
+		sources = append(sources, NewDefaultSourcesFiltered(paths, filters, prefix, delimiter, additionalSources...)...)
 	}
 
 	return sources

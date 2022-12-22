@@ -2,12 +2,18 @@ package configuration
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // FilteredFile implements a koanf.Provider.
@@ -63,28 +69,24 @@ func NewFileFiltersDefault() []FileFilter {
 func NewFileFilters(names []string) (filters []FileFilter, err error) {
 	filters = make([]FileFilter, len(names))
 
-	var hasTemplate, hasExpandEnv bool
+	filterMap := map[string]int{}
 
 	for i, name := range names {
+		name = strings.ToLower(name)
+
 		switch name {
 		case "template":
-			if hasTemplate {
-				return nil, fmt.Errorf("duplicate filter named '%s'", name)
-			}
-
-			hasTemplate = true
-
 			filters[i] = NewTemplateFileFilter()
 		case "expand-env":
-			if hasExpandEnv {
-				return nil, fmt.Errorf("duplicate filter named '%s'", name)
-			}
-
-			hasExpandEnv = true
-
 			filters[i] = NewExpandEnvFileFilter()
 		default:
 			return nil, fmt.Errorf("invalid filter named '%s'", name)
+		}
+
+		if _, ok := filterMap[name]; ok {
+			return nil, fmt.Errorf("duplicate filter named '%s'", name)
+		} else {
+			filterMap[name] = 1
 		}
 	}
 
@@ -93,14 +95,24 @@ func NewFileFilters(names []string) (filters []FileFilter, err error) {
 
 // NewExpandEnvFileFilter is a FileFilter which passes the bytes through os.ExpandEnv.
 func NewExpandEnvFileFilter() FileFilter {
+	log := logging.Logger()
+
 	return func(in []byte) (out []byte, err error) {
-		return []byte(os.ExpandEnv(string(in))), nil
+		out = []byte(os.ExpandEnv(string(in)))
+
+		if log.Level >= logrus.TraceLevel {
+			log.
+				WithField("content", base64.RawStdEncoding.EncodeToString(out)).
+				Trace("Expanded Env File Filter completed successfully")
+		}
+
+		return out, nil
 	}
 }
 
 // NewTemplateFileFilter is a FileFilter which passes the bytes through text/template.
 func NewTemplateFileFilter() FileFilter {
-	data := &templated{
+	data := &TemplateFileFilterData{
 		Env: map[string]string{},
 	}
 
@@ -114,11 +126,20 @@ func NewTemplateFileFilter() FileFilter {
 		data.Env[kv[0]] = kv[1]
 	}
 
-	var t *template.Template
+	t := template.New("config.template").
+		Funcs(template.FuncMap{
+			"env":       templates.StringMapLookupDefaultEmptyFunc(data.Env),
+			"split":     templates.StringsSplitFunc,
+			"iterate":   templates.IterateFunc,
+			"join":      strings.Join,
+			"contains":  strings.Contains,
+			"hasPrefix": strings.HasPrefix,
+			"hasSuffix": strings.HasSuffix,
+			"lower":     strings.ToLower,
+			"upper":     strings.ToUpper,
+		})
 
-	t = template.New("config.template").Funcs(map[string]any{
-		"env": newTemplatedEnvFunc(data),
-	})
+	log := logging.Logger()
 
 	return func(in []byte) (out []byte, err error) {
 		if t, err = t.Parse(string(in)); err != nil {
@@ -131,22 +152,19 @@ func NewTemplateFileFilter() FileFilter {
 			return nil, err
 		}
 
-		return buf.Bytes(), nil
-	}
-}
+		out = buf.Bytes()
 
-type templated struct {
-	Env map[string]string
-}
-
-func newTemplatedEnvFunc(data *templated) func(key string) (value string, err error) {
-	return func(key string) (value string, err error) {
-		var ok bool
-
-		if value, ok = data.Env[key]; !ok {
-			return "", fmt.Errorf("environment variable %s does not exist", key)
+		if log.Level >= logrus.TraceLevel {
+			log.
+				WithField("content", base64.RawStdEncoding.EncodeToString(out)).
+				Trace("Templated File Filter completed successfully")
 		}
 
-		return value, nil
+		return out, nil
 	}
+}
+
+// TemplateFileFilterData is the data available to the Go Template FileFilter.
+type TemplateFileFilterData struct {
+	Env map[string]string
 }

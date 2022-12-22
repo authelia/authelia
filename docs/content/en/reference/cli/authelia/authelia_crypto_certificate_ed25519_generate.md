@@ -61,9 +61,8 @@ authelia crypto certificate ed25519 request --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files to load (default [configuration.yml])
-      --config.directory string               path to a directory with yml/yaml files to load as part of the configuration
-      --config.experimental.filters strings   Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'
+  -c, --config strings                        configuration files or directories to load (default [configuration.yml])
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information: authelia --help authelia filters
 ```
 
 ### SEE ALSO

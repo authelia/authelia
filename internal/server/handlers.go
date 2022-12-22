@@ -153,11 +153,8 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	metricsVRMW := middlewares.NewMetricsVerifyRequest(providers.Metrics)
 
-	r.GET("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-
-	r.GET("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
-	r.HEAD("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.ANY("/api/verify", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
+	r.ANY("/api/verify/{path:*}", middlewares.Wrap(metricsVRMW, middleware(handlers.VerifyGET(config.AuthenticationBackend))))
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 

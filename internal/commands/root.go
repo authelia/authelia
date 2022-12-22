@@ -22,7 +22,7 @@ import (
 
 // NewRootCmd returns a new Root Cmd.
 func NewRootCmd() (cmd *cobra.Command) {
-	ctx := NewCommandContext()
+	ctx := NewCmdCtx()
 
 	version := utils.Version()
 
@@ -33,21 +33,21 @@ func NewRootCmd() (cmd *cobra.Command) {
 		Example: cmdAutheliaExample,
 		Version: version,
 		Args:    cobra.NoArgs,
-		PreRunE: ctx.ChainPreRunE(
-			ctx.ConfigEnsureExistsPreRunE,
-			ctx.ConfigLoadPreRunE,
-			ctx.ConfigValidateKeysPreRunE,
-			ctx.ConfigValidatePreRunE,
-			ctx.ConfigValidateLogPreRunE,
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigEnsureExistsRunE,
+			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateKeysRunE,
+			ctx.ConfigValidateRunE,
+			ctx.ConfigValidateLogRunE,
 		),
 		RunE: ctx.RootRunE,
 
 		DisableAutoGenTag: true,
 	}
 
-	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files to load")
-	cmd.PersistentFlags().String(cmdFlagNameConfigDirectory, "", "path to a directory with yml/yaml files to load as part of the configuration")
-	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'")
+	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load")
+
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information: authelia --help authelia filters")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),
@@ -55,6 +55,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newCryptoCmd(ctx),
 		newStorageCmd(ctx),
 		newValidateConfigCmd(ctx),
+
+		newHelpTopic("filters", "Help for the config filters", helpTopicConfigFilters),
 	)
 
 	return cmd
@@ -71,7 +73,7 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx.log.Fatalf("Cannot initialize logger: %v", err)
 	}
 
-	warns, errs := ctx.ProvidersLoad()
+	warns, errs := ctx.LoadProviders()
 
 	if len(warns) != 0 {
 		for _, err = range warns {
@@ -88,6 +90,8 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	doStartupChecks(ctx)
+
+	ctx.cconfig = nil
 
 	runServices(ctx)
 

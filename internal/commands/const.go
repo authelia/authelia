@@ -13,7 +13,8 @@ An open-source authentication and authorization server providing
 two-factor authentication and single sign-on (SSO) for your
 applications via a web portal.
 
-Documentation is available at: https://www.authelia.com/`
+General documentation is available at: https://www.authelia.com/
+CLI documentation is available at: https://www.authelia.com/reference/cli/authelia/authelia/`
 
 	cmdAutheliaExample = `authelia --config /etc/authelia/config.yml --config /etc/authelia/access-control.yml
 authelia --config /etc/authelia/config.yml,/etc/authelia/access-control.yml
@@ -584,11 +585,13 @@ const (
 	cmdFlagNameKeySize          = "key-size"
 	cmdFlagNameSaltSize         = "salt-size"
 	cmdFlagNameProfile          = "profile"
-	cmdFlagNameConfig           = "config"
-	cmdFlagNameConfigDirectory  = "config.directory"
+
+	cmdConfigDefaultContainer = "/config/configuration.yml"
+	cmdConfigDefaultDaemon    = "/etc/authelia/configuration.yml"
+
+	cmdFlagNameConfig = "config"
+
 	cmdFlagNameConfigExpFilters = "config.experimental.filters"
-	cmdEnvNameConfig            = "X_AUTHELIA_CONFIG"
-	cmdEnvNameConfigDirectory   = "X_AUTHELIA_CONFIG_DIRECTORY"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -678,4 +681,30 @@ const (
 
 var (
 	validIdentifierServices = []string{identifierServiceOpenIDConnect}
+)
+
+const (
+	helpTopicConfigFilters = `Configuration Filters are an experimental system for templating configuration files.
+
+Using the --config.experimental.filters flag users can define multiple filters to apply to all configuration files that
+are loaded by Authelia. These filters are applied after loading the file data from the filesystem, but before they are
+parsed by the relevant file format parser.
+
+The filters are processed in the order specified, and the content of each configuration file is logged as a base64 raw
+string when the log level is set to trace.
+
+The following filters are available:
+
+	expand-env:
+
+		This filter expands environment variables in place where specified in the configuration. For example the string
+		${DOMAIN_NAME} will be replaced with the value from the DOMAIN_NAME environment variable or an empty string.
+
+	template:
+
+		This filter uses the go template system to filter the file. In addition to the standard functions, several
+		custom functions exist to facilitate this process. The 'env' function takes a single string does similar to the
+		'expand-env' filter for example.
+
+		For a full list of functions see: https://www.authelia.com/configuration/methods/files/#functions`
 )

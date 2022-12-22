@@ -81,7 +81,7 @@ func TestShouldHaveNotifier(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
@@ -98,7 +98,7 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	_, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
@@ -117,7 +117,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	_ = os.Setenv("ROOT_DOMAIN", "example.org")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, "", NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	_, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 0)
@@ -139,7 +139,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_URL", "an env authentication backend ldap password")
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -162,7 +162,7 @@ func TestShouldValidateAndRaiseErrorsOnNormalConfigurationAndSecret(t *testing.T
 	testSetEnv(t, "STORAGE_ENCRYPTION_KEY", "a_very_bad_encryption_key")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
@@ -196,7 +196,7 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
@@ -209,7 +209,7 @@ func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
 	testSetEnv(t, "STORAGE_ENCRYPTION_KEY_FILE", "./test_resources/example_secret")
 
 	val := schema.NewStructValidator()
-	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
@@ -226,7 +226,7 @@ func TestShouldLoadURLList(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -244,7 +244,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -266,7 +266,7 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
 
 	val := schema.NewStructValidator()
-	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, c, err := Load(val, NewDefaultSources([]string{"./test_resources/config_bad_keys.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -285,7 +285,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_invalid.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -301,7 +301,7 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -325,7 +325,7 @@ func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -342,7 +342,7 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_alt.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -360,7 +360,7 @@ func TestShouldParseRegex(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_regex.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_regex.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -392,7 +392,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	testReset()
 
 	val := schema.NewStructValidator()
-	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_bad_regex.yml"}, "", DefaultEnvPrefix, DefaultEnvDelimiter, Sources{})...)
+	keys, _, err := Load(val, NewDefaultSources([]string{"./test_resources/config_domain_bad_regex.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 
 	assert.NoError(t, err)
 
@@ -422,10 +422,10 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
-func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
+func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	testReset()
 
 	dir := t.TempDir()
@@ -434,11 +434,8 @@ func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
 	_, _, err := Load(val, NewFileSource(dir))
 
 	assert.NoError(t, err)
-	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
-
-	expectedErr := fmt.Sprintf(utils.GetExpectedErrTxt("yamlisdir"), dir)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: %s", dir, expectedErr))
 }
 
 func testSetEnv(t *testing.T, key, value string) {

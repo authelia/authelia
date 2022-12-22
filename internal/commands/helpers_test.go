@@ -7,5 +7,5 @@ import (
 )
 
 func TestGetStorageProvider(t *testing.T) {
-	assert.Nil(t, getStorageProvider(NewCommandContext()))
+	assert.Nil(t, getStorageProvider(NewCmdCtx()))
 }

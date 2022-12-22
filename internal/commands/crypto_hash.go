@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
 func newCryptoHashCmd(ctx *CmdCtx) (cmd *cobra.Command) {
@@ -61,11 +61,11 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaCryptoHashGenerateShort,
 		Long:    cmdAutheliaCryptoHashGenerateLong,
 		Example: cmdAutheliaCryptoHashGenerateExample,
-		PreRunE: ctx.ChainPreRunE(
-			ctx.ConfigSetMapDefaultsRunE(defaults),
+		PreRunE: ctx.ChainRunE(
+			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
-			ctx.ConfigLoadPreRunE,
-			ctx.ConfigValidatePreRunE,
+			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateSectionPasswordRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -114,10 +114,11 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Long:    fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubLong, useFmt, useFmt),
 		Example: fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubExample, use),
 		Args:    cobra.NoArgs,
-		PersistentPreRunE: ctx.ChainPreRunE(
-			ctx.ConfigSetMapDefaultsRunE(defaults),
+		PersistentPreRunE: ctx.ChainRunE(
+			ctx.ConfigSetDefaultsRunE(defaults),
 			ctx.CryptoHashGenerateMapFlagsPreRunE,
-			ctx.ConfigLoadPreRunE,
+			ctx.ConfigLoadRunE,
+			ctx.ConfigValidateSectionPasswordRunE,
 		),
 		RunE: ctx.CryptoHashGenerateRunE,
 
@@ -139,7 +140,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.SHA2Crypt.SaltLength)
 
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.SHA2Crypt.Variant, "variant, options are sha256 and sha512")
-		cmd.PreRunE = ctx.ChainPreRunE()
+		cmd.PreRunE = ctx.ChainRunE()
 	case cmdUseHashPBKDF2:
 		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.PBKDF2.Iterations)
 		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.PBKDF2.SaltLength)
@@ -177,6 +178,7 @@ func newCryptoHashValidateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// CryptoHashValidateRunE is the RunE for the authelia crypto hash validate command.
 func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		password string
@@ -205,6 +207,8 @@ func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (er
 	return nil
 }
 
+// CryptoHashGenerateMapFlagsPreRunE is the RunE which configures the flags map configuration source for the
+// authelia crypto hash generate commands.
 func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []string) (err error) {
 	var flagsMap map[string]string
 
@@ -247,12 +251,13 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []
 	}
 
 	if flagsMap != nil {
-		return ctx.ConfigSetFlagsMapRunE(cmd.Flags(), flagsMap, false, false)
+		ctx.cconfig.sources = append(ctx.cconfig.sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), flagsMap, false, false))
 	}
 
 	return nil
 }
 
+// CryptoHashGenerateRunE is the RunE for the authelia crypto hash generate commands.
 func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		hash     algorithm.Hash
@@ -260,21 +265,6 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 		password string
 		random   bool
 	)
-
-	validator.ValidatePasswordConfiguration(&ctx.config.AuthenticationBackend.File.Password, ctx.cconfig.validator)
-
-	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
-		for i, e := range errs {
-			if i == 0 {
-				err = e
-				continue
-			}
-
-			err = fmt.Errorf("%v, %w", err, e)
-		}
-
-		return fmt.Errorf("errors occurred validating the password configuration: %w", err)
-	}
 
 	if password, random, err = cmdCryptoHashGetPassword(cmd, args, false, true); err != nil {
 		return err
@@ -331,17 +321,14 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	var (
-		data      []byte
 		noConfirm bool
 	)
 
-	if data, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
+	if password, err = termReadPasswordWithPrompt("Enter Password: ", "password"); err != nil {
 		err = fmt.Errorf("failed to read the password from the terminal: %w", err)
 
 		return
 	}
-
-	password = string(data)
 
 	if cmd.Use == fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate) {
 		fmt.Println("")
@@ -350,11 +337,13 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
-		if data, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
+		var confirm string
+
+		if confirm, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
 			return
 		}
 
-		if password != string(data) {
+		if password != confirm {
 			fmt.Println("")
 
 			err = fmt.Errorf("the password did not match the confirmation password")

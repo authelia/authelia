@@ -44,9 +44,8 @@ authelia storage migrate list-down --encryption-key b3453fde-ecc2-4a1f-9422-2707
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files to load (default [configuration.yml])
-      --config.directory string                path to a directory with yml/yaml files to load as part of the configuration
-      --config.experimental.filters strings    Applies filters in order to the configuration file before the YAML parser. Options are 'template', 'expand-env'
+  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

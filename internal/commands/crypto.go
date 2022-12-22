@@ -241,6 +241,7 @@ func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.C
 	return cmd
 }
 
+// CryptoRandRunE is the RunE for the authelia crypto rand command.
 func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		random string
@@ -255,6 +256,7 @@ func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error)
 	return nil
 }
 
+// CryptoGenerateRunE is the RunE for the authelia crypto [pair|certificate] [rsa|ecdsa|ed25519] commands.
 func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		privateKey any
@@ -271,6 +273,7 @@ func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err er
 	return ctx.CryptoPairGenerateRunE(cmd, args, privateKey)
 }
 
+// CryptoCertificateRequestRunE is the RunE for the authelia crypto certificate request command.
 func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		privateKey any
@@ -342,6 +345,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 	return nil
 }
 
+// CryptoCertificateGenerateRunE is the RunE for the authelia crypto certificate [rsa|ecdsa|ed25519] commands.
 func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		template, caCertificate, parent       *x509.Certificate
@@ -434,6 +438,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	return nil
 }
 
+// CryptoPairGenerateRunE is the RunE for the authelia crypto pair [rsa|ecdsa|ed25519] commands.
 func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		privateKeyPath, publicKeyPath string

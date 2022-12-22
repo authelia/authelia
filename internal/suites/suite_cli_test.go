@@ -81,7 +81,7 @@ func (s *CLISuite) TestShouldValidateConfig() {
 func (s *CLISuite) TestShouldFailValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config=/config/invalid.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "failed to load configuration from yaml file(/config/invalid.yml) source: open /config/invalid.yml: no such file or directory")
+	s.Assert().Contains(output, "failed to load configuration from file path(/config/invalid.yml) source: stat /config/invalid.yml: no such file or directory\n")
 }
 
 func (s *CLISuite) TestShouldHashPasswordArgon2() {
@@ -770,18 +770,6 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 	s.Assert().Contains(output, "Error: could not parse certificate from file '/tmp/ca.public.bad.crt': failed to parse PEM block containing the key\n")
 }
 
-func (s *CLISuite) TestStorageShouldShowErrWithoutConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "schema-info"})
-	s.Assert().EqualError(err, "exit status 1")
-
-	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: option 'encryption_key' is required\n")
-
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "history"})
-	s.Assert().EqualError(err, "exit status 1")
-
-	s.Assert().Contains(output, "Error: storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided, storage: option 'encryption_key' is required\n")
-}
-
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	_ = os.Remove("/tmp/db.sqlite3")
 
@@ -792,8 +780,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 
 	s.Assert().Regexp(pattern, output)
 
-	patternOutdated := regexp.MustCompile(`Error: schema is version \d+ which is outdated please migrate to version \d+ in order to use this command or use an older binary`)
-
+	patternOutdated := regexp.MustCompile(`Error: command requires the use of a up to date schema version: storage schema outdated: version \d+ is outdated please migrate to version \d+ in order to use this command or use an older binary`)
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
 	s.Assert().Regexp(patternOutdated, output)
@@ -803,8 +790,8 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	s.Assert().Regexp(patternOutdated, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "encryption", "check", "--config=/config/configuration.storage.yml"})
-	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
+	s.Assert().EqualError(err, "exit status 1")
+	s.Assert().Contains(output, "Error: command requires the use of a up to date schema version: storage schema outdated: version 0 is outdated please migrate to version 7 in order to use this command or use an older binary\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "migrate", "down", "--target=0", "--destroy-data", "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")

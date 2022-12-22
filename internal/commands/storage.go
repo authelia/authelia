@@ -15,11 +15,11 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageShort,
 		Long:    cmdAutheliaStorageLong,
 		Example: cmdAutheliaStorageExample,
-		PersistentPreRunE: ctx.ChainPreRunE(
+		PersistentPreRunE: ctx.ChainRunE(
 			ctx.ConfigStorageCommandLineConfigPersistentPreRunE,
-			ctx.ConfigLoadPreRunE,
+			ctx.ConfigLoadRunE,
 			ctx.ConfigValidateStoragePersistentPreRunE,
-			ctx.ProvidersLoadStoragePreRunE,
+			ctx.LoadProvidersStorageRunE,
 		),
 		Args: cobra.NoArgs,
 

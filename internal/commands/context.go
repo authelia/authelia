@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -31,7 +30,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func NewCommandContext() *CmdCtx {
+// NewCmdCtx returns a new CmdCtx.
+func NewCmdCtx() *CmdCtx {
 	ctx := context.Background()
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -47,6 +47,7 @@ func NewCommandContext() *CmdCtx {
 	}
 }
 
+// CmdCtx is a context.Context used for the root command.
 type CmdCtx struct {
 	context.Context
 
@@ -59,48 +60,28 @@ type CmdCtx struct {
 	providers middlewares.Providers
 	trusted   *x509.CertPool
 
-	cconfig *CommandContextConfig
+	cconfig *CmdCtxConfig
 }
 
-func NewCommandContextConfig() *CommandContextConfig {
-	return &CommandContextConfig{
+// NewCmdCtxConfig returns a new CmdCtxConfig.
+func NewCmdCtxConfig() *CmdCtxConfig {
+	return &CmdCtxConfig{
 		validator: schema.NewStructValidator(),
 	}
 }
 
-type CommandContextConfig struct {
-	sources   configuration.Sources
+// CmdCtxConfig is the configuration for the CmdCtx.
+type CmdCtxConfig struct {
+	defaults  configuration.Source
+	sources   []configuration.Source
 	keys      []string
 	validator *schema.StructValidator
 }
 
+// CobraRunECmd describes a function that can be used as a *cobra.Command RunE, PreRunE, or PostRunE.
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
-func (ctx *CmdCtx) ProvidersLoadStoragePreRunE(cmd *cobra.Command, args []string) (err error) {
-	switch warns, errs := ctx.LoadTrustedCertificates(); {
-	case len(errs) != 0:
-		err = fmt.Errorf("had the following errors loading the trusted certificates")
-
-		for _, e := range errs {
-			err = fmt.Errorf("%+v: %w", err, e)
-		}
-
-		return err
-	case len(warns) != 0:
-		err = fmt.Errorf("had the following warnings loading the trusted certificates")
-
-		for _, e := range errs {
-			err = fmt.Errorf("%+v: %w", err, e)
-		}
-
-		return err
-	default:
-		ctx.providers.StorageProvider = getStorageProvider(ctx)
-
-		return nil
-	}
-}
-
+// CheckSchemaVersion is a utility function which checks the schema version.
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")
@@ -136,30 +117,31 @@ func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	}
 }
 
+// LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
 func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
 	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
 
 	return warns, errs
 }
 
-func (ctx *CmdCtx) ProvidersLoad() (warns, errs []error) {
+// LoadProviders loads all providers into the CmdCtx.
+func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	// TODO: Adjust this so the CertPool can be used like a provider.
 	if warns, errs = ctx.LoadTrustedCertificates(); len(warns) != 0 || len(errs) != 0 {
 		return warns, errs
 	}
 
-	clock := utils.RealClock{}
+	storage := getStorageProvider(ctx)
 
 	providers := middlewares.Providers{
 		Authorizer:      authorization.NewAuthorizer(ctx.config),
 		NTP:             ntp.NewProvider(&ctx.config.NTP),
 		PasswordPolicy:  middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy),
+		Regulator:       regulation.NewRegulator(ctx.config.Regulation, storage, utils.RealClock{}),
 		SessionProvider: session.NewProvider(ctx.config.Session, ctx.trusted),
-		StorageProvider: getStorageProvider(ctx),
+		StorageProvider: storage,
 		TOTP:            totp.NewTimeBasedProvider(ctx.config.TOTP),
 	}
-
-	providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, providers.StorageProvider, clock)
 
 	var err error
 
@@ -181,7 +163,7 @@ func (ctx *CmdCtx) ProvidersLoad() (warns, errs []error) {
 		providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
 
-	if providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, providers.StorageProvider); err != nil {
+	if providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, storage); err != nil {
 		errs = append(errs, err)
 	}
 
@@ -194,7 +176,8 @@ func (ctx *CmdCtx) ProvidersLoad() (warns, errs []error) {
 	return warns, errs
 }
 
-func (ctx *CmdCtx) ChainPreRunE(cmdRunEs ...CobraRunECmd) CobraRunECmd {
+// ChainRunE runs multiple CobraRunECmd funcs one after the other returning errors.
+func (ctx *CmdCtx) ChainRunE(cmdRunEs ...CobraRunECmd) CobraRunECmd {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		for _, cmdRunE := range cmdRunEs {
 			if err = cmdRunE(cmd, args); err != nil {
@@ -206,31 +189,34 @@ func (ctx *CmdCtx) ChainPreRunE(cmdRunEs ...CobraRunECmd) CobraRunECmd {
 	}
 }
 
+// ConfigSetFlagsMapRunE adds a command line source with flags mapping.
 func (ctx *CmdCtx) ConfigSetFlagsMapRunE(flags *pflag.FlagSet, flagsMap map[string]string, includeInvalidKeys, includeUnchangedKeys bool) (err error) {
 	if ctx.cconfig == nil {
-		ctx.cconfig = NewCommandContextConfig()
+		ctx.cconfig = NewCmdCtxConfig()
 	}
 
-	ctx.cconfig.sources.Post = append(ctx.cconfig.sources.Post, configuration.NewCommandLineSourceWithMapping(flags, flagsMap, includeInvalidKeys, includeUnchangedKeys))
+	ctx.cconfig.sources = append(ctx.cconfig.sources, configuration.NewCommandLineSourceWithMapping(flags, flagsMap, includeInvalidKeys, includeUnchangedKeys))
 
 	return nil
 }
 
-func (ctx *CmdCtx) ConfigSetMapDefaultsRunE(defaults map[string]any) CobraRunECmd {
+// ConfigSetDefaultsRunE adds a defaults configuration source.
+func (ctx *CmdCtx) ConfigSetDefaultsRunE(defaults map[string]any) CobraRunECmd {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		if ctx.cconfig == nil {
-			ctx.cconfig = NewCommandContextConfig()
+			ctx.cconfig = NewCmdCtxConfig()
 		}
 
-		ctx.cconfig.sources.Pre = append(ctx.cconfig.sources.Pre, configuration.NewMapSource(defaults))
+		ctx.cconfig.defaults = configuration.NewMapSource(defaults)
 
 		return nil
 	}
 }
 
-func (ctx *CmdCtx) ConfigValidateKeysPreRunE(_ *cobra.Command, _ []string) (err error) {
+// ConfigValidateKeysRunE validates the configuration (keys).
+func (ctx *CmdCtx) ConfigValidateKeysRunE(_ *cobra.Command, _ []string) (err error) {
 	if ctx.cconfig == nil {
-		return fmt.Errorf("config validate keys must be used with ConfigLoadPreRunE")
+		return fmt.Errorf("config validate keys must be used with ConfigLoadRunE")
 	}
 
 	validator.ValidateKeys(ctx.cconfig.keys, configuration.DefaultEnvPrefix, ctx.cconfig.validator)
@@ -238,13 +224,15 @@ func (ctx *CmdCtx) ConfigValidateKeysPreRunE(_ *cobra.Command, _ []string) (err 
 	return nil
 }
 
-func (ctx *CmdCtx) ConfigValidatePreRunE(_ *cobra.Command, _ []string) (err error) {
+// ConfigValidateRunE validates the configuration (structure).
+func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
 	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator)
 
 	return nil
 }
 
-func (ctx *CmdCtx) ConfigValidateLogPreRunE(_ *cobra.Command, _ []string) (err error) {
+// ConfigValidateLogRunE logs the warnings and errors detected during the validations that have ran.
+func (ctx *CmdCtx) ConfigValidateLogRunE(_ *cobra.Command, _ []string) (err error) {
 	warnings := ctx.cconfig.validator.Warnings()
 	if len(warnings) != 0 {
 		for _, warning := range warnings {
@@ -264,23 +252,56 @@ func (ctx *CmdCtx) ConfigValidateLogPreRunE(_ *cobra.Command, _ []string) (err e
 	return nil
 }
 
-func (ctx *CmdCtx) ConfigEnsureExistsPreRunE(cmd *cobra.Command, _ []string) (err error) {
+// ConfigValidateSectionPasswordRunE validates the configuration (structure, password section).
+func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []string) (err error) {
+	if ctx.config.AuthenticationBackend.File == nil {
+		return fmt.Errorf("password configuration was not initialized")
+	}
+
+	val := &schema.StructValidator{}
+
+	validator.ValidatePasswordConfiguration(&ctx.config.AuthenticationBackend.File.Password, val)
+
+	errs := val.Errors()
+
+	if len(errs) == 0 {
+		return nil
+	}
+
+	for i, e := range errs {
+		if i == 0 {
+			err = e
+			continue
+		}
+
+		err = fmt.Errorf("%v, %w", err, e)
+	}
+
+	return fmt.Errorf("errors occurred validating the password configuration: %w", err)
+}
+
+// ConfigEnsureExistsRunE logs the warnings and errors detected during the validations that have ran.
+func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs   []string
-		directory string
-		created   bool
+		configs []string
+		created bool
+		result  XEnvCLIResult
 	)
 
-	if configs, _, err = loadEnvCLIStringSliceValue(cmd, cmdEnvNameConfig, cmdFlagNameConfig); err != nil {
+	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
 		return err
 	}
 
-	if directory, _, err = loadEnvCLIStringValue(cmd, cmdEnvNameConfigDirectory, cmdFlagNameConfigDirectory); err != nil {
-		return err
-	}
-
-	if len(configs) != 1 || directory != "" {
+	switch {
+	case result == XEnvCLIResultCLIExplicit:
 		return nil
+	case result == XEnvCLIResultEnvironment && len(configs) == 1:
+		switch configs[0] {
+		case cmdConfigDefaultContainer, cmdConfigDefaultDaemon:
+			break
+		default:
+			return nil
+		}
 	}
 
 	if created, err = configuration.EnsureConfigurationExists(configs[0]); err != nil {
@@ -295,112 +316,35 @@ func (ctx *CmdCtx) ConfigEnsureExistsPreRunE(cmd *cobra.Command, _ []string) (er
 	return nil
 }
 
-func (ctx *CmdCtx) ConfigLoadPreRunE(cmd *cobra.Command, _ []string) (err error) {
+// ConfigLoadRunE loads the configuration into the CmdCtx.
+func (ctx *CmdCtx) ConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs, filterNames []string
+		configs []string
 
 		filters []configuration.FileFilter
-
-		explicit bool
-
-		directory   string
-		explicitDir bool
 	)
 
-	if configs, explicit, err = loadEnvCLIStringSliceValue(cmd, cmdEnvNameConfig, cmdFlagNameConfig); err != nil {
+	if configs, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
 		return err
-	}
-
-	if directory, explicitDir, err = loadEnvCLIStringValue(cmd, cmdEnvNameConfigDirectory, cmdFlagNameConfigDirectory); err != nil {
-		return err
-	}
-
-	if filterNames, err = cmd.Flags().GetStringSlice(cmdFlagNameConfigExpFilters); err != nil {
-		ctx.log.Fatalf("Error reading flags: %v", err)
-	}
-
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
-		ctx.log.Fatalf("Error occurred loading configuration: flag '--%s' is invalid: %v", cmdFlagNameConfigExpFilters, err)
-	}
-
-	if !explicit {
-		var (
-			final   []string
-			changed bool
-		)
-
-		for _, c := range configs {
-			if _, err = os.Stat(directory); err != nil && os.IsNotExist(err) {
-				changed = true
-
-				continue
-			}
-
-			final = append(final, c)
-		}
-
-		if changed {
-			configs = final
-		}
-	}
-
-	if !explicitDir {
-		if _, err = os.Stat(directory); err != nil && os.IsNotExist(err) {
-			directory = ""
-		}
 	}
 
 	if ctx.cconfig == nil {
-		ctx.cconfig = NewCommandContextConfig()
+		ctx.cconfig = NewCmdCtxConfig()
 	}
 
 	if ctx.cconfig.keys, err = configuration.LoadAdvanced(
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
-		configuration.NewDefaultSourcesFiltered(
+		configuration.NewDefaultSourcesWithDefaults(
 			configs,
-			directory,
 			filters,
 			configuration.DefaultEnvPrefix,
 			configuration.DefaultEnvDelimiter,
-			ctx.cconfig.sources)...); err != nil {
+			ctx.cconfig.defaults,
+			ctx.cconfig.sources...)...); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func loadEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, explicit bool, err error) {
-	env, ok := os.LookupEnv(envKey)
-
-	switch {
-	case cmd.Flags().Changed(flagName):
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, true, err
-	case ok && env != "":
-		return env, true, nil
-	default:
-		value, err = cmd.Flags().GetString(flagName)
-
-		return value, false, err
-	}
-}
-
-func loadEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, explicit bool, err error) {
-	env, ok := os.LookupEnv(envKey)
-
-	switch {
-	case cmd.Flags().Changed(flagName):
-		value, err = cmd.Flags().GetStringSlice(flagName)
-
-		return value, true, err
-	case ok && env != "":
-		return strings.Split(env, ","), true, nil
-	default:
-		value, err = cmd.Flags().GetStringSlice(flagName)
-
-		return value, false, err
-	}
 }
