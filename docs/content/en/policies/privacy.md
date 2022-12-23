@@ -40,10 +40,12 @@ _Authelia_ application itself does automatically. Individual installations of _A
 depending on the administrator who deploys the application. It is beyond our ability to include this in our policy and
 you should refer to their privacy policy.
 
-__TLDR__: We collect only information necessary to operate the application and properly perform security audits.
+__TLDR__: We collect only information necessary to operate the application and properly perform security audits. This
+information is only stored in the local SQL database and is NOT sent to any external service.
 
 ### Application visitors
 
+* Information collected is stored locally in the database and not sent to any external service.
 * No personal information is collected other than:
   * Username and IP address are recorded and logged for security related events for auditing purposes.
 * The information stored in the browser is:
