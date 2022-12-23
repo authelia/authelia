@@ -20,7 +20,7 @@ specifiers:
   '@types/node': 18.11.17
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.26
-  '@types/react-dom': 18.0.9
+  '@types/react-dom': 18.0.10
   '@types/zxcvbn': 4.4.1
   '@typescript-eslint/eslint-plugin': 5.47.0
   '@typescript-eslint/parser': 5.47.0
@@ -55,7 +55,7 @@ specifiers:
   react-dom: 18.2.0
   react-i18next: 12.1.1
   react-loading: 2.0.3
-  react-router-dom: 6.6.0
+  react-router-dom: 6.6.1
   react-test-renderer: 18.2.0
   react18-input-otp: 1.1.1
   typescript: 4.9.4
@@ -89,7 +89,7 @@ dependencies:
   react-dom: 18.2.0_react@18.2.0
   react-i18next: 12.1.1_6vygckh2jgtx4nucc3no6lnm3y
   react-loading: 2.0.3_react@18.2.0
-  react-router-dom: 6.6.0_biqbaboplfbrettd7655fr4n2y
+  react-router-dom: 6.6.1_biqbaboplfbrettd7655fr4n2y
   react18-input-otp: 1.1.1_biqbaboplfbrettd7655fr4n2y
   zxcvbn: 4.4.2
 
@@ -103,7 +103,7 @@ devDependencies:
   '@types/node': 18.11.17
   '@types/qrcode.react': 1.0.2
   '@types/react': 18.0.26
-  '@types/react-dom': 18.0.9
+  '@types/react-dom': 18.0.10
   '@types/zxcvbn': 4.4.1
   '@typescript-eslint/eslint-plugin': 5.47.0_ncmi6noazr3nzas7jxykisekym
   '@typescript-eslint/parser': 5.47.0_lzzuuodtsqwxnvqeq4g4likcqa
@@ -3167,8 +3167,8 @@ packages:
     resolution: {integrity: sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==}
     dev: false
 
-  /@remix-run/router/1.2.0:
-    resolution: {integrity: sha512-GO82KYYTWPRCgdNtnheaZG3LcViUlxRFlHM7ykh7N+ufoXi6PVIHoP+9RUG/vuzl2hr9i/h6EA1Eq+2HpqJ0gQ==}
+  /@remix-run/router/1.2.1:
+    resolution: {integrity: sha512-XiY0IsyHR+DXYS5vBxpoBe/8veTeoRpMHP+vDosLZxL5bnpetzI0igkxkLZS235ldLzyfkxF+2divEwWHP3vMQ==}
     engines: {node: '>=14'}
     dev: false
 
@@ -3404,7 +3404,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.18.9
       '@testing-library/dom': 8.16.0
-      '@types/react-dom': 18.0.9
+      '@types/react-dom': 18.0.10
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: true
@@ -3551,8 +3551,8 @@ packages:
       '@types/react': 18.0.26
     dev: true
 
-  /@types/react-dom/18.0.9:
-    resolution: {integrity: sha512-qnVvHxASt/H7i+XG1U1xMiY5t+IHcPGUK7TDMDzom08xa7e86eCeKOiLZezwCKVxJn6NEiiy2ekgX8aQssjIKg==}
+  /@types/react-dom/18.0.10:
+    resolution: {integrity: sha512-E42GW/JA4Qv15wQdqJq8DL4JhNpB3prJgjgapN3qJT9K2zO5IIAQh4VXvCEDupoqAwnz0cY4RlXeC/ajX5SFHg==}
     dependencies:
       '@types/react': 18.0.26
     dev: true
@@ -8063,26 +8063,26 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router-dom/6.6.0_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-qC4jnvpfCPKVle1mKLD75IvZLcbVJyFMlSn16WY9ZiOed3dgSmqhslCf/u3tmSccWOujkdsT/OwGq12bELmvjg==}
+  /react-router-dom/6.6.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-u+8BKUtelStKbZD5UcY0NY90WOzktrkJJhyhNg7L0APn9t1qJNLowzrM9CHdpB6+rcPt6qQrlkIXsTvhuXP68g==}
     engines: {node: '>=14'}
     peerDependencies:
       react: '>=16.8 || 18'
       react-dom: '>=16.8 || 18'
     dependencies:
-      '@remix-run/router': 1.2.0
+      '@remix-run/router': 1.2.1
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
-      react-router: 6.6.0_react@18.2.0
+      react-router: 6.6.1_react@18.2.0
     dev: false
 
-  /react-router/6.6.0_react@18.2.0:
-    resolution: {integrity: sha512-+VPfCIaFbkW7BAiB/2oeprxKAt1KLbl+zXZ10CXOYezKWgBmTKyh8XjI53eLqY5kd7uY+V4rh3UW44FclwUU+Q==}
+  /react-router/6.6.1_react@18.2.0:
+    resolution: {integrity: sha512-YkvlYRusnI/IN0kDtosUCgxqHeulN5je+ew8W+iA1VvFhf86kA+JEI/X/8NqYcr11hCDDp906S+SGMpBheNeYQ==}
     engines: {node: '>=14'}
     peerDependencies:
       react: '>=16.8 || 18'
     dependencies:
-      '@remix-run/router': 1.2.0
+      '@remix-run/router': 1.2.1
       react: 18.2.0
     dev: false
 
