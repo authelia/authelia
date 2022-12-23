@@ -248,7 +248,7 @@ func newStorageUserWebauthnImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebauthnImportShort,
 		Long:    cmdAutheliaStorageUserWebauthnImportLong,
 		Example: cmdAutheliaStorageUserWebauthnImportExample,
-		RunE:    ctx.StorageWebauthnImportRunE,
+		RunE:    ctx.StorageUserWebauthnImportRunE,
 		Args:    cobra.ExactArgs(1),
 
 		DisableAutoGenTag: true,
@@ -263,7 +263,7 @@ func newStorageUserWebauthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebauthnExportShort,
 		Long:    cmdAutheliaStorageUserWebauthnExportLong,
 		Example: cmdAutheliaStorageUserWebauthnExportExample,
-		RunE:    ctx.StorageWebauthnExportRunE,
+		RunE:    ctx.StorageUserWebauthnExportRunE,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -280,7 +280,7 @@ func newStorageUserWebauthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebauthnListShort,
 		Long:    cmdAutheliaStorageUserWebauthnListLong,
 		Example: cmdAutheliaStorageUserWebauthnListExample,
-		RunE:    ctx.StorageWebauthnListRunE,
+		RunE:    ctx.StorageUserWebauthnListRunE,
 		Args:    cobra.MaximumNArgs(1),
 
 		DisableAutoGenTag: true,
@@ -295,7 +295,7 @@ func newStorageUserWebauthnDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserWebauthnDeleteShort,
 		Long:    cmdAutheliaStorageUserWebauthnDeleteLong,
 		Example: cmdAutheliaStorageUserWebauthnDeleteExample,
-		RunE:    ctx.StorageWebauthnDeleteRunE,
+		RunE:    ctx.StorageUserWebauthnDeleteRunE,
 		Args:    cobra.MaximumNArgs(1),
 
 		DisableAutoGenTag: true,
@@ -335,7 +335,7 @@ func newStorageUserTOTPGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPGenerateShort,
 		Long:    cmdAutheliaStorageUserTOTPGenerateLong,
 		Example: cmdAutheliaStorageUserTOTPGenerateExample,
-		RunE:    ctx.StorageTOTPGenerateRunE,
+		RunE:    ctx.StorageUserTOTPGenerateRunE,
 		Args:    cobra.ExactArgs(1),
 
 		DisableAutoGenTag: true,
@@ -359,7 +359,7 @@ func newStorageUserTOTPDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPDeleteShort,
 		Long:    cmdAutheliaStorageUserTOTPDeleteLong,
 		Example: cmdAutheliaStorageUserTOTPDeleteExample,
-		RunE:    ctx.StorageTOTPDeleteRunE,
+		RunE:    ctx.StorageUserTOTPDeleteRunE,
 		Args:    cobra.ExactArgs(1),
 
 		DisableAutoGenTag: true,
@@ -374,7 +374,7 @@ func newStorageUserTOTPImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPImportShort,
 		Long:    cmdAutheliaStorageUserTOTPImportLong,
 		Example: cmdAutheliaStorageUserTOTPImportExample,
-		RunE:    ctx.StorageTOTPImportRunE,
+		RunE:    ctx.StorageUserTOTPImportRunE,
 		Args:    cobra.ExactArgs(1),
 
 		DisableAutoGenTag: true,
@@ -389,7 +389,7 @@ func newStorageUserTOTPExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPExportShort,
 		Long:    cmdAutheliaStorageUserTOTPExportLong,
 		Example: cmdAutheliaStorageUserTOTPExportExample,
-		RunE:    ctx.StorageTOTPExportRunE,
+		RunE:    ctx.StorageUserTOTPExportRunE,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -412,7 +412,7 @@ func newStorageUserTOTPExportURICmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPExportURIShort,
 		Long:    cmdAutheliaStorageUserTOTPExportURILong,
 		Example: cmdAutheliaStorageUserTOTPExportURIExample,
-		RunE:    ctx.StorageTOTPExportURIRunE,
+		RunE:    ctx.StorageUserTOTPExportURIRunE,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -427,7 +427,7 @@ func newStorageUserTOTPExportCSVCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPExportCSVShort,
 		Long:    cmdAutheliaStorageUserTOTPExportCSVLong,
 		Example: cmdAutheliaStorageUserTOTPExportCSVExample,
-		RunE:    ctx.StorageTOTPExportCSVRunE,
+		RunE:    ctx.StorageUserTOTPExportCSVRunE,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
@@ -444,7 +444,7 @@ func newStorageUserTOTPExportPNGCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageUserTOTPExportPNGShort,
 		Long:    cmdAutheliaStorageUserTOTPExportPNGLong,
 		Example: cmdAutheliaStorageUserTOTPExportPNGExample,
-		RunE:    ctx.StorageTOTPExportPNGRunE,
+		RunE:    ctx.StorageUserTOTPExportPNGRunE,
 		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
