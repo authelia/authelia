@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn delete
 
-Delete a WebAuthn device
+Delete a Webauthn device
 
 ### Synopsis
 
-Delete a WebAuthn device.
+Delete a Webauthn device.
 
-This subcommand allows deleting a WebAuthn device directly from the database.
+This subcommand allows deleting a Webauthn device directly from the database.
 
 ```
 authelia storage user webauthn delete [username] [flags]

@@ -207,11 +207,11 @@ authelia storage user webauthn export --file authelia.export.webauthn.yaml
 authelia storage user webauthn export --config config.yml
 authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnListShort = "List WebAuthn devices"
+	cmdAutheliaStorageUserWebauthnListShort = "List Webauthn devices"
 
-	cmdAutheliaStorageUserWebauthnListLong = `List WebAuthn devices.
+	cmdAutheliaStorageUserWebauthnListLong = `List Webauthn devices.
 
-This subcommand allows listing WebAuthn devices.`
+This subcommand allows listing Webauthn devices.`
 
 	cmdAutheliaStorageUserWebauthnListExample = `authelia storage user webauthn list
 authelia storage user webauthn list john
@@ -220,11 +220,11 @@ authelia storage user webauthn list john --config config.yml
 authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
-	cmdAutheliaStorageUserWebauthnDeleteShort = "Delete a WebAuthn device"
+	cmdAutheliaStorageUserWebauthnDeleteShort = "Delete a Webauthn device"
 
-	cmdAutheliaStorageUserWebauthnDeleteLong = `Delete a WebAuthn device.
+	cmdAutheliaStorageUserWebauthnDeleteLong = `Delete a Webauthn device.
 
-This subcommand allows deleting a WebAuthn device directly from the database.`
+This subcommand allows deleting a Webauthn device directly from the database.`
 
 	cmdAutheliaStorageUserWebauthnDeleteExample = `authelia storage user webauthn delete john --all
 authelia storage user webauthn delete john --all --config config.yml

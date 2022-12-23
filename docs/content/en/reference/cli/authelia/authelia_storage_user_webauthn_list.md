@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn list
 
-List WebAuthn devices
+List Webauthn devices
 
 ### Synopsis
 
-List WebAuthn devices.
+List Webauthn devices.
 
-This subcommand allows listing WebAuthn devices.
+This subcommand allows listing Webauthn devices.
 
 ```
 authelia storage user webauthn list [username] [flags]
