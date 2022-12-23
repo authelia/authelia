@@ -91,7 +91,7 @@ func TestFuncExpandEnv(t *testing.T) {
 
 			assert.Equal(t, tc.expected, FuncExpandEnv(tc.have))
 
-			for key, _ := range tc.env {
+			for key := range tc.env {
 				assert.NoError(t, os.Unsetenv(key))
 			}
 		})
