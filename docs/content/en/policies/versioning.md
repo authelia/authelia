@@ -22,6 +22,19 @@ version to `4.37` for example to prevent automatic upgrades from negatively affe
 
 There are exceptions to this versioning policy.
 
+### Advanced Customizations
+
+Some advanced customizations are not guaranteed by the versioning policy. These features require the administrator to
+ensure they keep up to date with the changes relevant to their version. While the customizations exist as a feature we
+cannot allow these customizations to hinder the development process.
+
+Notable Advanced Customizations:
+
+- Templates:
+  - Email
+  - Content Security Policy header
+- Localization Assets
+
 ### Breaking Changes
 
 All features which are marked as:
