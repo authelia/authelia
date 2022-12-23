@@ -20,19 +20,19 @@ func FuncMap() map[string]any {
 		"iterate":    FuncIterate,
 		"env":        FuncGetEnv,
 		"expandenv":  FuncExpandEnv,
-		"split":      FuncStringsSplit,
+		"split":      FuncStringSplit,
 		"splitList":  FuncStringSplitList,
 		"join":       FuncElemsJoin,
 		"contains":   FuncStringContains,
-		"hasPrefix":  FuncHasPrefix,
-		"hasSuffix":  FuncHasSuffix,
+		"hasPrefix":  FuncStringHasPrefix,
+		"hasSuffix":  FuncStringHasSuffix,
 		"lower":      strings.ToLower,
 		"upper":      strings.ToUpper,
 		"title":      strings.ToTitle,
 		"trim":       strings.TrimSpace,
-		"trimAll":    FuncTrimAll,
-		"trimSuffix": FuncTrimSuffix,
-		"trimPrefix": FuncTrimPrefix,
+		"trimAll":    FuncStringTrimAll,
+		"trimSuffix": FuncStringTrimSuffix,
+		"trimPrefix": FuncStringTrimPrefix,
 		"replace":    FuncStringReplace,
 		"quote":      FuncStringQuote,
 		"sha1sum":    FuncHashSum(sha1.New),
@@ -78,28 +78,28 @@ func FuncStringContains(substr string, s string) bool {
 	return strings.Contains(s, substr)
 }
 
-// FuncHasPrefix is a helper function that provides similar functionality to the helm hasPrefix func.
-func FuncHasPrefix(prefix string, s string) bool {
+// FuncStringHasPrefix is a helper function that provides similar functionality to the helm hasPrefix func.
+func FuncStringHasPrefix(prefix string, s string) bool {
 	return strings.HasPrefix(s, prefix)
 }
 
-// FuncHasSuffix is a helper function that provides similar functionality to the helm hasSuffix func.
-func FuncHasSuffix(suffix string, s string) bool {
+// FuncStringHasSuffix is a helper function that provides similar functionality to the helm hasSuffix func.
+func FuncStringHasSuffix(suffix string, s string) bool {
 	return strings.HasSuffix(s, suffix)
 }
 
-// FuncTrimAll is a helper function that provides similar functionality to the helm trimAll func.
-func FuncTrimAll(cutset, s string) string {
+// FuncStringTrimAll is a helper function that provides similar functionality to the helm trimAll func.
+func FuncStringTrimAll(cutset, s string) string {
 	return strings.Trim(s, cutset)
 }
 
-// FuncTrimSuffix is a helper function that provides similar functionality to the helm trimSuffix func.
-func FuncTrimSuffix(suffix, s string) string {
+// FuncStringTrimSuffix is a helper function that provides similar functionality to the helm trimSuffix func.
+func FuncStringTrimSuffix(suffix, s string) string {
 	return strings.TrimSuffix(s, suffix)
 }
 
-// FuncTrimPrefix is a helper function that provides similar functionality to the helm trimPrefix func.
-func FuncTrimPrefix(prefix, s string) string {
+// FuncStringTrimPrefix is a helper function that provides similar functionality to the helm trimPrefix func.
+func FuncStringTrimPrefix(prefix, s string) string {
 	return strings.TrimPrefix(s, prefix)
 }
 
@@ -140,8 +140,6 @@ func strval(v interface{}) string {
 		return v
 	case []byte:
 		return string(v)
-	case error:
-		return v.Error()
 	case fmt.Stringer:
 		return v.String()
 	default:
@@ -199,8 +197,8 @@ func FuncIterate(count *uint) (out []uint) {
 	return
 }
 
-// FuncStringsSplit is a template function which takes sep and value, splitting the value by the sep into a slice.
-func FuncStringsSplit(sep, value string) map[string]string {
+// FuncStringSplit is a template function which takes sep and value, splitting the value by the sep into a slice.
+func FuncStringSplit(sep, value string) map[string]string {
 	parts := strings.Split(value, sep)
 	res := make(map[string]string, len(parts))
 
