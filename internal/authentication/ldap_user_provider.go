@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
@@ -23,15 +24,20 @@ type LDAPUserProvider struct {
 	log       *logrus.Logger
 	factory   LDAPClientFactory
 
+	clock utils.Clock
+
 	disableResetPassword bool
 
 	// Automatically detected LDAP features.
 	features LDAPSupportedFeatures
 
 	// Dynamically generated users values.
-	usersBaseDN                 string
-	usersAttributes             []string
-	usersFilterReplacementInput bool
+	usersBaseDN                                        string
+	usersAttributes                                    []string
+	usersFilterReplacementInput                        bool
+	usersFilterReplacementDateTimeGeneralized          bool
+	usersFilterReplacementDateTimeUnixEpoch            bool
+	usersFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
 
 	// Dynamically generated groups values.
 	groupsBaseDN                    string
@@ -41,14 +47,15 @@ type LDAPUserProvider struct {
 	groupsFilterReplacementDN       bool
 }
 
-// NewLDAPUserProvider creates a new instance of LDAPUserProvider.
+// NewLDAPUserProvider creates a new instance of LDAPUserProvider with the ProductionLDAPClientFactory.
 func NewLDAPUserProvider(config schema.AuthenticationBackend, certPool *x509.CertPool) (provider *LDAPUserProvider) {
-	provider = newLDAPUserProvider(*config.LDAP, config.PasswordReset.Disable, certPool, nil)
+	provider = NewLDAPUserProviderWithFactory(*config.LDAP, config.PasswordReset.Disable, certPool, NewProductionLDAPClientFactory())
 
 	return provider
 }
 
-func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
+// NewLDAPUserProviderWithFactory creates a new instance of LDAPUserProvider with the specified LDAPClientFactory.
+func NewLDAPUserProviderWithFactory(config schema.LDAPAuthenticationBackend, disableResetPassword bool, certPool *x509.CertPool, factory LDAPClientFactory) (provider *LDAPUserProvider) {
 	if config.TLS == nil {
 		config.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
@@ -74,6 +81,7 @@ func newLDAPUserProvider(config schema.LDAPAuthenticationBackend, disableResetPa
 		log:                  logging.Logger(),
 		factory:              factory,
 		disableResetPassword: disableResetPassword,
+		clock:                &utils.RealClock{},
 	}
 
 	provider.parseDynamicUsersConfiguration()
@@ -394,12 +402,24 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
+func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 	filter = p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(username))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+	}
+
+	if p.usersFilterReplacementDateTimeGeneralized {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
+	}
+
+	if p.usersFilterReplacementDateTimeUnixEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeUnixEpoch, strconv.Itoa(int(p.clock.Now().Unix())))
+	}
+
+	if p.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.Itoa(int(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()))))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)
@@ -407,12 +427,12 @@ func (p *LDAPUserProvider) resolveUsersFilter(username string) (filter string) {
 	return filter
 }
 
-func (p *LDAPUserProvider) resolveGroupsFilter(username string, profile *ldapUserProfile) (filter string) {
+func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserProfile) (filter string) {
 	filter = p.config.GroupsFilter
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(username))
+		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(input))
 	}
 
 	if profile != nil {

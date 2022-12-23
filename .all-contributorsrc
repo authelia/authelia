@@ -825,6 +825,15 @@
         "code",
         "design"
       ]
+    },
+    {
+      "login": "Ohelig",
+      "name": "Ohelig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5841980?v=4",
+      "profile": "https://github.com/Ohelig",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7

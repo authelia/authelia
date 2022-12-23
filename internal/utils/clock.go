@@ -20,3 +20,23 @@ func (RealClock) Now() time.Time {
 func (RealClock) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
 }
+
+// TestingClock implementation of clock for tests.
+type TestingClock struct {
+	now time.Time
+}
+
+// Now return the stored clock.
+func (dc *TestingClock) Now() time.Time {
+	return dc.now
+}
+
+// After return a channel receiving the time after duration has elapsed.
+func (dc *TestingClock) After(d time.Duration) <-chan time.Time {
+	return time.After(d)
+}
+
+// Set set the time of the clock.
+func (dc *TestingClock) Set(now time.Time) {
+	dc.now = now
+}

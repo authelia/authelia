@@ -35,7 +35,7 @@ func NewClient(config schema.OpenIDConnectClientConfiguration) (client *Client) 
 
 		UserinfoSigningAlgorithm: config.UserinfoSigningAlgorithm,
 
-		Policy: authorization.StringToLevel(config.Policy),
+		Policy: authorization.NewLevel(config.Policy),
 
 		Consent: NewClientConsent(config.ConsentMode, config.ConsentPreConfiguredDuration),
 	}

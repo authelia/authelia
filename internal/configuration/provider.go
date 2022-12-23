@@ -86,15 +86,13 @@ func loadSources(ko *koanf.Koanf, val *schema.StructValidator, sources ...Source
 	}
 
 	for _, source := range sources {
-		err := source.Load(val)
-		if err != nil {
+		if err = source.Load(val); err != nil {
 			val.Push(fmt.Errorf("failed to load configuration from %s source: %+v", source.Name(), err))
 
 			continue
 		}
 
-		err = source.Merge(ko, val)
-		if err != nil {
+		if err = source.Merge(ko, val); err != nil {
 			val.Push(fmt.Errorf("failed to merge configuration from %s source: %+v", source.Name(), err))
 
 			continue
