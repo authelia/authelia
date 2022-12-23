@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/mail"
@@ -74,11 +73,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		disableHTML := false
-		if ctx.Configuration.Notifier.SMTP != nil {
-			disableHTML = ctx.Configuration.Notifier.SMTP.DisableHTMLEmails
-		}
-
 		linkURL := ctx.RootURL()
 
 		query := linkURL.Query()
@@ -88,7 +82,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
 		linkURL.RawQuery = query.Encode()
 
-		values := templates.EmailIdentityVerificationValues{
+		data := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
 			LinkURL:     linkURL.String(),
 			LinkText:    args.MailButtonContent,
@@ -96,24 +90,12 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			RemoteIP:    ctx.RemoteIP().String(),
 		}
 
-		bufHTML, bufText := &bytes.Buffer{}, &bytes.Buffer{}
-
-		if !disableHTML {
-			if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufHTML, values, templates.HTMLFormat); err != nil {
-				ctx.Error(err, messageOperationFailed)
-				return
-			}
-		}
-
-		if err = ctx.Providers.Templates.ExecuteEmailIdentityVerificationTemplate(bufText, values, templates.PlainTextFormat); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(mail.Address{Name: identity.DisplayName, Address: identity.Email}, args.MailTitle, bufText.Bytes(), bufHTML.Bytes()); err != nil {
+		recipient := mail.Address{Name: identity.DisplayName, Address: identity.Email}
+
+		if err = ctx.Providers.Notifier.Send(ctx, recipient, args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationEmailTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

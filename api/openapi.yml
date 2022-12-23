@@ -175,6 +175,240 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+    options:
+      tags:
+        - Authentication
+      summary: Verification
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
+      parameters:
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - Authentication
+      summary: Verification
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
+      parameters:
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    put:
+      tags:
+        - Authentication
+      summary: Verification
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
+      parameters:
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    patch:
+      tags:
+        - Authentication
+      summary: Verification
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
+      parameters:
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    delete:
+      tags:
+        - Authentication
+      summary: Verification
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
+      parameters:
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
+    trace:
+      tags:
+        - Authentication
+      summary: Verification
+      description: >
+        The verify endpoint provides the ability to verify if a user has the necessary permissions to access a specified
+        domain.
+      parameters:
+        - $ref: '#/components/parameters/originalURLParam'
+        - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/authParam'
+      responses:
+        "200":
+          description: Successful Operation
+          headers:
+            remote-user:
+              description: Username
+              schema:
+                type: string
+                example: john
+            remote-name:
+              description: Name
+              schema:
+                type: string
+                example: John Doe
+            remote-email:
+              description: Email
+              schema:
+                type: string
+                example: john.doe@authelia.com
+            remote-groups:
+              description: Comma separated list of Groups
+              schema:
+                type: string
+                example: admin,devs
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: []
   /api/firstfactor:
     post:
       tags:

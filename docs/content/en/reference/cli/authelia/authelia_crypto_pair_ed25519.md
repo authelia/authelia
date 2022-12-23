@@ -38,6 +38,13 @@ authelia crypto pair ed25519 --help
   -h, --help   help for ed25519
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+```
+
 ### SEE ALSO
 
 * [authelia crypto pair](authelia_crypto_pair.md)	 - Perform key pair cryptographic operations

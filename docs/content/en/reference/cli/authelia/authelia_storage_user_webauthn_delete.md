@@ -14,13 +14,13 @@ toc: true
 
 ## authelia storage user webauthn delete
 
-Delete a WebAuthn device
+Delete a Webauthn device
 
 ### Synopsis
 
-Delete a WebAuthn device.
+Delete a Webauthn device.
 
-This subcommand allows deleting a WebAuthn device directly from the database.
+This subcommand allows deleting a Webauthn device directly from the database.
 
 ```
 authelia storage user webauthn delete [username] [flags]
@@ -52,7 +52,8 @@ authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files to load (default [configuration.yml])
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

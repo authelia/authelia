@@ -24,7 +24,7 @@ func NewUserOpaqueIdentifier(service, sectorID, username string) (id *UserOpaque
 
 // UserOpaqueIdentifier represents an opaque identifier for a user. Commonly used with OAuth 2.0 and OpenID Connect.
 type UserOpaqueIdentifier struct {
-	ID       int    `db:"id" yaml:"id"`
+	ID       int    `db:"id" yaml:"-"`
 	Service  string `db:"service" yaml:"service"`
 	SectorID string `db:"sector_id" yaml:"sector_id"`
 	Username string `db:"username" yaml:"username"`

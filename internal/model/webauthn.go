@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -200,19 +202,114 @@ func (w *WebauthnDevice) MarshalJSON() (data []byte, err error) {
 }
 
 // UpdateSignInInfo adjusts the values of the WebauthnDevice after a sign in.
-func (w *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
-	w.LastUsedAt = sql.NullTime{Time: now, Valid: true}
+func (d *WebauthnDevice) UpdateSignInInfo(config *webauthn.Config, now time.Time, signCount uint32) {
+	d.LastUsedAt = sql.NullTime{Time: now, Valid: true}
 
-	w.SignCount = signCount
+	d.SignCount = signCount
 
-	if w.RPID != "" {
+	if d.RPID != "" {
 		return
 	}
 
-	switch w.AttestationType {
+	switch d.AttestationType {
 	case attestationTypeFIDOU2F:
-		w.RPID = config.RPOrigin
+		d.RPID = config.RPOrigin
 	default:
-		w.RPID = config.RPID
+		d.RPID = config.RPID
 	}
+}
+
+func (d *WebauthnDevice) LastUsed() *time.Time {
+	if d.LastUsedAt.Valid {
+		return &d.LastUsedAt.Time
+	}
+
+	return nil
+}
+
+// MarshalYAML marshals this model into YAML.
+func (d *WebauthnDevice) MarshalYAML() (any, error) {
+	o := WebauthnDeviceData{
+		CreatedAt:       d.CreatedAt,
+		LastUsedAt:      d.LastUsed(),
+		RPID:            d.RPID,
+		Username:        d.Username,
+		Description:     d.Description,
+		KID:             d.KID.String(),
+		PublicKey:       base64.StdEncoding.EncodeToString(d.PublicKey),
+		AttestationType: d.AttestationType,
+		Transport:       d.Transport,
+		AAGUID:          d.AAGUID.UUID.String(),
+		SignCount:       d.SignCount,
+		CloneWarning:    d.CloneWarning,
+	}
+
+	return yaml.Marshal(o)
+}
+
+// UnmarshalYAML unmarshalls YAML into this model.
+func (d *WebauthnDevice) UnmarshalYAML(value *yaml.Node) (err error) {
+	o := &WebauthnDeviceData{}
+
+	if err = value.Decode(o); err != nil {
+		return err
+	}
+
+	if d.PublicKey, err = base64.StdEncoding.DecodeString(o.PublicKey); err != nil {
+		return err
+	}
+
+	var aaguid uuid.UUID
+
+	if aaguid, err = uuid.Parse(o.AAGUID); err != nil {
+		return err
+	}
+
+	if aaguid.ID() != 0 {
+		d.AAGUID = uuid.NullUUID{Valid: true, UUID: aaguid}
+	}
+
+	var kid []byte
+
+	if kid, err = base64.StdEncoding.DecodeString(o.KID); err != nil {
+		return err
+	}
+
+	d.KID = NewBase64(kid)
+
+	d.CreatedAt = o.CreatedAt
+	d.RPID = o.RPID
+	d.Username = o.Username
+	d.Description = o.Description
+	d.AttestationType = o.AttestationType
+	d.Transport = o.Transport
+	d.SignCount = o.SignCount
+	d.CloneWarning = o.CloneWarning
+
+	if o.LastUsedAt != nil {
+		d.LastUsedAt = sql.NullTime{Valid: true, Time: *o.LastUsedAt}
+	}
+
+	return nil
+}
+
+// WebauthnDeviceData represents a Webauthn Device in the database storage.
+type WebauthnDeviceData struct {
+	CreatedAt       time.Time  `yaml:"created_at"`
+	LastUsedAt      *time.Time `yaml:"last_used_at"`
+	RPID            string     `yaml:"rpid"`
+	Username        string     `yaml:"username"`
+	Description     string     `yaml:"description"`
+	KID             string     `yaml:"kid"`
+	PublicKey       string     `yaml:"public_key"`
+	AttestationType string     `yaml:"attestation_type"`
+	Transport       string     `yaml:"transport"`
+	AAGUID          string     `yaml:"aaguid"`
+	SignCount       uint32     `yaml:"sign_count"`
+	CloneWarning    bool       `yaml:"clone_warning"`
+}
+
+// WebauthnDeviceExport represents a WebauthnDevice export file.
+type WebauthnDeviceExport struct {
+	WebauthnDevices []WebauthnDevice `yaml:"webauthn_devices"`
 }
