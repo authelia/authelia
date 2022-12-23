@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type message struct {
@@ -27,7 +28,7 @@ func doGetLinkFromLastMail(t *testing.T) string {
 	re := regexp.MustCompile(`<a href="(.+)" class="button">.*<\/a>`)
 	matches := re.FindStringSubmatch(string(res))
 
-	assert.Len(t, matches, 2, "Number of match for link in email is not equal to one")
+	require.Len(t, matches, 2, "Number of match for link in email is not equal to one")
 
 	return matches[1]
 }

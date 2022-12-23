@@ -166,7 +166,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 
 	switch {
 	case ctx.config.Notifier.SMTP != nil:
-		providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted, providers.Templates)
+		providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted)
 	case ctx.config.Notifier.FileSystem != nil:
 		providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
