@@ -962,7 +962,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	yml := filepath.Join(dir, "authelia.export.totp.yaml")
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--file", yml, "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines), yml))
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines)-1, yml))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "uri", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
@@ -982,7 +982,6 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	s.Assert().NoError(err)
 
 	content := string(data)
-	s.Assert().Contains(content, "issuer,username,algorithm,digits,period,secret\n")
 	for _, expectedLine := range expectedLinesCSV {
 		s.Assert().Contains(content, expectedLine)
 	}
