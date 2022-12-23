@@ -5,6 +5,8 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -315,36 +317,6 @@ const (
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
 )
 
-var validArgon2Variants = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
-
-var validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
-
-var validPBKDF2Variants = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
-
-var validBCryptVariants = []string{"standard", digestSHA256}
-
-var validHashAlgorithms = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
-
-var validStoragePostgreSQLSSLModes = []string{"disable", "require", "verify-ca", "verify-full"}
-
-var validThemeNames = []string{"light", "dark", "grey", "auto"}
-
-var validSessionSameSiteValues = []string{"none", "lax", "strict"}
-
-var validLogLevels = []string{"trace", "debug", "info", "warn", "error"}
-
-var validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", "ExtAuthz", "Legacy"}
-
-var validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
-
-var validWebauthnConveyancePreferences = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
-
-var validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
-
-var validRFC7231HTTPMethodVerbs = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
-
-var validRFC4918HTTPMethodVerbs = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
-
 const (
 	operatorPresent    = "present"
 	operatorAbsent     = "absent"
@@ -352,6 +324,34 @@ const (
 	operatorNotEqual   = "not equal"
 	operatorPattern    = "pattern"
 	operatorNotPattern = "not pattern"
+)
+
+var (
+	validLDAPImplementations = []string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory, schema.LDAPImplementationFreeIPA, schema.LDAPImplementationLLDAP}
+)
+
+var (
+	validAuthzImplementations = []string{"AuthRequest", "ForwardAuth", "ExtAuthz", "Legacy"}
+	validAuthzAuthnStrategies = []string{"CookieSession", "HeaderAuthorization", "HeaderProxyAuthorization", "HeaderAuthRequestProxyAuthorization", "HeaderLegacy"}
+)
+
+var (
+	validArgon2Variants    = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
+	validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
+	validPBKDF2Variants    = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
+	validBCryptVariants    = []string{"standard", digestSHA256}
+	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
+)
+
+var (
+	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
+	validThemeNames                          = []string{"light", "dark", "grey", "auto"}
+	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
+	validLogLevels                           = []string{"trace", "debug", "info", "warn", "error"}
+	validWebauthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
+	validWebauthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validRFC7231HTTPMethodVerbs              = []string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "OPTIONS"}
+	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )
 
 var (

@@ -24,7 +24,7 @@ import (
 func cmdFlagsCryptoCertificateCommon(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameSignature, "SHA256", "signature algorithm for the certificate")
 
-	cmd.Flags().StringP(cmdFlagNameCommonName, "c", "", "certificate common name")
+	cmd.Flags().StringP(cmdFlagNameCommonName, "n", "", "certificate common name")
 	cmd.Flags().StringSliceP(cmdFlagNameOrganization, "o", []string{"Authelia"}, "certificate organization")
 	cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "certificate organizational unit")
 	cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "certificate country")

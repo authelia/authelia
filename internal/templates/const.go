@@ -1,12 +1,14 @@
 package templates
 
+const (
+	extText = ".txt"
+	extHTML = ".html"
+)
+
 // Template File Names.
 const (
-	TemplateNameEmailEnvelope                 = "Envelope.tmpl"
-	TemplateNameEmailIdentityVerificationHTML = "IdentityVerification.html"
-	TemplateNameEmailIdentityVerificationTXT  = "IdentityVerification.txt"
-	TemplateNameEmailPasswordResetHTML        = "PasswordReset.html"
-	TemplateNameEmailPasswordResetTXT         = "PasswordReset.txt"
+	TemplateNameEmailIdentityVerification = "IdentityVerification"
+	TemplateNameEmailPasswordReset        = "PasswordReset"
 )
 
 // Template Category Names.

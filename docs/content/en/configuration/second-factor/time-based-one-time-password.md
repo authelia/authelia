@@ -169,23 +169,8 @@ This may be inconvenient for some users who wish to export TOTP keys from Authel
 a command specifically for exporting TOTP configurations from the database. These commands require the configuration or
 at least a minimal configuration that has the storage backend connection details and the encryption key.
 
-Export in [Key URI Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format):
-
-```bash
-authelia storage user totp export --format uri
-```
-
-Export as CSV:
-
-```bash
-authelia storage user totp export --format csv
-```
-
-Help:
-
-```bash
-authelia storage user totp export --help
-```
+See the [CLI Documentation](../../reference/cli/authelia/authelia_storage_user_totp_export.md) for methods to perform
+exports.
 
 [RFC4226]: https://www.rfc-editor.org/rfc/rfc4226.html
 [RFC6238]: https://www.rfc-editor.org/rfc/rfc6238.html
