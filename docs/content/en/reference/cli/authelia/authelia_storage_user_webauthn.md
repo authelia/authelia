@@ -37,8 +37,8 @@ authelia storage user webauthn --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
@@ -61,6 +61,8 @@ authelia storage user webauthn --help
 ### SEE ALSO
 
 * [authelia storage user](authelia_storage_user.md)	 - Manages user settings
-* [authelia storage user webauthn delete](authelia_storage_user_webauthn_delete.md)	 - Delete a WebAuthn device
-* [authelia storage user webauthn list](authelia_storage_user_webauthn_list.md)	 - List WebAuthn devices
+* [authelia storage user webauthn delete](authelia_storage_user_webauthn_delete.md)	 - Delete a Webauthn device
+* [authelia storage user webauthn export](authelia_storage_user_webauthn_export.md)	 - Perform exports of the Webauthn devices
+* [authelia storage user webauthn import](authelia_storage_user_webauthn_import.md)	 - Perform imports of the Webauthn devices
+* [authelia storage user webauthn list](authelia_storage_user_webauthn_list.md)	 - List Webauthn devices
 

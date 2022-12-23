@@ -46,37 +46,6 @@ func flagsGetUserIdentifiersGenerateOptions(flags *pflag.FlagSet) (users, servic
 	return users, services, sectors, nil
 }
 
-func flagsGetTOTPExportOptions(flags *pflag.FlagSet) (format, dir string, err error) {
-	if format, err = flags.GetString(cmdFlagNameFormat); err != nil {
-		return "", "", err
-	}
-
-	if dir, err = flags.GetString("dir"); err != nil {
-		return "", "", err
-	}
-
-	switch format {
-	case storageTOTPExportFormatCSV, storageTOTPExportFormatURI:
-		break
-	case storageTOTPExportFormatPNG:
-		if dir == "" {
-			dir = utils.RandomString(8, utils.CharSetAlphaNumeric, false)
-		}
-
-		if _, err = os.Stat(dir); !os.IsNotExist(err) {
-			return "", "", errors.New("output directory must not exist")
-		}
-
-		if err = os.MkdirAll(dir, 0700); err != nil {
-			return "", "", err
-		}
-	default:
-		return "", "", errors.New("format must be csv, uri, or png")
-	}
-
-	return format, dir, nil
-}
-
 //nolint:gocyclo
 func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameCharSet, flagNameCharacters string) (r string, err error) {
 	var (

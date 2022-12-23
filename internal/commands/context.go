@@ -24,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -80,7 +81,6 @@ type CmdCtxConfig struct {
 // CobraRunECmd describes a function that can be used as a *cobra.Command RunE, PreRunE, or PostRunE.
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
-// CheckSchemaVersion is a utility function which checks the schema version.
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")
@@ -104,6 +104,25 @@ func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	default:
 		return nil
 	}
+}
+
+// CheckSchema is a utility function which checks the schema version and encryption key.
+func (ctx *CmdCtx) CheckSchema() (err error) {
+	if err = ctx.CheckSchemaVersion(); err != nil {
+		return err
+	}
+
+	var result storage.EncryptionValidationResult
+
+	if result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, false); !result.Checked() || !result.Success() {
+		if err != nil {
+			return fmt.Errorf("failed to check the schema encryption key: %w", err)
+		}
+
+		return fmt.Errorf("failed to check the schema encryption key: the key is not valid for the schema")
+	}
+
+	return nil
 }
 
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.

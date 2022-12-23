@@ -38,15 +38,15 @@ authelia storage user identifiers export --file export.yaml --encryption-key b34
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "user-opaque-identifiers.yml")
+  -f, --file string   The file name for the YAML export (default "authelia.export.opaque-identifiers.yml")
   -h, --help          help for export
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

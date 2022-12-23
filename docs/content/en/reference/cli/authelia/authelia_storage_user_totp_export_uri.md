@@ -1,6 +1,6 @@
 ---
-title: "authelia storage user totp generate"
-description: "Reference for the authelia storage user totp generate command."
+title: "authelia storage user totp export uri"
+description: "Reference for the authelia storage user totp export uri command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -12,44 +12,32 @@ weight: 905
 toc: true
 ---
 
-## authelia storage user totp generate
+## authelia storage user totp export uri
 
-Generate a TOTP configuration for a user
+Perform exports of the TOTP configurations to URIs
 
 ### Synopsis
 
-Generate a TOTP configuration for a user.
+Perform exports of the TOTP configurations to URIs.
 
-This subcommand allows generating a new TOTP configuration for a user,
-and overwriting the existing configuration if applicable.
+This subcommand allows exporting TOTP configurations to TOTP URIs.
 
 ```
-authelia storage user totp generate <username> [flags]
+authelia storage user totp export uri [flags]
 ```
 
 ### Examples
 
 ```
-authelia storage user totp generate john
-authelia storage user totp generate john --period 90
-authelia storage user totp generate john --digits 8
-authelia storage user totp generate john --algorithm SHA512
-authelia storage user totp generate john --algorithm SHA512 --config config.yml
-authelia storage user totp generate john --algorithm SHA512 --config config.yml --path john.png
+authelia storage user totp export uri
+authelia storage user totp export uri --config config.yml
+authelia storage user totp export uri --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-      --algorithm string   set the algorithm to either SHA1 (supported by most applications), SHA256, or SHA512 (default "SHA1")
-      --digits uint        set the number of digits (default 6)
-  -f, --force              forces the configuration to be generated regardless if it exists or not
-  -h, --help               help for generate
-      --issuer string      set the issuer description (default "Authelia")
-  -p, --path string        path to a file to create a PNG file with the QR code (optional)
-      --period uint        set the period between rotations (default 30)
-      --secret string      set the shared secret as base32 encoded bytes (no padding), it's recommended that you do not use this option unless you're restoring a configuration
-      --secret-size uint   set the secret size (default 32)
+  -h, --help   help for uri
 ```
 
 ### Options inherited from parent commands
@@ -78,5 +66,5 @@ authelia storage user totp generate john --algorithm SHA512 --config config.yml 
 
 ### SEE ALSO
 
-* [authelia storage user totp](authelia_storage_user_totp.md)	 - Manage TOTP configurations
+* [authelia storage user totp export](authelia_storage_user_totp_export.md)	 - Perform exports of the TOTP configurations
 

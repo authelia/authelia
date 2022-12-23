@@ -63,7 +63,7 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Example: cmdAutheliaCryptoHashGenerateExample,
 		PreRunE: ctx.ChainRunE(
 			ctx.ConfigSetDefaultsRunE(defaults),
-			ctx.CryptoHashGenerateMapFlagsPreRunE,
+			ctx.CryptoHashGenerateMapFlagsRunE,
 			ctx.ConfigLoadRunE,
 			ctx.ConfigValidateSectionPasswordRunE,
 		),
@@ -116,7 +116,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Args:    cobra.NoArgs,
 		PersistentPreRunE: ctx.ChainRunE(
 			ctx.ConfigSetDefaultsRunE(defaults),
-			ctx.CryptoHashGenerateMapFlagsPreRunE,
+			ctx.CryptoHashGenerateMapFlagsRunE,
 			ctx.ConfigLoadRunE,
 			ctx.ConfigValidateSectionPasswordRunE,
 		),
@@ -207,9 +207,9 @@ func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (er
 	return nil
 }
 
-// CryptoHashGenerateMapFlagsPreRunE is the RunE which configures the flags map configuration source for the
+// CryptoHashGenerateMapFlagsRunE is the RunE which configures the flags map configuration source for the
 // authelia crypto hash generate commands.
-func (ctx *CmdCtx) CryptoHashGenerateMapFlagsPreRunE(cmd *cobra.Command, args []string) (err error) {
+func (ctx *CmdCtx) CryptoHashGenerateMapFlagsRunE(cmd *cobra.Command, args []string) (err error) {
 	var flagsMap map[string]string
 
 	switch cmd.Use {
