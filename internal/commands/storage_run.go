@@ -746,9 +746,8 @@ func (ctx *CmdCtx) StorageUserTOTPDeleteRunE(cmd *cobra.Command, args []string) 
 }
 
 const (
-	cliOutputFmtSuccessfulUserDelete     = "Successfully deleted %s for user '%s'\n"
-	cliOutputFmtSuccessfulUserExportFile = "Successfully exported %d %s as %s to the '%s' file"
-	cliOutputFmtSuccessfulUserImportFile = "Successfully imported %d %s from the %s file '%s' into the database"
+	cliOutputFmtSuccessfulUserExportFile = "Successfully exported %d %s as %s to the '%s' file\n"
+	cliOutputFmtSuccessfulUserImportFile = "Successfully imported %d %s from the %s file '%s' into the database\n"
 )
 
 // StorageUserTOTPExportRunE is the RunE for the authelia storage user totp export command.
