@@ -112,32 +112,7 @@ func NewExpandEnvFileFilter() FileFilter {
 
 // NewTemplateFileFilter is a FileFilter which passes the bytes through text/template.
 func NewTemplateFileFilter() FileFilter {
-	data := &TemplateFileFilterData{
-		Env: map[string]string{},
-	}
-
-	for _, e := range os.Environ() {
-		kv := strings.SplitN(e, "=", 2)
-
-		if len(kv) != 2 {
-			continue
-		}
-
-		data.Env[kv[0]] = kv[1]
-	}
-
-	t := template.New("config.template").
-		Funcs(template.FuncMap{
-			"env":       templates.StringMapLookupDefaultEmptyFunc(data.Env),
-			"split":     templates.StringsSplitFunc,
-			"iterate":   templates.IterateFunc,
-			"join":      strings.Join,
-			"contains":  strings.Contains,
-			"hasPrefix": strings.HasPrefix,
-			"hasSuffix": strings.HasSuffix,
-			"lower":     strings.ToLower,
-			"upper":     strings.ToUpper,
-		})
+	t := template.New("config.template").Funcs(templates.FuncMap())
 
 	log := logging.Logger()
 
@@ -148,7 +123,7 @@ func NewTemplateFileFilter() FileFilter {
 
 		buf := &bytes.Buffer{}
 
-		if err = t.Execute(buf, data); err != nil {
+		if err = t.Execute(buf, nil); err != nil {
 			return nil, err
 		}
 
@@ -162,9 +137,4 @@ func NewTemplateFileFilter() FileFilter {
 
 		return out, nil
 	}
-}
-
-// TemplateFileFilterData is the data available to the Go Template FileFilter.
-type TemplateFileFilterData struct {
-	Env map[string]string
 }
