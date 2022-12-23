@@ -67,3 +67,8 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 
 	return time.ParseDuration(out)
 }
+
+// UnixNanoTimeToMicrosoftNTEpoch converts a unix timestamp in nanosecond format to win32 epoch format.
+func UnixNanoTimeToMicrosoftNTEpoch(nano int64) (t uint64) {
+	return uint64(nano/100) + timeUnixEpochAsMicrosoftNTEpoch
+}

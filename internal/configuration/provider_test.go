@@ -105,6 +105,29 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 }
 
+func TestShouldValidateConfigurationWithFilters(t *testing.T) {
+	testReset()
+
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	_ = os.Setenv("SERVICES_SERVER", "10.10.10.10")
+	_ = os.Setenv("ROOT_DOMAIN", "example.org")
+
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	require.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
+	assert.Equal(t, "10.10.10.10", config.Notifier.SMTP.Host)
+	assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+}
+
 func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	testReset()
 
@@ -168,12 +191,12 @@ func TestShouldRaiseIOErrOnUnreadableFile(t *testing.T) {
 	cfg := filepath.Join(dir, "myconf.yml")
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
 func TestShouldValidateConfigurationWithEnvSecrets(t *testing.T) {
@@ -394,28 +417,25 @@ func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
 	assert.NoError(t, testCreateFile(filepath.Join(dir, "config.yml"), "port: 9091\n", 0000))
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(cfg))
+	_, _, err := Load(val, NewFileSource(cfg))
 
 	assert.NoError(t, err)
 	require.Len(t, val.Errors(), 1)
 
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: open %s: permission denied", cfg, cfg))
+	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from file path(%s) source: open %s: permission denied", cfg, cfg))
 }
 
-func TestShouldNotLoadDirectoryConfiguration(t *testing.T) {
+func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	testReset()
 
 	dir := t.TempDir()
 
 	val := schema.NewStructValidator()
-	_, _, err := Load(val, NewYAMLFileSource(dir))
+	_, _, err := Load(val, NewFileSource(dir))
 
 	assert.NoError(t, err)
-	require.Len(t, val.Errors(), 1)
+	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
-
-	expectedErr := fmt.Sprintf(utils.GetExpectedErrTxt("yamlisdir"), dir)
-	assert.EqualError(t, val.Errors()[0], fmt.Sprintf("failed to load configuration from yaml file(%s) source: %s", dir, expectedErr))
 }
 
 func testSetEnv(t *testing.T, key, value string) {

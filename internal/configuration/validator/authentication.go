@@ -328,8 +328,14 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom
 	case schema.LDAPImplementationActiveDirectory:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory
+	case schema.LDAPImplementationFreeIPA:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA
+	case schema.LDAPImplementationLLDAP:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP
+	case schema.LDAPImplementationGLAuth:
+		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join([]string{schema.LDAPImplementationCustom, schema.LDAPImplementationActiveDirectory}, "', '")))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendImplementation, config.LDAP.Implementation, strings.Join(validLDAPImplementations, "', '")))
 	}
 
 	configDefaultTLS := &schema.TLSConfig{}
@@ -381,6 +387,14 @@ func ldapImplementationShouldSetStr(config, implementation string) bool {
 }
 
 func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *schema.LDAPAuthenticationBackend, implementation *schema.LDAPAuthenticationBackend) {
+	if ldapImplementationShouldSetStr(config.AdditionalUsersDN, implementation.AdditionalUsersDN) {
+		config.AdditionalUsersDN = implementation.AdditionalUsersDN
+	}
+
+	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
+		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
+	}
+
 	if ldapImplementationShouldSetStr(config.UsersFilter, implementation.UsersFilter) {
 		config.UsersFilter = implementation.UsersFilter
 	}

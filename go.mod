@@ -6,6 +6,7 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
+	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20221117185402-091daa09e19d
 	github.com/fasthttp/router v1.4.14
 	github.com/fasthttp/session/v2 v2.4.13
@@ -28,7 +29,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
 	github.com/ory/herodot v0.9.13
-	github.com/ory/x v0.0.520
+	github.com/ory/x v0.0.523
 	github.com/otiai10/copy v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.4.0

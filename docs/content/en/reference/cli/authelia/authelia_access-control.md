@@ -32,6 +32,13 @@ authelia access-control --help
   -h, --help   help for access-control
 ```
 
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+```
+
 ### SEE ALSO
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)

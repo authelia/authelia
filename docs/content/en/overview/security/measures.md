@@ -346,14 +346,17 @@ typically located at `/etc/fail2ban/filter.d`.
 
 # the failregex rule counts every failed 1FA attempt (first line, wrong username or password) and failed 2FA attempt
 # second line) as a failure.
-# the ignoreregex rule ignores debug, info and warning messages as all authentication failures are flagged as errors
+# the ignoreregex rule ignores info and warning messages as all authentication failures are flagged as errors
+# the third line catches incorrect usernames entered at the password reset form
+# the fourth line catches attempts to spam via the password reset form or 2fa device reset form. This requires debug logging to be enabled
 
 [Definition]
 failregex = ^.*Unsuccessful 1FA authentication attempt by user .*remote_ip="?<HOST>"? stack.*
             ^.*Unsuccessful (TOTP|Duo|U2F) authentication attempt by user .*remote_ip="?<HOST>"? stack.*
+            ^.*user not found.*path=/api/reset-password/identity/start remote_ip="?<HOST>"? stack.*
+            ^.*Sending an email to user.*path=/api/.*/start remote_ip="?<HOST>"?
 
-ignoreregex = ^.*level=debug.*
-              ^.*level=info.*
+ignoreregex = ^.*level=info.*
               ^.*level=warning.*
 ```
 
