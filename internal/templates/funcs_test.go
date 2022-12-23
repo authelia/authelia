@@ -50,7 +50,7 @@ func TestFuncGetEnv(t *testing.T) {
 				assert.Equal(t, expected, FuncGetEnv(key))
 			}
 
-			for key, _ := range tc.have {
+			for key := range tc.have {
 				assert.NoError(t, os.Unsetenv(key))
 			}
 		})
