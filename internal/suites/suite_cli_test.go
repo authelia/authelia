@@ -974,9 +974,9 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	csv := filepath.Join(dir, "authelia.export.totp.csv")
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "csv", "--file", csv, "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as a CSV to the '%s' file\n", len(expectedLinesCSV), "authelia.export.totp.csv"))
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as CSV to the '%s' file\n", len(expectedLinesCSV), "authelia.export.totp.csv"))
 
-	content, err := os.ReadFile("authelia.export.totp.csv")
+	content, err := os.ReadFile(csv)
 	s.Assert().NoError(err)
 
 	s.Assert().Contains(content, "issuer,username,algorithm,digits,period,secret\n")
@@ -988,7 +988,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "png", "--directory", pngs, "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration QR codes in PNG format in the '%s' directory\n", len(expectedLines), pngs))
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", len(expectedLines), pngs))
 
 	for _, testCase := range testCases {
 		fileInfo, err = os.Stat(filepath.Join(pngs, fmt.Sprintf("%s.png", testCase.config.Username)))
@@ -1031,7 +1031,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	out1 := filepath.Join(dir, "1.yml")
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file", out1, "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, fmt.Sprintf("Exported 1 User Opaque Identifiers to %s", filepath.Join(dir, "1.yml")))
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 1, out1))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file", out1, "--config=/config/configuration.storage.yml"})
 	s.Assert().EqualError(err, "exit status 1")
@@ -1070,7 +1070,6 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	s.Require().Len(export.Identifiers, 1)
 
-	s.Assert().Equal(1, export.Identifiers[0].ID)
 	s.Assert().Equal("1097c8f8-83f2-4506-8138-5f40e83a1285", export.Identifiers[0].Identifier.String())
 	s.Assert().Equal("john", export.Identifiers[0].Username)
 	s.Assert().Equal("", export.Identifiers[0].SectorID)
@@ -1079,7 +1078,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	out2 := filepath.Join(dir, "2.yml")
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "identifiers", "export", "--file", out2, "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, fmt.Sprintf("Exported 2 User Opaque Identifiers to %s", out2))
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 2, out2))
 
 	export = model.UserOpaqueIdentifiersExport{}
 
@@ -1090,13 +1089,11 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	s.Require().Len(export.Identifiers, 2)
 
-	s.Assert().Equal(1, export.Identifiers[0].ID)
 	s.Assert().Equal("1097c8f8-83f2-4506-8138-5f40e83a1285", export.Identifiers[0].Identifier.String())
 	s.Assert().Equal("john", export.Identifiers[0].Username)
 	s.Assert().Equal("", export.Identifiers[0].SectorID)
 	s.Assert().Equal("openid", export.Identifiers[0].Service)
 
-	s.Assert().Equal(2, export.Identifiers[1].ID)
 	s.Assert().Equal("b0e17f48-933c-4cba-8509-ee9bfadf8ce5", export.Identifiers[1].Identifier.String())
 	s.Assert().Equal("john", export.Identifiers[1].Username)
 	s.Assert().Equal("openidconnect.net", export.Identifiers[1].SectorID)
