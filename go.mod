@@ -6,7 +6,6 @@ require (
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/deckarep/golang-set v1.8.0
-	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20221117185402-091daa09e19d
 	github.com/fasthttp/router v1.4.14
 	github.com/fasthttp/session/v2 v2.4.13
@@ -40,7 +39,8 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.43.0
-	github.com/wneessen/go-mail v0.3.4
+	github.com/wneessen/go-mail v0.3.5
+	golang.org/x/net v0.1.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.3.0
 	golang.org/x/text v0.5.0
@@ -110,7 +110,6 @@ require (
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
