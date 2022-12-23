@@ -1212,9 +1212,11 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 	fmt.Printf("\tUsers: '%s'\n", strings.Join(users, "', '"))
 	fmt.Printf("\tSectors: '%s'\n", strings.Join(sectors, "', '"))
 	fmt.Printf("\tServices: '%s'\n", strings.Join(services, "', '"))
+
 	if duplicates != 0 {
 		fmt.Printf("\tSkipped Duplicates: %d\n", duplicates)
 	}
+
 	fmt.Printf("\tTotal: %d", added)
 
 	return nil
