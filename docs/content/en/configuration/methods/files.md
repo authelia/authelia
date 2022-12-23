@@ -12,17 +12,22 @@ weight: 101200
 toc: true
 ---
 
-## Loading Behaviour
+## Loading Behaviour and Discovery
 
 There are several options which affect the loading of files:
 
-|       Name        |            Argument             |                                    Description                                     |
-|:-----------------:|:-------------------------------:|:----------------------------------------------------------------------------------:|
-| Files/Directories |        `--config`, `-c`         | A list of file or directory (non-recursive) paths to load configuration files from |
-|      Filters      | `--config.experimental.filters` |   A list of filters applied to every file from the Files or Directories options    |
+|       Name        |            Argument             |    Environment Variable     |                                    Description                                     |
+|:-----------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
+| Files/Directories |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
+|      Filters      | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
 __*Note:* when specifying directories and files, the individual files specified must not be within any of the
 directories specified.__
+
+Configuration options can be discovered via either the Argument or Environment Variable, but not both at the same time.
+If both are specified the Argument takes precedence and the Environment Variable is ignored. It is generally recommended
+that if you're using a container that you use the Environment Variable as this will allow you to execute other commands
+from the context of the container more easily.
 
 ## Formats
 

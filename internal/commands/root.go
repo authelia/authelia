@@ -45,9 +45,9 @@ func NewRootCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load")
+	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 
-	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information: authelia --help authelia filters")
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),
@@ -56,7 +56,8 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newStorageCmd(ctx),
 		newValidateConfigCmd(ctx),
 
-		newHelpTopic("filters", "Help for the config filters", helpTopicConfigFilters),
+		newHelpTopic("config", "Help for the config file/directory paths", helpTopicConfig),
+		newHelpTopic("filters", "help topic for the config filters", helpTopicConfigFilters),
 	)
 
 	return cmd
