@@ -7,7 +7,7 @@ import (
 	"path"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/model"
