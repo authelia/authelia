@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -73,7 +73,7 @@ func (s *CLISuite) TestShouldPrintVersion() {
 }
 
 func (s *CLISuite) TestShouldValidateConfig() {
-	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config", "--config=/config/configuration.yml"})
+	output, err := s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "validate-config"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Configuration parsed and loaded successfully without errors.")
 }

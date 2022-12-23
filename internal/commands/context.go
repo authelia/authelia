@@ -288,7 +288,7 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 		result  XEnvCLIResult
 	)
 
-	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, "", cmdFlagNameConfig); err != nil {
+	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
 		return err
 	}
 
