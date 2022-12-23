@@ -481,10 +481,15 @@ func (ctx *CmdCtx) StorageUserWebauthnExportRunE(cmd *cobra.Command, args []stri
 }
 
 func (ctx *CmdCtx) StorageUserWebauthnImportRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
 	var (
 		filename string
-		data     []byte
-		stat     os.FileInfo
+
+		stat os.FileInfo
+		data []byte
 	)
 
 	filename = args[0]
@@ -508,12 +513,8 @@ func (ctx *CmdCtx) StorageUserWebauthnImportRunE(cmd *cobra.Command, args []stri
 	}
 
 	if len(export.WebauthnDevices) == 0 {
-		return fmt.Errorf("can't import a YAML file without webauthn devices data")
+		return fmt.Errorf("can't import a YAML file without Webauthn devices data")
 	}
-
-	defer func() {
-		_ = ctx.providers.StorageProvider.Close()
-	}()
 
 	if err = ctx.CheckSchemaVersion(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -816,10 +817,15 @@ func (ctx *CmdCtx) StorageUserTOTPExportRunE(cmd *cobra.Command, _ []string) (er
 }
 
 func (ctx *CmdCtx) StorageUserTOTPImportRunE(_ *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
 	var (
 		filename string
-		data     []byte
-		stat     os.FileInfo
+
+		stat os.FileInfo
+		data []byte
 	)
 
 	filename = args[0]
@@ -845,10 +851,6 @@ func (ctx *CmdCtx) StorageUserTOTPImportRunE(_ *cobra.Command, args []string) (e
 	if len(export.TOTPConfigurations) == 0 {
 		return fmt.Errorf("can't import a YAML file without TOTP configuration data")
 	}
-
-	defer func() {
-		_ = ctx.providers.StorageProvider.Close()
-	}()
 
 	if err = ctx.CheckSchemaVersion(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -1089,15 +1091,19 @@ func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []stri
 }
 
 // StorageUserIdentifiersImportRunE is the RunE for the authelia storage user identifiers import command.
-func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
 	var (
 		filename string
-		stat     os.FileInfo
+
+		stat os.FileInfo
+		data []byte
 	)
 
-	if filename, err = cmd.Flags().GetString(cmdFlagNameFile); err != nil {
-		return err
-	}
+	filename = args[0]
 
 	if stat, err = os.Stat(filename); err != nil {
 		return fmt.Errorf("must specify a file that exists but '%s' had an error opening it: %w", filename, err)
@@ -1107,26 +1113,19 @@ func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, _ []stri
 		return fmt.Errorf("must specify a file that exists but '%s' is a directory", filename)
 	}
 
-	var (
-		data   []byte
-		export model.UserOpaqueIdentifiersExport
-	)
-
 	if data, err = os.ReadFile(filename); err != nil {
 		return err
 	}
 
-	if err = yaml.Unmarshal(data, &export); err != nil {
+	export := &model.UserOpaqueIdentifiersExport{}
+
+	if err = yaml.Unmarshal(data, export); err != nil {
 		return err
 	}
 
 	if len(export.Identifiers) == 0 {
-		return fmt.Errorf("can't import a file with no data")
+		return fmt.Errorf("can't import a YAML file without User Opaque Identifiers data")
 	}
-
-	defer func() {
-		_ = ctx.providers.StorageProvider.Close()
-	}()
 
 	if err = ctx.CheckSchemaVersion(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -1209,7 +1208,14 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 		}
 	}
 
-	fmt.Printf("Successfully added %d opaque identifiers and %d duplicates were skipped\n", added, duplicates)
+	fmt.Printf("Successfully generated and addded opaque identifiers:\n")
+	fmt.Printf("\tUsers: '%s'\n", strings.Join(users, "', '"))
+	fmt.Printf("\tSectors: '%s'\n", strings.Join(sectors, "', '"))
+	fmt.Printf("\tServices: '%s'\n", strings.Join(services, "', '"))
+	if duplicates != 0 {
+		fmt.Printf("\tSkipped Duplicates: %d\n", duplicates)
+	}
+	fmt.Printf("\tTotal: %d", added)
 
 	return nil
 }
