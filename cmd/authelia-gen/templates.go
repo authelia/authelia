@@ -28,7 +28,7 @@ func newTMPL(name string) (tmpl *template.Template, err error) {
 		Funcs(template.FuncMap{
 			"stringsContains": strings.Contains,
 			"join":            strings.Join,
-			"joinX":           templates.StringJoinXFunc,
+			"joinX":           templates.FuncStringJoinX,
 		}).
 		Parse(mustLoadTmplFS(name))
 }
