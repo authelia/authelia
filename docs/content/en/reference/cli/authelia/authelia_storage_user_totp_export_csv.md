@@ -1,8 +1,8 @@
 ---
-title: "authelia storage user totp"
-description: "Reference for the authelia storage user totp command."
+title: "authelia storage user totp export csv"
+description: "Reference for the authelia storage user totp export csv command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2022-12-23T11:08:46+11:00
 draft: false
 images: []
 menu:
@@ -12,26 +12,33 @@ weight: 905
 toc: true
 ---
 
-## authelia storage user totp
+## authelia storage user totp export csv
 
-Manage TOTP configurations
+Perform exports of the TOTP configurations to a CSV
 
 ### Synopsis
 
-Manage TOTP configurations.
+Perform exports of the TOTP configurations to a CSV.
 
-This subcommand allows deleting, exporting, and creating user TOTP configurations.
+This subcommand allows exporting TOTP configurations to a CSV.
+
+```
+authelia storage user totp export csv [flags]
+```
 
 ### Examples
 
 ```
-authelia storage user totp --help
+authelia storage user totp export csv --file users.csv
+authelia storage user totp export csv --config config.yml
+authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-  -h, --help   help for totp
+  -f, --file string   The file name for the CSV export (default "authelia.export.totp.csv")
+  -h, --help          help for csv
 ```
 
 ### Options inherited from parent commands
@@ -60,9 +67,5 @@ authelia storage user totp --help
 
 ### SEE ALSO
 
-* [authelia storage user](authelia_storage_user.md)	 - Manages user settings
-* [authelia storage user totp delete](authelia_storage_user_totp_delete.md)	 - Delete a TOTP configuration for a user
 * [authelia storage user totp export](authelia_storage_user_totp_export.md)	 - Perform exports of the TOTP configurations
-* [authelia storage user totp generate](authelia_storage_user_totp_generate.md)	 - Generate a TOTP configuration for a user
-* [authelia storage user totp import](authelia_storage_user_totp_import.md)	 - Perform imports of the TOTP configurations
 

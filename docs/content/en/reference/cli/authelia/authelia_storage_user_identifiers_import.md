@@ -26,23 +26,22 @@ The YAML file can either be automatically generated using the authelia storage u
 manually provided the file is in the same format.
 
 ```
-authelia storage user identifiers import [flags]
+authelia storage user identifiers import <filename> [flags]
 ```
 
 ### Examples
 
 ```
 authelia storage user identifiers import
-authelia storage user identifiers import --file export.yaml
-authelia storage user identifiers import --file export.yaml --config config.yml
-authelia storage user identifiers import --file export.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user identifiers import authelia.export.opaque-identifiers.yaml
+authelia storage user identifiers import --config config.yml export.yaml
+authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yaml
 ```
 
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML import (default "user-opaque-identifiers.yml")
-  -h, --help          help for import
+  -h, --help   help for import
 ```
 
 ### Options inherited from parent commands

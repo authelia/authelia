@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -954,25 +954,21 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--format=uri", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "uri", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLines {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--format=csv", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "csv", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
 		s.Assert().Contains(output, expectedLine)
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--format=wrong", "--config=/config/configuration.storage.yml"})
-	s.Assert().EqualError(err, "exit status 1")
-	s.Assert().Contains(output, "Error: format must be csv, uri, or png")
-
-	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--format=png", "--dir=/tmp/qr", "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "png", "--directory=/tmp/qr", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, "Exported TOTP QR codes in PNG format in the '/tmp/qr' directory")
 

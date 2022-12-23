@@ -38,7 +38,7 @@ authelia storage user identifiers export --file export.yaml --encryption-key b34
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "user-opaque-identifiers.yml")
+  -f, --file string   The file name for the YAML export (default "authelia.export.opaque-identifiers.yml")
   -h, --help          help for export
 ```
 
