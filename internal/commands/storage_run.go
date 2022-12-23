@@ -129,14 +129,14 @@ func (ctx *CmdCtx) ConfigValidateStoragePersistentPreRunE(_ *cobra.Command, _ []
 }
 
 func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
 	var (
 		verbose bool
 		result  storage.EncryptionValidationResult
 	)
-
-	defer func() {
-		_ = ctx.providers.StorageProvider.Close()
-	}()
 
 	if err = ctx.CheckSchemaVersion(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -195,7 +195,7 @@ func (ctx *CmdCtx) StorageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -419,7 +419,7 @@ func (ctx *CmdCtx) StorageUserWebauthnExportRunE(cmd *cobra.Command, args []stri
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -516,7 +516,7 @@ func (ctx *CmdCtx) StorageUserWebauthnImportRunE(cmd *cobra.Command, args []stri
 		return fmt.Errorf("can't import a YAML file without Webauthn devices data")
 	}
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -541,7 +541,7 @@ func (ctx *CmdCtx) StorageUserWebauthnListRunE(cmd *cobra.Command, args []string
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -574,7 +574,7 @@ func (ctx *CmdCtx) StorageUserWebauthnListAllRunE(_ *cobra.Command, _ []string) 
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -614,7 +614,7 @@ func (ctx *CmdCtx) StorageUserWebauthnDeleteRunE(cmd *cobra.Command, args []stri
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -668,7 +668,7 @@ func (ctx *CmdCtx) StorageUserTOTPGenerateRunE(cmd *cobra.Command, args []string
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -729,7 +729,7 @@ func (ctx *CmdCtx) StorageUserTOTPDeleteRunE(cmd *cobra.Command, args []string) 
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -757,7 +757,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportRunE(cmd *cobra.Command, _ []string) (er
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -852,7 +852,7 @@ func (ctx *CmdCtx) StorageUserTOTPImportRunE(_ *cobra.Command, args []string) (e
 		return fmt.Errorf("can't import a YAML file without TOTP configuration data")
 	}
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -876,7 +876,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(_ *cobra.Command, _ []string) (e
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -921,7 +921,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportCSVRunE(cmd *cobra.Command, _ []string) 
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -974,7 +974,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportPNGRunE(cmd *cobra.Command, _ []string) 
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -1044,7 +1044,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []stri
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -1127,7 +1127,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, args []s
 		return fmt.Errorf("can't import a YAML file without User Opaque Identifiers data")
 	}
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -1152,7 +1152,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
@@ -1272,7 +1272,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersAddRunE(cmd *cobra.Command, args []stri
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	if err = ctx.CheckSchemaVersion(); err != nil {
+	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
 	}
 
