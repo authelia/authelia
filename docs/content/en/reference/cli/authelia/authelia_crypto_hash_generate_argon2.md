@@ -48,8 +48,8 @@ authelia crypto hash generate argon2 --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information: authelia --help authelia filters
+  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --no-confirm                            skip the password confirmation prompt
       --password string                       manually supply the password rather than using the terminal prompt
       --random                                uses a randomly generated password

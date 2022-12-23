@@ -2,7 +2,7 @@
 title: "authelia storage user totp export png"
 description: "Reference for the authelia storage user totp export png command."
 lead: ""
-date: 2022-12-23T11:08:46+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 menu:
@@ -45,8 +45,8 @@ authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                         configuration files or directories to load (default [configuration.yml])
-      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information: authelia --help authelia filters
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
