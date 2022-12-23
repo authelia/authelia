@@ -976,9 +976,12 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as CSV to the '%s' file\n", len(expectedLinesCSV), "authelia.export.totp.csv"))
 
-	content, err := os.ReadFile(csv)
+	var data []byte
+
+	data, err = os.ReadFile(csv)
 	s.Assert().NoError(err)
 
+	content := string(data)
 	s.Assert().Contains(content, "issuer,username,algorithm,digits,period,secret\n")
 	for _, expectedLine := range expectedLinesCSV {
 		s.Assert().Contains(content, expectedLine)
