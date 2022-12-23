@@ -153,7 +153,7 @@ func newStorageUserIdentifiersCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "export",
+		Use:     cmdUseExport,
 		Short:   cmdAutheliaStorageUserIdentifiersExportShort,
 		Long:    cmdAutheliaStorageUserIdentifiersExportLong,
 		Example: cmdAutheliaStorageUserIdentifiersExportExample,
@@ -170,7 +170,7 @@ func newStorageUserIdentifiersExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageUserIdentifiersImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "import <filename>",
+		Use:     cmdUseImportFileName,
 		Short:   cmdAutheliaStorageUserIdentifiersImportShort,
 		Long:    cmdAutheliaStorageUserIdentifiersImportLong,
 		Example: cmdAutheliaStorageUserIdentifiersImportExample,
@@ -244,7 +244,7 @@ func newStorageUserWebauthnCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageUserWebauthnImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "import <filename>",
+		Use:     cmdUseImportFileName,
 		Short:   cmdAutheliaStorageUserWebauthnImportShort,
 		Long:    cmdAutheliaStorageUserWebauthnImportLong,
 		Example: cmdAutheliaStorageUserWebauthnImportExample,
@@ -259,7 +259,7 @@ func newStorageUserWebauthnImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageUserWebauthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "export",
+		Use:     cmdUseExport,
 		Short:   cmdAutheliaStorageUserWebauthnExportShort,
 		Long:    cmdAutheliaStorageUserWebauthnExportLong,
 		Example: cmdAutheliaStorageUserWebauthnExportExample,
@@ -370,7 +370,7 @@ func newStorageUserTOTPDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageUserTOTPImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "import <filename>",
+		Use:     cmdUseImportFileName,
 		Short:   cmdAutheliaStorageUserTOTPImportShort,
 		Long:    cmdAutheliaStorageUserTOTPImportLong,
 		Example: cmdAutheliaStorageUserTOTPImportExample,
@@ -385,7 +385,7 @@ func newStorageUserTOTPImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageUserTOTPExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "export",
+		Use:     cmdUseExport,
 		Short:   cmdAutheliaStorageUserTOTPExportShort,
 		Long:    cmdAutheliaStorageUserTOTPExportLong,
 		Example: cmdAutheliaStorageUserTOTPExportExample,

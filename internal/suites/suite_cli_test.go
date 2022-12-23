@@ -954,6 +954,10 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
+	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "--config=/config/configuration.storage.yml"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines), "authelia.export.totp.yaml"))
+
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "uri", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
 
@@ -963,14 +967,18 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "csv", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as a CSV to the '%s' file\n", len(expectedLinesCSV), "authelia.export.totp.csv"))
+
+	content, err := os.ReadFile("authelia.export.totp.csv")
+	s.Assert().NoError(err)
 
 	for _, expectedLine := range expectedLinesCSV {
-		s.Assert().Contains(output, expectedLine)
+		s.Assert().Contains(content, expectedLine)
 	}
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", s.testArg, s.coverageArg, "storage", "user", "totp", "export", "png", "--directory=/tmp/qr", "--config=/config/configuration.storage.yml"})
 	s.Assert().NoError(err)
-	s.Assert().Contains(output, "Exported TOTP QR codes in PNG format in the '/tmp/qr' directory")
+	s.Assert().Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration QR codes in PNG format in the '/tmp/qr' directory\n", len(expectedLines)))
 
 	for _, testCase := range testCases {
 		fileInfo, err = os.Stat(fmt.Sprintf("/tmp/qr/%s.png", testCase.config.Username))

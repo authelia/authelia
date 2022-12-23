@@ -697,6 +697,8 @@ func (ctx *CmdCtx) StorageTOTPExportURIRunE(_ *cobra.Command, _ []string) (err e
 		}
 	}
 
+	fmt.Print(buf.String())
+
 	fmt.Printf("\n\nSuccessfully exported %d TOTP configurations as a TOTP URI and printed them to the console\n", count)
 
 	return nil
@@ -750,7 +752,7 @@ func (ctx *CmdCtx) StorageTOTPExportCSVRunE(cmd *cobra.Command, _ []string) (err
 		return err
 	}
 
-	fmt.Printf("Successfully exported %d TOTP configurations as a CSV to the '%s' file", count, filename)
+	fmt.Printf("Successfully exported %d TOTP configurations as a CSV to the '%s' file\n", count, filename)
 
 	return nil
 }
@@ -825,7 +827,7 @@ func (ctx *CmdCtx) StorageTOTPExportPNGRunE(cmd *cobra.Command, _ []string) (err
 		}
 	}
 
-	fmt.Printf("Successfully exported %d TOTP configuratioun QR codes in PNG format in the '%s' directory\n", count, dir)
+	fmt.Printf("Successfully exported %d TOTP configuration QR codes in PNG format in the '%s' directory\n", count, dir)
 
 	return nil
 }

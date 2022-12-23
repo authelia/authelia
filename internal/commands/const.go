@@ -623,7 +623,6 @@ const (
 	cmdFlagNameAlgorithm   = "algorithm"
 	cmdFlagNameIssuer      = "issuer"
 	cmdFlagNameForce       = "force"
-	cmdFlagNameFormat      = "format"
 	cmdFlagNamePath        = "path"
 	cmdFlagNameTarget      = "target"
 	cmdFlagNameDestroyData = "destroy-data"
@@ -650,6 +649,9 @@ const (
 	cmdUseHashPBKDF2    = "pbkdf2"
 	cmdUseHashBCrypt    = "bcrypt"
 	cmdUseHashSCrypt    = "scrypt"
+
+	cmdUseExport         = "export"
+	cmdUseImportFileName = "import <filename>"
 
 	cmdUseCrypto      = "crypto"
 	cmdUseRand        = "rand"
