@@ -50,7 +50,7 @@ for, and the structure it must have.
   │       │
   │       └─⫸ Commit Scope: {{ joinX .Scopes.All "|" 70 "\n  │                          " }}
   │
-  └─⫸ Commit Type: {{ join .Types.List "|" }}
+  └─⫸ Commit Type: {{ join "|" .Types.List }}
 ```
 
 The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is optional.
@@ -59,7 +59,7 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 {{ range .Types.Details }}
 * __{{ .Name }}__ {{ .Description }}
 {{- if .Scopes }}
-  (example scopes: {{ join .Scopes ", " }})
+  (example scopes: {{ join ", " .Scopes }})
 {{- end }}
 {{- end }}
 
