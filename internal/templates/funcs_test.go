@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"hash"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,15 +42,11 @@ func TestFuncGetEnv(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			for key, value := range tc.have {
-				assert.NoError(t, os.Setenv(key, value))
+				t.Setenv(key, value)
 			}
 
 			for key, expected := range tc.expected {
 				assert.Equal(t, expected, FuncGetEnv(key))
-			}
-
-			for key := range tc.have {
-				assert.NoError(t, os.Unsetenv(key))
 			}
 		})
 	}
@@ -86,14 +81,10 @@ func TestFuncExpandEnv(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			for key, value := range tc.env {
-				assert.NoError(t, os.Setenv(key, value))
+				t.Setenv(key, value)
 			}
 
 			assert.Equal(t, tc.expected, FuncExpandEnv(tc.have))
-
-			for key := range tc.env {
-				assert.NoError(t, os.Unsetenv(key))
-			}
 		})
 	}
 }
