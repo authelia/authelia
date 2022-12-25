@@ -61,7 +61,7 @@ func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
 			}
 
 			if tc.envValue != "" {
-				require.NoError(t, os.Setenv(tc.envKey, tc.envValue))
+				t.Setenv(tc.envKey, tc.envValue)
 			}
 
 			actual, actualResult, actualErr := loadXEnvCLIStringSliceValue(cmd, tc.envKey, tc.flag.Name)
@@ -73,10 +73,6 @@ func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
 				assert.NoError(t, actualErr)
 			} else {
 				assert.EqualError(t, actualErr, tc.expectedErr)
-			}
-
-			if tc.envValue != "" {
-				require.NoError(t, os.Unsetenv(tc.envKey))
 			}
 		})
 	}
