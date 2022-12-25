@@ -50,6 +50,8 @@ The following functions which mimic the behaviour of helm exist in most templati
 - sha512sum
 - squote
 - now
+- keys
+- sortAlpha
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
 note that only the functions listed above are supported.

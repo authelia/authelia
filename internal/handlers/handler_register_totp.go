@@ -45,8 +45,7 @@ func totpIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 		ctx.Error(fmt.Errorf("unable to generate TOTP key: %s", err), messageUnableToRegisterOneTimePassword)
 	}
 
-	err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, *config)
-	if err != nil {
+	if err = ctx.Providers.StorageProvider.SaveTOTPConfiguration(ctx, *config); err != nil {
 		ctx.Error(fmt.Errorf("unable to save TOTP secret in DB: %s", err), messageUnableToRegisterOneTimePassword)
 		return
 	}
@@ -56,10 +55,11 @@ func totpIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 		Base32Secret: string(config.Secret),
 	}
 
-	err = ctx.SetJSONBody(response)
-	if err != nil {
+	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Logger.Errorf("Unable to set TOTP key response in body: %s", err)
 	}
+
+	ctxLogEvent(ctx, username, "Second Factor Registered", map[string]any{"Action": "Second Factor Registration", "Category": "Time-based One Time Password"})
 }
 
 // TOTPIdentityFinish the handler for finishing the identity validation.

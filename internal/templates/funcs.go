@@ -9,6 +9,7 @@ import (
 	"hash"
 	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +28,8 @@ func FuncMap() map[string]any {
 		"hasPrefix":  FuncStringHasPrefix,
 		"hasSuffix":  FuncStringHasSuffix,
 		"lower":      strings.ToLower,
+		"keys":       FuncKeys,
+		"sortAlpha":  FuncSortAlpha,
 		"upper":      strings.ToUpper,
 		"title":      strings.ToTitle,
 		"trim":       strings.TrimSpace,
@@ -66,6 +69,35 @@ func FuncHashSum(new func() hash.Hash) func(data string) string {
 
 		return hex.EncodeToString(sum)
 	}
+}
+
+// FuncKeys is a helper function that provides similar functionality to the helm keys func.
+func FuncKeys(maps ...map[string]interface{}) []string {
+	var keys []string
+
+	for _, m := range maps {
+		for k := range m {
+			keys = append(keys, k)
+		}
+	}
+
+	return keys
+}
+
+// FuncSortAlpha is a helper function that provides similar functionality to the helm sortAlpha func.
+func FuncSortAlpha(slice any) []string {
+	kind := reflect.Indirect(reflect.ValueOf(slice)).Kind()
+
+	switch kind {
+	case reflect.Slice, reflect.Array:
+		unsorted := strslice(slice)
+		sorted := sort.StringSlice(unsorted)
+		sorted.Sort()
+
+		return sorted
+	}
+
+	return []string{strval(slice)}
 }
 
 // FuncStringReplace is a helper function that provides similar functionality to the helm replace func.
