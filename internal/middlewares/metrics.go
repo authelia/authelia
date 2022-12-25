@@ -10,7 +10,7 @@ import (
 )
 
 // NewMetricsRequest returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
-func NewMetricsRequest(metrics metrics.Recorder) (middleware Basic) {
+func NewMetricsRequest(metrics metrics.Recorder) (middleware Middleware) {
 	if metrics == nil {
 		return nil
 	}
@@ -30,7 +30,7 @@ func NewMetricsRequest(metrics metrics.Recorder) (middleware Basic) {
 }
 
 // NewMetricsVerifyRequest returns a middleware if provided with a metrics.Recorder, otherwise it returns nil.
-func NewMetricsVerifyRequest(metrics metrics.Recorder) (middleware Basic) {
+func NewMetricsVerifyRequest(metrics metrics.Recorder) (middleware Middleware) {
 	if metrics == nil {
 		return nil
 	}

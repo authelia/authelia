@@ -75,6 +75,11 @@ server:
   ## Server headers configuration/customization.
   headers:
 
+    ## Sets the allowed host headers Authelia respond to. Any other host header will receive a 404 Not Found response.
+    ## Should not be confused with the external hostname, read the docs for more details.
+    # allowed_hosts:
+    #   - authelia
+
     ## The CSP Template. Read the docs.
     csp_template: ""
 

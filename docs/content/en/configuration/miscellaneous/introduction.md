@@ -78,7 +78,7 @@ It's strongly recommended this is a [Random Alphanumeric String](../../reference
 
 ### theme
 
-{{< confkey type="string " default="light" required="no" >}}
+{{< confkey type="string" default="light" required="no" >}}
 
 There are currently 3 available themes for Authelia:
 

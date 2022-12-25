@@ -70,7 +70,7 @@ func handleError() func(ctx *fasthttp.RequestCtx, err error) {
 			"status_code": statusCode,
 		}).WithError(err).Error(message)
 
-		handlers.SetStatusCodeResponse(ctx, statusCode)
+		middlewares.SetStatusCodeResponse(ctx, statusCode)
 	}
 }
 
@@ -80,7 +80,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 
 		for i := 0; i < len(dirsHTTPServer); i++ {
 			if path == dirsHTTPServer[i].name || strings.HasPrefix(path, dirsHTTPServer[i].prefix) {
-				handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+				middlewares.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 				return
 			}
@@ -90,6 +90,7 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	}
 }
 
+//nolint:gocyclo
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
 	optsTemplatedFile := NewTemplatedFileOptions(&config)
 
@@ -317,7 +318,11 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 
 	handler := middlewares.LogRequest(r.Handler)
 	if config.Server.Path != "" {
-		handler = middlewares.StripPath(config.Server.Path)(handler)
+		handler = middlewares.Wrap(middlewares.StripPath(config.Server.Path), handler)
+	}
+
+	if len(config.Server.Headers.AllowedHosts) != 0 {
+		handler = middlewares.Wrap(middlewares.AllowedHosts(config.Server.Headers.AllowedHosts), handler)
 	}
 
 	handler = middlewares.Wrap(middlewares.NewMetricsRequest(providers.Metrics), handler)

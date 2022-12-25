@@ -30,7 +30,8 @@ type ServerTLSConfiguration struct {
 
 // ServerHeadersConfiguration represents the customization of the http server headers.
 type ServerHeadersConfiguration struct {
-	CSPTemplate string `koanf:"csp_template"`
+	AllowedHosts []string `koanf:"allowed_hosts"`
+	CSPTemplate  string   `koanf:"csp_template"`
 }
 
 // DefaultServerConfiguration represents the default values of the ServerConfiguration.

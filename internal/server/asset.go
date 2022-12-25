@@ -15,7 +15,6 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -155,7 +154,7 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		supported, asset := getAssetName(ctx)
 
 		if !supported {
-			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+			middlewares.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 
 			return
 		}
@@ -222,10 +221,10 @@ func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
 func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+		middlewares.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
 	case errors.Is(err, fs.ErrPermission):
-		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusForbidden)
+		middlewares.SetStatusCodeResponse(ctx, fasthttp.StatusForbidden)
 	default:
-		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
+		middlewares.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
 	}
 }
