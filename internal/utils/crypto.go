@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	mrand "math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -578,21 +577,17 @@ loop:
 // RandomString returns a random string with a given length with values from the provided characters. When crypto is set
 // to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
 // excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomString(n int, characters string, crypto bool) (randomString string) {
-	return string(RandomBytes(n, characters, crypto))
+func RandomString(n int, characters string) (randomString string) {
+	return string(RandomBytes(n, characters))
 }
 
 // RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
 // to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
 // excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
+func RandomBytes(n int, characters string) (bytes []byte) {
 	bytes = make([]byte, n)
 
-	if crypto {
-		_, _ = rand.Read(bytes)
-	} else {
-		_, _ = mrand.Read(bytes) //nolint:gosec // As this is an option when using this function it's not necessary to be concerned about this.
-	}
+	_, _ = rand.Read(bytes)
 
 	for i, b := range bytes {
 		bytes[i] = characters[b%byte(len(characters))]
@@ -624,8 +619,4 @@ func RandomInt(n int) (int, error) {
 	}
 
 	return output, nil
-}
-
-func init() {
-	mrand.Seed(time.Now().UnixNano())
 }

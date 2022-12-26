@@ -102,7 +102,7 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.Mime10),
-		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric, true)),
+		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric)),
 	)
 
 	setMessageID(msg, n.domain)
@@ -162,7 +162,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 func setMessageID(msg *gomail.Msg, domain string) {
 	rn, _ := utils.RandomInt(100000000)
 	rm, _ := utils.RandomInt(10000)
-	rs := utils.RandomString(17, utils.CharSetAlphaNumeric, true)
+	rs := utils.RandomString(17, utils.CharSetAlphaNumeric)
 	pid := os.Getpid() + rm
 
 	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, domain))
