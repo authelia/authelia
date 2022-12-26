@@ -5,12 +5,10 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/sirupsen/logrus"
-	gomail "github.com/wneessen/go-mail"
+	"github.com/wneessen/go-mail"
 	"github.com/wneessen/go-mail/auth"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -24,7 +22,6 @@ func NewOpportunisticSMTPAuth(config *schema.SMTPNotifierConfiguration) *Opportu
 		username: config.Username,
 		password: config.Password,
 		host:     config.Host,
-		log:      logging.Logger(),
 	}
 }
 
@@ -32,9 +29,7 @@ func NewOpportunisticSMTPAuth(config *schema.SMTPNotifierConfiguration) *Opportu
 type OpportunisticSMTPAuth struct {
 	username, password, host string
 
-	log *logrus.Logger
-
-	satPreference []gomail.SMTPAuthType
+	satPreference []mail.SMTPAuthType
 	sa            smtp.Auth
 }
 
@@ -48,11 +43,11 @@ func (a *OpportunisticSMTPAuth) Start(server *smtp.ServerInfo) (proto string, to
 	for _, pref := range a.satPreference {
 		if utils.IsStringInSlice(string(pref), server.Auth) {
 			switch pref {
-			case gomail.SMTPAuthPlain:
+			case mail.SMTPAuthPlain:
 				a.sa = smtp.PlainAuth("", a.username, a.password, a.host)
-			case gomail.SMTPAuthLogin:
+			case mail.SMTPAuthLogin:
 				a.sa = auth.LoginAuth(a.username, a.password, a.host)
-			case gomail.SMTPAuthCramMD5:
+			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			}
 
@@ -62,12 +57,12 @@ func (a *OpportunisticSMTPAuth) Start(server *smtp.ServerInfo) (proto string, to
 
 	if a.sa == nil {
 		for _, sa := range server.Auth {
-			switch gomail.SMTPAuthType(sa) {
-			case gomail.SMTPAuthPlain:
+			switch mail.SMTPAuthType(sa) {
+			case mail.SMTPAuthPlain:
 				a.sa = smtp.PlainAuth("", a.username, a.password, a.host)
-			case gomail.SMTPAuthLogin:
+			case mail.SMTPAuthLogin:
 				a.sa = auth.LoginAuth(a.username, a.password, a.host)
-			case gomail.SMTPAuthCramMD5:
+			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			}
 		}

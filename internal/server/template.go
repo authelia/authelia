@@ -59,7 +59,7 @@ func ServeTemplatedFile(publicDir, file string, opts *TemplatedFileOptions) midd
 			ctx.SetContentTypeTextPlain()
 		}
 
-		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric, true)
+		nonce := utils.RandomString(32, utils.CharSetAlphaNumeric)
 
 		switch {
 		case publicDir == assetsSwagger:
