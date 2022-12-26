@@ -5,10 +5,11 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 	gomail "github.com/wneessen/go-mail"
 	"github.com/wneessen/go-mail/auth"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOpportunisticSMTPAuth is an opportunistic smtp.Auth implementation.
