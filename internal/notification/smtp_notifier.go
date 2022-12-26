@@ -23,6 +23,8 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 		gomail.WithPort(config.Port),
 		gomail.WithTLSConfig(utils.NewTLSConfig(config.TLS, certPool)),
 		gomail.WithHELO(config.Identifier),
+		gomail.WithTimeout(config.Timeout),
+		gomail.WithoutNoop(),
 	}
 
 	switch {
@@ -119,13 +121,13 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 
 	var client *gomail.Client
 
-	n.log.Debugf("creating client with %d options: %+v", len(n.opts), n.opts)
-
 	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 
-	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
+		client.SetSMTPAuthCustom(auth)
+	}
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)

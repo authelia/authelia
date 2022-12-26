@@ -5,10 +5,12 @@ import (
 	"net/smtp"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	gomail "github.com/wneessen/go-mail"
 	"github.com/wneessen/go-mail/auth"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -22,12 +24,15 @@ func NewOpportunisticSMTPAuth(config *schema.SMTPNotifierConfiguration) *Opportu
 		username: config.Username,
 		password: config.Password,
 		host:     config.Host,
+		log:      logging.Logger(),
 	}
 }
 
 // OpportunisticSMTPAuth is an opportunistic smtp.Auth implementation.
 type OpportunisticSMTPAuth struct {
 	username, password, host string
+
+	log *logrus.Logger
 
 	satPreference []gomail.SMTPAuthType
 	sa            smtp.Auth

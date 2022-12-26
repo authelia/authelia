@@ -34,6 +34,8 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eve
 		err     error
 	)
 
+	ctx.Logger.Debugf("Getting user details for notification")
+
 	// Send Notification.
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
 		ctx.Logger.Error(err)
@@ -51,6 +53,8 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eve
 		RemoteIP:    ctx.RemoteIP().String(),
 		Details:     eventDetails,
 	}
+
+	ctx.Logger.Debugf("Getting user addresses for notification")
 
 	addresses := details.Addresses()
 
