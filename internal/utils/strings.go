@@ -2,11 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"math/rand"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/valyala/fasthttp"
@@ -279,8 +277,4 @@ func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
 	}
 
 	return false
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }

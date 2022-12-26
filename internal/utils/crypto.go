@@ -625,3 +625,7 @@ func RandomInt(n int) (int, error) {
 
 	return output, nil
 }
+
+func init() {
+	mrand.Seed(time.Now().UnixNano())
+}
