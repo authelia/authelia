@@ -73,8 +73,8 @@ func FuncB32Enc(input string) string {
 }
 
 // FuncB32Dec is a helper function that provides similar functionality to the helm b32dec func.
-func FuncB32Dec(v string) (string, error) {
-	data, err := base32.StdEncoding.DecodeString(v)
+func FuncB32Dec(input string) (string, error) {
+	data, err := base32.StdEncoding.DecodeString(input)
 	if err != nil {
 		return "", err
 	}
@@ -182,7 +182,7 @@ func FuncStringSQuote(in ...any) string {
 
 	for _, s := range in {
 		if s != nil {
-			out = append(out, fmt.Sprintf("%q", strval(s)))
+			out = append(out, fmt.Sprintf("'%s'", strval(s)))
 		}
 	}
 
