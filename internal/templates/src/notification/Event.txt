@@ -3,7 +3,7 @@ This email has been sent to you in order to notify you of an important event.
 If you did not initiate the process your credentials might have been compromised and you should reset your password and contact an administrator.
 
 {{- if ne (len .Details) 0 }}
-{{- $keys := sortAlpha (keys .Details) }}
+{{- $keys := sortAlpha (keys $.Details) }}
 Details:
 {{- range $key := $keys }}
 	{{ $key }}: {{ index .Details $key }}
