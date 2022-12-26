@@ -56,7 +56,9 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 	at := strings.LastIndex(config.Sender.Address, "@")
 
 	if at >= 0 {
-		domain = config.Sender.Address[at:]
+		domain = config.Sender.Address[at+1:]
+	} else {
+		domain = "localhost.localdomain"
 	}
 
 	return &SMTPNotifier{

@@ -603,8 +603,8 @@ func RandomInt(n int) (int, error) {
 
 	max := big.NewInt(int64(n))
 
-	if max.IsUint64() {
-		return 0, fmt.Errorf("generated max is uint64")
+	if !max.IsUint64() {
+		return 0, fmt.Errorf("generated max is negative")
 	}
 
 	value, err := rand.Int(rand.Reader, max)
