@@ -17,8 +17,9 @@ func identityRetrieverFromSession(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}
 
 	return &session.Identity{
-		Username: userSession.Username,
-		Email:    userSession.Emails[0],
+		Username:    userSession.Username,
+		DisplayName: userSession.DisplayName,
+		Email:       userSession.Emails[0],
 	}, nil
 }
 
