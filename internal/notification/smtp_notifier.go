@@ -22,7 +22,6 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 	opts := []gomail.Option{
 		gomail.WithPort(config.Port),
 		gomail.WithTLSConfig(utils.NewTLSConfig(config.TLS, certPool)),
-		gomail.WithPassword(config.Password),
 		gomail.WithHELO(config.Identifier),
 	}
 
@@ -65,6 +64,7 @@ type SMTPNotifier struct {
 	opts   []gomail.Option
 }
 
+// StartupCheck implements model.StartupCheck to perform startup check operations.
 func (n *SMTPNotifier) StartupCheck() (err error) {
 	var client *gomail.Client
 
@@ -85,6 +85,7 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 	return nil
 }
 
+// Send a notification via the SMTPNotifier.
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.Mime10),
@@ -118,9 +119,13 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 
 	var client *gomail.Client
 
+	n.log.Debugf("creating client with %d options: %+v", len(n.opts), n.opts)
+
 	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
+
+	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)
