@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	mrand "math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -572,4 +573,55 @@ loop:
 	}
 
 	return extKeyUsage
+}
+
+// RandomString returns a random string with a given length with values from the provided characters. When crypto is set
+// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
+// excluding when the task is time sensitive and would not benefit from extra randomness.
+func RandomString(n int, characters string, crypto bool) (randomString string) {
+	return string(RandomBytes(n, characters, crypto))
+}
+
+// RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
+// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
+// excluding when the task is time sensitive and would not benefit from extra randomness.
+func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
+	bytes = make([]byte, n)
+
+	if crypto {
+		_, _ = rand.Read(bytes)
+	} else {
+		_, _ = mrand.Read(bytes) //nolint:gosec // As this is an option when using this function it's not necessary to be concerned about this.
+	}
+
+	for i, b := range bytes {
+		bytes[i] = characters[b%byte(len(characters))]
+	}
+
+	return bytes
+}
+
+func RandomInt(n int) (int, error) {
+	if n <= 0 {
+		return 0, fmt.Errorf("n must be more than 0")
+	}
+
+	max := big.NewInt(int64(n))
+
+	if max.IsUint64() {
+		return 0, fmt.Errorf("generated max is uint64")
+	}
+
+	value, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return 0, err
+	}
+
+	output := int(value.Int64())
+
+	if output < 0 {
+		return 0, fmt.Errorf("generated number is too big for int")
+	}
+
+	return output, nil
 }
