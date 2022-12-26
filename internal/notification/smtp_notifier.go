@@ -125,7 +125,9 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 
-	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
+		client.SetSMTPAuthCustom(auth)
+	}
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)
