@@ -152,5 +152,5 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 	ctx.SetStatusCode(fasthttp.StatusCreated)
 
-	ctxLogEvent(ctx, userSession.Username, "Second Factor Registered", map[string]any{"Action": "Second Factor Registration", "Category": "Webauthn Credential", "Device Name": "Primary"})
+	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Device Name": "Primary"})
 }

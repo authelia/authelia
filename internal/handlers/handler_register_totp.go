@@ -60,7 +60,7 @@ func totpIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
 		ctx.Logger.Errorf("Unable to set TOTP key response in body: %s", err)
 	}
 
-	ctxLogEvent(ctx, username, "Second Factor Registered", map[string]any{"Action": "Second Factor Registration", "Category": "Time-based One Time Password"})
+	ctxLogEvent(ctx, username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Time-based One Time Password"})
 }
 
 // TOTPIdentityFinish the handler for finishing the identity validation.
