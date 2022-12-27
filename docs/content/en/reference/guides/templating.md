@@ -50,9 +50,15 @@ The following functions which mimic the behaviour of helm exist in most templati
 - sha512sum
 - squote
 - now
+- keys
+- sortAlpha
+- b64enc
+- b64dec
+- b32enc
+- b32dec
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
-note that only the functions listed above are supported.
+note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.
 
 __*Special Note:* The `env` and `expandenv` function automatically excludes environment variables that start with
 `AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.__

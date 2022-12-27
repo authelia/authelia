@@ -325,3 +325,147 @@ func TestFuncStringSplitList(t *testing.T) {
 		})
 	}
 }
+
+func TestFuncKeys(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []map[string]any
+		expected []string
+	}{
+		{"ShouldProvideKeysSingle", []map[string]any{{"a": "v", "b": "v", "z": "v"}}, []string{"a", "b", "z"}},
+		{"ShouldProvideKeysMultiple", []map[string]any{{"a": "v", "b": "v", "z": "v"}, {"h": "v"}}, []string{"a", "b", "z", "h"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			keys := FuncKeys(tc.have...)
+
+			assert.Len(t, keys, len(tc.expected))
+
+			for _, expected := range tc.expected {
+				assert.Contains(t, keys, expected)
+			}
+		})
+	}
+}
+
+func TestFuncSortAlpha(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     any
+		expected []string
+	}{
+		{"ShouldSortStrings", []string{"a", "c", "b"}, []string{"a", "b", "c"}},
+		{"ShouldSortIntegers", []int{2, 3, 1}, []string{"1", "2", "3"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncSortAlpha(tc.have))
+		})
+	}
+}
+
+func TestFuncBEnc(t *testing.T) {
+	testCases := []struct {
+		name       string
+		have       string
+		expected32 string
+		expected64 string
+	}{
+		{"ShouldEncodeEmptyString", "", "", ""},
+		{"ShouldEncodeString", "abc", "MFRGG===", "YWJj"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("Base32", func(t *testing.T) {
+				assert.Equal(t, tc.expected32, FuncB32Enc(tc.have))
+			})
+
+			t.Run("Base64", func(t *testing.T) {
+				assert.Equal(t, tc.expected64, FuncB64Enc(tc.have))
+			})
+		})
+	}
+}
+
+func TestFuncBDec(t *testing.T) {
+	testCases := []struct {
+		name              string
+		have              string
+		err32, expected32 string
+		err64, expected64 string
+	}{
+		{"ShouldDecodeEmptyString", "", "", "", "", ""},
+		{"ShouldDecodeBase32", "MFRGG===", "", "abc", "illegal base64 data at input byte 5", ""},
+		{"ShouldDecodeBase64", "YWJj", "illegal base32 data at input byte 3", "", "", "abc"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				actual string
+				err    error
+			)
+
+			t.Run("Base32", func(t *testing.T) {
+				actual, err = FuncB32Dec(tc.have)
+
+				if tc.err32 != "" {
+					assert.Equal(t, "", actual)
+					assert.EqualError(t, err, tc.err32)
+				} else {
+					assert.Equal(t, tc.expected32, actual)
+					assert.NoError(t, err)
+				}
+			})
+
+			t.Run("Base64", func(t *testing.T) {
+				actual, err = FuncB64Dec(tc.have)
+
+				if tc.err64 != "" {
+					assert.Equal(t, "", actual)
+					assert.EqualError(t, err, tc.err64)
+				} else {
+					assert.Equal(t, tc.expected64, actual)
+					assert.NoError(t, err)
+				}
+			})
+		})
+	}
+}
+
+func TestFuncStringQuote(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []any
+		expected string
+	}{
+		{"ShouldQuoteSingleValue", []any{"abc"}, `"abc"`},
+		{"ShouldQuoteMultiValue", []any{"abc", 123}, `"abc" "123"`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncStringQuote(tc.have...))
+		})
+	}
+}
+
+func TestFuncStringSQuote(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []any
+		expected string
+	}{
+		{"ShouldQuoteSingleValue", []any{"abc"}, `'abc'`},
+		{"ShouldQuoteMultiValue", []any{"abc", 123}, `'abc' '123'`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncStringSQuote(tc.have...))
+		})
+	}
+}

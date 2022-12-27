@@ -4,11 +4,14 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/base32"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"hash"
 	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +30,8 @@ func FuncMap() map[string]any {
 		"hasPrefix":  FuncStringHasPrefix,
 		"hasSuffix":  FuncStringHasSuffix,
 		"lower":      strings.ToLower,
+		"keys":       FuncKeys,
+		"sortAlpha":  FuncSortAlpha,
 		"upper":      strings.ToUpper,
 		"title":      strings.ToTitle,
 		"trim":       strings.TrimSpace,
@@ -40,7 +45,41 @@ func FuncMap() map[string]any {
 		"sha512sum":  FuncHashSum(sha512.New),
 		"squote":     FuncStringSQuote,
 		"now":        time.Now,
+		"b64enc":     FuncB64Enc,
+		"b64dec":     FuncB64Dec,
+		"b32enc":     FuncB32Enc,
+		"b32dec":     FuncB32Dec,
 	}
+}
+
+// FuncB64Enc is a helper function that provides similar functionality to the helm b64enc func.
+func FuncB64Enc(input string) string {
+	return base64.StdEncoding.EncodeToString([]byte(input))
+}
+
+// FuncB64Dec is a helper function that provides similar functionality to the helm b64dec func.
+func FuncB64Dec(input string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
+// FuncB32Enc is a helper function that provides similar functionality to the helm b32enc func.
+func FuncB32Enc(input string) string {
+	return base32.StdEncoding.EncodeToString([]byte(input))
+}
+
+// FuncB32Dec is a helper function that provides similar functionality to the helm b32dec func.
+func FuncB32Dec(input string) (string, error) {
+	data, err := base32.StdEncoding.DecodeString(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
 
 // FuncExpandEnv is a special version of os.ExpandEnv that excludes secret keys.
@@ -66,6 +105,35 @@ func FuncHashSum(new func() hash.Hash) func(data string) string {
 
 		return hex.EncodeToString(sum)
 	}
+}
+
+// FuncKeys is a helper function that provides similar functionality to the helm keys func.
+func FuncKeys(maps ...map[string]any) []string {
+	var keys []string
+
+	for _, m := range maps {
+		for k := range m {
+			keys = append(keys, k)
+		}
+	}
+
+	return keys
+}
+
+// FuncSortAlpha is a helper function that provides similar functionality to the helm sortAlpha func.
+func FuncSortAlpha(slice any) []string {
+	kind := reflect.Indirect(reflect.ValueOf(slice)).Kind()
+
+	switch kind {
+	case reflect.Slice, reflect.Array:
+		unsorted := strslice(slice)
+		sorted := sort.StringSlice(unsorted)
+		sorted.Sort()
+
+		return sorted
+	}
+
+	return []string{strval(slice)}
 }
 
 // FuncStringReplace is a helper function that provides similar functionality to the helm replace func.
@@ -114,7 +182,7 @@ func FuncStringSQuote(in ...any) string {
 
 	for _, s := range in {
 		if s != nil {
-			out = append(out, fmt.Sprintf("%q", strval(s)))
+			out = append(out, fmt.Sprintf("'%s'", strval(s)))
 		}
 	}
 
