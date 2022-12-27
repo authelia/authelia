@@ -73,6 +73,11 @@ Some Additional examples for specific purposes can be found in the
 The original template content can be found on
 [GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/notification).
 
+## Functions
+
+Several functions are implemented with the email templates. See the
+[Templating Reference Guide](../../reference/guides/templating.md) for more information.
+
 [host]: ../../configuration/notifications/smtp.md#host
 [server_name]: ../../configuration/notifications/smtp.md#tls
 [sender]: ../../configuration/notifications/smtp.md#sender

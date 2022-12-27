@@ -37,7 +37,7 @@ i18n.use(Backend)
             default: ["{{ .Defaults.Language.Locale }}"],
             {{- range .Languages }}
             {{- if and (not (eq .Locale "en")) (not (eq (len .Fallbacks) 0)) }}
-            {{ if stringsContains .Locale "-" }}"{{ .Locale }}"{{ else }}{{ .Locale }}{{ end }}: [{{ range $i, $value := .Fallbacks }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
+            {{ if contains "-" .Locale }}"{{ .Locale }}"{{ else }}{{ .Locale }}{{ end }}: [{{ range $i, $value := .Fallbacks }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
             {{- end }}
             {{- end }}
         },

@@ -184,7 +184,7 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.StorageProvider.SaveWebauthnDevice(ctx, device); err != nil {
 		ctx.Logger.Errorf("Unable to load %s devices for assertion challenge for user '%s': %+v", regulation.AuthTypeWebauthn, userSession.Username, err)
 
-		respondUnauthorized(ctx, messageMFAValidationFailed)
+		respondUnauthorized(ctx, messageUnableToRegisterSecurityKey)
 
 		return
 	}
@@ -192,12 +192,10 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.Webauthn = nil
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the attestation challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
 	}
 
 	ctx.ReplyOK()
 	ctx.SetStatusCode(fasthttp.StatusCreated)
+
+	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Credential Description": postData.Description})
 }
