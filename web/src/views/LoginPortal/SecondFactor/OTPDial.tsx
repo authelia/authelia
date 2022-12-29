@@ -34,6 +34,7 @@ const OTPDial = function (props: Props) {
                     isDisabled={props.state === State.InProgress || props.state === State.Success}
                     isInputNum
                     hasErrored={props.state === State.Failure}
+                    autoComplete="one-time-code"
                     inputStyle={classnames(
                         styles.otpDigitInput,
                         props.state === State.Failure ? styles.inputError : "",
