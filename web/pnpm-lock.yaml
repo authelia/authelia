@@ -26,7 +26,7 @@ specifiers:
   '@typescript-eslint/parser': 5.47.1
   '@vitejs/plugin-react': 3.0.0
   axios: 1.2.1
-  broadcast-channel: 4.18.1
+  broadcast-channel: 4.19.1
   classnames: 2.3.2
   esbuild: 0.16.10
   esbuild-jest: 0.5.0
@@ -78,7 +78,7 @@ dependencies:
   '@mui/material': 5.11.2_lskpmcsdi7ipu6qpuapyu56ihm
   '@mui/styles': 5.11.2_kzbn2opkn2327fwg5yzwzya5o4
   axios: 1.2.1
-  broadcast-channel: 4.18.1
+  broadcast-channel: 4.19.1
   classnames: 2.3.2
   i18next: 22.4.6
   i18next-browser-languagedetector: 7.0.1
@@ -4212,7 +4212,7 @@ packages:
     resolution: {integrity: sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg==}
     engines: {node: '>=10', npm: '>=6'}
     dependencies:
-      '@babel/runtime': 7.20.6
+      '@babel/runtime': 7.20.7
       cosmiconfig: 7.0.1
       resolve: 1.22.1
 
@@ -4410,14 +4410,14 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /broadcast-channel/4.18.1:
-    resolution: {integrity: sha512-eV1srWgt6H4hbtGqD7THn60me66WA5l0LogpssuX9jK6NK26HzIZr+VsrlD7Obe0BtYnwoo/a4v4z5gfty04DA==}
+  /broadcast-channel/4.19.1:
+    resolution: {integrity: sha512-CroDV8L4QdMuCHtjs0AATaN2w1rA5e6ca9a3yZATmAs3lbFu3q3QkITkuMS4sQ/NjtZwkVANXLlhgyQfiukBuw==}
     dependencies:
-      '@babel/runtime': 7.19.4
+      '@babel/runtime': 7.20.7
       oblivious-set: 1.1.1
       p-queue: 6.6.2
       rimraf: 3.0.2
-      unload: 2.3.1
+      unload: 2.4.1
     dev: false
 
   /browser-process-hrtime/1.0.0:
@@ -4905,10 +4905,6 @@ packages:
     resolution: {integrity: sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==}
     engines: {node: '>=8'}
     dev: true
-
-  /detect-node/2.1.0:
-    resolution: {integrity: sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==}
-    dev: false
 
   /diff-sequences/29.3.1:
     resolution: {integrity: sha512-hlM3QR272NXCi4pq+N4Kok4kOp6EsgOM3ZSpJI7Da3UAs+Ttsi8MRmB6trM/lhyzUxGfOgnpkHtgqm5Q/CTcfQ==}
@@ -9085,11 +9081,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unload/2.3.1:
-    resolution: {integrity: sha512-MUZEiDqvAN9AIDRbbBnVYVvfcR6DrjCqeU2YQMmliFZl9uaBUjTkhuDQkBiyAy8ad5bx1TXVbqZ3gg7namsWjA==}
-    dependencies:
-      '@babel/runtime': 7.20.6
-      detect-node: 2.1.0
+  /unload/2.4.1:
+    resolution: {integrity: sha512-IViSAm8Z3sRBYA+9wc0fLQmU9Nrxb16rcDmIiR6Y9LJSZzI7QY5QsDhqPpKOjAn0O9/kfK1TfNEMMAGPTIraPw==}
     dev: false
 
   /unset-value/1.0.0:
