@@ -8,8 +8,6 @@ import (
 	"unicode"
 
 	"github.com/valyala/fasthttp"
-
-	"github.com/authelia/authelia/v4/internal/random"
 )
 
 // IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
@@ -210,28 +208,6 @@ func StringSlicesDelta(before, after []string) (added, removed []string) {
 	return added, removed
 }
 
-// RandomString returns a random string with a given length with values from the provided characters. When crypto is set
-// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
-// excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomString(n int, characters string, crypto bool) (randomString string) {
-	return string(RandomBytes(n, characters, crypto))
-}
-
-// RandomBytes returns a random []byte with a given length with values from the provided characters. When crypto is set
-// to false we use math/rand and when it's set to true we use crypto/rand. The crypto option should always be set to true
-// excluding when the task is time sensitive and would not benefit from extra randomness.
-func RandomBytes(n int, characters string, crypto bool) (bytes []byte) {
-	var r random.Provider
-
-	if crypto {
-		r = &random.Cryptographical{}
-	} else {
-		r = &random.Mathematical{}
-	}
-
-	return r.GenerateCustom(n, []byte(characters))
-}
-
 // StringHTMLEscape escapes chars for a HTML body.
 func StringHTMLEscape(input string) (output string) {
 	return htmlEscaper.Replace(input)
@@ -303,8 +279,7 @@ func IsURLHostComponentWithPort(u url.URL) (isHostComponentWithPort bool) {
 	return false
 }
 
-// StringStripCharSetUnambiguousUpper replaces any character not in CharSetUnambiguousUpper with an empty value after
-// forcing all characters to be uppercase.
+// StringStripCharSetUnambiguousUpper replaces all lowercase characters with uppercase ones and removes ambitious characters.
 func StringStripCharSetUnambiguousUpper(input string) string {
 	return regexCharSetUnambiguousUpper.ReplaceAllString(strings.ToUpper(input), "")
 }

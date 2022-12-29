@@ -186,12 +186,10 @@ func WebauthnAttestationPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.Webauthn = nil
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.Errorf(logFmtErrSessionSave, "removal of the attestation challenge", regulation.AuthTypeWebauthn, userSession.Username, err)
-
-		respondUnauthorized(ctx, messageMFAValidationFailed)
-
-		return
 	}
 
 	ctx.ReplyOK()
 	ctx.SetStatusCode(fasthttp.StatusCreated)
+
+	ctxLogEvent(ctx, userSession.Username, "Second Factor Method Added", map[string]any{"Action": "Second Factor Method Added", "Category": "Webauthn Credential", "Device Name": "Primary"})
 }

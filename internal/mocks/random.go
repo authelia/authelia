@@ -33,44 +33,118 @@ func (m *MockRandom) EXPECT() *MockRandomMockRecorder {
 	return m.recorder
 }
 
-// Generate mocks base method.
-func (m *MockRandom) Generate() []byte {
+// Bytes mocks base method.
+func (m *MockRandom) Bytes() []byte {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Generate")
+	ret := m.ctrl.Call(m, "Bytes")
 	ret0, _ := ret[0].([]byte)
 	return ret0
 }
 
-// Generate indicates an expected call of Generate.
-func (mr *MockRandomMockRecorder) Generate() *gomock.Call {
+// Bytes indicates an expected call of Bytes.
+func (mr *MockRandomMockRecorder) Bytes() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockRandom)(nil).Generate))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Bytes", reflect.TypeOf((*MockRandom)(nil).Bytes))
 }
 
-// GenerateCustom mocks base method.
-func (m *MockRandom) GenerateCustom(arg0 int, arg1 []byte) []byte {
+// BytesCustom mocks base method.
+func (m *MockRandom) BytesCustom(arg0 int, arg1 []byte) []byte {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1)
+	ret := m.ctrl.Call(m, "BytesCustom", arg0, arg1)
 	ret0, _ := ret[0].([]byte)
 	return ret0
 }
 
-// GenerateCustom indicates an expected call of GenerateCustom.
-func (mr *MockRandomMockRecorder) GenerateCustom(arg0, arg1 interface{}) *gomock.Call {
+// BytesCustom indicates an expected call of BytesCustom.
+func (mr *MockRandomMockRecorder) BytesCustom(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCustom", reflect.TypeOf((*MockRandom)(nil).GenerateCustom), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCustom", reflect.TypeOf((*MockRandom)(nil).BytesCustom), arg0, arg1)
 }
 
-// GenerateString mocks base method.
-func (m *MockRandom) GenerateString(arg0 int, arg1 string) string {
+// BytesCustomErr mocks base method.
+func (m *MockRandom) BytesCustomErr(arg0 int, arg1 []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateString", arg0, arg1)
+	ret := m.ctrl.Call(m, "BytesCustomErr", arg0, arg1)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BytesCustomErr indicates an expected call of BytesCustomErr.
+func (mr *MockRandomMockRecorder) BytesCustomErr(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCustomErr", reflect.TypeOf((*MockRandom)(nil).BytesCustomErr), arg0, arg1)
+}
+
+// BytesErr mocks base method.
+func (m *MockRandom) BytesErr() ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BytesErr")
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BytesErr indicates an expected call of BytesErr.
+func (mr *MockRandomMockRecorder) BytesErr() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesErr", reflect.TypeOf((*MockRandom)(nil).BytesErr))
+}
+
+// Integer mocks base method.
+func (m *MockRandom) Integer(arg0 int) int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Integer", arg0)
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Integer indicates an expected call of Integer.
+func (mr *MockRandomMockRecorder) Integer(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Integer", reflect.TypeOf((*MockRandom)(nil).Integer), arg0)
+}
+
+// IntegerErr mocks base method.
+func (m *MockRandom) IntegerErr(arg0 int) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IntegerErr", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IntegerErr indicates an expected call of IntegerErr.
+func (mr *MockRandomMockRecorder) IntegerErr(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntegerErr", reflect.TypeOf((*MockRandom)(nil).IntegerErr), arg0)
+}
+
+// StringCustom mocks base method.
+func (m *MockRandom) StringCustom(arg0 int, arg1 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StringCustom", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GenerateString indicates an expected call of GenerateString.
-func (mr *MockRandomMockRecorder) GenerateString(arg0, arg1 interface{}) *gomock.Call {
+// StringCustom indicates an expected call of StringCustom.
+func (mr *MockRandomMockRecorder) StringCustom(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateString", reflect.TypeOf((*MockRandom)(nil).GenerateString), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringCustom", reflect.TypeOf((*MockRandom)(nil).StringCustom), arg0, arg1)
+}
+
+// StringCustomErr mocks base method.
+func (m *MockRandom) StringCustomErr(arg0 int, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StringCustomErr", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StringCustomErr indicates an expected call of StringCustomErr.
+func (mr *MockRandomMockRecorder) StringCustomErr(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringCustomErr", reflect.TypeOf((*MockRandom)(nil).StringCustomErr), arg0, arg1)
 }

@@ -79,6 +79,7 @@ func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticate
 	}
 }
 
+// Identity converts a *UserSession into an *Identity.
 func (s *UserSession) Identity() (identity *Identity, err error) {
 	if len(s.Emails) == 0 {
 		return nil, fmt.Errorf("user '%s' does not have any email address", s.Username)
@@ -86,11 +87,12 @@ func (s *UserSession) Identity() (identity *Identity, err error) {
 
 	return &Identity{
 		Username:    s.Username,
-		DisplayName: s.DisplayName,
 		Email:       s.Emails[0],
+		DisplayName: s.DisplayName,
 	}, nil
 }
 
+// Address is a helper function that converts an *Identity into a mail.Address.
 func (i *Identity) Address() mail.Address {
 	if i.DisplayName != "" {
 		return mail.Address{Name: i.DisplayName, Address: i.Email}

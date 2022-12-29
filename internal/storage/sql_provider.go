@@ -41,9 +41,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlSelectIdentityVerification:  fmt.Sprintf(queryFmtSelectIdentityVerification, tableIdentityVerification),
 
-		sqlInsertOneTimePassword:  fmt.Sprintf(queryFmtInsertOneTimePassword, tableOneTimePassword),
-		sqlConsumeOneTimePassword: fmt.Sprintf(queryFmtConsumeOneTimePassword, tableOneTimePassword),
-		sqlSelectOneTimePassword:  fmt.Sprintf(queryFmtSelectOneTimePassword, tableOneTimePassword),
+		sqlInsertOneTimePassword:  fmt.Sprintf(queryFmtInsertOTP, tableOneTimePassword),
+		sqlConsumeOneTimePassword: fmt.Sprintf(queryFmtConsumeOTP, tableOneTimePassword),
+		sqlSelectOneTimePassword:  fmt.Sprintf(queryFmtSelectOTP, tableOneTimePassword),
 
 		sqlUpsertTOTPConfig:  fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
 		sqlDeleteTOTPConfig:  fmt.Sprintf(queryFmtDeleteTOTPConfiguration, tableTOTPConfigurations),
@@ -790,7 +790,7 @@ func (p *SQLProvider) FindIdentityVerification(ctx context.Context, jti string) 
 
 // SaveOneTimePassword saves a one time password to the database after generating the signature.
 func (p *SQLProvider) SaveOneTimePassword(ctx context.Context, otp model.OneTimePassword) (signature string, err error) {
-	signature = p.hmacSignature(ctx, []byte(otp.Username), []byte(otp.Intent), otp.Password)
+	signature = p.hmacSignature([]byte(otp.Username), []byte(otp.Intent), otp.Password)
 
 	if otp.Password, err = p.encrypt(otp.Password); err != nil {
 		return "", fmt.Errorf("error encrypting the one time password value for user '%s' with signature '%s': %w", otp.Username, otp.Signature, err)
@@ -818,7 +818,7 @@ func (p *SQLProvider) ConsumeOneTimePassword(ctx context.Context, signature stri
 func (p *SQLProvider) LoadOneTimePassword(ctx context.Context, username, intent, password string) (otp *model.OneTimePassword, err error) {
 	otp = &model.OneTimePassword{}
 
-	signature := p.hmacSignature(ctx, []byte(username), []byte(intent), []byte(password))
+	signature := p.hmacSignature([]byte(username), []byte(intent), []byte(password))
 
 	if err = p.db.GetContext(ctx, otp, p.sqlSelectOneTimePassword, signature, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

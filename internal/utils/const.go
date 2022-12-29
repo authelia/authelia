@@ -8,9 +8,6 @@ import (
 )
 
 const (
-	windows         = "windows"
-	testStringInput = "abcdefghijkl"
-
 	// RFC3339Zero is the default value for time.Time.Unix().
 	RFC3339Zero = int64(-62135596800)
 
@@ -72,10 +69,6 @@ const (
 	Month = Year / 12
 )
 
-const (
-	errFmtLinuxNotFound = "open %s: no such file or directory"
-)
-
 var (
 	standardDurationUnits = []string{"ns", "us", "µs", "μs", "ms", "s", "m", "h"}
 	reDurationSeconds     = regexp.MustCompile(`^\d+$`)
@@ -99,38 +92,12 @@ const (
 )
 
 const (
-	// CharSetAlphabeticLower are literally just valid alphabetic lowercase printable ASCII chars.
-	CharSetAlphabeticLower = "abcdefghijklmnopqrstuvwxyz"
+	// timeUnixEpochAsMicrosoftNTEpoch represents the unix epoch as a Microsoft NT Epoch.
+	// The Microsoft NT Epoch is ticks since Jan 1, 1601 (1 tick is 100ns).
+	timeUnixEpochAsMicrosoftNTEpoch uint64 = 116444736000000000
+)
 
-	// CharSetAlphabeticUpper are literally just valid alphabetic uppercase printable ASCII chars.
-	CharSetAlphabeticUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-	// CharSetAlphabetic are literally just valid alphabetic printable ASCII chars.
-	CharSetAlphabetic = CharSetAlphabeticLower + CharSetAlphabeticUpper
-
-	// CharSetNumeric are literally just valid numeric chars.
-	CharSetNumeric = "0123456789"
-
-	// CharSetNumericHex are literally just valid hexadecimal printable ASCII chars.
-	CharSetNumericHex = CharSetNumeric + "ABCDEF"
-
-	// CharSetSymbolic are literally just valid symbolic printable ASCII chars.
-	CharSetSymbolic = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-
-	// CharSetSymbolicRFC3986Unreserved are RFC3986 unreserved symbol characters.
-	// See https://www.rfc-editor.org/rfc/rfc3986#section-2.3.
-	CharSetSymbolicRFC3986Unreserved = "-._~"
-
-	// CharSetAlphaNumeric are literally just valid alphanumeric printable ASCII chars.
-	CharSetAlphaNumeric = CharSetAlphabetic + CharSetNumeric
-
-	// CharSetASCII are literally just valid printable ASCII chars.
-	CharSetASCII = CharSetAlphabetic + CharSetNumeric + CharSetSymbolic
-
-	// CharSetRFC3986Unreserved are RFC3986 unreserved characters.
-	// See https://www.rfc-editor.org/rfc/rfc3986#section-2.3.
-	CharSetRFC3986Unreserved = CharSetAlphabetic + CharSetNumeric + CharSetSymbolicRFC3986Unreserved
-
+const (
 	// CharSetUnambiguousUpper  are a set of unambiguous uppercase characters.
 	CharSetUnambiguousUpper = "ABCDEFGHJKLMNOPQRTUVWYXZ2346789"
 )
@@ -149,3 +116,8 @@ var htmlEscaper = strings.NewReplacer(
 
 // ErrTimeoutReached error thrown when a timeout is reached.
 var ErrTimeoutReached = errors.New("timeout reached")
+
+const (
+	windows             = "windows"
+	errFmtLinuxNotFound = "open %s: no such file or directory"
+)

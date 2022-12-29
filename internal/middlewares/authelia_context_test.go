@@ -45,8 +45,8 @@ func TestIssuerURL(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
-			mock.Ctx.Request.Header.Set("X-Forwarded-Proto", tc.proto)
-			mock.Ctx.Request.Header.Set("X-Forwarded-Host", tc.host)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.proto)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
 
 			if tc.base != "" {
 				mock.Ctx.SetUserValue("base_url", tc.base)
@@ -105,8 +105,8 @@ func TestShouldGetOriginalURLFromOriginalURLHeader(t *testing.T) {
 func TestShouldGetOriginalURLFromForwardedHeadersWithoutURI(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
-	mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
-	mock.Ctx.Request.Header.Set("X-Forwarded-Host", "home.example.com")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "home.example.com")
 	originalURL, err := mock.Ctx.GetOriginalURL()
 	assert.NoError(t, err)
 
@@ -144,7 +144,7 @@ func TestShouldOnlyFallbackToNonXForwardedHeadersWhenNil(t *testing.T) {
 	mock.Ctx.RequestCtx.Request.SetHost("localhost")
 	mock.Ctx.RequestCtx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com:1234")
 	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-URI", "/base/2fa/one-time-password")
-	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Proto", "https")
+	mock.Ctx.RequestCtx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
 	mock.Ctx.RequestCtx.Request.Header.Set("X-Forwarded-Method", "GET")
 
 	assert.Equal(t, []byte("https"), mock.Ctx.XForwardedProto())

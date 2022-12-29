@@ -6,6 +6,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -33,7 +34,7 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		ctx.Clock.Now(),
 		ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.CredentialRegistration.ElevationExpiration),
 		ctx.RemoteIP(),
-		ctx.Providers.Random.GenerateCustom(ctx.Configuration.IdentityValidation.CredentialRegistration.OTPCharacters, []byte(utils.CharSetUnambiguousUpper)),
+		ctx.Providers.Random.BytesCustom(ctx.Configuration.IdentityValidation.CredentialRegistration.OTPCharacters, []byte(random.CharSetUnambiguousUpper)),
 	)
 
 	if otp.Signature, err = ctx.Providers.StorageProvider.SaveOneTimePassword(ctx, otp); err != nil {

@@ -3,6 +3,7 @@ package middlewares
 import (
 	"encoding/json"
 	"fmt"
+	"net/mail"
 	"path"
 	"time"
 
@@ -70,7 +71,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
 		linkURL.RawQuery = query.Encode()
 
-		data := templates.EmailIdentityVerificationData{
+		data := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
 			LinkURL:     linkURL.String(),
 			LinkText:    args.MailButtonContent,
@@ -81,7 +82,9 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationEmailTemplate(), data); err != nil {
+		recipient := mail.Address{Name: identity.DisplayName, Address: identity.Email}
+
+		if err = ctx.Providers.Notifier.Send(ctx, recipient, args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationEmailTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

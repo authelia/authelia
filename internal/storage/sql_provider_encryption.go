@@ -167,7 +167,7 @@ func schemaEncryptionChangeKeyOneTimePassword(ctx context.Context, provider *SQL
 
 	configs := make([]encOneTimePassword, 0, count)
 
-	if err = tx.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectOneTimePasswordEncryptedData, tableOneTimePassword)); err != nil {
+	if err = tx.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectOTPEncryptedData, tableOneTimePassword)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -175,7 +175,7 @@ func schemaEncryptionChangeKeyOneTimePassword(ctx context.Context, provider *SQL
 		return fmt.Errorf("error selecting one time passwords: %w", err)
 	}
 
-	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateOneTimePasswordEncryptedData, tableOneTimePassword))
+	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateOTPEncryptedData, tableOneTimePassword))
 
 	for _, c := range configs {
 		if c.OTP, err = provider.decrypt(c.OTP); err != nil {
@@ -349,7 +349,7 @@ func schemaEncryptionCheckKeyOneTimePassword(ctx context.Context, provider *SQLP
 		err  error
 	)
 
-	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOneTimePasswordEncryptedData, tableOneTimePassword)); err != nil {
+	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOTPEncryptedData, tableOneTimePassword)); err != nil {
 		return tableOneTimePassword, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting one time passwords: %w", err)}
 	}
 
@@ -477,7 +477,7 @@ func (p *SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
 	return utils.Decrypt(cipherText, &p.keys.encryption)
 }
 
-func (p *SQLProvider) hmacSignature(ctx context.Context, values ...[]byte) string {
+func (p *SQLProvider) hmacSignature(values ...[]byte) string {
 	h := hmac.New(sha512.New, p.keys.signature)
 
 	for i := 0; i < len(values); i++ {

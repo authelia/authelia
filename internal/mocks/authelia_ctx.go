@@ -20,6 +20,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // MockAutheliaCtx a mock of AutheliaCtx.
@@ -38,33 +39,13 @@ type MockAutheliaCtx struct {
 
 	UserSession *session.UserSession
 
-	Clock TestingClock
-}
-
-// TestingClock implementation of clock for tests.
-type TestingClock struct {
-	now time.Time
-}
-
-// Now return the stored clock.
-func (dc *TestingClock) Now() time.Time {
-	return dc.now
-}
-
-// After return a channel receiving the time after duration has elapsed.
-func (dc *TestingClock) After(d time.Duration) <-chan time.Time {
-	return time.After(d)
-}
-
-// Set set the time of the clock.
-func (dc *TestingClock) Set(now time.Time) {
-	dc.now = now
+	Clock utils.TestingClock
 }
 
 // NewMockAutheliaCtx create an instance of AutheliaCtx mock.
 func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia := new(MockAutheliaCtx)
-	mockAuthelia.Clock = TestingClock{}
+	mockAuthelia.Clock = utils.TestingClock{}
 
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)

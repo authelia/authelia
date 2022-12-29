@@ -7,6 +7,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -156,9 +157,9 @@ func TestWebauthnNewWebauthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 func TestWebauthnNewWebauthnShouldReturnErrWhenWebauthnNotConfigured(t *testing.T) {
 	ctx := mocks.NewMockAutheliaCtx(t)
 
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Host", "example.com")
+	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "https")
+	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
 
 	w, err := newWebauthn(ctx.Ctx)
 

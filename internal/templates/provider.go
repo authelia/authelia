@@ -23,9 +23,9 @@ type Provider struct {
 	templates Templates
 }
 
-// GetPasswordResetEmailTemplate returns the EmailTemplate for Password Reset notifications.
-func (p *Provider) GetPasswordResetEmailTemplate() (t *EmailTemplate) {
-	return p.templates.notification.passwordReset
+// GetEventEmailTemplate returns the EmailTemplate for Event notifications.
+func (p *Provider) GetEventEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.event
 }
 
 // GetIdentityVerificationEmailTemplate returns the EmailTemplate for Identity Verification notifications.
@@ -45,11 +45,11 @@ func (p *Provider) load() (err error) {
 		errs = append(errs, err)
 	}
 
-	if p.templates.notification.passwordReset, err = loadEmailTemplate(TemplateNameEmailPasswordReset, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.otp, err = loadEmailTemplate(TemplateNameEmailOneTimePassword, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 
-	if p.templates.notification.otp, err = loadEmailTemplate(TemplateNameEmailOneTimePassword, p.config.EmailTemplatesPath); err != nil {
+	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, err)
 	}
 

@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/mail"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -13,20 +14,36 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.CertPool) *SMTPNotifier {
+	var tlsconfig *tls.Config
+
+	if config.TLS != nil {
+		tlsconfig = utils.NewTLSConfig(config.TLS, certPool)
+	}
+
 	opts := []gomail.Option{
 		gomail.WithPort(config.Port),
-		gomail.WithTLSConfig(utils.NewTLSConfig(config.TLS, certPool)),
-		gomail.WithPassword(config.Password),
+		gomail.WithTLSConfig(tlsconfig),
 		gomail.WithHELO(config.Identifier),
+		gomail.WithTimeout(config.Timeout),
+		gomail.WithoutNoop(),
+	}
+
+	ssl := config.Port == smtpPortSUBMISSIONS
+
+	if ssl {
+		opts = append(opts, gomail.WithSSL())
 	}
 
 	switch {
+	case ssl:
+		break
 	case config.DisableStartTLS:
 		opts = append(opts, gomail.WithTLSPolicy(gomail.NoTLS))
 	case config.DisableRequireTLS:
@@ -35,22 +52,21 @@ func NewSMTPNotifier(config *schema.SMTPNotifierConfiguration, certPool *x509.Ce
 		opts = append(opts, gomail.WithTLSPolicy(gomail.TLSMandatory))
 	}
 
-	if config.Port == smtpPortSUBMISSIONS {
-		opts = append(opts, gomail.WithSSL())
-	}
-
 	var domain string
 
 	at := strings.LastIndex(config.Sender.Address, "@")
 
 	if at >= 0 {
-		domain = config.Sender.Address[at:]
+		domain = config.Sender.Address[at+1:]
+	} else {
+		domain = "localhost.localdomain"
 	}
 
 	return &SMTPNotifier{
 		config: config,
 		domain: domain,
 		tls:    utils.NewTLSConfig(config.TLS, certPool),
+		random: &random.Cryptographical{},
 		log:    logging.Logger(),
 		opts:   opts,
 	}
@@ -61,10 +77,12 @@ type SMTPNotifier struct {
 	config *schema.SMTPNotifierConfiguration
 	domain string
 	tls    *tls.Config
+	random random.Provider
 	log    *logrus.Logger
 	opts   []gomail.Option
 }
 
+// StartupCheck implements model.StartupCheck to perform startup check operations.
 func (n *SMTPNotifier) StartupCheck() (err error) {
 	var client *gomail.Client
 
@@ -85,11 +103,14 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 	return nil
 }
 
+// Send a notification via the SMTPNotifier.
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.Mime10),
-		gomail.WithBoundary(utils.RandomString(30, utils.CharSetAlphaNumeric, true)),
+		gomail.WithBoundary(n.random.StringCustom(30, random.CharSetAlphaNumeric)),
 	)
+
+	n.setMessageID(msg, n.domain)
 
 	if err = msg.From(n.config.Sender.String()); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to set from address: %w", err)
@@ -118,8 +139,14 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 
 	var client *gomail.Client
 
+	n.log.Debugf("creating client with %d options: %+v", len(n.opts), n.opts)
+
 	if client, err = gomail.NewClient(n.config.Host, n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
+	}
+
+	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
+		client.SetSMTPAuthCustom(auth)
 	}
 
 	if err = client.DialWithContext(ctx); err != nil {
@@ -135,4 +162,10 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	}
 
 	return nil
+}
+
+func (n *SMTPNotifier) setMessageID(msg *gomail.Msg, domain string) {
+	rm := n.random.Integer(10000)
+
+	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", os.Getpid()+rm, n.random.Integer(100000000), rm, n.random.StringCustom(17, random.CharSetAlphaNumeric), domain))
 }

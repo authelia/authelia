@@ -72,25 +72,25 @@ const (
 )
 
 const (
-	queryFmtSelectOneTimePassword = `
+	queryFmtSelectOTP = `
 		SELECT id, signature, iat, issued_ip, exp, username intent, consumed, consumed_ip, password
 		FROM %s
 		WHERE signature = ? AND username = ?;`
 
-	queryFmtInsertOneTimePassword = `
+	queryFmtInsertOTP = `
 		INSERT INTO %s (signature, iat, issued_ip, exp, username, intent, password)
 		VALUES (?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtConsumeOneTimePassword = `
+	queryFmtConsumeOTP = `
 		UPDATE %s
 		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
 		WHERE signature = ?;`
 
-	queryFmtSelectOneTimePasswordEncryptedData = `
+	queryFmtSelectOTPEncryptedData = `
 		SELECT id, password
 		FROM %s;`
 
-	queryFmtUpdateOneTimePasswordEncryptedData = `
+	queryFmtUpdateOTPEncryptedData = `
 		UPDATE %s
 		SET password = ?
 		WHERE id = ?;`

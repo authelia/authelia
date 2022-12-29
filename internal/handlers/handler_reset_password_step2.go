@@ -73,10 +73,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	data := templates.EmailPasswordResetData{
+	data := templates.EmailEventValues{
 		Title:       "Password changed successfully",
 		DisplayName: userInfo.DisplayName,
 		RemoteIP:    ctx.RemoteIP().String(),
+		Details: map[string]any{
+			"Action": "Password Reset",
+		},
 	}
 
 	addresses := userInfo.Addresses()
@@ -84,7 +87,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
 		username, addresses[0])
 
-	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetPasswordResetEmailTemplate(), data); err != nil {
+	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
 		ctx.Logger.Error(err)
 		ctx.ReplyOK()
 

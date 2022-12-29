@@ -44,9 +44,16 @@ authelia crypto rand --characters 0123456789ABCDEF
 
 ```
       --characters string   sets the explicit characters for the random string
-  -c, --charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
+  -x, --charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
   -h, --help                help for rand
   -n, --length int          sets the character length for the random string (default 72)
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
 ```
 
 ### SEE ALSO
