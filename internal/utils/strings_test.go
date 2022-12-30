@@ -4,9 +4,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestStringSplitDelimitedEscaped(t *testing.T) {

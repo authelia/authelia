@@ -84,7 +84,7 @@ func (r *Mathematical) IntegerErr(n int) (output int, err error) {
 
 // Integer returns a random int with a maximum of n.
 func (r *Mathematical) Integer(n int) int {
-	return rand.Intn(n)
+	return rand.Intn(n) //nolint:gosec
 }
 
 func init() {

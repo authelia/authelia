@@ -10,8 +10,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/random"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"

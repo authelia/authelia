@@ -111,17 +111,17 @@ func (mr *MockStorageMockRecorder) ConsumeIdentityVerification(arg0, arg1, arg2 
 }
 
 // ConsumeOneTimePassword mocks base method.
-func (m *MockStorage) ConsumeOneTimePassword(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
+func (m *MockStorage) ConsumeOneTimePassword(arg0 context.Context, arg1 *model.OneTimePassword) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConsumeOneTimePassword", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "ConsumeOneTimePassword", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ConsumeOneTimePassword indicates an expected call of ConsumeOneTimePassword.
-func (mr *MockStorageMockRecorder) ConsumeOneTimePassword(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) ConsumeOneTimePassword(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimePassword", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimePassword), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimePassword", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimePassword), arg0, arg1)
 }
 
 // DeactivateOAuth2Session mocks base method.
@@ -503,6 +503,20 @@ func (m *MockStorage) RevokeOAuth2SessionByRequestID(arg0 context.Context, arg1 
 func (mr *MockStorageMockRecorder) RevokeOAuth2SessionByRequestID(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2SessionByRequestID), arg0, arg1, arg2)
+}
+
+// RevokeOneTimePassword mocks base method.
+func (m *MockStorage) RevokeOneTimePassword(arg0 context.Context, arg1 uuid.UUID, arg2 model.IP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeOneTimePassword", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeOneTimePassword indicates an expected call of RevokeOneTimePassword.
+func (mr *MockStorageMockRecorder) RevokeOneTimePassword(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOneTimePassword", reflect.TypeOf((*MockStorage)(nil).RevokeOneTimePassword), arg0, arg1, arg2)
 }
 
 // Rollback mocks base method.

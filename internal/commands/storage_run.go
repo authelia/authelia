@@ -12,10 +12,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/authelia/authelia/v4/internal/random"
 
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/model"
