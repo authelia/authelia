@@ -140,7 +140,7 @@ const ConsentView = function (props: Props) {
             <LoginLayout
                 id="consent-stage"
                 title={`${translate("Hi")} ${userInfo?.display_name}`}
-                subtitle={translate("Consent Request")}
+                subtitle={translate("Consent Request") as string}
                 showBrand
             >
                 <Grid container>

@@ -110,7 +110,7 @@ const ResetPasswordStep2 = function () {
     const handleCancelClick = () => navigate(IndexRoute);
 
     return (
-        <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">
+        <LoginLayout title={translate("Enter new password") as string} id="reset-password-step2-stage">
             <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField

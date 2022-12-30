@@ -45,7 +45,7 @@ const OneTimePasswordMethod = function (props: Props) {
     useEffect(() => {
         if (err) {
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Could not obtain user settings")));
+            onSignInErrorCallback(new Error(translate("Could not obtain user settings") as string));
             setState(State.Failure);
         }
     }, [onSignInErrorCallback, err, translate]);

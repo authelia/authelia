@@ -104,7 +104,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
+        <LoginLayout id="first-factor-stage" title={translate("Sign in") as string} showBrand>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField

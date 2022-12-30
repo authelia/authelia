@@ -29,14 +29,18 @@ const PasswordMeter = function (props: Props) {
             if (password.length < props.policy.min_length) {
                 setPasswordScore(0);
                 setFeedback(
-                    translate("Must be at least {{len}} characters in length", { len: props.policy.min_length }),
+                    translate("Must be at least {{len}} characters in length", {
+                        len: props.policy.min_length,
+                    }) as string,
                 );
                 return;
             }
             if (props.policy.max_length !== 0 && password.length > props.policy.max_length) {
                 setPasswordScore(0);
                 setFeedback(
-                    translate("Must not be more than {{len}} characters in length", { len: props.policy.max_length }),
+                    translate("Must not be more than {{len}} characters in length", {
+                        len: props.policy.max_length,
+                    }) as string,
                 );
                 return;
             }

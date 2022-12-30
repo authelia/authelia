@@ -88,7 +88,7 @@ const RegisterOneTimePassword = function () {
     const qrcodeFuzzyStyle = isLoading || hasErrored ? styles.fuzzy : undefined;
 
     return (
-        <LoginLayout title={translate("Scan QR Code")}>
+        <LoginLayout title={translate("Scan QR Code") as string}>
             <div className={styles.root}>
                 <div className={styles.googleAuthenticator}>
                     <Typography className={styles.googleAuthenticatorText}>

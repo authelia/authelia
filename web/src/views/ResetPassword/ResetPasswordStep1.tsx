@@ -42,7 +42,7 @@ const ResetPasswordStep1 = function () {
     };
 
     return (
-        <LoginLayout title={translate("Reset password")} id="reset-password-step1-stage">
+        <LoginLayout title={translate("Reset password") as string} id="reset-password-step1-stage">
             <Grid container className={styles.root} spacing={2}>
                 <Grid item xs={12}>
                     <FixedTextField

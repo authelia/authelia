@@ -56,7 +56,7 @@ const SignOut = function (props: Props) {
     }
 
     return (
-        <LoginLayout title={translate("Sign out")}>
+        <LoginLayout title={translate("Sign out") as string}>
             <Typography className={styles.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </LoginLayout>
     );
