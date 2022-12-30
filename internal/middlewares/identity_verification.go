@@ -10,15 +10,9 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
-
-// Return true if skip enabled at TwoFactor auth level and user's auth level is 2FA, false otherwise.
-func shouldSkipIdentityVerification(args IdentityVerificationCommonArgs, ctx *AutheliaCtx) bool {
-	return args.SkipIfAuthLevelTwoFactor && ctx.GetSession().AuthenticationLevel >= authentication.TwoFactor
-}
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
 func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc TimingAttackDelayFunc) RequestHandler {
@@ -27,11 +21,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 	}
 
 	return func(ctx *AutheliaCtx) {
-		if shouldSkipIdentityVerification(args.IdentityVerificationCommonArgs, ctx) {
-			ctx.ReplyOK()
-			return
-		}
-
 		requestTime := time.Now()
 		success := false
 
@@ -155,11 +144,6 @@ func identityVerificationValidateToken(ctx *AutheliaCtx) (*jwt.Token, error) {
 // IdentityVerificationFinish the middleware for finishing the identity validation process.
 func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(ctx *AutheliaCtx, username string)) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		if shouldSkipIdentityVerification(args.IdentityVerificationCommonArgs, ctx) {
-			next(ctx, "")
-			return
-		}
-
 		token, err := identityVerificationValidateToken(ctx)
 		if token == nil || err != nil {
 			return
