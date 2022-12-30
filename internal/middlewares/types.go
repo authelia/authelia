@@ -70,17 +70,9 @@ type BridgeBuilder struct {
 // Basic represents a middleware applied to a fasthttp.RequestHandler.
 type Basic func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler)
 
-// IdentityVerificationCommonArgs contains shared options for both verification start and finish steps.
-type IdentityVerificationCommonArgs struct {
-	// If true, skip identity verification if the user's AuthenticationLevel is TwoFactor. Otherwise, always perform identity verification.
-	SkipIfAuthLevelTwoFactor bool
-}
-
 // IdentityVerificationStartArgs represent the arguments used to customize the starting phase
 // of the identity verification process.
 type IdentityVerificationStartArgs struct {
-	IdentityVerificationCommonArgs
-
 	// Email template needs a subject, a title and the content of the button.
 	MailTitle         string
 	MailButtonContent string
@@ -102,8 +94,6 @@ type IdentityVerificationStartArgs struct {
 // IdentityVerificationFinishArgs represent the arguments used to customize the finishing phase
 // of the identity verification process.
 type IdentityVerificationFinishArgs struct {
-	IdentityVerificationCommonArgs
-
 	// The action claim that should be in the token to consider the action legitimate.
 	ActionClaim string
 
