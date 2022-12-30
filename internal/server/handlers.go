@@ -183,8 +183,12 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
 	// User Session Elevation.
-	r.GET("/api/user/session/elevate", middleware1FA(handlers.UserSessionElevationGET))
-	r.POST("/api/user/session/elevate", middleware1FA(handlers.UserSessionElevationPOST))
+	r.GET("/api/user/session/elevate", middleware1FA(handlers.UserSessionElevateGET))
+	r.POST("/api/user/session/elevate", middleware1FA(handlers.UserSessionElevatePOST))
+	r.DELETE("/api/user/session/elevate", middlewareAPI(handlers.UserSessionElevateDELETE))
+
+	r.GET("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationGET))
+	r.DELETE("/api/user/session/elevation", middleware1FA(handlers.UserSessionElevationDELETE))
 
 	if !config.TOTP.Disable {
 		// TOTP related endpoints.

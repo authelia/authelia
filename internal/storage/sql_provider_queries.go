@@ -73,18 +73,23 @@ const (
 
 const (
 	queryFmtSelectOTP = `
-		SELECT id, signature, iat, issued_ip, exp, username intent, consumed, consumed_ip, password
+		SELECT id, public_id, signature, iat, issued_ip, exp, username intent, consumed, consumed_ip, revoked, revoked_ip, password
 		FROM %s
 		WHERE signature = ? AND username = ?;`
 
 	queryFmtInsertOTP = `
-		INSERT INTO %s (signature, iat, issued_ip, exp, username, intent, password)
-		VALUES (?, ?, ?, ?, ?, ?, ?);`
+		INSERT INTO %s (public_id, signature, iat, issued_ip, exp, username, intent, password)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtConsumeOTP = `
 		UPDATE %s
-		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
+		SET consumed = ?, consumed_ip = ?
 		WHERE signature = ?;`
+
+	queryFmtRevokeOTP = `
+		UPDATE %s
+		SET revoked = CURRENT_TIMESTAMP, revoked_ip = ?
+		WHERE public_id = ?;`
 
 	queryFmtSelectOTPEncryptedData = `
 		SELECT id, password

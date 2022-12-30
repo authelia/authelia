@@ -73,7 +73,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		data := templates.EmailIdentityVerificationValues{
 			Title:       args.MailTitle,
-			LinkURL:     linkURL.String(),
+			LinkURL:     linkURL,
 			LinkText:    args.MailButtonContent,
 			DisplayName: identity.DisplayName,
 			RemoteIP:    ctx.RemoteIP().String(),

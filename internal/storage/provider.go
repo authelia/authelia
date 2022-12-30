@@ -33,7 +33,8 @@ type Provider interface {
 	FindIdentityVerification(ctx context.Context, jti string) (found bool, err error)
 
 	SaveOneTimePassword(ctx context.Context, otp model.OneTimePassword) (signature string, err error)
-	ConsumeOneTimePassword(ctx context.Context, signature string, ip model.NullIP) (err error)
+	ConsumeOneTimePassword(ctx context.Context, otp *model.OneTimePassword) (err error)
+	RevokeOneTimePassword(ctx context.Context, publicID uuid.UUID, ip model.IP) (err error)
 	LoadOneTimePassword(ctx context.Context, username, intent, password string) (otp *model.OneTimePassword, err error)
 
 	SaveTOTPConfiguration(ctx context.Context, config model.TOTPConfiguration) (err error)

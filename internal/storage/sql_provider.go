@@ -43,6 +43,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlInsertOneTimePassword:  fmt.Sprintf(queryFmtInsertOTP, tableOneTimePassword),
 		sqlConsumeOneTimePassword: fmt.Sprintf(queryFmtConsumeOTP, tableOneTimePassword),
+		sqlRevokeOneTimePassword:  fmt.Sprintf(queryFmtRevokeOTP, tableOneTimePassword),
 		sqlSelectOneTimePassword:  fmt.Sprintf(queryFmtSelectOTP, tableOneTimePassword),
 
 		sqlUpsertTOTPConfig:  fmt.Sprintf(queryFmtUpsertTOTPConfiguration, tableTOTPConfigurations),
@@ -170,6 +171,7 @@ type SQLProvider struct {
 	// Table: one_time_password.
 	sqlInsertOneTimePassword  string
 	sqlConsumeOneTimePassword string
+	sqlRevokeOneTimePassword  string
 	sqlSelectOneTimePassword  string
 
 	// Table: totp_configurations.
@@ -797,7 +799,7 @@ func (p *SQLProvider) SaveOneTimePassword(ctx context.Context, otp model.OneTime
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOneTimePassword,
-		signature, otp.IssuedAt, otp.IssuedIP, otp.ExpiresAt,
+		otp.PublicID, signature, otp.IssuedAt, otp.IssuedIP, otp.ExpiresAt,
 		otp.Username, otp.Intent, otp.Password); err != nil {
 		return "", fmt.Errorf("error inserting one time password for user '%s' with signature '%s': %w", otp.Username, otp.Signature, err)
 	}
@@ -806,9 +808,18 @@ func (p *SQLProvider) SaveOneTimePassword(ctx context.Context, otp model.OneTime
 }
 
 // ConsumeOneTimePassword consumes a one time password using the signature.
-func (p *SQLProvider) ConsumeOneTimePassword(ctx context.Context, signature string, ip model.NullIP) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimePassword, ip, signature); err != nil {
-		return fmt.Errorf("error updating one time password: %w", err)
+func (p *SQLProvider) ConsumeOneTimePassword(ctx context.Context, otp *model.OneTimePassword) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimePassword, otp.Consumed, otp.ConsumedIP, otp.Signature); err != nil {
+		return fmt.Errorf("error updating one time password (consume): %w", err)
+	}
+
+	return nil
+}
+
+// RevokeOneTimePassword revokes a one time password using the public ID.
+func (p *SQLProvider) RevokeOneTimePassword(ctx context.Context, publicID uuid.UUID, ip model.IP) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlRevokeOneTimePassword, ip, publicID); err != nil {
+		return fmt.Errorf("error updating one time password (revoke): %w", err)
 	}
 
 	return nil

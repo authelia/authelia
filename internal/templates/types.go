@@ -3,6 +3,7 @@ package templates
 import (
 	th "html/template"
 	"io"
+	"net/url"
 	tt "text/template"
 )
 
@@ -57,7 +58,7 @@ type EmailIdentityVerificationValues struct {
 	Title       string
 	DisplayName string
 	RemoteIP    string
-	LinkURL     string
+	LinkURL     *url.URL
 	LinkText    string
 }
 
@@ -66,5 +67,6 @@ type EmailOneTimePasswordData struct {
 	Title           string
 	DisplayName     string
 	RemoteIP        string
+	RevokeURL       *url.URL
 	OneTimePassword string
 }
