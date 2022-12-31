@@ -163,6 +163,11 @@ const (
 		FROM %s
 		WHERE username = ?;`
 
+	queryFmtSelectWebauthnDeviceByID = `
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, public_key, attestation_type, transport, aaguid, sign_count, clone_warning
+		FROM %s
+		WHERE id = ?;`
+
 	queryFmtUpdateWebauthnDevicePublicKey = `
 		UPDATE %s
 		SET public_key = ?
@@ -209,10 +214,6 @@ const (
 	queryFmtDeleteWebauthnDeviceByUsername = `
 		DELETE FROM %s
 		WHERE username = ?;`
-
-	queryFmtDeleteWebauthnDeviceByUsernameAndID = `
-		DELETE FROM %s
-		WHERE username = ? AND id = ?;`
 
 	queryFmtDeleteWebauthnDeviceByUsernameAndDescription = `
 		DELETE FROM %s

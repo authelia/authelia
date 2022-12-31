@@ -39,6 +39,10 @@ type bodySignWebauthnRequest struct {
 	WorkflowID string `json:"workflowID"`
 }
 
+type bodyEditWebauthnDeviceRequest struct {
+	Description string `json:"description"`
+}
+
 // bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.
 type bodySignDuoRequest struct {
 	TargetURL  string `json:"targetURL"`

@@ -208,9 +208,9 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/webauthn/assertion", middleware1FA(handlers.WebauthnAssertionPOST))
 
 		// Management of the webauthn devices.
-		r.GET("/api/secondfactor/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGet))
-		r.PUT("/api/secondfactor/webauthn/devices/{deviceID}", middleware2FA(handlers.WebauthnDeviceUpdate))
-		r.DELETE("/api/secondfactor/webauthn/devices/{deviceID}", middleware2FA(handlers.WebauthnDeviceDelete))
+		r.GET("/api/secondfactor/webauthn/devices", middleware1FA(handlers.WebauthnDevicesGET))
+		r.PUT("/api/secondfactor/webauthn/device/{deviceID}", middleware2FA(handlers.WebauthnDevicePUT))
+		r.DELETE("/api/secondfactor/webauthn/device/{deviceID}", middleware2FA(handlers.WebauthnDeviceDELETE))
 	}
 
 	// Configure DUO api endpoint only if configuration exists.

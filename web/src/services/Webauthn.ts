@@ -17,15 +17,16 @@ import {
     PublicKeyCredentialJSON,
     PublicKeyCredentialRequestOptionsJSON,
     PublicKeyCredentialRequestOptionsStatus,
-    WebauthnDeviceUpdateRequest,
 } from "@models/Webauthn";
 import {
+    AuthenticationOKResponse,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebauthnAssertionPath,
     WebauthnAttestationPath,
-    WebauthnDevicesPath,
+    WebauthnDevicePath,
     WebauthnIdentityFinishPath,
+    validateStatusAuthentication,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 import { getBase64WebEncodingFromBytes, getBytesFromBase64 } from "@utils/Base64";
@@ -398,14 +399,19 @@ export async function performAssertionCeremony(
     return AssertionResult.Failure;
 }
 
-export async function deleteDevice(deviceID: string): Promise<number> {
-    let response = await axios.delete(`${WebauthnDevicesPath}/${deviceID}`);
-    return response.status;
+export async function deleteDevice(deviceID: string) {
+    return await axios<AuthenticationOKResponse>({
+        method: "DELETE",
+        url: `${WebauthnDevicePath}/${deviceID}`,
+        validateStatus: validateStatusAuthentication,
+    });
 }
 
-export async function updateDevice(deviceID: string, description: string): Promise<number> {
-    let response = await axios.put<ServiceResponse<WebauthnDeviceUpdateRequest>>(`${WebauthnDevicesPath}/${deviceID}`, {
-        description: description,
+export async function updateDevice(deviceID: string, description: string) {
+    return await axios<AuthenticationOKResponse>({
+        method: "PUT",
+        url: `${WebauthnDevicePath}/${deviceID}`,
+        data: { description: description },
+        validateStatus: validateStatusAuthentication,
     });
-    return response.status;
 }

@@ -18,6 +18,7 @@ export const WebauthnAttestationPath = basePath + "/api/secondfactor/webauthn/at
 export const WebauthnAssertionPath = basePath + "/api/secondfactor/webauthn/assertion";
 
 export const WebauthnDevicesPath = basePath + "/api/secondfactor/webauthn/devices";
+export const WebauthnDevicePath = basePath + "/api/secondfactor/webauthn/device";
 
 export const InitiateDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_devices";
 export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_device";
@@ -41,21 +42,30 @@ export const UserInfoTOTPConfigurationPath = basePath + "/api/user/info/totp";
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
+export interface AuthenticationErrorResponse extends ErrorResponse {
+    authentication: boolean;
+    elevation: boolean;
+}
+
 export interface ErrorResponse {
     status: "KO";
     message: string;
 }
 
-export interface Response<T> {
-    status: "OK";
+export interface Response<T> extends OKResponse {
     data: T;
 }
 
-export interface OptionalDataResponse<T> {
-    status: "OK";
+export interface OptionalDataResponse<T> extends OKResponse {
     data?: T;
 }
 
+export interface OKResponse {
+    status: "OK";
+}
+
+export type AuthenticationResponse<T> = Response<T> | AuthenticationErrorResponse;
+export type AuthenticationOKResponse = OKResponse | AuthenticationErrorResponse;
 export type OptionalDataServiceResponse<T> = OptionalDataResponse<T> | ErrorResponse;
 export type ServiceResponse<T> = Response<T> | ErrorResponse;
 
@@ -79,4 +89,8 @@ export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
         return { errored: true, message: errResp.message };
     }
     return { errored: false, message: null };
+}
+
+export function validateStatusAuthentication(status: number): boolean {
+    return (status >= 200 && status < 300) || status === 401 || status === 403;
 }
