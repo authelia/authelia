@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -37,6 +38,20 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.Clock = utils.RealClock{}
 
 	return ctx
+}
+
+func (ctx *AutheliaCtx) Value(key any) any {
+	if key, ok := key.(oidc.ContextKey); ok {
+		if key == oidc.WriteFormPostResponseContextKey {
+			return func(templateData map[string]any) {
+				ctx.writeFormPostResponseFn(templateData)(ctx)
+			}
+		}
+
+		return nil
+	}
+
+	return ctx.RequestCtx.Value(key)
 }
 
 // AvailableSecondFactorMethods returns the available 2FA methods.

@@ -28,6 +28,8 @@ type AutheliaCtx struct {
 	Configuration schema.Configuration
 
 	Clock utils.Clock
+
+	writeFormPostResponseFn func(templateData map[string]any) func(ctx *AutheliaCtx)
 }
 
 // Providers contain all provider provided to Authelia.
@@ -61,10 +63,11 @@ type Bridge = func(RequestHandler) fasthttp.RequestHandler
 
 // BridgeBuilder is used to build a Bridge.
 type BridgeBuilder struct {
-	config          schema.Configuration
-	providers       Providers
-	preMiddlewares  []Middleware
-	postMiddlewares []AutheliaMiddleware
+	config                  schema.Configuration
+	providers               Providers
+	preMiddlewares          []Middleware
+	postMiddlewares         []AutheliaMiddleware
+	writeFormPostResponseFn func(templateData map[string]any) func(ctx *AutheliaCtx)
 }
 
 // Basic represents a middleware applied to a fasthttp.RequestHandler.

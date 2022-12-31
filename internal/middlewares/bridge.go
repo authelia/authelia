@@ -35,6 +35,12 @@ func (b *BridgeBuilder) WithPreMiddlewares(middlewares ...Middleware) *BridgeBui
 	return b
 }
 
+func (b *BridgeBuilder) WithWriteFormPostResponseFn(fn func(templateData map[string]any) func(ctx *AutheliaCtx)) *BridgeBuilder {
+	b.writeFormPostResponseFn = fn
+
+	return b
+}
+
 // WithPostMiddlewares sets the AutheliaMiddleware's used with this BridgeBuilder which are applied after the actual
 // Bridge.
 func (b *BridgeBuilder) WithPostMiddlewares(middlewares ...AutheliaMiddleware) *BridgeBuilder {
@@ -51,7 +57,12 @@ func (b *BridgeBuilder) Build() Bridge {
 		}
 
 		bridge := func(requestCtx *fasthttp.RequestCtx) {
-			next(NewAutheliaCtx(requestCtx, b.config, b.providers))
+			ctx := NewAutheliaCtx(requestCtx, b.config, b.providers)
+			if b.writeFormPostResponseFn != nil {
+				ctx.writeFormPostResponseFn = b.writeFormPostResponseFn
+			}
+
+			next(ctx)
 		}
 
 		for i := len(b.preMiddlewares) - 1; i >= 0; i-- {
