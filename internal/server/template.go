@@ -29,8 +29,8 @@ type Template struct {
 	isAssetsSwagger  bool
 }
 
-// Parse  parses file into to the template with the specific path.
-func (tmpl *Template) Parse(path string) *Template {
+// ParseFile parses file into to the template with the specific path.
+func (tmpl *Template) ParseFile(path string) *Template {
 	logger := logging.Logger()
 
 	a, err := assets.Open(path)

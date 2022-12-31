@@ -40,9 +40,11 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	return ctx
 }
 
+// Value returns the context value with the given key. If the key is not found, calls on the parent function in `vala/fasthttp` package.
+// Since `AutheliaCtx` is used as the `context.Context` interface inside `oidc/provider` package, this method repeats the behavior of `context.Contex.Value()`
 func (ctx *AutheliaCtx) Value(key any) any {
 	if key, ok := key.(oidc.ContextKey); ok {
-		if key == oidc.WriteFormPostResponseContextKey {
+		if key == oidc.WriteFormPostResponseFnContextKey {
 			return func(templateData map[string]any) {
 				ctx.writeFormPostResponseFn(templateData)(ctx)
 			}

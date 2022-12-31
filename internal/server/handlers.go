@@ -92,9 +92,9 @@ func handleNotFound(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 }
 
 func handleRouter(config schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	serveIndexHandler := NewTemplate(&config).Parse(path.Join(assetsRoot, fileIndexHTML)).Handler()
-	serveSwaggerHandler := NewTemplate(&config).Parse(path.Join(assetsSwagger, fileIndexHTML)).Handler()
-	serveSwaggerAPIHandler := NewTemplate(&config).Parse(path.Join(assetsSwagger, fileOpenAPI)).Handler()
+	serveIndexHandler := NewTemplate(&config).ParseFile(path.Join(assetsRoot, fileIndexHTML)).Handler()
+	serveSwaggerHandler := NewTemplate(&config).ParseFile(path.Join(assetsSwagger, fileIndexHTML)).Handler()
+	serveSwaggerAPIHandler := NewTemplate(&config).ParseFile(path.Join(assetsSwagger, fileOpenAPI)).Handler()
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
@@ -223,7 +223,7 @@ func handleRouter(config schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if providers.OpenIDConnect != nil {
-		oidcFormPostTemplate := NewTemplate(&config).Parse(path.Join(assetsRoot, fileOIDFormPostHTML))
+		oidcFormPostTemplate := NewTemplate(&config).ParseFile(path.Join(assetsRoot, fileOIDFormPostHTML))
 
 		middlewareOIDC := middlewares.NewBridgeBuilder(config, providers).WithPreMiddlewares(
 			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNone, middlewares.SecurityHeadersNoStore,

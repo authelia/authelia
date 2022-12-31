@@ -35,6 +35,7 @@ func (b *BridgeBuilder) WithPreMiddlewares(middlewares ...Middleware) *BridgeBui
 	return b
 }
 
+// WithWriteFormPostResponseFn sets the template handler that is used by the oidc provider to redirect the user to the client with the form_post response method.
 func (b *BridgeBuilder) WithWriteFormPostResponseFn(fn func(templateData map[string]any) func(ctx *AutheliaCtx)) *BridgeBuilder {
 	b.writeFormPostResponseFn = fn
 

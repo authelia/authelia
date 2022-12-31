@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	WriteFormPostResponseContextKey ContextKey = iota
+	WriteFormPostResponseFnContextKey ContextKey = iota
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
@@ -93,8 +93,7 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 // WriteAuthorizeResponse persists the AuthorizeSession in the store and redirects the user agent to the provided
 // redirect url or returns an error if storage failed.
 func (p *OpenIDConnectProvider) WriteAuthorizeResponse(ctx context.Context, rw http.ResponseWriter, requester fosite.AuthorizeRequester, responder fosite.AuthorizeResponder) {
-	writeFormPostResponseFn := getWriteFormPostResponseFn(ctx)
-	if writeFormPostResponseFn == nil || requester.GetResponseMode() != fosite.ResponseModeFormPost {
+	if requester.GetResponseMode() != fosite.ResponseModeFormPost {
 		p.OAuth2Provider.WriteAuthorizeResponse(ctx, rw, requester, responder)
 		return
 	}
@@ -106,65 +105,61 @@ func (p *OpenIDConnectProvider) WriteAuthorizeResponse(ctx context.Context, rw h
 		wh.Set(k, rh.Get(k))
 	}
 
-	clientID := requester.GetClient().GetID()
-	client, _ := p.Store.GetFullClient(clientID)
-
-	data := map[string]any{
-		"ClientDescription": client.Description,
-		"RedirURL":          requester.GetRedirectURI(),
-		"Parameters":        responder.GetParameters(),
-	}
-	writeFormPostResponseFn(data)
+	p.writeFormPostResponse(ctx, requester, responder.GetParameters())
 }
 
 // WriteAuthorizeError returns the error codes to the redirection endpoint or shows the error to the user, if no valid
 // redirect uri was given. Implements rfc6749#section-4.1.2.1.
 func (p *OpenIDConnectProvider) WriteAuthorizeError(ctx context.Context, rw http.ResponseWriter, requester fosite.AuthorizeRequester, err error) {
-	writeFormPostResponseFn := getWriteFormPostResponseFn(ctx)
-	if writeFormPostResponseFn == nil || requester.GetResponseMode() != fosite.ResponseModeFormPost {
+	if requester.GetResponseMode() != fosite.ResponseModeFormPost {
 		p.OAuth2Provider.WriteAuthorizeError(ctx, rw, requester, err)
 		return
 	}
 
-	rfcerr := fosite.ErrorToRFC6749Error(err).
-		WithLegacyFormat(p.Config.GetUseLegacyErrorFormat(ctx)).
-		WithExposeDebug(p.Config.GetSendDebugMessagesToClients(ctx)).
-		WithLocalizer(p.Config.GetMessageCatalog(ctx), getLangFromRequester(requester))
-
-	errors := rfcerr.ToValues()
-	errors.Set("state", requester.GetState())
-
-	redirectURI := requester.GetRedirectURI()
-
-	// The endpoint URI MUST NOT include a fragment component.
-	redirectURI.Fragment = ""
-
-	clientID := requester.GetClient().GetID()
-	client, _ := p.Store.GetFullClient(clientID)
-
-	data := map[string]any{
-		"ClientDescription": client.Description,
-		"RedirURL":          redirectURI.String(),
-		"Parameters":        errors,
-	}
-	writeFormPostResponseFn(data)
-}
-
-func getWriteFormPostResponseFn(ctx context.Context) func(templateData map[string]any) {
-	if fn := ctx.Value(WriteFormPostResponseContextKey); fn != nil {
-		if fn, ok := fn.(func(templateData map[string]any)); ok {
-			return fn
-		}
-	}
-
-	return nil
-}
-
-func getLangFromRequester(requester fosite.Requester) language.Tag {
 	lang := language.English
 	if g11nContext, ok := requester.(fosite.G11NContext); ok {
 		lang = g11nContext.GetLang()
 	}
 
-	return lang
+	rfcerr := fosite.ErrorToRFC6749Error(err).
+		WithLegacyFormat(p.Config.GetUseLegacyErrorFormat(ctx)).
+		WithExposeDebug(p.Config.GetSendDebugMessagesToClients(ctx)).
+		WithLocalizer(p.Config.GetMessageCatalog(ctx), lang)
+
+	errors := rfcerr.ToValues()
+	errors.Set("state", requester.GetState())
+
+	p.writeFormPostResponse(ctx, requester, errors)
+}
+
+func (p *OpenIDConnectProvider) writeFormPostResponse(ctx context.Context, requester fosite.AuthorizeRequester, parameters map[string][]string) {
+	ctxValue := ctx.Value(WriteFormPostResponseFnContextKey)
+	if ctxValue == nil {
+		return
+	}
+
+	writeFn, ok := ctxValue.(func(templateData map[string]any))
+	if !ok {
+		return
+	}
+
+	clientID := requester.GetClient().GetID()
+
+	var clientDescription string
+	if client, err := p.Store.GetFullClient(clientID); err == nil {
+		clientDescription = client.Description
+	}
+
+	redirectURI := requester.GetRedirectURI()
+	// The endpoint URI MUST NOT include a fragment component.
+	redirectURI.Fragment = ""
+
+	data := map[string]any{
+		"ClientID":          clientID,
+		"ClientDescription": clientDescription,
+		"RedirURL":          redirectURI,
+		"Parameters":        parameters,
+	}
+
+	writeFn(data)
 }

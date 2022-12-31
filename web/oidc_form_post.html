@@ -5,7 +5,7 @@
 		<meta property="csp-nonce" content="{{ .CSPNonce }}" />
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="utf-8" />
-		<title>Redirect to {{ .ClientDescription }} - Authelia</title>
+		<title>Redirecting to {{ or .ClientDescription .ClientID }} - Authelia</title>
 		<script type="text/javascript" nonce="{{ .CSPNonce }}">
 			window.onload = function() {
 				document.forms[0].submit();
@@ -101,7 +101,7 @@
 	<body>
 		<div class="spinner">
 			<div class="ball"></div>
-			<p>Redirect to <span class="client">{{ .ClientDescription }}</span></p>
+			<p>Redirecting to <span class="client">{{ or .ClientDescription .ClientID }}</span></p>
 		</div>
 		<form method="post" action="{{ .RedirURL }}">
 			{{ range $key,$value := .Parameters }}
