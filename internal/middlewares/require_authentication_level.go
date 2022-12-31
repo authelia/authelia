@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
@@ -21,6 +23,18 @@ func Require2FA(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		if ctx.GetSession().AuthenticationLevel < authentication.TwoFactor {
 			ctx.ReplyForbidden()
+			return
+		}
+
+		next(ctx)
+	}
+}
+
+// Require2FAWithAPIResponse requires the user to have authenticated with two-factor authentication.
+func Require2FAWithAPIResponse(next RequestHandler) RequestHandler {
+	return func(ctx *AutheliaCtx) {
+		if ctx.GetSession().AuthenticationLevel < authentication.TwoFactor {
+			ctx.SetAuthenticationErrorJSON(fasthttp.StatusForbidden, "Authentication Required.", true, false)
 			return
 		}
 

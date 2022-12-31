@@ -4,10 +4,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import KeyRoundedIcon from "@mui/icons-material/KeyRounded";
-import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
-import { ButtonProps } from "@mui/material/Button";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import LoadingButton from "@components/LoadingButton";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { WebauthnDevice } from "@models/Webauthn";
 import { deleteDevice, updateDevice } from "@services/Webauthn";
@@ -25,11 +25,12 @@ interface Props {
 export default function WebauthnDeviceItem(props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const { createErrorNotification } = useNotifications();
+    const { createSuccessNotification, createErrorNotification } = useNotifications();
 
     const [showDialogDetails, setShowDialogDetails] = useState<boolean>(false);
     const [showDialogEdit, setShowDialogEdit] = useState<boolean>(false);
     const [showDialogDelete, setShowDialogDelete] = useState<boolean>(false);
+
     const [loadingEdit, setLoadingEdit] = useState<boolean>(false);
     const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
 
@@ -42,16 +43,23 @@ export default function WebauthnDeviceItem(props: Props) {
 
         setLoadingEdit(true);
 
-        const status = await updateDevice(props.device.id, name);
-
-        console.log("Status was: ", status);
+        const response = await updateDevice(props.device.id, name);
 
         setLoadingEdit(false);
 
-        if (status !== 200) {
-            createErrorNotification(translate("There was a problem updating the device"));
+        if (response.data.status === "KO") {
+            if (response.data.elevation) {
+                createErrorNotification(translate("You must be elevated to update the device"));
+            } else if (response.data.authentication) {
+                createErrorNotification(translate("You must have a higher authentication level to update the device"));
+            } else {
+                createErrorNotification(translate("There was a problem updating the device"));
+            }
+
             return;
         }
+
+        createSuccessNotification(translate("Successfully updated the device"));
 
         props.handleDeviceEdit(props.index, { ...props.device, description: name });
     };
@@ -65,16 +73,23 @@ export default function WebauthnDeviceItem(props: Props) {
 
         setLoadingDelete(true);
 
-        const status = await deleteDevice(props.device.id);
-
-        console.log("Status was: ", status);
+        const response = await deleteDevice(props.device.id);
 
         setLoadingDelete(false);
 
-        if (status !== 200) {
-            createErrorNotification(translate("There was a problem deleting the device"));
+        if (response.data.status === "KO") {
+            if (response.data.elevation) {
+                createErrorNotification(translate("You must be elevated to delete the device"));
+            } else if (response.data.authentication) {
+                createErrorNotification(translate("You must have a higher authentication level to delete the device"));
+            } else {
+                createErrorNotification(translate("There was a problem deleting the device"));
+            }
+
             return;
         }
+
+        createSuccessNotification(translate("Successfully deleted the device"));
 
         props.handleDeviceDelete(props.device);
     };
@@ -138,21 +153,4 @@ export default function WebauthnDeviceItem(props: Props) {
             </Stack>
         </Fragment>
     );
-}
-
-interface LoadingButtonProps extends ButtonProps {
-    loading: boolean;
-}
-
-function LoadingButton(props: LoadingButtonProps) {
-    let { loading, ...childProps } = props;
-    if (loading) {
-        childProps = {
-            ...childProps,
-            startIcon: <CircularProgress color="inherit" size={20} />,
-            color: "inherit",
-            onClick: undefined,
-        };
-    }
-    return <Button {...childProps}></Button>;
 }
